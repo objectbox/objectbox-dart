@@ -26,6 +26,15 @@ class _ObjectBoxBindings {
     int Function(Pointer<Void> model, int property_id, int property_uid) obx_model_entity_last_property_id;
     int Function(Pointer<Void> model, int entity_id, int entity_uid) obx_model_last_entity_id;
 
+    // object store management
+    Pointer<Void> Function() obx_opt;
+    int Function(Pointer<Void> opt, Pointer<Void> model) obx_opt_model;
+    Pointer<Void> Function(Pointer<Void> opt) obx_store_open;
+    int Function(Pointer<Void> store) obx_store_close;
+
+    // box management
+    Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
+
     _ObjectBoxBindings() {
         objectbox = dlopenPlatformSpecific("objectbox");
         
@@ -47,6 +56,15 @@ class _ObjectBoxBindings {
         obx_model_property_flags = objectbox.lookup<NativeFunction<obx_model_property_flags_native_t>>("obx_model_property_flags").asFunction();
         obx_model_entity_last_property_id = objectbox.lookup<NativeFunction<obx_model_entity_last_property_id_native_t>>("obx_model_entity_last_property_id").asFunction();
         obx_model_last_entity_id = objectbox.lookup<NativeFunction<obx_model_last_entity_id_native_t>>("obx_model_last_entity_id").asFunction();
+
+        // object store management
+        obx_opt = objectbox.lookup<NativeFunction<obx_opt_native_t>>("obx_opt").asFunction();
+        obx_opt_model = objectbox.lookup<NativeFunction<obx_opt_model_native_t>>("obx_opt_model").asFunction();
+        obx_store_open = objectbox.lookup<NativeFunction<obx_store_open_native_t>>("obx_store_open").asFunction();
+        obx_store_close = objectbox.lookup<NativeFunction<obx_store_close_native_t>>("obx_store_close").asFunction();
+
+        // box management
+        obx_box = objectbox.lookup<NativeFunction<obx_box_native_t>>("obx_box").asFunction();
     }
 }
 

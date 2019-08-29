@@ -18,3 +18,12 @@ typedef obx_model_property_native_t = Int32 Function(Pointer<Void> model, Pointe
 typedef obx_model_property_flags_native_t = Int32 Function(Pointer<Void> model, Uint32 flags);
 typedef obx_model_entity_last_property_id_native_t = Int32 Function(Pointer<Void> model, Uint32 property_id, Uint64 property_uid);
 typedef obx_model_last_entity_id_native_t = Int32 Function(Pointer<Void> model, Uint32 entity_id, Uint64 entity_uid);
+
+// object store management
+typedef obx_opt_native_t = Pointer<Void> Function();
+typedef obx_opt_model_native_t = Int32 Function(Pointer<Void> opt, Pointer<Void> model);
+typedef obx_store_open_native_t = Pointer<Void> Function(Pointer<Void> opt);
+typedef obx_store_close_native_t = Int32 Function(Pointer<Void> store);
+
+// box management
+typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
