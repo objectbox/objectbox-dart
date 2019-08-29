@@ -1,9 +1,10 @@
+import "dart:ffi";
+import "dart:mirrors";
+
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
+import "bindings/helpers.dart";
 import "ffi/cstring.dart";
-import "common.dart";
-
-import "dart:mirrors";
 
 class Entity {
     final int id, uid;
@@ -19,9 +20,6 @@ class Id {
     final int id, uid;
     const Id({this.id, this.uid});
 }
-
-_check(cond) { if(!cond) throw AssertionError(); }
-_checkObx(err) { if(err != OBXErrors.OBX_SUCCESS) throw ObjectBoxException(Common.lastErrorString(err)); }
 
 _getClassModel(cls) {
     var refl = reflectClass(cls);
@@ -51,7 +49,7 @@ _getClassModel(cls) {
         var propertyTypeObx;
         if(propertyType == "int") propertyTypeObx = OBXPropertyType.Int;        // TODO: support more types
         else if(propertyType == "String") propertyTypeObx = OBXPropertyType.String;
-        _check(propertyTypeObx != null);
+        check(propertyTypeObx != null);
 
         var symbolName = getSymbolName(k);
         var meta = v.metadata[0].reflectee;
@@ -68,45 +66,48 @@ _getClassModel(cls) {
 }
 
 class Model {
-    static create(classes) {
-        var model = bindings.obx_model_create();
-        _check(model.address != 0);
+    Pointer<Void> _objectboxModel;
+    var _modelDescriptions;
+
+    Model(classes) {
+        _objectboxModel = bindings.obx_model_create();
+        check(_objectboxModel.address != 0);
 
         try {
             // transform classes into model descriptions and loop through them
-            var classModels = classes.map(_getClassModel).where((m) => m != null).toList();
-            classModels.forEach((m) {
+            _modelDescriptions = classes.map(_getClassModel).where((m) => m != null).toList();
+            _modelDescriptions.forEach((m) {
                 // start entity
                 var entityName = CString(m["entity"]["name"]);
-                _checkObx(bindings.obx_model_entity(model, entityName.ptr, m["entity"]["id"], m["entity"]["uid"]));
+                checkObx(bindings.obx_model_entity(_objectboxModel, entityName.ptr, m["entity"]["id"], m["entity"]["uid"]));
                 entityName.free();
 
                 // add all properties
                 m["properties"].forEach((p) {
                     var propertyName = CString(p["name"]);
-                    _checkObx(bindings.obx_model_property(model, propertyName.ptr, p["type"], p["id"], p["uid"]));
-                    _checkObx(bindings.obx_model_property_flags(model, p["flags"]));
+                    checkObx(bindings.obx_model_property(_objectboxModel, propertyName.ptr, p["type"], p["id"], p["uid"]));
+                    checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
                     propertyName.free();
                 });
 
                 // set last property id
                 if(m["properties"].length > 0) {
                     var lastProp = m["properties"][m["properties"].length - 1];
-                    _checkObx(bindings.obx_model_entity_last_property_id(model, lastProp["id"], lastProp["uid"]));
+                    checkObx(bindings.obx_model_entity_last_property_id(_objectboxModel, lastProp["id"], lastProp["uid"]));
                 }
             });
 
             // set last entity id
-            if(classModels.length > 0) {
-                var lastEntity = classModels[classModels.length - 1]["entity"];
-                bindings.obx_model_last_entity_id(model, lastEntity["id"], lastEntity["uid"]);
+            if(_modelDescriptions.length > 0) {
+                var lastEntity = _modelDescriptions[_modelDescriptions.length - 1]["entity"];
+                bindings.obx_model_last_entity_id(_objectboxModel, lastEntity["id"], lastEntity["uid"]);
             }
         } catch(e) {
-            bindings.obx_model_free(model);
-            model.free();
+            bindings.obx_model_free(_objectboxModel);
+            _objectboxModel = null;
             rethrow;
         }
-
-        return model;
     }
+
+    get ptr => _objectboxModel;
 }
