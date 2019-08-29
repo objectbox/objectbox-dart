@@ -32,7 +32,7 @@ class OBXPropertyFlags {
     static const int UNSIGNED = 8192;
 }
 
-class Errors {
+class OBXErrors {
     /// Successful result
     static const int OBX_SUCCESS = 0;
 
