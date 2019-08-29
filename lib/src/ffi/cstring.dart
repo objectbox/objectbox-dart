@@ -1,25 +1,27 @@
 import "dart:ffi";
 
+// wrapper for a null-terminated array of characters in memory ("c-style string")
 class CString {
     Pointer<Uint8> _ptr;
-    int _len;
 
-    CString(String dartStr) {
+    CString(String dartStr) {                                   // if this constructor is used, ".free" needs to be called on this instance
         _ptr = allocate(count: dartStr.length + 1);
         for(int i = 0; i < dartStr.length; ++i)
             _ptr.elementAt(i).store(dartStr.codeUnitAt(i));
         _ptr.elementAt(dartStr.length).store(0);
-        _len = dartStr.length;
     }
 
+    CString.fromPtr(this._ptr);
+
     String get val {
-        String ret = "";
-        for(int i = 0; i < _len; ++i)
-            ret += String.fromCharCode(_ptr.elementAt(i).load<int>());      // TODO: unicode support
+        String ret = "", c;
+        int i = 0;
+        while((c = String.fromCharCode(_ptr.elementAt(i++).load<int>())).codeUnitAt(0) != 0)          // TODO: unicode support
+            ret += c;
         return ret;
     }
 
+    String toString() => val;
     Pointer<Uint8> get ptr => _ptr;
-    int get len => _len;
     void free() => _ptr.free();
 }
