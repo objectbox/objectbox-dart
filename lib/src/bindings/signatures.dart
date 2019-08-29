@@ -2,6 +2,13 @@ import "dart:ffi";
 
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
+typedef obx_version_string_native_t = Pointer<Uint8> Function();
+
+// error info
+typedef obx_last_error_code_native_t = Int32 Function();
+typedef obx_last_error_message_native_t = Pointer<Uint8> Function();
+typedef obx_last_error_secondary_native_t = Int32 Function();
+typedef obx_last_error_clear_native_t = Void Function();
 
 // schema model creation
 typedef obx_model_create_native_t = Pointer<Void> Function();

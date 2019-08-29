@@ -9,6 +9,13 @@ class _ObjectBoxBindings {
 
     // common functions
     void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
+    Pointer<Uint8> Function() obx_version_string;
+
+    // error info
+    int Function() obx_last_error_code;
+    Pointer<Uint8> Function() obx_last_error_message;
+    int Function() obx_last_error_secondary;
+    void Function() obx_last_error_clear;
 
     // schema model creation
     Pointer<Void> Function() obx_model_create;
@@ -24,7 +31,14 @@ class _ObjectBoxBindings {
         
         // common functions
         obx_version = objectbox.lookup<NativeFunction<obx_version_native_t>>("obx_version").asFunction();
-        
+        obx_version_string = objectbox.lookup<NativeFunction<obx_version_string_native_t>>("obx_version_string").asFunction();
+
+        // error info
+        obx_last_error_code = objectbox.lookup<NativeFunction<obx_last_error_code_native_t>>("obx_last_error_code").asFunction();
+        obx_last_error_message = objectbox.lookup<NativeFunction<obx_last_error_message_native_t>>("obx_last_error_message").asFunction();
+        obx_last_error_secondary = objectbox.lookup<NativeFunction<obx_last_error_secondary_native_t>>("obx_last_error_secondary").asFunction();
+        obx_last_error_clear = objectbox.lookup<NativeFunction<obx_last_error_clear_native_t>>("obx_last_error_clear").asFunction();
+
         // schema model creation
         obx_model_create = objectbox.lookup<NativeFunction<obx_model_create_native_t>>("obx_model_create").asFunction();
         obx_model_free = objectbox.lookup<NativeFunction<obx_model_free_native_t>>("obx_model_free").asFunction();
