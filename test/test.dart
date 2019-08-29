@@ -2,6 +2,8 @@ import "../lib/objectbox.dart";
 
 import "../lib/src/bindings/bindings.dart";
 
+//import "package:flat_buffers/flat_buffers.dart" as fb;
+
 
 
 @Entity(id: 1, uid: 1)
