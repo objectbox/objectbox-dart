@@ -6,3 +6,8 @@ typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32
 // schema model creation
 typedef obx_model_create_native_t = Pointer<Void> Function();
 typedef obx_model_free_native_t = Int32 Function(Pointer<Void>);
+typedef obx_model_entity_native_t = Int32 Function(Pointer<Void> model, Pointer<Uint8> name, Uint32 entity_id, Uint64 entity_uid);
+typedef obx_model_property_native_t = Int32 Function(Pointer<Void> model, Pointer<Uint8> name, Uint32 type, Uint64 property_id, Uint64 property_uid);
+typedef obx_model_property_flags_native_t = Int32 Function(Pointer<Void> model, Uint32 flags);
+typedef obx_model_entity_last_property_id_native_t = Int32 Function(Pointer<Void> model, Uint32 property_id, Uint64 property_uid);
+typedef obx_model_last_entity_id_native_t = Int32 Function(Pointer<Void> model, Uint32 entity_id, Uint64 entity_uid);
