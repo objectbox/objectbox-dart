@@ -10,9 +10,11 @@ class Store {
 
     Store(Model model) {
         var opt = bindings.obx_opt();
-        bindings.obx_opt_model(opt, model.ptr);
+        check(opt.address != 0);
+        checkObx(bindings.obx_opt_model(opt, model.ptr));
         _objectboxStore = bindings.obx_store_open(opt);
         check(_objectboxStore != null);
+        check(_objectboxStore.address != 0);
     }
 
     close() {
