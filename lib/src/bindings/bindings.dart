@@ -35,6 +35,7 @@ class _ObjectBoxBindings {
     // box management
     Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
     int Function(Pointer<Void> box, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
+    int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
     int Function(Pointer<Void> box, int id, Pointer<Void> data, int mode) obx_box_put;
     int Function(Pointer<Void> box, int id) obx_box_remove;
 
@@ -69,6 +70,7 @@ class _ObjectBoxBindings {
         // box management
         obx_box = objectbox.lookup<NativeFunction<obx_box_native_t>>("obx_box").asFunction();
         obx_box_get = objectbox.lookup<NativeFunction<obx_box_get_native_t>>("obx_box_get").asFunction();
+        obx_box_id_for_put = objectbox.lookup<NativeFunction<obx_box_id_for_put_native_t>>("obx_box_id_for_put").asFunction();
         obx_box_put = objectbox.lookup<NativeFunction<obx_box_put_native_t>>("obx_box_put").asFunction();
         obx_box_remove = objectbox.lookup<NativeFunction<obx_box_remove_native_t>>("obx_box_remove").asFunction();
     }
