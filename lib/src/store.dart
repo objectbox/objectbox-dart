@@ -10,7 +10,7 @@ class Store {
     Pointer<Void> _objectboxStore;
     var _modelDescriptions;
 
-    Store(var classes) {
+    Store(var classes) {                        // TODO: allow setting options, e.g. database path
         var model = Model(classes);
         _modelDescriptions = model.desc;
 
@@ -26,10 +26,10 @@ class Store {
         checkObx(bindings.obx_store_close(_objectboxStore));
     }
 
-    getEntityIdFromClass(cls) {
-        final clsName = reflectClass(cls).simpleName.toString().split('"')[1];
+    getEntityDescriptionFromClass(cls) {
+        final clsName = getSymbolName(reflectClass(cls).simpleName);
         final idx = _modelDescriptions.indexWhere((e) => e["entity"]["name"] == clsName);
-        return idx == -1 ? -1 : _modelDescriptions[idx]["entity"]["id"];
+        return idx == -1 ? null : _modelDescriptions[idx];
     }
 
     get ptr => _objectboxStore;

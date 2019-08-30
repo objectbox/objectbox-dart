@@ -10,3 +10,7 @@ checkObx(err) {
     if(err != OBXErrors.OBX_SUCCESS)
         throw ObjectBoxException(Common.lastErrorString(err));
 }
+
+getSymbolName(Symbol sym) {
+    return sym.toString().split('"')[1];
+}

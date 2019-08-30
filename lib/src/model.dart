@@ -42,7 +42,6 @@ class Id {
 _getClassModel(cls) {
     var refl = reflectClass(cls);
     var properties = [];
-    getSymbolName(sym) => sym.toString().split('"')[1];
 
     if(refl.metadata.length != 1)
         return null;
