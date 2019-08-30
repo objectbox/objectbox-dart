@@ -14,6 +14,10 @@ class Note {
 main() {
     var store = Store([Note]);
     var box = Box<Note>(store);
-    box.put(Note("Hello"));
+
+    var note = Note("Hello");
+    box.put(note);
+    print("new note got id ${note.id}");
+    
     store.close();
 }

@@ -59,11 +59,14 @@ class Box<T> {
         return builder.finish(endOffset);
     }
 
-    put(T inst, {PutMode mode = PutMode.Put}) {
+    put(T inst, {PutMode mode = PutMode.Put}) {         // also assigns a value to the respective ID property if it is given as null or 0
         var instRefl = reflect(inst);
         var propVals = _entityDescription["properties"].map((p) => {...p, "value": instRefl.getField(Symbol(p["name"])).reflectee }).toList();
-        if(propVals[_idPropIdx]["value"] == null || propVals[_idPropIdx]["value"] == 0)
-            propVals[_idPropIdx]["value"] = bindings.obx_box_id_for_put(_objectboxBox, 0);
+        if(propVals[_idPropIdx]["value"] == null || propVals[_idPropIdx]["value"] == 0) {
+            final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
+            propVals[_idPropIdx]["value"] = id;
+            instRefl.setField(Symbol(propVals[_idPropIdx]["name"]), id);
+        }
         var buffer = _marshal(propVals);
         
         // determine internal put mode from given enum
