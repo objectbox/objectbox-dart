@@ -36,7 +36,7 @@ class _ObjectBoxBindings {
     Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
     int Function(Pointer<Void> box, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
     int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
-    int Function(Pointer<Void> box, int id, Pointer<Void> data, int mode) obx_box_put;
+    int Function(Pointer<Void> box, int id, Pointer<Void> data, int size, int mode) obx_box_put;
     int Function(Pointer<Void> box, int id) obx_box_remove;
 
     _ObjectBoxBindings() {
