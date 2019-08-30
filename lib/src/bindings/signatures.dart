@@ -27,3 +27,6 @@ typedef obx_store_close_native_t = Int32 Function(Pointer<Void> store);
 
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
+typedef obx_box_get_native_t = Int32 Function(Pointer<Void> box, Pointer<Pointer<Void>> data, Pointer<Int32> size);
+typedef obx_box_put_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Void> data, Int32 mode);
+typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);

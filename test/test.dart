@@ -1,7 +1,5 @@
 import "../lib/objectbox.dart";
 
-import "../lib/src/bindings/bindings.dart";
-
 //import "package:flat_buffers/flat_buffers.dart" as fb;
 
 
@@ -18,7 +16,6 @@ class Note {
 main() {
     print("version: ${Common.version()}  /  ${Common.versionString()}");
 
-    var store = Store([Note]);
-    print(store.ptr);
-    store.close();
+    var box = Box([Note]);
+    box.close();
 }

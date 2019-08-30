@@ -32,6 +32,13 @@ class OBXPropertyFlags {
     static const int UNSIGNED = 8192;
 }
 
+// see objectbox.h for more info
+class OBXPutMode {
+    static const int PUT = 1;
+    static const int INSERT = 2;
+    static const int UPDATE = 3;
+}
+
 class OBXErrors {
     /// Successful result
     static const int OBX_SUCCESS = 0;
