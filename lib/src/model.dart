@@ -149,4 +149,5 @@ class Model {
     }
 
     get ptr => _objectboxModel;
+    get desc => _modelDescriptions;
 }

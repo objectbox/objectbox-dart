@@ -7,8 +7,12 @@ import "model.dart";
 
 class Store {
     Pointer<Void> _objectboxStore;
+    var _modelDescriptions;
 
-    Store(Model model) {
+    Store(var classes) {
+        var model = Model(classes);
+        _modelDescriptions = model.desc;
+
         var opt = bindings.obx_opt();
         check(opt.address != 0);
         checkObx(bindings.obx_opt_model(opt, model.ptr));

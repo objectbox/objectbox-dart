@@ -18,7 +18,7 @@ class Note {
 main() {
     print("version: ${Common.version()}  /  ${Common.versionString()}");
 
-    var model = Model([Note]);
-    var store = Store(model);
+    var store = Store([Note]);
+    print(store.ptr);
     store.close();
 }
