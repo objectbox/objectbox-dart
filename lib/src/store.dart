@@ -1,4 +1,5 @@
 import "dart:ffi";
+import "dart:mirrors";
 
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
@@ -23,6 +24,12 @@ class Store {
 
     close() {
         checkObx(bindings.obx_store_close(_objectboxStore));
+    }
+
+    getEntityIdFromClass(cls) {
+        final clsName = reflectClass(cls).simpleName.toString().split('"')[1];
+        final idx = _modelDescriptions.indexWhere((e) => e["entity"]["name"] == clsName);
+        return idx == -1 ? -1 : _modelDescriptions[idx]["entity"]["id"];
     }
 
     get ptr => _objectboxStore;

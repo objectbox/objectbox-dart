@@ -61,7 +61,7 @@ _getClassModel(cls) {
         var annotation = v.metadata[0].reflectee;
         var annotationType = annotation.runtimeType.toString();
         var flags = 0;
-        if(annotationType == "Id")
+        if(annotationType == "Id")              // TODO: check that there is exactly one ID property
             flags |= OBXPropertyFlags.ID;
         else if(annotationType != "Property")
             return;         // invalid annotation
@@ -95,8 +95,8 @@ _getClassModel(cls) {
         properties.add({
             "name": symbolName,
             "type": propertyTypeObx,
-            "id": meta.id,
-            "uid": meta.uid,
+            "id": meta.id,                  // TODO: check that id is unique in this entity
+            "uid": meta.uid,                // TODO: check that uid is globally unique
             "flags": flags,
         });
     });
