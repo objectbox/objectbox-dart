@@ -11,14 +11,32 @@ class Entity {
     const Entity({this.id, this.uid});
 }
 
+enum Type {
+    Bool,
+    Byte,
+    Short,
+    Char,
+    Int,
+    Long,
+    Float,
+    Double,
+    String,
+    Date,
+    Relation,
+    ByteVector,
+    StringVector,
+}
+
 class Property {
+    final Type type;
     final int id, uid;
-    const Property({this.id, this.uid});
+    const Property({this.id, this.uid, this.type = null});
 }
 
 class Id {
+    final Type type;
     final int id, uid;
-    const Id({this.id, this.uid});
+    const Id({this.id, this.uid, this.type = null});
 }
 
 _getClassModel(cls) {
@@ -36,19 +54,40 @@ _getClassModel(cls) {
 
     refl.declarations.forEach((k, v) {
         if(v.runtimeType.toString() != "_LocalVariableMirror")
-            return;
+            return;         // current declaration is not a member variable (i.e. a constructor, function etc. instead)
         if(v.metadata.length != 1)
-            return;
+            return;         // too much or no metadata given
 
-        var annotationType = v.metadata[0].reflectee.runtimeType.toString();
+        var annotation = v.metadata[0].reflectee;
+        var annotationType = annotation.runtimeType.toString();
         var flags = 0;
         if(annotationType == "Id")
             flags |= OBXPropertyFlags.ID;
+        else if(annotationType != "Property")
+            return;         // invalid annotation
         
-        var propertyType = refl.instanceMembers[k].returnType.reflectedType.toString();
         var propertyTypeObx;
-        if(propertyType == "int") propertyTypeObx = OBXPropertyType.Int;        // TODO: support more types
-        else if(propertyType == "String") propertyTypeObx = OBXPropertyType.String;
+        if(annotation.type == null) {
+            var propertyType = refl.instanceMembers[k].returnType.reflectedType.toString();
+            if(propertyType == "int") propertyTypeObx = OBXPropertyType.Int;        // TODO: support more types
+            else if(propertyType == "String") propertyTypeObx = OBXPropertyType.String;
+        } else {
+            switch(annotation.type) {
+                case Type.Bool: propertyTypeObx = OBXPropertyType.Bool; break;
+                case Type.Byte: propertyTypeObx = OBXPropertyType.Byte; break;
+                case Type.Short: propertyTypeObx = OBXPropertyType.Short; break;
+                case Type.Char: propertyTypeObx = OBXPropertyType.Char; break;
+                case Type.Int: propertyTypeObx = OBXPropertyType.Int; break;
+                case Type.Long: propertyTypeObx = OBXPropertyType.Long; break;
+                case Type.Float: propertyTypeObx = OBXPropertyType.Float; break;
+                case Type.Double: propertyTypeObx = OBXPropertyType.Double; break;
+                case Type.String: propertyTypeObx = OBXPropertyType.String; break;
+                case Type.Date: propertyTypeObx = OBXPropertyType.Date; break;
+                case Type.Relation: propertyTypeObx = OBXPropertyType.Relation; break;
+                case Type.ByteVector: propertyTypeObx = OBXPropertyType.ByteVector; break;
+                case Type.StringVector: propertyTypeObx = OBXPropertyType.StringVector; break;
+            }
+        }
         check(propertyTypeObx != null);
 
         var symbolName = getSymbolName(k);

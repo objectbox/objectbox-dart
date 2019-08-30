@@ -8,7 +8,7 @@ import "../lib/src/bindings/bindings.dart";
 
 @Entity(id: 1, uid: 1)
 class Note {
-    @Id(id: 1, uid: 1001)
+    @Id(id: 1, uid: 1001, type: Type.Long)
     int id;
 
     @Property(id: 2, uid: 1002)
