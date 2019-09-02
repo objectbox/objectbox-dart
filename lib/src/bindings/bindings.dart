@@ -1,6 +1,6 @@
 import "dart:ffi";
+import "dart:io" show Platform;
 
-import "../ffi/dylib_utils.dart";
 import "signatures.dart";
 
 // bundles all C functions to be exposed to Dart
@@ -40,7 +40,12 @@ class _ObjectBoxBindings {
     int Function(Pointer<Void> box, int id) obx_box_remove;
 
     _ObjectBoxBindings() {
-        objectbox = dlopenPlatformSpecific("objectbox");
+        var libName = "objectbox";
+        if(Platform.isWindows) libName += ".dll";
+        else if(Platform.isMacOS) libName = "lib" + libName + ".dylib";
+        else if(Platform.isLinux || Platform.isAndroid) libName = "lib" + libName + ".so";
+        else throw Exception("unsupported platform detected");
+        objectbox = DynamicLibrary.open(libName);
         
         // common functions
         obx_version = objectbox.lookup<NativeFunction<obx_version_native_t>>("obx_version").asFunction();
