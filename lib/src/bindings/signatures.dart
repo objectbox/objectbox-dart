@@ -25,9 +25,16 @@ typedef obx_opt_model_native_t = Int32 Function(Pointer<Void> opt, Pointer<Void>
 typedef obx_store_open_native_t = Pointer<Void> Function(Pointer<Void> opt);
 typedef obx_store_close_native_t = Int32 Function(Pointer<Void> store);
 
+// transactions
+typedef obx_txn_write_native_t = Pointer<Void> Function(Pointer<Void> store);
+typedef obx_txn_read_native_t = Pointer<Void> Function(Pointer<Void> store);
+typedef obx_txn_close_native_t = Int32 Function(Pointer<Void> txn);
+typedef obx_txn_abort_native_t = Int32 Function(Pointer<Void> txn);
+typedef obx_txn_success_native_t = Int32 Function(Pointer<Void> txn);
+
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
-typedef obx_box_get_native_t = Int32 Function(Pointer<Void> box, Pointer<Pointer<Void>> data, Pointer<Int32> size);
+typedef obx_box_get_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Pointer<Void>> data, Pointer<Int32> size);
 typedef obx_box_id_for_put_native_t = Uint64 Function(Pointer<Void> box, Uint64 id_or_zero);
 typedef obx_box_put_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Void> data, Int32 size, Int32 mode);
 typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);

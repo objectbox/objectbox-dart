@@ -32,9 +32,16 @@ class _ObjectBoxBindings {
     Pointer<Void> Function(Pointer<Void> opt) obx_store_open;
     int Function(Pointer<Void> store) obx_store_close;
 
+    // transactions
+    Pointer<Void> Function(Pointer<Void> store) obx_txn_write;
+    Pointer<Void> Function(Pointer<Void> store) obx_txn_read;
+    int Function(Pointer<Void> txn) obx_txn_close;
+    int Function(Pointer<Void> txn) obx_txn_abort;
+    int Function(Pointer<Void> txn) obx_txn_success;
+
     // box management
     Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
-    int Function(Pointer<Void> box, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
+    int Function(Pointer<Void> box, int id, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
     int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
     int Function(Pointer<Void> box, int id, Pointer<Void> data, int size, int mode) obx_box_put;
     int Function(Pointer<Void> box, int id) obx_box_remove;
@@ -71,6 +78,13 @@ class _ObjectBoxBindings {
         obx_opt_model = objectbox.lookup<NativeFunction<obx_opt_model_native_t>>("obx_opt_model").asFunction();
         obx_store_open = objectbox.lookup<NativeFunction<obx_store_open_native_t>>("obx_store_open").asFunction();
         obx_store_close = objectbox.lookup<NativeFunction<obx_store_close_native_t>>("obx_store_close").asFunction();
+
+        // transactions
+        obx_txn_write = objectbox.lookup<NativeFunction<obx_txn_write_native_t>>("obx_txn_write").asFunction();
+        obx_txn_read = objectbox.lookup<NativeFunction<obx_txn_read_native_t>>("obx_txn_read").asFunction();
+        obx_txn_close = objectbox.lookup<NativeFunction<obx_txn_close_native_t>>("obx_txn_close").asFunction();
+        obx_txn_abort = objectbox.lookup<NativeFunction<obx_txn_abort_native_t>>("obx_txn_abort").asFunction();
+        obx_txn_success = objectbox.lookup<NativeFunction<obx_txn_success_native_t>>("obx_txn_success").asFunction();
 
         // box management
         obx_box = objectbox.lookup<NativeFunction<obx_box_native_t>>("obx_box").asFunction();

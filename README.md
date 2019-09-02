@@ -13,7 +13,7 @@ To try out the demo code in this repository, do the following:
 
 ## Dart integration
 
-In general, Dart class annotations are used in order to design ObjectBox entities in the most intuitive way possible. Note that right now, only a limited set of types is supported; this will be expanded upon in the near future. Entity IDs and UIDs defined in their respective annotations need to be unique across all entities, while property IDs only need to be unique in their respective entity; property UIDs also need to be globally unique. Additionally, each entity needs its own _Id_ property of type _Long_. All non-annotated class instance variables are ignored by ObjectBox.
+In general, Dart class annotations are used in order to design ObjectBox entities in the most intuitive way possible. Note that right now, only a limited set of types is supported; this will be expanded upon in the near future. Entity IDs and UIDs defined in their respective annotations need to be unique across all entities, while property IDs only need to be unique in their respective entity; property UIDs also need to be globally unique. Additionally, each entity needs its own _Id_ property of type _Long_; its value always needs to be >= 1. All non-annotated class instance variables are ignored by ObjectBox.
 
     import "../lib/objectbox.dart";
 
@@ -25,7 +25,10 @@ In general, Dart class annotations are used in order to design ObjectBox entitie
         @Property(id: 2, uid: 1002)
         String text;
 
-        Note(this.text);
+        Note();             // empty default constructor needed
+        Note.construct(this.text);
+
+        toString() => "Note{id: $id, text: $text}";
     }
 
 In your main function, you can then create a _store_ which needs an array of ObjectBox entity classes to be constructed. Finally, you need a _box_, i.e. an interface to objects of one specific entity type contained in the store it is connected to.
@@ -36,6 +39,7 @@ In your main function, you can then create a _store_ which needs an array of Obj
     var note = Note("Hello");
     box.put(note);
     print("new note got id ${note.id}");
+    print("refetched note: ${box.getById(note.id)}");
     
     store.close();
 
