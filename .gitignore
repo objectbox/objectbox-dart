@@ -3,3 +3,4 @@
 build/
 pubspec.lock
 objectbox/
+misc/
