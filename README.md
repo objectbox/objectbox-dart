@@ -21,8 +21,15 @@ To try out the demo code in this repository, do the following:
 In general, Dart class annotations are used in order to design ObjectBox entities in the most intuitive way possible.
 Note that right now, only a limited set of types is supported; this will be expanded upon in the near future.
 Entity IDs and UIDs defined in their respective annotations need to be unique across all entities, while property IDs only need to be unique in their respective entity; property UIDs also need to be globally unique.
-Additionally, each entity needs its own _Id_ property of type _Long_; its value always needs to be >= 1. If, when given to `Box.put`, the _Id_ property of an entity instance is `0` or `null`, it will be automatically filled with a new ID automatically assigned by ObjectBox.
+
 All non-annotated class instance variables are ignored by ObjectBox.
+
+### Object IDs
+Each entity is required to have an _Id_ property of type _Long_.
+Already persisted entities have an ID greater or equal to 1.
+New (not yet persisted) objects typically have _Id_ value of `0` or `null`: calling `Box.put` automatically assigns a new ID to the object.
+
+### Example
 
 ```dart
 import "../lib/objectbox.dart";
