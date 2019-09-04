@@ -1,4 +1,6 @@
+import "package:reflectable/reflectable.dart";
 import "../lib/objectbox.dart";
+import "test.reflectable.dart";
 
 @Entity(id: 1, uid: 1)
 class Note {
@@ -15,13 +17,16 @@ class Note {
 }
 
 main() {
-    var store = Store([Note]);
-    var box = Box<Note>(store);
+    initializeReflectable();
 
-    var note = Note.construct("Hello");
+    var store = Store([Note]);
+    print(Note.reflect());
+    //var box = Box<Note>(store);
+
+    /*var note = Note.construct("Hello");
     box.put(note);
     print("new note got id ${note.id}");
-    print("refetched note: ${box.getById(note.id)}");
+    print("refetched note: ${box.getById(note.id)}");*/
     
     store.close();
 }

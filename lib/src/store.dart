@@ -1,5 +1,6 @@
 import "dart:ffi";
-import "dart:mirrors";
+import "package:reflectable/reflectable.dart";
+// import "dart:mirrors";
 
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
@@ -13,6 +14,7 @@ class Store {
     Store(var classes) {                        // TODO: allow setting options, e.g. database path
         var model = Model(classes);
         _modelDescriptions = model.desc;
+        print(_modelDescriptions);
 
         var opt = bindings.obx_opt();
         check(opt.address != 0);
@@ -26,11 +28,11 @@ class Store {
         checkObx(bindings.obx_store_close(_objectboxStore));
     }
 
-    getEntityDescriptionFromClass(cls) {
+    /*getEntityDescriptionFromClass(cls) {
         final clsName = getSymbolName(reflectClass(cls).simpleName);
         final idx = _modelDescriptions.indexWhere((e) => e["entity"]["name"] == clsName);
         return idx == -1 ? null : _modelDescriptions[idx];
-    }
+    }*/
 
     get ptr => _objectboxStore;
 }

@@ -1,14 +1,21 @@
 import "dart:ffi";
-import "dart:mirrors";
+//import "dart:mirrors";
+import "package:reflectable/reflectable.dart";
 
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
 import "bindings/helpers.dart";
 import "ffi/cstring.dart";
 
-class Entity {
+class Entity extends Reflectable {
     final int id, uid;
-    const Entity({this.id, this.uid});
+    const Entity({this.id, this.uid}) : super(
+        invokingCapability,
+        metadataCapability,
+        declarationsCapability,
+        typeRelationsCapability,
+        typeAnnotationQuantifyCapability,
+    );
 }
 
 enum Type {

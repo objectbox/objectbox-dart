@@ -6,3 +6,5 @@ environment:
   sdk: '>=2.2.2 <3.0.0'
 dependencies:
   flat_buffers: ^1.11.0
+  reflectable: any
+  build_runner: ^1.0.0

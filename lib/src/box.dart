@@ -42,7 +42,7 @@ class Box<T> {
     var _entityDescription, _idPropIdx;
 
     Box(this._store) {
-        _entityDescription = _store.getEntityDescriptionFromClass(T);
+        // _entityDescription = _store.getEntityDescriptionFromClass(T);
         check(_entityDescription != null);
         _idPropIdx = _entityDescription["properties"].indexWhere((p) => (p["flags"] & OBXPropertyFlags.ID) != 0);
         check(_idPropIdx != -1);
