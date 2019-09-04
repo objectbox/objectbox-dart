@@ -125,25 +125,25 @@ class Box<T> {
         }
 
         // transform flatbuffers byte array into memory area for C, with a length of a multiple of four
-        Pointer<Uint8> bufferPtr = allocate(count: ((buffer.length + 3.0) / 4.0).toInt() * 4);
+        Pointer<Uint8> bufferPtr = Pointer<Uint8>.allocate(count: ((buffer.length + 3.0) / 4.0).toInt() * 4);
         for(int i = 0; i < buffer.length; ++i)
             bufferPtr.elementAt(i).store(buffer[i] as int);
 
         // put object into box and free the buffer
-        checkObx(bindings.obx_box_put(_objectboxBox, propVals[_idPropIdx]["value"], fromAddress(bufferPtr.address), buffer.length, putMode));
+        checkObx(bindings.obx_box_put(_objectboxBox, propVals[_idPropIdx]["value"], Pointer<Void>.fromAddress(bufferPtr.address), buffer.length, putMode));
         bufferPtr.free();
     }
 
     getById(int id) {
-        Pointer<Pointer<Void>> dataPtr = allocate();
-        Pointer<Int32> sizePtr = allocate();
+        Pointer<Pointer<Void>> dataPtr = Pointer<Pointer<Void>>.allocate();
+        Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 
         // get element with specified id from database
         Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
         check(txn != null && txn.address != 0);
         checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
         checkObx(bindings.obx_txn_close(txn));
-        Pointer<Uint8> data = fromAddress(dataPtr.load<Pointer<Void>>().address);
+        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
         var size = sizePtr.load<int>();
 
         // transform bytes from memory to Dart byte list
