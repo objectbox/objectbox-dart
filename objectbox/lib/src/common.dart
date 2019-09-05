@@ -5,7 +5,7 @@ import "ffi/cstring.dart";
 
 class Common {
     static List<int> version() {
-        Pointer<Int32> majorPtr = allocate(),  minorPtr = allocate(), patchPtr = allocate();
+        Pointer<Int32> majorPtr = Pointer.allocate(),  minorPtr = Pointer.allocate(), patchPtr = Pointer.allocate();
         bindings.obx_version(majorPtr, minorPtr, patchPtr);
         var ret = [majorPtr.load<int>(), minorPtr.load<int>(), patchPtr.load<int>()];
         majorPtr.free();
