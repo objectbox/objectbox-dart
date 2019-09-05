@@ -9,6 +9,12 @@ If you have never run Flutter on desktop before, execute the following commands 
     flutter channel master
     flutter upgrade
     flutter config --enable-linux-desktop
+
+When trying out this demo for the first time, you definitely need to run:
+
     flutter packages get
+
+And on first run and whenever you added or changed any classes annotated with ObjectBox's `@Entity(...)`, execute:
+
     flutter pub run build_runner build
     flutter run

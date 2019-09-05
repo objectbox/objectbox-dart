@@ -3,6 +3,6 @@ version: 0.2.0
 description: >-
   ObjectBox binding for Dart.
 environment:
-  sdk: '>=2.2.2 <3.0.0'
+  sdk: '>=2.5.0-dev.4.0 <3.0.0'
 dependencies:
   flat_buffers: ^1.11.0
