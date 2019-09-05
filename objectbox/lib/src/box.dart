@@ -1,5 +1,4 @@
 import "dart:ffi";
-import "dart:mirrors";
 import "dart:typed_data" show Uint8List;
 import "package:flat_buffers/flat_buffers.dart" as fb;
 
@@ -39,15 +38,14 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
 class Box<T> {
     Store _store;
     Pointer<Void> _objectboxBox;
-    var _entityDescription, _idPropIdx;
+    var _entityDefinition, _entityReader, _entityBuilder;
 
     Box(this._store) {
-        // _entityDescription = _store.getEntityDescriptionFromClass(T);
-        check(_entityDescription != null);
-        _idPropIdx = _entityDescription["properties"].indexWhere((p) => (p["flags"] & OBXPropertyFlags.ID) != 0);
-        check(_idPropIdx != -1);
+        _entityDefinition = _store.getEntityModelDefinitionFromClass(T);
+        _entityReader = _store.getEntityReaderFromClass<T>();
+        _entityBuilder = _store.getEntityBuilderFromClass<T>();
 
-        _objectboxBox = bindings.obx_box(_store.ptr, _entityDescription["entity"]["id"]);
+        _objectboxBox = bindings.obx_box(_store.ptr, _entityDefinition["entity"]["id"]);
         check(_objectboxBox != null);
         check(_objectboxBox.address != 0);
     }
@@ -56,17 +54,17 @@ class Box<T> {
         var builder = new fb.Builder(initialSize: 1024);
 
         // write all strings
-        propVals.forEach((p) {
+        _entityDefinition["properties"].forEach((p) {
             switch(p["type"]) {
-                case OBXPropertyType.String: p["offset"] = builder.writeString(p["value"]); break;
+                case OBXPropertyType.String: p["offset"] = builder.writeString(propVals[p["name"]]); break;
             }
         });
 
         // create table and write actual properties
         // TODO: make sure that Id property has a value >= 1
         builder.startTable();
-        propVals.forEach((p) {
-            var field = p["id"] - 1, value = p["value"];
+        _entityDefinition["properties"].forEach((p) {
+            var field = p["flatbuffers_id"], value = propVals[p["name"]];
             switch(p["type"]) {
                 case OBXPropertyType.Bool: builder.addBool(field, value); break;
                 case OBXPropertyType.Char: builder.addInt8(field, value); break;
@@ -84,10 +82,10 @@ class Box<T> {
     }
 
     _unmarshal(buffer) {
-        var ret = reflectClass(T).newInstance(Symbol.empty, []);
+        Map<String, dynamic> propVals = {};
         var entity = new _OBXFBEntity(buffer);
 
-        _entityDescription["properties"].forEach((p) {
+        _entityDefinition["properties"].forEach((p) {
             var propReader;
             switch(p["type"]) {
                 case OBXPropertyType.Bool: propReader = fb.BoolReader(); break;
@@ -100,19 +98,18 @@ class Box<T> {
                 default: throw Exception("unsupported type: ${p['type']}");         // TODO: support more types
             }
 
-            ret.setField(Symbol(p["name"]), entity.getProp(propReader, (p["id"] + 1) * 2));
+            propVals[p["name"]] = entity.getProp(propReader, (p["flatbuffers_id"] + 2) * 2);
         });
 
-        return ret.reflectee;
+        return _entityBuilder(propVals);
     }
 
-    put(T inst, {PutMode mode = PutMode.Put}) {         // also assigns a value to the respective ID property if it is given as null or 0
-        var instRefl = reflect(inst);
-        var propVals = _entityDescription["properties"].map((p) => {...p, "value": instRefl.getField(Symbol(p["name"])).reflectee }).toList();
-        if(propVals[_idPropIdx]["value"] == null || propVals[_idPropIdx]["value"] == 0) {
+    put(T inst, {PutMode mode = PutMode.Put}) {         // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
+        var propVals = _entityReader(inst);
+        var idPropName = _entityDefinition["idPropertyName"];
+        if(propVals[idPropName] == null || propVals[idPropName] == 0) {
             final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
-            propVals[_idPropIdx]["value"] = id;
-            instRefl.setField(Symbol(propVals[_idPropIdx]["name"]), id);
+            propVals[idPropName] = id;
         }
         var buffer = _marshal(propVals);
         
@@ -130,8 +127,9 @@ class Box<T> {
             bufferPtr.elementAt(i).store(buffer[i] as int);
 
         // put object into box and free the buffer
-        checkObx(bindings.obx_box_put(_objectboxBox, propVals[_idPropIdx]["value"], fromAddress(bufferPtr.address), buffer.length, putMode));
+        checkObx(bindings.obx_box_put(_objectboxBox, propVals[idPropName], fromAddress(bufferPtr.address), buffer.length, putMode));
         bufferPtr.free();
+        return propVals[idPropName];
     }
 
     getById(int id) {

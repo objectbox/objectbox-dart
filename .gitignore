@@ -1,7 +1,7 @@
-.dart_tool/
-.packages
-build/
-pubspec.lock
-objectbox/
+**/.dart_tool/
+**/.packages
+**/build/
+**/pubspec.lock
 misc/
 .idea/
+**/*.g.dart
