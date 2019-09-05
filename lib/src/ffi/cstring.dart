@@ -10,12 +10,12 @@ class CString {
 
     // if this constructor is used, ".free" needs to be called on this instance
     CString(String dartStr) {
-        List<int> ints = encodeUtf8(dartStr);
-        var utf8Str = Uint8List.fromList(ints);
-        _ptr = Pointer<Uint8>.allocate(count: utf8Str.length + 1);
-        for(int i = 0; i < utf8Str.length; ++i)
-            _ptr.elementAt(i).store(utf8Str.elementAt(i));
-        _ptr.elementAt(utf8Str.length).store(0);
+        final ints = encodeUtf8(dartStr);
+        _ptr = Pointer<Uint8>.allocate(count: ints.length + 1);
+        for(int i = 0; i < ints.length; ++i) {
+            _ptr.elementAt(i).store(ints.elementAt(i));
+        }
+        _ptr.elementAt(ints.length).store(0);
     }
 
     CString.fromPtr(this._ptr);
