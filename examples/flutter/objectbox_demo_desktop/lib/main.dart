@@ -1,7 +1,21 @@
 import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import "package:objectbox/objectbox.dart";
+import "package:objectbox/objectbox.dart";
+part "main.g.dart";
+
+@Entity(id: 1, uid: 1)
+class Note {
+    @Id(id: 1, uid: 1001, type: OBXPropertyType.Long)
+    int id;
+
+    @Property(id: 2, uid: 1002)
+    String text;
+
+    Note();
+    Note.construct(this.text);
+    toString() => "Note{id: $id, text: $text}";
+}
 
 void main() {
     // See https://github.com/flutter/flutter/wiki/Desktop-shells#target-platform-override
@@ -32,17 +46,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
     String _status = "";
+    Store _store;
+    Box _box;
+    int _lastPutId;
 
     void _testGetById() {
         setState(() {
-            _status += "getById\n";
+            if(_lastPutId == null) {
+                _status += "cannot get, as nothing was put in this session yet\n";
+                return;
+            }
+            _status += "fetched note: ${_box.getById(_lastPutId)}\n";
         });
     }
 
     void _testPut() {
         setState(() {
-            _status += "put\n";
+            _lastPutId = _box.put(Note.construct("Hello"));
+            _status += "put new note with id $_lastPutId\n";
         });
+    }
+
+    @override
+    void initState() {
+        _store = Store([[Note, Note_OBXDefs]]);
+        _box = Box<Note>(_store);
+        super.initState();
     }
 
     @override

@@ -10,4 +10,5 @@ If you have never run Flutter on desktop before, execute the following commands 
     flutter upgrade
     flutter config --enable-linux-desktop
     flutter packages get
+    flutter pub run build_runner build
     flutter run
