@@ -54,9 +54,10 @@ class Box<T> {
         var builder = new fb.Builder(initialSize: 1024);
 
         // write all strings
+        Map<String, int> offsets = {};
         _entityDefinition["properties"].forEach((p) {
             switch(p["type"]) {
-                case OBXPropertyType.String: p["offset"] = builder.writeString(propVals[p["name"]]); break;
+                case OBXPropertyType.String: offsets[p["name"]] = builder.writeString(propVals[p["name"]]); break;
             }
         });
 
@@ -72,7 +73,7 @@ class Box<T> {
                 case OBXPropertyType.Short: builder.addInt16(field, value); break;
                 case OBXPropertyType.Int: builder.addInt32(field, value); break;
                 case OBXPropertyType.Long: builder.addInt64(field, value); break;
-                case OBXPropertyType.String: builder.addOffset(field, p["offset"]); break;
+                case OBXPropertyType.String: builder.addOffset(field, offsets[p["name"]]); break;
                 default: throw Exception("unsupported type: ${p['type']}");         // TODO: support more types
             }
         });
@@ -80,7 +81,7 @@ class Box<T> {
         var endOffset = builder.endTable();
         return builder.finish(endOffset);
     }
-
+    
     _unmarshal(buffer) {
         Map<String, dynamic> propVals = {};
         var entity = new _OBXFBEntity(buffer);
