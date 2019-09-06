@@ -9,7 +9,7 @@ class CString {
     // if this constructor is used, ".free" needs to be called on this instance
     CString(String dartStr) {
         final ints = encodeUtf8(dartStr);
-        _ptr = allocate(count: ints.length + 1);
+        _ptr = Pointer<Uint8>.allocate(count: ints.length + 1);
         for(int i = 0; i < ints.length; ++i) {
             _ptr.elementAt(i).store(ints.elementAt(i));
         }
