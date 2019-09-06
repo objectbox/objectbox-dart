@@ -25,7 +25,7 @@ class Model {
 
     Model(List<Map<String, dynamic>> modelDefinitions) {
         _objectboxModel = bindings.obx_model_create();
-        check(_objectboxModel.address != 0);
+        checkObxPtr(_objectboxModel, "failed to create model");
 
         try {
             // transform classes into model descriptions and loop through them

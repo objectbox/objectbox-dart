@@ -46,8 +46,7 @@ class Box<T> {
         _entityBuilder = _store.getEntityBuilderFromClass<T>();
 
         _objectboxBox = bindings.obx_box(_store.ptr, _entityDefinition["entity"]["id"]);
-        check(_objectboxBox != null);
-        check(_objectboxBox.address != 0);
+        checkObxPtr(_objectboxBox, "failed to create box");
     }
 
     _marshal(propVals) {
@@ -139,7 +138,7 @@ class Box<T> {
 
         // get element with specified id from database
         Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
-        check(txn != null && txn.address != 0);
+        checkObxPtr(txn, "failed to created transaction");
         checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
         checkObx(bindings.obx_txn_close(txn));
         Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
