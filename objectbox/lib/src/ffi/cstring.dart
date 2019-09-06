@@ -20,10 +20,12 @@ class CString {
 
     String get val {
         List<int> utf8CodePoints = new List<int>();
-        int element;
+        int element, i = 0;
 
-        for(int i = 0; element != 0; i++) {
-            element = _ptr.elementAt(i).load<int>();
+        while(true) {
+            element = _ptr.elementAt(i++).load<int>();
+            if(element == 0)
+                break;
             utf8CodePoints.add(element);
         }
 
