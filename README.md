@@ -60,7 +60,7 @@ New (not yet persisted) objects typically have _Id_ value of `0` or `null`: call
 
 *Note:* specifying the (meta model) IDs in annotations manually is a temporary quick solution.
 In a later version, you won't have to do this the and e.g. `@Property(id: 2, uid: 1002)` can be dropped completely.
-Technically, we need to setup [build time tools for Dart](https://github.com/objectbox/objectbox-dart/issues/3) for automatic management of the meta model IDs.
+As specified in step 3 of the _Getting started_ section, Dart's _build\_runner_ and _source\_gen_ are currently used and the generator will be extended to automatically manage the meta model IDs in the future.
 
 ```dart
 import "../lib/objectbox.dart";
@@ -68,7 +68,7 @@ part "test.g.dart";
 
 @Entity(id: 1, uid: 1)
 class Note {
-    @Id(id: 1, uid: 1001, type: OBXPropertyType.Long)
+    @Id(id: 1, uid: 1001)       // automatically always 'int' in Dart code and 'Long' in ObjectBox
     int id;
 
     @Property(id: 2, uid: 1002)

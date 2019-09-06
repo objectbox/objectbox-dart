@@ -3,7 +3,7 @@ part "test.g.dart";
 
 @Entity(id: 1, uid: 1)
 class Note {
-    @Id(id: 1, uid: 1001, type: OBXPropertyType.Long)
+    @Id(id: 1, uid: 1001)
     int id;
 
     @Property(id: 2, uid: 1002)

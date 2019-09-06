@@ -16,9 +16,8 @@ class Property {
 }
 
 class Id {
-    final int type;
     final int id, uid;
-    const Id({this.id, this.uid, this.type = null});
+    const Id({this.id, this.uid});      // type is always long
 }
 
 class Model {

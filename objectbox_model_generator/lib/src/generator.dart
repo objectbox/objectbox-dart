@@ -34,6 +34,8 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
             var annotElmt = f.metadata[0].element as ConstructorElement;
             var annotType = annotElmt.returnType.toString();
             var annotVal = f.metadata[0].computeConstantValue();
+            var fieldTypeObj = annotVal.getField("type");
+            int fieldType = fieldTypeObj == null ? null : fieldTypeObj.toIntValue();
 
             var prop = {
                 "name": f.name,
@@ -45,7 +47,12 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
             if(annotType == "Id") {
                 if(idPropertyName != null)
                     throw InvalidGenerationSourceError("in target ${elementBare.name}: has more than one properties annotated with @Id");
-                
+                if(fieldType != null)
+                     throw InvalidGenerationSourceError("in target ${elementBare.name}: programming error: @Id property may not specify a type");
+                if(f.type.toString() != "int")
+                    throw InvalidGenerationSourceError("in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+
+                fieldType = OBXPropertyType.Long;                
                 prop["flags"] = OBXPropertyFlags.ID;
                 idPropertyName = f.name;
             } else if(annotType == "Property") {
@@ -55,7 +62,6 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
                 continue;
             }
 
-            int fieldType = annotVal.getField("type").toIntValue();
             if(fieldType == null) {
                 var fieldTypeStr = f.type.toString();
                 if(fieldTypeStr == "int")
