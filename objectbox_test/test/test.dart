@@ -18,7 +18,7 @@ main() {
     var store = Store([[Note, Note_OBXDefs]]);
     var box = Box<Note>(store);
 
-    var note = Note.construct("Hello");
+    var note = Note.construct("Hello 😄");
     note.id = box.put(note);
     print("new note got id ${note.id}");
     print("refetched note: ${box.getById(note.id)}");

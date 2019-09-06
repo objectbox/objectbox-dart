@@ -1,24 +1,33 @@
 import "dart:ffi";
+import "package:utf/src/utf8.dart";
 
+// TODO check if revamp structs are relevant (https://github.com/dart-lang/sdk/issues/37229)
 // wrapper for a null-terminated array of characters in memory ("c-style string")
 class CString {
     Pointer<Uint8> _ptr;
 
-    CString(String dartStr) {                                   // if this constructor is used, ".free" needs to be called on this instance
-        _ptr = allocate(count: dartStr.length + 1);
-        for(int i = 0; i < dartStr.length; ++i)
-            _ptr.elementAt(i).store(dartStr.codeUnitAt(i));
-        _ptr.elementAt(dartStr.length).store(0);
+    // if this constructor is used, ".free" needs to be called on this instance
+    CString(String dartStr) {
+        final ints = encodeUtf8(dartStr);
+        _ptr = allocate(count: ints.length + 1);
+        for(int i = 0; i < ints.length; ++i) {
+            _ptr.elementAt(i).store(ints.elementAt(i));
+        }
+        _ptr.elementAt(ints.length).store(0);
     }
 
     CString.fromPtr(this._ptr);
 
     String get val {
-        String ret = "", c;
-        int i = 0;
-        while((c = String.fromCharCode(_ptr.elementAt(i++).load<int>())).codeUnitAt(0) != 0)          // TODO: unicode support
-            ret += c;
-        return ret;
+        List<int> utf8CodePoints = new List<int>();
+        int element;
+
+        for(int i = 0; element != 0; i++) {
+            element = _ptr.elementAt(i).load<int>();
+            utf8CodePoints.add(element);
+        }
+
+        return decodeUtf8(utf8CodePoints);
     }
 
     String toString() => val;
