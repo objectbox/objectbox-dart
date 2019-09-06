@@ -16,7 +16,7 @@ class Store {
         var opt = bindings.obx_opt();
         checkObxPtr(opt, "failed to create store options");
         checkObx(bindings.obx_opt_model(opt, model.ptr));
-        _objectboxStore = null;//bindings.obx_store_open(opt);
+        _objectboxStore = bindings.obx_store_open(opt);
         checkObxPtr(_objectboxStore, "failed to create store");
     }
 
