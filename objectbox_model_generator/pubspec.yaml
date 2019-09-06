@@ -3,7 +3,7 @@ version: 0.2.0
 description: >-
   A preprocessor for Dart source files containing ObjectBox entity definitions.
 environment:
-  sdk: '>=2.5.0-dev.4.0 <3.0.0'
+  sdk: '>=2.1.0 <3.0.0'
 dependencies:
   build: '>=0.12.0 <2.0.0'
   source_gen: ^0.9.0

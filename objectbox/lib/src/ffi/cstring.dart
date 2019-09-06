@@ -5,7 +5,7 @@ class CString {
     Pointer<Uint8> _ptr;
 
     CString(String dartStr) {                                   // if this constructor is used, ".free" needs to be called on this instance
-        _ptr = Pointer.allocate(count: dartStr.length + 1);
+        _ptr = allocate(count: dartStr.length + 1);
         for(int i = 0; i < dartStr.length; ++i)
             _ptr.elementAt(i).store(dartStr.codeUnitAt(i));
         _ptr.elementAt(dartStr.length).store(0);

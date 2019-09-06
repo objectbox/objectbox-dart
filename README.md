@@ -40,7 +40,6 @@ To try out the demo code in this repository, follow these steps:
 2. Back in this repository, run `pub get` in each of the following directories: `objectbox`, `objectbox_model_generator`, `objectbox_test`. If you just want to try out the tests, running it in `objectbox_test` is enough.
 3. Move into the `objectbox_test` directory and execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
 4. Finally run `dart test/test.dart` to start the demo script.
-   Note that, as very recent language features are used, the minimal required Dart version is 2.5.0-dev.4.0. This means that currently, you need to use the latest Dart master branch and cannot use the latest normal release (2.4.1). Setting this up from Flutter is the easiest, see [here](examples/flutter/objectbox_demo_desktop/README.md) for details.
 
 Dart integration
 ----------------
