@@ -16,7 +16,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
         var entity = Entity(id: annotation.read('id').intValue, uid: annotation.read('uid').intValue);
         var element = elementBare as ClassElement;
         var ret = """
-            final _${element.name}_OBXModel = {
+            const _${element.name}_OBXModel = {
                 "entity": {
                     "name": "${element.name}",
                     "id": ${entity.id},
@@ -110,7 +110,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
                 return r;
             }
 
-            final ${element.name}_OBXDefs = {
+            const ${element.name}_OBXDefs = {
                 "model": _${element.name}_OBXModel,
                 "builder": _${element.name}_OBXBuilder,
                 "reader": _${element.name}_OBXReader,
