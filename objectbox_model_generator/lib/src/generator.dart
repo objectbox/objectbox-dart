@@ -53,7 +53,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
                     throw InvalidGenerationSourceError("in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
 
                 fieldType = OBXPropertyType.Long;                
-                prop["flags"] = OBXPropertyFlags.ID;
+                prop["flags"] = OBXPropertyFlag.ID;
                 idPropertyName = f.name;
             } else if(annotType == "Property") {
                 // nothing special here

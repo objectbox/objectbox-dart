@@ -15,7 +15,7 @@ class OBXPropertyType {
 }
 
 // see objectbox.h for more info
-class OBXPropertyFlags {
+class OBXPropertyFlag {
     static const int ID = 1;
     static const int NON_PRIMITIVE_TYPE = 2;
     static const int NOT_NULL = 4;
@@ -39,7 +39,7 @@ class OBXPutMode {
     static const int UPDATE = 3;
 }
 
-class OBXErrors {
+class OBXError {
     /// Successful result
     static const int OBX_SUCCESS = 0;
 

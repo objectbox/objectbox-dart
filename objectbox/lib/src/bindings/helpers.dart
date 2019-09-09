@@ -3,7 +3,7 @@ import "constants.dart";
 import "../common.dart";
 
 checkObx(errorCode) {
-    if(errorCode != OBXErrors.OBX_SUCCESS)
+    if(errorCode != OBXError.OBX_SUCCESS)
         throw ObjectBoxException(Common.lastErrorString(errorCode));
 }
 
