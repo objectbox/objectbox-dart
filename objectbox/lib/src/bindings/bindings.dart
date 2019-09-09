@@ -19,7 +19,7 @@ class _ObjectBoxBindings {
     void Function() obx_last_error_clear;
 
     // schema model creation
-    Pointer<Void> Function() obx_model_create;
+    Pointer<Void> Function() obx_model;
     int Function(Pointer<Void> model) obx_model_free;
     int Function(Pointer<Void> model, Pointer<Uint8> name, int entity_id, int entity_uid) obx_model_entity;
     int Function(Pointer<Void> model, Pointer<Uint8> name, int type, int property_id, int property_uid) obx_model_property;
@@ -73,7 +73,7 @@ class _ObjectBoxBindings {
         obx_last_error_clear = objectbox.lookup<NativeFunction<obx_last_error_clear_native_t>>("obx_last_error_clear").asFunction();
 
         // schema model creation
-        obx_model_create = objectbox.lookup<NativeFunction<obx_model_create_native_t>>("obx_model_create").asFunction();
+        obx_model = objectbox.lookup<NativeFunction<obx_model_native_t>>("obx_model").asFunction();
         obx_model_free = objectbox.lookup<NativeFunction<obx_model_free_native_t>>("obx_model_free").asFunction();
         obx_model_entity = objectbox.lookup<NativeFunction<obx_model_entity_native_t>>("obx_model_entity").asFunction();
         obx_model_property = objectbox.lookup<NativeFunction<obx_model_property_native_t>>("obx_model_property").asFunction();

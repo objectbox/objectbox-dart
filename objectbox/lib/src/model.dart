@@ -24,7 +24,7 @@ class Model {
     Pointer<Void> _objectboxModel;
 
     Model(List<Map<String, dynamic>> modelDefinitions) {
-        _objectboxModel = bindings.obx_model_create();
+        _objectboxModel = bindings.obx_model();
         checkObxPtr(_objectboxModel, "failed to create model");
 
         try {

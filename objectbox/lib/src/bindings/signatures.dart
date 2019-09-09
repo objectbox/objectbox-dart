@@ -12,7 +12,7 @@ typedef obx_last_error_secondary_native_t = Int32 Function();
 typedef obx_last_error_clear_native_t = Void Function();
 
 // schema model creation
-typedef obx_model_create_native_t = Pointer<Void> Function();
+typedef obx_model_native_t = Pointer<Void> Function();
 typedef obx_model_free_native_t = Int32 Function(Pointer<Void>);
 typedef obx_model_entity_native_t = Int32 Function(Pointer<Void> model, Pointer<Uint8> name, Uint32 entity_id, Uint64 entity_uid);
 typedef obx_model_property_native_t = Int32 Function(Pointer<Void> model, Pointer<Uint8> name, Uint32 type, Uint64 property_id, Uint64 property_uid);
