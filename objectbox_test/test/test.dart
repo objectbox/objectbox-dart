@@ -1,32 +1,53 @@
-import "dart:math";
+import "dart:io";
+import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
 part "test.g.dart";
 
 @Entity(id: 1, uid: 1)
-class Note {
+class TestEntity {
     @Id(id: 1, uid: 1001)
     int id;
 
     @Property(id: 2, uid: 1002)
     String text;
 
-    Note();
-    Note.construct(this.text);
-    toString() => "Note{id: $id, text: $text}";
+    TestEntity();
+    TestEntity.construct(this.text);
 }
 
 main() {
-    var store = Store([[Note, Note_OBXDefs]]);
-    var box = Box<Note>(store);
+    Store store;
+    Box box;
 
-    var note = Note.construct("Hello 😄 ${new Random().nextInt(1 << 32)}");
-    note.id = box.put(note);
-    print(box.putMany([Note.construct("ABC"), Note.construct("DEF")]));
-    print("new note got id ${note.id}");
-    print("refetched note: ${box.get(note.id)}");
+    setUp(() {
+        store = Store([[TestEntity, TestEntity_OBXDefs]]);
+        box = Box<TestEntity>(store);
+    });
 
-    print(box.getAll());
-    print(box.getMany([1, 2, 30, 40]));
-    
-    store.close();
+    group("box", () {
+        test(".put() returns a valid id", () {
+            int putId = box.put(TestEntity.construct("Hello"));
+            expect(putId, greaterThan(0));
+        });
+
+        test(".get() returns the correct instance", () {
+            int putId = box.put(TestEntity.construct("Hello"));
+            final TestEntity inst = box.get(putId);
+            expect(inst.id, equals(putId));
+            expect(inst.text, equals("Hello"));
+        });
+
+        test(".put() and box.get() keep Unicode characters", () {
+            final text = "😄你好";
+            final TestEntity inst = box.get(box.put(TestEntity.construct(text)));
+            expect(inst.text, equals(text));
+        });
+
+        // TODO: test box.putMany, box.getMany, box.getAll
+    });
+
+    tearDown(() {
+        store.close();
+        new Directory("objectbox").delete(recursive: true);
+    });
 }
