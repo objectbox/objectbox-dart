@@ -145,9 +145,7 @@ class Box<T> {
         var size = sizePtr.load<int>();
 
         // transform bytes from memory to Dart byte list
-        var buffer = new Uint8List(size);
-        for(int i = 0; i < size; ++i)           // TODO: move this to a separate class
-            buffer[i] = data.elementAt(i).load<int>();
+        var buffer = loadMemory(data, size);
         dataPtr.free();
         sizePtr.free();
 
