@@ -104,6 +104,22 @@ class Box<T> {
         return _entityBuilder(propVals);
     }
 
+    _unmarshalArray(Pointer<Uint64> bytesArray) {       // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
+        List<T> ret = [];
+        int numObjects = bytesArray.elementAt(1).load<int>();                                                 // bytesArray.count
+        Pointer<Uint64> objectsPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>());                    // bytesArray.bytes
+        for(int i = 0; i < numObjects; ++i) {                                                                 // loop through instances of OBX_bytes
+            Pointer<Uint8> data = Pointer<Uint8>.fromAddress(objectsPtrs.elementAt(2 * i).load<int>());       // bytesArray.bytes[i].data
+            int size = objectsPtrs.elementAt(2 * i + 1).load<int>();                                          // bytesArray.bytes[i].size
+            if(data.address == 0 || size == 0) {
+                ret.add(null);
+                continue;
+            }
+            ret.add(_unmarshal(loadMemory(data, size)));
+        }
+        return ret;
+    }
+
     put(T inst, {PutMode mode = PutMode.Put}) {         // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
         var propVals = _entityReader(inst);
         var idPropName = _entityDefinition["idPropertyName"];
@@ -157,20 +173,28 @@ class Box<T> {
         return _unmarshal(buffer);
     }
 
+    // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
+    getMany(List<int> ids) {
+        // write ids in buffer for FFI call
+        Pointer<Uint64> idsMemory = Pointer<Uint64>.allocate(count: ids.length);
+        for(int i = 0; i < ids.length; ++i)
+            idsMemory.elementAt(i).store(ids[i]);
+        Pointer<Uint64> idsArrayMemory = Pointer<Uint64>.allocate(count: 2);
+        idsArrayMemory.store(idsMemory.address);
+        idsArrayMemory.elementAt(1).store(ids.length);
+        
+        // get bytes array, similar to getAll
+        Pointer<Uint64> bytesArray = _inReadTransaction(() => checkObxPtr(bindings.obx_box_get_many(_objectboxBox, idsArrayMemory), "failed to get many objects from box", true));
+        var ret = _unmarshalArray(bytesArray);
+        idsMemory.free();
+        bindings.obx_bytes_array_free(bytesArray);
+        return ret;
+    }
+
     getAll() {
         // return value actually points to a OBX_bytes_array struct, which has two Uint64 members (data and size)
         Pointer<Uint64> bytesArray = _inReadTransaction(() => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
-
-        // manually resolve the OBX_bytes_array struct (see objectbox.h)
-        List<T> ret = [];
-        int numObjects = bytesArray.elementAt(1).load<int>();                                                 // bytesArray.count
-        Pointer<Uint64> objectsPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>());                    // bytesArray.bytes
-        for(int i = 0; i < numObjects; ++i) {                                                                 // loop through instances of OBX_bytes
-            Pointer<Uint8> data = Pointer<Uint8>.fromAddress(objectsPtrs.elementAt(2 * i).load<int>());       // bytesArray.bytes[i].data
-            int size = objectsPtrs.elementAt(2 * i + 1).load<int>();                                          // bytesArray.bytes[i].size
-            ret.add(_unmarshal(loadMemory(data, size)));
-        }
-
+        var ret = _unmarshalArray(bytesArray);
         bindings.obx_bytes_array_free(bytesArray);
         return ret;
     }

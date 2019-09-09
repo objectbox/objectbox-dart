@@ -25,6 +25,7 @@ main() {
     print("refetched note: ${box.get(note.id)}");
 
     print(box.getAll());
+    print(box.getMany([1, 2, 30, 40]));
     
     store.close();
 }
