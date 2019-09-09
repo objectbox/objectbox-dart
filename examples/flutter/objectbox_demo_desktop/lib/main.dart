@@ -50,13 +50,13 @@ class _MyHomePageState extends State<MyHomePage> {
     Box _box;
     int _lastPutId;
 
-    void _testGetById() {
+    void _testGet() {
         setState(() {
             if(_lastPutId == null) {
                 _status += "cannot get, as nothing was put in this session yet\n";
                 return;
             }
-            _status += "fetched note: ${_box.getById(_lastPutId)}\n";
+            _status += "fetched note: ${_box.get(_lastPutId)}\n";
         });
     }
 
@@ -85,8 +85,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                         children: <Widget>[
                             FlatButton(
-                                onPressed: _testGetById,
-                                child: Text("getById"),
+                                onPressed: _testGet,
+                                child: Text("get"),
                                 color: Colors.blue,
                                 textColor: Colors.white,
                             ),

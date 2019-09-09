@@ -132,7 +132,7 @@ class Box<T> {
         return propVals[idPropName];
     }
 
-    getById(int id) {
+    get(int id) {
         Pointer<Pointer<Void>> dataPtr = Pointer<Pointer<Void>>.allocate();
         Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 

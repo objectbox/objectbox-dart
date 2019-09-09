@@ -21,7 +21,7 @@ main() {
     var note = Note.construct("Hello 😄");
     note.id = box.put(note);
     print("new note got id ${note.id}");
-    print("refetched note: ${box.getById(note.id)}");
+    print("refetched note: ${box.get(note.id)}");
     
     store.close();
 }
