@@ -35,6 +35,26 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
         new _OBXFBEntity._(bc, offset);
 }
 
+class _IDArray {
+    Pointer<Uint64> _idsPtr, _structPtr;
+
+    _IDArray(List<int> ids) {
+        _idsPtr = Pointer<Uint64>.allocate(count: ids.length);
+        for(int i = 0; i < ids.length; ++i)
+            _idsPtr.elementAt(i).store(ids[i]);
+        _structPtr = Pointer<Uint64>.allocate(count: 2);
+        _structPtr.store(_idsPtr.address);
+        _structPtr.elementAt(1).store(ids.length);
+    }
+
+    get ptr => _structPtr;
+
+    free() {
+        _idsPtr.free();
+        _structPtr.free();
+    }
+}
+
 class Box<T> {
     Store _store;
     Pointer<Void> _objectboxBox;
@@ -175,25 +195,27 @@ class Box<T> {
 
     // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
     getMany(List<int> ids) {
+        if(ids.length == 0)
+            return [];
+
         // write ids in buffer for FFI call
-        Pointer<Uint64> idsMemory = Pointer<Uint64>.allocate(count: ids.length);
-        for(int i = 0; i < ids.length; ++i)
-            idsMemory.elementAt(i).store(ids[i]);
-        Pointer<Uint64> idsArrayMemory = Pointer<Uint64>.allocate(count: 2);
-        idsArrayMemory.store(idsMemory.address);
-        idsArrayMemory.elementAt(1).store(ids.length);
+        var idArray = new _IDArray(ids);
         
         // get bytes array, similar to getAll
-        Pointer<Uint64> bytesArray = _inReadTransaction(() => checkObxPtr(bindings.obx_box_get_many(_objectboxBox, idsArrayMemory), "failed to get many objects from box", true));
+        Pointer<Uint64> bytesArray = _inReadTransaction(
+            () => checkObxPtr(bindings.obx_box_get_many(_objectboxBox, idArray.ptr),
+            "failed to get many objects from box", true));
         var ret = _unmarshalArray(bytesArray);
-        idsMemory.free();
         bindings.obx_bytes_array_free(bytesArray);
+        idArray.free();
         return ret;
     }
 
     getAll() {
         // return value actually points to a OBX_bytes_array struct, which has two Uint64 members (data and size)
-        Pointer<Uint64> bytesArray = _inReadTransaction(() => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
+        Pointer<Uint64> bytesArray = _inReadTransaction(
+            () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox),
+            "failed to get all objects from box", true));
         var ret = _unmarshalArray(bytesArray);
         bindings.obx_bytes_array_free(bytesArray);
         return ret;
