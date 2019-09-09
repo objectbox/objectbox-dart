@@ -3,6 +3,7 @@ import "dart:ffi";
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();
+typedef obx_bytes_array_free_native_t = Void Function(Pointer<Uint64> array);
 
 // error info
 typedef obx_last_error_code_native_t = Int32 Function();
@@ -34,7 +35,13 @@ typedef obx_txn_success_native_t = Int32 Function(Pointer<Void> txn);
 
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
+typedef obx_box_contains_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Int8> out_contains);
+typedef obx_box_contains_many_native_t = Int32 Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains);
 typedef obx_box_get_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Pointer<Void>> data, Pointer<Int32> size);
+typedef obx_box_get_many_native_t = Pointer<Uint64> Function(Pointer<Void> box, Pointer<Uint64> ids);
+typedef obx_box_get_all_native_t = Pointer<Uint64> Function(Pointer<Void> box);
 typedef obx_box_id_for_put_native_t = Uint64 Function(Pointer<Void> box, Uint64 id_or_zero);
+typedef obx_box_ids_for_put_native_t = Int32 Function(Pointer<Void> box, Uint64 count, Pointer<Uint64> out_first_id);
 typedef obx_box_put_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Void> data, Int32 size, Int32 mode);
+typedef obx_box_put_many_native_t = Int32 Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, Int32 mode);
 typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);

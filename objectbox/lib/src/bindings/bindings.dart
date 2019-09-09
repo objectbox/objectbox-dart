@@ -10,6 +10,7 @@ class _ObjectBoxBindings {
     // common functions
     void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
     Pointer<Uint8> Function() obx_version_string;
+    void Function(Pointer<Uint64> array) obx_bytes_array_free;
 
     // error info
     int Function() obx_last_error_code;
@@ -41,9 +42,15 @@ class _ObjectBoxBindings {
 
     // box management
     Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
+    int Function(Pointer<Void> box, int id, Pointer<Int8> out_contains) obx_box_contains;
+    int Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains) obx_box_contains_many;
     int Function(Pointer<Void> box, int id, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
+    Pointer<Uint64> Function(Pointer<Void> box, Pointer<Uint64> ids) obx_box_get_many;
+    Pointer<Uint64> Function(Pointer<Void> box) obx_box_get_all;
     int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
+    int Function(Pointer<Void> box, int count, Pointer<Uint64> out_first_id) obx_box_ids_for_put;
     int Function(Pointer<Void> box, int id, Pointer<Void> data, int size, int mode) obx_box_put;
+    int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
     int Function(Pointer<Void> box, int id) obx_box_remove;
 
     _ObjectBoxBindings() {
@@ -57,6 +64,7 @@ class _ObjectBoxBindings {
         // common functions
         obx_version = objectbox.lookup<NativeFunction<obx_version_native_t>>("obx_version").asFunction();
         obx_version_string = objectbox.lookup<NativeFunction<obx_version_string_native_t>>("obx_version_string").asFunction();
+        obx_bytes_array_free = objectbox.lookup<NativeFunction<obx_bytes_array_free_native_t>>("obx_bytes_array_free").asFunction();
 
         // error info
         obx_last_error_code = objectbox.lookup<NativeFunction<obx_last_error_code_native_t>>("obx_last_error_code").asFunction();
@@ -88,9 +96,15 @@ class _ObjectBoxBindings {
 
         // box management
         obx_box = objectbox.lookup<NativeFunction<obx_box_native_t>>("obx_box").asFunction();
+        obx_box_contains = objectbox.lookup<NativeFunction<obx_box_contains_native_t>>("obx_box_contains").asFunction();
+        obx_box_contains_many = objectbox.lookup<NativeFunction<obx_box_contains_many_native_t>>("obx_box_contains_many").asFunction();
         obx_box_get = objectbox.lookup<NativeFunction<obx_box_get_native_t>>("obx_box_get").asFunction();
+        obx_box_get_many = objectbox.lookup<NativeFunction<obx_box_get_many_native_t>>("obx_box_get_many").asFunction();
+        obx_box_get_all = objectbox.lookup<NativeFunction<obx_box_get_all_native_t>>("obx_box_get_all").asFunction();
         obx_box_id_for_put = objectbox.lookup<NativeFunction<obx_box_id_for_put_native_t>>("obx_box_id_for_put").asFunction();
+        obx_box_ids_for_put = objectbox.lookup<NativeFunction<obx_box_ids_for_put_native_t>>("obx_box_ids_for_put").asFunction();
         obx_box_put = objectbox.lookup<NativeFunction<obx_box_put_native_t>>("obx_box_put").asFunction();
+        obx_box_put_many = objectbox.lookup<NativeFunction<obx_box_put_many_native_t>>("obx_box_put_many").asFunction();
         obx_box_remove = objectbox.lookup<NativeFunction<obx_box_remove_native_t>>("obx_box_remove").asFunction();
     }
 }
