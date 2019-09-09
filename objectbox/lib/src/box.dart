@@ -132,15 +132,20 @@ class Box<T> {
         return propVals[idPropName];
     }
 
+    _inReadTransaction(fn) {
+        Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
+        checkObxPtr(txn, "failed to created transaction");
+        var ret = fn();
+        checkObx(bindings.obx_txn_close(txn));
+        return ret;
+    }
+
     get(int id) {
         Pointer<Pointer<Void>> dataPtr = Pointer<Pointer<Void>>.allocate();
         Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 
         // get element with specified id from database
-        Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
-        checkObxPtr(txn, "failed to created transaction");
-        checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
-        checkObx(bindings.obx_txn_close(txn));
+        _inReadTransaction(() => checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr)));        
         Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
         var size = sizePtr.load<int>();
 
@@ -150,6 +155,24 @@ class Box<T> {
         sizePtr.free();
 
         return _unmarshal(buffer);
+    }
+
+    getAll() {
+        // return value actually points to a OBX_bytes_array struct, which has two Uint64 members (data and size)
+        Pointer<Uint64> bytesArray = _inReadTransaction(() => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
+
+        // manually resolve the OBX_bytes_array struct (see objectbox.h)
+        List<T> ret = [];
+        int numObjects = bytesArray.elementAt(1).load<int>();                                                 // bytesArray.count
+        Pointer<Uint64> objectsPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>());                    // bytesArray.bytes
+        for(int i = 0; i < numObjects; ++i) {                                                                 // loop through instances of OBX_bytes
+            Pointer<Uint8> data = Pointer<Uint8>.fromAddress(objectsPtrs.elementAt(2 * i).load<int>());       // bytesArray.bytes[i].data
+            int size = objectsPtrs.elementAt(2 * i + 1).load<int>();                                          // bytesArray.bytes[i].size
+            ret.add(_unmarshal(loadMemory(data, size)));
+        }
+
+        bindings.obx_bytes_array_free(bytesArray);
+        return ret;
     }
 
     close() {

@@ -8,12 +8,13 @@ checkObx(errorCode) {
         throw ObjectBoxException(Common.lastErrorString(errorCode));
 }
 
-checkObxPtr(Pointer ptr, String msg) {
+checkObxPtr(Pointer ptr, String msg, [bool hasLastError = false]) {
     if(ptr == null || ptr.address == 0)
-        throw ObjectBoxException(msg);
+        throw ObjectBoxException("$msg: ${hasLastError ? Common.lastErrorString() : ""}");
+    return ptr;
 }
 
-loadMemory(Pointer<Uint8> data, int size) {
+Uint8List loadMemory(Pointer<Uint8> data, int size) {
     if(data == null || data.address == 0)
         throw Exception("invalid memory pointer: $data");
     if(size < 0)

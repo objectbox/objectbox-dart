@@ -1,3 +1,4 @@
+import "dart:math";
 import "package:objectbox/objectbox.dart";
 part "test.g.dart";
 
@@ -18,10 +19,12 @@ main() {
     var store = Store([[Note, Note_OBXDefs]]);
     var box = Box<Note>(store);
 
-    var note = Note.construct("Hello 😄");
+    var note = Note.construct("Hello 😄 ${new Random().nextInt(1 << 32)}");
     note.id = box.put(note);
     print("new note got id ${note.id}");
     print("refetched note: ${box.get(note.id)}");
+
+    print(box.getAll());
     
     store.close();
 }
