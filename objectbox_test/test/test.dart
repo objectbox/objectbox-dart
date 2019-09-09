@@ -21,6 +21,7 @@ main() {
 
     var note = Note.construct("Hello 😄 ${new Random().nextInt(1 << 32)}");
     note.id = box.put(note);
+    print(box.putMany([Note.construct("ABC"), Note.construct("DEF")]));
     print("new note got id ${note.id}");
     print("refetched note: ${box.get(note.id)}");
 

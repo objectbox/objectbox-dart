@@ -13,14 +13,3 @@ checkObxPtr(Pointer ptr, String msg, [bool hasLastError = false]) {
         throw ObjectBoxException("$msg: ${hasLastError ? Common.lastErrorString() : ""}");
     return ptr;
 }
-
-Uint8List loadMemory(Pointer<Uint8> data, int size) {
-    if(data == null || data.address == 0)
-        throw Exception("invalid memory pointer: $data");
-    if(size < 0)
-        throw Exception("invalid memory region size: $size");
-    var buffer = new Uint8List(size);
-    for(int i = 0; i < size; ++i)
-        buffer[i] = data.elementAt(i).load<int>();
-    return buffer;
-}
