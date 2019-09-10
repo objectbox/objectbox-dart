@@ -22,6 +22,10 @@ typedef obx_model_last_entity_id_native_t = Int32 Function(Pointer<Void> model, 
 
 // object store management
 typedef obx_opt_native_t = Pointer<Void> Function();
+typedef obx_opt_directory_native_t = Int32 Function(Pointer<Void> opt, Pointer<Uint8> dir);
+typedef obx_opt_max_db_size_in_kb_native_t = Void Function(Pointer<Void> opt, Int32 size_in_kb);
+typedef obx_opt_file_mode_native_t = Void Function(Pointer<Void> opt, Int32 file_mode);
+typedef obx_opt_max_readers_native_t = Void Function(Pointer<Void> opt, Int32 max_readers);
 typedef obx_opt_model_native_t = Int32 Function(Pointer<Void> opt, Pointer<Void> model);
 typedef obx_store_open_native_t = Pointer<Void> Function(Pointer<Void> opt);
 typedef obx_store_close_native_t = Int32 Function(Pointer<Void> store);

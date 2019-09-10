@@ -29,6 +29,10 @@ class _ObjectBoxBindings {
 
     // object store management
     Pointer<Void> Function() obx_opt;
+    int Function(Pointer<Void> opt, Pointer<Uint8> dir) obx_opt_directory;
+    void Function(Pointer<Void> opt, int size_in_kb) obx_opt_max_db_size_in_kb;
+    void Function(Pointer<Void> opt, int file_mode) obx_opt_file_mode;
+    void Function(Pointer<Void> opt, int max_readers) obx_opt_max_readers;
     int Function(Pointer<Void> opt, Pointer<Void> model) obx_opt_model;
     Pointer<Void> Function(Pointer<Void> opt) obx_store_open;
     int Function(Pointer<Void> store) obx_store_close;
@@ -83,6 +87,10 @@ class _ObjectBoxBindings {
 
         // object store management
         obx_opt = objectbox.lookup<NativeFunction<obx_opt_native_t>>("obx_opt").asFunction();
+        obx_opt_directory = objectbox.lookup<NativeFunction<obx_opt_directory_native_t>>("obx_opt_directory").asFunction();
+        obx_opt_max_db_size_in_kb = objectbox.lookup<NativeFunction<obx_opt_max_db_size_in_kb_native_t>>("obx_opt_max_db_size_in_kb").asFunction();
+        obx_opt_file_mode = objectbox.lookup<NativeFunction<obx_opt_file_mode_native_t>>("obx_opt_file_mode").asFunction();
+        obx_opt_max_readers = objectbox.lookup<NativeFunction<obx_opt_max_readers_native_t>>("obx_opt_max_readers").asFunction();
         obx_opt_model = objectbox.lookup<NativeFunction<obx_opt_model_native_t>>("obx_opt_model").asFunction();
         obx_store_open = objectbox.lookup<NativeFunction<obx_store_open_native_t>>("obx_store_open").asFunction();
         obx_store_close = objectbox.lookup<NativeFunction<obx_store_close_native_t>>("obx_store_close").asFunction();
