@@ -201,8 +201,8 @@ class Box<T> {
     }
 
     // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-    _unmarshalArray(Pointer<Uint64> bytesArray) {
-        return _ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map(_unmarshal).toList();
+    List<T> _unmarshalArray(Pointer<Uint64> bytesArray) {
+        return  _ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => _unmarshal(b)).toList();
     }
 
     _getOBXPutMode(PutMode mode) {
@@ -315,7 +315,7 @@ class Box<T> {
         return ret;
     }
 
-    getAll() {
+    List<T> getAll() {
         // return value actually points to a OBX_bytes_array struct, which has two Uint64 members (data and size)
         Pointer<Uint64> bytesArray = _inReadTransaction(
             () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox),
