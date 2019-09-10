@@ -4,7 +4,7 @@ description: An example project for the objectbox-dart binding.
 version: 0.2.0
 
 environment:
-  sdk: '>=2.5.0-dev.2.0 <3.0.0'
+  sdk: '>=2.5.0 <3.0.0'
   flutter: '>=1.9.8-pre.31'
 
 dependencies:
