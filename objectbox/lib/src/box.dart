@@ -243,32 +243,29 @@ class Box<T> {
                 ++numInstsMissingId;
         
         // generate new IDs for these instances and set them
-        Pointer<Uint64> instIdsMemory;
+        Pointer<Uint64> firstIdMemory;
         if(numInstsMissingId != 0) {
-            instIdsMemory = Pointer<Uint64>.allocate(count: numInstsMissingId);
-            checkObx(bindings.obx_box_ids_for_put(_objectboxBox, numInstsMissingId, instIdsMemory));
-            int newIdIndex = 0;
+            firstIdMemory = Pointer<Uint64>.allocate(count: 1);
+            checkObx(bindings.obx_box_ids_for_put(_objectboxBox, numInstsMissingId, firstIdMemory));
+            int nextId = firstIdMemory.load<int>();
+            firstIdMemory.free();
             for(var instPropVals in allPropVals)
                 if(instPropVals[idPropName] == null || instPropVals[idPropName] == 0)
-                    instPropVals[idPropName] = instIdsMemory.elementAt(newIdIndex++).load<int>();
+                    instPropVals[idPropName] = nextId++;
             
         }
 
         // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
-        if(numInstsMissingId != insts.length) {
-            if(instIdsMemory != null)
-                instIdsMemory.free();
-            instIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
-            for(int i = 0; i < allPropVals.length; ++i)
-                instIdsMemory.elementAt(i).store(allPropVals[i][idPropName]);
-        }
+        Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
+        for(int i = 0; i < allPropVals.length; ++i)
+            allIdsMemory.elementAt(i).store(allPropVals[i][idPropName]);
 
         // marshal all objects to be put into the box
         var putObjects = _ByteBufferArray(allPropVals.map(_marshal).toList()).toOBXBytesArray();
 
-        checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, instIdsMemory, _getOBXPutMode(mode)));
+        checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
         putObjects.free();
-        instIdsMemory.free();
+        allIdsMemory.free();
         return allPropVals.map((p) => p[idPropName] as int).toList();
     }
 
