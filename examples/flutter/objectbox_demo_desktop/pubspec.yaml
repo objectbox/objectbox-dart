@@ -1,7 +1,7 @@
 name: objectbox_demo_desktop
 description: An example project for the objectbox-dart binding.
 
-version: 0.2.0
+version: 0.3.0
 
 environment:
   sdk: '>=2.5.0-dev.2.0 <3.0.0'

@@ -1,5 +1,5 @@
 name: objectbox_model_generator
-version: 0.2.0
+version: 0.3.0
 description: >-
   A preprocessor for Dart source files containing ObjectBox entity definitions.
 environment:
