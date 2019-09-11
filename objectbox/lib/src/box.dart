@@ -272,8 +272,12 @@ class Box<T> {
     _inReadTransaction(fn) {
         Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
         checkObxPtr(txn, "failed to created transaction");
-        var ret = fn();
-        checkObx(bindings.obx_txn_close(txn));
+        var ret;
+        try {
+            ret = fn();
+        } finally {
+            checkObx(bindings.obx_txn_close(txn));
+        }
         return ret;
     }
 
