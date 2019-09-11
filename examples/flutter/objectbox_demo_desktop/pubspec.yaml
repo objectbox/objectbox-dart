@@ -4,7 +4,7 @@ description: An example project for the objectbox-dart binding.
 version: 0.2.0
 
 environment:
-  sdk: '>=2.5.0 <3.0.0'
+  sdk: '>=2.5.0-dev.2.0 <3.0.0'
   flutter: '>=1.9.8-pre.31'
 
 dependencies:
@@ -12,16 +12,16 @@ dependencies:
     sdk: flutter
   
   cupertino_icons: ^0.1.0
-  
-  objectbox:
-    path: ../../../objectbox
 
+  objectbox:
+    path: ../../..
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: 1.0.0
   objectbox_model_generator:
-    path: ../../../objectbox_model_generator
+    path: ../../../bin/objectbox_model_generator
 
 flutter:
   uses-material-design: true
