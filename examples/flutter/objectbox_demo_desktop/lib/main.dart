@@ -51,18 +51,19 @@ class _MyHomePageState extends State<MyHomePage> {
     int _lastPutId;
 
     void _testGet() {
+        final Note fetchedNote = _box.get(_lastPutId);
         setState(() {
             if(_lastPutId == null) {
                 _status += "cannot get, as nothing was put in this session yet\n";
                 return;
             }
-            _status += "fetched note: ${_box.get(_lastPutId)}\n";
+            _status += "fetched note: $fetchedNote\n";
         });
     }
 
     void _testPut() {
+        _lastPutId = _box.put(Note.construct("Hello"));
         setState(() {
-            _lastPutId = _box.put(Note.construct("Hello"));
             _status += "put new note with id $_lastPutId\n";
         });
     }
