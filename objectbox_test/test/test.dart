@@ -97,7 +97,11 @@ main() {
     });
 
     tearDown(() {
-        store.close();
-        new Directory("objectbox").delete(recursive: true);
+        if(store != null)
+            store.close();
+        store = null;
+        var dir = new Directory("objectbox");
+        if(dir.existsSync())
+            dir.deleteSync(recursive: true);
     });
 }
