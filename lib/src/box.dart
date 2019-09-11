@@ -90,10 +90,10 @@ class _ByteBuffer {
 
 class _SerializedByteBufferArray {
     Pointer<Uint64> _outerPtr, _innerPtr;             // outerPtr points to the instance itself, innerPtr points to the respective OBX_bytes_array.bytes
-    
+
     _SerializedByteBufferArray(this._outerPtr, this._innerPtr);
     get ptr => _outerPtr;
-    
+
     free() {
         _innerPtr.free();
         _outerPtr.free();
@@ -233,7 +233,7 @@ class Box<T> {
     List<int> putMany(List<T> insts, {PutMode mode = PutMode.Put}) {
         if(insts.length == 0)
             return [];
-        
+
         // read all property values and find number of instances where ID is missing
         var allPropVals = insts.map(_entityReader).toList();
         var idPropName = _entityDefinition["idPropertyName"];
@@ -241,7 +241,7 @@ class Box<T> {
         for(var instPropVals in allPropVals)
             if(instPropVals[idPropName] == null || instPropVals[idPropName] == 0)
                 ++numInstsMissingId;
-        
+
         // generate new IDs for these instances and set them
         Pointer<Uint64> firstIdMemory;
         if(numInstsMissingId != 0) {
@@ -252,7 +252,7 @@ class Box<T> {
             for(var instPropVals in allPropVals)
                 if(instPropVals[idPropName] == null || instPropVals[idPropName] == 0)
                     instPropVals[idPropName] = nextId++;
-            
+
         }
 
         // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
@@ -269,16 +269,17 @@ class Box<T> {
         return allPropVals.map((p) => p[idPropName] as int).toList();
     }
 
-    _inReadTransaction(fn) {
+    // TODO move to Store
+    T _runInTransaction<T>(bool readOnly, T Function() fn) {
+        assert(readOnly); // TODO implement write transactions
+
         Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
         checkObxPtr(txn, "failed to created transaction");
-        var ret;
         try {
-            ret = fn();
+            return fn();
         } finally {
             checkObx(bindings.obx_txn_close(txn));
         }
-        return ret;
     }
 
     get(int id) {
@@ -286,44 +287,56 @@ class Box<T> {
         Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 
         // get element with specified id from database
-        _inReadTransaction(() => checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr)));        
-        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
-        var size = sizePtr.load<int>();
+        return _runInTransaction(true, () {
+            checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
 
-        // transform bytes from memory to Dart byte list
-        var buffer = _ByteBuffer(data, size);
-        dataPtr.free();
-        sizePtr.free();
+            Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
+            var size = sizePtr.load<int>();
 
-        return _unmarshal(buffer);
+            // transform bytes from memory to Dart byte list
+            var buffer = _ByteBuffer(data, size);
+            dataPtr.free();
+            sizePtr.free();
+
+            return _unmarshal(buffer);
+        });
+    }
+
+    List<T> _getMany(Pointer<Uint64> Function() cCall) {
+        return _runInTransaction(true, () {
+            // OBX_bytes_array*, has two Uint64 members (data and size)
+            Pointer<Uint64> bytesArray = cCall();
+            try {
+                return _unmarshalArray(bytesArray);
+            } finally {
+                bindings.obx_bytes_array_free(bytesArray);
+            }
+        });
     }
 
     // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
-    getMany(List<int> ids) {
-        if(ids.length == 0)
+    List<T> getMany(List<int> ids) {
+        if (ids.length == 0)
             return [];
 
         // write ids in buffer for FFI call
         var idArray = new _IDArray(ids);
-        
-        // get bytes array, similar to getAll
-        Pointer<Uint64> bytesArray = _inReadTransaction(
-            () => checkObxPtr(bindings.obx_box_get_many(_objectboxBox, idArray.ptr),
-            "failed to get many objects from box", true));
-        var ret = _unmarshalArray(bytesArray);
-        bindings.obx_bytes_array_free(bytesArray);
-        idArray.free();
-        return ret;
+
+        try {
+            return _getMany(() =>
+                checkObxPtr(
+                    bindings.obx_box_get_many(_objectboxBox, idArray.ptr),
+                    "failed to get many objects from box", true));
+        } finally {
+            idArray.free();
+        }
     }
 
     List<T> getAll() {
-        // return value actually points to a OBX_bytes_array struct, which has two Uint64 members (data and size)
-        Pointer<Uint64> bytesArray = _inReadTransaction(
-            () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox),
-            "failed to get all objects from box", true));
-        var ret = _unmarshalArray(bytesArray);
-        bindings.obx_bytes_array_free(bytesArray);
-        return ret;
+        return _getMany(() =>
+            checkObxPtr(
+                bindings.obx_box_get_all(_objectboxBox),
+                "failed to get all objects from box", true));
     }
 
     close() {
