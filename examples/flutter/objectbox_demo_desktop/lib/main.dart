@@ -51,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
     int _lastPutId;
 
     void _testGet() {
-        final Note fetchedNote = _box.get(_lastPutId);
+        final Note fetchedNote = _lastPutId == null ? null : _box.get(_lastPutId);
         setState(() {
             if(_lastPutId == null) {
                 _status += "cannot get, as nothing was put in this session yet\n";
