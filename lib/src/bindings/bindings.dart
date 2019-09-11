@@ -10,6 +10,7 @@ class _ObjectBoxBindings {
     // common functions
     void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
     Pointer<Uint8> Function() obx_version_string;
+    void Function(Pointer<Uint64> array) obx_bytes_array_free;
 
     // error info
     int Function() obx_last_error_code;
@@ -18,7 +19,7 @@ class _ObjectBoxBindings {
     void Function() obx_last_error_clear;
 
     // schema model creation
-    Pointer<Void> Function() obx_model_create;
+    Pointer<Void> Function() obx_model;
     int Function(Pointer<Void> model) obx_model_free;
     int Function(Pointer<Void> model, Pointer<Uint8> name, int entity_id, int entity_uid) obx_model_entity;
     int Function(Pointer<Void> model, Pointer<Uint8> name, int type, int property_id, int property_uid) obx_model_property;
@@ -28,6 +29,10 @@ class _ObjectBoxBindings {
 
     // object store management
     Pointer<Void> Function() obx_opt;
+    int Function(Pointer<Void> opt, Pointer<Uint8> dir) obx_opt_directory;
+    void Function(Pointer<Void> opt, int size_in_kb) obx_opt_max_db_size_in_kb;
+    void Function(Pointer<Void> opt, int file_mode) obx_opt_file_mode;
+    void Function(Pointer<Void> opt, int max_readers) obx_opt_max_readers;
     int Function(Pointer<Void> opt, Pointer<Void> model) obx_opt_model;
     Pointer<Void> Function(Pointer<Void> opt) obx_store_open;
     int Function(Pointer<Void> store) obx_store_close;
@@ -41,9 +46,15 @@ class _ObjectBoxBindings {
 
     // box management
     Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
+    int Function(Pointer<Void> box, int id, Pointer<Int8> out_contains) obx_box_contains;
+    int Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains) obx_box_contains_many;
     int Function(Pointer<Void> box, int id, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
+    Pointer<Uint64> Function(Pointer<Void> box, Pointer<Uint64> ids) obx_box_get_many;
+    Pointer<Uint64> Function(Pointer<Void> box) obx_box_get_all;
     int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
+    int Function(Pointer<Void> box, int count, Pointer<Uint64> out_first_id) obx_box_ids_for_put;
     int Function(Pointer<Void> box, int id, Pointer<Void> data, int size, int mode) obx_box_put;
+    int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
     int Function(Pointer<Void> box, int id) obx_box_remove;
 
     _ObjectBoxBindings() {
@@ -57,6 +68,7 @@ class _ObjectBoxBindings {
         // common functions
         obx_version = objectbox.lookup<NativeFunction<obx_version_native_t>>("obx_version").asFunction();
         obx_version_string = objectbox.lookup<NativeFunction<obx_version_string_native_t>>("obx_version_string").asFunction();
+        obx_bytes_array_free = objectbox.lookup<NativeFunction<obx_bytes_array_free_native_t>>("obx_bytes_array_free").asFunction();
 
         // error info
         obx_last_error_code = objectbox.lookup<NativeFunction<obx_last_error_code_native_t>>("obx_last_error_code").asFunction();
@@ -65,7 +77,7 @@ class _ObjectBoxBindings {
         obx_last_error_clear = objectbox.lookup<NativeFunction<obx_last_error_clear_native_t>>("obx_last_error_clear").asFunction();
 
         // schema model creation
-        obx_model_create = objectbox.lookup<NativeFunction<obx_model_create_native_t>>("obx_model_create").asFunction();
+        obx_model = objectbox.lookup<NativeFunction<obx_model_native_t>>("obx_model").asFunction();
         obx_model_free = objectbox.lookup<NativeFunction<obx_model_free_native_t>>("obx_model_free").asFunction();
         obx_model_entity = objectbox.lookup<NativeFunction<obx_model_entity_native_t>>("obx_model_entity").asFunction();
         obx_model_property = objectbox.lookup<NativeFunction<obx_model_property_native_t>>("obx_model_property").asFunction();
@@ -75,6 +87,10 @@ class _ObjectBoxBindings {
 
         // object store management
         obx_opt = objectbox.lookup<NativeFunction<obx_opt_native_t>>("obx_opt").asFunction();
+        obx_opt_directory = objectbox.lookup<NativeFunction<obx_opt_directory_native_t>>("obx_opt_directory").asFunction();
+        obx_opt_max_db_size_in_kb = objectbox.lookup<NativeFunction<obx_opt_max_db_size_in_kb_native_t>>("obx_opt_max_db_size_in_kb").asFunction();
+        obx_opt_file_mode = objectbox.lookup<NativeFunction<obx_opt_file_mode_native_t>>("obx_opt_file_mode").asFunction();
+        obx_opt_max_readers = objectbox.lookup<NativeFunction<obx_opt_max_readers_native_t>>("obx_opt_max_readers").asFunction();
         obx_opt_model = objectbox.lookup<NativeFunction<obx_opt_model_native_t>>("obx_opt_model").asFunction();
         obx_store_open = objectbox.lookup<NativeFunction<obx_store_open_native_t>>("obx_store_open").asFunction();
         obx_store_close = objectbox.lookup<NativeFunction<obx_store_close_native_t>>("obx_store_close").asFunction();
@@ -88,9 +104,15 @@ class _ObjectBoxBindings {
 
         // box management
         obx_box = objectbox.lookup<NativeFunction<obx_box_native_t>>("obx_box").asFunction();
+        obx_box_contains = objectbox.lookup<NativeFunction<obx_box_contains_native_t>>("obx_box_contains").asFunction();
+        obx_box_contains_many = objectbox.lookup<NativeFunction<obx_box_contains_many_native_t>>("obx_box_contains_many").asFunction();
         obx_box_get = objectbox.lookup<NativeFunction<obx_box_get_native_t>>("obx_box_get").asFunction();
+        obx_box_get_many = objectbox.lookup<NativeFunction<obx_box_get_many_native_t>>("obx_box_get_many").asFunction();
+        obx_box_get_all = objectbox.lookup<NativeFunction<obx_box_get_all_native_t>>("obx_box_get_all").asFunction();
         obx_box_id_for_put = objectbox.lookup<NativeFunction<obx_box_id_for_put_native_t>>("obx_box_id_for_put").asFunction();
+        obx_box_ids_for_put = objectbox.lookup<NativeFunction<obx_box_ids_for_put_native_t>>("obx_box_ids_for_put").asFunction();
         obx_box_put = objectbox.lookup<NativeFunction<obx_box_put_native_t>>("obx_box_put").asFunction();
+        obx_box_put_many = objectbox.lookup<NativeFunction<obx_box_put_many_native_t>>("obx_box_put_many").asFunction();
         obx_box_remove = objectbox.lookup<NativeFunction<obx_box_remove_native_t>>("obx_box_remove").asFunction();
     }
 }

@@ -36,10 +36,10 @@ Getting started
 ---------------
 To try out the demo code in this repository, follow these steps:
 
-1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide: `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh)` (answer Y when it asks about installing to /usr/lib).
-2. Back in this repository, run `pub get` to download all Dart dependencies.
-3. Finally run `dart test/test.dart` to start the demo script.
-   Note that, as fairly recent language features are used, the minimal required Dart version is 2.2.2.
+1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide: `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7` (answer Y when it asks about installing to /usr/lib).
+2. Back in this repository, run `pub get` in each of the following directories: `objectbox`, `objectbox_model_generator`, `objectbox_test`. If you just want to try out the tests, running it in `objectbox_test` is enough.
+3. Move into the `objectbox_test` directory and execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
+4. Finally run `pub run test test/test.dart` to run the unit tests.
 
 Dart integration
 ----------------
@@ -59,14 +59,15 @@ New (not yet persisted) objects typically have _Id_ value of `0` or `null`: call
 
 *Note:* specifying the (meta model) IDs in annotations manually is a temporary quick solution.
 In a later version, you won't have to do this the and e.g. `@Property(id: 2, uid: 1002)` can be dropped completely.
-Technically, we need to setup [build time tools for Dart](https://github.com/objectbox/objectbox-dart/issues/3) for automatic management of the meta model IDs.
+As specified in step 3 of the _Getting started_ section, Dart's _build\_runner_ and _source\_gen_ are currently used and the generator will be extended to automatically manage the meta model IDs in the future.
 
 ```dart
 import "../lib/objectbox.dart";
+part "test.g.dart";
 
 @Entity(id: 1, uid: 1)
 class Note {
-    @Id(id: 1, uid: 1001, type: Type.Long)
+    @Id(id: 1, uid: 1001)       // automatically always 'int' in Dart code and 'Long' in ObjectBox
     int id;
 
     @Property(id: 2, uid: 1002)
@@ -74,22 +75,21 @@ class Note {
 
     Note();             // empty default constructor needed
     Note.construct(this.text);
-
     toString() => "Note{id: $id, text: $text}";
 }
 ```
 
-In your main function, you can then create a _store_ which needs an array of your entity classes to be constructed.
+In your main function, you can then create a _store_ which needs an array of your entity classes and definitions to be constructed. If you have several entities, construct your store like `Store([[Entity1, Entity1_OBXDefs], [Entity2, Entity2_OBXDefs]])` etc.
 Finally, you need a _box_, representing the interface for objects of one specific entity type.
 
 ```dart
-var store = Store([Note]);
+var store = Store([[Note, Note_OBXDefs]]);
 var box = Box<Note>(store);
 
-var note = Note("Hello");
-box.put(note);
+var note = Note.construct("Hello");
+note.id = box.put(note);
 print("new note got id ${note.id}");
-print("refetched note: ${box.getById(note.id)}");
+print("refetched note: ${box.get(note.id)}");
 
 store.close();
 ```

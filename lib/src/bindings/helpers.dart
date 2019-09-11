@@ -1,16 +1,15 @@
+import "dart:ffi";
+import "dart:typed_data" show Uint8List;
 import "constants.dart";
 import "../common.dart";
 
-check(cond) {
-    if(!cond)
-        throw AssertionError();
+checkObx(errorCode) {
+    if(errorCode != OBXError.OBX_SUCCESS)
+        throw ObjectBoxException(Common.lastErrorString(errorCode));
 }
 
-checkObx(err) {
-    if(err != OBXErrors.OBX_SUCCESS)
-        throw ObjectBoxException(Common.lastErrorString(err));
-}
-
-getSymbolName(Symbol sym) {
-    return sym.toString().split('"')[1];
+checkObxPtr(Pointer ptr, String msg, [bool hasLastError = false]) {
+    if(ptr == null || ptr.address == 0)
+        throw ObjectBoxException("$msg: ${hasLastError ? Common.lastErrorString() : ""}");
+    return ptr;
 }

@@ -1,5 +1,4 @@
 import "dart:ffi";
-import "dart:mirrors";
 import "dart:typed_data" show Uint8List;
 import "package:flat_buffers/flat_buffers.dart" as fb;
 
@@ -36,37 +35,130 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
         new _OBXFBEntity._(bc, offset);
 }
 
+class _IDArray {                                    // wrapper for "struct OBX_id_array"
+    Pointer<Uint64> _idsPtr, _structPtr;
+
+    _IDArray(List<int> ids) {
+        _idsPtr = Pointer<Uint64>.allocate(count: ids.length);
+        for(int i = 0; i < ids.length; ++i)
+            _idsPtr.elementAt(i).store(ids[i]);
+        _structPtr = Pointer<Uint64>.allocate(count: 2);
+        _structPtr.store(_idsPtr.address);
+        _structPtr.elementAt(1).store(ids.length);
+    }
+
+    get ptr => _structPtr;
+
+    free() {
+        _idsPtr.free();
+        _structPtr.free();
+    }
+}
+
+class _ByteBuffer {
+    Pointer<Uint8> _ptr;
+    int _size;
+
+    _ByteBuffer(this._ptr, this._size);
+
+    _ByteBuffer.allocate(Uint8List dartData, [bool align = true]) {
+        _ptr = Pointer<Uint8>.allocate(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
+        for(int i = 0; i < dartData.length; ++i)
+            _ptr.elementAt(i).store(dartData[i]);
+        _size = dartData.length;
+    }
+
+    _ByteBuffer.fromOBXBytes(Pointer<Uint64> obxPtr) {              // extract fields from "struct OBX_bytes"
+        _ptr = Pointer<Uint8>.fromAddress(obxPtr.load<int>());
+        _size = obxPtr.elementAt(1).load<int>();
+    }
+
+    get ptr => _ptr;
+    get voidPtr => Pointer<Void>.fromAddress(_ptr.address);
+    get address => _ptr.address;
+    get size => _size;
+
+    Uint8List get data {
+        var buffer = new Uint8List(size);
+        for(int i = 0; i < size; ++i)
+            buffer[i] = _ptr.elementAt(i).load<int>();
+        return buffer;
+    }
+
+    free() => _ptr.free();
+}
+
+class _SerializedByteBufferArray {
+    Pointer<Uint64> _outerPtr, _innerPtr;             // outerPtr points to the instance itself, innerPtr points to the respective OBX_bytes_array.bytes
+    
+    _SerializedByteBufferArray(this._outerPtr, this._innerPtr);
+    get ptr => _outerPtr;
+    
+    free() {
+        _innerPtr.free();
+        _outerPtr.free();
+    }
+}
+
+class _ByteBufferArray {
+    List<_ByteBuffer> _buffers;
+
+    _ByteBufferArray(this._buffers);
+
+    _ByteBufferArray.fromOBXBytesArray(Pointer<Uint64> bytesArray) {
+        _buffers = [];
+        Pointer<Uint64> bufferPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>());       // bytesArray.bytes
+        int numBuffers = bytesArray.elementAt(1).load<int>();                                   // bytesArray.count
+        for(int i = 0; i < numBuffers; ++i)                                                     // loop through instances of "struct OBX_bytes"
+            _buffers.add(_ByteBuffer.fromOBXBytes(bufferPtrs.elementAt(2 * i)));                // 2 * i, because each instance of "struct OBX_bytes" has .data and .size
+    }
+
+    _SerializedByteBufferArray toOBXBytesArray() {
+        Pointer<Uint64> bufferPtrs = Pointer<Uint64>.allocate(count: _buffers.length * 2);
+        for(int i = 0; i < _buffers.length; ++i) {
+            bufferPtrs.elementAt(2 * i).store(_buffers[i].ptr.address);
+            bufferPtrs.elementAt(2 * i + 1).store(_buffers[i].size);
+        }
+
+        Pointer<Uint64> outerPtr = Pointer<Uint64>.allocate(count: 2);
+        outerPtr.store(bufferPtrs.address);
+        outerPtr.elementAt(1).store(_buffers.length);
+        return _SerializedByteBufferArray(outerPtr, bufferPtrs);
+    }
+
+    get buffers => _buffers;
+}
+
 class Box<T> {
     Store _store;
     Pointer<Void> _objectboxBox;
-    var _entityDescription, _idPropIdx;
+    var _entityDefinition, _entityReader, _entityBuilder;
 
     Box(this._store) {
-        _entityDescription = _store.getEntityDescriptionFromClass(T);
-        check(_entityDescription != null);
-        _idPropIdx = _entityDescription["properties"].indexWhere((p) => (p["flags"] & OBXPropertyFlags.ID) != 0);
-        check(_idPropIdx != -1);
+        _entityDefinition = _store.getEntityModelDefinitionFromClass(T);
+        _entityReader = _store.getEntityReaderFromClass<T>();
+        _entityBuilder = _store.getEntityBuilderFromClass<T>();
 
-        _objectboxBox = bindings.obx_box(_store.ptr, _entityDescription["entity"]["id"]);
-        check(_objectboxBox != null);
-        check(_objectboxBox.address != 0);
+        _objectboxBox = bindings.obx_box(_store.ptr, _entityDefinition["entity"]["id"]);
+        checkObxPtr(_objectboxBox, "failed to create box");
     }
 
-    _marshal(propVals) {
+    _ByteBuffer _marshal(propVals) {
         var builder = new fb.Builder(initialSize: 1024);
 
         // write all strings
-        propVals.forEach((p) {
+        Map<String, int> offsets = {};
+        _entityDefinition["properties"].forEach((p) {
             switch(p["type"]) {
-                case OBXPropertyType.String: p["offset"] = builder.writeString(p["value"]); break;
+                case OBXPropertyType.String: offsets[p["name"]] = builder.writeString(propVals[p["name"]]); break;
             }
         });
 
         // create table and write actual properties
         // TODO: make sure that Id property has a value >= 1
         builder.startTable();
-        propVals.forEach((p) {
-            var field = p["id"] - 1, value = p["value"];
+        _entityDefinition["properties"].forEach((p) {
+            var field = p["flatbuffers_id"], value = propVals[p["name"]];
             switch(p["type"]) {
                 case OBXPropertyType.Bool: builder.addBool(field, value); break;
                 case OBXPropertyType.Char: builder.addInt8(field, value); break;
@@ -74,20 +166,22 @@ class Box<T> {
                 case OBXPropertyType.Short: builder.addInt16(field, value); break;
                 case OBXPropertyType.Int: builder.addInt32(field, value); break;
                 case OBXPropertyType.Long: builder.addInt64(field, value); break;
-                case OBXPropertyType.String: builder.addOffset(field, p["offset"]); break;
+                case OBXPropertyType.String: builder.addOffset(field, offsets[p["name"]]); break;
                 default: throw Exception("unsupported type: ${p['type']}");         // TODO: support more types
             }
         });
 
         var endOffset = builder.endTable();
-        return builder.finish(endOffset);
+        return _ByteBuffer.allocate(builder.finish(endOffset));
     }
 
-    _unmarshal(buffer) {
-        var ret = reflectClass(T).newInstance(Symbol.empty, []);
-        var entity = new _OBXFBEntity(buffer);
+    T _unmarshal(_ByteBuffer buffer) {
+        if(buffer.size == 0 || buffer.address == 0)
+            return null;
+        Map<String, dynamic> propVals = {};
+        var entity = new _OBXFBEntity(buffer.data);
 
-        _entityDescription["properties"].forEach((p) {
+        _entityDefinition["properties"].forEach((p) {
             var propReader;
             switch(p["type"]) {
                 case OBXPropertyType.Bool: propReader = fb.BoolReader(); break;
@@ -100,60 +194,136 @@ class Box<T> {
                 default: throw Exception("unsupported type: ${p['type']}");         // TODO: support more types
             }
 
-            ret.setField(Symbol(p["name"]), entity.getProp(propReader, (p["id"] + 1) * 2));
+            propVals[p["name"]] = entity.getProp(propReader, (p["flatbuffers_id"] + 2) * 2);
         });
 
-        return ret.reflectee;
+        return _entityBuilder(propVals);
     }
 
-    put(T inst, {PutMode mode = PutMode.Put}) {         // also assigns a value to the respective ID property if it is given as null or 0
-        var instRefl = reflect(inst);
-        var propVals = _entityDescription["properties"].map((p) => {...p, "value": instRefl.getField(Symbol(p["name"])).reflectee }).toList();
-        if(propVals[_idPropIdx]["value"] == null || propVals[_idPropIdx]["value"] == 0) {
-            final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
-            propVals[_idPropIdx]["value"] = id;
-            instRefl.setField(Symbol(propVals[_idPropIdx]["name"]), id);
-        }
-        var buffer = _marshal(propVals);
-        
-        // determine internal put mode from given enum
-        var putMode;
-        switch(mode) {
-            case PutMode.Put: putMode = OBXPutMode.PUT; break;
-            case PutMode.Insert: putMode = OBXPutMode.INSERT; break;
-            case PutMode.Update: putMode = OBXPutMode.UPDATE; break;
-        }
+    // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
+    List<T> _unmarshalArray(Pointer<Uint64> bytesArray) {
+        return  _ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => _unmarshal(b)).toList();
+    }
 
-        // transform flatbuffers byte array into memory area for C, with a length of a multiple of four
-        Pointer<Uint8> bufferPtr = allocate(count: ((buffer.length + 3.0) / 4.0).toInt() * 4);
-        for(int i = 0; i < buffer.length; ++i)
-            bufferPtr.elementAt(i).store(buffer[i] as int);
+    _getOBXPutMode(PutMode mode) {
+        switch(mode) {
+            case PutMode.Put: return OBXPutMode.PUT;
+            case PutMode.Insert: return OBXPutMode.INSERT;
+            case PutMode.Update: return OBXPutMode.UPDATE;
+        }
+    }
+
+    // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
+    int put(T inst, {PutMode mode = PutMode.Put}) {
+        var propVals = _entityReader(inst);
+        var idPropName = _entityDefinition["idPropertyName"];
+        if(propVals[idPropName] == null || propVals[idPropName] == 0) {
+            final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
+            propVals[idPropName] = id;
+        }
 
         // put object into box and free the buffer
-        checkObx(bindings.obx_box_put(_objectboxBox, propVals[_idPropIdx]["value"], fromAddress(bufferPtr.address), buffer.length, putMode));
-        bufferPtr.free();
+        _ByteBuffer buffer = _marshal(propVals);
+        checkObx(bindings.obx_box_put(_objectboxBox, propVals[idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+        buffer.free();
+        return propVals[idPropName];
     }
 
-    getById(int id) {
-        Pointer<Pointer<Void>> dataPtr = allocate();
-        Pointer<Int32> sizePtr = allocate();
+    // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
+    List<int> putMany(List<T> insts, {PutMode mode = PutMode.Put}) {
+        if(insts.length == 0)
+            return [];
+        
+        // read all property values and find number of instances where ID is missing
+        var allPropVals = insts.map(_entityReader).toList();
+        var idPropName = _entityDefinition["idPropertyName"];
+        int numInstsMissingId = 0;
+        for(var instPropVals in allPropVals)
+            if(instPropVals[idPropName] == null || instPropVals[idPropName] == 0)
+                ++numInstsMissingId;
+        
+        // generate new IDs for these instances and set them
+        Pointer<Uint64> firstIdMemory;
+        if(numInstsMissingId != 0) {
+            firstIdMemory = Pointer<Uint64>.allocate(count: 1);
+            checkObx(bindings.obx_box_ids_for_put(_objectboxBox, numInstsMissingId, firstIdMemory));
+            int nextId = firstIdMemory.load<int>();
+            firstIdMemory.free();
+            for(var instPropVals in allPropVals)
+                if(instPropVals[idPropName] == null || instPropVals[idPropName] == 0)
+                    instPropVals[idPropName] = nextId++;
+            
+        }
+
+        // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
+        Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
+        for(int i = 0; i < allPropVals.length; ++i)
+            allIdsMemory.elementAt(i).store(allPropVals[i][idPropName]);
+
+        // marshal all objects to be put into the box
+        var putObjects = _ByteBufferArray(allPropVals.map(_marshal).toList()).toOBXBytesArray();
+
+        checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+        putObjects.free();
+        allIdsMemory.free();
+        return allPropVals.map((p) => p[idPropName] as int).toList();
+    }
+
+    _inReadTransaction(fn) {
+        Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
+        checkObxPtr(txn, "failed to created transaction");
+        var ret;
+        try {
+            ret = fn();
+        } finally {
+            checkObx(bindings.obx_txn_close(txn));
+        }
+        return ret;
+    }
+
+    get(int id) {
+        Pointer<Pointer<Void>> dataPtr = Pointer<Pointer<Void>>.allocate();
+        Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 
         // get element with specified id from database
-        Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
-        check(txn != null && txn.address != 0);
-        checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
-        checkObx(bindings.obx_txn_close(txn));
-        Pointer<Uint8> data = fromAddress(dataPtr.load<Pointer<Void>>().address);
+        _inReadTransaction(() => checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr)));        
+        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
         var size = sizePtr.load<int>();
 
         // transform bytes from memory to Dart byte list
-        var buffer = new Uint8List(size);
-        for(int i = 0; i < size; ++i)           // TODO: move this to a separate class
-            buffer[i] = data.elementAt(i).load<int>();
+        var buffer = _ByteBuffer(data, size);
         dataPtr.free();
         sizePtr.free();
 
         return _unmarshal(buffer);
+    }
+
+    // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
+    getMany(List<int> ids) {
+        if(ids.length == 0)
+            return [];
+
+        // write ids in buffer for FFI call
+        var idArray = new _IDArray(ids);
+        
+        // get bytes array, similar to getAll
+        Pointer<Uint64> bytesArray = _inReadTransaction(
+            () => checkObxPtr(bindings.obx_box_get_many(_objectboxBox, idArray.ptr),
+            "failed to get many objects from box", true));
+        var ret = _unmarshalArray(bytesArray);
+        bindings.obx_bytes_array_free(bytesArray);
+        idArray.free();
+        return ret;
+    }
+
+    List<T> getAll() {
+        // return value actually points to a OBX_bytes_array struct, which has two Uint64 members (data and size)
+        Pointer<Uint64> bytesArray = _inReadTransaction(
+            () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox),
+            "failed to get all objects from box", true));
+        var ret = _unmarshalArray(bytesArray);
+        bindings.obx_bytes_array_free(bytesArray);
+        return ret;
     }
 
     close() {
