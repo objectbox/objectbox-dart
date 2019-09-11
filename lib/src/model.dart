@@ -32,15 +32,21 @@ class Model {
             modelDefinitions.forEach((m) {
                 // start entity
                 var entityName = CString(m["entity"]["name"]);
-                checkObx(bindings.obx_model_entity(_objectboxModel, entityName.ptr, m["entity"]["id"], m["entity"]["uid"]));
-                entityName.free();
+                try {
+                    checkObx(bindings.obx_model_entity(_objectboxModel, entityName.ptr, m["entity"]["id"], m["entity"]["uid"]));
+                } finally {
+                    entityName.free();
+                }
 
                 // add all properties
                 m["properties"].forEach((p) {
                     var propertyName = CString(p["name"]);
-                    checkObx(bindings.obx_model_property(_objectboxModel, propertyName.ptr, p["type"], p["id"], p["uid"]));
-                    checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
-                    propertyName.free();
+                    try {
+                        checkObx(bindings.obx_model_property(_objectboxModel, propertyName.ptr, p["type"], p["id"], p["uid"]));
+                        checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
+                    } finally {
+                        propertyName.free();
+                    }
                 });
 
                 // set last property id

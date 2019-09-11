@@ -34,6 +34,7 @@ class _ObjectBoxBindings {
     void Function(Pointer<Void> opt, int file_mode) obx_opt_file_mode;
     void Function(Pointer<Void> opt, int max_readers) obx_opt_max_readers;
     int Function(Pointer<Void> opt, Pointer<Void> model) obx_opt_model;
+    void Function(Pointer<Void> opt) obx_opt_free;
     Pointer<Void> Function(Pointer<Void> opt) obx_store_open;
     int Function(Pointer<Void> store) obx_store_close;
 
