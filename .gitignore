@@ -5,3 +5,8 @@
 misc/
 .idea/
 **/*.g.dart
+download/
+lib/*.dll
+lib/*.dylib
+lib/*.so
+lib/*.a
