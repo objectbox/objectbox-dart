@@ -33,15 +33,26 @@ class Model {
             modelDefinitions.forEach((m) {
                 // start entity
                 var entityUtf8 = Utf8.toUtf8(m["entity"]["name"]);
-                var entityNamePointer = entityUtf8.cast<Uint8>();
-                checkObx(bindings.obx_model_entity(_objectboxModel, entityNamePointer, m["entity"]["id"], m["entity"]["uid"]));
+                try {
+                    var entityNamePointer = entityUtf8.cast<Uint8>();
+                    checkObx(bindings.obx_model_entity(
+                        _objectboxModel, entityNamePointer, m["entity"]["id"],
+                        m["entity"]["uid"]));
+                }finally {
+                    // same pointer
+                    entityUtf8.free();
+                }
 
                 // add all properties
                 m["properties"].forEach((p) {
                     var propertyUtf8 = Utf8.toUtf8(p["name"]);
-                    var propertyNamePointer = propertyUtf8.cast<Uint8>();
-                    checkObx(bindings.obx_model_property(_objectboxModel, propertyNamePointer, p["type"], p["id"], p["uid"]));
-                    checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
+                    try {
+                        var propertyNamePointer = propertyUtf8.cast<Uint8>();
+                        checkObx(bindings.obx_model_property(_objectboxModel, propertyNamePointer, p["type"], p["id"], p["uid"]));
+                        checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
+                    }finally {
+                        propertyUtf8.free();
+                    }
                 });
 
                 // set last property id
