@@ -7,6 +7,7 @@ environment:
 dependencies:
   flat_buffers: ^1.11.0
   utf: ^0.9.0
+  ffi: ^0.1.1
 dev_dependencies:
   build_runner: 1.0.0
   objectbox_model_generator:

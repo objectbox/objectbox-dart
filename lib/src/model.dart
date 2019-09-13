@@ -2,7 +2,8 @@ import "dart:ffi";
 
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
-import "ffi/cstring.dart";
+
+import "package:ffi/ffi.dart";
 
 class Entity {
     final int id, uid;
@@ -31,22 +32,16 @@ class Model {
             // transform classes into model descriptions and loop through them
             modelDefinitions.forEach((m) {
                 // start entity
-                var entityName = CString(m["entity"]["name"]);
-                try {
-                    checkObx(bindings.obx_model_entity(_objectboxModel, entityName.ptr, m["entity"]["id"], m["entity"]["uid"]));
-                } finally {
-                    entityName.free();
-                }
+                var entityUtf8 = Utf8.toUtf8(m["entity"]["name"]);
+                var entityNamePointer = entityUtf8.cast<Uint8>();
+                checkObx(bindings.obx_model_entity(_objectboxModel, entityNamePointer, m["entity"]["id"], m["entity"]["uid"]));
 
                 // add all properties
                 m["properties"].forEach((p) {
-                    var propertyName = CString(p["name"]);
-                    try {
-                        checkObx(bindings.obx_model_property(_objectboxModel, propertyName.ptr, p["type"], p["id"], p["uid"]));
-                        checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
-                    } finally {
-                        propertyName.free();
-                    }
+                    var propertyUtf8 = Utf8.toUtf8(p["name"]);
+                    var propertyNamePointer = propertyUtf8.cast<Uint8>();
+                    checkObx(bindings.obx_model_property(_objectboxModel, propertyNamePointer, p["type"], p["id"], p["uid"]));
+                    checkObx(bindings.obx_model_property_flags(_objectboxModel, p["flags"]));
                 });
 
                 // set last property id

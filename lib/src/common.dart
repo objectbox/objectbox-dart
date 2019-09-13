@@ -1,7 +1,7 @@
 import "dart:ffi";
 
 import "bindings/bindings.dart";
-import "ffi/cstring.dart";
+import "package:ffi/ffi.dart";
 
 class Common {
     static List<int> version() {
@@ -15,7 +15,7 @@ class Common {
     }
 
     static String versionString() {
-        return CString.fromPtr(bindings.obx_version_string()).val;
+        return Utf8.fromUtf8(bindings.obx_version_string().cast<Utf8>());
     }
 
     static String lastErrorString([err]) {
@@ -24,7 +24,7 @@ class Common {
 
         int last = bindings.obx_last_error_code();
         int last2 = bindings.obx_last_error_secondary();
-        String desc = CString.fromPtr(bindings.obx_last_error_message()).val;
+        String desc = Utf8.fromUtf8(bindings.obx_last_error_message().cast<Utf8>());
         return "code $last, $last2 ($desc)";
     }
 }
