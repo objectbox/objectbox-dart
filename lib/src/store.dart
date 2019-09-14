@@ -2,9 +2,12 @@ import "dart:ffi";
 
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
-import "ffi/cstring.dart";
 
 import "model.dart";
+
+import "package:ffi/ffi.dart";
+
+
 
 class Store {
     Pointer<Void> _objectboxStore;
@@ -20,11 +23,11 @@ class Store {
         try {
             checkObx(bindings.obx_opt_model(opt, model.ptr));
             if (directory != null && directory.length != 0) {
-                var cStr = new CString(directory);
+                var cStr = Utf8.toUtf8(directory).cast<Uint8>();
                 try {
-                    checkObx(bindings.obx_opt_directory(opt, cStr.ptr));
-                } finally {
-                    cStr.free();
+                  checkObx(bindings.obx_opt_directory(opt, cStr));
+                }finally {
+                  cStr.free();
                 }
             }
             if (maxDBSizeInKB != null && maxDBSizeInKB > 0)
