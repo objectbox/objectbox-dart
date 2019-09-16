@@ -41,6 +41,10 @@ To try out the demo code in this repository, follow these steps:
 3. Execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
 4. Finally run `pub run test test/test.dart` to run the unit tests.
 
+Contribution guide
+------------------
+Please make sure that all code submitted via Pull Request needs to be formatted using `dartfmt -l 120`. You can configure your IDE to do this automatically, e.g. VS Code needs the project-specific settings `"editor.defaultFormatter": "Dart-Code.dart-code"` and `"dart.lineLength": 120`.
+
 Dart integration
 ----------------
 In general, Dart class annotations are used to mark classes as ObjectBox entities and provide meta information.
