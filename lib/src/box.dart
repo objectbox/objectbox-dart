@@ -6,6 +6,7 @@ import "store.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
 import "bindings/helpers.dart";
+import "bindings/structs.dart";
 
 enum PutMode {
   Put,
@@ -34,101 +35,6 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
   _OBXFBEntity createObject(fb.BufferContext bc, int offset) => new _OBXFBEntity._(bc, offset);
 }
 
-class _IDArray {
-  // wrapper for "struct OBX_id_array"
-  Pointer<Uint64> _idsPtr, _structPtr;
-
-  _IDArray(List<int> ids) {
-    _idsPtr = Pointer<Uint64>.allocate(count: ids.length);
-    for (int i = 0; i < ids.length; ++i) _idsPtr.elementAt(i).store(ids[i]);
-    _structPtr = Pointer<Uint64>.allocate(count: 2);
-    _structPtr.store(_idsPtr.address);
-    _structPtr.elementAt(1).store(ids.length);
-  }
-
-  get ptr => _structPtr;
-
-  free() {
-    _idsPtr.free();
-    _structPtr.free();
-  }
-}
-
-class _ByteBuffer {
-  Pointer<Uint8> _ptr;
-  int _size;
-
-  _ByteBuffer(this._ptr, this._size);
-
-  _ByteBuffer.allocate(Uint8List dartData, [bool align = true]) {
-    _ptr = Pointer<Uint8>.allocate(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
-    for (int i = 0; i < dartData.length; ++i) _ptr.elementAt(i).store(dartData[i]);
-    _size = dartData.length;
-  }
-
-  _ByteBuffer.fromOBXBytes(Pointer<Uint64> obxPtr) {
-    // extract fields from "struct OBX_bytes"
-    _ptr = Pointer<Uint8>.fromAddress(obxPtr.load<int>());
-    _size = obxPtr.elementAt(1).load<int>();
-  }
-
-  get ptr => _ptr;
-  get voidPtr => Pointer<Void>.fromAddress(_ptr.address);
-  get address => _ptr.address;
-  get size => _size;
-
-  Uint8List get data {
-    var buffer = new Uint8List(size);
-    for (int i = 0; i < size; ++i) buffer[i] = _ptr.elementAt(i).load<int>();
-    return buffer;
-  }
-
-  free() => _ptr.free();
-}
-
-class _SerializedByteBufferArray {
-  Pointer<Uint64> _outerPtr,
-      _innerPtr; // outerPtr points to the instance itself, innerPtr points to the respective OBX_bytes_array.bytes
-
-  _SerializedByteBufferArray(this._outerPtr, this._innerPtr);
-  get ptr => _outerPtr;
-
-  free() {
-    _innerPtr.free();
-    _outerPtr.free();
-  }
-}
-
-class _ByteBufferArray {
-  List<_ByteBuffer> _buffers;
-
-  _ByteBufferArray(this._buffers);
-
-  _ByteBufferArray.fromOBXBytesArray(Pointer<Uint64> bytesArray) {
-    _buffers = [];
-    Pointer<Uint64> bufferPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>()); // bytesArray.bytes
-    int numBuffers = bytesArray.elementAt(1).load<int>(); // bytesArray.count
-    for (int i = 0; i < numBuffers; ++i) // loop through instances of "struct OBX_bytes"
-      _buffers.add(_ByteBuffer.fromOBXBytes(
-          bufferPtrs.elementAt(2 * i))); // 2 * i, because each instance of "struct OBX_bytes" has .data and .size
-  }
-
-  _SerializedByteBufferArray toOBXBytesArray() {
-    Pointer<Uint64> bufferPtrs = Pointer<Uint64>.allocate(count: _buffers.length * 2);
-    for (int i = 0; i < _buffers.length; ++i) {
-      bufferPtrs.elementAt(2 * i).store(_buffers[i].ptr.address);
-      bufferPtrs.elementAt(2 * i + 1).store(_buffers[i].size);
-    }
-
-    Pointer<Uint64> outerPtr = Pointer<Uint64>.allocate(count: 2);
-    outerPtr.store(bufferPtrs.address);
-    outerPtr.elementAt(1).store(_buffers.length);
-    return _SerializedByteBufferArray(outerPtr, bufferPtrs);
-  }
-
-  get buffers => _buffers;
-}
-
 class Box<T> {
   Store _store;
   Pointer<Void> _objectboxBox;
@@ -143,7 +49,7 @@ class Box<T> {
     checkObxPtr(_objectboxBox, "failed to create box");
   }
 
-  _ByteBuffer _marshal(propVals) {
+  ByteBuffer _marshal(propVals) {
     var builder = new fb.Builder(initialSize: 1024);
 
     // write all strings
@@ -189,10 +95,10 @@ class Box<T> {
     });
 
     var endOffset = builder.endTable();
-    return _ByteBuffer.allocate(builder.finish(endOffset));
+    return ByteBuffer.allocate(builder.finish(endOffset));
   }
 
-  T _unmarshal(_ByteBuffer buffer) {
+  T _unmarshal(ByteBuffer buffer) {
     if (buffer.size == 0 || buffer.address == 0) return null;
     Map<String, dynamic> propVals = {};
     var entity = new _OBXFBEntity(buffer.data);
@@ -233,7 +139,7 @@ class Box<T> {
 
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
   List<T> _unmarshalArray(Pointer<Uint64> bytesArray) {
-    return _ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => _unmarshal(b)).toList();
+    return ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => _unmarshal(b)).toList();
   }
 
   _getOBXPutMode(PutMode mode) {
@@ -257,7 +163,7 @@ class Box<T> {
     }
 
     // put object into box and free the buffer
-    _ByteBuffer buffer = _marshal(propVals);
+    ByteBuffer buffer = _marshal(propVals);
     checkObx(
         bindings.obx_box_put(_objectboxBox, propVals[idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
     buffer.free();
@@ -291,7 +197,7 @@ class Box<T> {
     for (int i = 0; i < allPropVals.length; ++i) allIdsMemory.elementAt(i).store(allPropVals[i][idPropName]);
 
     // marshal all objects to be put into the box
-    var putObjects = _ByteBufferArray(allPropVals.map(_marshal).toList()).toOBXBytesArray();
+    var putObjects = ByteBufferArray(allPropVals.map(_marshal).toList()).toOBXBytesArray();
 
     checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
     putObjects.free();
@@ -324,7 +230,7 @@ class Box<T> {
       var size = sizePtr.load<int>();
 
       // transform bytes from memory to Dart byte list
-      var buffer = _ByteBuffer(data, size);
+      var buffer = ByteBuffer(data, size);
       dataPtr.free();
       sizePtr.free();
 
@@ -349,7 +255,7 @@ class Box<T> {
     if (ids.length == 0) return [];
 
     // write ids in buffer for FFI call
-    var idArray = new _IDArray(ids);
+    var idArray = new IDArray(ids);
 
     try {
       return _getMany(() => checkObxPtr(
