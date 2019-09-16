@@ -1,10 +1,9 @@
 import "dart:ffi";
-import "dart:typed_data" show Uint8List;
-import "package:flat_buffers/flat_buffers.dart" as fb;
 
 import "store.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
+import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
 
@@ -14,132 +13,19 @@ enum PutMode {
   Update,
 }
 
-class _OBXFBEntity {
-  _OBXFBEntity._(this._bc, this._bcOffset);
-  static const fb.Reader<_OBXFBEntity> reader = const _OBXFBEntityReader();
-  factory _OBXFBEntity(Uint8List bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
-    return reader.read(rootRef, 0);
-  }
-
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  getProp(propReader, int field) => propReader.vTableGet(_bc, _bcOffset, field);
-}
-
-class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
-  const _OBXFBEntityReader();
-
-  @override
-  _OBXFBEntity createObject(fb.BufferContext bc, int offset) => new _OBXFBEntity._(bc, offset);
-}
-
 class Box<T> {
   Store _store;
   Pointer<Void> _objectboxBox;
-  var _entityDefinition, _entityReader, _entityBuilder;
+  var _entityDefinition, _entityReader, _entityBuilder, _fbManager;
 
   Box(this._store) {
     _entityDefinition = _store.getEntityModelDefinitionFromClass(T);
     _entityReader = _store.getEntityReaderFromClass<T>();
     _entityBuilder = _store.getEntityBuilderFromClass<T>();
+    _fbManager = new OBXFlatbuffersManager<T>(_entityDefinition, _entityReader, _entityBuilder);
 
     _objectboxBox = bindings.obx_box(_store.ptr, _entityDefinition["entity"]["id"]);
     checkObxPtr(_objectboxBox, "failed to create box");
-  }
-
-  ByteBuffer _marshal(propVals) {
-    var builder = new fb.Builder(initialSize: 1024);
-
-    // write all strings
-    Map<String, int> offsets = {};
-    _entityDefinition["properties"].forEach((p) {
-      switch (p["type"]) {
-        case OBXPropertyType.String:
-          offsets[p["name"]] = builder.writeString(propVals[p["name"]]);
-          break;
-      }
-    });
-
-    // create table and write actual properties
-    // TODO: make sure that Id property has a value >= 1
-    builder.startTable();
-    _entityDefinition["properties"].forEach((p) {
-      var field = p["flatbuffers_id"], value = propVals[p["name"]];
-      switch (p["type"]) {
-        case OBXPropertyType.Bool:
-          builder.addBool(field, value);
-          break;
-        case OBXPropertyType.Char:
-          builder.addInt8(field, value);
-          break;
-        case OBXPropertyType.Byte:
-          builder.addUint8(field, value);
-          break;
-        case OBXPropertyType.Short:
-          builder.addInt16(field, value);
-          break;
-        case OBXPropertyType.Int:
-          builder.addInt32(field, value);
-          break;
-        case OBXPropertyType.Long:
-          builder.addInt64(field, value);
-          break;
-        case OBXPropertyType.String:
-          builder.addOffset(field, offsets[p["name"]]);
-          break;
-        default:
-          throw Exception("unsupported type: ${p['type']}"); // TODO: support more types
-      }
-    });
-
-    var endOffset = builder.endTable();
-    return ByteBuffer.allocate(builder.finish(endOffset));
-  }
-
-  T _unmarshal(ByteBuffer buffer) {
-    if (buffer.size == 0 || buffer.address == 0) return null;
-    Map<String, dynamic> propVals = {};
-    var entity = new _OBXFBEntity(buffer.data);
-
-    _entityDefinition["properties"].forEach((p) {
-      var propReader;
-      switch (p["type"]) {
-        case OBXPropertyType.Bool:
-          propReader = fb.BoolReader();
-          break;
-        case OBXPropertyType.Char:
-          propReader = fb.Int8Reader();
-          break;
-        case OBXPropertyType.Byte:
-          propReader = fb.Uint8Reader();
-          break;
-        case OBXPropertyType.Short:
-          propReader = fb.Int16Reader();
-          break;
-        case OBXPropertyType.Int:
-          propReader = fb.Int32Reader();
-          break;
-        case OBXPropertyType.Long:
-          propReader = fb.Int64Reader();
-          break;
-        case OBXPropertyType.String:
-          propReader = fb.StringReader();
-          break;
-        default:
-          throw Exception("unsupported type: ${p['type']}"); // TODO: support more types
-      }
-
-      propVals[p["name"]] = entity.getProp(propReader, (p["flatbuffers_id"] + 2) * 2);
-    });
-
-    return _entityBuilder(propVals);
-  }
-
-  // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T> _unmarshalArray(Pointer<Uint64> bytesArray) {
-    return ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => _unmarshal(b)).toList();
   }
 
   _getOBXPutMode(PutMode mode) {
@@ -163,7 +49,7 @@ class Box<T> {
     }
 
     // put object into box and free the buffer
-    ByteBuffer buffer = _marshal(propVals);
+    ByteBuffer buffer = _fbManager.marshal(propVals);
     checkObx(
         bindings.obx_box_put(_objectboxBox, propVals[idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
     buffer.free();
@@ -197,7 +83,7 @@ class Box<T> {
     for (int i = 0; i < allPropVals.length; ++i) allIdsMemory.elementAt(i).store(allPropVals[i][idPropName]);
 
     // marshal all objects to be put into the box
-    var putObjects = ByteBufferArray(allPropVals.map(_marshal).toList()).toOBXBytesArray();
+    var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
 
     checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
     putObjects.free();
@@ -234,7 +120,7 @@ class Box<T> {
       dataPtr.free();
       sizePtr.free();
 
-      return _unmarshal(buffer);
+      return _fbManager.unmarshal(buffer);
     });
   }
 
@@ -243,7 +129,7 @@ class Box<T> {
       // OBX_bytes_array*, has two Uint64 members (data and size)
       Pointer<Uint64> bytesArray = cCall();
       try {
-        return _unmarshalArray(bytesArray);
+        return _fbManager.unmarshalArray(bytesArray);
       } finally {
         bindings.obx_bytes_array_free(bytesArray);
       }
