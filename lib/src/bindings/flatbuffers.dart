@@ -48,7 +48,7 @@ class OBXFlatbuffersManager<T> {
     // TODO: make sure that Id property has a value >= 1
     builder.startTable();
     _entityDefinition["properties"].forEach((p) {
-      var field = p["flatbuffers_id"], value = propVals[p["name"]];
+      var field = p["id"] - 1, value = propVals[p["name"]];
       switch (p["type"]) {
         case OBXPropertyType.Bool:
           builder.addBool(field, value);
@@ -113,7 +113,7 @@ class OBXFlatbuffersManager<T> {
           throw Exception("unsupported type: ${p['type']}"); // TODO: support more types
       }
 
-      propVals[p["name"]] = entity.getProp(propReader, (p["flatbuffers_id"] + 2) * 2);
+      propVals[p["name"]] = entity.getProp(propReader, (p["id"] + 1) * 2);
     });
 
     return _entityBuilder(propVals);

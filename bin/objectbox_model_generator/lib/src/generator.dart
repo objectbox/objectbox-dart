@@ -16,14 +16,14 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
     var entity = Entity(id: annotation.read('id').intValue, uid: annotation.read('uid').intValue);
     var element = elementBare as ClassElement;
     var ret = """
-            const _${element.name}_OBXModel = {
-                "entity": {
-                    "name": "${element.name}",
-                    "id": ${entity.id},
-                    "uid": ${entity.uid}
-                },
-                "properties": [
-        """;
+        const _${element.name}_OBXModel = {
+          "entity": {
+            "name": "${element.name}",
+            "id": ${entity.id},
+            "uid": ${entity.uid}
+          },
+          "properties": [
+      """;
 
     // read all suitable annotated properties
     var props = [];
@@ -81,15 +81,14 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
       prop["type"] = fieldType;
       props.add(prop);
       ret += """
-                {
-                    "name": "${prop['name']}",
-                    "id": ${prop['id']},
-                    "uid": ${prop['uid']},
-                    "type": ${prop['type']},
-                    "flags": ${prop['flags']},
-                    "flatbuffers_id": ${(prop['id'] as int) - 1},
-                },
-            """;
+          {
+            "name": "${prop['name']}",
+            "id": ${prop['id']},
+            "uid": ${prop['uid']},
+            "type": ${prop['type']},
+            "flags": ${prop['flags']},
+          },
+        """;
     }
 
     // some checks on the entity's integrity
@@ -98,28 +97,28 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
     // main code for instance builders and readers
     ret += """
-                ],
-                "idPropertyName": "${idPropertyName}",
-            };
+          ],
+          "idPropertyName": "${idPropertyName}",
+        };
 
-            ${element.name} _${element.name}_OBXBuilder(Map<String, dynamic> members) {
-                ${element.name} r = new ${element.name}();
-                ${props.map((p) => "r.${p['name']} = members[\"${p['name']}\"];").join()}
-                return r;
-            }
+        ${element.name} _${element.name}_OBXBuilder(Map<String, dynamic> members) {
+          ${element.name} r = new ${element.name}();
+          ${props.map((p) => "r.${p['name']} = members[\"${p['name']}\"];").join()}
+          return r;
+        }
 
-            Map<String, dynamic> _${element.name}_OBXReader(${element.name} inst) {
-                Map<String, dynamic> r = {};
-                ${props.map((p) => "r[\"${p['name']}\"] = inst.${p['name']};").join()}
-                return r;
-            }
+        Map<String, dynamic> _${element.name}_OBXReader(${element.name} inst) {
+          Map<String, dynamic> r = {};
+          ${props.map((p) => "r[\"${p['name']}\"] = inst.${p['name']};").join()}
+          return r;
+        }
 
-            const ${element.name}_OBXDefs = {
-                "model": _${element.name}_OBXModel,
-                "builder": _${element.name}_OBXBuilder,
-                "reader": _${element.name}_OBXReader,
-            };
-        """;
+        const ${element.name}_OBXDefs = {
+          "model": _${element.name}_OBXModel,
+          "builder": _${element.name}_OBXBuilder,
+          "reader": _${element.name}_OBXReader,
+        };
+      """;
 
     return ret;
   }
