@@ -156,12 +156,5 @@ class Box<T> {
         () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
   }
 
-  close() {
-    if (_store != null) {
-      _store.close();
-      _store = null;
-    }
-  }
-
   get ptr => _objectboxBox;
 }
