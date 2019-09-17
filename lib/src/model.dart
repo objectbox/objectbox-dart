@@ -6,21 +6,16 @@ import "bindings/helpers.dart";
 import "package:ffi/ffi.dart";
 
 class Entity {
-  final int id, uid;
-  const Entity({this.id, this.uid})
-      : assert(id != null && id != 0),
-        assert(uid != null && uid != 0);
+  const Entity();
 }
 
 class Property {
   final int type;
-  final int id, uid;
-  const Property({this.id, this.uid, this.type = null});
+  const Property({this.type = null});
 }
 
 class Id {
-  final int id, uid;
-  const Id({this.id, this.uid}); // type is always long
+  const Id();
 }
 
 class Model {

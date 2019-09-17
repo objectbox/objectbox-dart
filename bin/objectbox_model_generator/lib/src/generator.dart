@@ -10,10 +10,6 @@ import "package:objectbox/src/bindings/constants.dart";
 
 import "merge.dart";
 
-Future<bool> fileExists(name) async {
-  return (await FileSystemEntity.type(name)) != FileSystemEntityType.notFound;
-}
-
 class EntityGenerator extends GeneratorForAnnotation<Entity> {
   static const ALL_MODELS_JSON = "objectbox_models.json";
 
@@ -72,8 +68,6 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
     Map<String, dynamic> annotatedModel = {
       "entity": {
         "name": "${element.name}",
-        "id": annotation.read('id').intValue,
-        "uid": annotation.read('uid').intValue,
       },
       "properties": [],
     };
@@ -90,8 +84,6 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
       var prop = {
         "name": f.name,
-        "id": annotVal.getField("id").toIntValue(),
-        "uid": annotVal.getField("uid").toIntValue(),
         "flags": 0,
       };
 

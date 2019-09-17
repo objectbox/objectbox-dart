@@ -3,12 +3,12 @@ import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
 part "test.g.dart";
 
-@Entity(id: 1, uid: 1)
+@Entity()
 class TestEntity {
-  @Id(id: 1, uid: 1001)
+  @Id()
   int id;
 
-  @Property(id: 2, uid: 1002)
+  @Property()
   String text;
 
   TestEntity();
@@ -16,12 +16,12 @@ class TestEntity {
   TestEntity.construct(this.text);
 }
 
-@Entity(id: 2, uid: 2)
+@Entity()
 class Note {
-  @Id(id: 1, uid: 2001)
+  @Id()
   int id;
 
-  @Property(id: 2, uid: 2002)
+  @Property()
   String text;
 
   Note();
