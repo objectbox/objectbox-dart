@@ -4,7 +4,6 @@
 **/pubspec.lock
 misc/
 .idea/
-**/*.g.dart
 download/
 lib/*.dll
 lib/*.dylib

@@ -1,0 +1,26 @@
+[
+  {
+    "entity": {
+      "name": "TestEntity",
+      "id": 1,
+      "uid": 1
+    },
+    "properties": [
+      {
+        "name": "id",
+        "id": 1,
+        "uid": 1001,
+        "type": 6,
+        "flags": 1
+      },
+      {
+        "name": "text",
+        "id": 2,
+        "uid": 1002,
+        "type": 9,
+        "flags": 0
+      }
+    ],
+    "idPropertyName": "id"
+  }
+]
