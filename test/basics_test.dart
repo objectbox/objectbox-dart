@@ -1,7 +1,7 @@
 import "dart:io";
 import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
-part "test.g.dart";
+part "basics_test.g.dart";
 
 @Entity(id: 1, uid: 1)
 class TestEntity {
