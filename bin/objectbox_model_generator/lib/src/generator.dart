@@ -3,44 +3,26 @@ import "dart:convert";
 import "dart:io";
 import "package:analyzer/dart/element/element.dart";
 import "package:build/src/builder/build_step.dart";
-import "package:path/path.dart" as path;
 import "package:source_gen/source_gen.dart";
 
 import "package:objectbox/objectbox.dart";
 import "package:objectbox/src/bindings/constants.dart";
 
+import "merge.dart";
+
 Future<bool> fileExists(name) async {
   return (await FileSystemEntity.type(name)) != FileSystemEntityType.notFound;
 }
 
-Future<String> readFile(name) async {
-  return await (new File(name).readAsString());
-}
-
 class EntityGenerator extends GeneratorForAnnotation<Entity> {
-  // each .g.dart file needs to get a header with functions to load the .g.json file exactly once. Store the input .dart file ids this has already been done for here
+  static const ALL_MODELS_JSON = "objectbox_models.json";
+
+  // each .g.dart file needs to get a header with functions to load the ALL_MODELS_JSON file exactly once. Store the input .dart file ids this has already been done for here
   List<String> entityHeaderDone = [];
 
-  // returns the JSON model file corresponding to the current Dart source file, i.e. test/test.dart --> test/test.g.json, if it exists
-  Future<String> getGeneratedJSONFilename(BuildStep buildStep) async {
-    if (!(await buildStep.canRead(buildStep.inputId)))
-      throw InvalidGenerationSourceError("cannot read input file id: ${buildStep.inputId}");
-
-    // get the filename of the current target (i.e. the Dart source file containing @Entity annotations, e.g. test/test.dart)
-    String inputFilename = buildStep.inputId.path;
-    if (buildStep.inputId.extension != ".dart")
-      throw InvalidGenerationSourceError("input file name does not have .dart extension: ${inputFilename}");
-    if (!(await fileExists(inputFilename)))
-      throw InvalidGenerationSourceError("input file does not exist: ${inputFilename}");
-
-    // try getting a previously generated file for this target, no problem if it does not exist
-    String genFilename = path.withoutExtension(inputFilename) + ".g.json";
-    if (!(await fileExists(genFilename))) return null;
-    return genFilename;
-  }
-
-  Future<List<Map<String, dynamic>>> _loadJSONModels(String filename) async {
-    List<dynamic> allModels = json.decode(await (new File(filename).readAsString()));
+  Future<List<Map<String, dynamic>>> _loadAllModels() async {
+    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) return [];
+    List<dynamic> allModels = json.decode(await (new File(ALL_MODELS_JSON).readAsString()));
     return allModels.map<Map<String, dynamic>>((x) => x).toList();
   }
 
@@ -59,9 +41,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
     // load existing model from JSON file if possible
     String inputFileId = buildStep.inputId.toString();
-    String jsonFilename = await getGeneratedJSONFilename(buildStep);
-    List<Map<String, dynamic>> allModels = await _loadJSONModels(jsonFilename);
-    Map<String, dynamic> currentModel = _findJSONModel(allModels, element.name);
+    List<Map<String, dynamic>> allModels = await _loadAllModels();
 
     // optionally add header for loading the .g.json file
     var ret = "";
@@ -70,18 +50,18 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
           Map<String, Map<String, dynamic>> _allOBXModels = null;
 
           void _loadOBXModels() {
-            if (FileSystemEntity.typeSync("$jsonFilename") == FileSystemEntityType.notFound)
-              throw Exception("$jsonFilename not found");
+            if (FileSystemEntity.typeSync("$ALL_MODELS_JSON") == FileSystemEntityType.notFound)
+              throw Exception("$ALL_MODELS_JSON not found");
 
             _allOBXModels = {};
-            List<dynamic> models = json.decode(new File("$jsonFilename").readAsStringSync());
+            List<dynamic> models = json.decode(new File("$ALL_MODELS_JSON").readAsStringSync());
             List<Map<String, dynamic>> modelsTyped = models.map<Map<String, dynamic>>((x) => x).toList();
             modelsTyped.forEach((v) => _allOBXModels[v["entity"]["name"]] = v);
           }
 
           Map<String, dynamic> _getOBXModel(String entityName) {
             if (_allOBXModels == null) _loadOBXModels();
-            if (!_allOBXModels.containsKey(entityName)) throw Exception("unknown entity name: \$entityName");
+            if (!_allOBXModels.containsKey(entityName)) throw Exception("entity missing in $ALL_MODELS_JSON: \$entityName");
             return _allOBXModels[entityName];
           }
         """;
@@ -89,20 +69,16 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
     }
 
     // process basic entity
-    var entity = Entity(id: annotation.read('id').intValue, uid: annotation.read('uid').intValue);
-    ret += """
-        const _${element.name}_OBXModel = {
-          "entity": {
-            "name": "${element.name}",
-            "id": ${entity.id},
-            "uid": ${entity.uid}
-          },
-          "properties": [
-      """;
+    Map<String, dynamic> annotatedModel = {
+      "entity": {
+        "name": "${element.name}",
+        "id": annotation.read('id').intValue,
+        "uid": annotation.read('uid').intValue,
+      },
+      "properties": [],
+    };
 
     // read all suitable annotated properties
-    var props = [];
-    String idPropertyName;
     for (var f in element.fields) {
       if (f.metadata == null || f.metadata.length != 1) // skip unannotated fields
         continue;
@@ -120,7 +96,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
       };
 
       if (annotType == "Id") {
-        if (idPropertyName != null)
+        if (annotatedModel["idPropertyName"] != null)
           throw InvalidGenerationSourceError(
               "in target ${elementBare.name}: has more than one properties annotated with @Id");
         if (fieldType != null)
@@ -132,7 +108,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
         fieldType = OBXPropertyType.Long;
         prop["flags"] = OBXPropertyFlag.ID;
-        idPropertyName = f.name;
+        annotatedModel["idPropertyName"] = f.name;
       } else if (annotType == "Property") {
         // nothing special here
       } else {
@@ -154,41 +130,34 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
       }
 
       prop["type"] = fieldType;
-      props.add(prop);
-      ret += """
-          {
-            "name": "${prop['name']}",
-            "id": ${prop['id']},
-            "uid": ${prop['uid']},
-            "type": ${prop['type']},
-            "flags": ${prop['flags']},
-          },
-        """;
+      annotatedModel["properties"].add(prop);
     }
 
     // some checks on the entity's integrity
-    if (idPropertyName == null)
+    if (annotatedModel["idPropertyName"] == null)
       throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
+
+    // merge existing model and annotated model that was just read, then write new final model to file
+    final List<Map<String, dynamic>> allModelsFinal = merge(allModels, annotatedModel);
+    new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModelsFinal));
+    final Map<String, dynamic> currentModelFinal = _findJSONModel(allModelsFinal, element.name);
+    if (currentModelFinal == null) return ret;
 
     // main code for instance builders and readers
     ret += """
-          ],
-          "idPropertyName": "${idPropertyName}",
-        };
-
         Map<String, dynamic> _${element.name}_OBXModelGetter() {
           return _getOBXModel("${element.name}");
         }
 
         ${element.name} _${element.name}_OBXBuilder(Map<String, dynamic> members) {
           ${element.name} r = new ${element.name}();
-          ${props.map((p) => "r.${p['name']} = members[\"${p['name']}\"];").join()}
+          ${currentModelFinal["properties"].map((p) => "r.${p['name']} = members[\"${p['name']}\"];").join()}
           return r;
         }
 
         Map<String, dynamic> _${element.name}_OBXReader(${element.name} inst) {
           Map<String, dynamic> r = {};
-          ${props.map((p) => "r[\"${p['name']}\"] = inst.${p['name']};").join()}
+          ${currentModelFinal["properties"].map((p) => "r[\"${p['name']}\"] = inst.${p['name']};").join()}
           return r;
         }
 
