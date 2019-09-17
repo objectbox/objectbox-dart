@@ -12,9 +12,8 @@ class Store {
   Map<Type, Map<String, dynamic>> _modelDefinitions = {};
 
   Store(List<List<dynamic>> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
-    // TODO: allow setting options, e.g. database path
     defs.forEach((d) => _modelDefinitions[d[0]] = d[1]);
-    var model = Model(defs.map((d) => d[1]["model"] as Map<String, dynamic>).toList());
+    var model = Model(defs.map((d) => d[1]["model"]() as Map<String, dynamic>).toList());
 
     var opt = bindings.obx_opt();
     checkObxPtr(opt, "failed to create store options");
@@ -45,7 +44,7 @@ class Store {
   }
 
   getEntityModelDefinitionFromClass(cls) {
-    return _modelDefinitions[cls]["model"];
+    return _modelDefinitions[cls]["model"]();
   }
 
   getEntityReaderFromClass<T>() {

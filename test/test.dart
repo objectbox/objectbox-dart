@@ -16,6 +16,17 @@ class TestEntity {
   TestEntity.construct(this.text);
 }
 
+@Entity(id: 2, uid: 2)
+class Note {
+  @Id(id: 1, uid: 2001)
+  int id;
+
+  @Property(id: 2, uid: 2002)
+  String text;
+
+  Note();
+}
+
 main() {
   Store store;
   Box box;
