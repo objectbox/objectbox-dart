@@ -9,13 +9,13 @@ part of 'test.dart';
 Map<String, Map<String, dynamic>> _allOBXModels = null;
 
 void _loadOBXModels() {
-  if (FileSystemEntity.typeSync("objectbox_models.json") ==
+  if (FileSystemEntity.typeSync("objectbox-models.json") ==
       FileSystemEntityType.notFound)
-    throw Exception("objectbox_models.json not found");
+    throw Exception("objectbox-models.json not found");
 
   _allOBXModels = {};
   List<dynamic> models =
-      json.decode(new File("objectbox_models.json").readAsStringSync());
+      json.decode(new File("objectbox-models.json").readAsStringSync());
   List<Map<String, dynamic>> modelsTyped =
       models.map<Map<String, dynamic>>((x) => x).toList();
   modelsTyped.forEach((v) => _allOBXModels[v["entity"]["name"]] = v);
@@ -24,7 +24,7 @@ void _loadOBXModels() {
 Map<String, dynamic> _getOBXModel(String entityName) {
   if (_allOBXModels == null) _loadOBXModels();
   if (!_allOBXModels.containsKey(entityName))
-    throw Exception("entity missing in objectbox_models.json: $entityName");
+    throw Exception("entity missing in objectbox-models.json: $entityName");
   return _allOBXModels[entityName];
 }
 

@@ -11,7 +11,7 @@ import "package:objectbox/src/bindings/constants.dart";
 import "merge.dart";
 
 class EntityGenerator extends GeneratorForAnnotation<Entity> {
-  static const ALL_MODELS_JSON = "objectbox_models.json";
+  static const ALL_MODELS_JSON = "objectbox-models.json";
 
   // each .g.dart file needs to get a header with functions to load the ALL_MODELS_JSON file exactly once. Store the input .dart file ids this has already been done for here
   List<String> entityHeaderDone = [];
