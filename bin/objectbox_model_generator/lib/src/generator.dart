@@ -5,26 +5,25 @@ import "package:analyzer/dart/element/element.dart";
 import "package:build/src/builder/build_step.dart";
 import "package:source_gen/source_gen.dart";
 
-import "package:objectbox/objectbox.dart";
+import "package:objectbox/objectbox.dart" as obx;
 import "package:objectbox/src/bindings/constants.dart";
 
+import "code_chunks.dart";
 import "merge.dart";
+import "modelinfo/entity.dart";
+import "modelinfo/modelinfo.dart";
+import "modelinfo/property.dart";
 
-class EntityGenerator extends GeneratorForAnnotation<Entity> {
+class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   static const ALL_MODELS_JSON = "objectbox-models.json";
 
   // each .g.dart file needs to get a header with functions to load the ALL_MODELS_JSON file exactly once. Store the input .dart file ids this has already been done for here
   List<String> entityHeaderDone = [];
 
-  Future<Map<String, dynamic>> _loadAllModels() async {
-    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) return {};
-    return json.decode(await (new File(ALL_MODELS_JSON).readAsString()));
-  }
-
-  Map<String, dynamic> _findJSONModel(Map<String, dynamic> allModels, String entityName) {
-    int index = allModels["entities"].indexWhere((e) => e["name"] == entityName);
-    if (index == -1) return null;
-    return allModels["entities"][index];
+  Future<ModelInfo> _loadModelInfo() async {
+    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound)
+      return ModelInfo.createDefault();
+    return ModelInfo.fromMap(json.decode(await (new File(ALL_MODELS_JSON).readAsString())));
   }
 
   @override
@@ -36,37 +35,17 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
     // load existing model from JSON file if possible
     String inputFileId = buildStep.inputId.toString();
-    Map<String, dynamic> allModels = await _loadAllModels();
+    ModelInfo allModels = await _loadModelInfo();
 
     // optionally add header for loading the .g.json file
     var ret = "";
     if (entityHeaderDone.indexOf(inputFileId) == -1) {
-      ret += """
-          Map<String, Map<String, dynamic>> _allOBXModels = null;
-
-          void _loadOBXModels() {
-            if (FileSystemEntity.typeSync("$ALL_MODELS_JSON") == FileSystemEntityType.notFound)
-              throw Exception("$ALL_MODELS_JSON not found");
-
-            _allOBXModels = {};
-            Map<String, dynamic> models = json.decode(new File("$ALL_MODELS_JSON").readAsStringSync());
-            models["entities"].forEach((v) => _allOBXModels[v["name"]] = v);
-          }
-
-          Map<String, dynamic> _getOBXModel(String entityName) {
-            if (_allOBXModels == null) _loadOBXModels();
-            if (!_allOBXModels.containsKey(entityName)) throw Exception("entity missing in $ALL_MODELS_JSON: \$entityName");
-            return _allOBXModels[entityName];
-          }
-        """;
+      ret += CodeChunks.modelInfoLoader(ALL_MODELS_JSON);
       entityHeaderDone.add(inputFileId);
     }
 
-    // process basic entity
-    Map<String, dynamic> annotatedModel = {
-      "name": "${element.name}",
-      "properties": [],
-    };
+    // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
+    Entity readEntity = new Entity(null, null, element.name, [], allModels);
 
     // read all suitable annotated properties
     bool hasIdProperty = false;
@@ -79,11 +58,8 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
       var fieldTypeObj = annotVal.getField("type");
       int fieldType = fieldTypeObj == null ? null : fieldTypeObj.toIntValue();
 
-      var prop = {
-        "name": f.name,
-        "flags": 0,
-      };
-
+      // find property flags
+      int flags = 0;
       if (annotType == "Id") {
         if (hasIdProperty)
           throw InvalidGenerationSourceError(
@@ -96,7 +72,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
               "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
 
         fieldType = OBXPropertyType.Long;
-        prop["flags"] = OBXPropertyFlag.ID;
+        flags |= OBXPropertyFlag.ID;
         hasIdProperty = true;
       } else if (annotType == "Property") {
         // nothing special here
@@ -118,8 +94,9 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
         }
       }
 
-      prop["type"] = fieldType;
-      annotatedModel["properties"].add(prop);
+      // create property (do not use readEntity.createProperty in order to avoid generating new ids)
+      Property prop = new Property(null, f.name, fieldType, flags, readEntity);
+      readEntity.properties.add(prop);
     }
 
     // some checks on the entity's integrity
@@ -127,35 +104,13 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
       throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
 
     // merge existing model and annotated model that was just read, then write new final model to file
-    final Map<String, dynamic> allModelsFinal = merge(allModels, annotatedModel);
-    new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModelsFinal));
-    final Map<String, dynamic> currentModelFinal = _findJSONModel(allModelsFinal, element.name);
-    if (currentModelFinal == null) return ret;
+    merge(allModels, readEntity);
+    new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModels.toMap()));
+    readEntity = allModels.findEntityByName(element.name);
+    if (readEntity == null) return ret;
 
     // main code for instance builders and readers
-    ret += """
-        Map<String, dynamic> _${element.name}_OBXModelGetter() {
-          return _getOBXModel("${element.name}");
-        }
-
-        ${element.name} _${element.name}_OBXBuilder(Map<String, dynamic> members) {
-          ${element.name} r = new ${element.name}();
-          ${currentModelFinal["properties"].map((p) => "r.${p['name']} = members[\"${p['name']}\"];").join()}
-          return r;
-        }
-
-        Map<String, dynamic> _${element.name}_OBXReader(${element.name} inst) {
-          Map<String, dynamic> r = {};
-          ${currentModelFinal["properties"].map((p) => "r[\"${p['name']}\"] = inst.${p['name']};").join()}
-          return r;
-        }
-
-        const ${element.name}_OBXDefs = {
-          "model": _${element.name}_OBXModelGetter,
-          "builder": _${element.name}_OBXBuilder,
-          "reader": _${element.name}_OBXReader,
-        };
-      """;
+    ret += CodeChunks.instanceBuildersReaders(readEntity);
 
     return ret;
   }
