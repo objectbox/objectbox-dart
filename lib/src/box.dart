@@ -17,6 +17,7 @@ class Box<T> {
   Store _store;
   Pointer<Void> _objectboxBox;
   var _entityDefinition, _entityReader, _entityBuilder, _fbManager;
+  var _idPropName;
 
   Box(this._store) {
     _entityDefinition = _store.getEntityModelDefinitionFromClass(T);
@@ -24,7 +25,16 @@ class Box<T> {
     _entityBuilder = _store.getEntityBuilderFromClass<T>();
     _fbManager = new OBXFlatbuffersManager<T>(_entityDefinition, _entityReader, _entityBuilder);
 
-    _objectboxBox = bindings.obx_box(_store.ptr, _entityDefinition["entity"]["id"]);
+    for (int i = 0; i < _entityDefinition["properties"].length; ++i) {
+      final p = _entityDefinition["properties"][i];
+      if ((p["flags"] & OBXPropertyFlag.ID) != 0) {
+        _idPropName = p["name"];
+        break;
+      }
+    }
+
+    if (_idPropName == null) throw Exception("entity ${_entityDefinition["name"]} has no id property");
+    _objectboxBox = bindings.obx_box(_store.ptr, new IdUid(_entityDefinition["id"]).id);
     checkObxPtr(_objectboxBox, "failed to create box");
   }
 
@@ -42,18 +52,17 @@ class Box<T> {
   // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
   int put(T inst, {PutMode mode = PutMode.Put}) {
     var propVals = _entityReader(inst);
-    var idPropName = _entityDefinition["idPropertyName"];
-    if (propVals[idPropName] == null || propVals[idPropName] == 0) {
+    if (propVals[_idPropName] == null || propVals[_idPropName] == 0) {
       final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
-      propVals[idPropName] = id;
+      propVals[_idPropName] = id;
     }
 
     // put object into box and free the buffer
     ByteBuffer buffer = _fbManager.marshal(propVals);
     checkObx(
-        bindings.obx_box_put(_objectboxBox, propVals[idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+        bindings.obx_box_put(_objectboxBox, propVals[_idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
     buffer.free();
-    return propVals[idPropName];
+    return propVals[_idPropName];
   }
 
   // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
@@ -62,10 +71,9 @@ class Box<T> {
 
     // read all property values and find number of instances where ID is missing
     var allPropVals = insts.map(_entityReader).toList();
-    var idPropName = _entityDefinition["idPropertyName"];
     int numInstsMissingId = 0;
     for (var instPropVals in allPropVals)
-      if (instPropVals[idPropName] == null || instPropVals[idPropName] == 0) ++numInstsMissingId;
+      if (instPropVals[_idPropName] == null || instPropVals[_idPropName] == 0) ++numInstsMissingId;
 
     // generate new IDs for these instances and set them
     Pointer<Uint64> firstIdMemory;
@@ -75,12 +83,12 @@ class Box<T> {
       int nextId = firstIdMemory.load<int>();
       firstIdMemory.free();
       for (var instPropVals in allPropVals)
-        if (instPropVals[idPropName] == null || instPropVals[idPropName] == 0) instPropVals[idPropName] = nextId++;
+        if (instPropVals[_idPropName] == null || instPropVals[_idPropName] == 0) instPropVals[_idPropName] = nextId++;
     }
 
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
     Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
-    for (int i = 0; i < allPropVals.length; ++i) allIdsMemory.elementAt(i).store(allPropVals[i][idPropName]);
+    for (int i = 0; i < allPropVals.length; ++i) allIdsMemory.elementAt(i).store(allPropVals[i][_idPropName]);
 
     // marshal all objects to be put into the box
     var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
@@ -88,7 +96,7 @@ class Box<T> {
     checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
     putObjects.free();
     allIdsMemory.free();
-    return allPropVals.map((p) => p[idPropName] as int).toList();
+    return allPropVals.map((p) => p[_idPropName] as int).toList();
   }
 
   // TODO move to Store

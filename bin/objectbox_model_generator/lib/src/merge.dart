@@ -1,4 +1,7 @@
-List<Map<String, dynamic>> merge(List<Map<String, dynamic>> allModels, Map<String, dynamic> annotatedModel) {
+import "model.dart";
+
+Map<String, dynamic> merge(Map<String, dynamic> modelInfo, Map<String, dynamic> annotatedModel) {
   print(annotatedModel);
-  return allModels;
+  print(ModelInfo.fromMap(modelInfo).toMap());
+  return modelInfo;
 }

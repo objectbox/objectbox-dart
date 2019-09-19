@@ -16,16 +16,15 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
   // each .g.dart file needs to get a header with functions to load the ALL_MODELS_JSON file exactly once. Store the input .dart file ids this has already been done for here
   List<String> entityHeaderDone = [];
 
-  Future<List<Map<String, dynamic>>> _loadAllModels() async {
-    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) return [];
-    List<dynamic> allModels = json.decode(await (new File(ALL_MODELS_JSON).readAsString()));
-    return allModels.map<Map<String, dynamic>>((x) => x).toList();
+  Future<Map<String, dynamic>> _loadAllModels() async {
+    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) return {};
+    return json.decode(await (new File(ALL_MODELS_JSON).readAsString()));
   }
 
-  Map<String, dynamic> _findJSONModel(List<Map<String, dynamic>> allModels, String entityName) {
-    int index = allModels.indexWhere((m) => m["entity"]["name"] == entityName);
+  Map<String, dynamic> _findJSONModel(Map<String, dynamic> allModels, String entityName) {
+    int index = allModels["entities"].indexWhere((e) => e["name"] == entityName);
     if (index == -1) return null;
-    return allModels[index];
+    return allModels["entities"][index];
   }
 
   @override
@@ -37,7 +36,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
     // load existing model from JSON file if possible
     String inputFileId = buildStep.inputId.toString();
-    List<Map<String, dynamic>> allModels = await _loadAllModels();
+    Map<String, dynamic> allModels = await _loadAllModels();
 
     // optionally add header for loading the .g.json file
     var ret = "";
@@ -50,9 +49,8 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
               throw Exception("$ALL_MODELS_JSON not found");
 
             _allOBXModels = {};
-            List<dynamic> models = json.decode(new File("$ALL_MODELS_JSON").readAsStringSync());
-            List<Map<String, dynamic>> modelsTyped = models.map<Map<String, dynamic>>((x) => x).toList();
-            modelsTyped.forEach((v) => _allOBXModels[v["entity"]["name"]] = v);
+            Map<String, dynamic> models = json.decode(new File("$ALL_MODELS_JSON").readAsStringSync());
+            models["entities"].forEach((v) => _allOBXModels[v["name"]] = v);
           }
 
           Map<String, dynamic> _getOBXModel(String entityName) {
@@ -66,13 +64,12 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
     // process basic entity
     Map<String, dynamic> annotatedModel = {
-      "entity": {
-        "name": "${element.name}",
-      },
+      "name": "${element.name}",
       "properties": [],
     };
 
     // read all suitable annotated properties
+    bool hasIdProperty = false;
     for (var f in element.fields) {
       if (f.metadata == null || f.metadata.length != 1) // skip unannotated fields
         continue;
@@ -88,7 +85,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
       };
 
       if (annotType == "Id") {
-        if (annotatedModel["idPropertyName"] != null)
+        if (hasIdProperty)
           throw InvalidGenerationSourceError(
               "in target ${elementBare.name}: has more than one properties annotated with @Id");
         if (fieldType != null)
@@ -100,7 +97,7 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
 
         fieldType = OBXPropertyType.Long;
         prop["flags"] = OBXPropertyFlag.ID;
-        annotatedModel["idPropertyName"] = f.name;
+        hasIdProperty = true;
       } else if (annotType == "Property") {
         // nothing special here
       } else {
@@ -126,11 +123,11 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
     }
 
     // some checks on the entity's integrity
-    if (annotatedModel["idPropertyName"] == null)
+    if (!hasIdProperty)
       throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
 
     // merge existing model and annotated model that was just read, then write new final model to file
-    final List<Map<String, dynamic>> allModelsFinal = merge(allModels, annotatedModel);
+    final Map<String, dynamic> allModelsFinal = merge(allModels, annotatedModel);
     new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModelsFinal));
     final Map<String, dynamic> currentModelFinal = _findJSONModel(allModelsFinal, element.name);
     if (currentModelFinal == null) return ret;

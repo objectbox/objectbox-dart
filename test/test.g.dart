@@ -14,11 +14,9 @@ void _loadOBXModels() {
     throw Exception("objectbox-models.json not found");
 
   _allOBXModels = {};
-  List<dynamic> models =
+  Map<String, dynamic> models =
       json.decode(new File("objectbox-models.json").readAsStringSync());
-  List<Map<String, dynamic>> modelsTyped =
-      models.map<Map<String, dynamic>>((x) => x).toList();
-  modelsTyped.forEach((v) => _allOBXModels[v["entity"]["name"]] = v);
+  models["entities"].forEach((v) => _allOBXModels[v["name"]] = v);
 }
 
 Map<String, dynamic> _getOBXModel(String entityName) {
