@@ -1,15 +1,17 @@
+import "entity.dart";
 import "iduid.dart";
 
 class Property {
   IdUid id;
   String name;
   int type, flags;
+  Entity entity;
 
-  Property(this.id, this.name, this.type, this.flags) {
+  Property(this.id, this.name, this.type, this.flags, this.entity) {
     validate();
   }
 
-  Property.fromMap(Map<String, dynamic> data) {
+  Property.fromMap(Map<String, dynamic> data, this.entity) {
     id = IdUid(data["id"]);
     name = data["name"];
     type = data["type"];
@@ -18,13 +20,8 @@ class Property {
   }
 
   void validate() {
-    if (name.length == 0) throw Exception("name is undefined");
     if (type == null || type < 0) throw Exception("type must be defined and may not be < 0");
     if (flags == null || flags < 0) throw Exception("flags must be defined and may not be < 0");
-  }
-
-  bool containsUid(int searched) {
-    return id.uid == searched;
   }
 
   Map<String, dynamic> toMap() {
@@ -34,5 +31,9 @@ class Property {
     ret["type"] = type;
     ret["flags"] = flags;
     return ret;
+  }
+
+  bool containsUid(int searched) {
+    return id.uid == searched;
   }
 }
