@@ -55,3 +55,70 @@ typedef obx_box_put_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Poin
 typedef obx_box_put_many_native_t = Int32 Function(
     Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, Int32 mode);
 typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);
+
+// no typedef for non-functions
+// typedef obx_err = Int32
+// typedef Pointer<Int8> -> char[]
+// typedef Pointer<Int32> -> int (e.g. obx_qb_cond);
+
+// query builider
+typedef obx_query_builder_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
+typedef obx_query_builder_dart_t   = Pointer<Void> Function(Pointer<Void> store, int entity_id);
+
+typedef obx_qb_close_native_t = Int32 Function(Pointer<Void> builder);
+typedef obx_qb_close_dart_t   = int Function(Pointer<Void> builder);
+
+typedef obx_qb_error_message_t = Pointer<Uint8> Function(Pointer<Void> builder);
+
+typedef obx_qb_cond_operator_0_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id);
+typedef obx_qb_cond_operator_0_dart_t   = int Function(Pointer<Void> builder, int property_id);
+
+typedef obx_qb_cond_operator_1_native_t<P> = Int32 Function(Pointer<Void> builder, Uint32 property_id, P value);
+typedef obx_qb_cond_operator_1_dart_t<P>   = int Function(Pointer<Void> builder, int property_id, P value);
+
+typedef obx_qb_cond_operator_2_native_t<P> = Int32 Function(Pointer<Void> builder, Uint32 property_id, P v1, P v2);
+typedef obx_qb_cond_operator_2_dart_t<P>   = int Function(Pointer<Void> builder, int property_id, P v1, P v2);
+
+typedef obx_qb_cond_operator_in_native_t<P> = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<P> values, Uint64 count);
+typedef obx_qb_cond_operator_in_dart_t<P>   = int Function(Pointer<Void> builder, int property_id, Pointer<P> values, int count);
+
+typedef obx_qb_join_op_native_t = Int32 Function(Pointer<Void> builder, Pointer<Int32> cond_array, Uint64 count);
+typedef obx_qb_join_op_dart_t   = int Function(Pointer<Void> builder, Pointer<Int32> cond_array, int count);
+
+typedef obx_qb_cond_string_op_1_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<Uint8> value, Int8 case_sensitive);
+typedef obx_qb_cond_string_op_1_dart_t   = int Function(Pointer<Void> builder, int property_id, Pointer<Uint8> value, int case_sensitive);
+
+typedef obx_qb_string_lt_gt_op_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<Uint8> value, Int8 case_sensitive, Int8 with_equal);
+typedef obx_qb_string_lt_gt_op_dart_t   = int Function(Pointer<Void> builder, int property_id, Pointer<Uint8> value, int case_sensitive, int with_equal);
+
+typedef obx_qb_string_in_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<Pointer<Uint8>> value, Uint64 count, Int8 case_sensitive);
+typedef obx_qb_string_in_dart_t   = int Function(Pointer<Void> builder, int property_id, Pointer<Pointer<Uint8>> value, int count, int case_sensitive);
+
+typedef obx_qb_bytes_eq_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<Void> value, Uint64 size);
+typedef obx_qb_bytes_eq_dart_t   = int Function(Pointer<Void> builder, int property_id, Pointer<Void> value, int size);
+
+typedef obx_qb_bytes_lt_gt_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<Void> value, Uint64 size, Int8 with_equal);
+typedef obx_qb_bytes_lt_gt_dart_t   = int Function(Pointer<Void> builder, int property_id, Pointer<Void> value, int size, int with_equal);
+
+typedef obx_qb_param_alias_native_t = Int32 Function(Pointer<Void> builder, Pointer<Uint8> alias);
+typedef obx_qb_param_alias_dart_t   = int Function(Pointer<Void> builder, Pointer<Uint8> alias);
+
+typedef obx_qb_order_native_t = Int32 Function(Pointer<Void> builder, Uint32 property_id, Uint32 flags);
+typedef obx_qb_order_dart_t   = int Function(Pointer<Void> builder, int property_id, int flags);
+
+// query
+
+typedef obx_query_t = Pointer<Void> Function(Pointer<Void> builder);
+
+typedef obx_query_close_native_t = Int32 Function(Pointer<Void> query);
+typedef obx_query_close_dart_t =   int Function(Pointer<Void> query);
+
+typedef obx_query_find_t<P> = Pointer<Void> Function(Pointer<Void> query, P offset, P limit);
+
+typedef obx_query_count_native_t = Int32 Function(Pointer<Void> query, Pointer<Uint64> count);
+typedef obx_query_count_dart_t   = int Function(Pointer<Void> query, Pointer<Uint64> count);
+
+typedef obx_query_describe_t = Pointer<Uint8> Function(Pointer<Void> query);
+
+typedef obx_query_visit_native_t = Int32 Function(Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, Uint64 offset, Uint64 limit);
+typedef obx_query_visit_dart_t   = int   Function(Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, int offset, int limit);
