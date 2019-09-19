@@ -6,16 +6,18 @@ import "bindings/helpers.dart";
 import "package:ffi/ffi.dart";
 
 class Entity {
-  const Entity();
+  final int uid;
+  const Entity({this.uid = null});
 }
 
 class Property {
-  final int type;
-  const Property({this.type = null});
+  final int uid, type;
+  const Property({this.uid = null, this.type = null});
 }
 
 class Id {
-  const Id();
+  final int uid;
+  const Id({this.uid = null});
 }
 
 class Model {

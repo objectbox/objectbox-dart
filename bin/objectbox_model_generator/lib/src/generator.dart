@@ -11,6 +11,7 @@ import "package:objectbox/src/bindings/constants.dart";
 import "code_chunks.dart";
 import "merge.dart";
 import "modelinfo/entity.dart";
+import "modelinfo/iduid.dart";
 import "modelinfo/modelinfo.dart";
 import "modelinfo/property.dart";
 
@@ -29,89 +30,98 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   @override
   Future<String> generateForAnnotatedElement(
       Element elementBare, ConstantReader annotation, BuildStep buildStep) async {
-    if (elementBare is! ClassElement)
-      throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
-    var element = elementBare as ClassElement;
+    try {
+      if (elementBare is! ClassElement)
+        throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
+      var element = elementBare as ClassElement;
 
-    // load existing model from JSON file if possible
-    String inputFileId = buildStep.inputId.toString();
-    ModelInfo allModels = await _loadModelInfo();
+      // load existing model from JSON file if possible
+      String inputFileId = buildStep.inputId.toString();
+      ModelInfo allModels = await _loadModelInfo();
 
-    // optionally add header for loading the .g.json file
-    var ret = "";
-    if (entityHeaderDone.indexOf(inputFileId) == -1) {
-      ret += CodeChunks.modelInfoLoader(ALL_MODELS_JSON);
-      entityHeaderDone.add(inputFileId);
-    }
-
-    // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    Entity readEntity = new Entity(null, null, element.name, [], allModels);
-
-    // read all suitable annotated properties
-    bool hasIdProperty = false;
-    for (var f in element.fields) {
-      if (f.metadata == null || f.metadata.length != 1) // skip unannotated fields
-        continue;
-      var annotElmt = f.metadata[0].element as ConstructorElement;
-      var annotType = annotElmt.returnType.toString();
-      var annotVal = f.metadata[0].computeConstantValue();
-      var fieldTypeObj = annotVal.getField("type");
-      int fieldType = fieldTypeObj == null ? null : fieldTypeObj.toIntValue();
-
-      // find property flags
-      int flags = 0;
-      if (annotType == "Id") {
-        if (hasIdProperty)
-          throw InvalidGenerationSourceError(
-              "in target ${elementBare.name}: has more than one properties annotated with @Id");
-        if (fieldType != null)
-          throw InvalidGenerationSourceError(
-              "in target ${elementBare.name}: programming error: @Id property may not specify a type");
-        if (f.type.toString() != "int")
-          throw InvalidGenerationSourceError(
-              "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
-
-        fieldType = OBXPropertyType.Long;
-        flags |= OBXPropertyFlag.ID;
-        hasIdProperty = true;
-      } else if (annotType == "Property") {
-        // nothing special here
-      } else {
-        // skip unknown annotations
-        continue;
+      // optionally add header for loading the .g.json file
+      var ret = "";
+      if (entityHeaderDone.indexOf(inputFileId) == -1) {
+        ret += CodeChunks.modelInfoLoader(ALL_MODELS_JSON);
+        entityHeaderDone.add(inputFileId);
       }
 
-      if (fieldType == null) {
-        var fieldTypeStr = f.type.toString();
-        if (fieldTypeStr == "int")
-          fieldType = OBXPropertyType.Int;
-        else if (fieldTypeStr == "String")
-          fieldType = OBXPropertyType.String;
-        else {
-          print(
-              "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
+      // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
+      Entity readEntity = new Entity(IdUid.empty(), null, element.name, [], allModels);
+      var entityUid = annotation.read("uid");
+      if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
+
+      // read all suitable annotated properties
+      bool hasIdProperty = false;
+      for (var f in element.fields) {
+        if (f.metadata == null || f.metadata.length != 1) // skip unannotated fields
+          continue;
+        var annotElmt = f.metadata[0].element as ConstructorElement;
+        var annotType = annotElmt.returnType.toString();
+        var annotVal = f.metadata[0].computeConstantValue();
+        var fieldTypeObj = annotVal.getField("type");
+        int fieldType = fieldTypeObj == null ? null : fieldTypeObj.toIntValue();
+
+        // find property flags
+        int flags = 0;
+        if (annotType == "Id") {
+          if (hasIdProperty)
+            throw InvalidGenerationSourceError(
+                "in target ${elementBare.name}: has more than one properties annotated with @Id");
+          if (fieldType != null)
+            throw InvalidGenerationSourceError(
+                "in target ${elementBare.name}: programming error: @Id property may not specify a type");
+          if (f.type.toString() != "int")
+            throw InvalidGenerationSourceError(
+                "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+
+          fieldType = OBXPropertyType.Long;
+          flags |= OBXPropertyFlag.ID;
+          hasIdProperty = true;
+        } else if (annotType == "Property") {
+          // nothing special here
+        } else {
+          // skip unknown annotations
           continue;
         }
+
+        if (fieldType == null) {
+          var fieldTypeStr = f.type.toString();
+          if (fieldTypeStr == "int")
+            fieldType = OBXPropertyType.Int;
+          else if (fieldTypeStr == "String")
+            fieldType = OBXPropertyType.String;
+          else {
+            print(
+                "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
+            continue;
+          }
+        }
+
+        // create property (do not use readEntity.createProperty in order to avoid generating new ids)
+        Property prop = new Property(IdUid.empty(), f.name, fieldType, flags, readEntity);
+        int propUid = annotVal.getField("uid").toIntValue();
+        if (propUid != null) prop.id.uid = propUid;
+        readEntity.properties.add(prop);
       }
 
-      // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-      Property prop = new Property(null, f.name, fieldType, flags, readEntity);
-      readEntity.properties.add(prop);
+      // some checks on the entity's integrity
+      if (!hasIdProperty)
+        throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
+
+      // merge existing model and annotated model that was just read, then write new final model to file
+      merge(allModels, readEntity);
+      new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModels.toMap()));
+      readEntity = allModels.findEntityByName(element.name);
+      if (readEntity == null) return ret;
+
+      // main code for instance builders and readers
+      ret += CodeChunks.instanceBuildersReaders(readEntity);
+
+      return ret;
+    } catch (e, s) {
+      print(s);
+      rethrow;
     }
-
-    // some checks on the entity's integrity
-    if (!hasIdProperty)
-      throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
-
-    // merge existing model and annotated model that was just read, then write new final model to file
-    merge(allModels, readEntity);
-    new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModels.toMap()));
-    readEntity = allModels.findEntityByName(element.name);
-    if (readEntity == null) return ret;
-
-    // main code for instance builders and readers
-    ret += CodeChunks.instanceBuildersReaders(readEntity);
-
-    return ret;
   }
 }

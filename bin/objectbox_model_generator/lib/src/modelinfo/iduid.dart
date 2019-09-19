@@ -1,28 +1,33 @@
 class IdUid {
-  int id, uid;
+  int _id, _uid;
 
   IdUid(String str) {
     var spl = str.split(":");
     if (spl.length != 2) throw Exception("IdUid has invalid format, too many columns: $str");
     id = int.parse(spl[0]);
-    if (id <= 0 || id > ((1 << 63) - 1)) throw Exception("id out of bounds: $id");
     uid = int.parse(spl[1]);
-    if (uid <= 0 || uid > ((1 << 63) - 1)) throw Exception("uid out of bounds: $uid");
-    validate();
   }
 
-  IdUid.create(this.id, this.uid) {
-    validate();
+  IdUid.create(int newId, int newUid) {
+    id = newId;
+    uid = newUid;
   }
 
   IdUid.empty()
-      : this.id = 0,
-        this.uid = 0;
+      : this._id = 0,
+        this._uid = 0;
 
-  void validate() {
-    if (id <= 0) throw Exception("id may not be <= 0");
-    if (uid <= 0) throw Exception("uid may not be <= 0");
+  set id(int id) {
+    if (id <= 0 || id > ((1 << 63) - 1)) throw Exception("id out of bounds: $id");
+    _id = id;
   }
 
+  set uid(int uid) {
+    if (uid <= 0 || uid > ((1 << 63) - 1)) throw Exception("uid out of bounds: $uid");
+    _uid = uid;
+  }
+
+  get id => _id;
+  get uid => _uid;
   String toString() => "$id:$uid";
 }
