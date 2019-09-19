@@ -109,7 +109,10 @@ class ModelInfo {
   int generateUid() {
     var rng = new Random();
     for (int i = 0; i < 1000; ++i) {
-      var uid = rng.nextInt(1 << 63);
+      // Dart can only generate random numbers up to 1 << 32, so concat two of them and remove the upper bit to make the number non-negative
+      int uid = rng.nextInt(1 << 32);
+      uid |= rng.nextInt(1 << 32) << 32;
+      uid &= ~(1 << 64);
       if (uid != 0 && !containsUid(uid)) return uid;
     }
 
