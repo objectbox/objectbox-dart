@@ -18,30 +18,13 @@ class TestEntity {
 
   TestEntity.constructWithId(this.id, this.text);
   TestEntity.constructWithInteger(this.number);
+  TestEntity.constructWithIntegerAndText(this.number, this.text);
   TestEntity.construct(this.text);
 }
 
-@Entity(id: 2, uid: 2)
-class TestEntity2 {
-  @Id(id: 1, uid: 2001)
-  int id;
-
-  @Property(id: 2, uid: 2002)
-  String text;
-
-  @Property(id: 3, uid: 2003)
-  int number;
-
-  TestEntity2();
-
-  TestEntity2.constructWithId(this.id, this.text);
-  TestEntity2.constructWithInteger(this.number);
-  TestEntity2.construct(this.text);
-}
-
 main() {
-  Store store;
-  Box box;
+  Store store, store2;
+  Box box, box2;
 
   setUp(() {
     store = Store([
@@ -121,21 +104,40 @@ main() {
   });
 
   group("query", () {
-    test(".put items and filter with Condition", () {
-      box.put(TestEntity2.construct("Hello"));
-      box.put(TestEntity2.construct("Goodbye"));
+    test(".put items and filter with Condition, then count the matches", () {
+      box.put(TestEntity.construct("Hello"));
+      box.put(TestEntity.construct("Goodbye"));
 
-      box.put(TestEntity2.constructWithInteger(1337));
-      box.put(TestEntity2.constructWithInteger(80085));
+      box.put(TestEntity.constructWithInteger(1337));
+      box.put(TestEntity.constructWithInteger(80085));
 
-      QueryCondition cond1 = ((TestEntity2_.text == "Hello") as QueryCondition) | ((TestEntity2_.number == 1337) as QueryCondition);
-      QueryCondition cond2 = TestEntity2_.text.equal("Hello") | TestEntity2_.number.equal(1337);
+      box.put(TestEntity.constructWithIntegerAndText(-1337, "meh"));
+      box.put(TestEntity.constructWithIntegerAndText(-1332 + -5, "bleh"));
+
+      QueryCondition cond3 = TestEntity_.text.equal("Hello").or(TestEntity_.number.equal(1337));
+      QueryCondition cond2 = TestEntity_.text.equal("Hello") | TestEntity_.number.equal(1337);
+      QueryCondition cond1 = ((TestEntity_.text == "Hello") as QueryCondition) | ((TestEntity_.number == 1337) as QueryCondition);
+
+      QueryCondition cond4 = TestEntity_.text.equal("Goodbye").and(TestEntity_.number.equal(1337));
+      QueryCondition cond5 = TestEntity_.text.equal("bleh") & TestEntity_.number.equal(-1337);
+      QueryCondition cond6 = ((TestEntity_.text == "Hello") as QueryCondition) & ((TestEntity_.number == 1337) as QueryCondition);
+
+      final selfInference1 = (TestEntity_.text == "Hello") & (TestEntity_.number == 1337);
+      final selfInference2 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337);
+      final selfInference3 = ((TestEntity_.text == "Hello") as QueryCondition)["alias"] | ((TestEntity_.number == 1337) as QueryCondition); // TODO broken
+      // final selfInference4 = (TestEntity_.text == "Hello")["alias"] | (TestEntity_.number == 1337); // TODO broken
+      // QueryCondition cond0 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337); // TODO research why broken without the cast
 
       final q1 = box.query(cond1).build();
       final q2 = box.query(cond2).build();
+      final q3 = box.query(cond3).build();
+
+      box.query(selfInference1 as QueryCondition);
+      box.query(selfInference2 as QueryCondition);
 
       expect(q1.count(), 2);
       expect(q2.count(), 2);
+      expect(q3.count(), 2);
     });
   });
 

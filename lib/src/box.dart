@@ -157,9 +157,17 @@ class Box<T> {
         () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
   }
 
-  QueryBuilder query(QueryCondition qc) {
-    qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
+  QueryBuilder query(QueryCondition qc) => qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
+
+  /*
+  QueryBuilder queryAnyCondition(List<QueryCondition> qc) {
+    // TODO qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
   }
+
+  QueryBuilder queryAllConditions(List<QueryCondition> qc) {
+    // TODO qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
+  }
+  */
 
   get ptr => _objectboxBox;
 }

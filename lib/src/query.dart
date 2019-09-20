@@ -24,16 +24,12 @@ class QueryStringProperty extends QueryProperty {
   static const ConditionType type = ConditionType._string;
 
   QueryCondition equal(String p, {bool caseSensitive = false}) {
-    final c  = Condition<String>(ConditionOp.co_eq, type, p);
-    final qc = QueryCondition(schemaId, propertyId, c);
-
+    final c = Condition<String>(ConditionOp.co_eq, type, p);
     c.caseSensitive = false;
-    qc;
+    return QueryCondition(schemaId, propertyId, c);
   }
 
-  Condition<String> operator == (String p) {
-    equal(p);
-  }
+  QueryCondition operator == (String p) => equal(p);
 }
 
 class QueryIntegerProperty extends QueryProperty {
@@ -45,14 +41,10 @@ class QueryIntegerProperty extends QueryProperty {
     // TODO ideally, let the programmer decide on the resolution via the @Property annot.
     // TODO figure out the current implementation's type
     final c  = Condition<int>(ConditionOp.co_eq, type, p);
-    final qc = QueryCondition(schemaId, propertyId, c);
-
-    qc;
+    return QueryCondition(schemaId, propertyId, c);
   }
 
-  QueryCondition operator == (int p) {
-    equal(p);
-  }
+  QueryCondition operator == (int p) => equal(p);
 }
 
 class QueryDoubleProperty extends QueryProperty {
@@ -62,14 +54,10 @@ class QueryDoubleProperty extends QueryProperty {
 
   QueryCondition equal(double p) {
     final c  = Condition<double>(ConditionOp.co_eq, type, p);
-    final qc = QueryCondition(schemaId, propertyId, c);
-
-    qc;
+    return QueryCondition(schemaId, propertyId, c);
   }
 
-  QueryCondition operator == (double p) {
-    equal(p);
-  }
+  QueryCondition operator == (double p) => equal(p);
 }
 
 class QueryBooleanProperty extends QueryProperty {
@@ -80,15 +68,10 @@ class QueryBooleanProperty extends QueryProperty {
   // TODO let the programmer decide on the resolution via the @Property annot.
   QueryCondition equal(bool p) {
     final c  = Condition<int>(ConditionOp.co_eq, type, (p ? 1 : 0));
-    final qc = QueryCondition(schemaId, propertyId, c);
-
-    qc;
+    return QueryCondition(schemaId, propertyId, c);
   }
 
-  QueryCondition
-  operator == (bool p) {
-    equal(p);
-  }
+  QueryCondition operator == (bool p) => equal(p);
 }
 
 // TODO These are not the exact C API System values, shift bits to get the proper C API values
@@ -138,15 +121,12 @@ enum ConditionType {
   _bytes,
 }
 
-// Property = PropertyType
 class Condition<DartType> {
   DartType _value, _value2;
 
   ConditionOp _op;
   ConditionType _type;
 
-  // TODO add as mixin
-  // String specific
   bool caseSensitive; // TODO blow up when used by other types
 
   Condition(this._op, this._type, this._value, [this._value2 = null]);
@@ -154,50 +134,38 @@ class Condition<DartType> {
 
 class QueryCondition {
   int _schemaId, _propertyId;
-  Condition _lh_cnf, _rh_cnf;
-  List<Condition> _cnf; // all
+  QueryCondition _lh_cnf, _rh_cnf;
+  Condition<dynamic> condition;
+  List<QueryCondition> _cnf; // all
 
   String _alias;
 
   QueryCondition setAlias(String alias) {
     this._alias = alias;
-    this; // in case the cascade op is not available
+    return this; // in case the cascade op is not available
   }
 
-  QueryCondition(this._schemaId, this._propertyId, this._lh_cnf);
+  QueryCondition(this._schemaId, this._propertyId, this.condition);
 
   // TODO test: (p > 50) ["alias"] && ...
-  QueryCondition operator[](String alias) {
-    return setAlias(alias);
-  }
+  QueryCondition operator[](String alias) => setAlias(alias);
 
-  // TODO operator&& ?!
-  QueryCondition operator&(QueryCondition rh) {
-    all(rh);
-  }
+  QueryCondition operator&(QueryCondition rh) => and(rh);
 
-  QueryCondition operator|(QueryCondition rh) {
-    any(rh);
-  }
+  QueryCondition operator|(QueryCondition rh) => or(rh);
 
-  // TODO consider renaming to 'or'
   // Construct linked list to navigate between CNF
-  QueryCondition any(QueryCondition rh) {
-    rh._lh_cnf = this as Condition<dynamic>;
-    this._rh_cnf = rh as Condition<dynamic>;
-    rh;
+  QueryCondition or(QueryCondition rh) {
+    rh._lh_cnf = this;
+    this._rh_cnf = rh;
+    return rh;
   }
 
-  // TODO consider renaming to 'and'
-  QueryCondition all(QueryCondition rh) {
+  QueryCondition and(QueryCondition rh) {
+    _cnf ??= <QueryCondition>[];
+    _cnf.add(rh);
 
-    if (_cnf == null) { // TODO use sugar
-      _cnf = <QueryCondition>[] as List<Condition<dynamic>>;
-    }
-
-    _cnf.add(rh as Condition<dynamic>);
-
-    this;
+    return this;
   }
 
   QueryBuilder asQueryBuilder(Store store, int schemaId) => QueryBuilder(store, schemaId, this);
@@ -221,6 +189,6 @@ class QueryBuilder {
   QueryBuilder(this._store, this._schemaId, this._condition);
 
   Query build() {
-    Query(); // TODO
+    return Query(); // TODO
   }
 }
