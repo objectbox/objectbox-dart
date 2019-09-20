@@ -24,7 +24,7 @@ class QueryStringProperty extends QueryProperty {
   static const ConditionType type = ConditionType._string;
 
   QueryCondition equal(String p, {bool caseSensitive = false}) {
-    final c = Condition<String>(ConditionOp.co_eq, type, p);
+    final c = Condition<String>(ConditionOp._eq, type, p);
     c.caseSensitive = false;
     return QueryCondition(schemaId, propertyId, c);
   }
@@ -40,7 +40,7 @@ class QueryIntegerProperty extends QueryProperty {
   QueryCondition equal(int p) {
     // TODO ideally, let the programmer decide on the resolution via the @Property annot.
     // TODO figure out the current implementation's type
-    final c  = Condition<int>(ConditionOp.co_eq, type, p);
+    final c  = Condition<int>(ConditionOp._eq, type, p);
     return QueryCondition(schemaId, propertyId, c);
   }
 
@@ -53,7 +53,7 @@ class QueryDoubleProperty extends QueryProperty {
   static const ConditionType type = ConditionType._double;
 
   QueryCondition equal(double p) {
-    final c  = Condition<double>(ConditionOp.co_eq, type, p);
+    final c  = Condition<double>(ConditionOp._eq, type, p);
     return QueryCondition(schemaId, propertyId, c);
   }
 
@@ -67,7 +67,7 @@ class QueryBooleanProperty extends QueryProperty {
 
   // TODO let the programmer decide on the resolution via the @Property annot.
   QueryCondition equal(bool p) {
-    final c  = Condition<int>(ConditionOp.co_eq, type, (p ? 1 : 0));
+    final c  = Condition<int>(ConditionOp._eq, type, (p ? 1 : 0));
     return QueryCondition(schemaId, propertyId, c);
   }
 
@@ -95,21 +95,21 @@ enum OrderFlag {
 }
 
 enum ConditionOp {
-  co_null,
-  co_not_null,
-  co_eq,
-  co_not_eq,
-  co_string_contains,
-  co_string_contain,
-  co_string_starts,
-  co_string_ends,
-  co_gt,
-  co_lt,
-  co_in,
-  co_not_in,
-  co_tween,
-  co_all,
-  co_any
+  _null,
+  _not_null,
+  _eq,
+  _not_eq,
+  _string_contains,
+  _string_contain,
+  _string_starts,
+  _string_ends,
+  _gt,
+  _lt,
+  _in,
+  _not_in,
+  _tween,
+  _all,
+  _any
 }
 
 // TODO determine what is used for 'bool' (in the current implementation)
@@ -156,7 +156,6 @@ class QueryCondition {
   QueryCondition and(QueryCondition rh) {
     _cnf ??= <QueryCondition>[];
     _cnf.add(rh);
-
     return this;
   }
 
