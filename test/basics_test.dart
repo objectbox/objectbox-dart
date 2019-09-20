@@ -124,8 +124,6 @@ main() {
 
       final selfInference1 = (TestEntity_.text == "Hello") & (TestEntity_.number == 1337);
       final selfInference2 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337);
-      final selfInference3 = ((TestEntity_.text == "Hello") as QueryCondition)["alias"] | ((TestEntity_.number == 1337) as QueryCondition); // TODO broken
-      // final selfInference4 = (TestEntity_.text == "Hello")["alias"] | (TestEntity_.number == 1337); // TODO broken
       // QueryCondition cond0 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337); // TODO research why broken without the cast
 
       final q1 = box.query(cond1).build();

@@ -140,15 +140,7 @@ class QueryCondition {
 
   String _alias;
 
-  QueryCondition setAlias(String alias) {
-    this._alias = alias;
-    return this; // in case the cascade op is not available
-  }
-
   QueryCondition(this._schemaId, this._propertyId, this.condition);
-
-  // TODO test: (p > 50) ["alias"] && ...
-  QueryCondition operator[](String alias) => setAlias(alias);
 
   QueryCondition operator&(QueryCondition rh) => and(rh);
 
