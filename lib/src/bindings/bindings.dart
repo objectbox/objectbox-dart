@@ -60,14 +60,12 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, int id) obx_box_remove;
 
   // query builder
-  obx_query_builder_dart_t obx_query_builder;
+  obx_query_builder_dart_t obx_qb_create;
   obx_qb_close_dart_t obx_qb_close;
   obx_qb_close_dart_t obx_qb_error_code;
   obx_qb_error_message_t obx_qb_error_message;
 
-  obx_qb_cond_operator_0_dart_t obx_qb_null;
-
-  obx_qb_cond_operator_0_dart_t obx_qb_not_null;
+  obx_qb_cond_operator_0_dart_t obx_qb_null, obx_qb_not_null;
 
   obx_qb_cond_operator_1_dart_t<int>
     obx_qb_int_equal, obx_qb_int_not_equal,
@@ -102,7 +100,7 @@ class _ObjectBoxBindings {
   obx_qb_order_dart_t obx_qb_order;
 
   // query
-  obx_query_t obx_query;
+  obx_query_t obx_query_create;
   obx_query_close_dart_t obx_query_close;
   obx_query_find_t<int> obx_query_find, obx_query_find_ids; // ids = OBX_id_array, else OBX_bytes_array
 
@@ -191,7 +189,7 @@ class _ObjectBoxBindings {
     obx_box_remove = objectbox.lookup<NativeFunction<obx_box_remove_native_t>>("obx_box_remove").asFunction();
 
     // query builder
-    obx_query_builder = objectbox.lookup<NativeFunction<obx_query_builder_native_t>>("obx_query_builder").asFunction();
+    obx_qb_create = objectbox.lookup<NativeFunction<obx_query_builder_native_t>>("obx_query_builder").asFunction();
     obx_qb_close = objectbox.lookup<NativeFunction<obx_qb_close_native_t>>("obx_qb_close").asFunction();
     obx_qb_error_code = objectbox.lookup<NativeFunction<obx_qb_close_native_t>>("obx_qb_error_code").asFunction();
     obx_qb_error_message = objectbox.lookup<NativeFunction<obx_qb_error_message_t>>("obx_qb_error_message").asFunction();
@@ -241,7 +239,7 @@ class _ObjectBoxBindings {
     obx_qb_order = objectbox.lookup<NativeFunction<obx_qb_order_native_t>>("obx_qb_order").asFunction();
 
     // query
-    obx_query = objectbox.lookup<NativeFunction<obx_query_t>>("obx_query").asFunction();
+    obx_query_create = objectbox.lookup<NativeFunction<obx_query_t>>("obx_query").asFunction();
     obx_query_close = objectbox.lookup<NativeFunction<obx_query_close_native_t>>("obx_query_close").asFunction();
 
     obx_query_find_ids = objectbox.lookup<NativeFunction<obx_query_find_t<Uint64>>>("obx_query_find_ids").asFunction();

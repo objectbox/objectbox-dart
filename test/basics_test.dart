@@ -107,18 +107,19 @@ main() {
     test(".put items and filter with Condition, then count the matches", () {
       box.put(TestEntity.construct("Hello"));
       box.put(TestEntity.construct("Goodbye"));
+      box.put(TestEntity.construct("World"));
 
       box.put(TestEntity.constructWithInteger(1337));
       box.put(TestEntity.constructWithInteger(80085));
 
       box.put(TestEntity.constructWithIntegerAndText(-1337, "meh"));
       box.put(TestEntity.constructWithIntegerAndText(-1332 + -5, "bleh"));
+      box.put(TestEntity.constructWithIntegerAndText(1337, "Goodbye"));
 
-      QueryCondition cond3 = TestEntity_.text.equal("Hello").or(TestEntity_.number.equal(1337));
-      QueryCondition cond2 = TestEntity_.text.equal("Hello") | TestEntity_.number.equal(1337);
       QueryCondition cond1 = ((TestEntity_.text == "Hello") as QueryCondition) | ((TestEntity_.number == 1337) as QueryCondition);
-
-      QueryCondition cond4 = TestEntity_.text.equal("Goodbye").and(TestEntity_.number.equal(1337));
+      QueryCondition cond2 = TestEntity_.text.equal("Hello") | TestEntity_.number.equal(1337);
+      QueryCondition cond3 = TestEntity_.text.equal("What?").and(TestEntity_.text.equal("Hello")).or(TestEntity_.text.equal("World"));
+      QueryCondition cond4 = TestEntity_.text.equal("Goodbye").and(TestEntity_.number.equal(1337)).or(TestEntity_.number.equal(1337)).or(TestEntity_.text.equal("Cruel")).or(TestEntity_.text.equal("World"));
       QueryCondition cond5 = TestEntity_.text.equal("bleh") & TestEntity_.number.equal(-1337);
       QueryCondition cond6 = ((TestEntity_.text == "Hello") as QueryCondition) & ((TestEntity_.number == 1337) as QueryCondition);
 
@@ -129,13 +130,17 @@ main() {
       final q1 = box.query(cond1).build();
       final q2 = box.query(cond2).build();
       final q3 = box.query(cond3).build();
+      final q4 = box.query(cond4).build();
 
       box.query(selfInference1 as QueryCondition);
       box.query(selfInference2 as QueryCondition);
 
-      expect(q1.count(), 2);
-      expect(q2.count(), 2);
-      expect(q3.count(), 2);
+      expect(q1.count(), 3);
+      expect(q2.count(), 3);
+      expect(q3.count(), 1);
+      expect(q4.count(), 3);
+
+      [ q1, q2, q3, q4 ].forEach((q) => q.close());
     });
   });
 

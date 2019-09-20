@@ -159,15 +159,5 @@ class Box<T> {
 
   QueryBuilder query(QueryCondition qc) => qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
 
-  /*
-  QueryBuilder queryAnyCondition(List<QueryCondition> qc) {
-    // TODO qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
-  }
-
-  QueryBuilder queryAllConditions(List<QueryCondition> qc) {
-    // TODO qc.asQueryBuilder(_store, _entityDefinition["entity"]["id"]);
-  }
-  */
-
   get ptr => _objectboxBox;
 }
