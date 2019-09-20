@@ -11,9 +11,32 @@ class TestEntity {
   @Property(id: 2, uid: 1002)
   String text;
 
+  @Property(id: 3, uid: 1003)
+  int number;
+
   TestEntity();
+
   TestEntity.constructWithId(this.id, this.text);
+  TestEntity.constructWithInteger(this.number);
   TestEntity.construct(this.text);
+}
+
+@Entity(id: 2, uid: 2)
+class TestEntity2 {
+  @Id(id: 1, uid: 2001)
+  int id;
+
+  @Property(id: 2, uid: 2002)
+  String text;
+
+  @Property(id: 3, uid: 2003)
+  int number;
+
+  TestEntity2();
+
+  TestEntity2.constructWithId(this.id, this.text);
+  TestEntity2.constructWithInteger(this.number);
+  TestEntity2.construct(this.text);
 }
 
 main() {
@@ -94,6 +117,25 @@ main() {
       expect(fetchedItems[0].text, equals("One"));
       expect(fetchedItems[1], equals(null));
       expect(fetchedItems[2].text, equals("Two"));
+    });
+  });
+
+  group("query", () {
+    test(".put items and filter with Condition", () {
+      box.put(TestEntity2.construct("Hello"));
+      box.put(TestEntity2.construct("Goodbye"));
+
+      box.put(TestEntity2.constructWithInteger(1337));
+      box.put(TestEntity2.constructWithInteger(80085));
+
+      QueryCondition cond1 = ((TestEntity2_.text == "Hello") as QueryCondition) | ((TestEntity2_.number == 1337) as QueryCondition);
+      QueryCondition cond2 = TestEntity2_.text.equal("Hello") | TestEntity2_.number.equal(1337);
+
+      final q1 = box.query(cond1).build();
+      final q2 = box.query(cond2).build();
+
+      expect(q1.count(), 2);
+      expect(q2.count(), 2);
     });
   });
 

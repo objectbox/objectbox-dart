@@ -120,6 +120,45 @@ class EntityGenerator extends GeneratorForAnnotation<Entity> {
         };
       """;
 
+    ret += """
+    class ${element.name}_ {
+    """;
+
+    ret += """
+      static final entityId = ${entity.id};
+    """;
+
+    for (var f in element.fields) {
+      if (f.metadata == null ||
+          f.metadata.length != 1) // skip unannotated fields
+        continue;
+
+      var annotElmt = f.metadata[0].element as ConstructorElement;
+      var annotType = annotElmt.returnType.toString();
+      var annotVal = f.metadata[0].computeConstantValue();
+      var annotValId = annotVal.getField("id").toIntValue();
+
+      if ("Id" == annotType) continue;
+
+      var fieldType = f.type.toString();
+      if ("int" == fieldType) {
+        fieldType = "Integer";
+      }else if ("double" == fieldType) {
+        fieldType = "Double";
+      }else if ("bool" == fieldType) {
+        fieldType = "Boolean";
+      }
+
+      ret += """
+        static final ${f.name}PropertyId = ${annotValId};
+        static final ${f.name} = Query${fieldType}Property(entityId, ${f.name}PropertyId);
+      """;
+    }
+
+      ret += """
+    }
+    """;
+
     return ret;
   }
 }
