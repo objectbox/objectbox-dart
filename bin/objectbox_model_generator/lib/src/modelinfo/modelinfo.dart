@@ -95,10 +95,22 @@ class ModelInfo {
     return idx == -1 ? null : entities[idx];
   }
 
-  Entity createEntity(String name) {
+  Entity findEntity(Entity other) {
+    if (other.id.uid != 0) return findEntityByUid(other.id.uid);
+    return findEntityByName(other.name);
+  }
+
+  Entity createCopiedEntity(Entity other) {
+    Entity ret = createEntity(other.name, other.id.uid);
+    other.properties.forEach((p) => ret.createCopiedProperty(p));
+    return ret;
+  }
+
+  Entity createEntity(String name, [int uid = 0]) {
     int id = 1;
     if (entities.length > 0) id = lastEntityId.id + 1;
-    int uniqueUid = generateUid();
+    if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
+    int uniqueUid = uid == 0 ? generateUid() : uid;
 
     var entity = new Entity(IdUid.create(id, uniqueUid), null, name, [], this);
     entities.add(entity);
@@ -112,7 +124,7 @@ class ModelInfo {
       // Dart can only generate random numbers up to 1 << 32, so concat two of them and remove the upper bit to make the number non-negative
       int uid = rng.nextInt(1 << 32);
       uid |= rng.nextInt(1 << 32) << 32;
-      uid &= ~(1 << 64);
+      uid &= ~(1 << 63);
       if (uid != 0 && !containsUid(uid)) return uid;
     }
 

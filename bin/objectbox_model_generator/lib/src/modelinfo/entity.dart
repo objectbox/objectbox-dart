@@ -64,15 +64,23 @@ class Entity {
     return idx == -1 ? null : properties[idx];
   }
 
-  Property createProperty() {
+  Property createProperty(String name, [int uid = 0]) {
     int id = 1;
     if (properties.length > 0) id = lastPropertyId.id + 1;
-    int uniqueUid = model.generateUid();
+    if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
+    int uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    var property = Property(IdUid.create(id, uniqueUid), null, 0, 0, this);
+    var property = Property(IdUid.create(id, uniqueUid), name, 0, 0, this);
     properties.add(property);
     lastPropertyId = property.id;
     return property;
+  }
+
+  Property createCopiedProperty(Property prop) {
+    Property ret = createProperty(prop.name, prop.id.uid);
+    ret.type = prop.type;
+    ret.flags = prop.flags;
+    return ret;
   }
 
   void removeProperty(Property property) {
@@ -85,7 +93,7 @@ class Entity {
 
   bool containsUid(int searched) {
     if (id.uid == searched) return true;
-    if (lastPropertyId.uid == searched) return true;
+    if (lastPropertyId != null && lastPropertyId.uid == searched) return true;
     if (properties.indexWhere((p) => p.containsUid(searched)) != -1) return true;
     return false;
   }
