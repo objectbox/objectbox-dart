@@ -60,8 +60,10 @@ class Entity {
   }
 
   Property findPropertyByName(String name) {
-    int idx = properties.indexWhere((p) => p.name.toLowerCase() == name.toLowerCase());
-    return idx == -1 ? null : properties[idx];
+    final found = properties.where((p) => p.name.toLowerCase() == name.toLowerCase()).toList();
+    if (found.length == 0) return null;
+    if (found.length >= 2) throw Exception("ambiguous property name: $name; please specify a UID in its annotation");
+    return found[0];
   }
 
   Property createProperty(String name, [int uid = 0]) {

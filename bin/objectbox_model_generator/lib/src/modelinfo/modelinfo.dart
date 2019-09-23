@@ -91,8 +91,10 @@ class ModelInfo {
   }
 
   Entity findEntityByName(String name) {
-    int idx = entities.indexWhere((e) => e.name.toLowerCase() == name.toLowerCase());
-    return idx == -1 ? null : entities[idx];
+    final found = entities.where((e) => e.name.toLowerCase() == name.toLowerCase()).toList();
+    if (found.length == 0) return null;
+    if (found.length >= 2) throw Exception("ambiguous entity name: $name; please specify a UID in its annotation");
+    return found[0];
   }
 
   Entity findEntity(Entity other) {
