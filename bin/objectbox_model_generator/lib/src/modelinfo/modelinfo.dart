@@ -3,9 +3,8 @@ import "dart:math";
 import "entity.dart";
 import "iduid.dart";
 
-const ModelVersion = 5;
 const minModelVersion = 5;
-const maxModelVersion = ModelVersion;
+const maxModelVersion = 5;
 
 class ModelInfo {
   static const notes = [
@@ -29,7 +28,7 @@ class ModelInfo {
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
     entities = data["entities"].map<Entity>((e) => Entity.fromMap(e, this)).toList();
-    lastEntityId = IdUid(data["lastEntityId"]);
+    if (data.containsKey("lastEntityId") && data["lastEntityId"] != null) lastEntityId = IdUid(data["lastEntityId"]);
     retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
     retiredPropertyUids = data["retiredPropertyUids"].map<int>((x) => x as int).toList();
     modelVersion = data["modelVersion"];
@@ -97,9 +96,11 @@ class ModelInfo {
     return found[0];
   }
 
-  Entity findEntity(Entity other) {
-    if (other.id.uid != 0) return findEntityByUid(other.id.uid);
-    return findEntityByName(other.name);
+  Entity findSameEntity(Entity other) {
+    Entity ret;
+    if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
+    if (ret == null) ret = findEntityByName(other.name);
+    return ret;
   }
 
   Entity createCopiedEntity(Entity other) {
@@ -134,7 +135,7 @@ class ModelInfo {
   }
 
   bool containsUid(int searched) {
-    if (lastEntityId.uid == searched) return true;
+    if (lastEntityId != null && lastEntityId.uid == searched) return true;
     if (retiredEntityUids.indexWhere((x) => x == searched) != -1) return true;
     if (retiredPropertyUids.indexWhere((x) => x == searched) != -1) return true;
     if (entities.indexWhere((e) => e.containsUid(searched)) != -1) return true;

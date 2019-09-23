@@ -110,7 +110,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
 
       // merge existing model and annotated model that was just read, then write new final model to file
-      merge(allModels, readEntity);
+      mergeEntity(allModels, readEntity);
       new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModels.toMap()));
       readEntity = allModels.findEntityByName(element.name);
       if (readEntity == null) return ret;

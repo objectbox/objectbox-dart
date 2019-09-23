@@ -2,8 +2,14 @@ class IdUid {
   int _id, _uid;
 
   IdUid(String str) {
+    if (str == null) {
+      _id = 0;
+      _uid = 0;
+      return;
+    }
+
     var spl = str.split(":");
-    if (spl.length != 2) throw Exception("IdUid has invalid format, too many columns: $str");
+    if (spl.length != 2) throw Exception("IdUid has invalid format, wrong number of columns: $str");
     id = int.parse(spl[0]);
     uid = int.parse(spl[1]);
   }
