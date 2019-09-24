@@ -34,6 +34,7 @@ TestEntity _TestEntity_OBXBuilder(Map<String, dynamic> members) {
   TestEntity r = new TestEntity();
   r.id = members["id"];
   r.text = members["text"];
+  r.number = members["number"];
   return r;
 }
 
@@ -41,6 +42,7 @@ Map<String, dynamic> _TestEntity_OBXReader(TestEntity inst) {
   Map<String, dynamic> r = {};
   r["id"] = inst.id;
   r["text"] = inst.text;
+  r["number"] = inst.number;
   return r;
 }
 

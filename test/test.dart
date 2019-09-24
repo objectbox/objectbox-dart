@@ -8,8 +8,10 @@ class TestEntity {
   @Id()
   int id;
 
-  @Property()
   String text;
+
+  @Property(type: OBXPropertyType.Short)
+  int number;
 
   TestEntity();
   TestEntity.constructWithId(this.id, this.text);
