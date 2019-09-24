@@ -49,27 +49,3 @@ const TestEntity_OBXDefs = {
   "builder": _TestEntity_OBXBuilder,
   "reader": _TestEntity_OBXReader,
 };
-
-Map<String, dynamic> _Note_OBXModelGetter() {
-  return _getOBXModel("Note");
-}
-
-Note _Note_OBXBuilder(Map<String, dynamic> members) {
-  Note r = new Note();
-  r.id = members["id"];
-  r.text = members["text"];
-  return r;
-}
-
-Map<String, dynamic> _Note_OBXReader(Note inst) {
-  Map<String, dynamic> r = {};
-  r["id"] = inst.id;
-  r["text"] = inst.text;
-  return r;
-}
-
-const Note_OBXDefs = {
-  "model": _Note_OBXModelGetter,
-  "builder": _Note_OBXBuilder,
-  "reader": _Note_OBXReader,
-};

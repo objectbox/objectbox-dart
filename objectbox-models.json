@@ -21,28 +21,9 @@
           "flags": 0
         }
       ]
-    },
-    {
-      "id": "2:7889656895106204909",
-      "lastPropertyId": "2:7677363473253789607",
-      "name": "Note",
-      "properties": [
-        {
-          "id": "1:7858451424736056440",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:7677363473253789607",
-          "name": "text",
-          "type": 9,
-          "flags": 0
-        }
-      ]
     }
   ],
-  "lastEntityId": "2:7889656895106204909",
+  "lastEntityId": "1:6645479796472661392",
   "retiredEntityUids": [],
   "retiredPropertyUids": [],
   "modelVersion": 5,

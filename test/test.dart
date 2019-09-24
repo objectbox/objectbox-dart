@@ -16,17 +16,6 @@ class TestEntity {
   TestEntity.construct(this.text);
 }
 
-@Entity()
-class Note {
-  @Id()
-  int id;
-
-  @Property()
-  String text;
-
-  Note();
-}
-
 main() {
   Store store;
   Box box;
