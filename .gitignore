@@ -10,3 +10,4 @@ lib/*.dylib
 lib/*.so
 lib/*.a
 .vscode/
+**/*.g.dart
