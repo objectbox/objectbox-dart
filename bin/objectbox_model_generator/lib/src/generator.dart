@@ -54,35 +54,40 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       // read all suitable annotated properties
       bool hasIdProperty = false;
       for (var f in element.fields) {
-        if (f.metadata == null || f.metadata.length != 1) // skip unannotated fields
-          continue;
-        var annotElmt = f.metadata[0].element as ConstructorElement;
-        var annotType = annotElmt.returnType.toString();
-        var annotVal = f.metadata[0].computeConstantValue();
-        var fieldTypeObj = annotVal.getField("type");
-        int fieldType = fieldTypeObj == null ? null : fieldTypeObj.toIntValue();
+        int fieldType, flags = 0;
+        int propUid;
 
-        // find property flags
-        int flags = 0;
-        if (annotType == "Id") {
-          if (hasIdProperty)
-            throw InvalidGenerationSourceError(
-                "in target ${elementBare.name}: has more than one properties annotated with @Id");
-          if (fieldType != null)
-            throw InvalidGenerationSourceError(
-                "in target ${elementBare.name}: programming error: @Id property may not specify a type");
-          if (f.type.toString() != "int")
-            throw InvalidGenerationSourceError(
-                "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+        if (f.metadata != null && f.metadata.length == 1) {
+          var annotElmt = f.metadata[0].element as ConstructorElement;
+          var annotType = annotElmt.returnType.toString();
+          var annotVal = f.metadata[0].computeConstantValue();
+          var fieldTypeAnnot = annotVal.getField("type");
+          fieldType = fieldTypeAnnot == null ? null : fieldTypeAnnot.toIntValue();
+          propUid = annotVal.getField("uid").toIntValue();
 
-          fieldType = OBXPropertyType.Long;
-          flags |= OBXPropertyFlag.ID;
-          hasIdProperty = true;
-        } else if (annotType == "Property") {
-          // nothing special here
-        } else {
-          // skip unknown annotations
-          continue;
+          // find property flags
+          if (annotType == "Id") {
+            if (hasIdProperty)
+              throw InvalidGenerationSourceError(
+                  "in target ${elementBare.name}: has more than one properties annotated with @Id");
+            if (fieldType != null)
+              throw InvalidGenerationSourceError(
+                  "in target ${elementBare.name}: programming error: @Id property may not specify a type");
+            if (f.type.toString() != "int")
+              throw InvalidGenerationSourceError(
+                  "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+
+            fieldType = OBXPropertyType.Long;
+            flags |= OBXPropertyFlag.ID;
+            hasIdProperty = true;
+          } else if (annotType == "Property") {
+            // nothing special
+          } else {
+            // skip unknown annotations
+            print(
+                "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unknown annotation type '$annotType'");
+            continue;
+          }
         }
 
         if (fieldType == null) {
@@ -100,7 +105,6 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         Property prop = new Property(IdUid.empty(), f.name, fieldType, flags, readEntity);
-        int propUid = annotVal.getField("uid").toIntValue();
         if (propUid != null) prop.id.uid = propUid;
         readEntity.properties.add(prop);
       }
