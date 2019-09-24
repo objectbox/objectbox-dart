@@ -4,12 +4,11 @@ import 'package:flutter/services.dart';
 import "package:objectbox/objectbox.dart";
 part "main.g.dart";
 
-@Entity(id: 1, uid: 1)
+@Entity()
 class Note {
-  @Id(id: 1, uid: 1001)
+  @Id()
   int id;
 
-  @Property(id: 2, uid: 1002)
   String text;
 
   Note();
