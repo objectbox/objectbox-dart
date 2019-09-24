@@ -4,11 +4,11 @@ import "modelinfo/property.dart";
 
 void _mergeProperty(Entity entity, Property prop) {
   Property propInModel = entity.findSameProperty(prop);
-  if (prop == null) {
+  if (propInModel == null) {
     entity.createCopiedProperty(prop);
-    return;
   } else {
-    // TODO
+    propInModel.type = prop.type;
+    propInModel.flags = prop.flags;
   }
 }
 
