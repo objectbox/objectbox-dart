@@ -11,8 +11,8 @@ class Entity {
 }
 
 class Property {
-  final int uid, type;
-  const Property({this.uid = null, this.type = null});
+  final int uid;
+  const Property({this.uid = null});
 }
 
 class Id {

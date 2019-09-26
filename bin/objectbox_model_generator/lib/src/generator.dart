@@ -61,7 +61,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
           var annotElmt = f.metadata[0].element as ConstructorElement;
           var annotType = annotElmt.returnType.toString();
           var annotVal = f.metadata[0].computeConstantValue();
-          var fieldTypeAnnot = annotVal.getField("type");
+          var fieldTypeAnnot = null; // for the future, with custom type sizes allowed: annotVal.getField("type");
           fieldType = fieldTypeAnnot == null ? null : fieldTypeAnnot.toIntValue();
           propUid = annotVal.getField("uid").toIntValue();
 
