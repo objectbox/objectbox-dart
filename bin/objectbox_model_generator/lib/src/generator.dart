@@ -16,7 +16,7 @@ import "modelinfo/modelinfo.dart";
 import "modelinfo/property.dart";
 
 class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
-  static const ALL_MODELS_JSON = "objectbox-models.json";
+  static const ALL_MODELS_JSON = "objectbox-model.json";
 
   // each .g.dart file needs to get a header with functions to load the ALL_MODELS_JSON file exactly once. Store the input .dart file ids this has already been done for here
   List<String> entityHeaderDone = [];
