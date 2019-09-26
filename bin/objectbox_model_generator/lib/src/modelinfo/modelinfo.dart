@@ -14,25 +14,36 @@ class ModelInfo {
   ];
 
   List<Entity> entities;
-  IdUid lastEntityId;
-  List<int> retiredEntityUids, retiredPropertyUids;
-  int modelVersion, minimumParserVersion, version;
+  IdUid lastEntityId, lastIndexId, lastRelationId, lastSequenceId;
+  List<int> retiredEntityUids, retiredIndexUids, retiredPropertyUids, retiredRelationUids;
+  int modelVersion, modelVersionParserMinimum, version;
 
   ModelInfo.createDefault()
       : entities = [],
+        lastEntityId = IdUid.empty(),
+        lastIndexId = IdUid.empty(),
+        lastRelationId = IdUid.empty(),
+        lastSequenceId = IdUid.empty(),
         retiredEntityUids = [],
+        retiredIndexUids = [],
         retiredPropertyUids = [],
+        retiredRelationUids = [],
         modelVersion = maxModelVersion,
-        minimumParserVersion = maxModelVersion,
+        modelVersionParserMinimum = maxModelVersion,
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
     entities = data["entities"].map<Entity>((e) => Entity.fromMap(e, this)).toList();
-    if (data.containsKey("lastEntityId") && data["lastEntityId"] != null) lastEntityId = IdUid(data["lastEntityId"]);
-    retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
-    retiredPropertyUids = data["retiredPropertyUids"].map<int>((x) => x as int).toList();
+    lastEntityId = IdUid(data["lastEntityId"]);
+    lastIndexId = IdUid(data["lastIndexId"]);
+    lastRelationId = IdUid(data["lastRelationId"]);
+    lastSequenceId = IdUid(data["lastSequenceId"]);
     modelVersion = data["modelVersion"];
-    minimumParserVersion = data["minimumParserVersion"];
+    modelVersionParserMinimum = data["modelVersionParserMinimum"];
+    retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
+    retiredIndexUids = data["retiredIndexUids"].map<int>((x) => x as int).toList();
+    retiredPropertyUids = data["retiredPropertyUids"].map<int>((x) => x as int).toList();
+    retiredRelationUids = data["retiredRelationUids"].map<int>((x) => x as int).toList();
     version = data["version"];
     validate();
   }
@@ -47,7 +58,9 @@ class ModelInfo {
 
     if (entities == null) throw Exception("entities is null");
     if (retiredEntityUids == null) throw Exception("retiredEntityUids is null");
+    if (retiredIndexUids == null) throw Exception("retiredIndexUids is null");
     if (retiredPropertyUids == null) throw Exception("retiredPropertyUids is null");
+    if (retiredRelationUids == null) throw Exception("retiredRelationUids is null");
 
     var model = this;
     bool lastEntityIdFound = false;
@@ -76,10 +89,15 @@ class ModelInfo {
     ret["_note3"] = notes[2];
     ret["entities"] = entities.map((p) => p.toMap()).toList();
     ret["lastEntityId"] = lastEntityId.toString();
-    ret["retiredEntityUids"] = retiredEntityUids;
-    ret["retiredPropertyUids"] = retiredPropertyUids;
+    ret["lastIndexId"] = lastIndexId.toString();
+    ret["lastRelationId"] = lastRelationId.toString();
+    ret["lastSequenceId"] = lastSequenceId.toString();
     ret["modelVersion"] = modelVersion;
-    ret["minimumParserVersion"] = minimumParserVersion;
+    ret["modelVersionParserMinimum"] = modelVersionParserMinimum;
+    ret["retiredEntityUids"] = retiredEntityUids;
+    ret["retiredIndexUids"] = retiredIndexUids;
+    ret["retiredPropertyUids"] = retiredPropertyUids;
+    ret["retiredRelationUids"] = retiredRelationUids;
     ret["version"] = version;
     return ret;
   }
@@ -135,10 +153,15 @@ class ModelInfo {
   }
 
   bool containsUid(int searched) {
-    if (lastEntityId != null && lastEntityId.uid == searched) return true;
-    if (retiredEntityUids.indexWhere((x) => x == searched) != -1) return true;
-    if (retiredPropertyUids.indexWhere((x) => x == searched) != -1) return true;
+    if (lastEntityId.uid == searched) return true;
+    if (lastIndexId.uid == searched) return true;
+    if (lastRelationId.uid == searched) return true;
+    if (lastSequenceId.uid == searched) return true;
     if (entities.indexWhere((e) => e.containsUid(searched)) != -1) return true;
+    if (retiredEntityUids.indexWhere((x) => x == searched) != -1) return true;
+    if (retiredIndexUids.indexWhere((x) => x == searched) != -1) return true;
+    if (retiredPropertyUids.indexWhere((x) => x == searched) != -1) return true;
+    if (retiredRelationUids.indexWhere((x) => x == searched) != -1) return true;
     return false;
   }
 }

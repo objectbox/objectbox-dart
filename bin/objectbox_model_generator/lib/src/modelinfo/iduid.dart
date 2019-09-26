@@ -2,7 +2,7 @@ class IdUid {
   int _id, _uid;
 
   IdUid(String str) {
-    if (str == null) {
+    if (str == null || str == "" || str == "0:0") {
       _id = 0;
       _uid = 0;
       return;
