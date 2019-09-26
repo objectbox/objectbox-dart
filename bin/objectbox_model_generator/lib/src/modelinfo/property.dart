@@ -15,7 +15,7 @@ class Property {
     id = IdUid(data["id"]);
     name = data["name"];
     type = data["type"];
-    flags = data["flags"];
+    flags = data.containsKey("flags") ? data["flags"] : 0;
     validate();
   }
 
@@ -29,7 +29,7 @@ class Property {
     ret["id"] = id.toString();
     ret["name"] = name;
     ret["type"] = type;
-    ret["flags"] = flags;
+    if (flags != 0) ret["flags"] = flags;
     return ret;
   }
 
