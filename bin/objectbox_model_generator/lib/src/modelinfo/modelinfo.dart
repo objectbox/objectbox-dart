@@ -3,8 +3,8 @@ import "dart:math";
 import "entity.dart";
 import "iduid.dart";
 
-const minModelVersion = 1;
-const maxModelVersion = 1;
+const minModelVersion = 5;
+const maxModelVersion = 5;
 
 class ModelInfo {
   static const notes = [

@@ -26,7 +26,7 @@
   "lastEntityId": "1:4790582716796492955",
   "retiredEntityUids": [],
   "retiredPropertyUids": [],
-  "modelVersion": 1,
-  "minimumParserVersion": 1,
+  "modelVersion": 5,
+  "minimumParserVersion": 5,
   "version": 1
 }
