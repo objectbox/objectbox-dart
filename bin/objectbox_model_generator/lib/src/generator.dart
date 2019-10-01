@@ -10,10 +10,10 @@ import "package:objectbox/src/bindings/constants.dart";
 
 import "code_chunks.dart";
 import "merge.dart";
-import "modelinfo/entity.dart";
-import "modelinfo/iduid.dart";
-import "modelinfo/modelinfo.dart";
-import "modelinfo/property.dart";
+import "package:objectbox/src/modelinfo/entity.dart";
+import "package:objectbox/src/modelinfo/iduid.dart";
+import "package:objectbox/src/modelinfo/modelinfo.dart";
+import "package:objectbox/src/modelinfo/property.dart";
 
 class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   static const ALL_MODELS_JSON = "objectbox-model.json";

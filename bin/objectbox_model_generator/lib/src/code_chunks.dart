@@ -1,4 +1,4 @@
-import "modelinfo/entity.dart";
+import "package:objectbox/src/modelinfo/entity.dart";
 
 class CodeChunks {
   static String modelInfoLoader(String allModelsJsonFilename) => """

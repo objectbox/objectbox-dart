@@ -1,6 +1,6 @@
-import "modelinfo/entity.dart";
-import "modelinfo/modelinfo.dart";
-import "modelinfo/property.dart";
+import "package:objectbox/src/modelinfo/entity.dart";
+import "package:objectbox/src/modelinfo/modelinfo.dart";
+import "package:objectbox/src/modelinfo/property.dart";
 
 void _mergeProperty(Entity entity, Property prop) {
   Property propInModel = entity.findSameProperty(prop);
