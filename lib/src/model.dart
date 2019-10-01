@@ -5,21 +5,6 @@ import "bindings/helpers.dart";
 
 import "package:ffi/ffi.dart";
 
-class Entity {
-  final int uid;
-  const Entity({this.uid = null});
-}
-
-class Property {
-  final int uid;
-  const Property({this.uid = null});
-}
-
-class Id {
-  final int uid;
-  const Id({this.uid = null});
-}
-
 class Model {
   Pointer<Void> _objectboxModel;
 
@@ -37,7 +22,6 @@ class Model {
           final entityId = new IdUid(m["id"]);
           checkObx(bindings.obx_model_entity(_objectboxModel, entityNamePointer, entityId.id, entityId.uid));
         } finally {
-          // same pointer
           entityUtf8.free();
         }
 
