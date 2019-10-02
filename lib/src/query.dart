@@ -29,8 +29,8 @@ class QueryProperty {
   QueryProperty(this.entityId, this.propertyId);
 
   QueryCondition isNull() {
-    // the int serves as a placeholder, to initialize the base type
-    final c = Condition<int>(ConditionOp._null, null, 0);
+    // the bool serves as a dummy type, to initialize the base type
+    final c = Condition<bool>(ConditionOp._null, null, false);
     return new QueryCondition(entityId, propertyId, c);
   }
 
