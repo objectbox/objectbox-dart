@@ -111,6 +111,7 @@ main() {
   });
 
   group("query", () {
+    // TODO add this when double and boolean are supported
     test(".null and .notNull", () {
       box.putMany([
         TestEntity.initDoubleAndBoolean(0.1, true),
@@ -137,6 +138,7 @@ main() {
         });
     });
 
+    // TODO add this when double and boolean are supported
     test(".count doubles and booleans", () {
       box.putMany([
         TestEntity.initDoubleAndBoolean(0.1, true),
@@ -163,6 +165,74 @@ main() {
       expect(qall0.count(), 1);
 
       [ q0, qany0, qall0 ].forEach((q) => q.close());
+    });
+
+    test(".count matches of `greater` and `less`", () {
+      box.putMany([
+        TestEntity.initIntegerAndText(1336, "mord"),
+        TestEntity.initIntegerAndText(1337, "more"),
+        TestEntity.initIntegerAndText(1338, "morf"),
+        TestEntity.initDoubleAndBoolean(0.0, false),
+        TestEntity.initDoubleAndBoolean(0.1, true),
+        TestEntity.initDoubleAndBoolean(0.2, true),
+        TestEntity.initDoubleAndBoolean(0.3, false),
+      ]);
+
+      final d = TestEntity_.d;
+      final b = TestEntity_.b;
+      final t = TestEntity_.text;
+      final n = TestEntity_.number;
+
+//      final q0 = box.query(d > 0.1).build();
+//      final q1 = box.query(b == false).build();
+//      final q2 = box.query(t > "more").build();
+//      final q3 = box.query(t < "more").build();
+//      final q4 = box.query(d < 0.3).build();
+//      final q5 = box.query(n < 1337).build();
+//      final q6 = box.query(n > 1337).build();
+
+      final q0 = box.query(d.greater(0.1)).build();
+      final q1 = box.query(b.equal(false)).build();
+      final q2 = box.query(t.greater("more")).build();
+      final q3 = box.query(t.less("more")).build();
+      final q4 = box.query(d.less(0.3)).build();
+      final q5 = box.query(n.less(1337)).build();
+      final q6 = box.query(n.greater(1337)).build();
+
+      expect(q0, 3);
+      expect(q1, 2);
+      expect(q2, 1);
+      expect(q3, 1);
+      expect(q4, 3);
+      expect(q5, 1);
+      expect(q6, 1);
+
+      [ q0,q1,q2,q3,q4,q5,q6 ].forEach((q) => q.close());
+    });
+
+    test(".count matches of `in`", () {
+      box.put(TestEntity.initIntegerAndText(1337, "meh"));
+      box.put(TestEntity.initIntegerAndText(1,    "bleh"));
+      box.put(TestEntity.initIntegerAndText(1337, "bleh"));
+
+      final text = TestEntity_.text;
+      final number = TestEntity_.number;
+
+      final qs0 = box.query(text.inList([ "meh" ])).build();
+      final qs1 = box.query(text.inList([ "bleh" ])).build();
+      final qs2 = box.query(text.inList([ "meh", "bleh" ])).build();
+      final qn0 = box.query(number.inList([ 1 ])).build();
+      final qn1 = box.query(number.inList([ 1337 ])).build();
+      final qn2 = box.query(number.inList([ 1, 1337 ])).build();
+
+      expect(qs0.count(), 1);
+      expect(qs1.count(), 2);
+      expect(qs2.count(), 3);
+      expect(qn0.count(), 1);
+      expect(qn1.count(), 2);
+      expect(qn2.count(), 3);
+
+      [ qs0,qs1,qs2,qn0,qn1,qn2 ].forEach((q) => q.close());
     });
 
     test(".count items after grouping with and/or", () {

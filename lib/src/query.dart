@@ -24,7 +24,7 @@ import "package:ffi/ffi.dart";
  * a Query object will be created.
  */
 class QueryProperty {
-  int propertyId;
+  int propertyId; // why hide this if it's exposed in the entity definition, // TODO final / const?
   int entityId;
   QueryProperty(this.entityId, this.propertyId);
 
@@ -50,6 +50,16 @@ class QueryStringProperty extends QueryProperty {
     return QueryCondition(entityId, propertyId, c);
   }
 
+  QueryCondition _opWithEqual(String p, ConditionOp cop, bool caseSensitive, bool withEqual) {
+    final c = StringCondition._withEqual(cop, type, p, caseSensitive ? OrderFlag.CASE_SENSITIVE : 0, withEqual);
+    return QueryCondition(entityId, propertyId, c);
+  }
+
+  QueryCondition _opList(List<String> list, ConditionOp cop, bool caseSensitive) {
+    final c = StringCondition._fromList(cop, type, list, caseSensitive ? OrderFlag.CASE_SENSITIVE : 0);
+    return QueryCondition(entityId, propertyId, c);
+  }
+
   QueryCondition equal(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp._eq, caseSensitive, false);
   }
@@ -70,8 +80,30 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp._string_contains, caseSensitive, false);
   }
 
+  // TODO rename to something better
   QueryCondition contain(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp._strings_contain, caseSensitive, false);
+  }
+
+  // Achtung: 'in' is a reserved keyword, we can't overload it either
+  QueryCondition inList(List<String> list, {bool caseSensitive = false}) {
+    return _opList(list, ConditionOp._in, caseSensitive);
+  }
+
+  QueryCondition notInList(List<String> list, {bool caseSensitive = false}) {
+    return _opList(list, ConditionOp._not_in, caseSensitive);
+  }
+
+  QueryCondition notIn(List<String> list, {bool caseSensitive = false}) {
+    return _opList(list, ConditionOp._not_in, caseSensitive);
+  }
+
+  QueryCondition greater(String p, {bool caseSensitive = false, bool withEqual = false}) {
+    return _opWithEqual(p, ConditionOp._gt, caseSensitive, withEqual);
+  }
+
+  QueryCondition less(String p, {bool caseSensitive = false, bool withEqual = false}) {
+    return _opWithEqual(p, ConditionOp._lt, caseSensitive, withEqual);
   }
 
   QueryCondition operator == (String p) => equal(p);
@@ -81,12 +113,15 @@ class QueryStringProperty extends QueryProperty {
 class QueryIntegerProperty extends QueryProperty {
   QueryIntegerProperty(int entityId, int propertyId) : super(entityId, propertyId);
 
-  // TODO ideally, let the programmer decide on the resolution via the @Property annot.
-  // TODO figure out the current implementation's type
   static const ConditionType type = ConditionType._int64;
 
   QueryCondition _op(int p, ConditionOp cop) {
     final c = IntegerCondition(ConditionOp._eq, type, p, 0);
+    return QueryCondition(entityId, propertyId, c);
+  }
+
+  QueryCondition _opList(List<int> list, ConditionOp cop) {
+    final c = IntegerCondition.fromList(cop, type, list);
     return QueryCondition(entityId, propertyId, c);
   }
 
@@ -102,15 +137,27 @@ class QueryIntegerProperty extends QueryProperty {
     return _op(p, ConditionOp._gt);
   }
 
-  QueryCondition operator < (int p) => less(p);
-  QueryCondition operator > (int p) => greater(p);
-
   QueryCondition less(int p) {
     return _op(p, ConditionOp._lt);
   }
 
+  QueryCondition operator < (int p) => less(p);
+  QueryCondition operator > (int p) => greater(p);
+
+  QueryCondition inList(List<int> list) {
+    return _opList(list, ConditionOp._in);
+  }
+
+  QueryCondition notInList(List<int> list) {
+    return _opList(list, ConditionOp._not_in);
+  }
+
+  QueryCondition notIn(List<int> list) {
+    return notInList(list);
+  }
+
+  // QueryCondition operator != (int p) => notEqual(p); // not overloadable
   QueryCondition operator == (int p) => equal(p);
-//  QueryCondition operator != (int p) => notEqual(p); // not overloadable
 }
 
 class QueryDoubleProperty extends QueryProperty {
@@ -119,17 +166,31 @@ class QueryDoubleProperty extends QueryProperty {
 
   static const ConditionType type = ConditionType._double;
 
-  // TODO determine default tolerance: between (target - tolerance, target + tolerance)
-  QueryCondition between(double p, [double tolerance = 0.01]) {
-    final absTolerance = tolerance.abs();
-    final c  = DoubleCondition(ConditionOp._tween, type, p - absTolerance, p + absTolerance);
+  QueryCondition _op(ConditionOp op, double p1, double p2) {
+    final c = DoubleCondition(op, type, p1, p2);
     return QueryCondition(entityId, propertyId, c);
   }
 
-  QueryCondition equal(double p) {
-    return between(p);
+  QueryCondition between(double p1, double p2) {
+    return _op(ConditionOp._tween, p1, p2);
   }
 
+  // TODO determine default tolerance: between (target - tolerance, target + tolerance)
+  QueryCondition equal(double p, {double tolerance = 0.01}) {
+    final absTolerance = tolerance.abs();
+    return between(p - absTolerance, p + absTolerance);
+  }
+
+  QueryCondition greater(double p) {
+    return _op(ConditionOp._gt, p, null);
+  }
+
+  QueryCondition less(double p) {
+    return _op(ConditionOp._lt, p, null);
+  }
+
+  QueryCondition operator < (double p) => less(p);
+  QueryCondition operator > (double p) => greater(p);
   QueryCondition operator == (double p) => equal(p);
 }
 
@@ -201,23 +262,20 @@ class Condition<DartType> {
   ConditionType _type;
 
   Condition(this._op, this._type, this._value, [this._value2 = null]);
-  Condition.fromList(this._list); // TODO for in, notIn etc.
+  Condition.fromList(this._op, this._type, this._list);
 
-  int nullness(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_0_dart_t func) {
+  int _nullness(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_0_dart_t func) {
     return func(qbPtr, qc._propertyId);
   }
 }
 
 class StringCondition extends Condition<String> {
   List<int> orderFlags;
-  bool _caseSensitive = false;
+  bool _caseSensitive = false, _withEqual = false;
+
   StringCondition(ConditionOp op, ConditionType type, String value, String value2, int caseSensitive, int descending)
       : super(op, type, value, value2) {
-    if (caseSensitive > 0) {
-      orderFlags ??= <int>[];
-      orderFlags.add(caseSensitive);
-      _caseSensitive = true;
-    }
+    _initCaseSensitivity(caseSensitive);
 
     if (descending > 0) {
       orderFlags ??= <int>[];
@@ -225,18 +283,65 @@ class StringCondition extends Condition<String> {
     }
   }
 
+  StringCondition._fromList(ConditionOp op, ConditionType type, List<String> list, int caseSensitive)
+      : super.fromList(op, type, list) {
+    _initCaseSensitivity(caseSensitive);
+  }
+
+  StringCondition._withEqual(ConditionOp op, ConditionType type, String value, int caseSensitive, bool withEqual)
+      : super(op, type, value, null) {
+    _initCaseSensitivity(caseSensitive);
+    _withEqual = withEqual;
+  }
+
   int _op1(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_string_op_1_dart_t func) {
-    print("val: ${_value}"); // TODO remove debug code
     final utf8Str = Utf8.toUtf8(_value);
     try {
-      var utf8Ptr = utf8Str.cast<Uint8>();
-      return func(qbPtr, qc._propertyId, utf8Ptr, _caseSensitive ? 1 : 0);
+      var uint8Str = utf8Str.cast<Uint8>();
+      return func(qbPtr, qc._propertyId, uint8Str, _caseSensitive ? 1 : 0);
     } finally {
       utf8Str.free();
     }
   }
 
-  // TODO sort by propertyId and put into set to add only once
+  int _inList(Pointer<Void> qbPtr, QueryCondition qc) {
+    final func = bindings.obx_qb_string_in;
+    final listLength = _list.length;
+    final arrayOfUint8Ptrs = Pointer<Pointer<Uint8>>.allocate(count: listLength);
+    try {
+      for (int i=0; i<_list.length; i++) {
+        var uint8Str = Utf8.toUtf8(_list[i]).cast<Uint8>();
+        arrayOfUint8Ptrs.elementAt(i).store(uint8Str);
+      }
+      return func(qbPtr, qc._propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
+    }finally {
+      for (int i=0; i<_list.length; i++) {
+        var uint8Str = arrayOfUint8Ptrs.elementAt(i).load();
+        uint8Str.free(); // I assume the casted Uint8 retains the same Utf8 address
+      }
+      arrayOfUint8Ptrs.free(); // It probably doesn't release recursively
+    }
+  }
+
+  int _opWithEqual(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_string_lt_gt_op_dart_t func) {
+    final utf8Str = Utf8.toUtf8(_value);
+    try {
+      var uint8Str = utf8Str.cast<Uint8>();
+      return func(qbPtr, qc._propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
+    } finally {
+      utf8Str.free();
+    }
+  }
+
+  void _initCaseSensitivity(int caseSensitive) {
+    if (caseSensitive > 0) {
+      orderFlags ??= <int>[];
+      orderFlags.add(caseSensitive);
+      _caseSensitive = true;
+    }
+  }
+
+  // TODO sort by propertyId and put into set to add only once, use Map<orderFlag, Set<propertyId>>
   get flags => orderFlags;
 }
 
@@ -244,9 +349,60 @@ class IntegerCondition extends Condition<int> {
   IntegerCondition(ConditionOp op, ConditionType type, int value, int value2)
       : super(op, type, value, value2);
 
+  IntegerCondition.fromList(ConditionOp op, ConditionType type, List<int> list)
+      : super.fromList(op, type, list);
+
   int _op1(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_1_dart_t<int> func) {
     return func(qbPtr, qc._propertyId, _value);
   }
+
+  // ideally it should be implemented like this, but this doesn't work, TODO report to google
+  /*
+  int _opList<P extends NativeType>(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_in_dart_t<P> func) {
+    int propertyId = qc._propertyId;
+    int length = _list.length;
+    final listPtr = Pointer<P>.allocate(count: length);
+    try {
+      for (int i=0; i<length; i++) {
+        listPtr.elementAt(i).store(_list[i] as int); // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
+      }
+      return func(qbPtr, propertyId, listPtr, length);
+    }finally {
+      listPtr.free();
+    }
+  }
+  */
+
+  // TODO replace nasty duplication with implementation above, when fix is in
+  int _opList32(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_in_dart_t<Int32> func) {
+    int propertyId = qc._propertyId;
+    int length = _list.length;
+    final listPtr = Pointer<Int32>.allocate(count: length);
+    try {
+      for (int i=0; i<length; i++) {
+        listPtr.elementAt(i).store(_list[i]);
+      }
+      return func(qbPtr, propertyId, listPtr, length);
+    }finally {
+      listPtr.free();
+    }
+  }
+
+  // TODO replace duplication with implementation above, when fix is in
+  int _opList64(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_in_dart_t<Int64> func) {
+    int propertyId = qc._propertyId;
+    int length = _list.length;
+    final listPtr = Pointer<Int64>.allocate(count: length);
+    try {
+      for (int i=0; i<length; i++) {
+        listPtr.elementAt(i).store(_list[i]);
+      }
+      return func(qbPtr, propertyId, listPtr, length);
+    }finally {
+      listPtr.free();
+    }
+  }
+
 }
 
 class DoubleCondition extends Condition<double> {
@@ -365,7 +521,7 @@ class QueryBuilder {
     int propertyId = qc._propertyId;
 
     // TODO remove debug code
-    print("type: ${type.toString()}, op: ${op.toString()}");
+    // print("type: ${type.toString()}, op: ${op.toString()}");
 
     // do the typecasting here, we can't generalize to an op method
     // due to the differing number of parameters per ConditionType
@@ -394,6 +550,12 @@ class QueryBuilder {
               case ConditionOp._string_ends:
                 return stringCondition._op1(
                     _queryBuilderPtr, qc, bindings.obx_qb_string_ends_with);
+              case ConditionOp._lt:
+                return stringCondition._opWithEqual(
+                    _queryBuilderPtr, qc, bindings.obx_qb_string_less);
+              case ConditionOp._gt:
+                return stringCondition._opWithEqual(
+                    _queryBuilderPtr, qc, bindings.obx_qb_string_greater);
             }
             break;
           }
@@ -435,9 +597,9 @@ class QueryBuilder {
 
       switch (op) {
         case ConditionOp._null:
-          return condition.nullness(_queryBuilderPtr, qc, bindings.obx_qb_null);
+          return condition._nullness(_queryBuilderPtr, qc, bindings.obx_qb_null);
         case ConditionOp._not_null:
-          return condition.nullness(_queryBuilderPtr, qc, bindings.obx_qb_not_null);
+          return condition._nullness(_queryBuilderPtr, qc, bindings.obx_qb_not_null);
         case ConditionOp._tween:
           {
             switch (type) {
@@ -452,23 +614,33 @@ class QueryBuilder {
             }
             break;
           }
-          /*
         case ConditionOp._in:
-          switch (type) {
-            case ConditionType._int32:
-              Pointer<T>.allocate(count: )
-              return bindings.obx_qb_int32_in(_queryBuilderPtr, propertyId, );
-            case ConditionType._int64:
-           */
-
-            /**
-            obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
-            obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
-
-            typedef obx_qb_cond_operator_in_native_t<P> = Int32 Function(Pointer<Void> builder, Uint32 property_id, Pointer<P> values, Uint64 count);
-            typedef obx_qb_cond_operator_in_dart_t<P>   = int Function(Pointer<Void> builder, int property_id, Pointer<P> values, int count);
-            */
-
+          {
+            switch (type) {
+              case ConditionType._int32:
+                final c = qc._condition as IntegerCondition;
+                return c._opList32(_queryBuilderPtr, qc, bindings.obx_qb_int32_in);
+              case ConditionType._int64:
+                final c = qc._condition as IntegerCondition;
+                return c._opList64(_queryBuilderPtr, qc, bindings.obx_qb_int64_in);
+              case ConditionType._string:
+                final c = qc._condition as StringCondition;
+                return c._inList(_queryBuilderPtr, qc); // bindings.obx_qb_string_in
+            }
+            break;
+          }
+        case ConditionOp._not_in:
+          {
+            switch (type) {
+              case ConditionType._int32:
+                final c = qc._condition as IntegerCondition;
+                return c._opList32(_queryBuilderPtr, qc, bindings.obx_qb_int32_not_in);
+              case ConditionType._int64:
+                final c = qc._condition as IntegerCondition;
+                return c._opList64(_queryBuilderPtr, qc, bindings.obx_qb_int64_not_in);
+            }
+            break;
+          }
       }
     }finally {
       _throwExceptionIfNecessary();
@@ -533,13 +705,13 @@ class QueryBuilder {
   }
 }
 
-/**
- *
-    obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
-    obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
+/*
+    // * = can't test, no support yet, for Double, Long, Boolean, Byte, or Vector... etc.
+    * obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
+    * obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
+    * obx_qb_string_in_dart_t obx_qb_string_in;
 
-    obx_qb_string_lt_gt_op_dart_t obx_qb_string_greater, obx_qb_string_less;
-    obx_qb_string_in_dart_t obx_qb_string_in;
+    * obx_qb_string_lt_gt_op_dart_t obx_qb_string_greater, obx_qb_string_less;
 
     obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
     obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
