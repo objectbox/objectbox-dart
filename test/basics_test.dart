@@ -116,25 +116,28 @@ main() {
       box.put(TestEntity.constructWithIntegerAndText(-1332 + -5, "bleh"));
       box.put(TestEntity.constructWithIntegerAndText(1337, "Goodbye"));
 
-      QueryCondition cond1 = ((TestEntity_.text == "Hello") as QueryCondition) | ((TestEntity_.number == 1337) as QueryCondition);
-      QueryCondition cond2 = TestEntity_.text.equal("Hello") | TestEntity_.number.equal(1337);
-      QueryCondition cond3 = TestEntity_.text.equal("What?").and(TestEntity_.text.equal("Hello")).or(TestEntity_.text.equal("World"));
-      QueryCondition cond4 = TestEntity_.text.equal("Goodbye").and(TestEntity_.number.equal(1337)).or(TestEntity_.number.equal(1337)).or(TestEntity_.text.equal("Cruel")).or(TestEntity_.text.equal("World"));
-      QueryCondition cond5 = TestEntity_.text.equal("bleh") & TestEntity_.number.equal(-1337);
-      QueryCondition cond6 = ((TestEntity_.text == "Hello") as QueryCondition) & ((TestEntity_.number == 1337) as QueryCondition);
+      final text = TestEntity_.text;
+      final number = TestEntity_.number;
 
-      final selfInference1 = (TestEntity_.text == "Hello") & (TestEntity_.number == 1337);
-      final selfInference2 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337);
-      // QueryCondition cond0 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337); // TODO research why broken without the cast
+      QueryCondition cond1 = ((text == "Hello") as QueryCondition) | ((number == 1337) as QueryCondition);
+      QueryCondition cond2 = text.equal("Hello") | number.equal(1337);
+      QueryCondition cond3 = text.equal("What?").and(text.equal("Hello")).or(text.equal("World"));
+      QueryCondition cond4 = text.equal("Goodbye").and(number.equal(1337)).or(number.equal(1337)).or(text.equal("Cruel")).or(text.equal("World"));
+      QueryCondition cond5 = text.equal("bleh") & number.equal(-1337);
+      QueryCondition cond6 = ((text == "Hello") as QueryCondition) & ((number == 1337) as QueryCondition);
+
+      final selfInference1 = (text == "Hello") & (number == 1337);
+      final selfInference2 = (text == "Hello") | (number == 1337);
+      // QueryCondition cond0 = (text == "Hello") | (number == 1337); // TODO research why broken without the cast
 
       /*
       // doesn't work
-      final anyGroupCondition0 = <QueryCondition>[TestEntity_.text == "meh", TestEntity_.text == "bleh"];
-      final allGroupCondition0 = <QueryCondition>[TestEntity_.text == "Goodbye", TestEntity_.number == 1337];
+      final anyGroupCondition0 = <QueryCondition>[text == "meh", text == "bleh"];
+      final allGroupCondition0 = <QueryCondition>[text == "Goodbye", number == 1337];
       */
 
-      final anyGroupCondition0 = <QueryCondition>[TestEntity_.text.equal("meh"), TestEntity_.text.equal("bleh")];
-      final allGroupCondition0 = <QueryCondition>[TestEntity_.text.equal("Goodbye"), TestEntity_.number.equal(1337)];
+      final anyGroupCondition0 = <QueryCondition>[text.equal("meh"), text.equal("bleh")];
+      final allGroupCondition0 = <QueryCondition>[text.equal("Goodbye"), number.equal(1337)];
 
 
       final queryAny0 = box.queryAny(anyGroupCondition0).build();
