@@ -26,7 +26,6 @@ class Box<T> {
     _entityBuilder = _store.getEntityBuilderFromClass<T>();
     _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, _entityReader, _entityBuilder);
 
-    if (_modelEntity.idPropName == null) throw Exception("entity '${_modelEntity.idPropName}' has no id property");
     _objectboxBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
     checkObxPtr(_objectboxBox, "failed to create box");
   }

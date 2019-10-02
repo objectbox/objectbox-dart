@@ -45,7 +45,9 @@ class Store {
   }
 
   ModelEntity getModelEntityFromClass(cls) {
-    return _modelDefinitions[cls]["getModelEntity"]();
+    var result = _modelDefinitions[cls]["getModelEntity"]();
+    if (result.idPropName == null) throw Exception("entity '${result.idPropName}' has no id property");
+    return result;
   }
 
   getEntityBuilderFromClass<T>() {
