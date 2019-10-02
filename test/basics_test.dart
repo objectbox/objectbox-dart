@@ -155,7 +155,7 @@ main() {
       expect(queryAny0.count(), 2);
       expect(queryAll0.count(), 1);
 
-      [ q1, q2, q3, q4 ].forEach((q) => q.close());
+      [ q1, q2, q3, q4, queryAny0, queryAll0 ].forEach((q) => q.close());
     });
   });
 
