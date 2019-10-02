@@ -127,6 +127,19 @@ main() {
       final selfInference2 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337);
       // QueryCondition cond0 = (TestEntity_.text == "Hello") | (TestEntity_.number == 1337); // TODO research why broken without the cast
 
+      /*
+      // doesn't work
+      final anyGroupCondition0 = <QueryCondition>[TestEntity_.text == "meh", TestEntity_.text == "bleh"];
+      final allGroupCondition0 = <QueryCondition>[TestEntity_.text == "Goodbye", TestEntity_.number == 1337];
+      */
+
+      final anyGroupCondition0 = <QueryCondition>[TestEntity_.text.equal("meh"), TestEntity_.text.equal("bleh")];
+      final allGroupCondition0 = <QueryCondition>[TestEntity_.text.equal("Goodbye"), TestEntity_.number.equal(1337)];
+
+
+      final queryAny0 = box.queryAny(anyGroupCondition0).build();
+      final queryAll0 = box.queryAll(allGroupCondition0).build();
+
       final q1 = box.query(cond1).build();
       final q2 = box.query(cond2).build();
       final q3 = box.query(cond3).build();
@@ -139,6 +152,8 @@ main() {
       expect(q2.count(), 3);
       expect(q3.count(), 1);
       expect(q4.count(), 3);
+      expect(queryAny0.count(), 2);
+      expect(queryAll0.count(), 1);
 
       [ q1, q2, q3, q4 ].forEach((q) => q.close());
     });
