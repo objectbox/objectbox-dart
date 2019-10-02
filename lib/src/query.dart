@@ -94,6 +94,9 @@ class QueryIntegerProperty extends QueryProperty {
     return _op(p, ConditionOp._gt);
   }
 
+  QueryCondition operator < (int p) => less(p);
+  QueryCondition operator > (int p) => greater(p);
+
   QueryCondition less(int p) {
     return _op(p, ConditionOp._lt);
   }
