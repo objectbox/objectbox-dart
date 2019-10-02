@@ -20,9 +20,7 @@ main() {
   Box box;
 
   setUp(() {
-    store = Store([
-      [TestEntity, TestEntity_OBXDefs]
-    ]);
+    store = Store([TestEntity_OBXDefs]);
     box = Box<TestEntity>(store);
   });
 

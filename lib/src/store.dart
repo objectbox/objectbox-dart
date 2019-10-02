@@ -10,11 +10,11 @@ import "package:ffi/ffi.dart";
 
 class Store {
   Pointer<Void> _objectboxStore;
-  Map<Type, Map<String, dynamic>> _modelDefinitions = {};
+  Map<Type, EntityDefinition> _entityDefinitions = {};
 
-  Store(List<List<dynamic>> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
-    defs.forEach((d) => _modelDefinitions[d[0]] = d[1]);
-    var model = Model(defs.map((d) => d[1]["getModelEntity"]() as ModelEntity).toList());
+  Store(List<EntityDefinition> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
+    defs.forEach((d) => _entityDefinitions[d.type()] = d);
+    var model = Model(defs.map((d) => d.getModel()).toList());
 
     var opt = bindings.obx_opt();
     checkObxPtr(opt, "failed to create store options");
@@ -44,18 +44,8 @@ class Store {
     checkObx(bindings.obx_store_close(_objectboxStore));
   }
 
-  ModelEntity getModelEntityFromClass(cls) {
-    var result = _modelDefinitions[cls]["getModelEntity"]();
-    if (result.idPropName == null) throw Exception("entity '${result.idPropName}' has no id property");
-    return result;
-  }
-
-  getEntityBuilderFromClass<T>() {
-    return _modelDefinitions[T]["convertMapToInstance"] as T Function(Map<String, dynamic>);
-  }
-
-  getEntityReaderFromClass<T>() {
-    return _modelDefinitions[T]["convertInstanceToMap"] as Map<String, dynamic> Function(T);
+  EntityDefinition<T> entityDef<T>(T) {
+    return _entityDefinitions[T];
   }
 
   get ptr => _objectboxStore;

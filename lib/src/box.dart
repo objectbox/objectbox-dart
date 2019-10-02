@@ -18,13 +18,14 @@ class Box<T> {
   Store _store;
   Pointer<Void> _objectboxBox;
   ModelEntity _modelEntity;
-  var _entityReader, _entityBuilder, _fbManager;
+  ObjectReader<T> _entityReader;
+  OBXFlatbuffersManager _fbManager;
 
   Box(this._store) {
-    _modelEntity = _store.getModelEntityFromClass(T);
-    _entityReader = _store.getEntityReaderFromClass<T>();
-    _entityBuilder = _store.getEntityBuilderFromClass<T>();
-    _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, _entityReader, _entityBuilder);
+    EntityDefinition<T> entityDefs = _store.entityDef(T);
+    _modelEntity = entityDefs.getModel();
+    _entityReader = entityDefs.reader;
+    _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 
     _objectboxBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
     checkObxPtr(_objectboxBox, "failed to create box");

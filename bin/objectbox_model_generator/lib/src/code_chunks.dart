@@ -40,11 +40,7 @@ class CodeChunks {
           return r;
         }
 
-        const ${name}_OBXDefs = {
-          "getModelEntity": _${name}_OBXModelGetter,
-          "convertMapToInstance": _${name}_OBXBuilder,
-          "convertInstanceToMap": _${name}_OBXReader,
-        };
+        const ${name}_OBXDefs = EntityDefinition<${name}>(_${name}_OBXModelGetter, _${name}_OBXReader, _${name}_OBXBuilder);
       """;
   }
 }

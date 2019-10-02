@@ -29,9 +29,9 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
 
 class OBXFlatbuffersManager<T> {
   ModelEntity _modelEntity;
-  var _entityReader, _entityBuilder;
+  ObjectWriter<T> _entityBuilder;
 
-  OBXFlatbuffersManager(this._modelEntity, this._entityReader, this._entityBuilder);
+  OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
   ByteBuffer marshal(propVals) {
     var builder = new fb.Builder(initialSize: 1024);
