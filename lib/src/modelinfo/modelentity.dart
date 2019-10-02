@@ -1,11 +1,13 @@
 import "iduid.dart";
 import "modelinfo.dart";
 import "modelproperty.dart";
+import "package:objectbox/src/bindings/constants.dart";
 
 class ModelEntity {
   IdUid id, lastPropertyId;
   String name;
   List<ModelProperty> properties;
+  String idPropName;
   ModelInfo model;
 
   ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this.model) {
@@ -48,6 +50,14 @@ class ModelEntity {
 
       if (properties.length > 0 && !lastPropertyIdFound)
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
+    }
+
+    for (int i = 0; i < properties.length; ++i) {
+      final ModelProperty p = properties[i];
+      if ((p.flags & OBXPropertyFlag.ID) != 0) {
+        idPropName = p.name;
+        break;
+      }
     }
   }
 
