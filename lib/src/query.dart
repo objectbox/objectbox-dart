@@ -66,6 +66,14 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp._string_starts, false, descending);
   }
 
+  QueryCondition contains(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp._string_contains, caseSensitive, false);
+  }
+
+  QueryCondition contain(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp._strings_contain, caseSensitive, false);
+  }
+
   QueryCondition operator == (String p) => equal(p);
 //  QueryCondition operator != (String p) => notEqual(p); // not overloadable
 }
