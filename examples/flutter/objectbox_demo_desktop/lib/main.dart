@@ -69,9 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    _store = Store([
-      [Note, Note_OBXDefs]
-    ]);
+    _store = Store([Note_OBXDefs]);
     _box = Box<Note>(_store);
     super.initState();
   }
