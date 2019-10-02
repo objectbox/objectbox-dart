@@ -210,10 +210,11 @@ main() {
       [ q0,q1,q2,q3,q4,q5,q6 ].forEach((q) => q.close());
     });
 
-    test(".count matches of `in`", () {
+    test(".count matches of `in`, `contain`, `contains`", () {
       box.put(TestEntity.initIntegerAndText(1337, "meh"));
       box.put(TestEntity.initIntegerAndText(1,    "bleh"));
       box.put(TestEntity.initIntegerAndText(1337, "bleh"));
+      box.put(TestEntity.initIntegerAndText(1337, "blh"));
 
       final text = TestEntity_.text;
       final number = TestEntity_.number;
@@ -221,6 +222,9 @@ main() {
       final qs0 = box.query(text.inList([ "meh" ])).build();
       final qs1 = box.query(text.inList([ "bleh" ])).build();
       final qs2 = box.query(text.inList([ "meh", "bleh" ])).build();
+      final qs3 = box.query(text.contains("eh")).build();
+      final qs4 = box.query(text.contain("bl")).build(); // wtf is the difference?
+
       final qn0 = box.query(number.inList([ 1 ])).build();
       final qn1 = box.query(number.inList([ 1337 ])).build();
       final qn2 = box.query(number.inList([ 1, 1337 ])).build();
@@ -228,11 +232,13 @@ main() {
       expect(qs0.count(), 1);
       expect(qs1.count(), 2);
       expect(qs2.count(), 3);
+      expect(qs3.count(), 3);
+      expect(qs3.count(), 4);
       expect(qn0.count(), 1);
       expect(qn1.count(), 2);
       expect(qn2.count(), 3);
 
-      [ qs0,qs1,qs2,qn0,qn1,qn2 ].forEach((q) => q.close());
+      [ qs0,qs1,qs2,qs3,qs4,qn0,qn1,qn2 ].forEach((q) => q.close());
     });
 
     test(".count items after grouping with and/or", () {
