@@ -201,7 +201,7 @@ class Condition<DartType> {
   ConditionType _type;
 
   Condition(this._op, this._type, this._value, [this._value2 = null]);
-  Condition.fromList(this._list); // for in, notIn etc.
+  Condition.fromList(this._list); // TODO for in, notIn etc.
 
   int nullness(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_0_dart_t func) {
     return func(qbPtr, qc._propertyId);

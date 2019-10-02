@@ -14,12 +14,19 @@ class TestEntity {
   @Property(id: 3, uid: 1003)
   int number;
 
+  @Property(id: 4, uid: 1004)
+  double d;
+
+  @Property(id: 5, uid: 1005)
+  bool b;
+
   TestEntity();
 
-  TestEntity.constructWithId(this.id, this.text);
-  TestEntity.constructWithInteger(this.number);
-  TestEntity.constructWithIntegerAndText(this.number, this.text);
-  TestEntity.construct(this.text);
+  TestEntity.initId(this.id, this.text);
+  TestEntity.initInteger(this.number);
+  TestEntity.initIntegerAndText(this.number, this.text);
+  TestEntity.initText(this.text);
+  TestEntity.initDoubleAndBoolean(this.d, this.b);
 }
 
 main() {
@@ -35,12 +42,12 @@ main() {
 
   group("box", () {
     test(".put() returns a valid id", () {
-      int putId = box.put(TestEntity.construct("Hello"));
+      int putId = box.put(TestEntity.initText("Hello"));
       expect(putId, greaterThan(0));
     });
 
     test(".get() returns the correct item", () {
-      final int putId = box.put(TestEntity.construct("Hello"));
+      final int putId = box.put(TestEntity.initText("Hello"));
       final TestEntity item = box.get(putId);
       expect(item.id, equals(putId));
       expect(item.text, equals("Hello"));
@@ -48,22 +55,22 @@ main() {
 
     test(".put() and box.get() keep Unicode characters", () {
       final String text = "😄你好";
-      final TestEntity inst = box.get(box.put(TestEntity.construct(text)));
+      final TestEntity inst = box.get(box.put(TestEntity.initText(text)));
       expect(inst.text, equals(text));
     });
 
     test(".put() can update an item", () {
-      final int putId1 = box.put(TestEntity.construct("One"));
-      final int putId2 = box.put(TestEntity.constructWithId(putId1, "Two"));
+      final int putId1 = box.put(TestEntity.initText("One"));
+      final int putId2 = box.put(TestEntity.initId(putId1, "Two"));
       expect(putId2, equals(putId1));
       final TestEntity item = box.get(putId2);
       expect(item.text, equals("Two"));
     });
 
     test(".getAll retrieves all items", () {
-      final int id1 = box.put(TestEntity.construct("One"));
-      final int id2 = box.put(TestEntity.construct("Two"));
-      final int id3 = box.put(TestEntity.construct("Three"));
+      final int id1 = box.put(TestEntity.initText("One"));
+      final int id2 = box.put(TestEntity.initText("Two"));
+      final int id3 = box.put(TestEntity.initText("Three"));
       final List<TestEntity> items = box.getAll();
       expect(items.length, equals(3));
       expect(items.where((i) => i.id == id1).single.text, equals("One"));
@@ -73,9 +80,9 @@ main() {
 
     test(".putMany inserts multiple items", () {
       final List<TestEntity> items = [
-        TestEntity.construct("One"),
-        TestEntity.construct("Two"),
-        TestEntity.construct("Three")
+        TestEntity.initText("One"),
+        TestEntity.initText("Two"),
+        TestEntity.initText("Three")
       ];
       box.putMany(items);
       final List<TestEntity> itemsFetched = box.getAll();
@@ -84,14 +91,14 @@ main() {
 
     test(".putMany returns the new item IDs", () {
       final List<TestEntity> items =
-          ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity.construct(s)).toList();
+          ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity.initText(s)).toList();
       final List<int> ids = box.putMany(items);
       expect(ids.length, equals(items.length));
       for (int i = 0; i < items.length; ++i) expect(box.get(ids[i]).text, equals(items[i].text));
     });
 
     test(".getMany correctly handles non-existant items", () {
-      final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.construct(s)).toList();
+      final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.initText(s)).toList();
       final List<int> ids = box.putMany(items);
       int otherId = 1;
       while (ids.indexWhere((id) => id == otherId) != -1) ++otherId;
@@ -104,17 +111,71 @@ main() {
   });
 
   group("query", () {
-    test(".put items and filter with Condition, then count the matches", () {
-      box.put(TestEntity.construct("Hello"));
-      box.put(TestEntity.construct("Goodbye"));
-      box.put(TestEntity.construct("World"));
+    test(".null and .notNull", () {
+      box.putMany([
+        TestEntity.initDoubleAndBoolean(0.1, true),
+        TestEntity.initDoubleAndBoolean(0.3, false),
+        TestEntity.initText("one"),
+        TestEntity.initText("two"),
+      ] as List<TestEntity>);
 
-      box.put(TestEntity.constructWithInteger(1337));
-      box.put(TestEntity.constructWithInteger(80085));
+      final d = TestEntity_.d;
+      final b = TestEntity_.b;
+      final t = TestEntity_.text;
 
-      box.put(TestEntity.constructWithIntegerAndText(-1337, "meh"));
-      box.put(TestEntity.constructWithIntegerAndText(-1332 + -5, "bleh"));
-      box.put(TestEntity.constructWithIntegerAndText(1337, "Goodbye"));
+      final qbNull    = box.query(b.isNull()).build();
+      final qbNotNull = box.query(b.notNull()).build();
+      final qtNull    = box.query(t.isNull()).build();
+      final qtNotNull = box.query(t.notNull()).build();
+      final qdNull    = box.query(t.isNull()).build();
+      final qdNotNull = box.query(t.notNull()).build();
+
+      [ qbNull, qbNotNull, qtNull, qtNotNull, qdNull, qdNotNull ]
+        .forEach((q) {
+          expect(q.count(), 2);
+          q.close();
+        });
+    });
+
+    test(".count doubles and booleans", () {
+      box.putMany([
+        TestEntity.initDoubleAndBoolean(0.1, true),
+        TestEntity.initDoubleAndBoolean(0.3, false),
+        TestEntity.initDoubleAndBoolean(0.5, true),
+        TestEntity.initDoubleAndBoolean(0.7, false),
+        TestEntity.initDoubleAndBoolean(0.9, true)
+      ] as List<TestEntity>);
+
+      final d = TestEntity_.d;
+      final b = TestEntity_.b;
+
+      // final anyQuery0 = (d == 0.8) & (b == false) | (d == 0.7) & (b == false) | d.between(0.5, 0.3); ; // TODO figure out why adding between breaks the chain
+      final anyQuery0 = (d == 0.8) & (b == false) | (d == 0.7) & (b == false);
+
+      final allQuery0 = (d == 0.1) & (b == true);
+
+      final q0    = box.query(b.equal(false)).build();
+      final qany0 = box.query(anyQuery0 as QueryCondition).build();
+      final qall0 = box.query(allQuery0 as QueryCondition).build();
+
+      expect(q0.count(), 2);
+      expect(qany0.count(), 3);
+      expect(qall0.count(), 1);
+
+      [ q0, qany0, qall0 ].forEach((q) => q.close());
+    });
+
+    test(".count items after grouping with and/or", () {
+      box.put(TestEntity.initText("Hello"));
+      box.put(TestEntity.initText("Goodbye"));
+      box.put(TestEntity.initText("World"));
+
+      box.put(TestEntity.initInteger(1337));
+      box.put(TestEntity.initInteger(80085));
+
+      box.put(TestEntity.initIntegerAndText(-1337, "meh"));
+      box.put(TestEntity.initIntegerAndText(-1332 + -5, "bleh"));
+      box.put(TestEntity.initIntegerAndText(1337, "Goodbye"));
 
       final text = TestEntity_.text;
       final number = TestEntity_.number;
