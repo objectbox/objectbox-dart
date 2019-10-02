@@ -1,30 +1,31 @@
-import "package:objectbox/src/modelinfo/entity.dart";
+import "package:objectbox/src/modelinfo/index.dart";
 
 class CodeChunks {
   static String modelInfoLoader(String allModelsJsonFilename) => """
-      Map<String, Map<String, dynamic>> _allOBXModels = null;
+      Map<int, ModelEntity> _allOBXModelEntities = null;
 
-      void _loadOBXModels() {
-        if (FileSystemEntity.typeSync("$allModelsJsonFilename") == FileSystemEntityType.notFound)
-          throw Exception("$allModelsJsonFilename not found");
+      void _loadOBXModelEntities() {
+      if (FileSystemEntity.typeSync("objectbox-model.json") == FileSystemEntityType.notFound)
+          throw Exception("objectbox-model.json not found");
 
-        _allOBXModels = {};
-        Map<String, dynamic> models = json.decode(new File("$allModelsJsonFilename").readAsStringSync());
-        models["entities"].forEach((v) => _allOBXModels[v["name"]] = v);
+      _allOBXModelEntities = {};
+      ModelInfo modelInfo = ModelInfo.fromMap(json.decode(new File("objectbox-model.json").readAsStringSync()));
+      modelInfo.entities.forEach((e) => _allOBXModelEntities[e.id.uid] = e);
       }
 
-      Map<String, dynamic> _getOBXModel(String entityName) {
-        if (_allOBXModels == null) _loadOBXModels();
-        if (!_allOBXModels.containsKey(entityName)) throw Exception("entity missing in $allModelsJsonFilename: \$entityName");
-        return _allOBXModels[entityName];
+      ModelEntity _getOBXModelEntity(int entityUid) {
+      if (_allOBXModelEntities == null) _loadOBXModelEntities();
+      if (!_allOBXModelEntities.containsKey(entityUid))
+          throw Exception("entity uid missing in objectbox-model.json: \$entityUid");
+      return _allOBXModelEntities[entityUid];
       }
     """;
 
-  static String instanceBuildersReaders(Entity readEntity) {
+  static String instanceBuildersReaders(ModelEntity readEntity) {
     String name = readEntity.name;
     return """
-        Map<String, dynamic> _${name}_OBXModelGetter() {
-          return _getOBXModel("$name");
+        ModelEntity _${name}_OBXModelGetter() {
+          return _getOBXModelEntity(${readEntity.id.uid});
         }
 
         $name _${name}_OBXBuilder(Map<String, dynamic> members) {
@@ -40,9 +41,9 @@ class CodeChunks {
         }
 
         const ${name}_OBXDefs = {
-          "model": _${name}_OBXModelGetter,
-          "builder": _${name}_OBXBuilder,
-          "reader": _${name}_OBXReader,
+          "getModelEntity": _${name}_OBXModelGetter,
+          "convertMapToInstance": _${name}_OBXBuilder,
+          "convertInstanceToMap": _${name}_OBXReader,
         };
       """;
   }

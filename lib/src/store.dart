@@ -2,6 +2,7 @@ import "dart:ffi";
 
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
+import "modelinfo/index.dart";
 
 import "model.dart";
 
@@ -13,7 +14,7 @@ class Store {
 
   Store(List<List<dynamic>> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
     defs.forEach((d) => _modelDefinitions[d[0]] = d[1]);
-    var model = Model(defs.map((d) => d[1]["model"]() as Map<String, dynamic>).toList());
+    var model = Model(defs.map((d) => d[1]["getModelEntity"]() as ModelEntity).toList());
 
     var opt = bindings.obx_opt();
     checkObxPtr(opt, "failed to create store options");
@@ -43,16 +44,16 @@ class Store {
     checkObx(bindings.obx_store_close(_objectboxStore));
   }
 
-  getEntityModelDefinitionFromClass(cls) {
-    return _modelDefinitions[cls]["model"]();
-  }
-
-  getEntityReaderFromClass<T>() {
-    return _modelDefinitions[T]["reader"] as Map<String, dynamic> Function(T);
+  ModelEntity getModelEntityFromClass(cls) {
+    return _modelDefinitions[cls]["getModelEntity"]();
   }
 
   getEntityBuilderFromClass<T>() {
-    return _modelDefinitions[T]["builder"] as T Function(Map<String, dynamic>);
+    return _modelDefinitions[T]["convertMapToInstance"] as T Function(Map<String, dynamic>);
+  }
+
+  getEntityReaderFromClass<T>() {
+    return _modelDefinitions[T]["convertInstanceToMap"] as Map<String, dynamic> Function(T);
   }
 
   get ptr => _objectboxStore;

@@ -1,17 +1,17 @@
-import "entity.dart";
+import "modelentity.dart";
 import "iduid.dart";
 
-class Property {
+class ModelProperty {
   IdUid id;
   String name;
   int type, flags;
-  Entity entity;
+  ModelEntity entity;
 
-  Property(this.id, this.name, this.type, this.flags, this.entity) {
+  ModelProperty(this.id, this.name, this.type, this.flags, this.entity) {
     validate();
   }
 
-  Property.fromMap(Map<String, dynamic> data, this.entity) {
+  ModelProperty.fromMap(Map<String, dynamic> data, this.entity) {
     id = IdUid(data["id"]);
     name = data["name"];
     type = data["type"];

@@ -6,6 +6,7 @@ import "bindings/constants.dart";
 import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
+import "modelinfo/index.dart";
 
 enum PutMode {
   Put,
@@ -16,25 +17,26 @@ enum PutMode {
 class Box<T> {
   Store _store;
   Pointer<Void> _objectboxBox;
-  var _entityDefinition, _entityReader, _entityBuilder, _fbManager;
+  ModelEntity _modelEntity;
+  var _entityReader, _entityBuilder, _fbManager;
   var _idPropName;
 
   Box(this._store) {
-    _entityDefinition = _store.getEntityModelDefinitionFromClass(T);
+    _modelEntity = _store.getModelEntityFromClass(T);
     _entityReader = _store.getEntityReaderFromClass<T>();
     _entityBuilder = _store.getEntityBuilderFromClass<T>();
-    _fbManager = new OBXFlatbuffersManager<T>(_entityDefinition, _entityReader, _entityBuilder);
+    _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, _entityReader, _entityBuilder);
 
-    for (int i = 0; i < _entityDefinition["properties"].length; ++i) {
-      final p = _entityDefinition["properties"][i];
-      if ((p["flags"] & OBXPropertyFlag.ID) != 0) {
-        _idPropName = p["name"];
+    for (int i = 0; i < _modelEntity.properties.length; ++i) {
+      final ModelProperty p = _modelEntity.properties[i];
+      if ((p.flags & OBXPropertyFlag.ID) != 0) {
+        _idPropName = p.name;
         break;
       }
     }
 
-    if (_idPropName == null) throw Exception("entity ${_entityDefinition["name"]} has no id property");
-    _objectboxBox = bindings.obx_box(_store.ptr, new IdUid(_entityDefinition["id"]).id);
+    if (_idPropName == null) throw Exception("entity ${_modelEntity.name} has no id property");
+    _objectboxBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
     checkObxPtr(_objectboxBox, "failed to create box");
   }
 

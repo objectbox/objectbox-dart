@@ -1,23 +1,23 @@
 import "iduid.dart";
 import "modelinfo.dart";
-import "property.dart";
+import "modelproperty.dart";
 
-class Entity {
+class ModelEntity {
   IdUid id, lastPropertyId;
   String name;
-  List<Property> properties;
+  List<ModelProperty> properties;
   ModelInfo model;
 
-  Entity(this.id, this.lastPropertyId, this.name, this.properties, this.model) {
+  ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this.model) {
     validate();
   }
 
-  Entity.fromMap(Map<String, dynamic> data, this.model) {
+  ModelEntity.fromMap(Map<String, dynamic> data, this.model) {
     id = IdUid(data["id"]);
     if (data.containsKey("lastPropertyId") && data["lastPropertyId"] != null)
       lastPropertyId = IdUid(data["lastPropertyId"]);
     name = data["name"];
-    properties = data["properties"].map<Property>((p) => Property.fromMap(p, this)).toList();
+    properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
     validate();
   }
 
@@ -60,39 +60,39 @@ class Entity {
     return ret;
   }
 
-  Property findPropertyByUid(int uid) {
+  ModelProperty findPropertyByUid(int uid) {
     int idx = properties.indexWhere((p) => p.id.uid == uid);
     return idx == -1 ? null : properties[idx];
   }
 
-  Property findPropertyByName(String name) {
+  ModelProperty findPropertyByName(String name) {
     final found = properties.where((p) => p.name.toLowerCase() == name.toLowerCase()).toList();
     if (found.length == 0) return null;
     if (found.length >= 2) throw Exception("ambiguous property name: $name; please specify a UID in its annotation");
     return found[0];
   }
 
-  Property findSameProperty(Property other) {
-    Property ret;
+  ModelProperty findSameProperty(ModelProperty other) {
+    ModelProperty ret;
     if (other.id.uid != 0) ret = findPropertyByUid(other.id.uid);
     if (ret == null) ret = findPropertyByName(other.name);
     return ret;
   }
 
-  Property createProperty(String name, [int uid = 0]) {
+  ModelProperty createProperty(String name, [int uid = 0]) {
     int id = 1;
     if (properties.length > 0) id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    var property = Property(IdUid.create(id, uniqueUid), name, 0, 0, this);
+    var property = ModelProperty(IdUid.create(id, uniqueUid), name, 0, 0, this);
     properties.add(property);
     lastPropertyId = property.id;
     return property;
   }
 
-  Property createCopiedProperty(Property prop) {
-    Property ret = createProperty(prop.name, prop.id.uid);
+  ModelProperty createCopiedProperty(ModelProperty prop) {
+    ModelProperty ret = createProperty(prop.name, prop.id.uid);
     ret.type = prop.type;
     ret.flags = prop.flags;
     return ret;
@@ -106,9 +106,9 @@ class Entity {
     });
   }
 
-  void removeProperty(Property prop) {
+  void removeProperty(ModelProperty prop) {
     if (prop == null) return;
-    Property foundProp = findSameProperty(prop);
+    ModelProperty foundProp = findSameProperty(prop);
     if (foundProp == null)
       throw Exception("cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
     properties = properties.where((p) => p != foundProp).toList();

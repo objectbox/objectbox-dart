@@ -1,6 +1,6 @@
 import "dart:math";
 
-import "entity.dart";
+import "modelentity.dart";
 import "iduid.dart";
 
 const minModelVersion = 5;
@@ -13,7 +13,7 @@ class ModelInfo {
     "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   ];
 
-  List<Entity> entities;
+  List<ModelEntity> entities;
   IdUid lastEntityId, lastIndexId, lastRelationId, lastSequenceId;
   List<int> retiredEntityUids, retiredIndexUids, retiredPropertyUids, retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
@@ -33,7 +33,7 @@ class ModelInfo {
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
-    entities = data["entities"].map<Entity>((e) => Entity.fromMap(e, this)).toList();
+    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e, this)).toList();
     lastEntityId = IdUid(data["lastEntityId"]);
     lastIndexId = IdUid(data["lastIndexId"]);
     lastRelationId = IdUid(data["lastRelationId"]);
@@ -102,38 +102,38 @@ class ModelInfo {
     return ret;
   }
 
-  Entity findEntityByUid(int uid) {
+  ModelEntity findEntityByUid(int uid) {
     int idx = entities.indexWhere((e) => e.id.uid == uid);
     return idx == -1 ? null : entities[idx];
   }
 
-  Entity findEntityByName(String name) {
+  ModelEntity findEntityByName(String name) {
     final found = entities.where((e) => e.name.toLowerCase() == name.toLowerCase()).toList();
     if (found.length == 0) return null;
     if (found.length >= 2) throw Exception("ambiguous entity name: $name; please specify a UID in its annotation");
     return found[0];
   }
 
-  Entity findSameEntity(Entity other) {
-    Entity ret;
+  ModelEntity findSameEntity(ModelEntity other) {
+    ModelEntity ret;
     if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
     if (ret == null) ret = findEntityByName(other.name);
     return ret;
   }
 
-  Entity createCopiedEntity(Entity other) {
-    Entity ret = createEntity(other.name, other.id.uid);
+  ModelEntity createCopiedEntity(ModelEntity other) {
+    ModelEntity ret = createEntity(other.name, other.id.uid);
     other.properties.forEach((p) => ret.createCopiedProperty(p));
     return ret;
   }
 
-  Entity createEntity(String name, [int uid = 0]) {
+  ModelEntity createEntity(String name, [int uid = 0]) {
     int id = 1;
     if (entities.length > 0) id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = new Entity(IdUid.create(id, uniqueUid), null, name, [], this);
+    var entity = new ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;

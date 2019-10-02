@@ -1,9 +1,7 @@
-import "package:objectbox/src/modelinfo/entity.dart";
-import "package:objectbox/src/modelinfo/modelinfo.dart";
-import "package:objectbox/src/modelinfo/property.dart";
+import "package:objectbox/src/modelinfo/index.dart";
 
-void _mergeProperty(Entity entity, Property prop) {
-  Property propInModel = entity.findSameProperty(prop);
+void _mergeProperty(ModelEntity entity, ModelProperty prop) {
+  ModelProperty propInModel = entity.findSameProperty(prop);
   if (propInModel == null) {
     entity.createCopiedProperty(prop);
   } else {
@@ -12,10 +10,10 @@ void _mergeProperty(Entity entity, Property prop) {
   }
 }
 
-void mergeEntity(ModelInfo modelInfo, Entity readEntity) {
+void mergeEntity(ModelInfo modelInfo, ModelEntity readEntity) {
   // "readEntity" only contains the entity info directly read from the annotations and Dart source (i.e. with missing ID, lastPropertyId etc.)
   // "entityInModel" is the entity from the model with all correct id/uid, lastPropertyId etc.
-  Entity entityInModel = modelInfo.findSameEntity(readEntity);
+  ModelEntity entityInModel = modelInfo.findSameEntity(readEntity);
 
   if (entityInModel == null) {
     // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged

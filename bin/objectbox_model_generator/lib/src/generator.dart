@@ -10,10 +10,7 @@ import "package:objectbox/src/bindings/constants.dart";
 
 import "code_chunks.dart";
 import "merge.dart";
-import "package:objectbox/src/modelinfo/entity.dart";
-import "package:objectbox/src/modelinfo/iduid.dart";
-import "package:objectbox/src/modelinfo/modelinfo.dart";
-import "package:objectbox/src/modelinfo/property.dart";
+import "package:objectbox/src/modelinfo/index.dart";
 
 class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   static const ALL_MODELS_JSON = "objectbox-model.json";
@@ -47,7 +44,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       }
 
       // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-      Entity readEntity = new Entity(IdUid.empty(), null, element.name, [], allModels);
+      ModelEntity readEntity = new ModelEntity(IdUid.empty(), null, element.name, [], allModels);
       var entityUid = annotation.read("uid");
       if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
 
@@ -104,7 +101,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         }
 
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-        Property prop = new Property(IdUid.empty(), f.name, fieldType, flags, readEntity);
+        ModelProperty prop = new ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
         if (propUid != null) prop.id.uid = propUid;
         readEntity.properties.add(prop);
       }
