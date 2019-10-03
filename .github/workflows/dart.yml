@@ -3,20 +3,31 @@ name: Dart CI
 on: [push, pull_request]
 
 jobs:
-  build:
-
+  generator:
     runs-on: ubuntu-latest
-    
     container:
       image:  google/dart:latest
-    
     steps:
-    - uses: actions/checkout@v1
-    - name: Install ObjectBox C-API
-      run: ./install.sh
-    - name: Install dependencies
-      run: pub get
-    - name: Generate ObjectBox models
-      run: pub run build_runner build
-    - name: Run tests
-      run: pub run test
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        working-directory: bin/objectbox_model_generator
+        run: pub get
+      - name: Run tests
+        working-directory: bin/objectbox_model_generator
+        run: pub run test
+
+  lib:
+    needs: generator
+    runs-on: ubuntu-latest
+    container:
+      image:  google/dart:latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install ObjectBox C-API
+        run: ./install.sh
+      - name: Install dependencies
+        run: pub get
+      - name: Generate ObjectBox models
+        run: pub run build_runner build
+      - name: Run tests
+        run: pub run test
