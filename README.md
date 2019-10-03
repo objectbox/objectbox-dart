@@ -69,12 +69,12 @@ As specified in step 3 of the _Getting started_ section, Dart's _build\_runner_ 
 import "../lib/objectbox.dart";
 part "basics_test.g.dart";
 
-@Entity(id: 1, uid: 1)
+@Entity()
 class Note {
-    @Id(id: 1, uid: 1001)       // automatically always 'int' in Dart code and 'Long' in ObjectBox
+    @Id()       // automatically always 'int' in Dart code and 'Long' in ObjectBox
     int id;
 
-    @Property(id: 2, uid: 1002)
+    @Property(uid: 1002)
     String text;
 
     Note();             // empty default constructor needed
@@ -96,6 +96,44 @@ print("new note got id ${note.id}");
 print("refetched note: ${box.get(note.id)}");
 
 store.close();
+```
+
+Query and QueryBuilder
+----------------------
+
+Basic querying can be done with e.g.:
+
+```dart
+// var store ...
+// var box ...
+
+box.putMany([Note(), Note(), Note()]);
+box.put(Note.construct("Hello world!"));
+
+final text = Note_.text;
+final queryNullText = box.query(text.isNull()).build();
+
+assert (queryNullText.count() == 3);
+
+queryNullText.close(); // We have to manually close queries and query builders.
+```
+
+More complex queries can be constructed using `and/or` operators.
+Also there is basic operator overloading support for `equal`, `greater`, `less`, `and` and `or`,
+respectively `==`, `>`, `<`, `&`, `|`.
+
+```dart
+final anyGroup = <QueryCondition>[text.equals("meh"), text.equals("bleh"), text.contains("Hello")];
+final queryAny = box.queryAny(anyGroup).build();
+
+// equivalent to
+
+box.query(text.equal("meh").or(text.equal("bleh")).or(text.contains("Hello"))).build();
+
+// equivalent to
+
+final overloaded = ((text == "meh") | (text == "bleh")) | text.contains("Hello");
+box.query(overloaded as QueryCondition).build(); // the cast is necessary due to the type analyzer
 ```
 
 Basic technical approach
