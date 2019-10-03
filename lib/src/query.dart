@@ -290,7 +290,7 @@ class StringCondition extends Condition<String> {
   }
 
   StringCondition._withEqual(ConditionOp op, ConditionType type, String value, int caseSensitive, bool withEqual)
-      : super(op, type, value, null) {
+      : super(op, type, value) {
     _initCaseSensitivity(caseSensitive);
     _withEqual = withEqual;
   }
@@ -722,7 +722,7 @@ class QueryBuilder<T> {
   }
 }
 
-/*
+/*  // Not done yet
     // * = can't test, no support yet, for Double, Long, Boolean, Byte, or Vector... etc.
     * obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
     * obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
@@ -741,63 +741,19 @@ class QueryBuilder<T> {
 //////
 //////
 
-/**
+/** Inspiration
     Modifier and Type	Method	Description
-    And AND changes how conditions are combined using a following OR.
     <TARGET> QueryBuilder<TARGET>	backlink​(RelationInfo<TARGET,?> relationInfo)
     Creates a backlink (reversed link) to another entity, for which you also can describe conditions using the returned builder.
-    ** QueryBuilder<T>	between​(Property<T> property, double value1, double value2)
-    ** QueryBuilder<T>	between​(Property<T> property, long value1, long value2)
-    ** QueryBuilder<T>	between​(Property<T> property, java.util.Date value1, java.util.Date value2)
-    Builds the query and closes this QueryBuilder.
     void	close()
-    ** QueryBuilder<T>	contains​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	contains​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
     ** QueryBuilder<T>	eager​(int limit, RelationInfo relationInfo, RelationInfo... more)
     Like eager(RelationInfo, RelationInfo[]), but limits eager loading to the given count.
     ** QueryBuilder<T>	eager​(RelationInfo relationInfo, RelationInfo... more)
     Specifies relations that should be resolved eagerly.
-    ** QueryBuilder<T>	endsWith​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	endsWith​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
-    ** QueryBuilder<T>	equal​(Property<T> property, boolean value)
-    ** QueryBuilder<T>	equal​(Property<T> property, byte[] value)
-    ** QueryBuilder<T>	equal​(Property<T> property, double value, double tolerance)
-    Floating point equality is non-trivial; this is just a convenience for between(Property, double, double) with parameters(property, value - tolerance, value + tolerance).
-    ** QueryBuilder<T>	equal​(Property<T> property, long value)
-    ** QueryBuilder<T>	equal​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	equal​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
-    ** QueryBuilder<T>	equal​(Property<T> property, java.util.Date value)
-    ** QueryBuilder<T>	filter​(QueryFilter<T> filter)
+    ** QueryBuilder<T>	filter​(QueryFilter<T> filter) // dart has built-in higher order functions
     Sets a filter that executes on primary query results (returned from the db core) on a Java level.
-    protected void	finalize()
-    ** QueryBuilder<T>	greater​(Property<T> property, byte[] value)
-    ** QueryBuilder<T>	greater​(Property<T> property, double value)
-    ** QueryBuilder<T>	greater​(Property<T> property, long value)
-    ** QueryBuilder<T>	greater​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	greater​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
-    ** QueryBuilder<T>	greater​(Property<T> property, java.util.Date value)
-    ** QueryBuilder<T>	in​(Property<T> property, int[] values)
-    ** QueryBuilder<T>	in​(Property<T> property, long[] values)
-    ** QueryBuilder<T>	in​(Property<T> property, java.lang.String[] values)
-    ** QueryBuilder<T>	in​(Property<T> property, java.lang.String[] values, QueryBuilder.StringOrder order)
-    ** QueryBuilder<T>	isNull​(Property<T> property)
-    ** QueryBuilder<T>	less​(Property<T> property, byte[] value)
-    ** QueryBuilder<T>	less​(Property<T> property, double value)
-    ** QueryBuilder<T>	less​(Property<T> property, long value)
-    ** QueryBuilder<T>	less​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	less​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
-    ** QueryBuilder<T>	less​(Property<T> property, java.util.Date value)
     <TARGET> QueryBuilder<TARGET>	link​(RelationInfo<?,TARGET> relationInfo)
     Creates a link to another entity, for which you also can describe conditions using the returned builder.
-    ** QueryBuilder<T>	notEqual​(Property<T> property, boolean value)
-    ** QueryBuilder<T>	notEqual​(Property<T> property, long value)
-    ** QueryBuilder<T>	notEqual​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	notEqual​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
-    ** QueryBuilder<T>	notEqual​(Property<T> property, java.util.Date value)
-    ** QueryBuilder<T>	notIn​(Property<T> property, int[] values)
-    ** QueryBuilder<T>	notIn​(Property<T> property, long[] values)
-    ** QueryBuilder<T>	notNull​(Property<T> property)
-    Combines the previous condition with the following condition with a logical OR.
     ** QueryBuilder<T>	order​(Property<T> property)
     Specifies given property to be used for sorting.
     ** QueryBuilder<T>	order​(Property<T> property, int flags)
@@ -807,6 +763,4 @@ class QueryBuilder<T> {
     ** QueryBuilder<T>	parameterAlias​(java.lang.String alias)
     Assigns the given alias to the previous condition.
     ** QueryBuilder<T>	sort​(java.util.Comparator<T> comparator)
-    ** QueryBuilder<T>	startsWith​(Property<T> property, java.lang.String value)
-    ** QueryBuilder<T>	startsWith​(Property<T> property, java.lang.String value, QueryBuilder.StringOrder order)
 */
