@@ -1,5 +1,6 @@
 import "dart:ffi";
 
+import "box.dart";
 import "store.dart";
 import "common.dart";
 import "bindings/bindings.dart";
@@ -468,15 +469,15 @@ class QueryCondition {
     _initDnfList(rh);
     return this;
   }
-
-  QueryBuilder asQueryBuilder(Store store, int entityId) => QueryBuilder._(store, entityId, this);
 }
 
-class Query {
+class Query<T> {
   Pointer<Void> _query;
+  Box<T> _box;
 
   // package private ctor
-  Query._(Pointer<Void> qb) {
+  Query._(Box<T> box, Pointer<Void> qb) {
+    _box = box;
     _query = checkObxPtr(bindings.obx_query_create(qb), "create query", true);
   }
 
@@ -490,22 +491,38 @@ class Query {
     }
   }
 
-  // TODO does dart have a dtor/finalizer?
+  // TODO does dart have a dtor/finalizer?j
   void close() {
     checkObx(bindings.obx_query_close(_query));
-    // TODO _query.free(); === double release ?
+  }
+
+  // TODO reimplement the same marshalling as in Box.getMany???
+  T findFirst() {
+    final list = findIds(offset:0, limit:1);
+    return (list == null ? null : _box.get(list.first)) as T;
+  }
+
+  List<int> findIds({int offset=0, int limit=(1<<32)}) {
+    final structPtr = checkObxPtr(bindings.obx_query_find_ids(_query, offset, limit), "find ids");
+    final idArray = IDArray.fromAddress(structPtr.address);
+    return idArray.ids.length == 0 ? null : idArray.ids;
+  }
+
+  List<T> find({int offset=0, int limit=(1<<32)}) {
+    final list = findIds(offset:offset, limit:limit);
+    return list == null ? null : _box.getMany(list);
   }
 }
 
 // Construct a tree from the first condition object
-class QueryBuilder {
+class QueryBuilder<T> {
+  Box<T> _box;
   Store _store;
   int _entityId; // aka model id, entity id
   QueryCondition _queryCondition;
   Pointer<Void> _queryBuilderPtr;
 
-  // package private ctor
-  QueryBuilder._(this._store, this._entityId, this._queryCondition);
+  QueryBuilder(this._box, this._store, this._entityId, this._queryCondition);
 
   void _throwExceptionIfNecessary() {
     if (bindings.obx_qb_error_code(_queryBuilderPtr) != OBXError.OBX_SUCCESS) {
@@ -698,7 +715,7 @@ class QueryBuilder {
     _parse(_queryCondition); // ignore the return value
 
     try {
-      return Query._(_queryBuilderPtr);
+      return Query<T>._(_box, _queryBuilderPtr);
     }finally {
       checkObx(bindings.obx_qb_close(_queryBuilderPtr));
     }

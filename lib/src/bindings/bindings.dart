@@ -102,7 +102,8 @@ class _ObjectBoxBindings {
   // query
   obx_query_t obx_query_create;
   obx_query_close_dart_t obx_query_close;
-  obx_query_find_t<int> obx_query_find, obx_query_find_ids; // ids = OBX_id_array, else OBX_bytes_array
+  obx_query_find_t<Void, int> obx_query_find;
+  obx_query_find_t<Void, int> obx_query_find_ids; // ids = OBX_id_array, else OBX_bytes_array
 
   obx_query_count_dart_t obx_query_count, obx_query_remove;
 
@@ -242,8 +243,8 @@ class _ObjectBoxBindings {
     obx_query_create = objectbox.lookup<NativeFunction<obx_query_t>>("obx_query").asFunction();
     obx_query_close = objectbox.lookup<NativeFunction<obx_query_close_native_t>>("obx_query_close").asFunction();
 
-    obx_query_find_ids = objectbox.lookup<NativeFunction<obx_query_find_t<Uint64>>>("obx_query_find_ids").asFunction();
-    obx_query_find     = objectbox.lookup<NativeFunction<obx_query_find_t<Uint64>>>("obx_query_find").asFunction();
+    obx_query_find_ids = objectbox.lookup<NativeFunction<obx_query_find_t<Void, Uint64>>>("obx_query_find_ids").asFunction();
+    obx_query_find     = objectbox.lookup<NativeFunction<obx_query_find_t<Void, Uint64>>>("obx_query_find").asFunction();
 
     obx_query_count = objectbox.lookup<NativeFunction<obx_query_count_native_t>>("obx_query_count").asFunction();
     obx_query_remove = objectbox.lookup<NativeFunction<obx_query_count_native_t>>("obx_query_remove").asFunction();

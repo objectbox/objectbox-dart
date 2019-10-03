@@ -111,7 +111,6 @@ main() {
   });
 
   group("query", () {
-    // TODO add this when double and boolean are supported
     test(".null and .notNull", () {
       box.putMany([
         TestEntity.initDoubleAndBoolean(0.1, true),
@@ -138,7 +137,6 @@ main() {
         });
     });
 
-    // TODO add this when double and boolean are supported
     test(".count doubles and booleans", () {
       box.putMany([
         TestEntity.initDoubleAndBoolean(0.1, true),
@@ -239,6 +237,51 @@ main() {
       expect(qn2.count(), 3);
 
       [ qs0,qs1,qs2,qs3,qs4,qn0,qn1,qn2 ].forEach((q) => q.close());
+    });
+
+    test(".findIds returns List<int>", () {
+      int idOffset = 1337;
+      box.put(TestEntity.initId(idOffset,   "meh"));
+      box.put(TestEntity.initId(idOffset++, "bleh"));
+      box.put(TestEntity.initId(idOffset++, "bleh"));
+      box.put(TestEntity.initId(idOffset++, "helb"));
+      box.put(TestEntity.initId(idOffset++, "helb"));
+      box.put(TestEntity.initId(idOffset++, "bleh"));
+      box.put(TestEntity.initId(idOffset++, "blh"));
+
+      // broken due to unsupported types
+      /*
+      box.putMany([
+        TestEntity.initId(idOffset++, "bleh"),
+        TestEntity.initId(idOffset++, "helb"),
+        TestEntity.initId(idOffset++, "blh")]);
+     */
+
+      final text = TestEntity_.text;
+
+      final q0 = box.query(text.notNull()).build();
+      final result0 = q0.findIds();
+
+      final q1 = box.queryAll([text.contains("e"), text.contains("h")]).build();
+      final result1 = q1.findIds();
+
+      final q2 = box.query((text == "blh") as QueryCondition).build();
+      final result2 = q2.findIds();
+
+      final q3 = box.query((text == "can't find this") as QueryCondition).build();
+      final result3 = q3.findIds();
+
+      // (result0 + result1 + result2).forEach((i) => print("found id: ${i}"));
+
+      expect(result0.length, 7); // TODO off by one bug?
+      expect(result1.length, 6);
+      expect(result2.length, 1);
+      expect(result3, null);
+
+      q0.close();
+      q1.close();
+      q2.close();
+      q3.close();
     });
 
     test(".count items after grouping with and/or", () {

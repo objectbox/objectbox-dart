@@ -113,7 +113,7 @@ typedef obx_query_t = Pointer<Void> Function(Pointer<Void> builder);
 typedef obx_query_close_native_t = Int32 Function(Pointer<Void> query);
 typedef obx_query_close_dart_t =   int Function(Pointer<Void> query);
 
-typedef obx_query_find_t<P> = Pointer<Void> Function(Pointer<Void> query, P offset, P limit);
+typedef obx_query_find_t<O,P> = Pointer<O> Function(Pointer<Void> query, P offset, P limit);
 
 typedef obx_query_count_native_t = Int32 Function(Pointer<Void> query, Pointer<Uint64> count);
 typedef obx_query_count_dart_t   = int Function(Pointer<Void> query, Pointer<Uint64> count);
