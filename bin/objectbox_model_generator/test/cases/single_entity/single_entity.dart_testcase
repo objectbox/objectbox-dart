@@ -1,0 +1,11 @@
+import "package:objectbox/objectbox.dart";
+part "single_entity.g.dart";
+
+@Entity(uid: 1234)
+class SingleEntity {
+  @Id(uid: 5678)
+  int id;
+
+  @Property(uid: 4321)
+  String texta;
+}

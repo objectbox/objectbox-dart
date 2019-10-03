@@ -2,6 +2,7 @@ import "dart:ffi";
 
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
+import "modelinfo/index.dart";
 
 import "model.dart";
 
@@ -9,12 +10,11 @@ import "package:ffi/ffi.dart";
 
 class Store {
   Pointer<Void> _objectboxStore;
-  Map<Type, Map<String, dynamic>> _modelDefinitions = {};
+  Map<Type, EntityDefinition> _entityDefinitions = {};
 
-  Store(List<List<dynamic>> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
-    // TODO: allow setting options, e.g. database path
-    defs.forEach((d) => _modelDefinitions[d[0]] = d[1]);
-    var model = Model(defs.map((d) => d[1]["model"] as Map<String, dynamic>).toList());
+  Store(List<EntityDefinition> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
+    defs.forEach((d) => _entityDefinitions[d.type()] = d);
+    var model = Model(defs.map((d) => d.getModel()).toList());
 
     var opt = bindings.obx_opt();
     checkObxPtr(opt, "failed to create store options");
@@ -44,16 +44,8 @@ class Store {
     checkObx(bindings.obx_store_close(_objectboxStore));
   }
 
-  getEntityModelDefinitionFromClass(cls) {
-    return _modelDefinitions[cls]["model"];
-  }
-
-  getEntityReaderFromClass<T>() {
-    return _modelDefinitions[T]["reader"] as Map<String, dynamic> Function(T);
-  }
-
-  getEntityBuilderFromClass<T>() {
-    return _modelDefinitions[T]["builder"] as T Function(Map<String, dynamic>);
+  EntityDefinition<T> entityDef<T>(T) {
+    return _entityDefinitions[T];
   }
 
   get ptr => _objectboxStore;

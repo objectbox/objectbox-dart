@@ -4,6 +4,7 @@ import "package:flat_buffers/flat_buffers.dart" as fb;
 
 import "constants.dart";
 import "structs.dart";
+import "../modelinfo/index.dart";
 
 class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
@@ -27,19 +28,20 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
 }
 
 class OBXFlatbuffersManager<T> {
-  var _entityDefinition, _entityReader, _entityBuilder;
+  ModelEntity _modelEntity;
+  ObjectWriter<T> _entityBuilder;
 
-  OBXFlatbuffersManager(this._entityDefinition, this._entityReader, this._entityBuilder);
+  OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
   ByteBuffer marshal(propVals) {
     var builder = new fb.Builder(initialSize: 1024);
 
     // write all strings
     Map<String, int> offsets = {};
-    _entityDefinition["properties"].forEach((p) {
-      switch (p["type"]) {
+    _modelEntity.properties.forEach((p) {
+      switch (p.type) {
         case OBXPropertyType.String:
-          offsets[p["name"]] = builder.writeString(propVals[p["name"]]);
+          offsets[p.name] = builder.writeString(propVals[p.name]);
           break;
       }
     });
@@ -47,9 +49,9 @@ class OBXFlatbuffersManager<T> {
     // create table and write actual properties
     // TODO: make sure that Id property has a value >= 1
     builder.startTable();
-    _entityDefinition["properties"].forEach((p) {
-      var field = p["id"] - 1, value = propVals[p["name"]];
-      switch (p["type"]) {
+    _modelEntity.properties.forEach((p) {
+      var field = p.id.id - 1, value = propVals[p.name];
+      switch (p.type) {
         case OBXPropertyType.Bool:
           builder.addBool(field, value);
           break;
@@ -69,10 +71,10 @@ class OBXFlatbuffersManager<T> {
           builder.addInt64(field, value);
           break;
         case OBXPropertyType.String:
-          builder.addOffset(field, offsets[p["name"]]);
+          builder.addOffset(field, offsets[p.name]);
           break;
         default:
-          throw Exception("unsupported type: ${p['type']}"); // TODO: support more types
+          throw Exception("unsupported type: ${p.type}"); // TODO: support more types
       }
     });
 
@@ -85,9 +87,9 @@ class OBXFlatbuffersManager<T> {
     Map<String, dynamic> propVals = {};
     var entity = new _OBXFBEntity(buffer.data);
 
-    _entityDefinition["properties"].forEach((p) {
+    _modelEntity.properties.forEach((p) {
       var propReader;
-      switch (p["type"]) {
+      switch (p.type) {
         case OBXPropertyType.Bool:
           propReader = fb.BoolReader();
           break;
@@ -110,10 +112,10 @@ class OBXFlatbuffersManager<T> {
           propReader = fb.StringReader();
           break;
         default:
-          throw Exception("unsupported type: ${p['type']}"); // TODO: support more types
+          throw Exception("unsupported type: ${p.type}"); // TODO: support more types
       }
 
-      propVals[p["name"]] = entity.getProp(propReader, (p["id"] + 1) * 2);
+      propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);
     });
 
     return _entityBuilder(propVals);

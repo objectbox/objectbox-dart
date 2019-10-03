@@ -1,14 +1,13 @@
 import "dart:io";
 import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
-part "basics_test.g.dart";
+part "box_test.g.dart";
 
-@Entity(id: 1, uid: 1)
+@Entity()
 class TestEntity {
-  @Id(id: 1, uid: 1001)
+  @Id()
   int id;
 
-  @Property(id: 2, uid: 1002)
   String text;
 
   TestEntity();
@@ -16,18 +15,16 @@ class TestEntity {
   TestEntity.construct(this.text);
 }
 
-main() {
+void main() {
   Store store;
   Box box;
 
-  setUp(() {
-    store = Store([
-      [TestEntity, TestEntity_OBXDefs]
-    ]);
-    box = Box<TestEntity>(store);
-  });
-
   group("box", () {
+    setUp(() {
+      store = Store([TestEntity_OBXDefs]);
+      box = Box<TestEntity>(store);
+    });
+
     test(".put() returns a valid id", () {
       int putId = box.put(TestEntity.construct("Hello"));
       expect(putId, greaterThan(0));
@@ -95,12 +92,12 @@ main() {
       expect(fetchedItems[1], equals(null));
       expect(fetchedItems[2].text, equals("Two"));
     });
-  });
 
-  tearDown(() {
-    if (store != null) store.close();
-    store = null;
-    var dir = new Directory("objectbox");
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
+    tearDown(() {
+      if (store != null) store.close();
+      store = null;
+      var dir = new Directory("objectbox");
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
+    });
   });
 }

@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,19 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Cocoa
-import FlutterMacOS
+#include "plugin_registrant.h"
 
-class MainFlutterWindow: NSWindow {
-  override func awakeFromNib() {
-    let flutterViewController = FlutterViewController.init()
-    let windowFrame = self.frame
-    self.contentViewController = flutterViewController
-    self.setFrame(windowFrame, display: true)
+// Add plugin headers here.
 
-    RegisterGeneratedPlugins(registry: flutterViewController)
-
-    super.awakeFromNib()
-  }
+void RegisterPlugins(flutter::FlutterViewController *registry) {
+  // In the future, when the Flutter tooling supports Windows plugins, this will
+  // be replaced by a generated plugin registration. For now, plugins must be
+  // added here manually.
 }
-
