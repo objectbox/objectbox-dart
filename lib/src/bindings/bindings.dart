@@ -59,6 +59,58 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
 
+  // query builder
+  obx_query_builder_dart_t obx_qb_create;
+  obx_qb_close_dart_t obx_qb_close;
+  obx_qb_close_dart_t obx_qb_error_code;
+  obx_qb_error_message_t obx_qb_error_message;
+
+  obx_qb_cond_operator_0_dart_t obx_qb_null, obx_qb_not_null;
+
+  obx_qb_cond_operator_1_dart_t<int>
+    obx_qb_int_equal, obx_qb_int_not_equal,
+    obx_qb_int_greater, obx_qb_int_less;
+
+  obx_qb_cond_operator_2_dart_t<int> obx_qb_int_between;
+
+  obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
+  obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
+
+  obx_qb_cond_string_op_1_dart_t
+    obx_qb_string_equal,
+    obx_qb_string_not_equal,
+    obx_qb_string_contains,
+    obx_qb_strings_contain,
+    obx_qb_string_starts_with,
+    obx_qb_string_ends_with;
+
+  obx_qb_cond_operator_1_dart_t<double> obx_qb_double_greater, obx_qb_double_less;
+  obx_qb_cond_operator_2_dart_t<double> obx_qb_double_between;
+
+  obx_qb_string_lt_gt_op_dart_t obx_qb_string_greater, obx_qb_string_less;
+  obx_qb_string_in_dart_t obx_qb_string_in;
+
+  obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
+  obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
+
+  obx_qb_join_op_dart_t obx_qb_all, obx_qb_any;
+
+  obx_qb_param_alias_dart_t obx_qb_param_alias;
+
+  obx_qb_order_dart_t obx_qb_order;
+
+  // query
+  obx_query_t obx_query_create;
+  obx_query_close_dart_t obx_query_close;
+  obx_query_find_t<Void, int> obx_query_find;
+  obx_query_find_t<Void, int> obx_query_find_ids; // ids = OBX_id_array, else OBX_bytes_array
+
+  obx_query_count_dart_t obx_query_count, obx_query_remove;
+
+  obx_query_describe_t obx_query_describe, obx_query_describe_params;
+
+  obx_query_visit_dart_t obx_query_visit;
+
   _ObjectBoxBindings() {
     var libName = "objectbox";
     if (Platform.isWindows)
@@ -136,6 +188,70 @@ class _ObjectBoxBindings {
     obx_box_put = objectbox.lookup<NativeFunction<obx_box_put_native_t>>("obx_box_put").asFunction();
     obx_box_put_many = objectbox.lookup<NativeFunction<obx_box_put_many_native_t>>("obx_box_put_many").asFunction();
     obx_box_remove = objectbox.lookup<NativeFunction<obx_box_remove_native_t>>("obx_box_remove").asFunction();
+
+    // query builder
+    obx_qb_create = objectbox.lookup<NativeFunction<obx_query_builder_native_t>>("obx_query_builder").asFunction();
+    obx_qb_close = objectbox.lookup<NativeFunction<obx_qb_close_native_t>>("obx_qb_close").asFunction();
+    obx_qb_error_code = objectbox.lookup<NativeFunction<obx_qb_close_native_t>>("obx_qb_error_code").asFunction();
+    obx_qb_error_message = objectbox.lookup<NativeFunction<obx_qb_error_message_t>>("obx_qb_error_message").asFunction();
+
+    obx_qb_null = objectbox.lookup<NativeFunction<obx_qb_cond_operator_0_native_t>>("obx_qb_null").asFunction();
+    obx_qb_not_null = objectbox.lookup<NativeFunction<obx_qb_cond_operator_0_native_t>>("obx_qb_not_null").asFunction();
+
+    obx_qb_int_equal = objectbox.lookup<NativeFunction<obx_qb_cond_operator_1_native_t<Int64>>>("obx_qb_int_equal").asFunction();
+    obx_qb_int_not_equal = objectbox.lookup<NativeFunction<obx_qb_cond_operator_1_native_t<Int64>>>("obx_qb_int_not_equal").asFunction();
+    obx_qb_int_greater = objectbox.lookup<NativeFunction<obx_qb_cond_operator_1_native_t<Int64>>>("obx_qb_int_greater").asFunction();
+    obx_qb_int_less = objectbox.lookup<NativeFunction<obx_qb_cond_operator_1_native_t<Int64>>>("obx_qb_int_less").asFunction();
+
+    obx_qb_int_between = objectbox.lookup<NativeFunction<obx_qb_cond_operator_2_native_t<Int64>>>("obx_qb_int_between").asFunction();
+
+    obx_qb_int64_in = objectbox.lookup<NativeFunction<obx_qb_cond_operator_in_native_t<Int64>>>("obx_qb_int64_in").asFunction();
+    obx_qb_int64_not_in = objectbox.lookup<NativeFunction<obx_qb_cond_operator_in_native_t<Int64>>>("obx_qb_int64_not_in").asFunction();
+
+    obx_qb_int32_in = objectbox.lookup<NativeFunction<obx_qb_cond_operator_in_native_t<Int32>>>("obx_qb_int32_in").asFunction();
+    obx_qb_int32_not_in = objectbox.lookup<NativeFunction<obx_qb_cond_operator_in_native_t<Int32>>>("obx_qb_int32_not_in").asFunction();
+
+    obx_qb_string_equal = objectbox.lookup<NativeFunction<obx_qb_cond_string_op_1_native_t>>("obx_qb_string_equal").asFunction();
+    obx_qb_string_not_equal = objectbox.lookup<NativeFunction<obx_qb_cond_string_op_1_native_t>>("obx_qb_string_not_equal").asFunction();
+    obx_qb_string_contains = objectbox.lookup<NativeFunction<obx_qb_cond_string_op_1_native_t>>("obx_qb_string_contains").asFunction();
+    obx_qb_strings_contain = objectbox.lookup<NativeFunction<obx_qb_cond_string_op_1_native_t>>("obx_qb_strings_contain").asFunction();
+    obx_qb_string_starts_with = objectbox.lookup<NativeFunction<obx_qb_cond_string_op_1_native_t>>("obx_qb_string_starts_with").asFunction();
+    obx_qb_string_ends_with = objectbox.lookup<NativeFunction<obx_qb_cond_string_op_1_native_t>>("obx_qb_string_ends_with").asFunction();
+
+    obx_qb_string_greater = objectbox.lookup<NativeFunction<obx_qb_string_lt_gt_op_native_t>>("obx_qb_string_greater").asFunction();
+    obx_qb_string_less    = objectbox.lookup<NativeFunction<obx_qb_string_lt_gt_op_native_t>>("obx_qb_string_less").asFunction();
+
+    obx_qb_string_in = objectbox.lookup<NativeFunction<obx_qb_string_in_native_t>>("obx_qb_string_in").asFunction();
+
+    obx_qb_double_greater = objectbox.lookup<NativeFunction<obx_qb_cond_operator_1_native_t<Double>>>("obx_qb_double_greater").asFunction();
+    obx_qb_double_less = objectbox.lookup<NativeFunction<obx_qb_cond_operator_1_native_t<Double>>>("obx_qb_double_less").asFunction();
+
+    obx_qb_double_between = objectbox.lookup<NativeFunction<obx_qb_cond_operator_2_native_t<Double>>>("obx_qb_double_between").asFunction();
+
+    obx_qb_bytes_equal = objectbox.lookup<NativeFunction<obx_qb_bytes_eq_native_t>>("obx_qb_bytes_equal").asFunction();
+    obx_qb_bytes_greater = objectbox.lookup<NativeFunction<obx_qb_bytes_lt_gt_native_t>>("obx_qb_bytes_greater").asFunction();
+    obx_qb_bytes_less = objectbox.lookup<NativeFunction<obx_qb_bytes_lt_gt_native_t>>("obx_qb_bytes_less").asFunction();
+
+    obx_qb_all = objectbox.lookup<NativeFunction<obx_qb_join_op_native_t>>("obx_qb_all").asFunction();
+    obx_qb_any = objectbox.lookup<NativeFunction<obx_qb_join_op_native_t>>("obx_qb_any").asFunction();
+
+    obx_qb_param_alias = objectbox.lookup<NativeFunction<obx_qb_param_alias_native_t>>("obx_qb_param_alias").asFunction();
+
+    obx_qb_order = objectbox.lookup<NativeFunction<obx_qb_order_native_t>>("obx_qb_order").asFunction();
+
+    // query
+    obx_query_create = objectbox.lookup<NativeFunction<obx_query_t>>("obx_query").asFunction();
+    obx_query_close = objectbox.lookup<NativeFunction<obx_query_close_native_t>>("obx_query_close").asFunction();
+
+    obx_query_find_ids = objectbox.lookup<NativeFunction<obx_query_find_t<Void, Uint64>>>("obx_query_find_ids").asFunction();
+    obx_query_find     = objectbox.lookup<NativeFunction<obx_query_find_t<Void, Uint64>>>("obx_query_find").asFunction();
+
+    obx_query_count = objectbox.lookup<NativeFunction<obx_query_count_native_t>>("obx_query_count").asFunction();
+    obx_query_remove = objectbox.lookup<NativeFunction<obx_query_count_native_t>>("obx_query_remove").asFunction();
+    obx_query_describe = objectbox.lookup<NativeFunction<obx_query_describe_t>>("obx_query_describe").asFunction();
+    obx_query_describe_params = objectbox.lookup<NativeFunction<obx_query_describe_t>>("obx_query_describe_params").asFunction();
+
+    obx_query_visit = objectbox.lookup<NativeFunction<obx_query_visit_native_t>>("obx_query_visit").asFunction();
   }
 }
 

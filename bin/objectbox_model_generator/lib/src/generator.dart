@@ -93,6 +93,10 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
             fieldType = OBXPropertyType.Int;
           else if (fieldTypeStr == "String")
             fieldType = OBXPropertyType.String;
+          else if (fieldTypeStr == "bool")
+            fieldType = OBXPropertyType.Bool;
+          else if (fieldTypeStr == "double")
+            fieldType = OBXPropertyType.Double;
           else {
             print(
                 "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
@@ -118,6 +122,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // main code for instance builders and readers
       ret += CodeChunks.instanceBuildersReaders(readEntity);
+
+      // for building queries
+      ret += CodeChunks.queryConditionClasses(readEntity);
 
       return ret;
     } catch (e, s) {

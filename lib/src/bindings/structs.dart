@@ -1,5 +1,6 @@
-import "dart:ffi";
-import "dart:typed_data" show Uint8List;
+import 'dart:ffi';
+import 'dart:convert';
+import "dart:typed_data" show Uint8List, Uint64List;
 
 class IDArray {
   // wrapper for "struct OBX_id_array"
@@ -12,6 +13,19 @@ class IDArray {
     _structPtr.store(_idsPtr.address);
     _structPtr.elementAt(1).store(ids.length);
   }
+
+  List<int> _ids; // obx_id === uint64_t
+
+  IDArray.fromAddress(int address) {
+    _structPtr = Pointer<Uint64>.fromAddress(address); // bootstrap
+    _idsPtr = Pointer<Uint64>.fromAddress(_structPtr.load()); // 1st memory location contains vector obx_id*
+    int count = _structPtr.elementAt(1).load<int>(); // 2nd mem loc contains the scalar count
+    final idsPtrBuffer = _idsPtr.asExternalTypedData(count: count).buffer;
+    // Is the ExternalTypedData just referring to the base type of Uint64List?
+    _ids = Uint64List.view(idsPtrBuffer).toList();
+  }
+
+  get ids => _ids;
 
   get ptr => _structPtr;
 

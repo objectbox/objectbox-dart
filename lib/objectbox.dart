@@ -10,3 +10,4 @@ export "src/store.dart";
 export "src/box.dart";
 export "src/bindings/constants.dart";
 export "src/modelinfo/index.dart";
+export "src/query.dart";

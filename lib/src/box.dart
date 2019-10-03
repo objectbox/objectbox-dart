@@ -1,6 +1,7 @@
 import "dart:ffi";
 
 import "store.dart";
+import "query.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
 import "bindings/flatbuffers.dart";
@@ -158,6 +159,16 @@ class Box<T> {
   List<T> getAll() {
     return _getMany(
         () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
+  }
+
+  QueryBuilder query(QueryCondition qc) => QueryBuilder<T>(this, _store, _modelEntity.id.id, qc);
+
+  QueryBuilder queryAll(List<QueryCondition> list) {
+    return query(list.reduce((first, second) => first.and(second)));
+  }
+
+  QueryBuilder queryAny(List<QueryCondition> list) {
+    return query(list.reduce((first, second) => first.or(second)));
   }
 
   get ptr => _objectboxBox;
