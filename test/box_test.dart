@@ -140,8 +140,7 @@ void main() {
       final d = TestEntity_.d;
       final b = TestEntity_.b;
 
-      // final anyQuery0 = (d == 0.8) & (b == false) | (d == 0.7) & (b == false) | d.between(0.5, 0.3); ; // TODO figure out why adding between breaks the chain
-      final anyQuery0 = (d == 0.8) & (b == false) | (d == 0.7) & (b == false);
+      final anyQuery0 = ((d == 0.8) & (b == false)) | ((d == 0.7) & (b == false));
 
       final allQuery0 = (d == 0.1) & (b == true);
 

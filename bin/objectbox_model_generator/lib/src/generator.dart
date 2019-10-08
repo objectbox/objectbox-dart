@@ -78,7 +78,8 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
             flags |= OBXPropertyFlag.ID;
             hasIdProperty = true;
           } else if (annotType == "Property") {
-            // nothing special
+            fieldType = annotVal.getField("type")?.toIntValue();
+            flags |= annotVal.getField("flag")?.toIntValue();
           } else {
             // skip unknown annotations
             print(
