@@ -40,7 +40,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // optionally add header for loading the .g.json file
       var ret = "";
-      if (entityHeaderDone.indexOf(inputFileId) == -1) {
+      if (!entityHeaderDone.contains(inputFileId)) {
         ret += CodeChunks.modelInfoLoader();
         entityHeaderDone.add(inputFileId);
       }
