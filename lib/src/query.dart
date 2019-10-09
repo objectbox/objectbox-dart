@@ -61,7 +61,7 @@ class QueryStringProperty extends QueryProperty {
     return QueryCondition(entityId, propertyId, c);
   }
 
-  QueryCondition equal(String p, {bool caseSensitive = false}) {
+  QueryCondition equals(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp._eq, caseSensitive, false);
   }
 
@@ -86,28 +86,23 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp._strings_contain, caseSensitive, false);
   }
 
-  // Achtung: 'in' is a reserved keyword, we can't overload it either
-  QueryCondition inList(List<String> list, {bool caseSensitive = false}) {
+  QueryCondition inside(List<String> list, {bool caseSensitive = false}) {
     return _opList(list, ConditionOp._in, caseSensitive);
-  }
-
-  QueryCondition notInList(List<String> list, {bool caseSensitive = false}) {
-    return _opList(list, ConditionOp._not_in, caseSensitive);
   }
 
   QueryCondition notIn(List<String> list, {bool caseSensitive = false}) {
     return _opList(list, ConditionOp._not_in, caseSensitive);
   }
 
-  QueryCondition greater(String p, {bool caseSensitive = false, bool withEqual = false}) {
+  QueryCondition greaterThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
     return _opWithEqual(p, ConditionOp._gt, caseSensitive, withEqual);
   }
 
-  QueryCondition less(String p, {bool caseSensitive = false, bool withEqual = false}) {
+  QueryCondition lessThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
     return _opWithEqual(p, ConditionOp._lt, caseSensitive, withEqual);
   }
 
-  QueryCondition operator == (String p) => equal(p);
+  QueryCondition operator == (String p) => equals(p);
 //  QueryCondition operator != (String p) => notEqual(p); // not overloadable
 }
 
@@ -126,7 +121,7 @@ class QueryIntegerProperty extends QueryProperty {
     return QueryCondition(entityId, propertyId, c);
   }
 
-  QueryCondition equal(int p) {
+  QueryCondition equals(int p) {
     return _op(p, ConditionOp._eq);
   }
 
@@ -134,18 +129,18 @@ class QueryIntegerProperty extends QueryProperty {
     return _op(p, ConditionOp._not_eq);
   }
 
-  QueryCondition greater(int p) {
+  QueryCondition greaterThan(int p) {
     return _op(p, ConditionOp._gt);
   }
 
-  QueryCondition less(int p) {
+  QueryCondition lessThan(int p) {
     return _op(p, ConditionOp._lt);
   }
 
-  QueryCondition operator < (int p) => less(p);
-  QueryCondition operator > (int p) => greater(p);
+  QueryCondition operator < (int p) => lessThan(p);
+  QueryCondition operator > (int p) => greaterThan(p);
 
-  QueryCondition inList(List<int> list) {
+  QueryCondition inside(List<int> list) {
     return _opList(list, ConditionOp._in);
   }
 
@@ -158,7 +153,7 @@ class QueryIntegerProperty extends QueryProperty {
   }
 
   // QueryCondition operator != (int p) => notEqual(p); // not overloadable
-  QueryCondition operator == (int p) => equal(p);
+  QueryCondition operator == (int p) => equals(p);
 }
 
 class QueryDoubleProperty extends QueryProperty {
@@ -177,22 +172,22 @@ class QueryDoubleProperty extends QueryProperty {
   }
 
   // TODO determine default tolerance: between (target - tolerance, target + tolerance)
-  QueryCondition equal(double p, {double tolerance = 0.01}) {
+  QueryCondition equals(double p, {double tolerance = 0.01}) {
     final absTolerance = tolerance.abs();
     return between(p - absTolerance, p + absTolerance);
   }
 
-  QueryCondition greater(double p) {
+  QueryCondition greaterThan(double p) {
     return _op(ConditionOp._gt, p, null);
   }
 
-  QueryCondition less(double p) {
+  QueryCondition lessThan(double p) {
     return _op(ConditionOp._lt, p, null);
   }
 
-  QueryCondition operator < (double p) => less(p);
-  QueryCondition operator > (double p) => greater(p);
-  QueryCondition operator == (double p) => equal(p);
+  QueryCondition operator < (double p) => lessThan(p);
+  QueryCondition operator > (double p) => greaterThan(p);
+  QueryCondition operator == (double p) => equals(p);
 }
 
 class QueryBooleanProperty extends QueryProperty {
@@ -201,12 +196,12 @@ class QueryBooleanProperty extends QueryProperty {
   static const ConditionType type = ConditionType._bytes;
 
   // TODO let the programmer decide on the resolution via @Property
-  QueryCondition equal(bool p) {
+  QueryCondition equals(bool p) {
     final c  = Condition<int>(ConditionOp._eq, type, (p ? 1 : 0));
     return QueryCondition(entityId, propertyId, c);
   }
 
-  QueryCondition operator == (bool p) => equal(p);
+  QueryCondition operator == (bool p) => equals(p);
 }
 
 class OBXOrderFlag {
@@ -305,7 +300,7 @@ class StringCondition extends Condition<String> {
     }
   }
 
-  int _inList(Pointer<Void> qbPtr, QueryCondition qc) {
+  int _inside(Pointer<Void> qbPtr, QueryCondition qc) {
     final func = bindings.obx_qb_string_in;
     final listLength = _list.length;
     final arrayOfUint8Ptrs = Pointer<Pointer<Uint8>>.allocate(count: listLength);

@@ -55,7 +55,7 @@ void main() {
 
       final allQuery0 = (d == 0.1) & (b == true);
 
-      final q0    = box.query(b.equal(false)).build();
+      final q0    = box.query(b.equals(false)).build();
       final qany0 = box.query(anyQuery0 as QueryCondition).build();
       final qall0 = box.query(allQuery0 as QueryCondition).build();
 
@@ -90,13 +90,13 @@ void main() {
 //      final q5 = box.query(n < 1337).build();
 //      final q6 = box.query(n > 1337).build();
 
-      final q0 = box.query(d.greater(0.1)).build();
-      final q1 = box.query(b.equal(false)).build();
-      final q2 = box.query(t.greater("more")).build();
-      final q3 = box.query(t.less("more")).build();
-      final q4 = box.query(d.less(0.3)).build();
-      final q5 = box.query(n.less(1337)).build();
-      final q6 = box.query(n.greater(1337)).build();
+      final q0 = box.query(d.greaterThan(0.1)).build();
+      final q1 = box.query(b.equals(false)).build();
+      final q2 = box.query(t.greaterThan("more")).build();
+      final q3 = box.query(t.lessThan("more")).build();
+      final q4 = box.query(d.lessThan(0.3)).build();
+      final q5 = box.query(n.lessThan(1337)).build();
+      final q6 = box.query(n.greaterThan(1337)).build();
 
       expect(q0, 3);
       expect(q1, 2);
@@ -118,15 +118,15 @@ void main() {
       final text = TestEntity_.text;
       final number = TestEntity_.number;
 
-      final qs0 = box.query(text.inList([ "meh" ])).build();
-      final qs1 = box.query(text.inList([ "bleh" ])).build();
-      final qs2 = box.query(text.inList([ "meh", "bleh" ])).build();
+      final qs0 = box.query(text.inside([ "meh" ])).build();
+      final qs1 = box.query(text.inside([ "bleh" ])).build();
+      final qs2 = box.query(text.inside([ "meh", "bleh" ])).build();
       final qs3 = box.query(text.contains("eh")).build();
       final qs4 = box.query(text.contain("bl")).build(); // wtf is the difference?
 
-      final qn0 = box.query(number.inList([ 1 ])).build();
-      final qn1 = box.query(number.inList([ 1337 ])).build();
-      final qn2 = box.query(number.inList([ 1, 1337 ])).build();
+      final qn0 = box.query(number.inside([ 1 ])).build();
+      final qn1 = box.query(number.inside([ 1337 ])).build();
+      final qn2 = box.query(number.inside([ 1, 1337 ])).build();
 
       expect(qs0.count(), 1);
       expect(qs1.count(), 2);
@@ -201,10 +201,10 @@ void main() {
       final number = TestEntity_.number;
 
       QueryCondition cond1 = ((text == "Hello") as QueryCondition) | ((number == 1337) as QueryCondition);
-      QueryCondition cond2 = text.equal("Hello") | number.equal(1337);
-      QueryCondition cond3 = text.equal("What?").and(text.equal("Hello")).or(text.equal("World"));
-      QueryCondition cond4 = text.equal("Goodbye").and(number.equal(1337)).or(number.equal(1337)).or(text.equal("Cruel")).or(text.equal("World"));
-      QueryCondition cond5 = text.equal("bleh") & number.equal(-1337);
+      QueryCondition cond2 = text.equals("Hello") | number.equals(1337);
+      QueryCondition cond3 = text.equals("What?").and(text.equals("Hello")).or(text.equals("World"));
+      QueryCondition cond4 = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
+      QueryCondition cond5 = text.equals("bleh") & number.equals(-1337);
       QueryCondition cond6 = ((text == "Hello") as QueryCondition) & ((number == 1337) as QueryCondition);
 
       final selfInference1 = (text == "Hello") & (number == 1337);
@@ -217,8 +217,8 @@ void main() {
       final allGroupCondition0 = <QueryCondition>[text == "Goodbye", number == 1337];
       */
 
-      final anyGroupCondition0 = <QueryCondition>[text.equal("meh"), text.equal("bleh")];
-      final allGroupCondition0 = <QueryCondition>[text.equal("Goodbye"), number.equal(1337)];
+      final anyGroupCondition0 = <QueryCondition>[text.equals("meh"), text.equals("bleh")];
+      final allGroupCondition0 = <QueryCondition>[text.equals("Goodbye"), number.equals(1337)];
 
 
       final queryAny0 = box.queryAny(anyGroupCondition0).build();
