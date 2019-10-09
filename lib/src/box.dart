@@ -16,7 +16,7 @@ enum PutMode {
 
 class Box<T> {
   Store _store;
-  Pointer<Void> _objectboxBox;
+  Pointer<Void> _cBox;
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;
   OBXFlatbuffersManager _fbManager;
@@ -27,8 +27,8 @@ class Box<T> {
     _entityReader = entityDefs.reader;
     _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 
-    _objectboxBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
-    checkObxPtr(_objectboxBox, "failed to create box");
+    _cBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
+    checkObxPtr(_cBox, "failed to create box");
   }
 
   _getOBXPutMode(PutMode mode) {
@@ -46,14 +46,14 @@ class Box<T> {
   int put(T inst, {PutMode mode = PutMode.Put}) {
     var propVals = _entityReader(inst);
     if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
-      final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
+      final id = bindings.obx_box_id_for_put(_cBox, 0);
       propVals[_modelEntity.idPropName] = id;
     }
 
     // put object into box and free the buffer
     ByteBuffer buffer = _fbManager.marshal(propVals);
     checkObx(bindings.obx_box_put(
-        _objectboxBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+        _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
     buffer.free();
     return propVals[_modelEntity.idPropName];
   }
@@ -73,7 +73,7 @@ class Box<T> {
     Pointer<Uint64> firstIdMemory;
     if (numInstsMissingId != 0) {
       firstIdMemory = Pointer<Uint64>.allocate(count: 1);
-      checkObx(bindings.obx_box_ids_for_put(_objectboxBox, numInstsMissingId, firstIdMemory));
+      checkObx(bindings.obx_box_ids_for_put(_cBox, numInstsMissingId, firstIdMemory));
       int nextId = firstIdMemory.load<int>();
       firstIdMemory.free();
       for (var instPropVals in allPropVals)
@@ -89,7 +89,7 @@ class Box<T> {
     // marshal all objects to be put into the box
     var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
 
-    checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+    checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
     putObjects.free();
     allIdsMemory.free();
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
@@ -114,7 +114,7 @@ class Box<T> {
 
     // get element with specified id from database
     return _runInTransaction(true, () {
-      checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
+      checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
 
       Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
       var size = sizePtr.load<int>();
@@ -149,7 +149,7 @@ class Box<T> {
 
     try {
       return _getMany(() => checkObxPtr(
-          bindings.obx_box_get_many(_objectboxBox, idArray.ptr), "failed to get many objects from box", true));
+          bindings.obx_box_get_many(_cBox, idArray.ptr), "failed to get many objects from box", true));
     } finally {
       idArray.free();
     }
@@ -157,8 +157,8 @@ class Box<T> {
 
   List<T> getAll() {
     return _getMany(
-        () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
+        () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
-  get ptr => _objectboxBox;
+  get ptr => _cBox;
 }
