@@ -51,7 +51,7 @@ class _SingleFileAssetReader extends AssetReader {
       path += "_testcase";
     }
     if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound) throw AssetNotFoundException(id);
-    return await (new File(path).readAsString());
+    return await (File(path).readAsString());
   }
 }
 
@@ -68,11 +68,11 @@ Future<String> _buildGeneratorOutput(String caseName) async {
 void testGeneratorOutput(String caseName) {
   test(caseName, () async {
     String built = await _buildGeneratorOutput(caseName);
-    String expected = await new File("test/cases/$caseName/$caseName.g.dart_expected").readAsString();
+    String expected = await File("test/cases/$caseName/$caseName.g.dart_expected").readAsString();
     expect(built, equals(expected));
 
-    String jsonBuilt = await new File("objectbox-model.json").readAsString();
-    String jsonExpected = await new File("test/cases/$caseName/objectbox-model.json_expected").readAsString();
+    String jsonBuilt = await File("objectbox-model.json").readAsString();
+    String jsonExpected = await File("test/cases/$caseName/objectbox-model.json_expected").readAsString();
     expect(jsonBuilt, equals(jsonExpected));
   });
 }

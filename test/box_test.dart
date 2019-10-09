@@ -100,7 +100,7 @@ void main() {
     tearDown(() {
       if (store != null) store.close();
       store = null;
-      var dir = new Directory("objectbox");
+      var dir = Directory("objectbox");
       if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
   });

@@ -10,7 +10,7 @@ class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
   static const fb.Reader<_OBXFBEntity> reader = _OBXFBEntityReader();
   factory _OBXFBEntity(Uint8List bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+    fb.BufferContext rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
@@ -24,7 +24,7 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
   const _OBXFBEntityReader();
 
   @override
-  _OBXFBEntity createObject(fb.BufferContext bc, int offset) => new _OBXFBEntity._(bc, offset);
+  _OBXFBEntity createObject(fb.BufferContext bc, int offset) => _OBXFBEntity._(bc, offset);
 }
 
 class OBXFlatbuffersManager<T> {
@@ -34,7 +34,7 @@ class OBXFlatbuffersManager<T> {
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
   ByteBuffer marshal(propVals) {
-    var builder = new fb.Builder(initialSize: 1024);
+    var builder = fb.Builder(initialSize: 1024);
 
     // write all strings
     Map<String, int> offsets = {};
@@ -85,7 +85,7 @@ class OBXFlatbuffersManager<T> {
   T unmarshal(ByteBuffer buffer) {
     if (buffer.size == 0 || buffer.address == 0) return null;
     Map<String, dynamic> propVals = {};
-    var entity = new _OBXFBEntity(buffer.data);
+    var entity = _OBXFBEntity(buffer.data);
 
     _modelEntity.properties.forEach((p) {
       var propReader;

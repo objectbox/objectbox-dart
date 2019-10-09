@@ -25,7 +25,7 @@ class Box<T> {
     EntityDefinition<T> entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.getModel();
     _entityReader = entityDefs.reader;
-    _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
+    _fbManager = OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 
     _cBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
     checkObxPtr(_cBox, "failed to create box");
@@ -150,7 +150,7 @@ class Box<T> {
     if (ids.length == 0) return [];
 
     // write ids in buffer for FFI call
-    var idArray = new IDArray(ids);
+    var idArray = IDArray(ids);
 
     try {
       return _getMany(() => checkObxPtr(
