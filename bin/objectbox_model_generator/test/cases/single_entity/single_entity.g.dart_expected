@@ -2,7 +2,7 @@
 // EntityGenerator
 // **************************************************************************
 
-Map<int, ModelEntity> _allOBXModelEntities = null;
+Map<int, ModelEntity> _allOBXModelEntities;
 
 void _loadOBXModelEntities() {
   if (FileSystemEntity.typeSync("objectbox-model.json") ==
