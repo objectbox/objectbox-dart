@@ -8,6 +8,11 @@ import "model.dart";
 
 import "package:ffi/ffi.dart";
 
+enum TxMode {
+  Read,
+  Write,
+}
+
 class Store {
   Pointer<Void> _cStore;
   Map<Type, EntityDefinition> _entityDefinitions = {};
@@ -46,6 +51,19 @@ class Store {
 
   EntityDefinition<T> entityDef<T>() {
     return _entityDefinitions[T];
+  }
+
+  /// Executes a given function inside a transaction
+  R runInTransaction<R>(TxMode mode, R Function() fn) {
+    assert(mode == TxMode.Read, "write transactions are currently not supported"); // TODO implement
+
+    Pointer<Void> txn = bindings.obx_txn_read(_cStore);
+    checkObxPtr(txn, "failed to created transaction");
+    try {
+      return fn();
+    } finally {
+      checkObx(bindings.obx_txn_close(txn));
+    }
   }
 
   get ptr => _cStore;
