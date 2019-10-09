@@ -49,7 +49,7 @@ class Store {
     checkObx(bindings.obx_store_close(_cStore));
   }
 
-  EntityDefinition<T> entityDef<T>(T) {
+  EntityDefinition<T> entityDef<T>() {
     return _entityDefinitions[T];
   }
 

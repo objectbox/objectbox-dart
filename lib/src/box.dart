@@ -22,7 +22,7 @@ class Box<T> {
   OBXFlatbuffersManager _fbManager;
 
   Box(this._store) {
-    EntityDefinition<T> entityDefs = _store.entityDef(T);
+    EntityDefinition<T> entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.getModel();
     _entityReader = entityDefs.reader;
     _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
