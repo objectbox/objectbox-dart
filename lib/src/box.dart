@@ -8,7 +8,7 @@ import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
 
-enum PutMode {
+enum _PutMode {
   Put,
   Insert,
   Update,
@@ -31,19 +31,19 @@ class Box<T> {
     checkObxPtr(_cBox, "failed to create box");
   }
 
-  _getOBXPutMode(PutMode mode) {
+  _getOBXPutMode(_PutMode mode) {
     switch (mode) {
-      case PutMode.Put:
+      case _PutMode.Put:
         return OBXPutMode.PUT;
-      case PutMode.Insert:
+      case _PutMode.Insert:
         return OBXPutMode.INSERT;
-      case PutMode.Update:
+      case _PutMode.Update:
         return OBXPutMode.UPDATE;
     }
   }
 
   // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
-  int put(T inst, {PutMode mode = PutMode.Put}) {
+  int put(T inst, {_PutMode mode = _PutMode.Put}) {
     var propVals = _entityReader(inst);
     if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
       final id = bindings.obx_box_id_for_put(_cBox, 0);
@@ -59,7 +59,7 @@ class Box<T> {
   }
 
   // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
-  List<int> putMany(List<T> insts, {PutMode mode = PutMode.Put}) {
+  List<int> putMany(List<T> insts, {_PutMode mode = _PutMode.Put}) {
     if (insts.length == 0) return [];
 
     // read all property values and find number of instances where ID is missing

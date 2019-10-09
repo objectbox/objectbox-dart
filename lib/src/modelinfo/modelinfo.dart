@@ -3,8 +3,8 @@ import "dart:math";
 import "modelentity.dart";
 import "iduid.dart";
 
-const minModelVersion = 5;
-const maxModelVersion = 5;
+const _minModelVersion = 5;
+const _maxModelVersion = 5;
 
 class ModelInfo {
   static const notes = [
@@ -28,8 +28,8 @@ class ModelInfo {
         retiredIndexUids = [],
         retiredPropertyUids = [],
         retiredRelationUids = [],
-        modelVersion = maxModelVersion,
-        modelVersionParserMinimum = maxModelVersion,
+        modelVersion = _maxModelVersion,
+        modelVersionParserMinimum = _maxModelVersion,
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
@@ -49,12 +49,12 @@ class ModelInfo {
   }
 
   void validate() {
-    if (modelVersion < minModelVersion)
+    if (modelVersion < _minModelVersion)
       throw Exception(
-          "the loaded model is too old: version $modelVersion while the minimum supported is $minModelVersion, consider upgrading with an older generator or manually");
-    if (modelVersion > maxModelVersion)
+          "the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually");
+    if (modelVersion > _maxModelVersion)
       throw Exception(
-          "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $maxModelVersion. Please upgrade your toolchain/generator");
+          "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator");
 
     if (entities == null) throw Exception("entities is null");
     if (retiredEntityUids == null) throw Exception("retiredEntityUids is null");
