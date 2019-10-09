@@ -3,7 +3,7 @@ import "dart:ffi";
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();
-typedef obx_bytes_array_free_native_t = Void Function(Pointer<Uint64> array);
+typedef obx_free_struct_native_t = Void Function(Pointer<Uint64> structPtr);
 
 // error info
 typedef obx_last_error_code_native_t = Int32 Function();

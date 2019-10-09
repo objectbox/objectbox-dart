@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:convert';
 import "dart:typed_data" show Uint8List, Uint64List;
 
+// TODO reimplement as ffi.Struct
 class IDArray {
   // wrapper for "struct OBX_id_array"
   Pointer<Uint64> _idsPtr, _structPtr;

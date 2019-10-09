@@ -504,8 +504,12 @@ class Query<T> {
 
   List<int> findIds({int offset=0, int limit=(1<<32)}) {
     final structPtr = checkObxPtr(bindings.obx_query_find_ids(_query, offset, limit), "find ids");
-    final idArray = IDArray.fromAddress(structPtr.address);
-    return idArray.ids.length == 0 ? null : idArray.ids;
+    try {
+      final idArray = IDArray.fromAddress(structPtr.address);
+      return idArray.ids.length == 0 ? null : idArray.ids;
+    }finally {
+      bindings.obx_id_array_free(structPtr);
+    }
   }
 
   List<T> find({int offset=0, int limit=(1<<32)}) {
