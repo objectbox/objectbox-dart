@@ -32,8 +32,9 @@ class _SingleFileAssetReader extends AssetReader {
   AssetId id;
 
   _SingleFileAssetReader(this.id) {
-    if (id.package != "objectbox_model_generator")
+    if (id.package != "objectbox_model_generator") {
       throw Exception("asset package needs to be 'objectbox_model_generator', but got '${id.package}'");
+    }
   }
 
   Future<bool> canRead(AssetId id) async => true; //this.id == id;
@@ -46,8 +47,9 @@ class _SingleFileAssetReader extends AssetReader {
 
     String path = id.path;
     if (id.package == "objectbox") path = "../../" + path;
-    if (id.package == "objectbox_model_generator" && id.path.startsWith("test/cases") && id.path.endsWith(".dart"))
+    if (id.package == "objectbox_model_generator" && id.path.startsWith("test/cases") && id.path.endsWith(".dart")) {
       path += "_testcase";
+    }
     if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound) throw AssetNotFoundException(id);
     return await (new File(path).readAsString());
   }

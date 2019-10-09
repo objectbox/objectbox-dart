@@ -95,8 +95,9 @@ class Box<T> {
     // generate this list now (only needed if not all IDs have been generated)
     Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: objects.length);
     try {
-      for (int i = 0; i < allPropVals.length; ++i)
+      for (int i = 0; i < allPropVals.length; ++i) {
         allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
+    }
 
       // marshal all objects to be put into the box
       var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
