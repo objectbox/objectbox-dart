@@ -1,7 +1,6 @@
 import "dart:ffi";
 
 import "bindings/bindings.dart";
-import "package:ffi/ffi.dart";
 
 class Version {
   final int major;
