@@ -9,7 +9,7 @@ import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
 
-enum PutMode {
+enum _PutMode {
   Put,
   Insert,
   Update,
@@ -17,7 +17,7 @@ enum PutMode {
 
 class Box<T> {
   Store _store;
-  Pointer<Void> _objectboxBox;
+  Pointer<Void> _cBox;
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;
   OBXFlatbuffersManager _fbManager;
@@ -28,26 +28,26 @@ class Box<T> {
     _entityReader = entityDefs.reader;
     _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 
-    _objectboxBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
-    checkObxPtr(_objectboxBox, "failed to create box");
+    _cBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
+    checkObxPtr(_cBox, "failed to create box");
   }
 
-  _getOBXPutMode(PutMode mode) {
+  _getOBXPutMode(_PutMode mode) {
     switch (mode) {
-      case PutMode.Put:
+      case _PutMode.Put:
         return OBXPutMode.PUT;
-      case PutMode.Insert:
+      case _PutMode.Insert:
         return OBXPutMode.INSERT;
-      case PutMode.Update:
+      case _PutMode.Update:
         return OBXPutMode.UPDATE;
     }
   }
 
   // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
-  int put(T inst, {PutMode mode = PutMode.Put}) {
+  int put(T inst, {_PutMode mode = _PutMode.Put}) {
     var propVals = _entityReader(inst);
     if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
-      final id = bindings.obx_box_id_for_put(_objectboxBox, 0);
+      final id = bindings.obx_box_id_for_put(_cBox, 0);
       propVals[_modelEntity.idPropName] = id;
     }
 
@@ -55,7 +55,7 @@ class Box<T> {
     ByteBuffer buffer = _fbManager.marshal(propVals);
     try {
       checkObx(bindings.obx_box_put(
-          _objectboxBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+          _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
     }finally {
       buffer.free();
     }
@@ -64,7 +64,7 @@ class Box<T> {
   }
 
   // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
-  List<int> putMany(List<T> insts, {PutMode mode = PutMode.Put}) {
+  List<int> putMany(List<T> insts, {_PutMode mode = _PutMode.Put}) {
     if (insts.length == 0) return [];
 
     // read all property values and find number of instances where ID is missing
@@ -79,7 +79,7 @@ class Box<T> {
     if (numInstsMissingId != 0) {
       firstIdMemory = Pointer<Uint64>.allocate(count: 1);
       try {
-        checkObx(bindings.obx_box_ids_for_put(_objectboxBox, numInstsMissingId, firstIdMemory));
+        checkObx(bindings.obx_box_ids_for_put(_cBox, numInstsMissingId, firstIdMemory));
         int nextId = firstIdMemory.load<int>();
         for (var instPropVals in allPropVals)
           if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
@@ -98,7 +98,7 @@ class Box<T> {
 
       // marshal all objects to be put into the box
       putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
-      checkObx(bindings.obx_box_put_many(_objectboxBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+      checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
     }finally {
       putObjects?.free();
       allIdsMemory?.free();
@@ -127,7 +127,7 @@ class Box<T> {
     // get element with specified id from database
     try {
       return _runInTransaction(true, () {
-        checkObx(bindings.obx_box_get(_objectboxBox, id, dataPtr, sizePtr));
+        checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
 
         Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
         var size = sizePtr.load<int>();
@@ -164,7 +164,7 @@ class Box<T> {
 
     try {
       return _getMany(() => checkObxPtr(
-          bindings.obx_box_get_many(_objectboxBox, idArray.ptr), "failed to get many objects from box", true));
+          bindings.obx_box_get_many(_cBox, idArray.ptr), "failed to get many objects from box", true));
     } finally {
       idArray.free();
     }
@@ -172,7 +172,7 @@ class Box<T> {
 
   List<T> getAll() {
     return _getMany(
-        () => checkObxPtr(bindings.obx_box_get_all(_objectboxBox), "failed to get all objects from box", true));
+        () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
   QueryBuilder query(QueryCondition qc) => QueryBuilder<T>(this, _store, _modelEntity.id.id, qc);
@@ -185,5 +185,5 @@ class Box<T> {
     return query(list.reduce((first, second) => first.or(second)));
   }
 
-  get ptr => _objectboxBox;
+  get ptr => _cBox;
 }

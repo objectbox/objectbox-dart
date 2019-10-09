@@ -9,7 +9,7 @@ import "model.dart";
 import "package:ffi/ffi.dart";
 
 class Store {
-  Pointer<Void> _objectboxStore;
+  Pointer<Void> _cStore;
   Map<Type, EntityDefinition> _entityDefinitions = {};
 
   Store(List<EntityDefinition> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
@@ -36,17 +36,17 @@ class Store {
       bindings.obx_opt_free(opt);
       rethrow;
     }
-    _objectboxStore = bindings.obx_store_open(opt);
-    checkObxPtr(_objectboxStore, "failed to create store");
+    _cStore = bindings.obx_store_open(opt);
+    checkObxPtr(_cStore, "failed to create store");
   }
 
   close() {
-    checkObx(bindings.obx_store_close(_objectboxStore));
+    checkObx(bindings.obx_store_close(_cStore));
   }
 
   EntityDefinition<T> entityDef<T>(T) {
     return _entityDefinitions[T];
   }
 
-  get ptr => _objectboxStore;
+  get ptr => _cStore;
 }
