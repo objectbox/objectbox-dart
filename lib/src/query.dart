@@ -112,7 +112,7 @@ class QueryIntegerProperty extends QueryProperty {
   static const ConditionType type = ConditionType._int64;
 
   QueryCondition _op(int p, ConditionOp cop) {
-    final c = IntegerCondition(ConditionOp._eq, type, p, 0);
+    final c = IntegerCondition(cop, type, p, 0);
     return QueryCondition(entityId, propertyId, c);
   }
 
