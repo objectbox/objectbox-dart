@@ -59,6 +59,11 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
 
+  // TODO return .asFunction() -> requires properly determined static return type
+  Pointer<NativeFunction<T>> _fn<T extends Function>(String name) {
+    return objectbox.lookup<NativeFunction<T>>(name);
+  }
+
   _ObjectBoxBindings() {
     var libName = "objectbox";
     if (Platform.isWindows)
@@ -72,72 +77,58 @@ class _ObjectBoxBindings {
     objectbox = DynamicLibrary.open(libName);
 
     // common functions
-    obx_version = objectbox.lookup<NativeFunction<obx_version_native_t>>("obx_version").asFunction();
-    obx_version_string =
-        objectbox.lookup<NativeFunction<obx_version_string_native_t>>("obx_version_string").asFunction();
-    obx_bytes_array_free =
-        objectbox.lookup<NativeFunction<obx_bytes_array_free_native_t>>("obx_bytes_array_free").asFunction();
+    obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
+    obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
+    obx_bytes_array_free = _fn<obx_bytes_array_free_native_t>("obx_bytes_array_free").asFunction();
 
     // error info
-    obx_last_error_code =
-        objectbox.lookup<NativeFunction<obx_last_error_code_native_t>>("obx_last_error_code").asFunction();
-    obx_last_error_message =
-        objectbox.lookup<NativeFunction<obx_last_error_message_native_t>>("obx_last_error_message").asFunction();
-    obx_last_error_secondary =
-        objectbox.lookup<NativeFunction<obx_last_error_secondary_native_t>>("obx_last_error_secondary").asFunction();
-    obx_last_error_clear =
-        objectbox.lookup<NativeFunction<obx_last_error_clear_native_t>>("obx_last_error_clear").asFunction();
+    obx_last_error_code = _fn<obx_last_error_code_native_t>("obx_last_error_code").asFunction();
+    obx_last_error_message = _fn<obx_last_error_message_native_t>("obx_last_error_message").asFunction();
+    obx_last_error_secondary = _fn<obx_last_error_secondary_native_t>("obx_last_error_secondary").asFunction();
+    obx_last_error_clear = _fn<obx_last_error_clear_native_t>("obx_last_error_clear").asFunction();
 
     // schema model creation
-    obx_model = objectbox.lookup<NativeFunction<obx_model_native_t>>("obx_model").asFunction();
-    obx_model_free = objectbox.lookup<NativeFunction<obx_model_free_native_t>>("obx_model_free").asFunction();
-    obx_model_entity = objectbox.lookup<NativeFunction<obx_model_entity_native_t>>("obx_model_entity").asFunction();
-    obx_model_property =
-        objectbox.lookup<NativeFunction<obx_model_property_native_t>>("obx_model_property").asFunction();
-    obx_model_property_flags =
-        objectbox.lookup<NativeFunction<obx_model_property_flags_native_t>>("obx_model_property_flags").asFunction();
-    obx_model_entity_last_property_id = objectbox
-        .lookup<NativeFunction<obx_model_entity_last_property_id_native_t>>("obx_model_entity_last_property_id")
-        .asFunction();
-    obx_model_last_entity_id =
-        objectbox.lookup<NativeFunction<obx_model_last_entity_id_native_t>>("obx_model_last_entity_id").asFunction();
+    obx_model = _fn<obx_model_native_t>("obx_model").asFunction();
+    obx_model_free = _fn<obx_model_free_native_t>("obx_model_free").asFunction();
+    obx_model_entity = _fn<obx_model_entity_native_t>("obx_model_entity").asFunction();
+    obx_model_property = _fn<obx_model_property_native_t>("obx_model_property").asFunction();
+    obx_model_property_flags = _fn<obx_model_property_flags_native_t>("obx_model_property_flags").asFunction();
+    obx_model_entity_last_property_id =
+        _fn<obx_model_entity_last_property_id_native_t>("obx_model_entity_last_property_id").asFunction();
+    obx_model_last_entity_id = _fn<obx_model_last_entity_id_native_t>("obx_model_last_entity_id").asFunction();
 
     // object store management
-    obx_opt = objectbox.lookup<NativeFunction<obx_opt_native_t>>("obx_opt").asFunction();
-    obx_opt_directory = objectbox.lookup<NativeFunction<obx_opt_directory_native_t>>("obx_opt_directory").asFunction();
-    obx_opt_max_db_size_in_kb =
-        objectbox.lookup<NativeFunction<obx_opt_max_db_size_in_kb_native_t>>("obx_opt_max_db_size_in_kb").asFunction();
-    obx_opt_file_mode = objectbox.lookup<NativeFunction<obx_opt_file_mode_native_t>>("obx_opt_file_mode").asFunction();
-    obx_opt_max_readers =
-        objectbox.lookup<NativeFunction<obx_opt_max_readers_native_t>>("obx_opt_max_readers").asFunction();
-    obx_opt_model = objectbox.lookup<NativeFunction<obx_opt_model_native_t>>("obx_opt_model").asFunction();
-    obx_store_open = objectbox.lookup<NativeFunction<obx_store_open_native_t>>("obx_store_open").asFunction();
-    obx_store_close = objectbox.lookup<NativeFunction<obx_store_close_native_t>>("obx_store_close").asFunction();
+    obx_opt = _fn<obx_opt_native_t>("obx_opt").asFunction();
+    obx_opt_directory = _fn<obx_opt_directory_native_t>("obx_opt_directory").asFunction();
+    obx_opt_max_db_size_in_kb = _fn<obx_opt_max_db_size_in_kb_native_t>("obx_opt_max_db_size_in_kb").asFunction();
+    obx_opt_file_mode = _fn<obx_opt_file_mode_native_t>("obx_opt_file_mode").asFunction();
+    obx_opt_max_readers = _fn<obx_opt_max_readers_native_t>("obx_opt_max_readers").asFunction();
+    obx_opt_model = _fn<obx_opt_model_native_t>("obx_opt_model").asFunction();
+    obx_store_open = _fn<obx_store_open_native_t>("obx_store_open").asFunction();
+    obx_store_close = _fn<obx_store_close_native_t>("obx_store_close").asFunction();
 
     // transactions
-    obx_txn_write = objectbox.lookup<NativeFunction<obx_txn_write_native_t>>("obx_txn_write").asFunction();
-    obx_txn_read = objectbox.lookup<NativeFunction<obx_txn_read_native_t>>("obx_txn_read").asFunction();
-    obx_txn_close = objectbox.lookup<NativeFunction<obx_txn_close_native_t>>("obx_txn_close").asFunction();
-    obx_txn_abort = objectbox.lookup<NativeFunction<obx_txn_abort_native_t>>("obx_txn_abort").asFunction();
-    obx_txn_success = objectbox.lookup<NativeFunction<obx_txn_success_native_t>>("obx_txn_success").asFunction();
+    obx_txn_write = _fn<obx_txn_write_native_t>("obx_txn_write").asFunction();
+    obx_txn_read = _fn<obx_txn_read_native_t>("obx_txn_read").asFunction();
+    obx_txn_close = _fn<obx_txn_close_native_t>("obx_txn_close").asFunction();
+    obx_txn_abort = _fn<obx_txn_abort_native_t>("obx_txn_abort").asFunction();
+    obx_txn_success = _fn<obx_txn_success_native_t>("obx_txn_success").asFunction();
 
     // box management
-    obx_box = objectbox.lookup<NativeFunction<obx_box_native_t>>("obx_box").asFunction();
-    obx_box_contains = objectbox.lookup<NativeFunction<obx_box_contains_native_t>>("obx_box_contains").asFunction();
-    obx_box_contains_many =
-        objectbox.lookup<NativeFunction<obx_box_contains_many_native_t>>("obx_box_contains_many").asFunction();
-    obx_box_get = objectbox.lookup<NativeFunction<obx_box_get_native_t>>("obx_box_get").asFunction();
-    obx_box_get_many = objectbox.lookup<NativeFunction<obx_box_get_many_native_t>>("obx_box_get_many").asFunction();
-    obx_box_get_all = objectbox.lookup<NativeFunction<obx_box_get_all_native_t>>("obx_box_get_all").asFunction();
-    obx_box_id_for_put =
-        objectbox.lookup<NativeFunction<obx_box_id_for_put_native_t>>("obx_box_id_for_put").asFunction();
-    obx_box_ids_for_put =
-        objectbox.lookup<NativeFunction<obx_box_ids_for_put_native_t>>("obx_box_ids_for_put").asFunction();
-    obx_box_put = objectbox.lookup<NativeFunction<obx_box_put_native_t>>("obx_box_put").asFunction();
-    obx_box_put_many = objectbox.lookup<NativeFunction<obx_box_put_many_native_t>>("obx_box_put_many").asFunction();
-    obx_box_remove = objectbox.lookup<NativeFunction<obx_box_remove_native_t>>("obx_box_remove").asFunction();
+    obx_box = _fn<obx_box_native_t>("obx_box").asFunction();
+    obx_box_contains = _fn<obx_box_contains_native_t>("obx_box_contains").asFunction();
+    obx_box_contains_many = _fn<obx_box_contains_many_native_t>("obx_box_contains_many").asFunction();
+    obx_box_get = _fn<obx_box_get_native_t>("obx_box_get").asFunction();
+    obx_box_get_many = _fn<obx_box_get_many_native_t>("obx_box_get_many").asFunction();
+    obx_box_get_all = _fn<obx_box_get_all_native_t>("obx_box_get_all").asFunction();
+    obx_box_id_for_put = _fn<obx_box_id_for_put_native_t>("obx_box_id_for_put").asFunction();
+    obx_box_ids_for_put = _fn<obx_box_ids_for_put_native_t>("obx_box_ids_for_put").asFunction();
+    obx_box_put = _fn<obx_box_put_native_t>("obx_box_put").asFunction();
+    obx_box_put_many = _fn<obx_box_put_many_native_t>("obx_box_put_many").asFunction();
+    obx_box_remove = _fn<obx_box_remove_native_t>("obx_box_remove").asFunction();
   }
 }
 
 _ObjectBoxBindings _cachedBindings;
+
 _ObjectBoxBindings get bindings => _cachedBindings ??= _ObjectBoxBindings();
