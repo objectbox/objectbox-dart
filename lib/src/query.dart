@@ -502,7 +502,7 @@ class Query<T> {
     return (list == null ? null : _box.get(list.first)) as T;
   }
 
-  List<int> findIds({int offset=0, int limit=(1<<32)}) {
+  List<int> findIds({int offset=0, int limit=0}) {
     final structPtr = checkObxPtr(bindings.obx_query_find_ids(_query, offset, limit), "find ids");
     try {
       final idArray = IDArray.fromAddress(structPtr.address);
@@ -512,7 +512,7 @@ class Query<T> {
     }
   }
 
-  List<T> find({int offset=0, int limit=(1<<32)}) {
+  List<T> find({int offset=0, int limit=0}) {
     final list = findIds(offset:offset, limit:limit);
     return list == null ? null : _box.getMany(list);
   }
