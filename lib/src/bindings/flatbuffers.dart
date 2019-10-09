@@ -8,7 +8,7 @@ import "../modelinfo/index.dart";
 
 class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
-  static const fb.Reader<_OBXFBEntity> reader = const _OBXFBEntityReader();
+  static const fb.Reader<_OBXFBEntity> reader = _OBXFBEntityReader();
   factory _OBXFBEntity(Uint8List bytes) {
     fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
