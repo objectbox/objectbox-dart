@@ -16,8 +16,9 @@ class ModelEntity {
 
   ModelEntity.fromMap(Map<String, dynamic> data, this.model) {
     id = IdUid(data["id"]);
-    if (data.containsKey("lastPropertyId") && data["lastPropertyId"] != null)
+    if (data.containsKey("lastPropertyId") && data["lastPropertyId"] != null) {
       lastPropertyId = IdUid(data["lastPropertyId"]);
+    }
     name = data["name"];
     properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
     validate();
@@ -35,21 +36,25 @@ class ModelEntity {
       bool lastPropertyIdFound = false;
 
       properties.forEach((p) {
-        if (p.entity != entity)
+        if (p.entity != entity) {
           throw Exception("property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
-        if (lastPropertyId.id < p.id.id)
+        }
+        if (lastPropertyId.id < p.id.id) {
           throw Exception(
               "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
+        }
         if (lastPropertyId.id == p.id.id) {
-          if (lastPropertyId.uid != p.id.uid)
+          if (lastPropertyId.uid != p.id.uid) {
             throw Exception(
                 "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id.toString()}");
+          }
           lastPropertyIdFound = true;
         }
       });
 
-      if (properties.length > 0 && !lastPropertyIdFound)
+      if (properties.length > 0 && !lastPropertyIdFound) {
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
+      }
     }
 
     for (int i = 0; i < properties.length; ++i) {
@@ -119,8 +124,9 @@ class ModelEntity {
   void removeProperty(ModelProperty prop) {
     if (prop == null) return;
     ModelProperty foundProp = findSameProperty(prop);
-    if (foundProp == null)
+    if (foundProp == null) {
       throw Exception("cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
+    }
     properties = properties.where((p) => p != foundProp).toList();
     model.retiredPropertyUids.add(prop.id.uid);
     _recalculateLastPropertyId();

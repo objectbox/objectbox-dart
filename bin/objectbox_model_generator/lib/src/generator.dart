@@ -19,8 +19,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   List<String> entityHeaderDone = [];
 
   Future<ModelInfo> _loadModelInfo() async {
-    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound)
+    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) {
       return ModelInfo.createDefault();
+    }
     return ModelInfo.fromMap(json.decode(await (new File(ALL_MODELS_JSON).readAsString())));
   }
 
@@ -28,8 +29,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   Future<String> generateForAnnotatedElement(
       Element elementBare, ConstantReader annotation, BuildStep buildStep) async {
     try {
-      if (elementBare is! ClassElement)
+      if (elementBare is! ClassElement) {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
+      }
       var element = elementBare as ClassElement;
 
       // load existing model from JSON file if possible
@@ -64,15 +66,18 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
           // find property flags
           if (annotType == "Id") {
-            if (hasIdProperty)
+            if (hasIdProperty) {
               throw InvalidGenerationSourceError(
                   "in target ${elementBare.name}: has more than one properties annotated with @Id");
-            if (fieldType != null)
+            }
+            if (fieldType != null) {
               throw InvalidGenerationSourceError(
                   "in target ${elementBare.name}: programming error: @Id property may not specify a type");
-            if (f.type.toString() != "int")
+            }
+            if (f.type.toString() != "int") {
               throw InvalidGenerationSourceError(
                   "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+            }
 
             fieldType = OBXPropertyType.Long;
             flags |= OBXPropertyFlag.ID;
@@ -89,11 +94,11 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
         if (fieldType == null) {
           var fieldTypeStr = f.type.toString();
-          if (fieldTypeStr == "int")
+          if (fieldTypeStr == "int") {
             fieldType = OBXPropertyType.Int;
-          else if (fieldTypeStr == "String")
+          } else if (fieldTypeStr == "String") {
             fieldType = OBXPropertyType.String;
-          else {
+          } else {
             print(
                 "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
             continue;
@@ -107,8 +112,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       }
 
       // some checks on the entity's integrity
-      if (!hasIdProperty)
+      if (!hasIdProperty) {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
+      }
 
       // merge existing model and annotated model that was just read, then write new final model to file
       mergeEntity(allModels, readEntity);

@@ -49,12 +49,14 @@ class ModelInfo {
   }
 
   void validate() {
-    if (modelVersion < _minModelVersion)
+    if (modelVersion < _minModelVersion) {
       throw Exception(
           "the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually");
-    if (modelVersion > _maxModelVersion)
+    }
+    if (modelVersion > _maxModelVersion) {
       throw Exception(
           "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator");
+    }
 
     if (entities == null) throw Exception("entities is null");
     if (retiredEntityUids == null) throw Exception("retiredEntityUids is null");
@@ -65,21 +67,25 @@ class ModelInfo {
     var model = this;
     bool lastEntityIdFound = false;
     entities.forEach((e) {
-      if (e.model != model)
+      if (e.model != model) {
         throw Exception("entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
-      if (lastEntityId.id < e.id.id)
+      }
+      if (lastEntityId.id < e.id.id) {
         throw Exception(
             "lastEntityId ${lastEntityId.toString()} is lower than the one of entity '${e.name}' with id ${e.id.toString()}");
+      }
       if (lastEntityId.id == e.id.id) {
-        if (lastEntityId.uid != e.id.uid)
+        if (lastEntityId.uid != e.id.uid) {
           throw Exception(
               "lastEntityId ${lastEntityId.toString()} does not match entity '${e.name}' with id ${e.id.toString()}");
+        }
         lastEntityIdFound = true;
       }
     });
 
-    if (entities.length > 0 && !lastEntityIdFound)
+    if (entities.length > 0 && !lastEntityIdFound) {
       throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
+    }
   }
 
   Map<String, dynamic> toMap() {

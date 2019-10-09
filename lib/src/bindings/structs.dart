@@ -7,7 +7,9 @@ class IDArray {
 
   IDArray(List<int> ids) {
     _idsPtr = Pointer<Uint64>.allocate(count: ids.length);
-    for (int i = 0; i < ids.length; ++i) _idsPtr.elementAt(i).store(ids[i]);
+    for (int i = 0; i < ids.length; ++i) {
+      _idsPtr.elementAt(i).store(ids[i]);
+    }
     _structPtr = Pointer<Uint64>.allocate(count: 2);
     _structPtr.store(_idsPtr.address);
     _structPtr.elementAt(1).store(ids.length);
@@ -29,7 +31,9 @@ class ByteBuffer {
 
   ByteBuffer.allocate(Uint8List dartData, [bool align = true]) {
     _ptr = Pointer<Uint8>.allocate(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
-    for (int i = 0; i < dartData.length; ++i) _ptr.elementAt(i).store(dartData[i]);
+    for (int i = 0; i < dartData.length; ++i) {
+      _ptr.elementAt(i).store(dartData[i]);
+    }
     _size = dartData.length;
   }
 
@@ -46,7 +50,9 @@ class ByteBuffer {
 
   Uint8List get data {
     var buffer = new Uint8List(size);
-    for (int i = 0; i < size; ++i) buffer[i] = _ptr.elementAt(i).load<int>();
+    for (int i = 0; i < size; ++i) {
+      buffer[i] = _ptr.elementAt(i).load<int>();
+    }
     return buffer;
   }
 
@@ -75,9 +81,10 @@ class ByteBufferArray {
     _buffers = [];
     Pointer<Uint64> bufferPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>()); // bytesArray.bytes
     int numBuffers = bytesArray.elementAt(1).load<int>(); // bytesArray.count
-    for (int i = 0; i < numBuffers; ++i) // loop through instances of "struct OBX_bytes"
+    for (int i = 0; i < numBuffers; ++i) {
       _buffers.add(ByteBuffer.fromOBXBytes(
-          bufferPtrs.elementAt(2 * i))); // 2 * i, because each instance of "struct OBX_bytes" has .data and .size
+          bufferPtrs.elementAt(2 * i)));
+    } // 2 * i, because each instance of "struct OBX_bytes" has .data and .size
   }
 
   _SerializedByteBufferArray toOBXBytesArray() {

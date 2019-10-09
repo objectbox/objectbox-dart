@@ -65,9 +65,11 @@ class Box<T> {
     // read all property values and find number of instances where ID is missing
     var allPropVals = insts.map(_entityReader).toList();
     int numInstsMissingId = 0;
-    for (var instPropVals in allPropVals)
-      if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
+    for (var instPropVals in allPropVals) {
+      if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0) {
         ++numInstsMissingId;
+      }
+    }
 
     // generate new IDs for these instances and set them
     Pointer<Uint64> firstIdMemory;
@@ -76,15 +78,18 @@ class Box<T> {
       checkObx(bindings.obx_box_ids_for_put(_cBox, numInstsMissingId, firstIdMemory));
       int nextId = firstIdMemory.load<int>();
       firstIdMemory.free();
-      for (var instPropVals in allPropVals)
-        if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
+      for (var instPropVals in allPropVals) {
+        if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0) {
           instPropVals[_modelEntity.idPropName] = nextId++;
+        }
+      }
     }
 
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
     Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
-    for (int i = 0; i < allPropVals.length; ++i)
+    for (int i = 0; i < allPropVals.length; ++i) {
       allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName]);
+    }
 
     // marshal all objects to be put into the box
     var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
