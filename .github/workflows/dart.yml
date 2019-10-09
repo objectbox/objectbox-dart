@@ -15,6 +15,11 @@ jobs:
       - name: Run tests
         working-directory: bin/objectbox_model_generator
         run: pub run test
+      - uses: axel-op/dart_package_analyzer@stable
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          maxScoreToComment: 99.99 # only a 100 score will not post a comment.
+          relativePath: 'bin/objectbox_model_generator/'
 
   lib:
     needs: generator
@@ -31,3 +36,7 @@ jobs:
         run: pub run build_runner build
       - name: Run tests
         run: pub run test
+      - uses: axel-op/dart_package_analyzer@stable
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          maxScoreToComment: 99.99 # only a 100 score will not post a comment.
