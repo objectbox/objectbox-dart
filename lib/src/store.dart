@@ -26,7 +26,7 @@ class Store {
 
     try {
       checkObx(bindings.obx_opt_model(opt, model.ptr));
-      if (directory != null && directory.length != 0) {
+      if (directory != null && directory.isNotEmpty) {
         var cStr = Utf8.toUtf8(directory).cast<Uint8>();
         try {
           checkObx(bindings.obx_opt_directory(opt, cStr));

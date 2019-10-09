@@ -39,14 +39,14 @@ class Model {
         });
 
         // set last property id
-        if (currentEntity.properties.length > 0) {
+        if (currentEntity.properties.isNotEmpty) {
           ModelProperty lastProp = currentEntity.properties[currentEntity.properties.length - 1];
           checkObx(bindings.obx_model_entity_last_property_id(_cModel, lastProp.id.id, lastProp.id.uid));
         }
       });
 
       // set last entity id
-      if (modelEntities.length > 0) {
+      if (modelEntities.isNotEmpty) {
         ModelEntity lastEntity = modelEntities[modelEntities.length - 1];
         bindings.obx_model_last_entity_id(_cModel, lastEntity.id.id, lastEntity.id.uid);
       }
