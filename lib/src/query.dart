@@ -519,13 +519,13 @@ class QueryBuilder<T> {
   Store _store;
   int _entityId; // aka model id, entity id
   QueryCondition _queryCondition;
-  Pointer<Void> _queryBuilderPtr;
+  Pointer<Void> _cBuilder;
 
   QueryBuilder(this._box, this._store, this._entityId, this._queryCondition);
 
   void _throwExceptionIfNecessary() {
-    if (bindings.obx_qb_error_code(_queryBuilderPtr) != OBXError.OBX_SUCCESS) {
-      final msg = Utf8.fromUtf8(bindings.obx_qb_error_message(_queryBuilderPtr).cast<Utf8>());
+    if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
+      final msg = Utf8.fromUtf8(bindings.obx_qb_error_message(_cBuilder).cast<Utf8>());
       throw ObjectBoxException("$msg");
     }
   }
@@ -550,28 +550,28 @@ class QueryBuilder<T> {
             switch (op) {
               case ConditionOp._eq:
                 return stringCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_equal);
+                    _cBuilder, qc, bindings.obx_qb_string_equal);
               case ConditionOp._not_eq:
                 return stringCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_not_equal);
+                    _cBuilder, qc, bindings.obx_qb_string_not_equal);
               case ConditionOp._string_contains:
                 return stringCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_contains);
+                    _cBuilder, qc, bindings.obx_qb_string_contains);
               case ConditionOp._strings_contain:
                 return stringCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_strings_contain);
+                    _cBuilder, qc, bindings.obx_qb_strings_contain);
               case ConditionOp._string_starts:
                 return stringCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_starts_with);
+                    _cBuilder, qc, bindings.obx_qb_string_starts_with);
               case ConditionOp._string_ends:
                 return stringCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_ends_with);
+                    _cBuilder, qc, bindings.obx_qb_string_ends_with);
               case ConditionOp._lt:
                 return stringCondition._opWithEqual(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_less);
+                    _cBuilder, qc, bindings.obx_qb_string_less);
               case ConditionOp._gt:
                 return stringCondition._opWithEqual(
-                    _queryBuilderPtr, qc, bindings.obx_qb_string_greater);
+                    _cBuilder, qc, bindings.obx_qb_string_greater);
             }
             break;
           }
@@ -581,16 +581,16 @@ class QueryBuilder<T> {
             switch (op) {
               case ConditionOp._eq:
                 return intCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_int_equal);
+                    _cBuilder, qc, bindings.obx_qb_int_equal);
               case ConditionOp._not_eq:
                 return intCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_int_not_equal);
+                    _cBuilder, qc, bindings.obx_qb_int_not_equal);
               case ConditionOp._gt:
                 return intCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_int_greater);
+                    _cBuilder, qc, bindings.obx_qb_int_greater);
               case ConditionOp._lt:
                 return intCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_int_less);
+                    _cBuilder, qc, bindings.obx_qb_int_less);
             }
             break;
           }
@@ -600,10 +600,10 @@ class QueryBuilder<T> {
             switch (op) {
               case ConditionOp._gt:
                 return doubleCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_double_greater);
+                    _cBuilder, qc, bindings.obx_qb_double_greater);
               case ConditionOp._lt:
                 return doubleCondition._op1(
-                    _queryBuilderPtr, qc, bindings.obx_qb_double_less);
+                    _cBuilder, qc, bindings.obx_qb_double_less);
               default:
                 break;
             }
@@ -613,20 +613,20 @@ class QueryBuilder<T> {
 
       switch (op) {
         case ConditionOp._null:
-          return condition._nullness(_queryBuilderPtr, qc, bindings.obx_qb_null);
+          return condition._nullness(_cBuilder, qc, bindings.obx_qb_null);
         case ConditionOp._not_null:
-          return condition._nullness(_queryBuilderPtr, qc, bindings.obx_qb_not_null);
+          return condition._nullness(_cBuilder, qc, bindings.obx_qb_not_null);
         case ConditionOp._tween:
           {
             switch (type) {
               case ConditionType._int64: // current default for int
                 final c = qc._condition as Condition<int>;
                 return bindings.obx_qb_int_between(
-                    _queryBuilderPtr, propertyId, c._value, c._value2);
+                    _cBuilder, propertyId, c._value, c._value2);
               case ConditionType._double:
                 final c = qc._condition as Condition<double>;
                 return bindings.obx_qb_double_between(
-                    _queryBuilderPtr, propertyId, c._value, c._value2);
+                    _cBuilder, propertyId, c._value, c._value2);
             }
             break;
           }
@@ -635,13 +635,13 @@ class QueryBuilder<T> {
             switch (type) {
               case ConditionType._int32:
                 final c = qc._condition as IntegerCondition;
-                return c._opList32(_queryBuilderPtr, qc, bindings.obx_qb_int32_in);
+                return c._opList32(_cBuilder, qc, bindings.obx_qb_int32_in);
               case ConditionType._int64:
                 final c = qc._condition as IntegerCondition;
-                return c._opList64(_queryBuilderPtr, qc, bindings.obx_qb_int64_in);
+                return c._opList64(_cBuilder, qc, bindings.obx_qb_int64_in);
               case ConditionType._string:
                 final c = qc._condition as StringCondition;
-                return c._inList(_queryBuilderPtr, qc); // bindings.obx_qb_string_in
+                return c._inside(_cBuilder, qc); // bindings.obx_qb_string_in
             }
             break;
           }
@@ -650,10 +650,10 @@ class QueryBuilder<T> {
             switch (type) {
               case ConditionType._int32:
                 final c = qc._condition as IntegerCondition;
-                return c._opList32(_queryBuilderPtr, qc, bindings.obx_qb_int32_not_in);
+                return c._opList32(_cBuilder, qc, bindings.obx_qb_int32_not_in);
               case ConditionType._int64:
                 final c = qc._condition as IntegerCondition;
-                return c._opList64(_queryBuilderPtr, qc, bindings.obx_qb_int64_not_in);
+                return c._opList64(_cBuilder, qc, bindings.obx_qb_int64_not_in);
             }
             break;
           }
@@ -670,7 +670,7 @@ class QueryBuilder<T> {
       for(int i = 0; i < size; ++i) {
         intArrayPtr.elementAt(i).store(list[i]);
       }
-      return func(_queryBuilderPtr, intArrayPtr, size);
+      return func(_cBuilder, intArrayPtr, size);
     }finally {
       intArrayPtr.free();
       _throwExceptionIfNecessary();
@@ -687,7 +687,7 @@ class QueryBuilder<T> {
 
   int _parse(QueryCondition qc) {
 
-    assert (qc != null && _queryBuilderPtr != null);
+    assert (qc != null && _cBuilder != null);
 
     final anyGroup = qc._anyGroups;
 
@@ -707,16 +707,16 @@ class QueryBuilder<T> {
   }
 
   Query build() {
-    _queryBuilderPtr = bindings.obx_qb_create(_store.ptr, _entityId);
+    _cBuilder = bindings.obx_qb_create(_store.ptr, _entityId);
 
     // TODO pass an empty map to collect properytIds per OrderFlag in `_parse`
     // parse the anyGroup tree in recursion
     _parse(_queryCondition); // ignore the return value
 
     try {
-      return Query<T>._(_box, _queryBuilderPtr);
+      return Query<T>._(_box, _cBuilder);
     }finally {
-      checkObx(bindings.obx_qb_close(_queryBuilderPtr));
+      checkObx(bindings.obx_qb_close(_cBuilder));
     }
   }
 }
