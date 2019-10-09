@@ -96,7 +96,7 @@ class Box<T> {
   }
 
   // TODO move to Store
-  T _runInTransaction<T>(bool readOnly, T Function() fn) {
+  Q _runInTransaction<Q>(bool readOnly, Q Function() fn) {
     assert(readOnly); // TODO implement write transactions
 
     Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
