@@ -426,7 +426,7 @@ class QueryCondition {
   bool _root = true;
   int _entityId, _propertyId;
   Condition _condition;
-  List<List<QueryCondition>> _dnf; // all
+  List<List<QueryCondition>> _anyGroups; // all
   int _group = 1;
 
   QueryCondition(this._entityId, this._propertyId, this._condition);
@@ -439,34 +439,34 @@ class QueryCondition {
 
   // TODO remove later
   void debug() {
-    _dnf?.forEach((qc) => qc.map((c) => c._condition).forEach((c) => print("${c._value}")));
-    print("dnf size: ${_dnf.length}");
+    _anyGroups?.forEach((qc) => qc.map((c) => c._condition).forEach((c) => print("${c._value}")));
+    print("anyGroup size: ${_anyGroups.length}");
   }
 
-  void _initDnfList(QueryCondition qc) {
-    _dnf ??= <List<QueryCondition>>[];
-    if (_dnf.length < _group) {
-      _dnf.add(<QueryCondition>[]);
+  void _initAnyGroupList(QueryCondition qc) {
+    _anyGroups ??= <List<QueryCondition>>[];
+    if (_anyGroups.length < _group) {
+      _anyGroups.add(<QueryCondition>[]);
     }
-    _dnf[_group - 1].add(qc);
+    _anyGroups[_group - 1].add(qc);
   }
 
   QueryCondition or(QueryCondition rh) {
     rh._root = false;
-    if (_dnf == null) {
-      _initDnfList(this);
+    if (_anyGroups == null) {
+      _initAnyGroupList(this);
     }
     _group++;
-    _initDnfList(rh);
+    _initAnyGroupList(rh);
     return this;
   }
 
   QueryCondition and(QueryCondition rh) {
     rh._root = false;
-    if (_dnf == null) {
-      _initDnfList(this);
+    if (_anyGroups == null) {
+      _initAnyGroupList(this);
     }
-    _initDnfList(rh);
+    _initAnyGroupList(rh);
     return this;
   }
 }
@@ -690,20 +690,20 @@ class QueryBuilder<T> {
 
     assert (qc != null && _queryBuilderPtr != null);
 
-    final dnf = qc._dnf;
+    final anyGroup = qc._anyGroups;
 
-    if (dnf == null) {
+    if (anyGroup == null) {
       return _create(qc);
     }
 
-    if (dnf.length == 1) {
-      if (dnf[0].length == 1) {
+    if (anyGroup.length == 1) {
+      if (anyGroup[0].length == 1) {
         return _create(qc);
-      }else /* if dnf.length == 1 then only apply 'all' */ {
-        return _createAllGroup(dnf[0]);
+      }else /* if anyGroup.length == 1 then only apply 'all' */ {
+        return _createAllGroup(anyGroup[0]);
       }
-    }else /* if dnf.length > 1 then apply 'any' */ {
-      return _createAnyGroup(dnf.map((qcList) => _createAllGroup(qcList)).toList());
+    }else /* if anyGroup.length > 1 then apply 'any' */ {
+      return _createAnyGroup(anyGroup.map((qcList) => _createAllGroup(qcList)).toList());
     }
   }
 
@@ -711,7 +711,7 @@ class QueryBuilder<T> {
     _queryBuilderPtr = bindings.obx_qb_create(_store.ptr, _entityId);
 
     // TODO pass an empty map to collect properytIds per OrderFlag in `_parse`
-    // parse the dnf tree in recursion
+    // parse the anyGroup tree in recursion
     _parse(_queryCondition); // ignore the return value
 
     try {
