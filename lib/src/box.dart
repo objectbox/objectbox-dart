@@ -60,7 +60,7 @@ class Box<T> {
 
   // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
   List<int> putMany(List<T> insts, {_PutMode mode = _PutMode.Put}) {
-    if (insts.length == 0) return [];
+    if (insts.isEmpty) return [];
 
     // read all property values and find number of instances where ID is missing
     var allPropVals = insts.map(_entityReader).toList();
@@ -147,7 +147,7 @@ class Box<T> {
 
   // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
   List<T> getMany(List<int> ids) {
-    if (ids.length == 0) return [];
+    if (ids.isEmpty) return [];
 
     // write ids in buffer for FFI call
     var idArray = IDArray(ids);

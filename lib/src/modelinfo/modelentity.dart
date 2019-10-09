@@ -25,11 +25,11 @@ class ModelEntity {
   }
 
   void validate() {
-    if (name == null || name.length == 0) throw Exception("name is not defined");
+    if (name == null || name.isEmpty) throw Exception("name is not defined");
     if (properties == null) throw Exception("properties is null");
     if (model == null) throw Exception("model is null");
 
-    if (properties.length == 0) {
+    if (properties.isEmpty) {
       if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");
     } else {
       var entity = this;
@@ -52,7 +52,7 @@ class ModelEntity {
         }
       });
 
-      if (properties.length > 0 && !lastPropertyIdFound) {
+      if (properties.isNotEmpty && !lastPropertyIdFound) {
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
       }
     }
@@ -82,7 +82,7 @@ class ModelEntity {
 
   ModelProperty findPropertyByName(String name) {
     final found = properties.where((p) => p.name.toLowerCase() == name.toLowerCase()).toList();
-    if (found.length == 0) return null;
+    if (found.isEmpty) return null;
     if (found.length >= 2) throw Exception("ambiguous property name: $name; please specify a UID in its annotation");
     return found[0];
   }
@@ -96,7 +96,7 @@ class ModelEntity {
 
   ModelProperty createProperty(String name, [int uid = 0]) {
     int id = 1;
-    if (properties.length > 0) id = lastPropertyId.id + 1;
+    if (properties.isNotEmpty) id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? model.generateUid() : uid;
 

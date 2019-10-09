@@ -83,7 +83,7 @@ class ModelInfo {
       }
     });
 
-    if (entities.length > 0 && !lastEntityIdFound) {
+    if (entities.isNotEmpty && !lastEntityIdFound) {
       throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
     }
   }
@@ -115,7 +115,7 @@ class ModelInfo {
 
   ModelEntity findEntityByName(String name) {
     final found = entities.where((e) => e.name.toLowerCase() == name.toLowerCase()).toList();
-    if (found.length == 0) return null;
+    if (found.isEmpty) return null;
     if (found.length >= 2) throw Exception("ambiguous entity name: $name; please specify a UID in its annotation");
     return found[0];
   }
@@ -135,7 +135,7 @@ class ModelInfo {
 
   ModelEntity createEntity(String name, [int uid = 0]) {
     int id = 1;
-    if (entities.length > 0) id = lastEntityId.id + 1;
+    if (entities.isNotEmpty) id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? generateUid() : uid;
 
