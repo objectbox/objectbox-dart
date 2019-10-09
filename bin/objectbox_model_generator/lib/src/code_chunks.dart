@@ -2,7 +2,7 @@ import "package:objectbox/src/modelinfo/index.dart";
 
 class CodeChunks {
   static String modelInfoLoader(String allModelsJsonFilename) => """
-      Map<int, ModelEntity> _allOBXModelEntities = null;
+      Map<int, ModelEntity> _allOBXModelEntities;
 
       void _loadOBXModelEntities() {
       if (FileSystemEntity.typeSync("objectbox-model.json") == FileSystemEntityType.notFound)
