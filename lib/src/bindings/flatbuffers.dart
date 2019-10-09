@@ -73,6 +73,12 @@ class OBXFlatbuffersManager<T> {
         case OBXPropertyType.String:
           builder.addOffset(field, offsets[p.name]);
           break;
+        case OBXPropertyType.Float:
+          builder.addFloat32(field, value);
+          break;
+        case OBXPropertyType.Double:
+          builder.addFloat64(field, value);
+          break;
         default:
           throw Exception("unsupported type: ${p.type}"); // TODO: support more types
       }
@@ -110,6 +116,12 @@ class OBXFlatbuffersManager<T> {
           break;
         case OBXPropertyType.String:
           propReader = fb.StringReader();
+          break;
+        case OBXPropertyType.Float:
+          propReader = fb.Float32Reader();
+          break;
+        case OBXPropertyType.Double:
+          propReader = fb.Float64Reader();
           break;
         default:
           throw Exception("unsupported type: ${p.type}"); // TODO: support more types

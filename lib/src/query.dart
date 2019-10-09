@@ -47,17 +47,17 @@ class QueryStringProperty extends QueryProperty {
   static const ConditionType type = ConditionType._string;
 
   QueryCondition _op(String p, ConditionOp cop, bool caseSensitive, bool descending) {
-    final c = StringCondition(cop, type, p, null, caseSensitive ? OrderFlag.CASE_SENSITIVE : 0, descending ? OrderFlag.DESCENDING : 0);
+    final c = StringCondition(cop, type, p, null, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0, descending ? OBXOrderFlag.DESCENDING : 0);
     return QueryCondition(entityId, propertyId, c);
   }
 
   QueryCondition _opWithEqual(String p, ConditionOp cop, bool caseSensitive, bool withEqual) {
-    final c = StringCondition._withEqual(cop, type, p, caseSensitive ? OrderFlag.CASE_SENSITIVE : 0, withEqual);
+    final c = StringCondition._withEqual(cop, type, p, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0, withEqual);
     return QueryCondition(entityId, propertyId, c);
   }
 
   QueryCondition _opList(List<String> list, ConditionOp cop, bool caseSensitive) {
-    final c = StringCondition._fromList(cop, type, list, caseSensitive ? OrderFlag.CASE_SENSITIVE : 0);
+    final c = StringCondition._fromList(cop, type, list, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0);
     return QueryCondition(entityId, propertyId, c);
   }
 
@@ -209,7 +209,7 @@ class QueryBooleanProperty extends QueryProperty {
   QueryCondition operator == (bool p) => equal(p);
 }
 
-class OrderFlag {
+class OBXOrderFlag {
   /// Reverts the order from ascending (default) to descending.
   static final DESCENDING = 1;
 
