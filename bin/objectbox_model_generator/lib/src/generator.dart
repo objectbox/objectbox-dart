@@ -22,7 +22,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
     if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) {
       return ModelInfo.createDefault();
     }
-    return ModelInfo.fromMap(json.decode(await (new File(ALL_MODELS_JSON).readAsString())));
+    return ModelInfo.fromMap(json.decode(await (File(ALL_MODELS_JSON).readAsString())));
   }
 
   @override
@@ -46,7 +46,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       }
 
       // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-      ModelEntity readEntity = new ModelEntity(IdUid.empty(), null, element.name, [], allModels);
+      ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], allModels);
       var entityUid = annotation.read("uid");
       if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
 
@@ -106,7 +106,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         }
 
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-        ModelProperty prop = new ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+        ModelProperty prop = ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
         if (propUid != null) prop.id.uid = propUid;
         readEntity.properties.add(prop);
       }
@@ -118,7 +118,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // merge existing model and annotated model that was just read, then write new final model to file
       mergeEntity(allModels, readEntity);
-      new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModels.toMap()));
+      File(ALL_MODELS_JSON).writeAsString(JsonEncoder.withIndent("  ").convert(allModels.toMap()));
       readEntity = allModels.findEntityByName(element.name);
       if (readEntity == null) return ret;
 

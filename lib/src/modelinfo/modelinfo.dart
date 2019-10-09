@@ -139,14 +139,14 @@ class ModelInfo {
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = new ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
+    var entity = ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
   }
 
   int generateUid() {
-    var rng = new Random();
+    var rng = Random();
     for (int i = 0; i < 1000; ++i) {
       // Dart can only generate random numbers up to 1 << 32, so concat two of them and remove the upper bit to make the number non-negative
       int uid = rng.nextInt(1 << 32);

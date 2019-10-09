@@ -49,7 +49,7 @@ class ByteBuffer {
   get size => _size;
 
   Uint8List get data {
-    var buffer = new Uint8List(size);
+    var buffer = Uint8List(size);
     for (int i = 0; i < size; ++i) {
       buffer[i] = _ptr.elementAt(i).load<int>();
     }
