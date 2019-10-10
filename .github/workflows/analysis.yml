@@ -19,7 +19,7 @@ jobs:
           relativePath: 'bin/objectbox_model_generator/'
 
   lib_analysis:
-    needs: generator
+    needs: generator_analysis
     runs-on: ubuntu-latest
     container:
       image:  google/dart:latest
