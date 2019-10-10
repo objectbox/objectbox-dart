@@ -56,7 +56,7 @@ typedef obx_box_put_many_native_t = Int32 Function(
     Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, Int32 mode);
 typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);
 
-// no typedef for non-functions
+// no typedef for non-functions yet, see https://github.com/dart-lang/sdk/issues/2626
 // typedef obx_err = Int32
 // typedef Pointer<Int8> -> char[]
 // typedef Pointer<Int32> -> int (e.g. obx_qb_cond);
