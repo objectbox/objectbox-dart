@@ -81,11 +81,6 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp._string_contains, caseSensitive, false);
   }
 
-  // TODO rename to something better
-  QueryCondition contain(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp._strings_contain, caseSensitive, false);
-  }
-
   QueryCondition inside(List<String> list, {bool caseSensitive = false}) {
     return _opList(list, ConditionOp._in, caseSensitive);
   }
@@ -229,7 +224,6 @@ enum ConditionOp {
   _eq,
   _not_eq,
   _string_contains,
-  _strings_contain,
   _string_starts,
   _string_ends,
   _gt,
@@ -557,9 +551,6 @@ class QueryBuilder<T> {
               case ConditionOp._string_contains:
                 return stringCondition._op1(
                     _cBuilder, qc, bindings.obx_qb_string_contains);
-              case ConditionOp._strings_contain:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_strings_contain);
               case ConditionOp._string_starts:
                 return stringCondition._op1(
                     _cBuilder, qc, bindings.obx_qb_string_starts_with);

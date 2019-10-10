@@ -84,7 +84,6 @@ class _ObjectBoxBindings {
     obx_qb_string_equal,
     obx_qb_string_not_equal,
     obx_qb_string_contains,
-    obx_qb_strings_contain,
     obx_qb_string_starts_with,
     obx_qb_string_ends_with;
 
@@ -216,7 +215,7 @@ class _ObjectBoxBindings {
     obx_qb_string_equal = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_string_equal").asFunction();
     obx_qb_string_not_equal = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_string_not_equal").asFunction();
     obx_qb_string_contains = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_string_contains").asFunction();
-    obx_qb_strings_contain = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_strings_contain").asFunction();
+
     obx_qb_string_starts_with = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_string_starts_with").asFunction();
     obx_qb_string_ends_with = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_string_ends_with").asFunction();
 

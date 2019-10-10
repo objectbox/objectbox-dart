@@ -122,7 +122,6 @@ void main() {
       final qs1 = box.query(text.inside([ "bleh" ])).build();
       final qs2 = box.query(text.inside([ "meh", "bleh" ])).build();
       final qs3 = box.query(text.contains("eh")).build();
-      final qs4 = box.query(text.contain("bl")).build(); // wtf is the difference?
 
       final qn0 = box.query(number.inside([ 1 ])).build();
       final qn1 = box.query(number.inside([ 1337 ])).build();
@@ -137,7 +136,7 @@ void main() {
       expect(qn1.count(), 2);
       expect(qn2.count(), 3);
 
-      [ qs0,qs1,qs2,qs3,qs4,qn0,qn1,qn2 ].forEach((q) => q.close());
+      [ qs0,qs1,qs2,qs3,qn0,qn1,qn2 ].forEach((q) => q.close());
     });
 
     test(".findIds returns List<int>", () {
