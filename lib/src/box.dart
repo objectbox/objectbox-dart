@@ -1,13 +1,14 @@
 import "dart:ffi";
 
 import "store.dart";
-import "query.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
 import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
+
+import "query/index.dart";
 
 enum _PutMode {
   Put,

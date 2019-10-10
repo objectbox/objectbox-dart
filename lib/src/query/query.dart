@@ -1,19 +1,20 @@
+library query;
+
 import "dart:ffi";
 
-import "box.dart";
-import "store.dart";
-import "common.dart";
-import "bindings/bindings.dart";
-import "bindings/constants.dart";
-import "bindings/flatbuffers.dart";
-import "bindings/helpers.dart";
-import "bindings/structs.dart";
-import "bindings/signatures.dart";
+import "../box.dart";
+import "../store.dart";
+import "../common.dart";
+import "../bindings/bindings.dart";
+import "../bindings/constants.dart";
+import "../bindings/flatbuffers.dart";
+import "../bindings/helpers.dart";
+import "../bindings/structs.dart";
+import "../bindings/signatures.dart";
 import "package:ffi/ffi.dart";
 
-// TODO a future or stream(?) should be attachable to the Condition types
-// TODO in case there is an error, or some internal message that should be exposed
-// TODO do async
+part "builder.dart";
+
 /**
  * The QueryProperty types are responsible
  * for the operator overloading.
@@ -31,12 +32,12 @@ class QueryProperty {
 
   QueryCondition isNull() {
     // the bool serves as a dummy type, to initialize the base type
-    final c = Condition<bool>(ConditionOp._null, null, false);
+    final c = Condition<bool>(ConditionOp.nil, null, false);
     return new QueryCondition(entityId, propertyId, c);
   }
 
   QueryCondition notNull() {
-    final c = Condition<int>(ConditionOp._not_null, null, 0);
+    final c = Condition<int>(ConditionOp.not_nil, null, 0);
     return new QueryCondition(entityId, propertyId, c);
   }
 }
@@ -44,7 +45,7 @@ class QueryProperty {
 class QueryStringProperty extends QueryProperty {
   QueryStringProperty(int entityId, int propertyId) : super(entityId, propertyId);
 
-  static const ConditionType type = ConditionType._string;
+  static const ConditionType type = ConditionType.string;
 
   QueryCondition _op(String p, ConditionOp cop, bool caseSensitive, bool descending) {
     final c = StringCondition(cop, type, p, null, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0, descending ? OBXOrderFlag.DESCENDING : 0);
@@ -62,39 +63,39 @@ class QueryStringProperty extends QueryProperty {
   }
 
   QueryCondition equals(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp._eq, caseSensitive, false);
+    return _op(p, ConditionOp.eq, caseSensitive, false);
   }
 
   QueryCondition notEqual(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp._not_eq, caseSensitive, false);
+    return _op(p, ConditionOp.not_eq, caseSensitive, false);
   }
 
   QueryCondition endsWith(String p, {bool descending = false}) {
-    return _op(p, ConditionOp._string_ends, false, descending);
+    return _op(p, ConditionOp.string_ends, false, descending);
   }
 
   QueryCondition startsWith(String p, {bool descending = false}) {
-    return _op(p, ConditionOp._string_starts, false, descending);
+    return _op(p, ConditionOp.string_starts, false, descending);
   }
 
   QueryCondition contains(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp._string_contains, caseSensitive, false);
+    return _op(p, ConditionOp.string_contains, caseSensitive, false);
   }
 
   QueryCondition inside(List<String> list, {bool caseSensitive = false}) {
-    return _opList(list, ConditionOp._in, caseSensitive);
+    return _opList(list, ConditionOp.inside, caseSensitive);
   }
 
   QueryCondition notIn(List<String> list, {bool caseSensitive = false}) {
-    return _opList(list, ConditionOp._not_in, caseSensitive);
+    return _opList(list, ConditionOp.not_in, caseSensitive);
   }
 
   QueryCondition greaterThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
-    return _opWithEqual(p, ConditionOp._gt, caseSensitive, withEqual);
+    return _opWithEqual(p, ConditionOp.gt, caseSensitive, withEqual);
   }
 
   QueryCondition lessThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
-    return _opWithEqual(p, ConditionOp._lt, caseSensitive, withEqual);
+    return _opWithEqual(p, ConditionOp.lt, caseSensitive, withEqual);
   }
 
   QueryCondition operator == (String p) => equals(p);
@@ -104,7 +105,7 @@ class QueryStringProperty extends QueryProperty {
 class QueryIntegerProperty extends QueryProperty {
   QueryIntegerProperty(int entityId, int propertyId) : super(entityId, propertyId);
 
-  static const ConditionType type = ConditionType._int64;
+  static const ConditionType type = ConditionType.int64;
 
   QueryCondition _op(int p, ConditionOp cop) {
     final c = IntegerCondition(cop, type, p, 0);
@@ -117,30 +118,30 @@ class QueryIntegerProperty extends QueryProperty {
   }
 
   QueryCondition equals(int p) {
-    return _op(p, ConditionOp._eq);
+    return _op(p, ConditionOp.eq);
   }
 
   QueryCondition notEqual(int p) {
-    return _op(p, ConditionOp._not_eq);
+    return _op(p, ConditionOp.not_eq);
   }
 
   QueryCondition greaterThan(int p) {
-    return _op(p, ConditionOp._gt);
+    return _op(p, ConditionOp.gt);
   }
 
   QueryCondition lessThan(int p) {
-    return _op(p, ConditionOp._lt);
+    return _op(p, ConditionOp.lt);
   }
 
   QueryCondition operator < (int p) => lessThan(p);
   QueryCondition operator > (int p) => greaterThan(p);
 
   QueryCondition inside(List<int> list) {
-    return _opList(list, ConditionOp._in);
+    return _opList(list, ConditionOp.inside);
   }
 
   QueryCondition notInList(List<int> list) {
-    return _opList(list, ConditionOp._not_in);
+    return _opList(list, ConditionOp.not_in);
   }
 
   QueryCondition notIn(List<int> list) {
@@ -155,7 +156,7 @@ class QueryDoubleProperty extends QueryProperty {
 
   QueryDoubleProperty(int entityId, int propertyId) : super(entityId, propertyId);
 
-  static const ConditionType type = ConditionType._double;
+  static const ConditionType type = ConditionType.float64;
 
   QueryCondition _op(ConditionOp op, double p1, double p2) {
     final c = DoubleCondition(op, type, p1, p2);
@@ -163,7 +164,7 @@ class QueryDoubleProperty extends QueryProperty {
   }
 
   QueryCondition between(double p1, double p2) {
-    return _op(ConditionOp._tween, p1, p2);
+    return _op(ConditionOp.tween, p1, p2);
   }
 
   // TODO determine default tolerance: between (target - tolerance, target + tolerance)
@@ -173,11 +174,11 @@ class QueryDoubleProperty extends QueryProperty {
   }
 
   QueryCondition greaterThan(double p) {
-    return _op(ConditionOp._gt, p, null);
+    return _op(ConditionOp.gt, p, null);
   }
 
   QueryCondition lessThan(double p) {
-    return _op(ConditionOp._lt, p, null);
+    return _op(ConditionOp.lt, p, null);
   }
 
   QueryCondition operator < (double p) => lessThan(p);
@@ -188,11 +189,11 @@ class QueryDoubleProperty extends QueryProperty {
 class QueryBooleanProperty extends QueryProperty {
   QueryBooleanProperty(int entityId, int propertyId) : super(entityId, propertyId);
 
-  static const ConditionType type = ConditionType._bytes;
+  static const ConditionType type = ConditionType.bytes;
 
   // TODO let the programmer decide on the resolution via @Property
   QueryCondition equals(bool p) {
-    final c  = Condition<int>(ConditionOp._eq, type, (p ? 1 : 0));
+    final c  = Condition<int>(ConditionOp.eq, type, (p ? 1 : 0));
     return QueryCondition(entityId, propertyId, c);
   }
 
@@ -219,29 +220,29 @@ class OBXOrderFlag {
 }
 
 enum ConditionOp {
-  _null,
-  _not_null,
-  _eq,
-  _not_eq,
-  _string_contains,
-  _string_starts,
-  _string_ends,
-  _gt,
-  _lt,
-  _in,
-  _not_in,
-  _tween,
-  _all,
-  _any
+  nil,
+  not_nil,
+  eq,
+  not_eq,
+  string_contains,
+  string_starts,
+  string_ends,
+  gt,
+  lt,
+  inside,
+  not_in,
+  tween,
+  all,
+  any
 }
 
 // TODO determine what is used for 'bool' (in the current implementation)
 enum ConditionType {
-  _string,
-  _int32,
-  _int64,
-  _double,
-  _bytes,
+  string,
+  int32,
+  int64,
+  float64,
+  bytes,
 }
 
 class Condition<DartType> {
@@ -506,251 +507,3 @@ class Query<T> {
     return list == null ? null : _box.getMany(list);
   }
 }
-
-// Construct a tree from the first condition object
-class QueryBuilder<T> {
-  Box<T> _box;
-  Store _store;
-  int _entityId; // aka model id, entity id
-  QueryCondition _queryCondition;
-  Pointer<Void> _cBuilder;
-
-  QueryBuilder(this._box, this._store, this._entityId, this._queryCondition);
-
-  void _throwExceptionIfNecessary() {
-    if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
-      final msg = Utf8.fromUtf8(bindings.obx_qb_error_message(_cBuilder).cast<Utf8>());
-      throw ObjectBoxException("$msg");
-    }
-  }
-
-  int _create(QueryCondition qc) {
-    Condition condition = qc._condition;
-    ConditionType type = condition._type;
-    ConditionOp   op   = condition._op;
-    int propertyId = qc._propertyId;
-
-    // TODO remove debug code
-    // print("type: ${type.toString()}, op: ${op.toString()}");
-
-    // do the typecasting here, we can't generalize to an op method
-    // due to the differing number of parameters per ConditionType
-    try {
-      switch (type) {
-        case ConditionType._string:
-          {
-            final stringCondition = qc._condition as StringCondition;
-            // why can't we have java-style enums on steroids on dart?
-            switch (op) {
-              case ConditionOp._eq:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_equal);
-              case ConditionOp._not_eq:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_not_equal);
-              case ConditionOp._string_contains:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_contains);
-              case ConditionOp._string_starts:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_starts_with);
-              case ConditionOp._string_ends:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_ends_with);
-              case ConditionOp._lt:
-                return stringCondition._opWithEqual(
-                    _cBuilder, qc, bindings.obx_qb_string_less);
-              case ConditionOp._gt:
-                return stringCondition._opWithEqual(
-                    _cBuilder, qc, bindings.obx_qb_string_greater);
-            }
-            break;
-          }
-        case ConditionType._int64: // current default for int
-          {
-            final intCondition = qc._condition as IntegerCondition;
-            switch (op) {
-              case ConditionOp._eq:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_equal);
-              case ConditionOp._not_eq:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_not_equal);
-              case ConditionOp._gt:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_greater);
-              case ConditionOp._lt:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_less);
-            }
-            break;
-          }
-        case ConditionType._double:
-          {
-            final doubleCondition = qc._condition as DoubleCondition;
-            switch (op) {
-              case ConditionOp._gt:
-                return doubleCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_double_greater);
-              case ConditionOp._lt:
-                return doubleCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_double_less);
-              default:
-                break;
-            }
-            break;
-          }
-      }
-
-      switch (op) {
-        case ConditionOp._null:
-          return condition._nullness(_cBuilder, qc, bindings.obx_qb_null);
-        case ConditionOp._not_null:
-          return condition._nullness(_cBuilder, qc, bindings.obx_qb_not_null);
-        case ConditionOp._tween:
-          {
-            switch (type) {
-              case ConditionType._int64: // current default for int
-                final c = qc._condition as Condition<int>;
-                return bindings.obx_qb_int_between(
-                    _cBuilder, propertyId, c._value, c._value2);
-              case ConditionType._double:
-                final c = qc._condition as Condition<double>;
-                return bindings.obx_qb_double_between(
-                    _cBuilder, propertyId, c._value, c._value2);
-            }
-            break;
-          }
-        case ConditionOp._in:
-          {
-            switch (type) {
-              case ConditionType._int32:
-                final c = qc._condition as IntegerCondition;
-                return c._opList32(_cBuilder, qc, bindings.obx_qb_int32_in);
-              case ConditionType._int64:
-                final c = qc._condition as IntegerCondition;
-                return c._opList64(_cBuilder, qc, bindings.obx_qb_int64_in);
-              case ConditionType._string:
-                final c = qc._condition as StringCondition;
-                return c._inside(_cBuilder, qc); // bindings.obx_qb_string_in
-            }
-            break;
-          }
-        case ConditionOp._not_in:
-          {
-            switch (type) {
-              case ConditionType._int32:
-                final c = qc._condition as IntegerCondition;
-                return c._opList32(_cBuilder, qc, bindings.obx_qb_int32_not_in);
-              case ConditionType._int64:
-                final c = qc._condition as IntegerCondition;
-                return c._opList64(_cBuilder, qc, bindings.obx_qb_int64_not_in);
-            }
-            break;
-          }
-      }
-    }finally {
-      _throwExceptionIfNecessary();
-    }
-  }
-
-  int _createGroup(List<int> list, obx_qb_join_op_dart_t func) {
-    final size = list.length;
-    final intArrayPtr = Pointer<Int32>.allocate(count: size);
-    try {
-      for(int i = 0; i < size; ++i) {
-        intArrayPtr.elementAt(i).store(list[i]);
-      }
-      return func(_cBuilder, intArrayPtr, size);
-    }finally {
-      intArrayPtr.free();
-      _throwExceptionIfNecessary();
-    }
-  }
-
-  int _createAllGroup(List<QueryCondition> list) {
-    return _createGroup(list.map((qc) => qc._root ? _create(qc) : _parse(qc)).toList(), bindings.obx_qb_all);
-  }
-
-  int _createAnyGroup(List<int> list) {
-    return _createGroup(list, bindings.obx_qb_any);
-  }
-
-  int _parse(QueryCondition qc) {
-
-    assert (qc != null && _cBuilder != null);
-
-    final anyGroup = qc._anyGroups;
-
-    if (anyGroup == null) {
-      return _create(qc);
-    }
-
-    if (anyGroup.length == 1) {
-      if (anyGroup[0].length == 1) {
-        return _create(qc);
-      }else /* if anyGroup.length == 1 then only apply 'all' */ {
-        return _createAllGroup(anyGroup[0]);
-      }
-    }else /* if anyGroup.length > 1 then apply 'any' */ {
-      return _createAnyGroup(anyGroup.map((qcList) => _createAllGroup(qcList)).toList());
-    }
-  }
-
-  Query build() {
-    _cBuilder = bindings.obx_qb_create(_store.ptr, _entityId);
-
-    // TODO pass an empty map to collect properytIds per OrderFlag in `_parse`
-    // parse the anyGroup tree in recursion
-    _parse(_queryCondition); // ignore the return value
-
-    try {
-      return Query<T>._(_box, _cBuilder);
-    }finally {
-      checkObx(bindings.obx_qb_close(_cBuilder));
-    }
-  }
-}
-
-/*  // Not done yet
-    // * = can't test, no support yet, for Double, Long, Boolean, Byte, or Vector... etc.
-    * obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
-    * obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
-    * obx_qb_string_in_dart_t obx_qb_string_in;
-
-    * obx_qb_string_lt_gt_op_dart_t obx_qb_string_greater, obx_qb_string_less;
-
-    obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
-    obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
-
-    obx_qb_param_alias_dart_t obx_qb_param_alias;
-
-    obx_qb_order_dart_t obx_qb_order;
-*/
-
-//////
-//////
-
-/** Inspiration
-    Modifier and Type	Method	Description
-    <TARGET> QueryBuilder<TARGET>	backlink​(RelationInfo<TARGET,?> relationInfo)
-    Creates a backlink (reversed link) to another entity, for which you also can describe conditions using the returned builder.
-    void	close()
-    ** QueryBuilder<T>	eager​(int limit, RelationInfo relationInfo, RelationInfo... more)
-    Like eager(RelationInfo, RelationInfo[]), but limits eager loading to the given count.
-    ** QueryBuilder<T>	eager​(RelationInfo relationInfo, RelationInfo... more)
-    Specifies relations that should be resolved eagerly.
-    ** QueryBuilder<T>	filter​(QueryFilter<T> filter) // dart has built-in higher order functions
-    Sets a filter that executes on primary query results (returned from the db core) on a Java level.
-    <TARGET> QueryBuilder<TARGET>	link​(RelationInfo<?,TARGET> relationInfo)
-    Creates a link to another entity, for which you also can describe conditions using the returned builder.
-    ** QueryBuilder<T>	order​(Property<T> property)
-    Specifies given property to be used for sorting.
-    ** QueryBuilder<T>	order​(Property<T> property, int flags)
-    Defines the order with which the results are ordered (default: none).
-    ** QueryBuilder<T>	orderDesc​(Property<T> property)
-    Specifies given property in descending order to be used for sorting.
-    ** QueryBuilder<T>	parameterAlias​(java.lang.String alias)
-    Assigns the given alias to the previous condition.
-    ** QueryBuilder<T>	sort​(java.util.Comparator<T> comparator)
-*/
