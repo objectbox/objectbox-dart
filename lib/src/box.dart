@@ -177,13 +177,5 @@ class Box<T> {
 
   QueryBuilder query(QueryCondition qc) => QueryBuilder<T>(this, _store, _modelEntity.id.id, qc);
 
-  QueryBuilder queryAll(List<QueryCondition> list) {
-    return query(list.reduce((first, second) => first.and(second)));
-  }
-
-  QueryBuilder queryAny(List<QueryCondition> list) {
-    return query(list.reduce((first, second) => first.or(second)));
-  }
-
   get ptr => _cBox;
 }

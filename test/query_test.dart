@@ -163,9 +163,6 @@ void main() {
       final q0 = box.query(text.notNull()).build();
       final result0 = q0.findIds();
 
-      final q1 = box.queryAll([text.contains("e"), text.contains("h")]).build();
-      final result1 = q1.findIds();
-
       final q2 = box.query((text == "blh") as QueryCondition).build();
       final result2 = q2.findIds();
 
@@ -175,12 +172,10 @@ void main() {
       // (result0 + result1 + result2).forEach((i) => print("found id: ${i}"));
 
       expect(result0.length, 7); // TODO off by one bug?
-      expect(result1.length, 6);
       expect(result2.length, 1);
       expect(result3, null);
 
       q0.close();
-      q1.close();
       q2.close();
       q3.close();
     });
@@ -220,10 +215,6 @@ void main() {
       final anyGroupCondition0 = <QueryCondition>[text.equals("meh"), text.equals("bleh")];
       final allGroupCondition0 = <QueryCondition>[text.equals("Goodbye"), number.equals(1337)];
 
-
-      final queryAny0 = box.queryAny(anyGroupCondition0).build();
-      final queryAll0 = box.queryAll(allGroupCondition0).build();
-
       final q1 = box.query(cond1).build();
       final q2 = box.query(cond2).build();
       final q3 = box.query(cond3).build();
@@ -236,10 +227,8 @@ void main() {
       expect(q2.count(), 3);
       expect(q3.count(), 1);
       expect(q4.count(), 3);
-      expect(queryAny0.count(), 2);
-      expect(queryAll0.count(), 1);
 
-      [ q1, q2, q3, q4, queryAny0, queryAll0 ].forEach((q) => q.close());
+      [ q1, q2, q3, q4 ].forEach((q) => q.close());
     });
   });
 
