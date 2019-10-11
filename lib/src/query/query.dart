@@ -44,18 +44,18 @@ class QueryProperty {
 class QueryStringProperty extends QueryProperty {
   QueryStringProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
 
-  QueryCondition _op(String p, ConditionOp cop, bool caseSensitive, bool descending) {
-    final c = StringCondition(cop, type, p, null, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0, descending ? OBXOrderFlag.DESCENDING : 0);
+  QueryCondition _op(String p, ConditionOp cop, [bool caseSensitive = false, bool descending = false]) {
+    final c = StringCondition(cop, type, p, null, caseSensitive, descending);
     return QueryCondition(entityId, propertyId, c);
   }
 
-  QueryCondition _opWithEqual(String p, ConditionOp cop, bool caseSensitive, bool withEqual) {
-    final c = StringCondition._withEqual(cop, type, p, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0, withEqual);
+  QueryCondition _opWithEqual(String p, ConditionOp cop, [bool caseSensitive = false, bool withEqual = false]) {
+    final c = StringCondition._withEqual(cop, type, p, caseSensitive, withEqual);
     return QueryCondition(entityId, propertyId, c);
   }
 
-  QueryCondition _opList(List<String> list, ConditionOp cop, bool caseSensitive) {
-    final c = StringCondition._fromList(cop, type, list, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0);
+  QueryCondition _opList(List<String> list, ConditionOp cop, [bool caseSensitive = false]) {
+    final c = StringCondition._fromList(cop, type, list, caseSensitive);
     return QueryCondition(entityId, propertyId, c);
   }
 
@@ -192,27 +192,8 @@ class QueryBooleanProperty extends QueryProperty {
     return QueryCondition(entityId, propertyId, c);
   }
 
-  // TODO support with
+  // TODO support with byte comparison
   QueryCondition operator == (bool p) => equals(p);
-}
-
-class OBXOrderFlag {
-  /// Reverts the order from ascending (default) to descending.
-  static final DESCENDING = 1;
-
-  /// Makes upper case letters (e.g. "Z") be sorted before lower case letters (e.g. "a").
-  /// If not specified, the default is case insensitive for ASCII characters.
-  static final CASE_SENSITIVE = 2;
-
-  /// For scalars only: changes the comparison to unsigned (default is signed).
-  static final UNSIGNED = 4;
-
-  /// null values will be put last.
-  /// If not specified, by default null values will be put first.
-  static final NULLS_LAST = 8;
-
-  /// null values should be treated equal to zero (scalars only).
-  static final NULLS_ZERO = 16;
 }
 
 enum ConditionOp {
@@ -250,27 +231,21 @@ abstract class Condition<DartType> {
 }
 
 class StringCondition extends Condition<String> {
-  List<int> orderFlags;
-  bool _caseSensitive = false, _withEqual = false;
+  bool _caseSensitive, _withEqual;
 
-  StringCondition(ConditionOp op, int type, String value, [String value2 = null, int caseSensitive, int descending])
+  StringCondition(ConditionOp op, int type, String value, [String value2 = null, bool caseSensitive, bool descending])
       : super(op, type, value, value2) {
-    _initCaseSensitivity(caseSensitive);
-
-    if (descending > 0) {
-      orderFlags ??= <int>[];
-      orderFlags.add(descending);
-    }
+    _caseSensitive = caseSensitive;
   }
 
-  StringCondition._fromList(ConditionOp op, int type, List<String> list, int caseSensitive)
+  StringCondition._fromList(ConditionOp op, int type, List<String> list, bool caseSensitive)
       : super.fromList(op, type, list) {
-    _initCaseSensitivity(caseSensitive);
+    _caseSensitive = caseSensitive;
   }
 
-  StringCondition._withEqual(ConditionOp op, int type, String value, int caseSensitive, bool withEqual)
+  StringCondition._withEqual(ConditionOp op, int type, String value, bool caseSensitive, bool withEqual)
       : super(op, type, value) {
-    _initCaseSensitivity(caseSensitive);
+    _caseSensitive = caseSensitive;
     _withEqual = withEqual;
   }
 
@@ -341,17 +316,6 @@ class StringCondition extends Condition<String> {
         throw Exception("Unsupported operation ${_op.toString()}");
     }
   }
-
-  void _initCaseSensitivity(int caseSensitive) {
-    if (caseSensitive > 0) {
-      orderFlags ??= <int>[];
-      orderFlags.add(caseSensitive);
-      _caseSensitive = true;
-    }
-  }
-
-  // TODO sort by propertyId and put into set to add only once, use Map<orderFlag, Set<propertyId>>
-  get flags => orderFlags;
 }
 
 class IntegerCondition extends Condition<int> {
