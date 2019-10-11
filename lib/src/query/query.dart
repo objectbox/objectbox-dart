@@ -26,26 +26,23 @@ part "builder.dart";
  * a Query object will be created.
  */
 class QueryProperty {
-  int propertyId; // why hide this if it's exposed in the entity definition, // TODO final / const?
-  int entityId;
-  QueryProperty(this.entityId, this.propertyId);
+  int propertyId, entityId, type;
+  QueryProperty(this.entityId, this.propertyId, this.type);
 
   QueryCondition isNull() {
-    // the bool serves as a dummy type, to initialize the base type
-    final c = Condition<bool>(ConditionOp.nil, null, false);
+    // the integer serves as a dummy type, to initialize the base type
+    final c = IntegerCondition(ConditionOp.nil, type, null, null);
     return new QueryCondition(entityId, propertyId, c);
   }
 
   QueryCondition notNull() {
-    final c = Condition<int>(ConditionOp.not_nil, null, 0);
+    final c = IntegerCondition(ConditionOp.not_nil, type, null, null);
     return new QueryCondition(entityId, propertyId, c);
   }
 }
 
 class QueryStringProperty extends QueryProperty {
-  QueryStringProperty(int entityId, int propertyId) : super(entityId, propertyId);
-
-  static const ConditionType type = ConditionType.string;
+  QueryStringProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
 
   QueryCondition _op(String p, ConditionOp cop, bool caseSensitive, bool descending) {
     final c = StringCondition(cop, type, p, null, caseSensitive ? OBXOrderFlag.CASE_SENSITIVE : 0, descending ? OBXOrderFlag.DESCENDING : 0);
@@ -103,9 +100,7 @@ class QueryStringProperty extends QueryProperty {
 }
 
 class QueryIntegerProperty extends QueryProperty {
-  QueryIntegerProperty(int entityId, int propertyId) : super(entityId, propertyId);
-
-  static const ConditionType type = ConditionType.int64;
+  QueryIntegerProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
 
   QueryCondition _op(int p, ConditionOp cop) {
     final c = IntegerCondition(cop, type, p, 0);
@@ -154,9 +149,7 @@ class QueryIntegerProperty extends QueryProperty {
 
 class QueryDoubleProperty extends QueryProperty {
 
-  QueryDoubleProperty(int entityId, int propertyId) : super(entityId, propertyId);
-
-  static const ConditionType type = ConditionType.float64;
+  QueryDoubleProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
 
   QueryCondition _op(ConditionOp op, double p1, double p2) {
     final c = DoubleCondition(op, type, p1, p2);
@@ -187,16 +180,19 @@ class QueryDoubleProperty extends QueryProperty {
 }
 
 class QueryBooleanProperty extends QueryProperty {
-  QueryBooleanProperty(int entityId, int propertyId) : super(entityId, propertyId);
+  QueryBooleanProperty(int entityId, int propertyId) : super(entityId, propertyId, type);
 
-  static const ConditionType type = ConditionType.bytes;
-
-  // TODO let the programmer decide on the resolution via @Property
   QueryCondition equals(bool p) {
-    final c  = Condition<int>(ConditionOp.eq, type, (p ? 1 : 0));
+    final c  = IntegerCondition(ConditionOp.eq, type, (p ? 1 : 0));
     return QueryCondition(entityId, propertyId, c);
   }
 
+  QueryCondition notEqual(bool p) {
+    final c  = IntegerCondition(ConditionOp.not_eq, type, (p ? 1 : 0));
+    return QueryCondition(entityId, propertyId, c);
+  }
+
+  // TODO support with
   QueryCondition operator == (bool p) => equals(p);
 }
 
@@ -236,35 +232,28 @@ enum ConditionOp {
   any
 }
 
-// TODO determine what is used for 'bool' (in the current implementation)
-enum ConditionType {
-  string,
-  int32,
-  int64,
-  float64,
-  bytes,
-}
-
-class Condition<DartType> {
+abstract class Condition<DartType> {
   DartType _value, _value2;
   List<DartType> _list;
 
   ConditionOp _op;
-  ConditionType _type;
+  int /* OBXPropertyType */ _type;
 
   Condition(this._op, this._type, this._value, [this._value2 = null]);
   Condition.fromList(this._op, this._type, this._list);
 
-  int _nullness(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_0_dart_t func) {
-    return func(qbPtr, qc._propertyId);
+  int _nullness(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_operator_0_dart_t func) {
+    return func(qbPtr, propertyId);
   }
+  
+  int apply(Pointer<Void> cBuilder, int propertyType);
 }
 
 class StringCondition extends Condition<String> {
   List<int> orderFlags;
   bool _caseSensitive = false, _withEqual = false;
 
-  StringCondition(ConditionOp op, ConditionType type, String value, String value2, int caseSensitive, int descending)
+  StringCondition(ConditionOp op, int type, String value, [String value2 = null, int caseSensitive, int descending])
       : super(op, type, value, value2) {
     _initCaseSensitivity(caseSensitive);
 
@@ -274,28 +263,28 @@ class StringCondition extends Condition<String> {
     }
   }
 
-  StringCondition._fromList(ConditionOp op, ConditionType type, List<String> list, int caseSensitive)
+  StringCondition._fromList(ConditionOp op, int type, List<String> list, int caseSensitive)
       : super.fromList(op, type, list) {
     _initCaseSensitivity(caseSensitive);
   }
 
-  StringCondition._withEqual(ConditionOp op, ConditionType type, String value, int caseSensitive, bool withEqual)
+  StringCondition._withEqual(ConditionOp op, int type, String value, int caseSensitive, bool withEqual)
       : super(op, type, value) {
     _initCaseSensitivity(caseSensitive);
     _withEqual = withEqual;
   }
 
-  int _op1(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_string_op_1_dart_t func) {
+  int _op1(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_string_op_1_dart_t func) {
     final utf8Str = Utf8.toUtf8(_value);
     try {
       var uint8Str = utf8Str.cast<Uint8>();
-      return func(qbPtr, qc._propertyId, uint8Str, _caseSensitive ? 1 : 0);
+      return func(qbPtr, propertyId, uint8Str, _caseSensitive ? 1 : 0);
     } finally {
       utf8Str.free();
     }
   }
 
-  int _inside(Pointer<Void> qbPtr, QueryCondition qc) {
+  int _inside(Pointer<Void> qbPtr, int propertyId) {
     final func = bindings.obx_qb_string_in;
     final listLength = _list.length;
     final arrayOfUint8Ptrs = Pointer<Pointer<Uint8>>.allocate(count: listLength);
@@ -304,7 +293,7 @@ class StringCondition extends Condition<String> {
         var uint8Str = Utf8.toUtf8(_list[i]).cast<Uint8>();
         arrayOfUint8Ptrs.elementAt(i).store(uint8Str);
       }
-      return func(qbPtr, qc._propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
+      return func(qbPtr, propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
     }finally {
       for (int i=0; i<_list.length; i++) {
         var uint8Str = arrayOfUint8Ptrs.elementAt(i).load();
@@ -314,13 +303,42 @@ class StringCondition extends Condition<String> {
     }
   }
 
-  int _opWithEqual(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_string_lt_gt_op_dart_t func) {
+  int _opWithEqual(Pointer<Void> qbPtr, int propertyId, obx_qb_string_lt_gt_op_dart_t func) {
     final utf8Str = Utf8.toUtf8(_value);
     try {
       var uint8Str = utf8Str.cast<Uint8>();
-      return func(qbPtr, qc._propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
+      return func(qbPtr, propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
     } finally {
       utf8Str.free();
+    }
+  }
+  
+  int apply(Pointer<Void> cBuilder, int propertyId) {
+    switch (_op) {
+      case ConditionOp.eq:
+        return _op1(cBuilder, propertyId, bindings.obx_qb_string_equal);
+      case ConditionOp.not_eq:
+        return _op1(
+            cBuilder, propertyId, bindings.obx_qb_string_not_equal);
+      case ConditionOp.string_contains:
+        return _op1(
+            cBuilder, propertyId, bindings.obx_qb_string_contains);
+      case ConditionOp.string_starts:
+        return _op1(
+            cBuilder, propertyId, bindings.obx_qb_string_starts_with);
+      case ConditionOp.string_ends:
+        return _op1(
+            cBuilder, propertyId, bindings.obx_qb_string_ends_with);
+      case ConditionOp.lt:
+        return _opWithEqual(
+            cBuilder, propertyId, bindings.obx_qb_string_less);
+      case ConditionOp.gt:
+        return _opWithEqual(
+            cBuilder, propertyId, bindings.obx_qb_string_greater);
+      case ConditionOp.inside:
+        return _inside(cBuilder, propertyId); // bindings.obx_qb_string_in
+      default:
+        throw Exception("Unsupported operation ${_op.toString()}");
     }
   }
 
@@ -337,20 +355,20 @@ class StringCondition extends Condition<String> {
 }
 
 class IntegerCondition extends Condition<int> {
-  IntegerCondition(ConditionOp op, ConditionType type, int value, int value2)
+  IntegerCondition(ConditionOp op, int type, int value, [int value2 = null])
       : super(op, type, value, value2);
 
-  IntegerCondition.fromList(ConditionOp op, ConditionType type, List<int> list)
+  IntegerCondition.fromList(ConditionOp op, int type, List<int> list)
       : super.fromList(op, type, list);
 
-  int _op1(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_1_dart_t<int> func) {
-    return func(qbPtr, qc._propertyId, _value);
+  int _op1(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_operator_1_dart_t<int> func) {
+    return func(qbPtr, propertyId, _value);
   }
 
   // ideally it should be implemented like this, but this doesn't work, TODO report to google
   /*
-  int _opList<P extends NativeType>(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_in_dart_t<P> func) {
-    int propertyId = qc._propertyId;
+  int _opList<P extends NativeType>(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_operator_in_dart_t<P> func) {
+
     int length = _list.length;
     final listPtr = Pointer<P>.allocate(count: length);
     try {
@@ -365,8 +383,7 @@ class IntegerCondition extends Condition<int> {
   */
 
   // TODO replace nasty duplication with implementation above, when fix is in
-  int _opList32(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_in_dart_t<Int32> func) {
-    int propertyId = qc._propertyId;
+  int _opList32(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_operator_in_dart_t<Int32> func) {
     int length = _list.length;
     final listPtr = Pointer<Int32>.allocate(count: length);
     try {
@@ -380,8 +397,8 @@ class IntegerCondition extends Condition<int> {
   }
 
   // TODO replace duplication with implementation above, when fix is in
-  int _opList64(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_in_dart_t<Int64> func) {
-    int propertyId = qc._propertyId;
+  int _opList64(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_operator_in_dart_t<Int64> func) {
+
     int length = _list.length;
     final listPtr = Pointer<Int64>.allocate(count: length);
     try {
@@ -394,14 +411,87 @@ class IntegerCondition extends Condition<int> {
     }
   }
 
+  int apply(Pointer<Void> cBuilder, int propertyId) {
+    switch (_type) {
+      // TODO support other int-ish types, there might be some loss from int64 to int32
+      integer:
+      case OBXPropertyType.Int: // 4 bytes
+        switch (_op) {
+          case ConditionOp.eq:
+            return _op1(
+                cBuilder, propertyId, bindings.obx_qb_int_equal);
+          case ConditionOp.not_eq:
+            return _op1(
+                cBuilder, propertyId, bindings.obx_qb_int_not_equal);
+          case ConditionOp.gt:
+            return _op1(
+                cBuilder, propertyId, bindings.obx_qb_int_greater);
+          case ConditionOp.lt:
+            return _op1(
+                cBuilder, propertyId, bindings.obx_qb_int_less);
+          case ConditionOp.tween:
+            return bindings.obx_qb_int_between(
+                cBuilder, propertyId, _value, _value2);
+        }
+        break;
+      case OBXPropertyType.Long:
+        continue integer;
+      case OBXPropertyType.Byte:
+        continue integer;
+      case OBXPropertyType.Short:
+        continue integer;
+      case OBXPropertyType.Char:
+        continue integer;
+    }
+
+    switch (_op) {
+      case ConditionOp.inside:
+        {
+          switch (_type) {
+            case OBXPropertyType.Int:
+              return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_in);
+            case OBXPropertyType.Long:
+              return _opList64(cBuilder, propertyId, bindings.obx_qb_int64_in);
+          }
+          break;
+        }
+      case ConditionOp.not_in:
+        {
+          switch (_type) {
+            case OBXPropertyType.Int:
+              return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_not_in);
+            case OBXPropertyType.Long:
+              return _opList64(cBuilder, propertyId, bindings.obx_qb_int64_not_in);
+          }
+          break;
+        }
+      default:
+        throw Exception("Unsupported operation ${_op.toString()}");
+    }
+  }
 }
 
 class DoubleCondition extends Condition<double> {
-  DoubleCondition(ConditionOp op, ConditionType type, double value, double value2)
+  DoubleCondition(ConditionOp op, int type, double value, double value2)
       : super(op, type, value, value2);
 
-  int _op1(Pointer<Void> qbPtr, QueryCondition qc, obx_qb_cond_operator_1_dart_t<double> func) {
-    return func(qbPtr, qc._propertyId, _value);
+  int _op1(Pointer<Void> qbPtr, int propertyId, obx_qb_cond_operator_1_dart_t<double> func) {
+    return func(qbPtr, propertyId, _value);
+  }
+
+  int apply(Pointer<Void> cBuilder, int propertyId) {
+    switch (_op) {
+      case ConditionOp.gt:
+        return _op1(
+        cBuilder, propertyId, bindings.obx_qb_double_greater);
+      case ConditionOp.lt:
+        return _op1(cBuilder, propertyId, bindings.obx_qb_double_less);
+      case ConditionOp.tween:
+        return bindings.obx_qb_double_between(
+            cBuilder, propertyId, _value, _value2);
+      default:
+        throw Exception("Unsupported operation ${_op.toString()}");
+    }
   }
 }
 
@@ -481,7 +571,7 @@ class Query<T> {
     }
   }
 
-  // TODO does dart have a dtor/finalizer?j
+  // TODO Document wrap with closure to fake auto close
   void close() {
     checkObx(bindings.obx_query_close(_query));
   }

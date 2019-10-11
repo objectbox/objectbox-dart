@@ -62,13 +62,22 @@ class CodeChunks {
         case OBXPropertyType.String:
           fieldType = "String";
           break;
+        float:
         case OBXPropertyType.Double:
           fieldType = "Double";
           break;
+        case OBXPropertyType.Float:
+          continue float;
         integer:
         case OBXPropertyType.Int:
           fieldType = "Integer";
           break;
+        case OBXPropertyType.Byte:
+          continue integer;
+        case OBXPropertyType.Short:
+          continue integer;
+        case OBXPropertyType.Char:
+          continue integer;
         case OBXPropertyType.Long:
           continue integer;
         default:
@@ -76,8 +85,9 @@ class CodeChunks {
       }
 
       ret.add("""
+        static final ${name}PropertyType = ${f.type};
         static final ${name}PropertyId = ${f.id.id};
-        static final ${name} = Query${fieldType}Property(entityId, ${name}PropertyId);
+        static final ${name} = Query${fieldType}Property(entityId, ${name}PropertyId, ${name}PropertyType);
         """);
     }
     return ret.join();

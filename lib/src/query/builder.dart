@@ -19,129 +19,18 @@ class QueryBuilder<T> {
 
   int _create(QueryCondition qc) {
     Condition condition = qc._condition;
-    ConditionType type = condition._type;
-    ConditionOp   op   = condition._op;
     int propertyId = qc._propertyId;
 
-    // TODO remove debug code
-    // print("type: ${type.toString()}, op: ${op.toString()}");
-
-    // do the typecasting here, we can't generalize to an op method
-    // due to the differing number of parameters per ConditionType
     try {
-      switch (type) {
-        case ConditionType.string:
-          {
-            final stringCondition = qc._condition as StringCondition;
-            // why can't we have java-style enums on steroids on dart?
-            switch (op) {
-              case ConditionOp.eq:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_equal);
-              case ConditionOp.not_eq:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_not_equal);
-              case ConditionOp.string_contains:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_contains);
-              case ConditionOp.string_starts:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_starts_with);
-              case ConditionOp.string_ends:
-                return stringCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_string_ends_with);
-              case ConditionOp.lt:
-                return stringCondition._opWithEqual(
-                    _cBuilder, qc, bindings.obx_qb_string_less);
-              case ConditionOp.gt:
-                return stringCondition._opWithEqual(
-                    _cBuilder, qc, bindings.obx_qb_string_greater);
-            }
-            break;
-          }
-        case ConditionType.int64: // current default for int
-          {
-            final intCondition = qc._condition as IntegerCondition;
-            switch (op) {
-              case ConditionOp.eq:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_equal);
-              case ConditionOp.not_eq:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_not_equal);
-              case ConditionOp.gt:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_greater);
-              case ConditionOp.lt:
-                return intCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_int_less);
-            }
-            break;
-          }
-        case ConditionType.float64:
-          {
-            final doubleCondition = qc._condition as DoubleCondition;
-            switch (op) {
-              case ConditionOp.gt:
-                return doubleCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_double_greater);
-              case ConditionOp.lt:
-                return doubleCondition._op1(
-                    _cBuilder, qc, bindings.obx_qb_double_less);
-              default:
-                break;
-            }
-            break;
-          }
-      }
-
-      switch (op) {
+      switch (condition._op) {
         case ConditionOp.nil:
-          return condition._nullness(_cBuilder, qc, bindings.obx_qb_null);
+          return condition._nullness(_cBuilder, propertyId, bindings.obx_qb_null);
         case ConditionOp.not_nil:
-          return condition._nullness(_cBuilder, qc, bindings.obx_qb_not_null);
-        case ConditionOp.tween:
-          {
-            switch (type) {
-              case ConditionType.int64: // current default for int
-                final c = qc._condition as Condition<int>;
-                return bindings.obx_qb_int_between(
-                    _cBuilder, propertyId, c._value, c._value2);
-              case ConditionType.float64:
-                final c = qc._condition as Condition<double>;
-                return bindings.obx_qb_double_between(
-                    _cBuilder, propertyId, c._value, c._value2);
-            }
-            break;
-          }
-        case ConditionOp.inside:
-          {
-            switch (type) {
-              case ConditionType.int32:
-                final c = qc._condition as IntegerCondition;
-                return c._opList32(_cBuilder, qc, bindings.obx_qb_int32_in);
-              case ConditionType.int64:
-                final c = qc._condition as IntegerCondition;
-                return c._opList64(_cBuilder, qc, bindings.obx_qb_int64_in);
-              case ConditionType.string:
-                final c = qc._condition as StringCondition;
-                return c._inside(_cBuilder, qc); // bindings.obx_qb_string_in
-            }
-            break;
-          }
-        case ConditionOp.not_in:
-          {
-            switch (type) {
-              case ConditionType.int32:
-                final c = qc._condition as IntegerCondition;
-                return c._opList32(_cBuilder, qc, bindings.obx_qb_int32_not_in);
-              case ConditionType.int64:
-                final c = qc._condition as IntegerCondition;
-                return c._opList64(_cBuilder, qc, bindings.obx_qb_int64_not_in);
-            }
-            break;
-          }
+          return condition._nullness(_cBuilder, propertyId, bindings.obx_qb_not_null);
+        default:
+          break;
       }
+      return condition.apply(_cBuilder, propertyId);
     }finally {
       _throwExceptionIfNecessary();
     }
