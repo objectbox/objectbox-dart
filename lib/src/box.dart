@@ -108,35 +108,14 @@ class Box<T> {
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 
-  // TODO move to Store
-  T _runInTransaction<T>(bool readOnly, T Function() fn) {
-    assert(readOnly); // TODO implement write transactions
-
-    Pointer<Void> txn = bindings.obx_txn_read(_store.ptr);
-    checkObxPtr(txn, "failed to created transaction");
-    try {
-      return fn();
-    } finally {
-      checkObx(bindings.obx_txn_close(txn));
-    }
-  }
-
   get(int id) {
     Pointer<Pointer<Void>> dataPtr = Pointer<Pointer<Void>>.allocate();
     Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 
     // get element with specified id from database
     try {
-      return _runInTransaction(true, () {
+      return _store.runInTransaction(TxMode.Read, () {
         checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
-
-        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
-        var size = sizePtr.load<int>();
-
-        // transform bytes from memory to Dart byte list
-        var buffer = ByteBuffer(data, size);
-
-        return _fbManager.unmarshal(buffer);
       });
     }finally {
       dataPtr.free();
@@ -145,7 +124,7 @@ class Box<T> {
   }
 
   List<T> _getMany(Pointer<Uint64> Function() cCall) {
-    return _runInTransaction(true, () {
+    return _store.runInTransaction(TxMode.Read, () {
       // OBX_bytes_array*, has two Uint64 members (data and size)
       Pointer<Uint64> bytesArray = cCall();
       try {
