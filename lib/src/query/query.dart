@@ -180,7 +180,7 @@ class QueryDoubleProperty extends QueryProperty {
 }
 
 class QueryBooleanProperty extends QueryProperty {
-  QueryBooleanProperty(int entityId, int propertyId) : super(entityId, propertyId, type);
+  QueryBooleanProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
 
   QueryCondition equals(bool p) {
     final c  = IntegerCondition(ConditionOp.eq, type, (p ? 1 : 0));
