@@ -3,35 +3,16 @@ name: Analysis
 on: [push, pull_request]
 
 jobs:
-  generator_analysis:
+  packages_analysis:
     runs-on: ubuntu-latest
-    container:
-      image:  google/dart:latest
     steps:
       - uses: actions/checkout@v1
-      - name: Install dependencies
-        working-directory: bin/objectbox_model_generator
-        run: pub get
+      - uses: axel-op/dart_package_analyzer@stable
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          maxScoreToComment: 99.99 # only a 100 score will not post a comment.
       - uses: axel-op/dart_package_analyzer@stable
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           maxScoreToComment: 99.99 # only a 100 score will not post a comment.
           relativePath: 'bin/objectbox_model_generator/'
-
-  lib_analysis:
-    needs: generator_analysis
-    runs-on: ubuntu-latest
-    container:
-      image:  google/dart:latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Install ObjectBox C-API
-        run: ./install.sh
-      - name: Install dependencies
-        run: pub get
-      - name: Generate ObjectBox models
-        run: pub run build_runner build
-      - uses: axel-op/dart_package_analyzer@stable
-        with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          maxScoreToComment: 99.99 # only a 100 score will not post a comment.
