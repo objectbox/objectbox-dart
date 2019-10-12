@@ -5,6 +5,8 @@ on: [push, pull_request]
 jobs:
   packages_analysis:
     runs-on: ubuntu-latest
+    container:
+      image:  google/dart:latest
     steps:
       - uses: actions/checkout@v1
       - name: Install lib dependencies
