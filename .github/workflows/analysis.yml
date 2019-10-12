@@ -5,15 +5,13 @@ on: [push, pull_request]
 jobs:
   packages_analysis:
     runs-on: ubuntu-latest
-    container:
-      image:  google/dart:latest
     steps:
       - uses: actions/checkout@v1
       - name: Install lib dependencies
-          run: pub get
+        run: pub get
       - name: Install generator dependencies
-          working-directory: bin/objectbox_model_generator
-          run: pub get
+        working-directory: bin/objectbox_model_generator
+        run: pub get
       - uses: axel-op/dart_package_analyzer@stable
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
