@@ -1,5 +1,5 @@
 import "package:objectbox/objectbox.dart";
-import "package:objectbox/bindings/constants.dart"
+import "package:objectbox/src/bindings/constants.dart";
 
 part "entity.g.dart";
 
@@ -34,18 +34,18 @@ class TestEntityProperty {
   double tDouble; // ob: 8 bytes, dart: 8 bytes
   String tString;
 
-  @Property(type:OBXPropertyType.Byte)
+  @Property(type:2 /*OBXPropertyType.Byte*/)
   int tByte; // 1 byte
 
-  @Property(type:OBXPropertyType.Short)
+  @Property(type:3 /*OBXPropertyType.Short*/)
   int tShort; // 2 byte
 
-  @Property(type:OBXPropertyType.Char)
+  @Property(type:4 /*OBXPropertyType.Char*/)
   int tChar; // 1 byte
 
-  @Property(type:OBXPropertyType.Int)
+  @Property(type:5 /*OBXPropertyType.Int*/)
   int tInt; // ob: 4 bytes, dart: 8 bytes
 
-  @Property(type:OBXPropertyType.Float)
+  @Property(type:7 /*OBXPropertyType.Float*/)
   double tFloat; // 4 bytes
 }
