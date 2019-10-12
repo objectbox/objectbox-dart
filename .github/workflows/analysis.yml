@@ -1,4 +1,4 @@
-name: Dart CI
+name: Analysis
 
 on: [push, pull_request]
 
