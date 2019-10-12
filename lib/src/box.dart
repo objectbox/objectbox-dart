@@ -7,7 +7,6 @@ import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
-
 import "query/index.dart";
 
 enum _PutMode {
@@ -54,13 +53,9 @@ class Box<T> {
 
     // put object into box and free the buffer
     ByteBuffer buffer = _fbManager.marshal(propVals);
-    try {
-      checkObx(bindings.obx_box_put(
-          _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
-    }finally {
-      buffer.free();
-    }
-
+    checkObx(bindings.obx_box_put(
+        _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+    buffer.free();
     return propVals[_modelEntity.idPropName];
   }
 
@@ -79,32 +74,25 @@ class Box<T> {
     Pointer<Uint64> firstIdMemory;
     if (numInstsMissingId != 0) {
       firstIdMemory = Pointer<Uint64>.allocate(count: 1);
-      try {
-        checkObx(bindings.obx_box_ids_for_put(_cBox, numInstsMissingId, firstIdMemory));
-        int nextId = firstIdMemory.load<int>();
-        for (var instPropVals in allPropVals)
-          if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
-            instPropVals[_modelEntity.idPropName] = nextId++;
-      }finally {
-        firstIdMemory.free();
-      }
+      checkObx(bindings.obx_box_ids_for_put(_cBox, numInstsMissingId, firstIdMemory));
+      int nextId = firstIdMemory.load<int>();
+      firstIdMemory.free();
+      for (var instPropVals in allPropVals)
+        if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
+          instPropVals[_modelEntity.idPropName] = nextId++;
     }
 
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
-    var putObjects;
     Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
-    try {
-      for (int i = 0; i < allPropVals.length; ++i)
-        allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName]);
+    for (int i = 0; i < allPropVals.length; ++i)
+      allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName]);
 
-      // marshal all objects to be put into the box
-      putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
-      checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
-    }finally {
-      putObjects?.free();
-      allIdsMemory?.free();
-    }
+    // marshal all objects to be put into the box
+    var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
 
+    checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+    putObjects.free();
+    allIdsMemory.free();
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 
@@ -113,14 +101,19 @@ class Box<T> {
     Pointer<Int32> sizePtr = Pointer<Int32>.allocate();
 
     // get element with specified id from database
-    try {
-      return _store.runInTransaction(TxMode.Read, () {
-        checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
-      });
-    }finally {
+    return _store.runInTransaction(TxMode.Read, () {
+      checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
+
+      Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
+      var size = sizePtr.load<int>();
+
+      // transform bytes from memory to Dart byte list
+      var buffer = ByteBuffer(data, size);
       dataPtr.free();
       sizePtr.free();
-    }
+
+      return _fbManager.unmarshal(buffer);
+    });
   }
 
   List<T> _getMany(Pointer<Uint64> Function() cCall) {
@@ -152,7 +145,7 @@ class Box<T> {
 
   List<T> getAll() {
     return _getMany(
-        () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
+            () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
   QueryBuilder query(QueryCondition qc) => QueryBuilder<T>(this, _store, _modelEntity.id.id, qc);
