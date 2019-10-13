@@ -82,14 +82,6 @@ void main() {
       final t = TestEntity_.text;
       final n = TestEntity_.number;
 
-//      final q0 = box.query(d > 0.1).build();
-//      final q1 = box.query(b == false).build();
-//      final q2 = box.query(t > "more").build();
-//      final q3 = box.query(t < "more").build();
-//      final q4 = box.query(d < 0.3).build();
-//      final q5 = box.query(n < 1337).build();
-//      final q6 = box.query(n > 1337).build();
-
       final q0 = box.query(d.greaterThan(0.1)).build();
       final q1 = box.query(b.equals(false)).build();
       final q2 = box.query(t.greaterThan("more")).build();
@@ -98,13 +90,13 @@ void main() {
       final q5 = box.query(n.lessThan(1337)).build();
       final q6 = box.query(n.greaterThan(1337)).build();
 
-      expect(q0, 3);
-      expect(q1, 2);
-      expect(q2, 1);
-      expect(q3, 1);
-      expect(q4, 3);
-      expect(q5, 1);
-      expect(q6, 1);
+      expect(q0.count(), 2);
+      expect(q1.count(), 2);
+      expect(q2.count(), 1);
+      expect(q3.count(), 1);
+      expect(q4.count(), 3);
+      expect(q5.count(), 1);
+      expect(q6.count(), 1);
 
       [ q0,q1,q2,q3,q4,q5,q6 ].forEach((q) => q.close());
     });
