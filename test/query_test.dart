@@ -255,6 +255,27 @@ void main() {
 
       [ q1, q2, q3, q4 ].forEach((q) => q.close());
     });
+
+    test(".describe query", () {
+      final text = TestEntity_.text;
+      final number = TestEntity_.number;
+      QueryCondition c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
+      final q = box.query(c).build();
+      expect(q.describe(), "Query for entity TestEntity with 10 conditions with properties number, text");
+    });
+
+    test(".describeParameters query", () {
+      final text = TestEntity_.text;
+      final number = TestEntity_.number;
+      QueryCondition c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
+      final q = box.query(c).build();
+      final expectedString = ['''((text ==(i) "Goodbye"''',
+        ''' AND number == 1337)''',
+        ''' OR (number == 1337)''',
+        ''' OR (text ==(i) "Cruel")''',
+        ''' OR (text ==(i) "World"))'''].join("\n");
+      expect(q.describeParameters(), expectedString);
+    });
   });
 
   tearDown(tearDownStorage(store, box));
