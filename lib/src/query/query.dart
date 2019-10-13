@@ -541,7 +541,7 @@ class Query<T> {
 
   T findFirst() {
     final list = find(offset:0, limit:1);
-    return (list == null ? null : list[0]) as T;
+    return ((list == null || list.length == 0) ? null : list[0]) as T;
   }
 
   List<int> findIds({int offset=0, int limit=0}) {
