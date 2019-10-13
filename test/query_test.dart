@@ -75,7 +75,7 @@ void main() {
         TestEntity.initDoubleAndBoolean(0.1, true),
         TestEntity.initDoubleAndBoolean(0.2, true),
         TestEntity.initDoubleAndBoolean(0.3, false),
-      ]);
+      ] as List<TestEntity>);
 
       final d = TestEntity_.d;
       final b = TestEntity_.b;
@@ -109,7 +109,7 @@ void main() {
       [ q0,q1,q2,q3,q4,q5,q6 ].forEach((q) => q.close());
     });
 
-    test(".count matches of `in`, `contain`, `contains`", () {
+    test(".count matches of `in`, `contains`", () {
       box.put(TestEntity.initIntegerAndText(1337, "meh"));
       box.put(TestEntity.initIntegerAndText(1,    "bleh"));
       box.put(TestEntity.initIntegerAndText(1337, "bleh"));
@@ -131,31 +131,21 @@ void main() {
       expect(qs1.count(), 2);
       expect(qs2.count(), 3);
       expect(qs3.count(), 3);
-      expect(qs3.count(), 4);
       expect(qn0.count(), 1);
-      expect(qn1.count(), 2);
-      expect(qn2.count(), 3);
+      expect(qn1.count(), 3);
+      expect(qn2.count(), 4);
 
       [ qs0,qs1,qs2,qs3,qn0,qn1,qn2 ].forEach((q) => q.close());
     });
 
     test(".findIds returns List<int>", () {
-      int idOffset = 1337;
-      box.put(TestEntity.initId(idOffset,   "meh"));
-      box.put(TestEntity.initId(idOffset++, "bleh"));
-      box.put(TestEntity.initId(idOffset++, "bleh"));
-      box.put(TestEntity.initId(idOffset++, "helb"));
-      box.put(TestEntity.initId(idOffset++, "helb"));
-      box.put(TestEntity.initId(idOffset++, "bleh"));
-      box.put(TestEntity.initId(idOffset++, "blh"));
-
-      // broken due to unsupported types
-      /*
-      box.putMany([
-        TestEntity.initId(idOffset++, "bleh"),
-        TestEntity.initId(idOffset++, "helb"),
-        TestEntity.initId(idOffset++, "blh")]);
-     */
+      box.put(TestEntity.initId(0, "meh"));
+      box.put(TestEntity.initId(0, "bleh"));
+      box.put(TestEntity.initId(0, "bleh"));
+      box.put(TestEntity.initId(0, "helb"));
+      box.put(TestEntity.initId(0, "helb"));
+      box.put(TestEntity.initId(0, "bleh"));
+      box.put(TestEntity.initId(0, "blh"));
 
       final text = TestEntity_.text;
 
