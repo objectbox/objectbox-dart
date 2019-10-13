@@ -191,7 +191,6 @@ class QueryBooleanProperty extends QueryProperty {
     return QueryCondition(entityId, propertyId, c);
   }
 
-  // TODO support with byte comparison
   QueryCondition operator == (bool p) => equals(p);
 }
 
@@ -376,7 +375,6 @@ class IntegerCondition extends Condition<int> {
 
   int apply(Pointer<Void> cBuilder, int propertyId) {
     switch (_type) {
-      // TODO support other int-ish types, there might be some loss from int64 to int32
       integer:
       case OBXPropertyType.Int: // 4 bytes
         switch (_op) {
@@ -404,6 +402,8 @@ class IntegerCondition extends Condition<int> {
       case OBXPropertyType.Short:
         continue integer;
       case OBXPropertyType.Char:
+        continue integer;
+      case OBXPropertyType.Bool:
         continue integer;
     }
 
