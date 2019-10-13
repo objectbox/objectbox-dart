@@ -2,7 +2,6 @@ library query;
 
 import "dart:ffi";
 
-import "../box.dart";
 import "../store.dart";
 import "../common.dart";
 import "../bindings/bindings.dart";
@@ -516,19 +515,19 @@ class QueryCondition {
 }
 
 class Query<T> {
-  Pointer<Void> _query;
-  Box<T> _box;
+  Pointer<Void> _cQuery;
+  Store _store;
+  OBXFlatbuffersManager _fbManager;
 
   // package private ctor
-  Query._(Box<T> box, Pointer<Void> qb) {
-    _box = box;
-    _query = checkObxPtr(bindings.obx_query_create(qb), "create query", true);
+  Query._(this._store, this._fbManager, Pointer<Void> cBuilder) {
+    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query", true);
   }
 
   int count() {
     final ptr = Pointer<Uint64>.allocate(count: 1);
     try {
-      checkObx(bindings.obx_query_count(_query, ptr));
+      checkObx(bindings.obx_query_count(_cQuery, ptr));
       return ptr.load();
     }finally {
       ptr.free();
@@ -537,17 +536,16 @@ class Query<T> {
 
   // TODO Document wrap with closure to fake auto close
   void close() {
-    checkObx(bindings.obx_query_close(_query));
+    checkObx(bindings.obx_query_close(_cQuery));
   }
 
-  // TODO reimplement the same marshalling as in Box.getMany???
   T findFirst() {
-    final list = findIds(offset:0, limit:1);
-    return (list == null ? null : _box.get(list.first)) as T;
+    final list = find(offset:0, limit:1);
+    return (list == null ? null : list[0]) as T;
   }
 
   List<int> findIds({int offset=0, int limit=0}) {
-    final structPtr = checkObxPtr(bindings.obx_query_find_ids(_query, offset, limit), "find ids");
+    final structPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
     try {
       final idArray = IDArray.fromAddress(structPtr.address);
       return idArray.ids.length == 0 ? null : idArray.ids;
@@ -557,7 +555,13 @@ class Query<T> {
   }
 
   List<T> find({int offset=0, int limit=0}) {
-    final list = findIds(offset:offset, limit:limit);
-    return list == null ? null : _box.getMany(list);
+    return _store.runInTransaction(TxMode.Read, () {
+      final bytesArray = checkObxPtr(bindings.obx_query_find(_cQuery, offset, limit), "find");
+      try {
+        return _fbManager.unmarshalArray(bytesArray);
+      } finally {
+        bindings.obx_bytes_array_free(bytesArray);
+      }
+    });
   }
 }

@@ -179,6 +179,42 @@ void main() {
       q3.close();
     });
 
+    test(".find returns List<TestEntity>", () {
+      box.put(TestEntity.initInteger(0));
+      box.put(TestEntity.initText("test"));
+      box.put(TestEntity.initText("test"));
+
+      final text = TestEntity_.text;
+
+      var q = box.query(text.notNull()).build();
+      expect (q.find().length, 2);
+      q.close();
+
+      q = box.query(text.isNull()).build();
+      expect (q.find(offset:0, limit: 1).length, 1);
+      q.close();
+    });
+
+    test(".findFirst returns TestEntity", () {
+      box.put(TestEntity.initInteger(0));
+      box.put(TestEntity.initText("test1t"));
+      box.put(TestEntity.initText("test"));
+
+      final text = TestEntity_.text;
+      final number = TestEntity_.number;
+
+      final c = text.startsWith("t") & text.endsWith("t");
+
+      var q = box.query(c).build();
+
+      expect (q.findFirst().text, "test1t");
+      q.close();
+
+      q = box.query(number.notNull()).build();
+      expect (q.findFirst().number, 0);
+      q.close();
+    });
+
     test(".count items after grouping with and/or", () {
       box.put(TestEntity.initText("Hello"));
       box.put(TestEntity.initText("Goodbye"));

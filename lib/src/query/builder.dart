@@ -2,13 +2,13 @@ part of query;
 
 // Construct a tree from the first condition object
 class QueryBuilder<T> {
-  Box<T> _box;
   Store _store;
   int _entityId; // aka model id, entity id
   QueryCondition _queryCondition;
   Pointer<Void> _cBuilder;
+  OBXFlatbuffersManager _fbManager;
 
-  QueryBuilder(this._box, this._store, this._entityId, this._queryCondition);
+  QueryBuilder(this._store, this._fbManager, this._entityId, this._queryCondition);
 
   void _throwExceptionIfNecessary() {
     if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
@@ -87,7 +87,7 @@ class QueryBuilder<T> {
     _parse(_queryCondition); // ignore the return value
 
     try {
-      return Query<T>._(_box, _cBuilder);
+      return Query<T>._(_store, _fbManager, _cBuilder);
     }finally {
       checkObx(bindings.obx_qb_close(_cBuilder));
     }

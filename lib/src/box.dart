@@ -148,7 +148,7 @@ class Box<T> {
             () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
-  QueryBuilder query(QueryCondition qc) => QueryBuilder<T>(this, _store, _modelEntity.id.id, qc);
+  QueryBuilder query(QueryCondition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
   get ptr => _cBox;
 }
