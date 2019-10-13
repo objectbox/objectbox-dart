@@ -262,6 +262,7 @@ void main() {
       QueryCondition c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
       final q = box.query(c).build();
       expect(q.describe(), "Query for entity TestEntity with 10 conditions with properties number, text");
+      q.close();
     });
 
     test(".describeParameters query", () {
@@ -275,6 +276,7 @@ void main() {
         ''' OR (text ==(i) "Cruel")''',
         ''' OR (text ==(i) "World"))'''].join("\n");
       expect(q.describeParameters(), expectedString);
+      q.close();
     });
   });
 
