@@ -51,19 +51,29 @@ void main() {
       final d = TestEntity_.d;
       final b = TestEntity_.b;
 
-      final anyQuery0 = ((d == 0.8) & (b == false)) | ((d == 0.7) & (b == false));
+      final anyQuery0 = ((d == 0.8) & (b == false)) | ((d == 0.7) & (b == false)) as QueryCondition;
+      final anyQuery1 = (d.equals(0.8).and(b.equals(false))).or(d.equals(0.7).and(b.equals(false)));
+      final anyQuery2 = d.equals(0.8).and(b.equals(false)).or(d.equals(0.7).and(b.equals(false)));
+      final anyQuery3 = d.equals(0.8).and(b.equals(false)).or(d.equals(0.7)).and(b.equals(false));
 
       final allQuery0 = (d == 0.1) & (b == true);
 
       final q0    = box.query(b.equals(false)).build();
       final qany0 = box.query(anyQuery0 as QueryCondition).build();
+      final qany1 = box.query(anyQuery1 as QueryCondition).build();
+      final qany2 = box.query(anyQuery2 as QueryCondition).build();
+      final qany3 = box.query(anyQuery3 as QueryCondition).build();
+
       final qall0 = box.query(allQuery0 as QueryCondition).build();
 
       expect(q0.count(), 2);
-      expect(qany0.count(), 3);
+      expect(qany0.count(), 1);
+      expect(qany1.count(), 1);
+      expect(qany2.count(), 1);
+      expect(qany3.count(), 1);
       expect(qall0.count(), 1);
 
-      [ q0, qany0, qall0 ].forEach((q) => q.close());
+      [ q0, qany0, qany1, qany2, qany3, qall0 ].forEach((q) => q.close());
     });
 
     test(".count matches of `greater` and `less`", () {
@@ -221,13 +231,6 @@ void main() {
 
       final selfInference1 = (text == "Hello") & (number == 1337);
       final selfInference2 = (text == "Hello") | (number == 1337);
-      // QueryCondition cond0 = (text == "Hello") | (number == 1337); // TODO research why broken without the cast
-
-      /*
-      // doesn't work
-      final anyGroupCondition0 = <QueryCondition>[text == "meh", text == "bleh"];
-      final allGroupCondition0 = <QueryCondition>[text == "Goodbye", number == 1337];
-      */
 
       final anyGroupCondition0 = <QueryCondition>[text.equals("meh"), text.equals("bleh")];
       final allGroupCondition0 = <QueryCondition>[text.equals("Goodbye"), number.equals(1337)];
@@ -253,8 +256,29 @@ void main() {
       final number = TestEntity_.number;
       QueryCondition c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
       final q = box.query(c).build();
-      expect(q.describe(), "Query for entity TestEntity with 10 conditions with properties number, text");
+      // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
+      expect(q.describe(), "Query for entity TestEntity with 7 conditions with properties number, text");
       q.close();
+
+      for (int j=1; j<20; j++) {
+        final tc = text.equals("Hello");
+        for (int i=0; i<j; i++) {
+          tc.or(text.endsWith("lo"));
+        }
+        final q = box.query(tc).build();
+        expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties text''');
+        q.close();
+      }
+
+      for (int j=1; j<20; j++) {
+        final tc = text.equals("Hello");
+        for (int i=0; i<j; i++) {
+          tc.and(text.startsWith("lo"));
+        }
+        final q = box.query(tc).build();
+        expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties text''');
+        q.close();
+      }
     });
 
     test(".describeParameters query", () {
@@ -264,11 +288,36 @@ void main() {
       final q = box.query(c).build();
       final expectedString = ['''((text ==(i) "Goodbye"''',
         ''' AND number == 1337)''',
-        ''' OR (number == 1337)''',
-        ''' OR (text ==(i) "Cruel")''',
-        ''' OR (text ==(i) "World"))'''].join("\n");
+        ''' OR number == 1337''',
+        ''' OR text ==(i) "Cruel"''',
+        ''' OR text ==(i) "World")'''].join("\n");
       expect(q.describeParameters(), expectedString);
       q.close();
+
+      for (int j=1; j<20; j++) {
+        final tc = text.equals("Goodbye");
+        var expected = ['''text ==(i) "Goodbye"'''];
+        for (int i=0; i<j; i++) {
+          tc.and(text.endsWith("ye"));
+          expected.add(''' AND text ends with(i) "ye"''');
+        }
+        final q = box.query(tc).build();
+        expect(q.describeParameters(), '''(${expected.join("\n")})''');
+        q.close();
+      }
+
+      for (int j=1; j<20; j++) {
+        final tc = text.equals("Goodbye");
+        var expected = ['''text ==(i) "Goodbye"'''];
+        for (int i=0; i<j; i++) {
+          tc.or(text.startsWith("Good"));
+          expected.add(''' OR text starts with(i) "Good"''');
+        }
+        final q = box.query(tc).build();
+        expect(q.describeParameters(), '''(${expected.join("\n")})''');
+        q.close();
+      }
+
     });
   });
 

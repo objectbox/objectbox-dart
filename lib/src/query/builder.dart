@@ -51,32 +51,40 @@ class QueryBuilder<T> {
   }
 
   int _createAllGroup(List<QueryCondition> list) {
-    return _createGroup(list.map((qc) => qc._root ? _create(qc) : _parse(qc)).toList(), bindings.obx_qb_all);
+    if (list.length == 1) {
+      return _create(list[0]);
+    }else {
+      return _createGroup(list.map((qc) => qc._hasChildren ? _parse(qc) : _create(qc)).toList(), bindings.obx_qb_all);
+    }
   }
 
   int _createAnyGroup(List<int> list) {
+    if (list.length == 1) {
+      return list[0];
+    }
     return _createGroup(list, bindings.obx_qb_any);
   }
 
   int _parse(QueryCondition qc) {
 
-    assert (qc != null && _cBuilder != null);
+    // 1st condition: duh
+    // 2nd condition: covered by _hasChildren
+    // 3rd no dead boxes
+    // assert (qc != null && qc._anyGroups != null && _cBuilder != null);
 
-    final anyGroup = qc._anyGroups;
+    var anyGroup = qc._anyGroups;
 
-    if (anyGroup == null) {
-      return _create(qc);
-    }
+    // don't go into inf recursion, on the same object
+    qc._hasChildren = false;
+
+    // prepend root condition
+    anyGroup[0] = <QueryCondition>[qc] + anyGroup[0];
 
     if (anyGroup.length == 1) {
-      if (anyGroup[0].length == 1) {
-        return _create(qc);
-      }else /* if anyGroup.length == 1 then only apply 'all' */ {
-        return _createAllGroup(anyGroup[0]);
-      }
-    }else /* if anyGroup.length > 1 then apply 'any' */ {
-      return _createAnyGroup(anyGroup.map((qcList) => _createAllGroup(qcList)).toList());
+      return _createAllGroup(anyGroup[0]);
     }
+
+    return _createAnyGroup(anyGroup.map((qcList) => _createAllGroup(qcList)).toList());
   }
 
   Query build() {
@@ -84,7 +92,11 @@ class QueryBuilder<T> {
 
     // TODO pass an empty map to collect properytIds per OrderFlag in `_parse`
     // parse the anyGroup tree in recursion
-    _parse(_queryCondition); // ignore the return value
+    if (_queryCondition._hasChildren) {
+      _parse(_queryCondition);
+    }else {
+      _create(_queryCondition);
+    }
 
     try {
       return Query<T>._(_store, _fbManager, _cBuilder);

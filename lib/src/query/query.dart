@@ -466,7 +466,7 @@ class DoubleCondition extends Condition<double> {
  * the chain.
  */
 class QueryCondition {
-  bool _root = true;
+  bool _hasChildren = false;
   int _entityId, _propertyId;
   Condition _condition;
   List<List<QueryCondition>> _anyGroups; // all
@@ -480,37 +480,31 @@ class QueryCondition {
   // || is not overridable
   QueryCondition operator|(QueryCondition rh) => or(rh);
 
-  // TODO remove later
-  void debug() {
-    _anyGroups?.forEach((qc) => qc.map((c) => c._condition).forEach((c) => print("${c._value}")));
-    print("anyGroup size: ${_anyGroups.length}");
+  void _initAnyGroupList() {
+    _anyGroups ??= <List<QueryCondition>>[];
   }
 
-  void _initAnyGroupList(QueryCondition qc) {
-    _anyGroups ??= <List<QueryCondition>>[];
-    if (_anyGroups.length < _group) {
+  void _initAllGroupList() {
+    while (_anyGroups.length < _group) {
       _anyGroups.add(<QueryCondition>[]);
     }
-    _anyGroups[_group - 1].add(qc);
+  }
+
+  QueryCondition _add(QueryCondition rh) {
+    _hasChildren = true;
+    _initAnyGroupList();
+    _initAllGroupList();
+    _anyGroups[_group - 1].add(rh);
+    return this;
   }
 
   QueryCondition or(QueryCondition rh) {
-    rh._root = false;
-    if (_anyGroups == null) {
-      _initAnyGroupList(this);
-    }
     _group++;
-    _initAnyGroupList(rh);
-    return this;
+    return _add(rh);
   }
 
   QueryCondition and(QueryCondition rh) {
-    rh._root = false;
-    if (_anyGroups == null) {
-      _initAnyGroupList(this);
-    }
-    _initAnyGroupList(rh);
-    return this;
+    return _add(rh);
   }
 }
 
