@@ -98,8 +98,8 @@ class ByteBufferArray {
   _SerializedByteBufferArray toOBXBytesArray() {
     Pointer<Uint64> bufferPtrs = Pointer<Uint64>.allocate(count: _buffers.length * 2);
     for (int i = 0; i < _buffers.length; ++i) {
-      bufferPtrs.elementAt(2 * i).store(_buffers[i].ptr.address);
-      bufferPtrs.elementAt(2 * i + 1).store(_buffers[i].size);
+      bufferPtrs.elementAt(2 * i).store(_buffers[i].ptr.address as int);
+      bufferPtrs.elementAt(2 * i + 1).store(_buffers[i].size as int);
     }
 
     Pointer<Uint64> outerPtr = Pointer<Uint64>.allocate(count: 2);
