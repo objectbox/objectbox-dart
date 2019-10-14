@@ -43,10 +43,10 @@ class Box<T> {
   }
 
   // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
-  int put(T inst, {_PutMode mode = _PutMode.Put}) {
-    var propVals = _entityReader(inst);
+  int put(T object, {_PutMode mode = _PutMode.Put}) {
+    var propVals = _entityReader(object);
     if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
-      final id = bindings.obx_box_id_for_put(_cBox, 0);
+      final id = bindings.obx_box_id_for_put(_cBox, 0); // TODO check error if 0 was returned instead of an ID
       propVals[_modelEntity.idPropName] = id;
     }
 
@@ -59,32 +59,40 @@ class Box<T> {
   }
 
   // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
-  List<int> putMany(List<T> insts, {_PutMode mode = _PutMode.Put}) {
-    if (insts.length == 0) return [];
+  List<int> putMany(List<T> objects, {_PutMode mode = _PutMode.Put}) {
+    if (objects.length == 0) return [];
 
     // read all property values and find number of instances where ID is missing
-    var allPropVals = insts.map(_entityReader).toList();
-    int numInstsMissingId = 0;
-    for (var instPropVals in allPropVals)
-      if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
-        ++numInstsMissingId;
-
-    // generate new IDs for these instances and set them
-    Pointer<Uint64> firstIdMemory;
-    if (numInstsMissingId != 0) {
-      firstIdMemory = Pointer<Uint64>.allocate(count: 1);
-      checkObx(bindings.obx_box_ids_for_put(_cBox, numInstsMissingId, firstIdMemory));
-      int nextId = firstIdMemory.load<int>();
-      firstIdMemory.free();
-      for (var instPropVals in allPropVals)
-        if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0)
-          instPropVals[_modelEntity.idPropName] = nextId++;
+    var allPropVals = objects.map(_entityReader).toList();
+    int missingIdsCount = 0;
+    for (var instPropVals in allPropVals) {
+      if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0) {
+        ++missingIdsCount;
+      }
     }
 
-    // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box, generate this list now (only needed if not all IDs have been generated)
-    Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: insts.length);
+    // generate new IDs for these instances and set them
+    if (missingIdsCount != 0) {
+      int nextId = 0;
+      Pointer<Uint64> nextIdPtr = Pointer<Uint64>.allocate(count: 1);
+      try {
+        checkObx(bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
+        nextId = nextIdPtr.load<int>();
+      } finally {
+        nextIdPtr.free();
+      }
+      for (var instPropVals in allPropVals) {
+        if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0) {
+          instPropVals[_modelEntity.idPropName] = nextId++;
+        }
+      }
+    }
+
+    // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
+    // generate this list now (only needed if not all IDs have been generated)
+    Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: objects.length);
     for (int i = 0; i < allPropVals.length; ++i)
-      allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName]);
+      allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
 
     // marshal all objects to be put into the box
     var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
@@ -135,16 +143,15 @@ class Box<T> {
     var idArray = new IDArray(ids);
 
     try {
-      return _getMany(() => checkObxPtr(
-          bindings.obx_box_get_many(_cBox, idArray.ptr), "failed to get many objects from box", true));
+      return _getMany(() =>
+          checkObxPtr(bindings.obx_box_get_many(_cBox, idArray.ptr), "failed to get many objects from box", true));
     } finally {
       idArray.free();
     }
   }
 
   List<T> getAll() {
-    return _getMany(
-        () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
+    return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
   get ptr => _cBox;
