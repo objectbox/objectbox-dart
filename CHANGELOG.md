@@ -1,4 +1,4 @@
-0.3.0 (2019-10-14)
+0.3.0 (2019-10-15)
 ------------------
 * ID/UID generation and model persistence (objectbox-model.json)
 * CI tests using GitHub Actions
