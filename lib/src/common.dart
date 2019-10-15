@@ -1,37 +1,36 @@
 import "dart:ffi";
 
 import "bindings/bindings.dart";
-import "ffi/cstring.dart";
+import "package:ffi/ffi.dart";
 
-class Common {
-    static List<int> version() {
-        Pointer<Int32> majorPtr = Pointer<Int32>.allocate(),  minorPtr = Pointer<Int32>.allocate(), patchPtr = Pointer<Int32>.allocate();
-        bindings.obx_version(majorPtr, minorPtr, patchPtr);
-        var ret = [majorPtr.load<int>(), minorPtr.load<int>(), patchPtr.load<int>()];
-        majorPtr.free();
-        minorPtr.free();
-        patchPtr.free();
-        return ret;
-    }
+class Version {
+  final int major;
+  final int minor;
+  final int patch;
 
-    static String versionString() {
-        return CString.fromPtr(bindings.obx_version_string()).val;
-    }
+  const Version(this.major, this.minor, this.patch);
 
-    static String lastErrorString([err]) {
-        if(err != null)
-            return "code $err";
+  toString() => "$major.$minor.$patch";
+}
 
-        int last = bindings.obx_last_error_code();
-        int last2 = bindings.obx_last_error_secondary();
-        String desc = CString.fromPtr(bindings.obx_last_error_message()).val;
-        return "code $last, $last2 ($desc)";
-    }
+/// Returns the underlying ObjectBox-C library version
+Version versionLib() {
+  var majorPtr = Pointer<Int32>.allocate(), minorPtr = Pointer<Int32>.allocate(), patchPtr = Pointer<Int32>.allocate();
+
+  try {
+    bindings.obx_version(majorPtr, minorPtr, patchPtr);
+    return Version(majorPtr.load<int>(), minorPtr.load<int>(), patchPtr.load<int>());
+  } finally {
+    majorPtr.free();
+    minorPtr.free();
+    patchPtr.free();
+  }
 }
 
 class ObjectBoxException {
-    final String message;
-    ObjectBoxException(msg) : message = "ObjectBoxException: " + msg;
+  final String message;
 
-    String toString() => message;
+  ObjectBoxException(msg) : message = "ObjectBoxException: " + msg;
+
+  String toString() => message;
 }

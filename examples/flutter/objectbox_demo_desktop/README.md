@@ -14,7 +14,7 @@ When trying out this demo for the first time, you definitely need to run:
 
     flutter packages get
 
-And on first run and whenever you added or changed any classes annotated with ObjectBox's `@Entity(...)`, execute:
+And on first run and whenever you added or changed any classes annotated with ObjectBox's `@Entity()`, execute:
 
     flutter pub run build_runner build
     flutter run

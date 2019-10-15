@@ -9,8 +9,8 @@ However, the ObjectBox core supports many more features, e.g. queries, indexing,
 To bring all these features to Dart, we're asking the community to help out. PRs are more than welcome!
 The ObjectBox team will try its best to guide you and answer questions. 
 
-### Open Development Process
-
+Contributing
+------------------
 This project is completely managed here on GitHub using its [issue tracker](https://github.com/objectbox/objectbox-dart/issues) and [project boards](https://github.com/objectbox/objectbox-dart/projects).
 
 To prepare an upcoming version, we create a (Kanban like) board for it.
@@ -24,30 +24,36 @@ Issues on the board are referred to as "cards" which move from left to right:
 * Once a task is considered complete (e.g. PR is made), put it in the "Review" column.
 * Once another person had a look and is happy, the task is finally moved to "Done"
  
-Anyone can contribute in this process. Look for tasks having a **"help wanted"** tag.
+Anyone can contribute, be it by coding, improving docs or just proposing a new feature. 
+Look for tasks having a **"help wanted"** tag.
 
-### Feedback
-
+#### Feedback
 Also, please let us know your feedback by opening an issue:
 for example, if you experience errors or if you have ideas for how to improve the API.
 Thanks!
+
+#### Code style
+Please make sure that all code submitted via Pull Request is formatted using `dartfmt -l 120`. 
+You can configure your IDE to do this automatically, e.g. VS Code needs the project-specific settings 
+`"editor.defaultFormatter": "Dart-Code.dart-code"` and `"dart.lineLength": 120`.
 
 Getting started
 ---------------
 To try out the demo code in this repository, follow these steps:
 
-1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide: `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7` (answer Y when it asks about installing to /usr/lib).
+1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide: 
+   `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7` (answer Y when it asks about installing to /usr/lib).
 2. Back in this repository, run `pub get`.
-3. Execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
-4. Finally run `pub run test test/test.dart` to run the unit tests.
+3. Execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart 
+   (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
+4. Finally run `pub run test` to run the unit tests.
 
 Dart integration
 ----------------
 In general, Dart class annotations are used to mark classes as ObjectBox entities and provide meta information.
 Note that right now, only a limited set of types is supported; this will be expanded upon in the near future.
-Entity IDs and UIDs that are defined in their respective annotations need to be unique across all entities, while property IDs only need to be unique in their respective entity; property UIDs also need to be globally unique.
-
-All non-annotated class instance variables are ignored by ObjectBox.
+Entity IDs and UIDs that are defined in their respective annotations need to be unique across all entities, while 
+property IDs only need to be unique in their respective entity; property UIDs also need to be globally unique.
 
 ### Object IDs
 
@@ -57,20 +63,15 @@ New (not yet persisted) objects typically have _Id_ value of `0` or `null`: call
 
 ### Example
 
-*Note:* specifying the (meta model) IDs in annotations manually is a temporary quick solution.
-In a later version, you won't have to do this the and e.g. `@Property(id: 2, uid: 1002)` can be dropped completely.
-As specified in step 3 of the _Getting started_ section, Dart's _build\_runner_ and _source\_gen_ are currently used and the generator will be extended to automatically manage the meta model IDs in the future.
-
 ```dart
-import "../lib/objectbox.dart";
-part "test.g.dart";
+import "package:objectbox/objectbox.dart";
+part "note.g.dart";
 
-@Entity(id: 1, uid: 1)
+@Entity()
 class Note {
-    @Id(id: 1, uid: 1001)       // automatically always 'int' in Dart code and 'Long' in ObjectBox
+    @Id()       // automatically always 'int' in Dart code and 'Long' in ObjectBox
     int id;
 
-    @Property(id: 2, uid: 1002)
     String text;
 
     Note();             // empty default constructor needed
@@ -83,7 +84,7 @@ In your main function, you can then create a _store_ which needs an array of you
 Finally, you need a _box_, representing the interface for objects of one specific entity type.
 
 ```dart
-var store = Store([[Note, Note_OBXDefs]]);
+var store = Store([Note_OBXDefs]);
 var box = Box<Note>(store);
 
 var note = Note.construct("Hello");

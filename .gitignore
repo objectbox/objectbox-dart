@@ -4,4 +4,10 @@
 **/pubspec.lock
 misc/
 .idea/
+download/
+lib/*.dll
+lib/*.dylib
+lib/*.so
+lib/*.a
+.vscode/
 **/*.g.dart
