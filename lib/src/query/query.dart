@@ -517,16 +517,16 @@ class Query<T> {
 
   T findFirst() {
     final list = find(offset:0, limit:1);
-    return ((list == null || list.length == 0) ? null : list[0]) as T;
+    return (list.length == 0 ? null : list[0]) as T;
   }
 
   List<int> findIds({int offset=0, int limit=0}) {
-    final structPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
+    final idArrayPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
     try {
-      final idArray = IDArray.fromAddress(structPtr.address);
-      return idArray.ids.length == 0 ? null : idArray.ids;
+      OBX_id_array idArray = idArrayPtr.load();
+      return idArray.length == 0 ? List<int>() : idArray.items();
     }finally {
-      bindings.obx_id_array_free(structPtr);
+      bindings.obx_id_array_free(idArrayPtr);
     }
   }
 

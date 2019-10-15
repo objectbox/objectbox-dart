@@ -164,7 +164,7 @@ void main() {
 
       expect(result0.length, 7); // TODO off by one bug?
       expect(result2.length, 1);
-      expect(result3, null);
+      expect(result3.length, 0);
 
       q0.close();
       q2.close();
