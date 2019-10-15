@@ -374,60 +374,42 @@ class IntegerCondition extends Condition<int> {
   }
 
   int apply(Pointer<Void> cBuilder, int propertyId) {
-    switch (_type) {
-      integer:
-      case OBXPropertyType.Int: // 4 bytes
-        switch (_op) {
-          case ConditionOp.eq:
-            return _op1(
-                cBuilder, propertyId, bindings.obx_qb_int_equal);
-          case ConditionOp.not_eq:
-            return _op1(
-                cBuilder, propertyId, bindings.obx_qb_int_not_equal);
-          case ConditionOp.gt:
-            return _op1(
-                cBuilder, propertyId, bindings.obx_qb_int_greater);
-          case ConditionOp.lt:
-            return _op1(
-                cBuilder, propertyId, bindings.obx_qb_int_less);
-          case ConditionOp.tween:
-            return bindings.obx_qb_int_between(
-                cBuilder, propertyId, _value, _value2);
+    switch (_op) {
+      case ConditionOp.eq:
+        return _op1(
+          cBuilder, propertyId, bindings.obx_qb_int_equal);
+      case ConditionOp.not_eq:
+        return _op1(
+          cBuilder, propertyId, bindings.obx_qb_int_not_equal);
+      case ConditionOp.gt:
+        return _op1(
+          cBuilder, propertyId, bindings.obx_qb_int_greater);
+      case ConditionOp.lt:
+        return _op1(
+          cBuilder, propertyId, bindings.obx_qb_int_less);
+      case ConditionOp.tween:
+        return bindings.obx_qb_int_between(
+          cBuilder, propertyId, _value, _value2);
+      case ConditionOp.inside:
+        switch (_type) {
+          case OBXPropertyType.Int:
+            return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_in);
+          case OBXPropertyType.Long:
+            return _opList64(cBuilder, propertyId, bindings.obx_qb_int64_in);
+          default:
+            throw Exception("Unsupported type for IN: ${_type}");
         }
         break;
-      case OBXPropertyType.Long:
-        continue integer;
-      case OBXPropertyType.Byte:
-        continue integer;
-      case OBXPropertyType.Short:
-        continue integer;
-      case OBXPropertyType.Char:
-        continue integer;
-      case OBXPropertyType.Bool:
-        continue integer;
-    }
-
-    switch (_op) {
-      case ConditionOp.inside:
-        {
-          switch (_type) {
-            case OBXPropertyType.Int:
-              return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_in);
-            case OBXPropertyType.Long:
-              return _opList64(cBuilder, propertyId, bindings.obx_qb_int64_in);
-          }
-          break;
-        }
       case ConditionOp.not_in:
-        {
-          switch (_type) {
-            case OBXPropertyType.Int:
-              return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_not_in);
-            case OBXPropertyType.Long:
-              return _opList64(cBuilder, propertyId, bindings.obx_qb_int64_not_in);
-          }
-          break;
+        switch (_type) {
+          case OBXPropertyType.Int:
+            return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_not_in);
+          case OBXPropertyType.Long:
+            return _opList64(cBuilder, propertyId, bindings.obx_qb_int64_not_in);
+          default:
+            throw Exception("Unsupported type for IN: ${_type}");
         }
+        break;
       default:
         throw Exception("Unsupported operation ${_op.toString()}");
     }
