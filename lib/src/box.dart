@@ -52,9 +52,12 @@ class Box<T> {
 
     // put object into box and free the buffer
     ByteBuffer buffer = _fbManager.marshal(propVals);
-    checkObx(bindings.obx_box_put(
-        _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
-    buffer.free();
+    try {
+      checkObx(bindings.obx_box_put(
+          _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+    } finally {
+      buffer.free();
+    }
     return propVals[_modelEntity.idPropName];
   }
 
@@ -91,15 +94,20 @@ class Box<T> {
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
     // generate this list now (only needed if not all IDs have been generated)
     Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: objects.length);
-    for (int i = 0; i < allPropVals.length; ++i)
-      allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
+    try {
+      for (int i = 0; i < allPropVals.length; ++i)
+        allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
 
-    // marshal all objects to be put into the box
-    var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
-
-    checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
-    putObjects.free();
-    allIdsMemory.free();
+      // marshal all objects to be put into the box
+      var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
+      try {
+        checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+      } finally {
+        putObjects.free();
+      }
+    } finally {
+      allIdsMemory.free();
+    }
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 
@@ -109,15 +117,19 @@ class Box<T> {
 
     // get element with specified id from database
     return _store.runInTransaction(TxMode.Read, () {
-      checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
+      ByteBuffer buffer;
+      try {
+        checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
 
-      Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
-      var size = sizePtr.load<int>();
+        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
+        var size = sizePtr.load<int>();
 
-      // transform bytes from memory to Dart byte list
-      var buffer = ByteBuffer(data, size);
-      dataPtr.free();
-      sizePtr.free();
+        // transform bytes from memory to Dart byte list
+        buffer = ByteBuffer(data, size);
+      } finally {
+        dataPtr.free();
+        sizePtr.free();
+      }
 
       return _fbManager.unmarshal(buffer);
     });
