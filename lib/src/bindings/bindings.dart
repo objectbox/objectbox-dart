@@ -126,7 +126,7 @@ class _ObjectBoxBindings {
     if (Platform.isWindows)
       libName += ".dll";
     else if (Platform.isMacOS)
-      libName = "lib" + libName + ".dylib";
+      libName = "lib/lib" + libName + ".dylib";
     else if (Platform.isLinux || Platform.isAndroid)
       libName = "lib" + libName + ".so";
     else
