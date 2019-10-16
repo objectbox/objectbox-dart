@@ -4,7 +4,7 @@ part of query;
 class QueryBuilder<T> {
   Store _store;
   int _entityId; // aka model id, entity id
-  QueryCondition _queryCondition;
+  ConditionGroup _queryCondition;
   Pointer<Void> _cBuilder;
   OBXFlatbuffersManager _fbManager;
 
@@ -17,15 +17,15 @@ class QueryBuilder<T> {
     }
   }
 
-  int _create(QueryCondition qc) {
+  int _create(ConditionGroup qc) {
     Condition condition = qc._condition;
     int propertyId = qc._propertyId;
 
     try {
       switch (condition._op) {
-        case ConditionOp.nil:
+        case ConditionOp.isNull:
           return condition._nullness(_cBuilder, propertyId, bindings.obx_qb_null);
-        case ConditionOp.not_nil:
+        case ConditionOp.notNull:
           return condition._nullness(_cBuilder, propertyId, bindings.obx_qb_not_null);
         default:
           break;
@@ -50,7 +50,7 @@ class QueryBuilder<T> {
     }
   }
 
-  int _createAllGroup(List<QueryCondition> list) {
+  int _createAllGroup(List<ConditionGroup> list) {
     if (list.length == 1) {
       return _create(list[0]);
     }else {
@@ -65,7 +65,7 @@ class QueryBuilder<T> {
     return _createGroup(list, bindings.obx_qb_any);
   }
 
-  int _parse(QueryCondition qc) {
+  int _parse(ConditionGroup qc) {
 
     // 1st condition: duh
     // 2nd condition: covered by _hasChildren
@@ -78,7 +78,7 @@ class QueryBuilder<T> {
     qc._hasChildren = false;
 
     // prepend root condition
-    anyGroup[0] = <QueryCondition>[qc] + anyGroup[0];
+    anyGroup[0] = <ConditionGroup>[qc] + anyGroup[0];
 
     if (anyGroup.length == 1) {
       return _createAllGroup(anyGroup[0]);

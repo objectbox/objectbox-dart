@@ -28,185 +28,185 @@ class QueryProperty {
   int propertyId, entityId, type;
   QueryProperty(this.entityId, this.propertyId, this.type);
 
-  QueryCondition isNull() {
+  ConditionGroup isNull() {
     // the integer serves as a dummy type, to initialize the base type
-    final c = IntegerCondition(ConditionOp.nil, type, null, null);
-    return new QueryCondition(entityId, propertyId, c);
+    final c = IntegerCondition(ConditionOp.isNull, type, null, null);
+    return new ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition notNull() {
-    final c = IntegerCondition(ConditionOp.not_nil, type, null, null);
-    return new QueryCondition(entityId, propertyId, c);
+  ConditionGroup notNull() {
+    final c = IntegerCondition(ConditionOp.notNull, type, null, null);
+    return new ConditionGroup(entityId, propertyId, c);
   }
 }
 
 class QueryStringProperty extends QueryProperty {
   QueryStringProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
-  QueryCondition _op(String p, ConditionOp cop, [bool caseSensitive = false, bool descending = false]) {
+  ConditionGroup _op(String p, ConditionOp cop, [bool caseSensitive = false, bool descending = false]) {
     final c = StringCondition(cop, type, p, null, caseSensitive, descending);
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition _opWithEqual(String p, ConditionOp cop, [bool caseSensitive = false, bool withEqual = false]) {
+  ConditionGroup _opWithEqual(String p, ConditionOp cop, [bool caseSensitive = false, bool withEqual = false]) {
     final c = StringCondition._withEqual(cop, type, p, caseSensitive, withEqual);
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition _opList(List<String> list, ConditionOp cop, [bool caseSensitive = false]) {
+  ConditionGroup _opList(List<String> list, ConditionOp cop, [bool caseSensitive = false]) {
     final c = StringCondition._fromList(cop, type, list, caseSensitive);
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition equals(String p, {bool caseSensitive = false}) {
+  ConditionGroup equals(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp.eq, caseSensitive, false);
   }
 
-  QueryCondition notEqual(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.not_eq, caseSensitive, false);
+  ConditionGroup notEqual(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp.notEq, caseSensitive, false);
   }
 
-  QueryCondition endsWith(String p, {bool descending = false}) {
-    return _op(p, ConditionOp.string_ends, false, descending);
+  ConditionGroup endsWith(String p, {bool descending = false}) {
+    return _op(p, ConditionOp.stringEnds, false, descending);
   }
 
-  QueryCondition startsWith(String p, {bool descending = false}) {
-    return _op(p, ConditionOp.string_starts, false, descending);
+  ConditionGroup startsWith(String p, {bool descending = false}) {
+    return _op(p, ConditionOp.stringStarts, false, descending);
   }
 
-  QueryCondition contains(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.string_contains, caseSensitive, false);
+  ConditionGroup contains(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp.stringContains, caseSensitive, false);
   }
 
-  QueryCondition inside(List<String> list, {bool caseSensitive = false}) {
+  ConditionGroup inside(List<String> list, {bool caseSensitive = false}) {
     return _opList(list, ConditionOp.inside, caseSensitive);
   }
 
-  QueryCondition notIn(List<String> list, {bool caseSensitive = false}) {
-    return _opList(list, ConditionOp.not_in, caseSensitive);
+  ConditionGroup notIn(List<String> list, {bool caseSensitive = false}) {
+    return _opList(list, ConditionOp.notIn, caseSensitive);
   }
 
-  QueryCondition greaterThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
+  ConditionGroup greaterThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
     return _opWithEqual(p, ConditionOp.gt, caseSensitive, withEqual);
   }
 
-  QueryCondition lessThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
+  ConditionGroup lessThan(String p, {bool caseSensitive = false, bool withEqual = false}) {
     return _opWithEqual(p, ConditionOp.lt, caseSensitive, withEqual);
   }
 
-  QueryCondition operator == (String p) => equals(p);
-//  QueryCondition operator != (String p) => notEqual(p); // not overloadable
+  ConditionGroup operator == (String p) => equals(p);
+//  ConditionGroup operator != (String p) => notEqual(p); // not overloadable
 }
 
 class QueryIntegerProperty extends QueryProperty {
   QueryIntegerProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
-  QueryCondition _op(int p, ConditionOp cop) {
+  ConditionGroup _op(int p, ConditionOp cop) {
     final c = IntegerCondition(cop, type, p, 0);
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition _opList(List<int> list, ConditionOp cop) {
+  ConditionGroup _opList(List<int> list, ConditionOp cop) {
     final c = IntegerCondition.fromList(cop, type, list);
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition equals(int p) {
+  ConditionGroup equals(int p) {
     return _op(p, ConditionOp.eq);
   }
 
-  QueryCondition notEqual(int p) {
-    return _op(p, ConditionOp.not_eq);
+  ConditionGroup notEqual(int p) {
+    return _op(p, ConditionOp.notEq);
   }
 
-  QueryCondition greaterThan(int p) {
+  ConditionGroup greaterThan(int p) {
     return _op(p, ConditionOp.gt);
   }
 
-  QueryCondition lessThan(int p) {
+  ConditionGroup lessThan(int p) {
     return _op(p, ConditionOp.lt);
   }
 
-  QueryCondition operator < (int p) => lessThan(p);
-  QueryCondition operator > (int p) => greaterThan(p);
+  ConditionGroup operator < (int p) => lessThan(p);
+  ConditionGroup operator > (int p) => greaterThan(p);
 
-  QueryCondition inside(List<int> list) {
+  ConditionGroup inside(List<int> list) {
     return _opList(list, ConditionOp.inside);
   }
 
-  QueryCondition notInList(List<int> list) {
-    return _opList(list, ConditionOp.not_in);
+  ConditionGroup notInList(List<int> list) {
+    return _opList(list, ConditionOp.notIn);
   }
 
-  QueryCondition notIn(List<int> list) {
+  ConditionGroup notIn(List<int> list) {
     return notInList(list);
   }
 
-  // QueryCondition operator != (int p) => notEqual(p); // not overloadable
-  QueryCondition operator == (int p) => equals(p);
+  // ConditionGroup operator != (int p) => notEqual(p); // not overloadable
+  ConditionGroup operator == (int p) => equals(p);
 }
 
 class QueryDoubleProperty extends QueryProperty {
 
   QueryDoubleProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
-  QueryCondition _op(ConditionOp op, double p1, double p2) {
+  ConditionGroup _op(ConditionOp op, double p1, double p2) {
     final c = DoubleCondition(op, type, p1, p2);
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition between(double p1, double p2) {
-    return _op(ConditionOp.tween, p1, p2);
+  ConditionGroup between(double p1, double p2) {
+    return _op(ConditionOp.between, p1, p2);
   }
 
   // TODO determine default tolerance: between (target - tolerance, target + tolerance)
-  QueryCondition equals(double p, {double tolerance = 0.01}) {
+  ConditionGroup equals(double p, {double tolerance = 0.01}) {
     final absTolerance = tolerance.abs();
     return between(p - absTolerance, p + absTolerance);
   }
 
-  QueryCondition greaterThan(double p) {
+  ConditionGroup greaterThan(double p) {
     return _op(ConditionOp.gt, p, null);
   }
 
-  QueryCondition lessThan(double p) {
+  ConditionGroup lessThan(double p) {
     return _op(ConditionOp.lt, p, null);
   }
 
-  QueryCondition operator < (double p) => lessThan(p);
-  QueryCondition operator > (double p) => greaterThan(p);
-  QueryCondition operator == (double p) => equals(p);
+  ConditionGroup operator < (double p) => lessThan(p);
+  ConditionGroup operator > (double p) => greaterThan(p);
+  ConditionGroup operator == (double p) => equals(p);
 }
 
 class QueryBooleanProperty extends QueryProperty {
   QueryBooleanProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
-  QueryCondition equals(bool p) {
+  ConditionGroup equals(bool p) {
     final c  = IntegerCondition(ConditionOp.eq, type, (p ? 1 : 0));
-    return QueryCondition(entityId, propertyId, c);
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition notEqual(bool p) {
-    final c  = IntegerCondition(ConditionOp.not_eq, type, (p ? 1 : 0));
-    return QueryCondition(entityId, propertyId, c);
+  ConditionGroup notEqual(bool p) {
+    final c  = IntegerCondition(ConditionOp.notEq, type, (p ? 1 : 0));
+    return ConditionGroup(entityId, propertyId, c);
   }
 
-  QueryCondition operator == (bool p) => equals(p);
+  ConditionGroup operator == (bool p) => equals(p);
 }
 
 enum ConditionOp {
-  nil,
-  not_nil,
+  isNull,
+  notNull,
   eq,
-  not_eq,
-  string_contains,
-  string_starts,
-  string_ends,
+  notEq,
+  stringContains,
+  stringStarts,
+  stringEnds,
   gt,
   lt,
   inside,
-  not_in,
-  tween,
+  notIn,
+  between,
   all,
   any
 }
@@ -290,16 +290,16 @@ class StringCondition extends Condition<String> {
     switch (_op) {
       case ConditionOp.eq:
         return _op1(cBuilder, propertyId, bindings.obx_qb_string_equal);
-      case ConditionOp.not_eq:
+      case ConditionOp.notEq:
         return _op1(
             cBuilder, propertyId, bindings.obx_qb_string_not_equal);
-      case ConditionOp.string_contains:
+      case ConditionOp.stringContains:
         return _op1(
             cBuilder, propertyId, bindings.obx_qb_string_contains);
-      case ConditionOp.string_starts:
+      case ConditionOp.stringStarts:
         return _op1(
             cBuilder, propertyId, bindings.obx_qb_string_starts_with);
-      case ConditionOp.string_ends:
+      case ConditionOp.stringEnds:
         return _op1(
             cBuilder, propertyId, bindings.obx_qb_string_ends_with);
       case ConditionOp.lt:
@@ -378,7 +378,7 @@ class IntegerCondition extends Condition<int> {
       case ConditionOp.eq:
         return _op1(
           cBuilder, propertyId, bindings.obx_qb_int_equal);
-      case ConditionOp.not_eq:
+      case ConditionOp.notEq:
         return _op1(
           cBuilder, propertyId, bindings.obx_qb_int_not_equal);
       case ConditionOp.gt:
@@ -387,7 +387,7 @@ class IntegerCondition extends Condition<int> {
       case ConditionOp.lt:
         return _op1(
           cBuilder, propertyId, bindings.obx_qb_int_less);
-      case ConditionOp.tween:
+      case ConditionOp.between:
         return bindings.obx_qb_int_between(
           cBuilder, propertyId, _value, _value2);
       case ConditionOp.inside:
@@ -400,7 +400,7 @@ class IntegerCondition extends Condition<int> {
             throw Exception("Unsupported type for IN: ${_type}");
         }
         break;
-      case ConditionOp.not_in:
+      case ConditionOp.notIn:
         switch (_type) {
           case OBXPropertyType.Int:
             return _opList32(cBuilder, propertyId, bindings.obx_qb_int32_not_in);
@@ -431,7 +431,7 @@ class DoubleCondition extends Condition<double> {
         cBuilder, propertyId, bindings.obx_qb_double_greater);
       case ConditionOp.lt:
         return _op1(cBuilder, propertyId, bindings.obx_qb_double_less);
-      case ConditionOp.tween:
+      case ConditionOp.between:
         return bindings.obx_qb_double_between(
             cBuilder, propertyId, _value, _value2);
       default:
@@ -447,32 +447,32 @@ class DoubleCondition extends Condition<double> {
  * This design allows nested chains inside
  * the chain.
  */
-class QueryCondition {
+class ConditionGroup {
   bool _hasChildren = false;
   int _entityId, _propertyId;
   Condition _condition;
-  List<List<QueryCondition>> _anyGroups; // all
+  List<List<ConditionGroup>> _anyGroups; // all
   int _group = 1;
 
-  QueryCondition(this._entityId, this._propertyId, this._condition);
+  ConditionGroup(this._entityId, this._propertyId, this._condition);
 
   // && is not overridable
-  QueryCondition operator&(QueryCondition rh) => and(rh);
+  ConditionGroup operator&(ConditionGroup rh) => and(rh);
 
   // || is not overridable
-  QueryCondition operator|(QueryCondition rh) => or(rh);
+  ConditionGroup operator|(ConditionGroup rh) => or(rh);
 
   void _initAnyGroupList() {
-    _anyGroups ??= <List<QueryCondition>>[];
+    _anyGroups ??= <List<ConditionGroup>>[];
   }
 
   void _initAllGroupList() {
     while (_anyGroups.length < _group) {
-      _anyGroups.add(<QueryCondition>[]);
+      _anyGroups.add(<ConditionGroup>[]);
     }
   }
 
-  QueryCondition _add(QueryCondition rh) {
+  ConditionGroup _add(ConditionGroup rh) {
     _hasChildren = true;
     _initAnyGroupList();
     _initAllGroupList();
@@ -480,12 +480,12 @@ class QueryCondition {
     return this;
   }
 
-  QueryCondition or(QueryCondition rh) {
+  ConditionGroup or(ConditionGroup rh) {
     _group++;
     return _add(rh);
   }
 
-  QueryCondition and(QueryCondition rh) {
+  ConditionGroup and(ConditionGroup rh) {
     return _add(rh);
   }
 }
