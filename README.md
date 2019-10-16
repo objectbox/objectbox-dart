@@ -107,8 +107,7 @@ Basic querying can be done with e.g.:
 box.putMany([Note(), Note(), Note()]);
 box.put(Note.construct("Hello world!"));
 
-final text = Note_.text;
-final queryNullText = box.query(text.isNull()).build();
+final queryNullText = box.query(Note_.text.isNull()).build();
 
 assert (queryNullText.count() == 3);
 
@@ -120,10 +119,7 @@ Also there is basic operator overloading support for `equal`, `greater`, `less`,
 respectively `==`, `>`, `<`, `&`, `|`.
 
 ```dart
-final anyGroup = <QueryCondition>[text.equals("meh"), text.equals("bleh"), text.contains("Hello")];
-final queryAny = box.queryAny(anyGroup).build();
-
-// equivalent to
+// final box ...
 
 box.query(text.equal("meh").or(text.equal("bleh")).or(text.contains("Hello"))).build();
 
