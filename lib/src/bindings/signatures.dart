@@ -1,8 +1,10 @@
 import "dart:ffi";
+import 'structs.dart';
 
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();
+typedef obx_free_t<T extends NativeType> = Void Function(Pointer<T> ptr);
 typedef obx_free_struct_native_t = Void Function(Pointer<Uint64> structPtr);
 
 // error info
@@ -47,7 +49,7 @@ typedef obx_box_contains_many_native_t = Int32 Function(
     Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains);
 typedef obx_box_get_native_t = Int32 Function(
     Pointer<Void> box, Uint64 id, Pointer<Pointer<Void>> data, Pointer<Int32> size);
-typedef obx_box_get_many_native_t = Pointer<Uint64> Function(Pointer<Void> box, Pointer<Uint64> ids);
+typedef obx_box_get_many_native_t = Pointer<Uint64> Function(Pointer<Void> box, Pointer<OBX_id_array> ids);
 typedef obx_box_get_all_native_t = Pointer<Uint64> Function(Pointer<Void> box);
 typedef obx_box_id_for_put_native_t = Uint64 Function(Pointer<Void> box, Uint64 id_or_zero);
 typedef obx_box_ids_for_put_native_t = Int32 Function(Pointer<Void> box, Uint64 count, Pointer<Uint64> out_first_id);
@@ -114,6 +116,7 @@ typedef obx_query_close_native_t = Int32 Function(Pointer<Void> query);
 typedef obx_query_close_dart_t =   int Function(Pointer<Void> query);
 
 typedef obx_query_find_t<T> = Pointer<Uint64> Function(Pointer<Void> query, T offset, T limit);
+typedef obx_query_find_ids_t<T> = Pointer<OBX_id_array> Function(Pointer<Void> query, T offset, T limit);
 
 typedef obx_query_count_native_t = Int32 Function(Pointer<Void> query, Pointer<Uint64> count);
 typedef obx_query_count_dart_t   = int Function(Pointer<Void> query, Pointer<Uint64> count);

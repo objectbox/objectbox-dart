@@ -1,16 +1,16 @@
 import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
 import "entity.dart";
-import "util.dart";
+import 'test_env.dart';
 
 void main() {
-  Store store;
+  TestEnv env;
   Box box;
 
   group("box", () {
     setUp(() {
-      store = Store([TestEntity_OBXDefs]);
-      box = Box<TestEntity>(store);
+      env = TestEnv("box");
+      box = env.box;
     });
 
     test(".put() returns a valid id", () {
@@ -82,5 +82,5 @@ void main() {
     });
   });
 
-  tearDown(tearDownStorage(store, box));
+  tearDown(() {env.close();});
 }

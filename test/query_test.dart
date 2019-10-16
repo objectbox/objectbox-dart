@@ -1,16 +1,16 @@
 import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
 import "entity.dart";
-import "util.dart";
+import 'test_env.dart';
 
 void main() {
-  Store store;
+  TestEnv env;
   Box box;
 
   group("query", () {
     setUp(() {
-      store = Store([TestEntity_OBXDefs]);
-      box = Box<TestEntity>(store);
+      env = TestEnv("query");
+      box = env.box;
     });
 
     test(".null and .notNull", () {
@@ -164,7 +164,7 @@ void main() {
 
       expect(result0.length, 7); // TODO off by one bug?
       expect(result2.length, 1);
-      expect(result3, null);
+      expect(result3.length, 0);
 
       q0.close();
       q2.close();
@@ -321,5 +321,5 @@ void main() {
     });
   });
 
-  tearDown(tearDownStorage(store, box));
+  tearDown(() {env.close();});
 }
