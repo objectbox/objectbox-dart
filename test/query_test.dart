@@ -232,9 +232,6 @@ void main() {
       final selfInference1 = (text == "Hello") & (number == 1337);
       final selfInference2 = (text == "Hello") | (number == 1337);
 
-      final anyGroupCondition0 = <QueryCondition>[text.equals("meh"), text.equals("bleh")];
-      final allGroupCondition0 = <QueryCondition>[text.equals("Goodbye"), number.equals(1337)];
-
       final q1 = box.query(cond1).build();
       final q2 = box.query(cond2).build();
       final q3 = box.query(cond3).build();
