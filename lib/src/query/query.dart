@@ -41,7 +41,7 @@ class QueryProperty {
 }
 
 class QueryStringProperty extends QueryProperty {
-  QueryStringProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
+  QueryStringProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
   QueryCondition _op(String p, ConditionOp cop, [bool caseSensitive = false, bool descending = false]) {
     final c = StringCondition(cop, type, p, null, caseSensitive, descending);
@@ -99,7 +99,7 @@ class QueryStringProperty extends QueryProperty {
 }
 
 class QueryIntegerProperty extends QueryProperty {
-  QueryIntegerProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
+  QueryIntegerProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
   QueryCondition _op(int p, ConditionOp cop) {
     final c = IntegerCondition(cop, type, p, 0);
@@ -148,7 +148,7 @@ class QueryIntegerProperty extends QueryProperty {
 
 class QueryDoubleProperty extends QueryProperty {
 
-  QueryDoubleProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
+  QueryDoubleProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
   QueryCondition _op(ConditionOp op, double p1, double p2) {
     final c = DoubleCondition(op, type, p1, p2);
@@ -179,7 +179,7 @@ class QueryDoubleProperty extends QueryProperty {
 }
 
 class QueryBooleanProperty extends QueryProperty {
-  QueryBooleanProperty(int entityId, int propertyId, int type) : super(entityId, propertyId, type);
+  QueryBooleanProperty({int entityId, int propertyId, int obxType}) : super(entityId, propertyId, obxType);
 
   QueryCondition equals(bool p) {
     final c  = IntegerCondition(ConditionOp.eq, type, (p ? 1 : 0));

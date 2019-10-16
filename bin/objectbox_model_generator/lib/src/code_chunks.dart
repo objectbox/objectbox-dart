@@ -85,9 +85,7 @@ class CodeChunks {
       }
 
       ret.add("""
-        static final ${name}PropertyType = ${f.type};
-        static final ${name}PropertyId = ${f.id.id};
-        static final ${name} = Query${fieldType}Property(entityId, ${name}PropertyId, ${name}PropertyType);
+        static final ${name} = Query${fieldType}Property(entityId:${readEntity.id.id}, propertyId:${f.id.id}, obxType:${f.type});
         """);
     }
     return ret.join();
@@ -97,7 +95,6 @@ class CodeChunks {
     // TODO add entity.id check to throw an error Box if the wrong entity.property is used
     return """
     class ${readEntity.name}_ {
-      static final entityId = ${readEntity.id.id};
       ${_queryConditionBuilder(readEntity)}
     }""";
   }
