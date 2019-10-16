@@ -126,7 +126,7 @@ box.query(text.equal("meh").or(text.equal("bleh")).or(text.contains("Hello"))).b
 // equivalent to
 
 final overloaded = ((text == "meh") | (text == "bleh")) | text.contains("Hello");
-box.query(overloaded as ConditionGroup).build(); // the cast is necessary due to the type analyzer
+box.query(overloaded as Condition).build(); // the cast is necessary due to the type analyzer
 ```
 
 Basic technical approach

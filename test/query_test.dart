@@ -51,7 +51,7 @@ void main() {
       final d = TestEntity_.d;
       final b = TestEntity_.b;
 
-      final anyQuery0 = ((d == 0.8) & (b == false)) | ((d == 0.7) & (b == false)) as ConditionGroup;
+      final anyQuery0 = ((d == 0.8) & (b == false)) | ((d == 0.7) & (b == false)) as Condition;
       final anyQuery1 = (d.equals(0.8).and(b.equals(false))).or(d.equals(0.7).and(b.equals(false)));
       final anyQuery2 = d.equals(0.8).and(b.equals(false)).or(d.equals(0.7).and(b.equals(false)));
       final anyQuery3 = d.equals(0.8).and(b.equals(false)).or(d.equals(0.7)).and(b.equals(false));
@@ -59,12 +59,12 @@ void main() {
       final allQuery0 = (d == 0.1) & (b == true);
 
       final q0    = box.query(b.equals(false)).build();
-      final qany0 = box.query(anyQuery0 as ConditionGroup).build();
-      final qany1 = box.query(anyQuery1 as ConditionGroup).build();
-      final qany2 = box.query(anyQuery2 as ConditionGroup).build();
-      final qany3 = box.query(anyQuery3 as ConditionGroup).build();
+      final qany0 = box.query(anyQuery0 as Condition).build();
+      final qany1 = box.query(anyQuery1 as Condition).build();
+      final qany2 = box.query(anyQuery2 as Condition).build();
+      final qany3 = box.query(anyQuery3 as Condition).build();
 
-      final qall0 = box.query(allQuery0 as ConditionGroup).build();
+      final qall0 = box.query(allQuery0 as Condition).build();
 
       expect(q0.count(), 2);
       expect(qany0.count(), 1);
@@ -154,10 +154,10 @@ void main() {
       final q0 = box.query(text.notNull()).build();
       final result0 = q0.findIds();
 
-      final q2 = box.query((text == "blh") as ConditionGroup).build();
+      final q2 = box.query((text == "blh") as Condition).build();
       final result2 = q2.findIds();
 
-      final q3 = box.query((text == "can't find this") as ConditionGroup).build();
+      final q3 = box.query((text == "can't find this") as Condition).build();
       final result3 = q3.findIds();
 
       // (result0 + result1 + result2).forEach((i) => print("found id: ${i}"));
@@ -222,12 +222,12 @@ void main() {
       final text = TestEntity_.text;
       final number = TestEntity_.number;
 
-      ConditionGroup cond1 = ((text == "Hello") as ConditionGroup) | ((number == 1337) as ConditionGroup);
-      ConditionGroup cond2 = text.equals("Hello") | number.equals(1337);
-      ConditionGroup cond3 = text.equals("What?").and(text.equals("Hello")).or(text.equals("World"));
-      ConditionGroup cond4 = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
-      ConditionGroup cond5 = text.equals("bleh") & number.equals(-1337);
-      ConditionGroup cond6 = ((text == "Hello") as ConditionGroup) & ((number == 1337) as ConditionGroup);
+      Condition cond1 = ((text == "Hello") as Condition) | ((number == 1337) as Condition);
+      Condition cond2 = text.equals("Hello") | number.equals(1337);
+      Condition cond3 = text.equals("What?").and(text.equals("Hello")).or(text.equals("World"));
+      Condition cond4 = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
+      Condition cond5 = text.equals("bleh") & number.equals(-1337);
+      Condition cond6 = ((text == "Hello") as Condition) & ((number == 1337) as Condition);
 
       final selfInference1 = (text == "Hello") & (number == 1337);
       final selfInference2 = (text == "Hello") | (number == 1337);
@@ -237,8 +237,8 @@ void main() {
       final q3 = box.query(cond3).build();
       final q4 = box.query(cond4).build();
 
-      box.query(selfInference1 as ConditionGroup);
-      box.query(selfInference2 as ConditionGroup);
+      box.query(selfInference1 as Condition);
+      box.query(selfInference2 as Condition);
 
       expect(q1.count(), 3);
       expect(q2.count(), 3);
@@ -251,7 +251,7 @@ void main() {
     test(".describe query", () {
       final text = TestEntity_.text;
       final number = TestEntity_.number;
-      ConditionGroup c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
+      Condition c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
       final q = box.query(c).build();
       // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
       expect(q.describe(), "Query for entity TestEntity with 7 conditions with properties number, text");
@@ -281,7 +281,7 @@ void main() {
     test(".describeParameters query", () {
       final text = TestEntity_.text;
       final number = TestEntity_.number;
-      ConditionGroup c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
+      Condition c = text.equals("Goodbye").and(number.equals(1337)).or(number.equals(1337)).or(text.equals("Cruel")).or(text.equals("World"));
       final q = box.query(c).build();
       final expectedString = ['''((text ==(i) "Goodbye"''',
         ''' AND number == 1337)''',
