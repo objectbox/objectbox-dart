@@ -2,6 +2,7 @@ import "dart:ffi";
 import "dart:io" show Platform;
 
 import "signatures.dart";
+import "structs.dart";
 
 // bundles all C functions to be exposed to Dart
 class _ObjectBoxBindings {
@@ -11,10 +12,11 @@ class _ObjectBoxBindings {
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
   Pointer<Uint8> Function() obx_version_string;
   void Function(Pointer<Uint64> structPtr)
-    obx_bytes_array_free, obx_id_array_free, obx_string_array_free,
+    obx_bytes_array_free, obx_string_array_free,
     obx_int64_array_free, obx_int32_array_free,
     obx_int16_array_free, obx_int8_array_free,
     obx_double_array_free, obx_float_array_free;
+  obx_free_t<OBX_id_array> obx_id_array_free;
 
   // error info
   int Function() obx_last_error_code;
@@ -55,7 +57,7 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, int id, Pointer<Int8> out_contains) obx_box_contains;
   int Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains) obx_box_contains_many;
   int Function(Pointer<Void> box, int id, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
-  Pointer<Uint64> Function(Pointer<Void> box, Pointer<Uint64> ids) obx_box_get_many;
+  Pointer<Uint64> Function(Pointer<Void> box, Pointer<OBX_id_array> ids) obx_box_get_many;
   Pointer<Uint64> Function(Pointer<Void> box) obx_box_get_all;
   int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
   int Function(Pointer<Void> box, int count, Pointer<Uint64> out_first_id) obx_box_ids_for_put;
@@ -106,7 +108,7 @@ class _ObjectBoxBindings {
   obx_query_t obx_query_create;
   obx_query_close_dart_t obx_query_close;
   obx_query_find_t<int> obx_query_find;
-  obx_query_find_t<int> obx_query_find_ids;
+  obx_query_find_ids_t<int> obx_query_find_ids;
 
   obx_query_count_dart_t obx_query_count, obx_query_remove;
 
@@ -135,7 +137,7 @@ class _ObjectBoxBindings {
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
     obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
     obx_bytes_array_free = _fn<obx_free_struct_native_t>("obx_bytes_array_free").asFunction();
-    obx_id_array_free = _fn<obx_free_struct_native_t>("obx_id_array_free").asFunction();
+    obx_id_array_free = _fn<obx_free_t<OBX_id_array>>("obx_id_array_free").asFunction();
     obx_string_array_free = _fn<obx_free_struct_native_t>("obx_string_array_free").asFunction();
     obx_int64_array_free = _fn<obx_free_struct_native_t>("obx_int64_array_free").asFunction();
     obx_int32_array_free = _fn<obx_free_struct_native_t>("obx_int32_array_free").asFunction();
@@ -244,7 +246,7 @@ class _ObjectBoxBindings {
     obx_query_create = _fn<obx_query_t>("obx_query").asFunction();
     obx_query_close = _fn<obx_query_close_native_t>("obx_query_close").asFunction();
 
-    obx_query_find_ids = _fn<obx_query_find_t<Uint64>>("obx_query_find_ids").asFunction();
+    obx_query_find_ids = _fn<obx_query_find_ids_t<Uint64>>("obx_query_find_ids").asFunction();
     obx_query_find     = _fn<obx_query_find_t<Uint64>>("obx_query_find").asFunction();
 
     obx_query_count = _fn<obx_query_count_native_t>("obx_query_count").asFunction();

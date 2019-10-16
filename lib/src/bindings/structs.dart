@@ -2,37 +2,44 @@ import 'dart:ffi';
 import 'dart:convert';
 import "dart:typed_data" show Uint8List, Uint64List;
 
-// TODO reimplement as ffi.Struct
-class IDArray {
-  // wrapper for "struct OBX_id_array"
-  Pointer<Uint64> _idsPtr, _structPtr;
+// Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
-  IDArray(List<int> ids) {
-    _idsPtr = Pointer<Uint64>.allocate(count: ids.length);
-    for (int i = 0; i < ids.length; ++i) _idsPtr.elementAt(i).store(ids[i]);
-    _structPtr = Pointer<Uint64>.allocate(count: 2);
-    _structPtr.store(_idsPtr.address);
-    _structPtr.elementAt(1).store(ids.length);
-  }
+class OBX_id_array extends Struct<OBX_id_array> {
+  /*
+    typedef struct OBX_id_array {
+      obx_id* ids;
+      size_t count;
+    };
+   */
 
-  List<int> _ids; // obx_id === uint64_t
+  Pointer<Uint64> _itemsPtr;
 
-  IDArray.fromAddress(int address) {
-    _structPtr = Pointer<Uint64>.fromAddress(address); // bootstrap
-    _idsPtr = Pointer<Uint64>.fromAddress(_structPtr.load()); // 1st memory location contains vector obx_id*
-    int count = _structPtr.elementAt(1).load<int>(); // 2nd mem loc contains the scalar count
-    final idsPtrBuffer = _idsPtr.asExternalTypedData(count: count).buffer;
-    // Is the ExternalTypedData just referring to the base type of Uint64List?
-    _ids = Uint64List.view(idsPtrBuffer).toList();
-  }
+  @IntPtr() // size_t
+  int length;
 
-  get ids => _ids;
+  /// Get a copy of the list
+  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: length).buffer).toList();
 
-  get ptr => _structPtr;
+  /// Execute the given function, managing the resources consistently
+  static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
+    // allocate a temporary structure
+    final ptr = Pointer<OBX_id_array>.allocate();
 
-  free() {
-    _idsPtr.free();
-    _structPtr.free();
+    // fill it with data
+    OBX_id_array array = ptr.load();
+    array.length = items.length;
+    array._itemsPtr = Pointer<Uint64>.allocate(count: array.length);
+    for (int i = 0; i < items.length; ++i) {
+      array._itemsPtr.elementAt(i).store(items[i]);
+    }
+    
+    // call the function with the structure and free afterwards
+    try {
+      return fn(ptr);
+    } finally {
+      array._itemsPtr.free();
+      ptr.free();
+    }
   }
 }
 
@@ -55,8 +62,11 @@ class ByteBuffer {
   }
 
   get ptr => _ptr;
+
   get voidPtr => Pointer<Void>.fromAddress(_ptr.address);
+
   get address => _ptr.address;
+
   get size => _size;
 
   Uint8List get data {
@@ -73,6 +83,7 @@ class _SerializedByteBufferArray {
       _innerPtr; // outerPtr points to the instance itself, innerPtr points to the respective OBX_bytes_array.bytes
 
   _SerializedByteBufferArray(this._outerPtr, this._innerPtr);
+
   get ptr => _outerPtr;
 
   free() {

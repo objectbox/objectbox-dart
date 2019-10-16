@@ -140,15 +140,9 @@ class Box<T> {
   List<T> getMany(List<int> ids) {
     if (ids.length == 0) return [];
 
-    // write ids in buffer for FFI call
-    var idArray = new IDArray(ids);
-
-    try {
-      return _getMany(() =>
-          checkObxPtr(bindings.obx_box_get_many(_cBox, idArray.ptr), "failed to get many objects from box", true));
-    } finally {
-      idArray.free();
-    }
+    return OBX_id_array.executeWith(ids, (ptr) => _getMany(() =>
+      checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true))
+    );
   }
 
   List<T> getAll() {
