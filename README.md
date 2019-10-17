@@ -41,8 +41,11 @@ Getting started
 ---------------
 To try out the demo code in this repository, follow these steps:
 
-1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide: 
-   `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7` (answer Y when it asks about installing to /usr/lib).
+1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
+   * macOS/Linux: `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7` (answer Y when it asks about installing to /usr/lib).
+   * Windows: 
+        * use "Git Bash" or similar to execute `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7`
+        * copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges)
 2. Back in this repository, run `pub get`.
 3. Execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart 
    (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
