@@ -1,28 +1,16 @@
-import "dart:io";
 import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
-part "box_test.g.dart";
-
-@Entity()
-class TestEntity {
-  @Id()
-  int id;
-
-  String text;
-
-  TestEntity();
-  TestEntity.constructWithId(this.id, this.text);
-  TestEntity.construct(this.text);
-}
+import 'test_env.dart';
+import 'entity.dart';
 
 void main() {
-  Store store;
+  TestEnv env;
   Box box;
 
   group("box", () {
     setUp(() {
-      store = Store([TestEntity_OBXDefs]);
-      box = Box<TestEntity>(store);
+      env = TestEnv("box");
+      box = env.box;
     });
 
     test(".put() returns a valid id", () {
@@ -92,12 +80,7 @@ void main() {
       expect(fetchedItems[1], equals(null));
       expect(fetchedItems[2].text, equals("Two"));
     });
-
-    tearDown(() {
-      if (store != null) store.close();
-      store = null;
-      var dir = new Directory("objectbox");
-      if (dir.existsSync()) dir.deleteSync(recursive: true);
-    });
   });
+
+  tearDown(() {env.close();});
 }
