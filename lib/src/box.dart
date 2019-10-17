@@ -97,7 +97,7 @@ class Box<T> {
     try {
       for (int i = 0; i < allPropVals.length; ++i) {
         allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
-    }
+      }
 
       // marshal all objects to be put into the box
       var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();

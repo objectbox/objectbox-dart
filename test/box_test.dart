@@ -86,5 +86,7 @@ void main() {
     });
   });
 
-  tearDown(() {env.close();});
+  tearDown(() {
+    env.close();
+  });
 }

@@ -82,8 +82,7 @@ class ByteBufferArray {
     Pointer<Uint64> bufferPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>()); // bytesArray.bytes
     int numBuffers = bytesArray.elementAt(1).load<int>(); // bytesArray.count
     for (int i = 0; i < numBuffers; ++i) {
-      _buffers.add(ByteBuffer.fromOBXBytes(
-          bufferPtrs.elementAt(2 * i)));
+      _buffers.add(ByteBuffer.fromOBXBytes(bufferPtrs.elementAt(2 * i)));
     } // 2 * i, because each instance of "struct OBX_bytes" has .data and .size
   }
 

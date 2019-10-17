@@ -20,8 +20,7 @@ class Model {
         var entityUtf8 = Utf8.toUtf8(currentEntity.name);
         try {
           var entityNamePointer = entityUtf8.cast<Uint8>();
-          checkObx(
-              bindings.obx_model_entity(_cModel, entityNamePointer, currentEntity.id.id, currentEntity.id.uid));
+          checkObx(bindings.obx_model_entity(_cModel, entityNamePointer, currentEntity.id.id, currentEntity.id.uid));
         } finally {
           entityUtf8.free();
         }
