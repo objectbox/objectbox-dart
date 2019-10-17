@@ -25,9 +25,9 @@ part "builder.dart";
  * a Query object will be created.
  */
 class QueryProperty {
-  int propertyId, entityId, type;
+  int _propertyId, _entityId, _type;
 
-  QueryProperty(this.entityId, this.propertyId, this.type);
+  QueryProperty(this._entityId, this._propertyId, this._type);
 
   Condition isNull() {
     // the integer serves as a dummy type, to initialize the base type
@@ -250,9 +250,9 @@ abstract class PropertyCondition<DartType> extends Condition {
   int tryApply(QueryBuilder builder) {
     switch (_op) {
       case ConditionOp.isNull:
-        return bindings.obx_qb_null(builder._cBuilder, _property.propertyId);
+        return bindings.obx_qb_null(builder._cBuilder, _property._propertyId);
       case ConditionOp.notNull:
-        return bindings.obx_qb_not_null(builder._cBuilder, _property.propertyId);
+        return bindings.obx_qb_not_null(builder._cBuilder, _property._propertyId);
       default:
         return 0;
     }
@@ -283,7 +283,7 @@ class StringCondition extends PropertyCondition<String> {
     final utf8Str = Utf8.toUtf8(_value);
     try {
       var uint8Str = utf8Str.cast<Uint8>();
-      return func(builder._cBuilder, _property.propertyId, uint8Str, _caseSensitive ? 1 : 0);
+      return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0);
     } finally {
       utf8Str.free();
     }
@@ -298,7 +298,7 @@ class StringCondition extends PropertyCondition<String> {
         var uint8Str = Utf8.toUtf8(_list[i]).cast<Uint8>();
         arrayOfUint8Ptrs.elementAt(i).store(uint8Str);
       }
-      return func(builder._cBuilder, _property.propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
+      return func(builder._cBuilder, _property._propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
     } finally {
       for (int i = 0; i < _list.length; i++) {
         var uint8Str = arrayOfUint8Ptrs.elementAt(i).load();
@@ -312,7 +312,7 @@ class StringCondition extends PropertyCondition<String> {
     final utf8Str = Utf8.toUtf8(_value);
     try {
       var uint8Str = utf8Str.cast<Uint8>();
-      return func(builder._cBuilder, _property.propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
+      return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
     } finally {
       utf8Str.free();
     }
@@ -353,7 +353,7 @@ class IntegerCondition extends PropertyCondition<int> {
   IntegerCondition.fromList(ConditionOp op, QueryProperty prop, List<int> list) : super.fromList(op, prop, list);
 
   int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<int> func) {
-    return func(builder._cBuilder, _property.propertyId, _value);
+    return func(builder._cBuilder, _property._propertyId, _value);
   }
 
   // ideally it should be implemented like this, but this doesn't work, TODO report to google
@@ -381,7 +381,7 @@ class IntegerCondition extends PropertyCondition<int> {
       for (int i = 0; i < length; i++) {
         listPtr.elementAt(i).store(_list[i]);
       }
-      return func(builder._cBuilder, _property.propertyId, listPtr, length);
+      return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
       listPtr.free();
     }
@@ -395,7 +395,7 @@ class IntegerCondition extends PropertyCondition<int> {
       for (int i = 0; i < length; i++) {
         listPtr.elementAt(i).store(_list[i]);
       }
-      return func(builder._cBuilder, _property.propertyId, listPtr, length);
+      return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
       listPtr.free();
     }
@@ -417,25 +417,25 @@ class IntegerCondition extends PropertyCondition<int> {
       case ConditionOp.lt:
         return _op1(builder, bindings.obx_qb_int_less);
       case ConditionOp.between:
-        return bindings.obx_qb_int_between(builder._cBuilder, _property.propertyId, _value, _value2);
+        return bindings.obx_qb_int_between(builder._cBuilder, _property._propertyId, _value, _value2);
       case ConditionOp.inside:
-        switch (_property.type) {
+        switch (_property._type) {
           case OBXPropertyType.Int:
             return _opList32(builder, bindings.obx_qb_int32_in);
           case OBXPropertyType.Long:
             return _opList64(builder, bindings.obx_qb_int64_in);
           default:
-            throw Exception("Unsupported type for IN: ${_property.type}");
+            throw Exception("Unsupported type for IN: ${_property._type}");
         }
         break;
       case ConditionOp.notIn:
-        switch (_property.type) {
+        switch (_property._type) {
           case OBXPropertyType.Int:
             return _opList32(builder, bindings.obx_qb_int32_not_in);
           case OBXPropertyType.Long:
             return _opList64(builder, bindings.obx_qb_int64_not_in);
           default:
-            throw Exception("Unsupported type for IN: ${_property.type}");
+            throw Exception("Unsupported type for IN: ${_property._type}");
         }
         break;
       default:
@@ -448,7 +448,7 @@ class DoubleCondition extends PropertyCondition<double> {
   DoubleCondition(ConditionOp op, QueryProperty prop, double value, double value2) : super(op, prop, value, value2);
 
   int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<double> func) {
-    return func(builder._cBuilder, _property.propertyId, _value);
+    return func(builder._cBuilder, _property._propertyId, _value);
   }
 
   int apply(QueryBuilder builder, bool isRoot) {
@@ -463,7 +463,7 @@ class DoubleCondition extends PropertyCondition<double> {
       case ConditionOp.lt:
         return _op1(builder, bindings.obx_qb_double_less);
       case ConditionOp.between:
-        return bindings.obx_qb_double_between(builder._cBuilder, _property.propertyId, _value, _value2);
+        return bindings.obx_qb_double_between(builder._cBuilder, _property._propertyId, _value, _value2);
       default:
         throw Exception("Unsupported operation ${_op.toString()}");
     }
