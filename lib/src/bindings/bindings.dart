@@ -123,14 +123,15 @@ class _ObjectBoxBindings {
 
   _ObjectBoxBindings() {
     var libName = "objectbox";
-    if (Platform.isWindows)
+    if (Platform.isWindows) {
       libName += ".dll";
-    else if (Platform.isMacOS)
+    } else if (Platform.isMacOS) {
       libName = "lib" + libName + ".dylib";
-    else if (Platform.isLinux || Platform.isAndroid)
+    } else if (Platform.isLinux || Platform.isAndroid) {
       libName = "lib" + libName + ".so";
-    else
+    } else {
       throw Exception("unsupported platform detected");
+    }
     objectbox = DynamicLibrary.open(libName);
 
     // common functions

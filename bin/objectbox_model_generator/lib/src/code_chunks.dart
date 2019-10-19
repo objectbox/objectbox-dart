@@ -4,8 +4,8 @@ import "package:objectbox/src/bindings/constants.dart" show OBXPropertyType;
 import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
 
 class CodeChunks {
-  static String modelInfoLoader(String allModelsJsonFilename) => """
-      Map<int, ModelEntity> _allOBXModelEntities = null;
+  static String modelInfoLoader() => """
+      Map<int, ModelEntity> _allOBXModelEntities;
 
       void _loadOBXModelEntities() {
       if (FileSystemEntity.typeSync("objectbox-model.json") == FileSystemEntityType.notFound)

@@ -66,14 +66,18 @@ void main() {
           ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity.initText(s)).toList();
       final List<int> ids = box.putMany(items);
       expect(ids.length, equals(items.length));
-      for (int i = 0; i < items.length; ++i) expect(box.get(ids[i]).text, equals(items[i].text));
+      for (int i = 0; i < items.length; ++i) {
+        expect(box.get(ids[i]).text, equals(items[i].text));
+      }
     });
 
     test(".getMany correctly handles non-existant items", () {
       final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.initText(s)).toList();
       final List<int> ids = box.putMany(items);
       int otherId = 1;
-      while (ids.indexWhere((id) => id == otherId) != -1) ++otherId;
+      while (ids.indexWhere((id) => id == otherId) != -1) {
+        ++otherId;
+      }
       final List<TestEntity> fetchedItems = box.getMany([ids[0], otherId, ids[1]]);
       expect(fetchedItems.length, equals(3));
       expect(fetchedItems[0].text, equals("One"));

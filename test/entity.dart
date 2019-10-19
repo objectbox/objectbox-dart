@@ -1,7 +1,5 @@
 import "package:objectbox/objectbox.dart";
-import "package:objectbox/src/bindings/constants.dart";
-
-part "entity.g.dart";
+part 'entity.g.dart';
 
 @Entity()
 class TestEntity {

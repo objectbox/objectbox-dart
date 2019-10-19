@@ -49,12 +49,14 @@ class ModelInfo {
   }
 
   void validate() {
-    if (modelVersion < _minModelVersion)
+    if (modelVersion < _minModelVersion) {
       throw Exception(
           "the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually");
-    if (modelVersion > _maxModelVersion)
+    }
+    if (modelVersion > _maxModelVersion) {
       throw Exception(
           "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator");
+    }
 
     if (entities == null) throw Exception("entities is null");
     if (retiredEntityUids == null) throw Exception("retiredEntityUids is null");
@@ -65,21 +67,25 @@ class ModelInfo {
     var model = this;
     bool lastEntityIdFound = false;
     entities.forEach((e) {
-      if (e.model != model)
+      if (e.model != model) {
         throw Exception("entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
-      if (lastEntityId.id < e.id.id)
+      }
+      if (lastEntityId.id < e.id.id) {
         throw Exception(
             "lastEntityId ${lastEntityId.toString()} is lower than the one of entity '${e.name}' with id ${e.id.toString()}");
+      }
       if (lastEntityId.id == e.id.id) {
-        if (lastEntityId.uid != e.id.uid)
+        if (lastEntityId.uid != e.id.uid) {
           throw Exception(
               "lastEntityId ${lastEntityId.toString()} does not match entity '${e.name}' with id ${e.id.toString()}");
+        }
         lastEntityIdFound = true;
       }
     });
 
-    if (entities.length > 0 && !lastEntityIdFound)
+    if (entities.isNotEmpty && !lastEntityIdFound) {
       throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
+    }
   }
 
   Map<String, dynamic> toMap() {
@@ -109,7 +115,7 @@ class ModelInfo {
 
   ModelEntity findEntityByName(String name) {
     final found = entities.where((e) => e.name.toLowerCase() == name.toLowerCase()).toList();
-    if (found.length == 0) return null;
+    if (found.isEmpty) return null;
     if (found.length >= 2) throw Exception("ambiguous entity name: $name; please specify a UID in its annotation");
     return found[0];
   }
@@ -129,18 +135,18 @@ class ModelInfo {
 
   ModelEntity createEntity(String name, [int uid = 0]) {
     int id = 1;
-    if (entities.length > 0) id = lastEntityId.id + 1;
+    if (entities.isNotEmpty) id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = new ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
+    var entity = ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
   }
 
   int generateUid() {
-    var rng = new Random();
+    var rng = Random();
     for (int i = 0; i < 1000; ++i) {
       // Dart can only generate random numbers up to 1 << 32, so concat two of them and remove the upper bit to make the number non-negative
       int uid = rng.nextInt(1 << 32);

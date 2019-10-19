@@ -23,10 +23,10 @@ class Box<T> {
   OBXFlatbuffersManager _fbManager;
 
   Box(this._store) {
-    EntityDefinition<T> entityDefs = _store.entityDef(T);
+    EntityDefinition<T> entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.getModel();
     _entityReader = entityDefs.reader;
-    _fbManager = new OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
+    _fbManager = OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 
     _cBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
     checkObxPtr(_cBox, "failed to create box");
@@ -53,15 +53,18 @@ class Box<T> {
 
     // put object into box and free the buffer
     ByteBuffer buffer = _fbManager.marshal(propVals);
-    checkObx(bindings.obx_box_put(
-        _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
-    buffer.free();
+    try {
+      checkObx(bindings.obx_box_put(
+          _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+    } finally {
+      buffer.free();
+    }
     return propVals[_modelEntity.idPropName];
   }
 
   // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
   List<int> putMany(List<T> objects, {_PutMode mode = _PutMode.Put}) {
-    if (objects.length == 0) return [];
+    if (objects.isEmpty) return [];
 
     // read all property values and find number of instances where ID is missing
     var allPropVals = objects.map(_entityReader).toList();
@@ -92,15 +95,21 @@ class Box<T> {
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
     // generate this list now (only needed if not all IDs have been generated)
     Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: objects.length);
-    for (int i = 0; i < allPropVals.length; ++i)
-      allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
+    try {
+      for (int i = 0; i < allPropVals.length; ++i) {
+        allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
+      }
 
-    // marshal all objects to be put into the box
-    var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
-
-    checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
-    putObjects.free();
-    allIdsMemory.free();
+      // marshal all objects to be put into the box
+      var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
+      try {
+        checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+      } finally {
+        putObjects.free();
+      }
+    } finally {
+      allIdsMemory.free();
+    }
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 
@@ -110,15 +119,19 @@ class Box<T> {
 
     // get element with specified id from database
     return _store.runInTransaction(TxMode.Read, () {
-      checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
+      ByteBuffer buffer;
+      try {
+        checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
 
-      Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
-      var size = sizePtr.load<int>();
+        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
+        var size = sizePtr.load<int>();
 
-      // transform bytes from memory to Dart byte list
-      var buffer = ByteBuffer(data, size);
-      dataPtr.free();
-      sizePtr.free();
+        // transform bytes from memory to Dart byte list
+        buffer = ByteBuffer(data, size);
+      } finally {
+        dataPtr.free();
+        sizePtr.free();
+      }
 
       return _fbManager.unmarshal(buffer);
     });
@@ -138,7 +151,7 @@ class Box<T> {
 
   // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
   List<T> getMany(List<int> ids) {
-    if (ids.length == 0) return [];
+    if (ids.isEmpty) return [];
 
     return OBX_id_array.executeWith(ids, (ptr) => _getMany(() =>
       checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true))

@@ -16,40 +16,45 @@ class ModelEntity {
 
   ModelEntity.fromMap(Map<String, dynamic> data, this.model) {
     id = IdUid(data["id"]);
-    if (data.containsKey("lastPropertyId") && data["lastPropertyId"] != null)
+    if (data.containsKey("lastPropertyId") && data["lastPropertyId"] != null) {
       lastPropertyId = IdUid(data["lastPropertyId"]);
+    }
     name = data["name"];
     properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
     validate();
   }
 
   void validate() {
-    if (name == null || name.length == 0) throw Exception("name is not defined");
+    if (name == null || name.isEmpty) throw Exception("name is not defined");
     if (properties == null) throw Exception("properties is null");
     if (model == null) throw Exception("model is null");
 
-    if (properties.length == 0) {
+    if (properties.isEmpty) {
       if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");
     } else {
       var entity = this;
       bool lastPropertyIdFound = false;
 
       properties.forEach((p) {
-        if (p.entity != entity)
+        if (p.entity != entity) {
           throw Exception("property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
-        if (lastPropertyId.id < p.id.id)
+        }
+        if (lastPropertyId.id < p.id.id) {
           throw Exception(
               "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
+        }
         if (lastPropertyId.id == p.id.id) {
-          if (lastPropertyId.uid != p.id.uid)
+          if (lastPropertyId.uid != p.id.uid) {
             throw Exception(
                 "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id.toString()}");
+          }
           lastPropertyIdFound = true;
         }
       });
 
-      if (properties.length > 0 && !lastPropertyIdFound)
+      if (properties.isNotEmpty && !lastPropertyIdFound) {
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
+      }
     }
 
     for (int i = 0; i < properties.length; ++i) {
@@ -77,7 +82,7 @@ class ModelEntity {
 
   ModelProperty findPropertyByName(String name) {
     final found = properties.where((p) => p.name.toLowerCase() == name.toLowerCase()).toList();
-    if (found.length == 0) return null;
+    if (found.isEmpty) return null;
     if (found.length >= 2) throw Exception("ambiguous property name: $name; please specify a UID in its annotation");
     return found[0];
   }
@@ -91,7 +96,7 @@ class ModelEntity {
 
   ModelProperty createProperty(String name, [int uid = 0]) {
     int id = 1;
-    if (properties.length > 0) id = lastPropertyId.id + 1;
+    if (properties.isNotEmpty) id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? model.generateUid() : uid;
 
@@ -119,8 +124,9 @@ class ModelEntity {
   void removeProperty(ModelProperty prop) {
     if (prop == null) return;
     ModelProperty foundProp = findSameProperty(prop);
-    if (foundProp == null)
+    if (foundProp == null) {
       throw Exception("cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
+    }
     properties = properties.where((p) => p != foundProp).toList();
     model.retiredPropertyUids.add(prop.id.uid);
     _recalculateLastPropertyId();

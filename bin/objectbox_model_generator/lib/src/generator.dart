@@ -20,9 +20,10 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   List<String> entityHeaderDone = [];
 
   Future<ModelInfo> _loadModelInfo() async {
-    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound)
+    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) {
       return ModelInfo.createDefault();
-    return ModelInfo.fromMap(json.decode(await (new File(ALL_MODELS_JSON).readAsString())));
+    }
+    return ModelInfo.fromMap(json.decode(await (File(ALL_MODELS_JSON).readAsString())));
   }
 
   final _propertyChecker = const TypeChecker.fromRuntime(Property);
@@ -32,8 +33,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   Future<String> generateForAnnotatedElement(
       Element elementBare, ConstantReader annotation, BuildStep buildStep) async {
     try {
-      if (elementBare is! ClassElement)
+      if (elementBare is! ClassElement) {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
+      }
       var element = elementBare as ClassElement;
 
       // load existing model from JSON file if possible
@@ -42,13 +44,13 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // optionally add header for loading the .g.json file
       var ret = "";
-      if (entityHeaderDone.indexOf(inputFileId) == -1) {
-        ret += CodeChunks.modelInfoLoader(ALL_MODELS_JSON);
+      if (!entityHeaderDone.contains(inputFileId)) {
+        ret += CodeChunks.modelInfoLoader();
         entityHeaderDone.add(inputFileId);
       }
 
       // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-      ModelEntity readEntity = new ModelEntity(IdUid.empty(), null, element.name, [], allModels);
+      ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], allModels);
       var entityUid = annotation.read("uid");
       if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
 
@@ -103,18 +105,19 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         }
 
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-        ModelProperty prop = new ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+        ModelProperty prop = ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
         if (propUid != null) prop.id.uid = propUid;
         readEntity.properties.add(prop);
       }
 
       // some checks on the entity's integrity
-      if (!hasIdProperty)
+      if (!hasIdProperty) {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
+      }
 
       // merge existing model and annotated model that was just read, then write new final model to file
       mergeEntity(allModels, readEntity);
-      new File(ALL_MODELS_JSON).writeAsString(new JsonEncoder.withIndent("  ").convert(allModels.toMap()));
+      await File(ALL_MODELS_JSON).writeAsString(JsonEncoder.withIndent("  ").convert(allModels.toMap()));
       readEntity = allModels.findEntityByName(element.name);
       if (readEntity == null) return ret;
 
