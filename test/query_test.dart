@@ -160,9 +160,7 @@ void main() {
       final q3 = box.query((text == "can't find this") as Condition).build();
       final result3 = q3.findIds();
 
-      // (result0 + result1 + result2).forEach((i) => print("found id: ${i}"));
-
-      expect(result0.length, 7); // TODO off by one bug?
+      expect(result0.length, 7);
       expect(result2.length, 1);
       expect(result3.length, 0);
 

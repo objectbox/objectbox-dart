@@ -33,13 +33,6 @@ class QueryBuilder<T> {
 }
 
 /*  // Not done yet
-    // * = can't test, no support yet, for Double, Long, Boolean, Byte, or Vector... etc.
-    * obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
-    * obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
-    * obx_qb_string_in_dart_t obx_qb_string_in;
-
-    * obx_qb_string_lt_gt_op_dart_t obx_qb_string_greater, obx_qb_string_less;
-
     obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
     obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
 

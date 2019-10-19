@@ -51,8 +51,8 @@ To try out the demo code in this repository, follow these steps:
    (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
 4. Finally run `pub run test` to run the unit tests.
 
-Mac OS signed signed dart binary issue
---------------------------------------
+Mac OS signed dart binary issue
+-------------------------------
 
 If dart complains that it cannot find the `libobjectbox.dylib`, after you've installed by following step 1,
 then you probably have to unsign the dart binary:
