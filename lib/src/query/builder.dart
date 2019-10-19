@@ -17,90 +17,16 @@ class QueryBuilder<T> {
     }
   }
 
-  int _create(Condition qc) {
-    ConditionBase condition = qc._condition;
-    int propertyId = qc._propertyId;
-
-    try {
-      switch (condition._op) {
-        case ConditionOp.isNull:
-          return condition._nullness(_cBuilder, propertyId, bindings.obx_qb_null);
-        case ConditionOp.notNull:
-          return condition._nullness(_cBuilder, propertyId, bindings.obx_qb_not_null);
-        default:
-          break;
-      }
-      return condition.apply(_cBuilder, propertyId);
-    }finally {
-      _throwExceptionIfNecessary();
-    }
-  }
-
-  int _createGroup(List<int> list, obx_qb_join_op_dart_t func) {
-    final size = list.length;
-    final intArrayPtr = Pointer<Int32>.allocate(count: size);
-    try {
-      for(int i = 0; i < size; ++i) {
-        intArrayPtr.elementAt(i).store(list[i]);
-      }
-      return func(_cBuilder, intArrayPtr, size);
-    }finally {
-      intArrayPtr.free();
-      _throwExceptionIfNecessary();
-    }
-  }
-
-  int _createAllGroup(List<Condition> list) {
-    if (list.length == 1) {
-      return _create(list[0]);
-    }else {
-      return _createGroup(list.map((qc) => qc._hasChildren ? _parse(qc) : _create(qc)).toList(), bindings.obx_qb_all);
-    }
-  }
-
-  int _createAnyGroup(List<int> list) {
-    if (list.length == 1) {
-      return list[0];
-    }
-    return _createGroup(list, bindings.obx_qb_any);
-  }
-
-  int _parse(Condition qc) {
-
-    // 1st condition: duh
-    // 2nd condition: covered by _hasChildren
-    // 3rd no dead boxes
-    // assert (qc != null && qc._anyGroups != null && _cBuilder != null);
-
-    var anyGroup = qc._anyGroups;
-
-    // don't go into inf recursion, on the same object
-    qc._hasChildren = false;
-
-    // prepend root condition
-    anyGroup[0] = <Condition>[qc] + anyGroup[0];
-
-    if (anyGroup.length == 1) {
-      return _createAllGroup(anyGroup[0]);
-    }
-
-    return _createAnyGroup(anyGroup.map((qcList) => _createAllGroup(qcList)).toList());
-  }
-
   Query build() {
     _cBuilder = bindings.obx_qb_create(_store.ptr, _entityId);
 
-    // TODO pass an empty map to collect properytIds per OrderFlag in `_parse`
-    // parse the anyGroup tree in recursion
-    if (_queryCondition._hasChildren) {
-      _parse(_queryCondition);
-    }else {
-      _create(_queryCondition);
+    if (0 == _queryCondition.apply(this, true)) {
+      _throwExceptionIfNecessary();
     }
 
     try {
       return Query<T>._(_store, _fbManager, _cBuilder);
-    }finally {
+    } finally {
       checkObx(bindings.obx_qb_close(_cBuilder));
     }
   }

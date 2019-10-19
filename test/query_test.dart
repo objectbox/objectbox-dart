@@ -258,9 +258,9 @@ void main() {
       q.close();
 
       for (int j=1; j<20; j++) {
-        final tc = text.equals("Hello");
+        var tc = text.equals("Hello");
         for (int i=0; i<j; i++) {
-          tc.or(text.endsWith("lo"));
+          tc = tc.or(text.endsWith("lo"));
         }
         final q = box.query(tc).build();
         expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties text''');
@@ -268,9 +268,9 @@ void main() {
       }
 
       for (int j=1; j<20; j++) {
-        final tc = text.equals("Hello");
+        var tc = text.equals("Hello");
         for (int i=0; i<j; i++) {
-          tc.and(text.startsWith("lo"));
+          tc = tc.and(text.startsWith("lo"));
         }
         final q = box.query(tc).build();
         expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties text''');
@@ -292,10 +292,10 @@ void main() {
       q.close();
 
       for (int j=1; j<20; j++) {
-        final tc = text.equals("Goodbye");
+        var tc = text.equals("Goodbye");
         var expected = ['''text ==(i) "Goodbye"'''];
         for (int i=0; i<j; i++) {
-          tc.and(text.endsWith("ye"));
+          tc = tc.and(text.endsWith("ye"));
           expected.add(''' AND text ends with(i) "ye"''');
         }
         final q = box.query(tc).build();
@@ -304,10 +304,10 @@ void main() {
       }
 
       for (int j=1; j<20; j++) {
-        final tc = text.equals("Goodbye");
+        var tc = text.equals("Goodbye");
         var expected = ['''text ==(i) "Goodbye"'''];
         for (int i=0; i<j; i++) {
-          tc.or(text.startsWith("Good"));
+          tc = tc.or(text.startsWith("Good"));
           expected.add(''' OR text starts with(i) "Good"''');
         }
         final q = box.query(tc).build();
