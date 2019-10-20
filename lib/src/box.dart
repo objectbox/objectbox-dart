@@ -166,5 +166,29 @@ class Box<T> {
     return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
+  // same as calling maxCount with limit := 0
+  int count() {
+    return maxCount(limit: 0);
+  }
+
+  int maxCount({int limit}) {
+    Pointer<Uint64> _count = Pointer<Uint64>.allocate();
+    checkObx(bindings.obx_box_count(_cBox, limit, _count));
+    return _count.load<int>();
+  }
+
+  bool isEmpty() {
+    Pointer<Uint8> _isEmpty = Pointer<Uint8>.allocate();
+    checkObx(bindings.obx_box_is_empty(_cBox, _isEmpty));
+    return _isEmpty.load<int>() > 0 ? true : false;
+  }
+
+  int removeAll() {
+    Pointer<Uint64> _removedItems = Pointer<Uint64>.allocate();
+    checkObx(bindings.obx_box_remove_all(_cBox, _removedItems));
+    return _removedItems.load<int>();
+  }
+
   get ptr => _cBox;
+
 }

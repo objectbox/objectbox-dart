@@ -93,6 +93,18 @@ void main() {
       expect(fetchedItems[2].text, equals("Two"));
     });
 
+    test(".count(), .isEmpty(), .removeAll() works", () {
+      final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.construct(s)).toList();
+      final List<int> ids = box.putMany(items);
+      
+      int count = box.count();
+      expect(count, greaterThanOrEqualTo(0));
+      bool isEmpty = box.isEmpty();
+      expect(isEmpty, equals(false));
+      int removed = box.removeAll();
+      expect(removed, greaterThan(0));
+    });
+
     tearDown(() {
       if (store != null) store.close();
       store = null;
