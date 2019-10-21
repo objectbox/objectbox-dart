@@ -11,11 +11,14 @@ class _ObjectBoxBindings {
   // common functions
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
   Pointer<Uint8> Function() obx_version_string;
-  void Function(Pointer<Uint64> structPtr)
-    obx_bytes_array_free, obx_string_array_free,
-    obx_int64_array_free, obx_int32_array_free,
-    obx_int16_array_free, obx_int8_array_free,
-    obx_double_array_free, obx_float_array_free;
+  void Function(Pointer<Uint64> structPtr) obx_bytes_array_free,
+      obx_string_array_free,
+      obx_int64_array_free,
+      obx_int32_array_free,
+      obx_int16_array_free,
+      obx_int8_array_free,
+      obx_double_array_free,
+      obx_float_array_free;
   obx_free_t<OBX_id_array> obx_id_array_free;
 
   // error info
@@ -73,21 +76,18 @@ class _ObjectBoxBindings {
 
   obx_qb_cond_operator_0_dart_t obx_qb_null, obx_qb_not_null;
 
-  obx_qb_cond_operator_1_dart_t<int>
-    obx_qb_int_equal, obx_qb_int_not_equal,
-    obx_qb_int_greater, obx_qb_int_less;
+  obx_qb_cond_operator_1_dart_t<int> obx_qb_int_equal, obx_qb_int_not_equal, obx_qb_int_greater, obx_qb_int_less;
 
   obx_qb_cond_operator_2_dart_t<int> obx_qb_int_between;
 
   obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
   obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
 
-  obx_qb_cond_string_op_1_dart_t
-    obx_qb_string_equal,
-    obx_qb_string_not_equal,
-    obx_qb_string_contains,
-    obx_qb_string_starts_with,
-    obx_qb_string_ends_with;
+  obx_qb_cond_string_op_1_dart_t obx_qb_string_equal,
+      obx_qb_string_not_equal,
+      obx_qb_string_contains,
+      obx_qb_string_starts_with,
+      obx_qb_string_ends_with;
 
   obx_qb_cond_operator_1_dart_t<double> obx_qb_double_greater, obx_qb_double_less;
   obx_qb_cond_operator_2_dart_t<double> obx_qb_double_between;
@@ -223,7 +223,7 @@ class _ObjectBoxBindings {
     obx_qb_string_ends_with = _fn<obx_qb_cond_string_op_1_native_t>("obx_qb_string_ends_with").asFunction();
 
     obx_qb_string_greater = _fn<obx_qb_string_lt_gt_op_native_t>("obx_qb_string_greater").asFunction();
-    obx_qb_string_less    = _fn<obx_qb_string_lt_gt_op_native_t>("obx_qb_string_less").asFunction();
+    obx_qb_string_less = _fn<obx_qb_string_lt_gt_op_native_t>("obx_qb_string_less").asFunction();
 
     obx_qb_string_in = _fn<obx_qb_string_in_native_t>("obx_qb_string_in").asFunction();
 
@@ -248,7 +248,7 @@ class _ObjectBoxBindings {
     obx_query_close = _fn<obx_query_close_native_t>("obx_query_close").asFunction();
 
     obx_query_find_ids = _fn<obx_query_find_ids_t<Uint64>>("obx_query_find_ids").asFunction();
-    obx_query_find     = _fn<obx_query_find_t<Uint64>>("obx_query_find").asFunction();
+    obx_query_find = _fn<obx_query_find_t<Uint64>>("obx_query_find").asFunction();
 
     obx_query_count = _fn<obx_query_count_native_t>("obx_query_count").asFunction();
     obx_query_remove = _fn<obx_query_count_native_t>("obx_query_remove").asFunction();

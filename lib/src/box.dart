@@ -153,9 +153,10 @@ class Box<T> {
   List<T> getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
-    return OBX_id_array.executeWith(ids, (ptr) => _getMany(() =>
-      checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true))
-    );
+    return OBX_id_array.executeWith(
+        ids,
+        (ptr) => _getMany(
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true)));
   }
 
   List<T> getAll() {

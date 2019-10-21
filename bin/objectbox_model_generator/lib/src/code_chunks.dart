@@ -50,12 +50,11 @@ class CodeChunks {
   static String _queryConditionBuilder(ModelEntity readEntity) {
     final ret = <String>[];
     for (var f in readEntity.properties) {
-
       final name = f.name;
 
       // see OBXPropertyType
       String fieldType;
-      switch(f.type) {
+      switch (f.type) {
         case OBXPropertyType.Bool:
           fieldType = "Boolean";
           break;

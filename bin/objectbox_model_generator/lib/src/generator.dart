@@ -27,7 +27,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   }
 
   final _propertyChecker = const TypeChecker.fromRuntime(Property);
-  final _idChecker       = const TypeChecker.fromRuntime(Id);
+  final _idChecker = const TypeChecker.fromRuntime(Id);
 
   @override
   Future<String> generateForAnnotatedElement(
@@ -70,21 +70,23 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
                 "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
 
           hasIdProperty = true;
-          
+
           fieldType = OBXPropertyType.Long;
           flags |= OBXPropertyFlag.ID;
 
           final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
           propUid = _idAnnotation.getField('uid').toIntValue();
-        }else if (_propertyChecker.hasAnnotationOfExact(f)) {
+        } else if (_propertyChecker.hasAnnotationOfExact(f)) {
           final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
           propUid = _propertyAnnotation.getField('uid').toIntValue();
           fieldType = _propertyAnnotation.getField('type').toIntValue();
           flags = _propertyAnnotation.getField('flag').toIntValue() ?? 0;
 
-          print ("annotated property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
-        }else {
-          print ("property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
+          print(
+              "annotated property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
+        } else {
+          print(
+              "property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
         }
 
         if (fieldType == null) {

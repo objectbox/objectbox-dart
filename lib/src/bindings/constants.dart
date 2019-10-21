@@ -104,4 +104,3 @@ class OBXOrderFlag {
   /// null values should be treated equal to zero (scalars only).
   static final NULLS_ZERO = 16;
 }
-

@@ -447,8 +447,8 @@ class IntegerCondition extends PropertyCondition<int> {
 
 class DoubleCondition extends PropertyCondition<double> {
   DoubleCondition(ConditionOp op, QueryProperty prop, double value, double value2) : super(op, prop, value, value2) {
-    assert(op !=
-      ConditionOp.eq, "Equality operator is not supported on floating point numbers - use between() instead.");
+    assert(
+        op != ConditionOp.eq, "Equality operator is not supported on floating point numbers - use between() instead.");
   }
 
   int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<double> func) {

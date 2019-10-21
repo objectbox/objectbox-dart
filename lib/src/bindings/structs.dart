@@ -32,7 +32,7 @@ class OBX_id_array extends Struct<OBX_id_array> {
     for (int i = 0; i < items.length; ++i) {
       array._itemsPtr.elementAt(i).store(items[i]);
     }
-    
+
     // call the function with the structure and free afterwards
     try {
       return fn(ptr);
