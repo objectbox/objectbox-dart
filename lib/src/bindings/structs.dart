@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'dart:convert';
 import "dart:typed_data" show Uint8List, Uint64List;
 
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."

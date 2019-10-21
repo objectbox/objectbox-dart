@@ -102,7 +102,7 @@ void main() {
     bool isEmpty = box.isEmpty();
     expect(isEmpty, equals(true));
     //check complementary
-    final List<int> ids = box.putMany(simple_items);
+    box.putMany(simple_items);
     isEmpty = box.isEmpty();
     expect(isEmpty, equals(false));
   });

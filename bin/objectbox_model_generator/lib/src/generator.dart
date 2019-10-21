@@ -65,9 +65,10 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
             throw InvalidGenerationSourceError(
                 "in target ${elementBare.name}: has more than one properties annotated with @Id");
           }
-          if (f.type.toString() != "int")
+          if (f.type.toString() != "int") {
             throw InvalidGenerationSourceError(
                 "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+          }
 
           hasIdProperty = true;
 
@@ -91,15 +92,22 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
         if (fieldType == null) {
           var fieldTypeStr = f.type.toString();
-          if (fieldTypeStr == "int") // dart: 8 bytes
-            fieldType = OBXPropertyType.Long; // ob: 8 bytes
-          else if (fieldTypeStr == "String")
+
+          if (fieldTypeStr == "int") {
+            // dart: 8 bytes
+            // ob: 8 bytes
+            fieldType = OBXPropertyType.Long;
+          } else if (fieldTypeStr == "String") {
             fieldType = OBXPropertyType.String;
-          else if (fieldTypeStr == "bool") // 1 byte
-            fieldType = OBXPropertyType.Bool; // 1 byte
-          else if (fieldTypeStr == "double") // dart: 8 bytes
-            fieldType = OBXPropertyType.Double; // ob: 8 bytes
-          else {
+          } else if (fieldTypeStr == "bool") {
+            // dart: 1 byte
+            // ob: 1 byte
+            fieldType = OBXPropertyType.Bool;
+          } else if (fieldTypeStr == "double") {
+            // dart: 8 bytes
+            // ob: 8 bytes
+            fieldType = OBXPropertyType.Double;
+          } else {
             print(
                 "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
             continue;

@@ -20,7 +20,6 @@ void main() {
       TestEntity.initText("two"),
     ] as List<TestEntity>);
 
-    final d = TestEntity_.d;
     final b = TestEntity_.b;
     final t = TestEntity_.text;
 
@@ -58,12 +57,12 @@ void main() {
     final allQuery0 = d.between(0.09, 0.11) & ((b == true) as Condition);
 
     final q0 = box.query(b.equals(false)).build();
-    final qany0 = box.query(anyQuery0 as Condition).build();
-    final qany1 = box.query(anyQuery1 as Condition).build();
-    final qany2 = box.query(anyQuery2 as Condition).build();
-    final qany3 = box.query(anyQuery3 as Condition).build();
+    final qany0 = box.query(anyQuery0).build();
+    final qany1 = box.query(anyQuery1).build();
+    final qany2 = box.query(anyQuery2).build();
+    final qany3 = box.query(anyQuery3).build();
 
-    final qall0 = box.query(allQuery0 as Condition).build();
+    final qall0 = box.query(allQuery0).build();
 
     expect(q0.count(), 2);
     expect(qany0.count(), 1);
@@ -238,16 +237,21 @@ void main() {
     final q2 = box.query(cond2).build();
     final q3 = box.query(cond3).build();
     final q4 = box.query(cond4).build();
-
-    box.query(selfInference1 as Condition);
-    box.query(selfInference2 as Condition);
+    final q5 = box.query(cond5).build();
+    final q6 = box.query(cond6).build();
+    final q7 = box.query(selfInference1 as Condition).build();
+    final q8 = box.query(selfInference2 as Condition).build();
 
     expect(q1.count(), 3);
     expect(q2.count(), 3);
     expect(q3.count(), 1);
     expect(q4.count(), 3);
+    expect(q5.count(), 1);
+    expect(q6.count(), 0);
+    expect(q7.count(), 0);
+    expect(q8.count(), 3);
 
-    [q1, q2, q3, q4].forEach((q) => q.close());
+    [q1, q2, q3, q4, q5, q6, q7, q8].forEach((q) => q.close());
   });
 
   test(".describe query", () {

@@ -1,5 +1,4 @@
 import "package:objectbox/src/modelinfo/index.dart";
-import "package:analyzer/dart/element/element.dart";
 import "package:objectbox/src/bindings/constants.dart" show OBXPropertyType;
 import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
 
@@ -8,8 +7,9 @@ class CodeChunks {
       Map<int, ModelEntity> _allOBXModelEntities;
 
       void _loadOBXModelEntities() {
-      if (FileSystemEntity.typeSync("objectbox-model.json") == FileSystemEntityType.notFound)
+      if (FileSystemEntity.typeSync("objectbox-model.json") == FileSystemEntityType.notFound) {
           throw Exception("objectbox-model.json not found");
+      }
 
       _allOBXModelEntities = {};
       ModelInfo modelInfo = ModelInfo.fromMap(json.decode(new File("objectbox-model.json").readAsStringSync()));
@@ -18,8 +18,9 @@ class CodeChunks {
 
       ModelEntity _getOBXModelEntity(int entityUid) {
       if (_allOBXModelEntities == null) _loadOBXModelEntities();
-      if (!_allOBXModelEntities.containsKey(entityUid))
+      if (!_allOBXModelEntities.containsKey(entityUid)) {
           throw Exception("entity uid missing in objectbox-model.json: \$entityUid");
+      }
       return _allOBXModelEntities[entityUid];
       }
     """;

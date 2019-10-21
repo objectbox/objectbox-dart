@@ -86,9 +86,9 @@ typedef obx_qb_cond_operator_1_dart_t<P> = int Function(Pointer<Void> builder, i
 typedef obx_qb_cond_operator_2_native_t<P> = Int32 Function(Pointer<Void> builder, Uint32 property_id, P v1, P v2);
 typedef obx_qb_cond_operator_2_dart_t<P> = int Function(Pointer<Void> builder, int property_id, P v1, P v2);
 
-typedef obx_qb_cond_operator_in_native_t<P> = Int32 Function(
+typedef obx_qb_cond_operator_in_native_t<P extends NativeType> = Int32 Function(
     Pointer<Void> builder, Uint32 property_id, Pointer<P> values, Uint64 count);
-typedef obx_qb_cond_operator_in_dart_t<P> = int Function(
+typedef obx_qb_cond_operator_in_dart_t<P extends NativeType> = int Function(
     Pointer<Void> builder, int property_id, Pointer<P> values, int count);
 
 typedef obx_qb_join_op_native_t = Int32 Function(Pointer<Void> builder, Pointer<Int32> cond_array, Uint64 count);

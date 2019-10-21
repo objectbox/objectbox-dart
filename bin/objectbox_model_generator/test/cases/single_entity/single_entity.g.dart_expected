@@ -6,8 +6,9 @@ Map<int, ModelEntity> _allOBXModelEntities;
 
 void _loadOBXModelEntities() {
   if (FileSystemEntity.typeSync("objectbox-model.json") ==
-      FileSystemEntityType.notFound)
+      FileSystemEntityType.notFound) {
     throw Exception("objectbox-model.json not found");
+  }
 
   _allOBXModelEntities = {};
   ModelInfo modelInfo = ModelInfo.fromMap(
@@ -17,8 +18,9 @@ void _loadOBXModelEntities() {
 
 ModelEntity _getOBXModelEntity(int entityUid) {
   if (_allOBXModelEntities == null) _loadOBXModelEntities();
-  if (!_allOBXModelEntities.containsKey(entityUid))
+  if (!_allOBXModelEntities.containsKey(entityUid)) {
     throw Exception("entity uid missing in objectbox-model.json: $entityUid");
+  }
   return _allOBXModelEntities[entityUid];
 }
 

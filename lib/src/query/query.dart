@@ -14,16 +14,9 @@ import "package:ffi/ffi.dart";
 
 part "builder.dart";
 
-/**
- * The QueryProperty types are responsible
- * for the operator overloading.
- *
- * A QueryBuilder will be constructed,
- * based on the any / all operations applied.
- *
- * When build() is called on the QueryBuilder
- * a Query object will be created.
- */
+/// The QueryProperty types are responsible for the operator overloading.
+/// A QueryBuilder will be constructed, based on the any / all operations applied.
+/// When build() is called on the QueryBuilder a Query object will be created.
 class QueryProperty {
   int _propertyId, _entityId, _type;
 
@@ -244,7 +237,7 @@ abstract class PropertyCondition<DartType> extends Condition {
 
   ConditionOp _op;
 
-  PropertyCondition(this._op, this._property, this._value, [this._value2 = null]);
+  PropertyCondition(this._op, this._property, this._value, [this._value2]);
 
   PropertyCondition.fromList(this._op, this._property, this._list);
 
@@ -264,7 +257,7 @@ class StringCondition extends PropertyCondition<String> {
   bool _caseSensitive, _withEqual;
 
   StringCondition(ConditionOp op, QueryProperty prop, String value,
-      [String value2 = null, bool caseSensitive, bool descending])
+      [String value2, bool caseSensitive, bool descending])
       : super(op, prop, value, value2) {
     _caseSensitive = caseSensitive;
   }
@@ -349,7 +342,7 @@ class StringCondition extends PropertyCondition<String> {
 }
 
 class IntegerCondition extends PropertyCondition<int> {
-  IntegerCondition(ConditionOp op, QueryProperty prop, int value, [int value2 = null]) : super(op, prop, value, value2);
+  IntegerCondition(ConditionOp op, QueryProperty prop, int value, [int value2]) : super(op, prop, value, value2);
 
   IntegerCondition.fromList(ConditionOp op, QueryProperty prop, List<int> list) : super.fromList(op, prop, list);
 
@@ -548,7 +541,7 @@ class Query<T> {
 
   T findFirst() {
     final list = find(offset: 0, limit: 1);
-    return (list.length == 0 ? null : list[0]) as T;
+    return (list.isEmpty ? null : list[0]);
   }
 
   List<int> findIds({int offset = 0, int limit = 0}) {
