@@ -10,10 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Install dependencies
-        working-directory: bin/objectbox_model_generator
+        working-directory: ./objectbox_model_generator
         run: pub get
       - name: Run tests
-        working-directory: bin/objectbox_model_generator
+        working-directory: ./objectbox_model_generator
         run: pub run test
 
   lib:
@@ -26,8 +26,11 @@ jobs:
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Install dependencies
+        working-directory: ./objectbox
         run: pub get
       - name: Generate ObjectBox models
+        working-directory: ./objectbox
         run: pub run build_runner build
       - name: Run tests
+        working-directory: ./objectbox
         run: pub run test
