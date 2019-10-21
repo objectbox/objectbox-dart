@@ -67,6 +67,12 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, int id, Pointer<Void> data, int size, int mode) obx_box_put;
   int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
+  int Function(Pointer<Void> box, Pointer<Uint64> removed) obx_box_remove_all;
+  int Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Uint64> removed) obx_box_remove_many;
+
+  // box analytics
+  int Function(Pointer<Void> box, int limit, Pointer<Uint64> count) obx_box_count;
+  int Function(Pointer<Void> box, Pointer<Uint8> is_empty) obx_box_is_empty;
 
   // query builder
   obx_query_builder_dart_t obx_qb_create;
@@ -192,6 +198,12 @@ class _ObjectBoxBindings {
     obx_box_put = _fn<obx_box_put_native_t>("obx_box_put").asFunction();
     obx_box_put_many = _fn<obx_box_put_many_native_t>("obx_box_put_many").asFunction();
     obx_box_remove = _fn<obx_box_remove_native_t>("obx_box_remove").asFunction();
+    obx_box_remove_all = _fn<obx_box_remove_all_native_t>("obx_box_remove_all").asFunction();
+    obx_box_remove_many = _fn<obx_box_remove_many_native_t>("obx_box_remove_many").asFunction();
+
+    // box analytics
+    obx_box_count = _fn<obx_box_count_native_t>("obx_box_count").asFunction();
+    obx_box_is_empty = _fn<obx_box_is_empty_native_t>("obx_box_is_empty").asFunction();
 
     // query builder
     obx_qb_create = _fn<obx_query_builder_native_t>("obx_query_builder").asFunction();

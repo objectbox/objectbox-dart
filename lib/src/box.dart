@@ -1,5 +1,6 @@
 import "dart:ffi";
 
+import 'common.dart';
 import "store.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
@@ -164,6 +165,56 @@ class Box<T> {
   }
 
   QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
+
+  int count({int limit: 0}) {
+    Pointer<Uint64> _count = Pointer<Uint64>.allocate();
+    try {
+      checkObx(bindings.obx_box_count(_cBox, limit, _count));
+      return _count.load<int>();
+    } finally {
+      _count.free();
+    }
+  }
+
+  bool isEmpty() {
+    Pointer<Uint8> _isEmpty = Pointer<Uint8>.allocate();
+    try {
+      checkObx(bindings.obx_box_is_empty(_cBox, _isEmpty));
+      return _isEmpty.load<int>() > 0 ? true : false;
+    } finally {
+      _isEmpty.free();
+    }
+  }
+
+  bool remove(int id) {
+    try {
+      checkObx(bindings.obx_box_remove(_cBox, id));
+    } on ObjectBoxException catch (ex) {
+      if (ex.raw_msg == "code 404") return false;
+      else throw(ex);
+    }
+    return true;
+  }
+
+  int removeMany(List<int> ids) {
+    Pointer<Uint64> _removedIds = Pointer<Uint64>.allocate();
+    try {
+      checkObx(bindings.obx_box_remove_many(_cBox, IDArray(ids).ptr, _removedIds));
+      return _removedIds.load<int>();
+    } finally {
+      _removedIds.free();
+    }
+  }
+
+  int removeAll() {
+    Pointer<Uint64> _removedItems = Pointer<Uint64>.allocate();
+    try {
+      checkObx(bindings.obx_box_remove_all(_cBox, _removedItems));
+      return _removedItems.load<int>();
+    } finally {
+      _removedItems.free();
+    }
+  }
 
   get ptr => _cBox;
 }
