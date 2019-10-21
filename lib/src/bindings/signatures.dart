@@ -58,7 +58,8 @@ typedef obx_box_put_many_native_t = Int32 Function(
     Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, Int32 mode);
 typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);
 typedef obx_box_remove_all_native_t = Int32 Function(Pointer<Void> box, Pointer<Uint64> removed);
-typedef obx_box_remove_many_native_t = Int32 Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Uint64> removed);
+typedef obx_box_remove_many_native_t = Int32 Function(
+    Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint64> removed);
 typedef obx_box_count_native_t = Int32 Function(Pointer<Void> box, Uint64 limit, Pointer<Uint64> _count);
 typedef obx_box_is_empty_native_t = Int32 Function(Pointer<Void> box, Pointer<Uint8> is_empty);
 

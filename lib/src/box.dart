@@ -166,7 +166,7 @@ class Box<T> {
 
   QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
-  int count({int limit: 0}) {
+  int count({int limit = 0}) {
     Pointer<Uint64> _count = Pointer<Uint64>.allocate();
     try {
       checkObx(bindings.obx_box_count(_cBox, limit, _count));
@@ -190,8 +190,10 @@ class Box<T> {
     try {
       checkObx(bindings.obx_box_remove(_cBox, id));
     } on ObjectBoxException catch (ex) {
-      if (ex.raw_msg == "code 404") return false;
-      else throw(ex);
+      if (ex.raw_msg == "code 404") {
+        return false;
+      }
+      rethrow;
     }
     return true;
   }
@@ -199,8 +201,10 @@ class Box<T> {
   int removeMany(List<int> ids) {
     Pointer<Uint64> _removedIds = Pointer<Uint64>.allocate();
     try {
-      checkObx(bindings.obx_box_remove_many(_cBox, IDArray(ids).ptr, _removedIds));
-      return _removedIds.load<int>();
+      return OBX_id_array.executeWith(ids, (ptr) {
+        checkObx(bindings.obx_box_remove_many(_cBox, ptr, _removedIds));
+        return _removedIds.load<int>();
+      });
     } finally {
       _removedIds.free();
     }

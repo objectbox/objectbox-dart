@@ -68,7 +68,7 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
   int Function(Pointer<Void> box, Pointer<Uint64> removed) obx_box_remove_all;
-  int Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Uint64> removed) obx_box_remove_many;
+  int Function(Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint64> removed) obx_box_remove_many;
 
   // box analytics
   int Function(Pointer<Void> box, int limit, Pointer<Uint64> count) obx_box_count;

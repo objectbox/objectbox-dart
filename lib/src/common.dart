@@ -30,7 +30,9 @@ class ObjectBoxException implements Exception {
   final String message;
   final String raw_msg;
 
-  ObjectBoxException(msg) : message = "ObjectBoxException: " + msg, raw_msg = msg;
+  ObjectBoxException(msg)
+      : message = "ObjectBoxException: " + msg,
+        raw_msg = msg;
 
   String toString() => message;
 }
