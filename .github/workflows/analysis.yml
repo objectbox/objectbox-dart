@@ -1,0 +1,27 @@
+name: Analysis
+
+on: [push, pull_request]
+
+jobs:
+  objectbox:
+    runs-on: ubuntu-latest
+    container:
+      image:  google/dart:latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: axel-op/dart_package_analyzer@stable
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          relativePath: './objectbox/'
+          minAnnotationLevel: info
+  objectbox_model_generator:
+    runs-on: ubuntu-latest
+    container:
+      image:  google/dart:latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: axel-op/dart_package_analyzer@stable
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          relativePath: './objectbox_model_generator/'
+          minAnnotationLevel: info
