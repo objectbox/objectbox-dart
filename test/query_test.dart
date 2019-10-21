@@ -276,6 +276,23 @@ void main() {
       }
     });
 
+    test("query condition grouping", () {
+      final n = TestEntity_.id;
+      final b = TestEntity_.b;
+
+      final check = (Condition condition, String text) {
+        final q = box.query(condition).build();
+        expect(q.describeParameters(), text);
+        q.close();
+      };
+
+      check(((n == 0) & (b == false)) | ((n == 1) & (b == true)) as Condition, '((id == 0\n AND b == 0)\n OR (id == 1\n AND b == 1))');
+      check((n == 0) & (b == false) | (n == 1) & (b == true) as Condition, '((id == 0\n AND b == 0)\n OR (id == 1\n AND b == 1))');
+      check(((n == 0) & (b == false)) | ((n == 1) | (b == true)) as Condition, '((id == 0\n AND b == 0)\n OR (id == 1\n OR b == 1))');
+      check(((n == 0) & (b == false)) | (n == 1) | (b == true) as Condition, '((id == 0\n AND b == 0)\n OR id == 1\n OR b == 1)');
+      check((n == 0) | (b == false) & (n == 1) | (b == true) as Condition, '(id == 0\n OR (b == 0\n AND id == 1)\n OR b == 1)');
+    });
+
     test(".describeParameters query", () {
       final text = TestEntity_.text;
       final number = TestEntity_.number;
