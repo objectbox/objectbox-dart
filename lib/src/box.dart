@@ -186,6 +186,28 @@ class Box<T> {
     }
   }
 
+  bool contains(int id) {
+    Pointer<Uint8> _contains = Pointer<Uint8>.allocate();
+    try {
+      checkObx(bindings.obx_box_contains(_cBox, id, _contains));
+      return _contains.load<int>() > 0 ? true : false;
+    } finally {
+      _contains.free();
+    }
+  }
+
+  bool containsMany(List<int> ids) {
+    Pointer<Uint8> _contains = Pointer<Uint8>.allocate();
+    try {
+      return OBX_id_array.executeWith(ids, (ptr) {
+        checkObx(bindings.obx_box_contains_many(_cBox, ptr, _contains));
+        return _contains.load<int>() > 0 ? true : false;
+      });
+    } finally {
+      _contains.free();
+    }
+  }
+
   bool remove(int id) {
     try {
       checkObx(bindings.obx_box_remove(_cBox, id));

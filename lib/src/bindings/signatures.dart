@@ -44,9 +44,9 @@ typedef obx_txn_success_native_t = Int32 Function(Pointer<Void> txn);
 
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
-typedef obx_box_contains_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Int8> out_contains);
+typedef obx_box_contains_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Uint8> out_contains);
 typedef obx_box_contains_many_native_t = Int32 Function(
-    Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains);
+    Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint8> out_contains);
 typedef obx_box_get_native_t = Int32 Function(
     Pointer<Void> box, Uint64 id, Pointer<Pointer<Void>> data, Pointer<Int32> size);
 typedef obx_box_get_many_native_t = Pointer<Uint64> Function(Pointer<Void> box, Pointer<OBX_id_array> ids);

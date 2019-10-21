@@ -107,6 +107,30 @@ void main() {
     expect(isEmpty, equals(false));
   });
 
+  test(".contains() works", () {
+    int id = box.put(TestEntity.initText("container"));
+    bool contains = box.contains(id);
+    expect(contains, equals(true));
+    //check complementary
+    box.remove(id);
+    contains = box.contains(id);
+    expect(contains, equals(false));
+  });
+
+  test(".containsMany() works", () {
+    List<int> ids = box.putMany(simple_items);
+    bool contains = box.containsMany(ids);
+    expect(contains, equals(true));
+    //check with one missing id
+    box.remove(ids[1]);
+    contains = box.containsMany(ids);
+    expect(contains, equals(false));
+    //check complementary
+    box.removeAll();
+    contains = box.containsMany(ids);
+    expect(contains, equals(false));
+  });
+
   test(".remove(id) works", () {
     final List<int> ids = box.putMany(simple_items);
     //check if single id remove works

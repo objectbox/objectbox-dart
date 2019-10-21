@@ -57,8 +57,8 @@ class _ObjectBoxBindings {
 
   // box management
   Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
-  int Function(Pointer<Void> box, int id, Pointer<Int8> out_contains) obx_box_contains;
-  int Function(Pointer<Void> box, Pointer<Uint64> ids, Pointer<Int8> out_contains) obx_box_contains_many;
+  int Function(Pointer<Void> box, int id, Pointer<Uint8> out_contains) obx_box_contains;
+  int Function(Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint8> out_contains) obx_box_contains_many;
   int Function(Pointer<Void> box, int id, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
   Pointer<Uint64> Function(Pointer<Void> box, Pointer<OBX_id_array> ids) obx_box_get_many;
   Pointer<Uint64> Function(Pointer<Void> box) obx_box_get_all;
