@@ -51,12 +51,12 @@ void main() {
       final d = TestEntity_.d;
       final b = TestEntity_.b;
 
-      final anyQuery0 = ((d == 0.8) & (b == false)) | ((d == 0.7) & (b == false)) as Condition;
-      final anyQuery1 = (d.equals(0.8).and(b.equals(false))).or(d.equals(0.7).and(b.equals(false)));
-      final anyQuery2 = d.equals(0.8).and(b.equals(false)).or(d.equals(0.7).and(b.equals(false)));
-      final anyQuery3 = d.equals(0.8).and(b.equals(false)).or(d.equals(0.7)).and(b.equals(false));
+      final anyQuery0 = (d.between(0.79, 0.81) & ((b == false) as Condition)) | (d.between(0.69, 0.71) & ((b == false) as Condition));
+      final anyQuery1 = (d.between(0.79, 0.81).and(b.equals(false))).or(d.between(0.69, 0.71).and(b.equals(false)));
+      final anyQuery2 = d.between(0.79, 0.81).and(b.equals(false)).or(d.between(0.69, 0.71).and(b.equals(false)));
+      final anyQuery3 = d.between(0.79, 0.81).and(b.equals(false)).or(d.between(0.69, 0.71)).and(b.equals(false));
 
-      final allQuery0 = (d == 0.1) & (b == true);
+      final allQuery0 = d.between(0.09, 0.11) & ((b == true) as Condition);
 
       final q0    = box.query(b.equals(false)).build();
       final qany0 = box.query(anyQuery0 as Condition).build();

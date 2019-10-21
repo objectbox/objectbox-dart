@@ -152,11 +152,11 @@ class QueryDoubleProperty extends QueryProperty {
     return _op(ConditionOp.between, p1, p2);
   }
 
-  // TODO determine default tolerance: between (target - tolerance, target + tolerance)
-  Condition equals(double p, {double tolerance = 0.01}) {
-    final absTolerance = tolerance.abs();
-    return between(p - absTolerance, p + absTolerance);
-  }
+  // NOTE: objectbox-c doesn't support double/float equality (because it's a rather peculiar thing).
+  // Therefore, we're currently not providing this in Dart either, not even with some `between()` workarounds.
+  // Condition equals(double p) {
+  //    _op(ConditionOp.eq, p);
+  // }
 
   Condition greaterThan(double p) {
     return _op(ConditionOp.gt, p, null);
@@ -170,7 +170,8 @@ class QueryDoubleProperty extends QueryProperty {
 
   Condition operator >(double p) => greaterThan(p);
 
-  Condition operator ==(double p) => equals(p);
+  // Note: currently not supported - override the operator and throw explicitly to prevent the default comparison.
+  void operator ==(double p) => DoubleCondition(ConditionOp.eq, this, null, null);
 }
 
 class QueryBooleanProperty extends QueryProperty {
@@ -445,7 +446,10 @@ class IntegerCondition extends PropertyCondition<int> {
 }
 
 class DoubleCondition extends PropertyCondition<double> {
-  DoubleCondition(ConditionOp op, QueryProperty prop, double value, double value2) : super(op, prop, value, value2);
+  DoubleCondition(ConditionOp op, QueryProperty prop, double value, double value2) : super(op, prop, value, value2) {
+    assert(op !=
+      ConditionOp.eq, "Equality operator is not supported on floating point numbers - use between() instead.");
+  }
 
   int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<double> func) {
     return func(builder._cBuilder, _property._propertyId, _value);
