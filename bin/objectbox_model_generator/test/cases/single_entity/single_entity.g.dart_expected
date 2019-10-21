@@ -44,3 +44,10 @@ const SingleEntity_OBXDefs = EntityDefinition<SingleEntity>(
     _SingleEntity_OBXModelGetter,
     _SingleEntity_OBXReader,
     _SingleEntity_OBXBuilder);
+
+class SingleEntity_ {
+  static final id =
+      QueryIntegerProperty(entityId: 1, propertyId: 1, obxType: 6);
+  static final texta =
+      QueryStringProperty(entityId: 1, propertyId: 2, obxType: 9);
+}
