@@ -83,3 +83,24 @@ class OBXError {
   /// A requested schema object (e.g. entity or property) was not found in the schema
   static const int OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND = 10503;
 }
+
+// query builder
+
+class OBXOrderFlag {
+  /// Reverts the order from ascending (default) to descending.
+  static final DESCENDING = 1;
+
+  /// Makes upper case letters (e.g. "Z") be sorted before lower case letters (e.g. "a").
+  /// If not specified, the default is case insensitive for ASCII characters.
+  static final CASE_SENSITIVE = 2;
+
+  /// For scalars only: changes the comparison to unsigned (default is signed).
+  static final UNSIGNED = 4;
+
+  /// null values will be put last.
+  /// If not specified, by default null values will be put first.
+  static final NULLS_LAST = 8;
+
+  /// null values should be treated equal to zero (scalars only).
+  static final NULLS_ZERO = 16;
+}

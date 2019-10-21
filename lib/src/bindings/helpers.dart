@@ -9,7 +9,7 @@ checkObx(errorCode) {
   if (errorCode != OBXError.OBX_SUCCESS) throw ObjectBoxException(lastObxErrorString(errorCode));
 }
 
-checkObxPtr(Pointer ptr, String msg, [bool hasLastError = false]) {
+Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String msg, [bool hasLastError = false]) {
   if (ptr == null || ptr.address == 0) throw ObjectBoxException("$msg: ${hasLastError ? lastObxErrorString() : ""}");
   return ptr;
 }

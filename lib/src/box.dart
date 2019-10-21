@@ -7,6 +7,7 @@ import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
+import "query/index.dart";
 
 enum _PutMode {
   Put,
@@ -152,20 +153,17 @@ class Box<T> {
   List<T> getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
-    // write ids in buffer for FFI call
-    var idArray = IDArray(ids);
-
-    try {
-      return _getMany(() =>
-          checkObxPtr(bindings.obx_box_get_many(_cBox, idArray.ptr), "failed to get many objects from box", true));
-    } finally {
-      idArray.free();
-    }
+    return OBX_id_array.executeWith(
+        ids,
+        (ptr) => _getMany(
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true)));
   }
 
   List<T> getAll() {
     return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
+
+  QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
   get ptr => _cBox;
 }

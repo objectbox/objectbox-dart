@@ -51,6 +51,18 @@ To try out the demo code in this repository, follow these steps:
    (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
 4. Finally run `pub run test` to run the unit tests.
 
+Mac OS signed dart binary issue
+-------------------------------
+
+If dart complains that it cannot find the `libobjectbox.dylib`, after you've installed by following step 1,
+then you probably have to unsign the dart binary:
+
+```bash
+sudo xcode --remove-signature `which dart`
+``` 
+
+source: [dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841)
+
 Dart integration
 ----------------
 In general, Dart class annotations are used to mark classes as ObjectBox entities and provide meta information.
@@ -96,6 +108,40 @@ print("new note got id ${note.id}");
 print("refetched note: ${box.get(note.id)}");
 
 store.close();
+```
+
+Query and QueryBuilder
+----------------------
+
+Basic querying can be done with e.g.:
+
+```dart
+// var store ...
+// var box ...
+
+box.putMany([Note(), Note(), Note()]);
+box.put(Note.construct("Hello world!"));
+
+final queryNullText = box.query(Note_.text.isNull()).build();
+
+assert (queryNullText.count() == 3);
+
+queryNullText.close(); // We have to manually close queries and query builders.
+```
+
+More complex queries can be constructed using `and/or` operators.
+Also there is basic operator overloading support for `equal`, `greater`, `less`, `and` and `or`,
+respectively `==`, `>`, `<`, `&`, `|`.
+
+```dart
+// final box ...
+
+box.query(text.equal("meh").or(text.equal("bleh")).or(text.contains("Hello"))).build();
+
+// equivalent to
+
+final overloaded = ((text == "meh") | (text == "bleh")) | text.contains("Hello");
+box.query(overloaded as Condition).build(); // the cast is necessary due to the type analyzer
 ```
 
 Basic technical approach

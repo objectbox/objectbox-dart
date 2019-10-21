@@ -6,6 +6,7 @@ import "package:build/src/builder/build_step.dart";
 import "package:source_gen/source_gen.dart";
 
 import "package:objectbox/objectbox.dart" as obx;
+import "package:objectbox/src/annotations.dart";
 import "package:objectbox/src/bindings/constants.dart";
 
 import "code_chunks.dart";
@@ -24,6 +25,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
     }
     return ModelInfo.fromMap(json.decode(await (File(ALL_MODELS_JSON).readAsString())));
   }
+
+  final _propertyChecker = const TypeChecker.fromRuntime(Property);
+  final _idChecker = const TypeChecker.fromRuntime(Id);
 
   @override
   Future<String> generateForAnnotatedElement(
@@ -56,49 +60,46 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         int fieldType, flags = 0;
         int propUid;
 
-        if (f.metadata != null && f.metadata.length == 1) {
-          var annotElmt = f.metadata[0].element as ConstructorElement;
-          var annotType = annotElmt.returnType.toString();
-          var annotVal = f.metadata[0].computeConstantValue();
-          var fieldTypeAnnot; // for the future, with custom type sizes allowed: annotVal.getField("type");
-          fieldType = fieldTypeAnnot?.toIntValue();
-          propUid = annotVal.getField("uid").toIntValue();
-
-          // find property flags
-          if (annotType == "Id") {
-            if (hasIdProperty) {
-              throw InvalidGenerationSourceError(
-                  "in target ${elementBare.name}: has more than one properties annotated with @Id");
-            }
-            if (fieldType != null) {
-              throw InvalidGenerationSourceError(
-                  "in target ${elementBare.name}: programming error: @Id property may not specify a type");
-            }
-            if (f.type.toString() != "int") {
-              throw InvalidGenerationSourceError(
-                  "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
-            }
-
-            fieldType = OBXPropertyType.Long;
-            flags |= OBXPropertyFlag.ID;
-            hasIdProperty = true;
-          } else if (annotType == "Property") {
-            // nothing special
-          } else {
-            // skip unknown annotations
-            print(
-                "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unknown annotation type '$annotType'");
-            continue;
+        if (_idChecker.hasAnnotationOfExact(f)) {
+          if (hasIdProperty) {
+            throw InvalidGenerationSourceError(
+                "in target ${elementBare.name}: has more than one properties annotated with @Id");
           }
+          if (f.type.toString() != "int")
+            throw InvalidGenerationSourceError(
+                "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+
+          hasIdProperty = true;
+
+          fieldType = OBXPropertyType.Long;
+          flags |= OBXPropertyFlag.ID;
+
+          final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
+          propUid = _idAnnotation.getField('uid').toIntValue();
+        } else if (_propertyChecker.hasAnnotationOfExact(f)) {
+          final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
+          propUid = _propertyAnnotation.getField('uid').toIntValue();
+          fieldType = _propertyAnnotation.getField('type').toIntValue();
+          flags = _propertyAnnotation.getField('flag').toIntValue() ?? 0;
+
+          print(
+              "annotated property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
+        } else {
+          print(
+              "property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
         }
 
         if (fieldType == null) {
           var fieldTypeStr = f.type.toString();
-          if (fieldTypeStr == "int") {
-            fieldType = OBXPropertyType.Int;
-          } else if (fieldTypeStr == "String") {
+          if (fieldTypeStr == "int") // dart: 8 bytes
+            fieldType = OBXPropertyType.Long; // ob: 8 bytes
+          else if (fieldTypeStr == "String")
             fieldType = OBXPropertyType.String;
-          } else {
+          else if (fieldTypeStr == "bool") // 1 byte
+            fieldType = OBXPropertyType.Bool; // 1 byte
+          else if (fieldTypeStr == "double") // dart: 8 bytes
+            fieldType = OBXPropertyType.Double; // ob: 8 bytes
+          else {
             print(
                 "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
             continue;
@@ -124,6 +125,9 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // main code for instance builders and readers
       ret += CodeChunks.instanceBuildersReaders(readEntity);
+
+      // for building queries
+      ret += CodeChunks.queryConditionClasses(readEntity);
 
       return ret;
     } catch (e, s) {

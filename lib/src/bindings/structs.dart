@@ -1,25 +1,45 @@
-import "dart:ffi";
-import "dart:typed_data" show Uint8List;
+import 'dart:ffi';
+import 'dart:convert';
+import "dart:typed_data" show Uint8List, Uint64List;
 
-class IDArray {
-  // wrapper for "struct OBX_id_array"
-  Pointer<Uint64> _idsPtr, _structPtr;
+// Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
-  IDArray(List<int> ids) {
-    _idsPtr = Pointer<Uint64>.allocate(count: ids.length);
-    for (int i = 0; i < ids.length; ++i) {
-      _idsPtr.elementAt(i).store(ids[i]);
+class OBX_id_array extends Struct<OBX_id_array> {
+  /*
+    typedef struct OBX_id_array {
+      obx_id* ids;
+      size_t count;
+    };
+   */
+
+  Pointer<Uint64> _itemsPtr;
+
+  @IntPtr() // size_t
+  int length;
+
+  /// Get a copy of the list
+  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: length).buffer).toList();
+
+  /// Execute the given function, managing the resources consistently
+  static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
+    // allocate a temporary structure
+    final ptr = Pointer<OBX_id_array>.allocate();
+
+    // fill it with data
+    OBX_id_array array = ptr.load();
+    array.length = items.length;
+    array._itemsPtr = Pointer<Uint64>.allocate(count: array.length);
+    for (int i = 0; i < items.length; ++i) {
+      array._itemsPtr.elementAt(i).store(items[i]);
     }
-    _structPtr = Pointer<Uint64>.allocate(count: 2);
-    _structPtr.store(_idsPtr.address);
-    _structPtr.elementAt(1).store(ids.length);
-  }
 
-  get ptr => _structPtr;
-
-  free() {
-    _idsPtr.free();
-    _structPtr.free();
+    // call the function with the structure and free afterwards
+    try {
+      return fn(ptr);
+    } finally {
+      array._itemsPtr.free();
+      ptr.free();
+    }
   }
 }
 
@@ -44,8 +64,11 @@ class ByteBuffer {
   }
 
   get ptr => _ptr;
+
   get voidPtr => Pointer<Void>.fromAddress(_ptr.address);
+
   get address => _ptr.address;
+
   get size => _size;
 
   Uint8List get data {
@@ -64,6 +87,7 @@ class _SerializedByteBufferArray {
       _innerPtr; // outerPtr points to the instance itself, innerPtr points to the respective OBX_bytes_array.bytes
 
   _SerializedByteBufferArray(this._outerPtr, this._innerPtr);
+
   get ptr => _outerPtr;
 
   free() {
