@@ -1,5 +1,7 @@
 import "dart:ffi";
 
+import 'package:objectbox/src/common.dart';
+
 import "store.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
@@ -166,27 +168,54 @@ class Box<T> {
     return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
   }
 
-  // same as calling maxCount with limit := 0
-  int count() {
-    return maxCount(limit: 0);
-  }
-
-  int maxCount({int limit}) {
+  int count({int limit: 0}) {
     Pointer<Uint64> _count = Pointer<Uint64>.allocate();
-    checkObx(bindings.obx_box_count(_cBox, limit, _count));
-    return _count.load<int>();
+    try {
+      checkObx(bindings.obx_box_count(_cBox, limit, _count));
+      return _count.load<int>();
+    } finally {
+      _count.free();
+    }
   }
 
   bool isEmpty() {
     Pointer<Uint8> _isEmpty = Pointer<Uint8>.allocate();
-    checkObx(bindings.obx_box_is_empty(_cBox, _isEmpty));
-    return _isEmpty.load<int>() > 0 ? true : false;
+    try {
+      checkObx(bindings.obx_box_is_empty(_cBox, _isEmpty));
+      return _isEmpty.load<int>() > 0 ? true : false;
+    } finally {
+      _isEmpty.free();
+    }
+  }
+
+  bool remove(int id) {
+    try {
+      checkObx(bindings.obx_box_remove(_cBox, id));
+    } on ObjectBoxException catch (ex) {
+      if (ex.raw_msg == "code 404") return false;
+      else throw(ex);
+    }
+    return true;
+  }
+
+  int removeMany(List<int> ids) {
+    Pointer<Uint64> _removedIds = Pointer<Uint64>.allocate();
+    try {
+      checkObx(bindings.obx_box_remove_many(_cBox, IDArray(ids).ptr, _removedIds));
+      return _removedIds.load<int>();
+    } finally {
+      _removedIds.free();
+    }
   }
 
   int removeAll() {
     Pointer<Uint64> _removedItems = Pointer<Uint64>.allocate();
-    checkObx(bindings.obx_box_remove_all(_cBox, _removedItems));
-    return _removedItems.load<int>();
+    try {
+      checkObx(bindings.obx_box_remove_all(_cBox, _removedItems));
+      return _removedItems.load<int>();
+    } finally {
+      _removedItems.free();
+    }
   }
 
   get ptr => _cBox;

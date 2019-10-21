@@ -19,6 +19,8 @@ void main() {
   Store store;
   Box box;
 
+  final List<TestEntity> simple_items = ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.construct(s)).toList();
+
   group("box", () {
     setUp(() {
       store = Store([TestEntity_OBXDefs]);
@@ -93,16 +95,55 @@ void main() {
       expect(fetchedItems[2].text, equals("Two"));
     });
 
-    test(".count(), .isEmpty(), .removeAll() works", () {
-      final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.construct(s)).toList();
-      final List<int> ids = box.putMany(items);
-      
+    test(".count() works", () {
+      List<int> ids = box.putMany(simple_items);
       int count = box.count();
-      expect(count, greaterThanOrEqualTo(0));
+      expect(count, equals(6));
+      //add more
+      ids.addAll(box.putMany(simple_items));
+      count = box.count();
+      expect(count, equals(12));
+    });
+
+    test(".isEmpty() works", () {
       bool isEmpty = box.isEmpty();
+      expect(isEmpty, equals(true));
+      //check complementary
+      final List<int> ids = box.putMany(simple_items);
+      isEmpty = box.isEmpty();
       expect(isEmpty, equals(false));
+    });
+
+    test(".remove(id) works", () {
+      final List<int> ids = box.putMany(simple_items);
+      //check if single id remove works
+      box.remove(ids[1]);
+      expect(box.count(), equals(5));
+      //check what happens if id already deleted -> throws OBJBOXEX 404
+      bool success = box.remove(ids[1]);
+      expect(box.count(), equals(5));
+      expect(success, equals(false));
+    });
+
+    test(".removeMany(ids) works", () {
+      final List<int> ids = box.putMany(simple_items);
+      expect(box.count(), equals(6));
+      box.removeMany(ids.sublist(4));
+      expect(box.count(), equals(4));
+      //again test what happens if ids already deleted
+      box.removeMany(ids.sublist(4));
+      expect(box.count(), equals(4));
+    });
+
+    test(".removeAll() works", () {
+      List<int> ids = box.putMany(simple_items);
       int removed = box.removeAll();
-      expect(removed, greaterThan(0));
+      expect(removed, equals(6));
+      //try with different number of items
+      List<TestEntity> items = ["one", "two", "three"].map((s) => TestEntity.construct(s)).toList();
+      ids.addAll(box.putMany(items));
+      removed = box.removeAll();
+      expect(removed, equals(3));
     });
 
     tearDown(() {
