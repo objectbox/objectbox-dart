@@ -17,8 +17,10 @@ class QueryBuilder<T> {
     }
   }
 
+  _createBuilder() => _cBuilder ??= bindings.obx_qb_create(_store.ptr, _entityId);
+
   Query build() {
-    _cBuilder = bindings.obx_qb_create(_store.ptr, _entityId);
+    _createBuilder();
 
     if (0 == _queryCondition.apply(this, true)) {
       _throwExceptionIfNecessary();
@@ -30,6 +32,12 @@ class QueryBuilder<T> {
       checkObx(bindings.obx_qb_close(_cBuilder));
     }
   }
+
+  QueryBuilder<T> order(QueryProperty p, {int flags=0}) {
+    _createBuilder();
+    checkObx(bindings.obx_qb_order(_cBuilder, p._propertyId, flags));
+    return this;
+  }
 }
 
 /*  // Not done yet
@@ -37,8 +45,6 @@ class QueryBuilder<T> {
     obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
 
     obx_qb_param_alias_dart_t obx_qb_param_alias;
-
-    obx_qb_order_dart_t obx_qb_order;
 */
 
 //////
