@@ -167,44 +167,44 @@ class Box<T> {
   QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
   int count({int limit = 0}) {
-    Pointer<Uint64> _count = Pointer<Uint64>.allocate();
+    Pointer<Uint64> count = Pointer<Uint64>.allocate();
     try {
-      checkObx(bindings.obx_box_count(_cBox, limit, _count));
-      return _count.load<int>();
+      checkObx(bindings.obx_box_count(_cBox, limit, count));
+      return count.load<int>();
     } finally {
-      _count.free();
+      count.free();
     }
   }
 
   bool isEmpty() {
-    Pointer<Uint8> _isEmpty = Pointer<Uint8>.allocate();
+    Pointer<Uint8> isEmpty = Pointer<Uint8>.allocate();
     try {
-      checkObx(bindings.obx_box_is_empty(_cBox, _isEmpty));
-      return _isEmpty.load<int>() > 0 ? true : false;
+      checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
+      return isEmpty.load<int>() > 0 ? true : false;
     } finally {
-      _isEmpty.free();
+      isEmpty.free();
     }
   }
 
   bool contains(int id) {
-    Pointer<Uint8> _contains = Pointer<Uint8>.allocate();
+    Pointer<Uint8> contains = Pointer<Uint8>.allocate();
     try {
-      checkObx(bindings.obx_box_contains(_cBox, id, _contains));
-      return _contains.load<int>() > 0 ? true : false;
+      checkObx(bindings.obx_box_contains(_cBox, id, contains));
+      return contains.load<int>() > 0 ? true : false;
     } finally {
-      _contains.free();
+      contains.free();
     }
   }
 
   bool containsMany(List<int> ids) {
-    Pointer<Uint8> _contains = Pointer<Uint8>.allocate();
+    Pointer<Uint8> contains = Pointer<Uint8>.allocate();
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
-        checkObx(bindings.obx_box_contains_many(_cBox, ptr, _contains));
-        return _contains.load<int>() > 0 ? true : false;
+        checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
+        return contains.load<int>() > 0 ? true : false;
       });
     } finally {
-      _contains.free();
+      contains.free();
     }
   }
 
@@ -221,24 +221,24 @@ class Box<T> {
   }
 
   int removeMany(List<int> ids) {
-    Pointer<Uint64> _removedIds = Pointer<Uint64>.allocate();
+    Pointer<Uint64> removedIds = Pointer<Uint64>.allocate();
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
-        checkObx(bindings.obx_box_remove_many(_cBox, ptr, _removedIds));
-        return _removedIds.load<int>();
+        checkObx(bindings.obx_box_remove_many(_cBox, ptr, removedIds));
+        return removedIds.load<int>();
       });
     } finally {
-      _removedIds.free();
+      removedIds.free();
     }
   }
 
   int removeAll() {
-    Pointer<Uint64> _removedItems = Pointer<Uint64>.allocate();
+    Pointer<Uint64> removedIds = Pointer<Uint64>.allocate();
     try {
-      checkObx(bindings.obx_box_remove_all(_cBox, _removedItems));
-      return _removedItems.load<int>();
+      checkObx(bindings.obx_box_remove_all(_cBox, removedIds));
+      return removedIds.load<int>();
     } finally {
-      _removedItems.free();
+      removedIds.free();
     }
   }
 
