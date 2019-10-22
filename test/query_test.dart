@@ -2,7 +2,6 @@ import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
 import "entity.dart";
 import 'test_env.dart';
-import "package:objectbox/src/bindings/constants.dart" show OBXOrderFlag;
 
 void main() {
   TestEnv env;
@@ -375,7 +374,7 @@ void main() {
       .build();
 
     final queryWithFlags = box.query(condition)
-      .order(text, flags: OBXOrderFlag.DESCENDING | OBXOrderFlag.CASE_SENSITIVE)
+      .order(text, flags: Order.descending | Order.caseSensitive)
       .build();
 
     final result1 = query.find().map((e) => e.text).toList();
