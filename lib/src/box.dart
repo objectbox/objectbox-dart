@@ -233,12 +233,12 @@ class Box<T> {
   }
 
   int removeAll() {
-    Pointer<Uint64> removedIds = Pointer<Uint64>.allocate();
+    Pointer<Uint64> removedItems = Pointer<Uint64>.allocate();
     try {
-      checkObx(bindings.obx_box_remove_all(_cBox, removedIds));
-      return removedIds.load<int>();
+      checkObx(bindings.obx_box_remove_all(_cBox, removedItems));
+      return removedItems.load<int>();
     } finally {
-      removedIds.free();
+      removedItems.free();
     }
   }
 

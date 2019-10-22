@@ -356,6 +356,41 @@ void main() {
     }
   });
 
+  test(".order queryBuilder", () {
+    box.put(TestEntity.initText("World"));
+    box.put(TestEntity.initText("Hello"));
+    box.put(TestEntity.initText("HELLO"));
+    box.put(TestEntity.initText("World"));
+    box.put(TestEntity.initText("Goodbye"));
+    box.put(TestEntity.initText("Cruel"));
+    box.put(TestEntity.initInteger(1337));
+
+    final text = TestEntity_.text;
+
+    final condition = text.notNull();
+
+    final query = box.query(condition)
+      .order(text)
+      .build();
+
+    final queryWithFlags = box.query(condition)
+      .order(text, flags: Order.descending | Order.caseSensitive)
+      .build();
+
+    final result1 = query.find().map((e) => e.text).toList();
+    final result2 = queryWithFlags.find().map((e) => e.text).toList();
+
+    expect("Cruel", result1[0]);
+    expect("World", result2[0]);
+    expect("Hello", result1[2]);
+    expect("Hello", result2[2]);
+    expect("HELLO", result1[3]);
+    expect("HELLO", result2[3]);
+
+    query.close();
+    queryWithFlags.close();
+  });
+
   tearDown(() {
     env.close();
   });
