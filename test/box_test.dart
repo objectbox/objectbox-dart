@@ -6,6 +6,7 @@ import 'test_env.dart';
 void main() {
   TestEnv env;
   Box box;
+  Store store;
 
   final List<TestEntity> simple_items =
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.initText(s)).toList();
@@ -13,6 +14,7 @@ void main() {
   setUp(() {
     env = TestEnv("box");
     box = env.box;
+    store = env.store;
   });
 
   test(".put() returns a valid id", () {
@@ -166,6 +168,16 @@ void main() {
     ids.addAll(box.putMany(items));
     removed = box.removeAll();
     expect(removed, equals(3));
+  });
+
+  test("write in tnx works", () {
+    int count;
+    write_func() {
+      box.putMany(simple_items);
+    }
+    store.runInTransaction(TxMode.Write, write_func);
+    count = box.count();
+    expect(count, equals(6));
   });
 
   tearDown(() {
