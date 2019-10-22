@@ -46,7 +46,7 @@ class _SingleFileAssetReader extends AssetReader {
     if (id.package != "objectbox" && id.package != "objectbox_model_generator") return "";
 
     String path = id.path;
-    if (id.package == "objectbox") path = "../../" + path;
+    if (id.package == "objectbox") path = "../" + path;
     if (id.package == "objectbox_model_generator" && id.path.startsWith("test/cases") && id.path.endsWith(".dart")) {
       path += "_testcase";
     }
