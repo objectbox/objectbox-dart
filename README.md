@@ -144,6 +144,23 @@ final overloaded = ((text == "meh") | (text == "bleh")) | text.contains("Hello")
 box.query(overloaded as Condition).build(); // the cast is necessary due to the type analyzer
 ```
 
+Ordering
+--------
+
+The results from a query can be ordered using the `order` method, e.g.
+
+```dart
+final q = box.query(Entity_.number > 0)
+  .order(Type_.number)
+  .build();
+
+// ...
+
+final qt = box.query(Entity_.text.notNull())
+  .order(Entity_.text, flags: OBXOrderFlag.DESCENDING | OBXOrderFlag.CASE_SENSITIVE)
+  .build();
+```
+
 Basic technical approach
 ------------------------
 ObjectBox offers a [C API](https://github.com/objectbox/objectbox-c) which can be called by [Dart FFI](https://dart.dev/server/c-interop).
