@@ -12,7 +12,7 @@ class CodeChunks {
       }
 
       _allOBXModelEntities = {};
-      ModelInfo modelInfo = ModelInfo.fromMap(json.decode(new File("objectbox-model.json").readAsStringSync()));
+      ModelInfo modelInfo = ModelInfo.fromMap(json.decode(File("objectbox-model.json").readAsStringSync()));
       modelInfo.entities.forEach((e) => _allOBXModelEntities[e.id.uid] = e);
       }
 
@@ -33,7 +33,7 @@ class CodeChunks {
         }
 
         $name _${name}_OBXBuilder(Map<String, dynamic> members) {
-          $name r = new $name();
+          $name r = $name();
           ${readEntity.properties.map((p) => "r.${p.name} = members[\"${p.name}\"];").join()}
           return r;
         }
