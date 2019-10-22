@@ -369,13 +369,9 @@ void main() {
 
     final condition = text.notNull();
 
-    final query = box.query(condition)
-      .order(text)
-      .build();
+    final query = box.query(condition).order(text).build();
 
-    final queryWithFlags = box.query(condition)
-      .order(text, flags: Order.descending | Order.caseSensitive)
-      .build();
+    final queryWithFlags = box.query(condition).order(text, flags: Order.descending | Order.caseSensitive).build();
 
     final result1 = query.find().map((e) => e.text).toList();
     final result2 = queryWithFlags.find().map((e) => e.text).toList();
