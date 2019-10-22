@@ -33,7 +33,7 @@ class QueryBuilder<T> {
     }
   }
 
-  QueryBuilder<T> order(QueryProperty p, {int flags=0}) {
+  QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
     _createBuilder();
     checkObx(bindings.obx_qb_order(_cBuilder, p._propertyId, flags));
     return this;
