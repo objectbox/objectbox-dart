@@ -120,6 +120,37 @@ final qt = box.query(Entity_.text.notNull())
   .build();
 ```
 
+### Querying properties
+
+The sum, average, minimum and maximum etc. can be calculated on a property of a query.
+Calculating the minimum can be done like this, e.g.:
+
+```dart
+final tFloat = Entity_.tFloat;
+final tDouble = Entity_.tDouble;
+final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+final propMin = (qp) {
+  final p = query.doubleProperty(qp);
+  try {
+    return p.min();
+  }finally {
+    p.close();
+  }
+};
+
+final all = box.getAll();
+
+final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
+final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
+
+assert(propMin(tFloat) == minFloat, "These are the same");
+assert(propMin(tDouble) == minDouble, "These should also be the same");
+```
+
+Also the value of a property, present on all the instances of an entity can be returned
+with `find`, or counted with `count`.
+
+
 Help wanted
 -----------
 ObjectBox for Dart is still in an early stage with limited feature set (compared to other languages).

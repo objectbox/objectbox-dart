@@ -18,13 +18,13 @@ class _ObjectBoxBindings {
   obx_free_dart_t<OBX_bytes_array> obx_bytes_array_free;
   obx_free_dart_t<OBX_id_array> obx_id_array_free;
 
-  //  obx_free_dart_t<OBX__array> obx_string_array_free;
-  //  obx_free_dart_t<OBX__array> obx_int64_array_free;
-  //  obx_free_dart_t<OBX__array> obx_int32_array_free;
-  //  obx_free_dart_t<OBX__array> obx_int16_array_free;
-  //  obx_free_dart_t<OBX__array> obx_int8_array_free;
-  //  obx_free_dart_t<OBX__array> obx_double_array_free;
-  //  obx_free_dart_t<OBX__array> obx_float_array_free;
+  obx_free_dart_t<OBX_string_array> obx_string_array_free;
+  obx_free_dart_t<OBX_int64_array> obx_int64_array_free;
+  obx_free_dart_t<OBX_int32_array> obx_int32_array_free;
+  obx_free_dart_t<OBX_int16_array> obx_int16_array_free;
+  obx_free_dart_t<OBX_int8_array> obx_int8_array_free;
+  obx_free_dart_t<OBX_double_array> obx_double_array_free;
+  obx_free_dart_t<OBX_float_array> obx_float_array_free;
 
   // error info
   int Function() obx_last_error_code;
@@ -133,6 +133,30 @@ class _ObjectBoxBindings {
 
   obx_query_visit_dart_t obx_query_visit;
 
+  // query property
+  obx_query_prop_t<int> obx_query_prop;
+  obx_query_prop_close_t<int> obx_query_prop_close;
+
+  obx_query_prop_distinct_t<int, int> obx_query_prop_distinct;
+  obx_query_prop_distinct2_t<int, int> obx_query_prop_distinct_string;
+
+  obx_query_prop_op_t<int, Uint64> obx_query_prop_count;
+
+  obx_query_prop_op_t<int, Double> obx_query_prop_avg, obx_query_prop_min,
+    obx_query_prop_max, obx_query_prop_sum;
+
+  obx_query_prop_op_t<int, Int64> obx_query_prop_min_int,
+    obx_query_prop_max_int,
+    obx_query_prop_sum_int;
+
+  obx_query_prop_find_t<OBX_string_array, Int8> obx_query_prop_string_find;
+  obx_query_prop_find_t<OBX_int64_array, Int64> obx_query_prop_int64_find;
+  obx_query_prop_find_t<OBX_int32_array, Int32> obx_query_prop_int32_find;
+  obx_query_prop_find_t<OBX_int16_array, Int16> obx_query_prop_int16_find;
+  obx_query_prop_find_t<OBX_int8_array, Int8> obx_query_prop_int8_find;
+  obx_query_prop_find_t<OBX_double_array, Double> obx_query_prop_double_find;
+  obx_query_prop_find_t<OBX_float_array, Float> obx_query_prop_float_find;
+
   // Utilities
   obx_bytes_array_t<int> obx_bytes_array;
   obx_bytes_array_set_t<int, int> obx_bytes_array_set;
@@ -170,13 +194,13 @@ class _ObjectBoxBindings {
     obx_supports_bytes_array = _fn<obx_supports_bytes_array_native_t>("obx_supports_bytes_array").asFunction();
     obx_bytes_array_free = _fn<obx_free_native_t<Pointer<OBX_bytes_array>>>("obx_bytes_array_free").asFunction();
     obx_id_array_free = _fn<obx_free_native_t<Pointer<OBX_id_array>>>("obx_id_array_free").asFunction();
-//    obx_string_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_string_array_free").asFunction();
-//    obx_int64_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int64_array_free").asFunction();
-//    obx_int32_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int32_array_free").asFunction();
-//    obx_int16_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int16_array_free").asFunction();
-//    obx_int8_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int8_array_free").asFunction();
-//    obx_double_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_double_array_free").asFunction();
-//    obx_float_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_float_array_free").asFunction();
+    obx_string_array_free = _fn<obx_free_native_t<Pointer<OBX_string_array>>>("obx_string_array_free").asFunction();
+    obx_int64_array_free = _fn<obx_free_native_t<Pointer<OBX_int64_array>>>("obx_int64_array_free").asFunction();
+    obx_int32_array_free = _fn<obx_free_native_t<Pointer<OBX_int32_array>>>("obx_int32_array_free").asFunction();
+    obx_int16_array_free = _fn<obx_free_native_t<Pointer<OBX_int16_array>>>("obx_int16_array_free").asFunction();
+    obx_int8_array_free = _fn<obx_free_native_t<Pointer<OBX_int8_array>>>("obx_int8_array_free").asFunction();
+    obx_double_array_free = _fn<obx_free_native_t<Pointer<OBX_double_array>>>("obx_double_array_free").asFunction();
+    obx_float_array_free = _fn<obx_free_native_t<Pointer<OBX_float_array>>>("obx_float_array_free").asFunction();
 
     // error info
     obx_last_error_code = _fn<obx_last_error_code_native_t>("obx_last_error_code").asFunction();
@@ -298,6 +322,31 @@ class _ObjectBoxBindings {
     obx_query_describe_params = _fn<obx_query_describe_t>("obx_query_describe_params").asFunction();
 
     obx_query_visit = _fn<obx_query_visit_native_t>("obx_query_visit").asFunction();
+
+    // query property
+    obx_query_prop = _fn<obx_query_prop_t<Uint32>>("obx_query_prop").asFunction();
+    obx_query_prop_close = _fn<obx_query_prop_close_t<Int32>>("obx_query_prop_close").asFunction();
+
+    obx_query_prop_distinct =        _fn<obx_query_prop_distinct_t<Int32, Int8>>("obx_query_prop_distinct").asFunction();
+    obx_query_prop_distinct_string = _fn<obx_query_prop_distinct2_t<Int32, Int8>>("obx_query_prop_distinct_string").asFunction();
+
+    obx_query_prop_count = _fn<obx_query_prop_op_t<Int32, Uint64>>("obx_query_prop_count").asFunction();
+    obx_query_prop_avg = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_avg").asFunction();
+    obx_query_prop_min = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_min").asFunction();
+    obx_query_prop_max = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_max").asFunction();
+    obx_query_prop_sum = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_sum").asFunction();
+
+    obx_query_prop_min_int = _fn<obx_query_prop_op_t<Int32, Int64>>("obx_query_prop_min_int").asFunction();
+    obx_query_prop_max_int = _fn<obx_query_prop_op_t<Int32, Int64>>("obx_query_prop_max_int").asFunction();
+    obx_query_prop_sum_int = _fn<obx_query_prop_op_t<Int32, Int64>>("obx_query_prop_sum_int").asFunction();
+
+    obx_query_prop_string_find = _fn<obx_query_prop_find_native_t<Pointer<OBX_string_array>, Int8>>("obx_query_prop_string_find").asFunction();
+    obx_query_prop_int64_find = _fn<obx_query_prop_find_t<OBX_int64_array, Int64>>("obx_query_prop_int64_find").asFunction();
+    obx_query_prop_int32_find = _fn<obx_query_prop_find_t<OBX_int32_array, Int32>>("obx_query_prop_int32_find").asFunction();
+    obx_query_prop_int16_find = _fn<obx_query_prop_find_t<OBX_int16_array, Int16>>("obx_query_prop_int16_find").asFunction();
+    obx_query_prop_int8_find = _fn<obx_query_prop_find_t<OBX_int8_array, Int8>>("obx_query_prop_int8_find").asFunction();
+    obx_query_prop_double_find = _fn<obx_query_prop_find_t<OBX_double_array, Double>>("obx_query_prop_double_find").asFunction();
+    obx_query_prop_float_find = _fn<obx_query_prop_find_t<OBX_float_array, Float>>("obx_query_prop_float_find").asFunction();
 
     // Utilities
     obx_bytes_array = _fn<obx_bytes_array_t<IntPtr>>("obx_bytes_array").asFunction();
