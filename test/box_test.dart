@@ -11,7 +11,7 @@ void main() {
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.initText(s)).toList();
 
   setUp(() {
-    env = TestEnv("box");
+    env = TestEnv<TestEntity>(TestEntity_OBXDefs, "box");
     box = env.box;
   });
 

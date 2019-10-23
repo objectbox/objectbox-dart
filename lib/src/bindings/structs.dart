@@ -1,5 +1,6 @@
 import 'dart:ffi';
-import "dart:typed_data" show Uint8List, Uint64List;
+import "dart:typed_data" show Uint8List, Uint64List, Float64List, Float32List, DoubleList, FloatList;
+import "package:ffi/ffi.dart";
 
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
@@ -123,4 +124,77 @@ class ByteBufferArray {
   }
 
   get buffers => _buffers;
+}
+
+class OBX_int8_array extends Struct<OBX_int8_array> {
+  Pointer<Uint8> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: count).buffer).toList();
+}
+
+class OBX_int16_array extends Struct<OBX_int16_array> {
+  Pointer<Uint16> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: count).buffer).toList();
+}
+
+class OBX_int32_array extends Struct<OBX_int32_array> {
+  Pointer<Uint32> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: count).buffer).toList();
+}
+
+class OBX_int64_array extends Struct<OBX_int64_array> {
+  Pointer<Uint64> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: count).buffer).toList();
+}
+
+class OBX_string_array extends Struct<OBX_string_array> {
+
+  Pointer<Pointer<Uint8>> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<String> items() {
+    final list = <String>[];
+    for (int i=0; i<count; i++) {
+      list.add(Utf8.fromUtf8(_itemsPtr.elementAt(i).load().cast<Utf8>()));
+    }
+    return list;
+  }
+}
+
+class OBX_float_array extends Struct<OBX_float_array> {
+
+  Pointer<Float> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<double> items() => Float64List.view(_itemsPtr.asExternalTypedData(count: count).buffer).toList();
+}
+
+
+class OBX_double_array extends Struct<OBX_double_array> {
+
+  Pointer<Double> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<double> items() => Float64List.view(_itemsPtr.asExternalTypedData(count: count).buffer).toList();
 }

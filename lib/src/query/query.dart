@@ -13,6 +13,7 @@ import "../bindings/signatures.dart";
 import "package:ffi/ffi.dart";
 
 part "builder.dart";
+part "property.dart";
 
 /// The QueryProperty types are responsible for the operator overloading.
 /// A QueryBuilder will be constructed, based on the any / all operations applied.
@@ -573,5 +574,26 @@ class Query<T> {
   // For testing purposes
   String describeParameters() {
     return Utf8.fromUtf8(bindings.obx_query_describe_params(_cQuery).cast<Utf8>());
+  }
+
+  /// Not to be confused with QueryProperty...
+  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
+  StringPropertyQuery propertyString(QueryProperty qp) {
+    return StringPropertyQuery(_cQuery, qp._propertyId, qp._type);
+  }
+
+  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
+  IntegerPropertyQuery propertyInteger(QueryProperty qp) {
+    return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type);
+  }
+
+  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
+  IntegerPropertyQuery propertyBoolean(QueryProperty qp) {
+    return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type);
+  }
+
+  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
+  DoublePropertyQuery propertyDouble(QueryProperty qp) {
+    return DoublePropertyQuery(_cQuery, qp._propertyId, qp._type);
   }
 }

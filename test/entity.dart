@@ -25,7 +25,8 @@ class TestEntityProperty {
   @Id()
   int id;
 
-  // See OB-C, objectbox.h
+  // See ObjectBox-C, objectbox.h
+  // https://github.com/objectbox/objectbox-c/blob/master/include/objectbox.h#L177-L191
   bool tBool; // 1 byte
   int tLong; // ob: 8 bytes, dart: 8 bytes
   double tDouble; // ob: 8 bytes, dart: 8 bytes
@@ -45,4 +46,13 @@ class TestEntityProperty {
 
   @Property(type: 7 /*OBXPropertyType.Float*/)
   double tFloat; // 4 bytes
+
+  // TODO Throw a warning from the generator
+  // TODO if the default ctor with no args is missing
+  // TODO because OBX_Defs in the g.dart will blow up
+  TestEntityProperty();
+
+  TestEntityProperty.initIntegers(this.tBool, this.tByte, this.tChar, this.tShort, this.tInt, this.tLong);
+  TestEntityProperty.initFloats(this.tDouble, this.tFloat);
+  TestEntityProperty.initString(this.tString);
 }

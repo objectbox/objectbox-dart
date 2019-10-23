@@ -8,7 +8,7 @@ void main() {
   Box box;
 
   setUp(() {
-    env = TestEnv("query");
+    env = TestEnv<TestEntity>(TestEntity_OBXDefs, "query");
     box = env.box;
   });
 
