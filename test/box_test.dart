@@ -181,14 +181,14 @@ void main() {
   });
 
   test("failing transactions", () {
-    //fill box; delete outside of transaction -> then delete again in transaction -> should return false, due to ObjBoxError 404
-    int id = box.put(TestEntity.initInteger(5));
-    box.remove(id);
-    bool removed = true;
-    store.runInTransaction(TxMode.Write, () {
-      removed = box.remove(id);
-    });
-    expect(removed, equals(false));
+    try {
+      store.runInTransaction(TxMode.Write, () {
+        box.putMany(simple_items);
+        throw Exception("Test exception");
+      });
+    } on Exception {
+      expect(box.count(), equals(0));
+    }
   });
 
   test("recursive write in write transaction", () {
