@@ -36,7 +36,9 @@ class PropertyQuery {
     try {
       return checkObxPtr(findFn(_cProp, cDefault), errorMessage);
     }finally {
-      cDefault.free();
+      if (cDefault.address != 0) {
+        cDefault.free();
+      }
     }
   }
 }
@@ -113,22 +115,23 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
   }
 
   // TODO is 0 in the args ignored on C?
-  List<int> find({int defaultValue = 0}) {
+  List<int> find({int defaultValue}) {
+    final ptr = defaultValue != null ? (Pointer<Int64>.allocate()..store(defaultValue)) : Pointer<Int64>.fromAddress(0);
     switch(_type) {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
       case OBXPropertyType.Char:  // Int8
         return _unpack8(_curryWithDefault<OBX_int8_array, Int8>
-          (bindings.obx_query_prop_int8_find, Pointer<Int8>.allocate()..store(defaultValue), "find int8"));
+          (bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), "find int8"));
       case OBXPropertyType.Short: // Int16
         return _unpack16(_curryWithDefault<OBX_int16_array, Int16>
-          (bindings.obx_query_prop_int16_find, Pointer<Int16>.allocate()..store(defaultValue), "find int16"));
+          (bindings.obx_query_prop_int16_find, ptr.cast<Int16>(), "find int16"));
       case OBXPropertyType.Int:   // Int32
         return _unpack32(_curryWithDefault<OBX_int32_array, Int32>
-          (bindings.obx_query_prop_int32_find, Pointer<Int32>.allocate()..store(defaultValue), "find int32"));
+          (bindings.obx_query_prop_int32_find, ptr.cast<Int32>(), "find int32"));
       case OBXPropertyType.Long:  // Int64
         return _unpack64(_curryWithDefault<OBX_int64_array, Int64>
-          (bindings.obx_query_prop_int64_find, Pointer<Int64>.allocate()..store(defaultValue), "find int64"));
+          (bindings.obx_query_prop_int64_find, ptr.cast<Int64>(), "find int64"));
     }
   }
 }
@@ -173,14 +176,15 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
     }
   }
 
-  List<double> find({double defaultValue = 0}) {
+  List<double> find({double defaultValue}) {
+    final ptr = defaultValue != null ? (Pointer<Double>.allocate()..store(defaultValue)) : Pointer<Double>.fromAddress(0);
     switch(_type) {
       case OBXPropertyType.Float:
         return _unpack32(_curryWithDefault<OBX_float_array, Float>
-          (bindings.obx_query_prop_float_find, Pointer<Float>.allocate()..store(defaultValue), "find float32"));
+          (bindings.obx_query_prop_float_find, ptr.cast<Float>(), "find float32"));
       case OBXPropertyType.Double:
         return _unpack64(_curryWithDefault<OBX_double_array, Double>
-          (bindings.obx_query_prop_double_find, Pointer<Double>.allocate()..store(defaultValue), "find float64"));
+          (bindings.obx_query_prop_double_find, ptr.cast<Double>(), "find float64"));
     }
   }
 
@@ -206,14 +210,9 @@ class StringPropertyQuery extends PropertyQuery {
   }
 
   List<String> find({String defaultValue}) {
-    Pointer<Int8> int8Ptr;
-    if (defaultValue != null) {
-      int8Ptr = Utf8.toUtf8(defaultValue).cast<Int8>();
-    }else {
-      int8Ptr = Pointer<Int8>.allocate()..store(0); // TODO confirm this is how you do nil
-    }
+    final ptr = defaultValue != null ? Utf8.toUtf8(defaultValue).cast<Int8>() : Pointer<Int8>.fromAddress(0);
     return _unpack(_curryWithDefault<OBX_string_array, Int8>
-      (bindings.obx_query_prop_string_find, int8Ptr, "find utf8"));
+      (bindings.obx_query_prop_string_find, ptr, "find utf8"));
   }
 }
 
