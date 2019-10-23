@@ -577,23 +577,15 @@ class Query<T> {
   }
 
   /// Not to be confused with QueryProperty...
-  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
-  StringPropertyQuery propertyString(QueryProperty qp) {
-    return StringPropertyQuery(_cQuery, qp._propertyId, qp._type);
-  }
-
-  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
-  IntegerPropertyQuery propertyInteger(QueryProperty qp) {
-    return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type);
-  }
-
-  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
-  IntegerPropertyQuery propertyBoolean(QueryProperty qp) {
-    return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type);
-  }
-
-  // TODO check type mapping, e.g. you can't propertyString and add a parameter of int property type
-  DoublePropertyQuery propertyDouble(QueryProperty qp) {
-    return DoublePropertyQuery(_cQuery, qp._propertyId, qp._type);
+  PQ property<PQ extends PropertyQuery>(QueryProperty qp) {
+    if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
+      return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+    }else if (OBXPropertyType.Float == qp._type || qp._type == OBXPropertyType.Double) {
+      return DoublePropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+    }else if (OBXPropertyType.String == qp._type) {
+      return StringPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+    }else {
+      throw Exception("Property query: unsupported type (OBXPropertyType: ${qp._type})");
+    }
   }
 }

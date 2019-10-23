@@ -22,19 +22,21 @@ void main() {
   final tShort = TestEntityProperty_.tShort;
   final tChar = TestEntityProperty_.tChar;
   final tByte = TestEntityProperty_.tByte;
+  final tIntegers = [ tBool, tLong, tInt, tShort, tChar, tByte ];
 
   final tFloat = TestEntityProperty_.tFloat;
   final tDouble = TestEntityProperty_.tDouble;
+  final tFloats = [ tFloat, tDouble ];
 
   final tString = TestEntityProperty_.tString;
 
   test(".distinct, .count, .close property query", () {
     box.putMany(integerList);
     box.putMany(stringList);
-    box.putMany(integerList);
+    box.putMany(floatList);
 
     final query = box.query((tLong < 2) as Condition).build();
-    final queryInt = query.propertyInteger(tLong);
+    final queryInt = query.property(tLong);
 
     final tLongCount = queryInt.count();
 
@@ -52,6 +54,31 @@ void main() {
     query.close();
     queryInt.close();
      */
+  });
+
+  test("query.property(E_.field) property query, type inference", () {
+    box.putMany(integerList);
+    box.putMany(stringList);
+    box.putMany(floatList);
+
+    final query = box.query((tLong < 2) as Condition).build();
+
+    tIntegers.forEach((i) {
+      final qp = query.property(i);
+      expect(qp is IntegerPropertyQuery, true);
+      qp.close();
+    });
+
+    tFloats.forEach((f) {
+      final qp = query.property(f);
+      expect(qp is DoublePropertyQuery, true);
+      qp.close();
+    });
+
+    final qp = query.property(tString);
+    expect(qp is StringPropertyQuery, true);
+    qp.close();
+
   });
 
   tearDown(() {

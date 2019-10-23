@@ -1,11 +1,11 @@
 part of query;
 
-class _PropertyQuery {
+class PropertyQuery {
   Pointer<Void> _cProp;
   int _type;
   bool _distinct;
 
-  _PropertyQuery(Pointer<Void> cQuery, int propertyId, int obxType) {
+  PropertyQuery(Pointer<Void> cQuery, int propertyId, int obxType) {
     this._type = obxType;
     _cProp = checkObxPtr(bindings.obx_query_prop(cQuery, propertyId), "property query");
   }
@@ -42,7 +42,7 @@ class _PropertyQuery {
 }
 
 /// shared implementation, hence mixin
-mixin _CommonNumeric on _PropertyQuery {
+mixin _CommonNumeric on PropertyQuery {
 
   double average() {
     final ptr = Pointer<Double>.allocate();
@@ -56,7 +56,7 @@ mixin _CommonNumeric on _PropertyQuery {
 
 }
 
-class IntegerPropertyQuery extends _PropertyQuery with _CommonNumeric {
+class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
 
   IntegerPropertyQuery (Pointer<Void> query, int propertyId, int obxType): super(query, propertyId, obxType);
 
@@ -112,7 +112,8 @@ class IntegerPropertyQuery extends _PropertyQuery with _CommonNumeric {
     }
   }
 
-  List<int> find({int defaultValue}) {
+  // TODO is 0 in the args ignored on C?
+  List<int> find({int defaultValue = 0}) {
     switch(_type) {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
@@ -132,7 +133,7 @@ class IntegerPropertyQuery extends _PropertyQuery with _CommonNumeric {
   }
 }
 
-class DoublePropertyQuery extends _PropertyQuery with _CommonNumeric {
+class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
 
   DoublePropertyQuery (Pointer<Void> query, int propertyId, int obxType): super(query, propertyId, obxType);
 
@@ -172,7 +173,7 @@ class DoublePropertyQuery extends _PropertyQuery with _CommonNumeric {
     }
   }
 
-  List<double> find({double defaultValue=0}) {
+  List<double> find({double defaultValue = 0}) {
     switch(_type) {
       case OBXPropertyType.Float:
         return _unpack32(_curryWithDefault<OBX_float_array, Float>
@@ -185,7 +186,7 @@ class DoublePropertyQuery extends _PropertyQuery with _CommonNumeric {
 
 }
 
-class StringPropertyQuery extends _PropertyQuery {
+class StringPropertyQuery extends PropertyQuery {
 
   StringPropertyQuery (Pointer<Void> query, int propertyId, int obxType): super(query, propertyId, obxType);
 
