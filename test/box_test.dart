@@ -170,7 +170,7 @@ void main() {
     expect(removed, equals(3));
   });
 
-  test("write in tnx works", () {
+  test("simple write in txn works", () {
     int count;
     write_func() {
       box.putMany(simple_items);
@@ -178,6 +178,61 @@ void main() {
     store.runInTransaction(TxMode.Write, write_func);
     count = box.count();
     expect(count, equals(6));
+  });
+
+  test("failing transactions", () {
+    //fill box; delete outside of transaction -> then delete again in transaction -> should return false, due to ObjBoxError 404
+    int id = box.put(TestEntity.initInteger(5));
+    box.remove(id);
+    bool removed;
+    store.runInTransaction(TxMode.Write, () {
+      removed = box.remove(id);
+    });
+    expect(removed, equals(false));
+  });
+
+  test("recursive write in write transaction", () {
+    store.runInTransaction(TxMode.Write, () {
+      box.putMany(simple_items);
+      store.runInTransaction(TxMode.Write, () {
+        box.putMany(simple_items);
+      });
+    });
+    expect(box.count(), equals(12));
+  });
+
+  test("recursive read in write transaction", () {
+    int count = store.runInTransaction(TxMode.Write, () {
+      box.putMany(simple_items);
+      return store.runInTransaction(TxMode.Read, () {
+        return box.count();
+      });
+    });
+    expect(count, equals(6));
+  });
+
+  test("recursive write in read -> fails during creation", () {
+    List<int> ids;
+    try {
+      ids = store.runInTransaction(TxMode.Read, () {
+        box.count();
+        return store.runInTransaction(TxMode.Write, () {
+          return box.putMany(simple_items);
+        });
+      });
+    } on ObjectBoxException catch (ex) {
+      expect(ex.toString(), equals("ObjectBoxException: failed to create transaction: "));
+    }
+  });
+
+  test("failing in recursive txn", () {
+    store.runInTransaction(TxMode.Write, () {
+      //should throw code10001 -> valid until fix
+      List<int> ids = store.runInTransaction(TxMode.Read, () {
+        return box.putMany(simple_items);
+      });
+      expect(ids.length, equals(6));
+    });
   });
 
   tearDown(() {
