@@ -41,6 +41,7 @@ typedef obx_txn_read_native_t = Pointer<Void> Function(Pointer<Void> store);
 typedef obx_txn_close_native_t = Int32 Function(Pointer<Void> txn);
 typedef obx_txn_abort_native_t = Int32 Function(Pointer<Void> txn);
 typedef obx_txn_success_native_t = Int32 Function(Pointer<Void> txn);
+typedef obx_txn_mark_success_native_t = Int32 Function(Pointer<Void> txn, Uint8 wasSuccessful);
 
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);

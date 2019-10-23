@@ -184,7 +184,7 @@ void main() {
     //fill box; delete outside of transaction -> then delete again in transaction -> should return false, due to ObjBoxError 404
     int id = box.put(TestEntity.initInteger(5));
     box.remove(id);
-    bool removed;
+    bool removed = true;
     store.runInTransaction(TxMode.Write, () {
       removed = box.remove(id);
     });
