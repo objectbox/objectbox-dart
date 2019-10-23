@@ -187,6 +187,8 @@ void main() {
         throw Exception("Test exception");
       });
     } on Exception {
+      ; //otherwise test fails due to not handling exceptions
+    } finally {
       expect(box.count(), equals(0));
     }
   });
