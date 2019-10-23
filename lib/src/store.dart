@@ -65,7 +65,7 @@ class Store {
         checkObx(bindings.obx_txn_mark_success(txn, 1));
       }
       return fn();
-    } on Exception {
+    } catch (ex) {
       if (wanna_write) {
         checkObx(bindings.obx_txn_mark_success(txn, 0));
       }
