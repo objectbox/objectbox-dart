@@ -54,6 +54,7 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> txn) obx_txn_close;
   int Function(Pointer<Void> txn) obx_txn_abort;
   int Function(Pointer<Void> txn) obx_txn_success;
+  int Function(Pointer<Void> txn, int was_successful) obx_txn_mark_success;
 
   // box management
   Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
@@ -185,6 +186,7 @@ class _ObjectBoxBindings {
     obx_txn_close = _fn<obx_txn_close_native_t>("obx_txn_close").asFunction();
     obx_txn_abort = _fn<obx_txn_abort_native_t>("obx_txn_abort").asFunction();
     obx_txn_success = _fn<obx_txn_success_native_t>("obx_txn_success").asFunction();
+    obx_txn_mark_success = _fn<obx_txn_mark_success_native_t>("obx_txn_mark_success").asFunction();
 
     // box management
     obx_box = _fn<obx_box_native_t>("obx_box").asFunction();

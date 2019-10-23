@@ -6,6 +6,7 @@ import 'test_env.dart';
 void main() {
   TestEnv env;
   Box box;
+  Store store;
 
   final List<TestEntity> simple_items =
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.initText(s)).toList();
@@ -13,6 +14,7 @@ void main() {
   setUp(() {
     env = TestEnv("box");
     box = env.box;
+    store = env.store;
   });
 
   test(".put() returns a valid id", () {
@@ -166,6 +168,73 @@ void main() {
     ids.addAll(box.putMany(items));
     removed = box.removeAll();
     expect(removed, equals(3));
+  });
+
+  test("simple write in txn works", () {
+    int count;
+    write_func() {
+      box.putMany(simple_items);
+    }
+    store.runInTransaction(TxMode.Write, write_func);
+    count = box.count();
+    expect(count, equals(6));
+  });
+
+  test("failing transactions", () {
+    try {
+      store.runInTransaction(TxMode.Write, () {
+        box.putMany(simple_items);
+        throw Exception("Test exception");
+      });
+    } on Exception {
+      ; //otherwise test fails due to not handling exceptions
+    } finally {
+      expect(box.count(), equals(0));
+    }
+  });
+
+  test("recursive write in write transaction", () {
+    store.runInTransaction(TxMode.Write, () {
+      box.putMany(simple_items);
+      store.runInTransaction(TxMode.Write, () {
+        box.putMany(simple_items);
+      });
+    });
+    expect(box.count(), equals(12));
+  });
+
+  test("recursive read in write transaction", () {
+    int count = store.runInTransaction(TxMode.Write, () {
+      box.putMany(simple_items);
+      return store.runInTransaction(TxMode.Read, () {
+        return box.count();
+      });
+    });
+    expect(count, equals(6));
+  });
+
+  test("recursive write in read -> fails during creation", () {
+    List<int> ids;
+    try {
+      ids = store.runInTransaction(TxMode.Read, () {
+        box.count();
+        return store.runInTransaction(TxMode.Write, () {
+          return box.putMany(simple_items);
+        });
+      });
+    } on ObjectBoxException catch (ex) {
+      expect(ex.toString(), equals("ObjectBoxException: failed to create transaction: "));
+    }
+  });
+
+  test("failing in recursive txn", () {
+    store.runInTransaction(TxMode.Write, () {
+      //should throw code10001 -> valid until fix
+      List<int> ids = store.runInTransaction(TxMode.Read, () {
+        return box.putMany(simple_items);
+      });
+      expect(ids.length, equals(6));
+    });
   });
 
   tearDown(() {
