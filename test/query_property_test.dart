@@ -30,6 +30,19 @@ void main() {
 
   final tString = TestEntityProperty_.tString;
 
+  test(".count (basic query)", () {
+    box.putMany(integerList);
+    box.putMany(stringList);
+    box.putMany(floatList);
+
+    tIntegers.forEach((i) {
+      if (i is QueryBooleanProperty) { return; }
+      final queryInt = box.query((i as QueryIntegerProperty).greaterThan(0)).build();
+      expect(queryInt.count(), 8);
+      queryInt.close();
+    });
+  });
+
   test(".distinct, .count, .close property query", () {
     box.putMany(integerList);
     box.putMany(stringList);
