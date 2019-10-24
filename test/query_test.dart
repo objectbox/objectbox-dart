@@ -321,13 +321,12 @@ void main() {
         .or(text.equals("Cruel"))
         .or(text.equals("World"));
     final q = box.query(c).build();
-    final expectedString = [
-      '''((text ==(i) "Goodbye"''',
-      ''' AND number == 1337)''',
-      ''' OR number == 1337''',
-      ''' OR text ==(i) "Cruel"''',
-      ''' OR text ==(i) "World")'''
-    ].join("\n");
+    final expectedString =
+      '((text ==(i) "Goodbye"\n'
+      ' AND number == 1337)\n'
+      ' OR number == 1337\n'
+      ' OR text ==(i) "Cruel"\n'
+      ' OR text ==(i) "World")';
     expect(q.describeParameters(), expectedString);
     q.close();
 
