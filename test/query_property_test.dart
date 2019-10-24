@@ -35,25 +35,21 @@ void main() {
     box.putMany(stringList);
     box.putMany(floatList);
 
+    // int
     final query = box.query((tLong < 2) as Condition).build();
+
     final queryInt = query.property(tLong);
 
     final tLongCount = queryInt.count();
-
-    expect(tLongCount, 4);
-
-    queryInt.close();
-    query.close();
-
-    /*
-    final tLongDistinctCount = queryInt..distinct(true)..count();
-
     expect(4, tLongCount);
-    expect(2, tLongDistinctCount);
 
-    query.close();
+    // TODO NPE on queryInt (no errors thrown), turn on when fixed (dart 2.6?)
+//    final tLongDistinctCount = queryInt..distinct(true)..count();
+//    expect(2, tLongDistinctCount);
+
     queryInt.close();
-     */
+    query.close();
+
   });
 
   test("query.property(E_.field) property query, type inference", () {
@@ -81,7 +77,71 @@ void main() {
 
   });
 
+  test(".min .max .sum", () {
+    box.putMany(integerList);
+
+    final query = box.query((tLong < 2) as Condition).build();
+
+    tIntegers.forEach((i) {
+      final qp = query.property(i) as IntegerPropertyQuery;
+
+      final min = qp.min(); // TODO OBX_ERROR_ILLEGAL_ARGUMENT 10002 ?!
+      expect(min, 0); // TODO change
+
+      final max = qp.max(); // TODO OBX_ERROR_ILLEGAL_ARGUMENT 10002 ?!
+      expect(max, 0); // TODO change
+
+      final sum = qp.sum(); // TODO OBX_ERROR_ILLEGAL_ARGUMENT 10002 ?!
+      expect(sum, 0); // TODO change
+
+      qp.close();
+    });
+
+    query.close();
+  });
+
+  test(".find", () {
+    box.putMany(integerList);
+
+//    final query = box.query(((tLong < 2 | tString.endsWith("suffix")) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
+    final query = box.query(tLong.lessThan(2).or(tString.endsWith("suffix")).or(tDouble.between(0.0, 0.2))).build();
+
+    tIntegers.forEach((i) {
+      final qp = query.property(i) as IntegerPropertyQuery;
+
+      expect(qp.find(), 0); // TODO change
+      expect(qp.find(defaultValue:-1), 0); // TODO change
+
+      qp.close();
+    });
+
+    tFloats.forEach((f) {
+      final qp = query.property(f) as DoublePropertyQuery;
+
+      expect(qp.find(), 0); // TODO change
+      expect(qp.find(defaultValue:-0.1), 0); // TODO change
+
+      qp.close();
+    });
+
+    final qp = query.property(tString) as StringPropertyQuery;
+
+    expect(qp.find(), ""); // TODO change
+    expect(qp..distinct(true) ..caseSensitive(true)..find(), ""); // TODO change
+    expect(qp..distinct(false)..caseSensitive(true)..find(defaultValue:"meh"), ""); // TODO change
+    expect(qp..distinct(true) ..caseSensitive(false)..find(), ""); // TODO change
+    expect(qp..distinct(false) ..caseSensitive(false)..find(defaultValue:"meh"), ""); // TODO change
+    expect(qp..distinct(true) ..caseSensitive(true)..find(), ""); // TODO change
+    expect(qp..distinct(false)..caseSensitive(true)..find(defaultValue:"meh"), ""); // TODO change
+    expect(qp..distinct(true) ..caseSensitive(false)..find(), ""); // TODO change
+    expect(qp..distinct(false)..caseSensitive(false)..find(defaultValue:"meh"), ""); // TODO change
+    qp.close();
+
+    query.close();
+  });
+
   tearDown(() {
     env.close();
   });
 }
+

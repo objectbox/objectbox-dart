@@ -114,7 +114,6 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
     }
   }
 
-  // TODO is 0 in the args ignored on C?
   List<int> find({int defaultValue}) {
     final ptr = defaultValue != null ? (Pointer<Int64>.allocate()..store(defaultValue)) : Pointer<Int64>.fromAddress(0);
     switch(_type) {
@@ -214,5 +213,6 @@ class StringPropertyQuery extends PropertyQuery {
     return _unpack(_curryWithDefault<OBX_string_array, Int8>
       (bindings.obx_query_prop_string_find, ptr, "find utf8"));
   }
+
 }
 
