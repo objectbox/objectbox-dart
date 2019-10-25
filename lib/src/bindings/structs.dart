@@ -27,7 +27,7 @@ class OBX_id_array extends Struct {
     final ptr = allocate<OBX_id_array>();
 
     // fill it with data
-    OBX_id_array array = ptr.value;
+    OBX_id_array array = ptr.ref;
     array.length = items.length;
     array._itemsPtr = allocate<Uint64>(count: array.length);
     for (int i = 0; i < items.length; ++i) {

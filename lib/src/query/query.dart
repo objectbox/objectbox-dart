@@ -548,7 +548,7 @@ class Query<T> {
   List<int> findIds({int offset = 0, int limit = 0}) {
     final idArrayPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
     try {
-      OBX_id_array idArray = idArrayPtr.value;
+      OBX_id_array idArray = idArrayPtr.ref;
       return idArray.length == 0 ? List<int>() : idArray.items();
     } finally {
       bindings.obx_id_array_free(idArrayPtr);
