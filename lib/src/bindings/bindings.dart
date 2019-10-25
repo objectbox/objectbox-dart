@@ -134,7 +134,9 @@ class _ObjectBoxBindings {
       libName += ".dll";
     } else if (Platform.isMacOS) {
       libName = "lib" + libName + ".dylib";
-    } else if (Platform.isLinux || Platform.isAndroid) {
+    } else if (Platform.isAndroid) {
+      libName = "lib" + libName + "-jni.so";
+    } else if (Platform.isLinux) {
       libName = "lib" + libName + ".so";
     } else {
       throw Exception("unsupported platform detected");
