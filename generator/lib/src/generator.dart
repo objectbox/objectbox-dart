@@ -127,7 +127,12 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // merge existing model and annotated model that was just read, then write new final model to file
       mergeEntity(allModels, readEntity);
-      await File(ALL_MODELS_JSON).writeAsString(JsonEncoder.withIndent("  ").convert(allModels.toMap()));
+      final modelJson = JsonEncoder.withIndent("  ").convert(allModels.toMap());
+      await File(ALL_MODELS_JSON).writeAsString(modelJson);
+
+      // add model-json to the generated code
+      ret = ret.replaceFirst('||MODEL-JSON||', modelJson);
+
       readEntity = allModels.findEntityByName(element.name);
       if (readEntity == null) return ret;
 
