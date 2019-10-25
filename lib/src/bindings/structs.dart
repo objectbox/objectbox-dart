@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import "dart:typed_data" show Uint8List, Uint64List;
 
-import "package:ffi/ffi.dart" show allocate, free;
+import "package:ffi/ffi.dart" as ffi show allocate, free;
 
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
@@ -19,17 +19,17 @@ class OBX_id_array extends Struct {
   int length;
 
   /// Get a copy of the list
-  List<int> items() => Uint64List.view(_itemsPtr.asTypedList(count: length).buffer).toList();
+  List<int> items() => _itemsPtr.asTypedList(length);
 
   /// Execute the given function, managing the resources consistently
   static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
     // allocate a temporary structure
-    final ptr = allocate<OBX_id_array>();
+    final ptr = ffi.allocate<OBX_id_array>();
 
     // fill it with data
     OBX_id_array array = ptr.ref;
     array.length = items.length;
-    array._itemsPtr = allocate<Uint64>(count: array.length);
+    array._itemsPtr = ffi.allocate<Uint64>(count: array.length);
     for (int i = 0; i < items.length; ++i) {
       array._itemsPtr.elementAt(i).value = items[i];
     }
@@ -38,8 +38,8 @@ class OBX_id_array extends Struct {
     try {
       return fn(ptr);
     } finally {
-      free(array._itemsPtr);
-      free(ptr);
+      ffi.free(array._itemsPtr);
+      ffi.free(ptr);
     }
   }
 }
@@ -52,7 +52,7 @@ class ByteBuffer {
   ByteBuffer(this._ptr, this._size);
 
   ByteBuffer.allocate(Uint8List dartData, [bool align = true]) {
-    _ptr = allocate<Uint8>(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
+    _ptr = ffi.allocate<Uint8>(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
     for (int i = 0; i < dartData.length; ++i) {
       _ptr.elementAt(i).value = dartData[i];
     }
@@ -81,7 +81,8 @@ class ByteBuffer {
     return buffer;
   }
 
-  free() => free(_ptr);
+  // We're importing with the ffi alias because of this thing here
+  free() => ffi.free(_ptr);
 }
 
 // TODO change to a struct
@@ -94,8 +95,8 @@ class _SerializedByteBufferArray {
   get ptr => _outerPtr;
 
   free() {
-    free(_innerPtr);
-    free(_outerPtr);
+    ffi.free(_innerPtr);
+    ffi.free(_outerPtr);
   }
 }
 
@@ -115,13 +116,13 @@ class ByteBufferArray {
   }
 
   _SerializedByteBufferArray toOBXBytesArray() {
-    Pointer<Uint64> bufferPtrs = allocate<Uint64>(count: _buffers.length * 2);
+    Pointer<Uint64> bufferPtrs = ffi.allocate<Uint64>(count: _buffers.length * 2);
     for (int i = 0; i < _buffers.length; ++i) {
       bufferPtrs.elementAt(2 * i).value = _buffers[i].ptr.address as int;
       bufferPtrs.elementAt(2 * i + 1).value = buffers[i].size as int;
     }
 
-    Pointer<Uint64> outerPtr = allocate<Uint64>(count: 2);
+    Pointer<Uint64> outerPtr = ffi.allocate<Uint64>(count: 2);
     outerPtr.value = bufferPtrs.address;
     outerPtr.elementAt(1).value = _buffers.length;
     return _SerializedByteBufferArray(outerPtr, bufferPtrs);
