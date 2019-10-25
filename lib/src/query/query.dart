@@ -521,7 +521,7 @@ class Query<T> {
 
   // package private ctor
   Query._(this._store, this._fbManager, Pointer<Void> cBuilder) {
-    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query", true);
+    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query");
   }
 
   int count() {

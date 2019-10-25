@@ -157,11 +157,11 @@ class Box<T> {
     return OBX_id_array.executeWith(
         ids,
         (ptr) => _getMany(
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true)));
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box")));
   }
 
   List<T> getAll() {
-    return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
+    return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"));
   }
 
   QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);

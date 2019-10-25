@@ -223,7 +223,7 @@ void main() {
         });
       });
     } on ObjectBoxException catch (ex) {
-      expect(ex.toString(), equals("ObjectBoxException: failed to create transaction: "));
+      expect(ex.toString(), startsWith("ObjectBoxException: failed to create transaction"));
     }
   });
 
