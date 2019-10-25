@@ -2,6 +2,8 @@ library query;
 
 import "dart:ffi";
 
+import "package:ffi/ffi.dart" show allocate, free;
+
 import "../store.dart";
 import "../common.dart";
 import "../bindings/bindings.dart";
@@ -10,7 +12,6 @@ import "../bindings/flatbuffers.dart";
 import "../bindings/helpers.dart";
 import "../bindings/structs.dart";
 import "../bindings/signatures.dart";
-import "package:ffi/ffi.dart";
 
 part "builder.dart";
 
@@ -286,7 +287,7 @@ class StringCondition extends PropertyCondition<String> {
   int _inside(QueryBuilder builder) {
     final func = bindings.obx_qb_string_in;
     final listLength = _list.length;
-    final arrayOfUint8Ptrs = Pointer<Pointer<Uint8>>.allocate(count: listLength);
+    final arrayOfUint8Ptrs = allocate<Pointer<Uint8>>(count: listLength);
     try {
       for (int i = 0; i < _list.length; i++) {
         var uint8Str = Utf8.toUtf8(_list[i]).cast<Uint8>();
@@ -296,9 +297,9 @@ class StringCondition extends PropertyCondition<String> {
     } finally {
       for (int i = 0; i < _list.length; i++) {
         var uint8Str = arrayOfUint8Ptrs.elementAt(i).load();
-        uint8Str.free(); // I assume the casted Uint8 retains the same Utf8 address
+        free(uint8Str); // I assume the casted Uint8 retains the same Utf8 address
       }
-      arrayOfUint8Ptrs.free(); // It probably doesn't release recursively
+      free(arrayOfUint8Ptrs); // It probably doesn't release recursively
     }
   }
 
@@ -350,19 +351,19 @@ class IntegerCondition extends PropertyCondition<int> {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
 
-  // ideally it should be implemented like this, but this doesn't work, TODO report to google
+  // ideally it should be implemented like this, but this doesn't work, TODO try this out on dart-2.6
   /*
   int _opList<P extends NativeType>(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<P> func) {
 
     int length = _list.length;
-    final listPtr = Pointer<P>.allocate(count: length);
+    final listPtr = allocate<P>(count: length);
     try {
       for (int i=0; i<length; i++) {
         listPtr.elementAt(i).store(_list[i] as int); // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
       }
       return func(builder._cBuilder, _property.propertyId, listPtr, length);
     }finally {
-      listPtr.free();
+      free(listPtr);
     }
   }
   */
@@ -370,28 +371,28 @@ class IntegerCondition extends PropertyCondition<int> {
   // TODO replace nasty duplication with implementation above, when fix is in
   int _opList32(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<Int32> func) {
     int length = _list.length;
-    final listPtr = Pointer<Int32>.allocate(count: length);
+    final listPtr = allocate<Int32>(count: length);
     try {
       for (int i = 0; i < length; i++) {
         listPtr.elementAt(i).store(_list[i]);
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
-      listPtr.free();
+      free(listPtr);
     }
   }
 
   // TODO replace duplication with implementation above, when fix is in
   int _opList64(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<Int64> func) {
     int length = _list.length;
-    final listPtr = Pointer<Int64>.allocate(count: length);
+    final listPtr = allocate<Int64>(count: length);
     try {
       for (int i = 0; i < length; i++) {
         listPtr.elementAt(i).store(_list[i]);
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
-      listPtr.free();
+      free(listPtr);
     }
   }
 
@@ -482,7 +483,7 @@ class ConditionGroup extends Condition {
       return _conditions[0].apply(builder, isRoot);
     }
 
-    final intArrayPtr = Pointer<Int32>.allocate(count: size);
+    final intArrayPtr = allocate<Int32>(count: size);
     try {
       for (int i = 0; i < size; ++i) {
         final cid = _conditions[i].apply(builder, false);
@@ -501,7 +502,7 @@ class ConditionGroup extends Condition {
 
       return _func(builder._cBuilder, intArrayPtr, size);
     } finally {
-      intArrayPtr.free();
+      free(intArrayPtr);
     }
   }
 }
@@ -525,12 +526,12 @@ class Query<T> {
   }
 
   int count() {
-    final ptr = Pointer<Uint64>.allocate(count: 1);
+    final ptr = allocate<Uint64>(count: 1);
     try {
       checkObx(bindings.obx_query_count(_cQuery, ptr));
       return ptr.load();
     } finally {
-      ptr.free();
+      free(ptr);
     }
   }
 

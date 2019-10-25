@@ -1,6 +1,8 @@
 import 'dart:ffi';
 import "dart:typed_data" show Uint8List, Uint64List;
 
+import "package:ffi/ffi.dart" show allocate, free;
+
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
 class OBX_id_array extends Struct {
@@ -17,7 +19,7 @@ class OBX_id_array extends Struct {
   int length;
 
   /// Get a copy of the list
-  List<int> items() => Uint64List.view(_itemsPtr.asExternalTypedData(count: length).buffer).toList();
+  List<int> items() => Uint64List.view(_itemsPtr.asTypedList(count: length).buffer).toList();
 
   /// Execute the given function, managing the resources consistently
   static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
@@ -27,7 +29,7 @@ class OBX_id_array extends Struct {
     // fill it with data
     OBX_id_array array = ptr.load();
     array.length = items.length;
-    array._itemsPtr = Pointer<Uint64>.allocate(count: array.length);
+    array._itemsPtr = allocate<Uint64>(count: array.length);
     for (int i = 0; i < items.length; ++i) {
       array._itemsPtr.elementAt(i).store(items[i]);
     }
@@ -36,8 +38,8 @@ class OBX_id_array extends Struct {
     try {
       return fn(ptr);
     } finally {
-      array._itemsPtr.free();
-      ptr.free();
+      free(array._itemsPtr);
+      free(ptr);
     }
   }
 }
@@ -49,7 +51,7 @@ class ByteBuffer {
   ByteBuffer(this._ptr, this._size);
 
   ByteBuffer.allocate(Uint8List dartData, [bool align = true]) {
-    _ptr = Pointer<Uint8>.allocate(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
+    _ptr = allocate<Uint8>(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
     for (int i = 0; i < dartData.length; ++i) {
       _ptr.elementAt(i).store(dartData[i]);
     }
@@ -78,7 +80,7 @@ class ByteBuffer {
     return buffer;
   }
 
-  free() => _ptr.free();
+  free() => free(_ptr);
 }
 
 class _SerializedByteBufferArray {
@@ -90,8 +92,8 @@ class _SerializedByteBufferArray {
   get ptr => _outerPtr;
 
   free() {
-    _innerPtr.free();
-    _outerPtr.free();
+    free(_innerPtr);
+    free(_outerPtr);
   }
 }
 
@@ -110,13 +112,13 @@ class ByteBufferArray {
   }
 
   _SerializedByteBufferArray toOBXBytesArray() {
-    Pointer<Uint64> bufferPtrs = Pointer<Uint64>.allocate(count: _buffers.length * 2);
+    Pointer<Uint64> bufferPtrs = allocate<Uint64>(count: _buffers.length * 2);
     for (int i = 0; i < _buffers.length; ++i) {
       bufferPtrs.elementAt(2 * i).store(_buffers[i].ptr.address as int);
       bufferPtrs.elementAt(2 * i + 1).store(_buffers[i].size as int);
     }
 
-    Pointer<Uint64> outerPtr = Pointer<Uint64>.allocate(count: 2);
+    Pointer<Uint64> outerPtr = allocate<Uint64>(count: 2);
     outerPtr.store(bufferPtrs.address);
     outerPtr.elementAt(1).store(_buffers.length);
     return _SerializedByteBufferArray(outerPtr, bufferPtrs);
