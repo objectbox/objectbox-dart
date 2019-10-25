@@ -3,7 +3,7 @@ import "dart:typed_data" show Uint8List, Uint64List;
 
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
-class OBX_id_array extends Struct<OBX_id_array> {
+class OBX_id_array extends Struct {
   /*
     typedef struct OBX_id_array {
       obx_id* ids;
