@@ -22,12 +22,12 @@ class PropertyQuery {
   }
 
   int count() {
-    final ptr = Pointer<Uint64>.allocate();
+    final ptr = allocate<Uint64>();
     checkObx(bindings.obx_query_prop_count(_cProp, ptr));
     try {
-      return ptr.load<int>();
+      return ptr.value;
     }finally {
-      ptr.free();
+      free(ptr);
     }
   }
 
@@ -37,7 +37,7 @@ class PropertyQuery {
       return checkObxPtr(findFn(_cProp, cDefault), errorMessage);
     }finally {
       if (cDefault.address != 0) {
-        cDefault.free();
+        free(cDefault);
       }
     }
   }
@@ -47,12 +47,12 @@ class PropertyQuery {
 mixin _CommonNumeric on PropertyQuery {
 
   double average() {
-    final ptr = Pointer<Double>.allocate();
+    final ptr = allocate<Double>();
     checkObx(bindings.obx_query_prop_avg(_cProp, ptr));
     try {
-      return ptr.load<double>();
+      return ptr.value;
     }finally {
-      ptr.free();
+      free(ptr);
     }
   }
 
@@ -63,12 +63,12 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
   IntegerPropertyQuery (Pointer<Void> query, int propertyId, int obxType): super(query, propertyId, obxType);
 
   int _op(obx_query_prop_op_t<int, Int64> fn) {
-    final ptr = Pointer<Int64>.allocate();
+    final ptr = allocate<Int64>();
     checkObx(fn(_cProp, ptr));
     try {
-      return ptr.load<int>();
+      return ptr.value;
     }finally {
-      ptr.free();
+      free(ptr);
     }
   }
 
@@ -84,7 +84,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
 
   List<int> _unpack8(Pointer<OBX_int8_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     } finally {
       bindings.obx_int8_array_free(ptr.cast<Uint64>());
     }
@@ -92,7 +92,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
 
   List<int> _unpack16(Pointer<OBX_int16_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     } finally {
       bindings.obx_int16_array_free(ptr.cast<Uint64>());
     }
@@ -100,7 +100,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
 
   List<int> _unpack32(Pointer<OBX_int32_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     } finally {
       bindings.obx_int32_array_free(ptr.cast<Uint64>());
     }
@@ -108,14 +108,14 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
 
   List<int> _unpack64(Pointer<OBX_int64_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     }finally {
       bindings.obx_int64_array_free(ptr.cast<Uint64>());
     }
   }
 
   List<int> find({int defaultValue}) {
-    final ptr = defaultValue != null ? (Pointer<Int64>.allocate()..store(defaultValue)) : Pointer<Int64>.fromAddress(0);
+    final ptr = defaultValue != null ? (allocate<Int64>()..value = defaultValue) : Pointer<Int64>.fromAddress(0);
     switch(_type) {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
@@ -140,12 +140,12 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
   DoublePropertyQuery (Pointer<Void> query, int propertyId, int obxType): super(query, propertyId, obxType);
 
   double _op(obx_query_prop_op_t<int, Double> fn) {
-    final ptr = Pointer<Double>.allocate();
+    final ptr = allocate<Double>();
     checkObx(fn(_cProp, ptr));
     try {
-      return ptr.load();
+      return ptr.value;
     }finally {
-      ptr.free();
+      free(ptr);
     }
   }
 
@@ -161,7 +161,7 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
 
   List<double> _unpack32(Pointer<OBX_float_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     }finally {
       bindings.obx_float_array_free(ptr.cast<Uint64>());
     }
@@ -169,14 +169,14 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
 
   List<double> _unpack64(Pointer<OBX_double_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     }finally {
       bindings.obx_double_array_free(ptr.cast<Uint64>());
     }
   }
 
   List<double> find({double defaultValue}) {
-    final ptr = defaultValue != null ? (Pointer<Double>.allocate()..store(defaultValue)) : Pointer<Double>.fromAddress(0);
+    final ptr = defaultValue != null ? (allocate<Double>()..value = defaultValue) : Pointer<Double>.fromAddress(0);
     switch(_type) {
       case OBXPropertyType.Float:
         return _unpack32(_curryWithDefault<OBX_float_array, Float>
@@ -202,7 +202,7 @@ class StringPropertyQuery extends PropertyQuery {
 
   List<String> _unpack(Pointer<OBX_string_array> ptr) {
     try {
-      return ptr.load().items();
+      return ptr.ref.items();
     }finally {
       bindings.obx_string_array_free(ptr.cast<Uint64>());
     }

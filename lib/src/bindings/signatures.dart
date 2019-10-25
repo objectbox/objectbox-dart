@@ -4,7 +4,6 @@ import 'structs.dart';
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();
-typedef obx_free_t<T extends NativeType> = Void Function(Pointer<T> ptr);
 typedef obx_free_struct_native_t = Void Function(Pointer<Uint64> structPtr);
 
 // error info
@@ -41,6 +40,7 @@ typedef obx_txn_read_native_t = Pointer<Void> Function(Pointer<Void> store);
 typedef obx_txn_close_native_t = Int32 Function(Pointer<Void> txn);
 typedef obx_txn_abort_native_t = Int32 Function(Pointer<Void> txn);
 typedef obx_txn_success_native_t = Int32 Function(Pointer<Void> txn);
+typedef obx_txn_mark_success_native_t = Int32 Function(Pointer<Void> txn, Uint8 wasSuccessful);
 
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);

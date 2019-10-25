@@ -18,8 +18,8 @@ class _ObjectBoxBindings {
       obx_int16_array_free,
       obx_int8_array_free,
       obx_double_array_free,
-      obx_float_array_free;
-  obx_free_t<OBX_id_array> obx_id_array_free;
+      obx_float_array_free,
+      obx_id_array_free;
 
   // error info
   int Function() obx_last_error_code;
@@ -54,6 +54,7 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> txn) obx_txn_close;
   int Function(Pointer<Void> txn) obx_txn_abort;
   int Function(Pointer<Void> txn) obx_txn_success;
+  int Function(Pointer<Void> txn, int was_successful) obx_txn_mark_success;
 
   // box management
   Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
@@ -168,7 +169,7 @@ class _ObjectBoxBindings {
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
     obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
     obx_bytes_array_free = _fn<obx_free_struct_native_t>("obx_bytes_array_free").asFunction();
-    obx_id_array_free = _fn<obx_free_t<OBX_id_array>>("obx_id_array_free").asFunction();
+    obx_id_array_free = _fn<obx_free_struct_native_t>("obx_id_array_free").asFunction();
     obx_string_array_free = _fn<obx_free_struct_native_t>("obx_string_array_free").asFunction();
     obx_int64_array_free = _fn<obx_free_struct_native_t>("obx_int64_array_free").asFunction();
     obx_int32_array_free = _fn<obx_free_struct_native_t>("obx_int32_array_free").asFunction();
@@ -209,6 +210,7 @@ class _ObjectBoxBindings {
     obx_txn_close = _fn<obx_txn_close_native_t>("obx_txn_close").asFunction();
     obx_txn_abort = _fn<obx_txn_abort_native_t>("obx_txn_abort").asFunction();
     obx_txn_success = _fn<obx_txn_success_native_t>("obx_txn_success").asFunction();
+    obx_txn_mark_success = _fn<obx_txn_mark_success_native_t>("obx_txn_mark_success").asFunction();
 
     // box management
     obx_box = _fn<obx_box_native_t>("obx_box").asFunction();
