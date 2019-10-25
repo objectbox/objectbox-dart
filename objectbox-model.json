@@ -93,9 +93,27 @@
           "type": 2
         }
       ]
+    },
+    {
+      "id": "3:2896129536175217037",
+      "lastPropertyId": "2:8763914271730887369",
+      "name": "Note",
+      "properties": [
+        {
+          "id": "1:5413230481051213381",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8763914271730887369",
+          "name": "text",
+          "type": 9
+        }
+      ]
     }
   ],
-  "lastEntityId": "2:2679953000475642792",
+  "lastEntityId": "3:2896129536175217037",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

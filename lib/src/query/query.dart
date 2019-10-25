@@ -276,11 +276,13 @@ class StringCondition extends PropertyCondition<String> {
 
   int _op1(QueryBuilder builder, obx_qb_cond_string_op_1_dart_t func) {
     final utf8Str = Utf8.toUtf8(_value);
+    var uint8Str = utf8Str.cast<Uint8>();
     try {
-      var uint8Str = utf8Str.cast<Uint8>();
+
       return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0);
     } finally {
-      utf8Str.free();
+      // https://github.com/dart-lang/ffi/blob/master/lib/src/utf8.dart#L56
+      free(utf8Str);
     }
   }
 
@@ -305,11 +307,12 @@ class StringCondition extends PropertyCondition<String> {
 
   int _opWithEqual(QueryBuilder builder, obx_qb_string_lt_gt_op_dart_t func) {
     final utf8Str = Utf8.toUtf8(_value);
+    var uint8Str = utf8Str.cast<Uint8>();
     try {
-      var uint8Str = utf8Str.cast<Uint8>();
+
       return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
     } finally {
-      utf8Str.free();
+      free(utf8Str);
     }
   }
 
