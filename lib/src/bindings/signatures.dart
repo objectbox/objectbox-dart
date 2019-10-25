@@ -4,7 +4,6 @@ import 'structs.dart';
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();
-typedef obx_free_t<T extends NativeType> = Void Function(Pointer<T> ptr);
 typedef obx_free_struct_native_t = Void Function(Pointer<Uint64> structPtr);
 
 // error info

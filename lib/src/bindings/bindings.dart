@@ -18,8 +18,8 @@ class _ObjectBoxBindings {
       obx_int16_array_free,
       obx_int8_array_free,
       obx_double_array_free,
-      obx_float_array_free;
-  obx_free_t<OBX_id_array> obx_id_array_free;
+      obx_float_array_free,
+      obx_id_array_free;
 
   // error info
   int Function() obx_last_error_code;
@@ -145,7 +145,7 @@ class _ObjectBoxBindings {
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
     obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
     obx_bytes_array_free = _fn<obx_free_struct_native_t>("obx_bytes_array_free").asFunction();
-    obx_id_array_free = _fn<obx_free_t<OBX_id_array>>("obx_id_array_free").asFunction();
+    obx_id_array_free = _fn<obx_free_struct_native_t>("obx_id_array_free").asFunction();
     obx_string_array_free = _fn<obx_free_struct_native_t>("obx_string_array_free").asFunction();
     obx_int64_array_free = _fn<obx_free_struct_native_t>("obx_int64_array_free").asFunction();
     obx_int32_array_free = _fn<obx_free_struct_native_t>("obx_int32_array_free").asFunction();

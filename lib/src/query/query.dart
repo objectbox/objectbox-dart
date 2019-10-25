@@ -551,7 +551,7 @@ class Query<T> {
       OBX_id_array idArray = idArrayPtr.ref;
       return idArray.length == 0 ? List<int>() : idArray.items();
     } finally {
-      bindings.obx_id_array_free(idArrayPtr);
+      bindings.obx_id_array_free(idArrayPtr.cast<Uint64>());
     }
   }
 
