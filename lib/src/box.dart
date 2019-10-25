@@ -60,7 +60,7 @@ class Box<T> {
       checkObx(bindings.obx_box_put(
           _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
     } finally {
-      free(buffer);
+      buffer.free(); // TODO change ByteBuffer to a struct
     }
     return propVals[_modelEntity.idPropName];
   }
@@ -84,7 +84,7 @@ class Box<T> {
       Pointer<Uint64> nextIdPtr = allocate<Uint64>(count: 1);
       try {
         checkObx(bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
-        nextId = nextIdPtr.load<int>();
+        nextId = nextIdPtr.value;
       } finally {
         free(nextIdPtr);
       }
@@ -100,7 +100,7 @@ class Box<T> {
     Pointer<Uint64> allIdsMemory = allocate<Uint64>(count: objects.length);
     try {
       for (int i = 0; i < allPropVals.length; ++i) {
-        allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
+        allIdsMemory.elementAt(i).value = (allPropVals[i][_modelEntity.idPropName] as int);
       }
 
       // marshal all objects to be put into the box
@@ -126,8 +126,8 @@ class Box<T> {
       try {
         checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
 
-        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.load<Pointer<Void>>().address);
-        var size = sizePtr.load<int>();
+        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.value.address);
+        var size = sizePtr.value;
 
         // transform bytes from memory to Dart byte list
         buffer = ByteBuffer(data, size);
@@ -172,7 +172,7 @@ class Box<T> {
     Pointer<Uint64> count = allocate<Uint64>();
     try {
       checkObx(bindings.obx_box_count(_cBox, limit, count));
-      return count.load<int>();
+      return count.value;
     } finally {
       free(count);
     }
@@ -182,7 +182,7 @@ class Box<T> {
     Pointer<Uint8> isEmpty = allocate<Uint8>();
     try {
       checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
-      return isEmpty.load<int>() > 0 ? true : false;
+      return isEmpty.value > 0 ? true : false;
     } finally {
       free(isEmpty);
     }
@@ -192,7 +192,7 @@ class Box<T> {
     Pointer<Uint8> contains = allocate<Uint8>();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
-      return contains.load<int>() > 0 ? true : false;
+      return contains.value > 0 ? true : false;
     } finally {
       free(contains);
     }
@@ -203,7 +203,7 @@ class Box<T> {
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
         checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
-        return contains.load<int>() > 0 ? true : false;
+        return contains.value > 0 ? true : false;
       });
     } finally {
       free(contains);
@@ -227,7 +227,7 @@ class Box<T> {
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
         checkObx(bindings.obx_box_remove_many(_cBox, ptr, removedIds));
-        return removedIds.load<int>();
+        return removedIds.value;
       });
     } finally {
       free(removedIds);
@@ -238,7 +238,7 @@ class Box<T> {
     Pointer<Uint64> removedItems = allocate<Uint64>();
     try {
       checkObx(bindings.obx_box_remove_all(_cBox, removedItems));
-      return removedItems.load<int>();
+      return removedItems.value;
     } finally {
       free(removedItems);
     }

@@ -22,7 +22,7 @@ class Model {
           var entityNamePointer = entityUtf8.cast<Uint8>();
           checkObx(bindings.obx_model_entity(_cModel, entityNamePointer, currentEntity.id.id, currentEntity.id.uid));
         } finally {
-          entityUtf8.free();
+          free(entityUtf8);
         }
 
         // add all properties
@@ -33,7 +33,7 @@ class Model {
             checkObx(bindings.obx_model_property(_cModel, propertyNamePointer, p.type, p.id.id, p.id.uid));
             checkObx(bindings.obx_model_property_flags(_cModel, p.flags));
           } finally {
-            propertyUtf8.free();
+            free(propertyUtf8);
           }
         });
 

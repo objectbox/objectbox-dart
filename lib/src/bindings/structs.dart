@@ -24,14 +24,14 @@ class OBX_id_array extends Struct {
   /// Execute the given function, managing the resources consistently
   static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
     // allocate a temporary structure
-    final ptr = Pointer<OBX_id_array>.allocate();
+    final ptr = allocate<OBX_id_array>();
 
     // fill it with data
-    OBX_id_array array = ptr.load();
+    OBX_id_array array = ptr.value;
     array.length = items.length;
     array._itemsPtr = allocate<Uint64>(count: array.length);
     for (int i = 0; i < items.length; ++i) {
-      array._itemsPtr.elementAt(i).store(items[i]);
+      array._itemsPtr.elementAt(i).value = items[i];
     }
 
     // call the function with the structure and free afterwards
@@ -44,6 +44,7 @@ class OBX_id_array extends Struct {
   }
 }
 
+// TODO change to a struct
 class ByteBuffer {
   Pointer<Uint8> _ptr;
   int _size;
@@ -53,15 +54,15 @@ class ByteBuffer {
   ByteBuffer.allocate(Uint8List dartData, [bool align = true]) {
     _ptr = allocate<Uint8>(count: align ? ((dartData.length + 3.0) ~/ 4.0) * 4 : dartData.length);
     for (int i = 0; i < dartData.length; ++i) {
-      _ptr.elementAt(i).store(dartData[i]);
+      _ptr.elementAt(i).value = dartData[i];
     }
     _size = dartData.length;
   }
 
   ByteBuffer.fromOBXBytes(Pointer<Uint64> obxPtr) {
     // extract fields from "struct OBX_bytes"
-    _ptr = Pointer<Uint8>.fromAddress(obxPtr.load<int>());
-    _size = obxPtr.elementAt(1).load<int>();
+    _ptr = Pointer<Uint8>.fromAddress(obxPtr.value);
+    _size = obxPtr.elementAt(1).value;
   }
 
   get ptr => _ptr;
@@ -75,7 +76,7 @@ class ByteBuffer {
   Uint8List get data {
     var buffer = Uint8List(size);
     for (int i = 0; i < size; ++i) {
-      buffer[i] = _ptr.elementAt(i).load<int>();
+      buffer[i] = _ptr.elementAt(i).value;
     }
     return buffer;
   }
@@ -83,6 +84,7 @@ class ByteBuffer {
   free() => free(_ptr);
 }
 
+// TODO change to a struct
 class _SerializedByteBufferArray {
   Pointer<Uint64> _outerPtr,
       _innerPtr; // outerPtr points to the instance itself, innerPtr points to the respective OBX_bytes_array.bytes
@@ -97,6 +99,7 @@ class _SerializedByteBufferArray {
   }
 }
 
+// TODO change to a struct
 class ByteBufferArray {
   List<ByteBuffer> _buffers;
 
@@ -104,8 +107,8 @@ class ByteBufferArray {
 
   ByteBufferArray.fromOBXBytesArray(Pointer<Uint64> bytesArray) {
     _buffers = [];
-    Pointer<Uint64> bufferPtrs = Pointer<Uint64>.fromAddress(bytesArray.load<int>()); // bytesArray.bytes
-    int numBuffers = bytesArray.elementAt(1).load<int>(); // bytesArray.count
+    Pointer<Uint64> bufferPtrs = Pointer<Uint64>.fromAddress(bytesArray.value); // bytesArray.bytes
+    int numBuffers = bytesArray.elementAt(1).value; // bytesArray.count
     for (int i = 0; i < numBuffers; ++i) {
       _buffers.add(ByteBuffer.fromOBXBytes(bufferPtrs.elementAt(2 * i)));
     } // 2 * i, because each instance of "struct OBX_bytes" has .data and .size
@@ -114,13 +117,13 @@ class ByteBufferArray {
   _SerializedByteBufferArray toOBXBytesArray() {
     Pointer<Uint64> bufferPtrs = allocate<Uint64>(count: _buffers.length * 2);
     for (int i = 0; i < _buffers.length; ++i) {
-      bufferPtrs.elementAt(2 * i).store(_buffers[i].ptr.address as int);
-      bufferPtrs.elementAt(2 * i + 1).store(_buffers[i].size as int);
+      bufferPtrs.elementAt(2 * i).value = _buffers[i].ptr.address as int;
+      bufferPtrs.elementAt(2 * i + 1).value = buffers[i].size as int;
     }
 
     Pointer<Uint64> outerPtr = allocate<Uint64>(count: 2);
-    outerPtr.store(bufferPtrs.address);
-    outerPtr.elementAt(1).store(_buffers.length);
+    outerPtr.value = bufferPtrs.address;
+    outerPtr.elementAt(1).value = _buffers.length;
     return _SerializedByteBufferArray(outerPtr, bufferPtrs);
   }
 

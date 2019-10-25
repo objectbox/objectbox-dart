@@ -19,7 +19,7 @@ Version versionLib() {
 
   try {
     bindings.obx_version(majorPtr, minorPtr, patchPtr);
-    return Version(majorPtr.load<int>(), minorPtr.load<int>(), patchPtr.load<int>());
+    return Version(majorPtr.value, minorPtr.value, patchPtr.value);
   } finally {
     free(majorPtr);
     free(minorPtr);

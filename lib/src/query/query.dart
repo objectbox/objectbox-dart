@@ -2,7 +2,7 @@ library query;
 
 import "dart:ffi";
 
-import "package:ffi/ffi.dart" show allocate, free;
+import "package:ffi/ffi.dart" show allocate, free, Utf8;
 
 import "../store.dart";
 import "../common.dart";
@@ -291,12 +291,12 @@ class StringCondition extends PropertyCondition<String> {
     try {
       for (int i = 0; i < _list.length; i++) {
         var uint8Str = Utf8.toUtf8(_list[i]).cast<Uint8>();
-        arrayOfUint8Ptrs.elementAt(i).store(uint8Str);
+        arrayOfUint8Ptrs.elementAt(i).value = uint8Str;
       }
       return func(builder._cBuilder, _property._propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
     } finally {
       for (int i = 0; i < _list.length; i++) {
-        var uint8Str = arrayOfUint8Ptrs.elementAt(i).load();
+        var uint8Str = arrayOfUint8Ptrs.elementAt(i).value;
         free(uint8Str); // I assume the casted Uint8 retains the same Utf8 address
       }
       free(arrayOfUint8Ptrs); // It probably doesn't release recursively
@@ -359,7 +359,7 @@ class IntegerCondition extends PropertyCondition<int> {
     final listPtr = allocate<P>(count: length);
     try {
       for (int i=0; i<length; i++) {
-        listPtr.elementAt(i).store(_list[i] as int); // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
+        listPtr.elementAt(i).value = _list[i] as int; // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
       }
       return func(builder._cBuilder, _property.propertyId, listPtr, length);
     }finally {
@@ -374,7 +374,7 @@ class IntegerCondition extends PropertyCondition<int> {
     final listPtr = allocate<Int32>(count: length);
     try {
       for (int i = 0; i < length; i++) {
-        listPtr.elementAt(i).store(_list[i]);
+        listPtr.elementAt(i).value = _list[i];
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
@@ -388,7 +388,7 @@ class IntegerCondition extends PropertyCondition<int> {
     final listPtr = allocate<Int64>(count: length);
     try {
       for (int i = 0; i < length; i++) {
-        listPtr.elementAt(i).store(_list[i]);
+        listPtr.elementAt(i).value = _list[i];
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
@@ -492,7 +492,7 @@ class ConditionGroup extends Condition {
           throw Exception("Failed to create condition " + _conditions[i].toString());
         }
 
-        intArrayPtr.elementAt(i).store(cid);
+        intArrayPtr.elementAt(i).value = cid;
       }
 
       // root All (AND) is implicit so no need to actually combine the conditions
@@ -529,7 +529,7 @@ class Query<T> {
     final ptr = allocate<Uint64>(count: 1);
     try {
       checkObx(bindings.obx_query_count(_cQuery, ptr));
-      return ptr.load();
+      return ptr.value;
     } finally {
       free(ptr);
     }
@@ -548,7 +548,7 @@ class Query<T> {
   List<int> findIds({int offset = 0, int limit = 0}) {
     final idArrayPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
     try {
-      OBX_id_array idArray = idArrayPtr.load();
+      OBX_id_array idArray = idArrayPtr.value;
       return idArray.length == 0 ? List<int>() : idArray.items();
     } finally {
       bindings.obx_id_array_free(idArrayPtr);

@@ -27,11 +27,11 @@ class Store {
     try {
       checkObx(bindings.obx_opt_model(opt, model.ptr));
       if (directory != null && directory.isNotEmpty) {
-        var cStr = Utf8.toUtf8(directory).cast<Uint8>();
+        var cStr = Utf8.toUtf8(directory);
         try {
-          checkObx(bindings.obx_opt_directory(opt, cStr));
+          checkObx(bindings.obx_opt_directory(opt, cStr.cast<Uint8>()));
         } finally {
-          cStr.free();
+          free(cStr);
         }
       }
       if (maxDBSizeInKB != null && maxDBSizeInKB > 0) bindings.obx_opt_max_db_size_in_kb(opt, maxDBSizeInKB);
