@@ -41,6 +41,16 @@ void main() {
       expect(queryInt.count(), 8);
       queryInt.close();
     });
+
+    tFloats.forEach((f) {
+      final queryFloat = box.query((f as QueryDoubleProperty).lessThan(1.0)).build();
+      expect(queryFloat.count(), 5);
+      queryFloat.close();
+    });
+
+    final queryString = box.query(tString.contains('t')).build();
+    expect(queryString.count(), 6);
+    queryString.close();
   });
 
   test(".distinct, .count, .close property query", () {
