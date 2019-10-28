@@ -15,18 +15,18 @@ class Model {
 
     try {
       // transform classes into model descriptions and loop through them
-      modelEntities.forEach((currentEntity) {
+      modelEntities.forEach((entity) {
         // start entity
-        var entityUtf8 = Utf8.toUtf8(currentEntity.name);
+        var entityUtf8 = Utf8.toUtf8(entity.name);
         try {
           var entityNamePointer = entityUtf8.cast<Uint8>();
-          checkObx(bindings.obx_model_entity(_cModel, entityNamePointer, currentEntity.id.id, currentEntity.id.uid));
+          checkObx(bindings.obx_model_entity(_cModel, entityNamePointer, entity.id.id, entity.id.uid));
         } finally {
           entityUtf8.free();
         }
 
         // add all properties
-        currentEntity.properties.forEach((p) {
+        entity.properties.forEach((p) {
           var propertyUtf8 = Utf8.toUtf8(p.name);
           try {
             var propertyNamePointer = propertyUtf8.cast<Uint8>();
@@ -38,10 +38,8 @@ class Model {
         });
 
         // set last property id
-        if (currentEntity.properties.isNotEmpty) {
-          ModelProperty lastProp = currentEntity.properties[currentEntity.properties.length - 1];
-          checkObx(bindings.obx_model_entity_last_property_id(_cModel, lastProp.id.id, lastProp.id.uid));
-        }
+        checkObx(
+            bindings.obx_model_entity_last_property_id(_cModel, entity.lastPropertyId.id, entity.lastPropertyId.uid));
       });
 
       // set last entity id
