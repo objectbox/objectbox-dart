@@ -1,4 +1,4 @@
-package com.example.objectbox_demo
+package io.objectbox.flutterexample
 
 import android.os.Bundle
 import io.flutter.app.FlutterActivity
