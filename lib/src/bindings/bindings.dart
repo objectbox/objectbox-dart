@@ -11,14 +11,14 @@ class _ObjectBoxBindings {
   // common functions
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
   Pointer<Uint8> Function() obx_version_string;
-  void Function(Pointer<Uint64> structPtr) obx_bytes_array_free,
-      obx_string_array_free,
+  void Function(Pointer<Uint64> structPtr) obx_string_array_free,
       obx_int64_array_free,
       obx_int32_array_free,
       obx_int16_array_free,
       obx_int8_array_free,
       obx_double_array_free,
       obx_float_array_free;
+  obx_free_t<OBX_bytes_array> obx_bytes_array_free;
   obx_free_t<OBX_id_array> obx_id_array_free;
 
   // error info
@@ -62,13 +62,13 @@ class _ObjectBoxBindings {
   Pointer<Void> Function(Pointer<Void> store, int entity_id) obx_box;
   int Function(Pointer<Void> box, int id, Pointer<Uint8> out_contains) obx_box_contains;
   int Function(Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint8> out_contains) obx_box_contains_many;
-  int Function(Pointer<Void> box, int id, Pointer<Pointer<Void>> data, Pointer<Int32> size) obx_box_get;
-  Pointer<Uint64> Function(Pointer<Void> box, Pointer<OBX_id_array> ids) obx_box_get_many;
-  Pointer<Uint64> Function(Pointer<Void> box) obx_box_get_all;
+  int Function(Pointer<Void> box, int id, Pointer<Pointer<Uint8>> data, Pointer<IntPtr> size) obx_box_get;
+  Pointer<OBX_bytes_array> Function(Pointer<Void> box, Pointer<OBX_id_array> ids) obx_box_get_many;
+  Pointer<OBX_bytes_array> Function(Pointer<Void> box) obx_box_get_all;
   int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
   int Function(Pointer<Void> box, int count, Pointer<Uint64> out_first_id) obx_box_ids_for_put;
-  int Function(Pointer<Void> box, int id, Pointer<Void> data, int size, int mode) obx_box_put;
-  int Function(Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
+  int Function(Pointer<Void> box, int id, Pointer<Uint8> data, int size, int mode) obx_box_put;
+  int Function(Pointer<Void> box, Pointer<OBX_bytes_array> objects, Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
   int Function(Pointer<Void> box, Pointer<Uint64> removed) obx_box_remove_all;
   int Function(Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint64> removed) obx_box_remove_many;
@@ -148,7 +148,7 @@ class _ObjectBoxBindings {
     // common functions
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
     obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
-    obx_bytes_array_free = _fn<obx_free_struct_native_t>("obx_bytes_array_free").asFunction();
+    obx_bytes_array_free = _fn<obx_free_t<OBX_bytes_array>>("obx_bytes_array_free").asFunction();
     obx_id_array_free = _fn<obx_free_t<OBX_id_array>>("obx_id_array_free").asFunction();
     obx_string_array_free = _fn<obx_free_struct_native_t>("obx_string_array_free").asFunction();
     obx_int64_array_free = _fn<obx_free_struct_native_t>("obx_int64_array_free").asFunction();
