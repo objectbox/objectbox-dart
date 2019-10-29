@@ -36,7 +36,7 @@ class Model {
     if (errorCode == OBXError.OBX_SUCCESS) return;
 
     int code = bindings.obx_model_error_code(_cModel);
-    String text = Utf8.fromUtf8(bindings.obx_model_error_message(_cModel).cast<Utf8>());
+    String text = cString(bindings.obx_model_error_message(_cModel));
 
     throw ObjectBoxException("$code $text");
   }
