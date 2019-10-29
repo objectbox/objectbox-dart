@@ -125,6 +125,10 @@ class _ObjectBoxBindings {
 
   obx_query_visit_dart_t obx_query_visit;
 
+  // Utilities
+  obx_bytes_array_t<int> obx_bytes_array;
+  obx_bytes_array_set_t<int, int> obx_bytes_array_set;
+
   // TODO return .asFunction() -> requires properly determined static return type
   Pointer<NativeFunction<T>> _fn<T extends Function>(String name) {
     return objectbox.lookup<NativeFunction<T>>(name);
@@ -276,6 +280,10 @@ class _ObjectBoxBindings {
     obx_query_describe_params = _fn<obx_query_describe_t>("obx_query_describe_params").asFunction();
 
     obx_query_visit = _fn<obx_query_visit_native_t>("obx_query_visit").asFunction();
+
+    // Utilities
+    obx_bytes_array = _fn<obx_bytes_array_t<IntPtr>>("obx_bytes_array").asFunction();
+    obx_bytes_array_set = _fn<obx_bytes_array_set_t<Int32, IntPtr>>("obx_bytes_array_set").asFunction();
   }
 }
 

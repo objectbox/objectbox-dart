@@ -96,45 +96,39 @@ class Box<T> {
       }
     }
 
-    // TODO replace this temporary serial code with the one commented out below.
-    //  See OBX_bytes_array for the issue description, probably related to Dart 2.5 FFI.
-    _store.runInTransaction(TxMode.Write, () {
-      for (int i = 0; i < allPropVals.length; i++) {
-        final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(allPropVals[i]);
-        try {
-          final OBX_bytes bytes = bytesPtr.load();
-          checkObx(bindings.obx_box_put(
-              _cBox, allPropVals[i][_modelEntity.idPropName], bytes.ptr, bytes.length, _getOBXPutMode(mode)));
-        } finally {
-          // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
-          OBX_bytes.freeManaged(bytesPtr);
-        }
+    // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
+    // generate this list now (only needed if not all IDs have been generated)
+    Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: objects.length);
+    try {
+      for (int i = 0; i < allPropVals.length; ++i) {
+        allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
       }
-    });
-//
-//    // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
-//    // generate this list now (only needed if not all IDs have been generated)
-//    Pointer<Uint64> allIdsMemory = Pointer<Uint64>.allocate(count: objects.length);
-//    try {
-//      for (int i = 0; i < allPropVals.length; ++i) {
-//        allIdsMemory.elementAt(i).store(allPropVals[i][_modelEntity.idPropName] as int);
-//      }
-//
-//      // marshal all objects to be put into the box
-//      final bytesArrayPtr = OBX_bytes_array.createManaged(allPropVals.length);
-//      try {
-//        final OBX_bytes_array bytesArray = bytesArrayPtr.load();
-//        for (int i = 0; i < allPropVals.length; i++) {
-//          bytesArray.setAndFree(i, _fbManager.marshal(allPropVals[i]));
-//        }
-//
-//        checkObx(bindings.obx_box_put_many(_cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
-//      } finally {
-//        OBX_bytes_array.freeManaged(bytesArrayPtr, true);
-//      }
-//    } finally {
-//      allIdsMemory.free();
-//    }
+
+      // marshal all objects to be put into the box
+      // final bytesArrayPtr = OBX_bytes_array.createManaged(allPropVals.length);
+      final bytesArrayPtr =
+          checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
+      final listToFree = List<Pointer<OBX_bytes>>();
+      try {
+        // final OBX_bytes_array bytesArray = bytesArrayPtr.load();
+        for (int i = 0; i < allPropVals.length; i++) {
+          // bytesArray.setAndFree(i, _fbManager.marshal(allPropVals[i]));
+          final bytesPtr = _fbManager.marshal(allPropVals[i]);
+          listToFree.add(bytesPtr);
+          final OBX_bytes bytes = bytesPtr.load();
+          bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.length);
+        }
+
+        checkObx(bindings.obx_box_put_many(_cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
+      } finally {
+        // OBX_bytes_array.freeManaged(bytesArrayPtr, true);
+        bindings.obx_bytes_array_free(bytesArrayPtr);
+        listToFree.forEach(OBX_bytes.freeManaged);
+      }
+    } finally {
+      allIdsMemory.free();
+    }
+
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 

@@ -147,3 +147,9 @@ typedef obx_query_visit_native_t = Int32 Function(
     Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, Uint64 offset, Uint64 limit);
 typedef obx_query_visit_dart_t = int Function(
     Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, int offset, int limit);
+
+// Utilities
+
+typedef obx_bytes_array_t<SizeT> = Pointer<OBX_bytes_array> Function(SizeT count);
+typedef obx_bytes_array_set_t<Ret, SizeT> = Ret Function(
+    Pointer<OBX_bytes_array> array, SizeT index, Pointer<Uint8> data, SizeT size);
