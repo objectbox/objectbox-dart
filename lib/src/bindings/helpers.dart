@@ -17,11 +17,14 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String msg) {
   return ptr;
 }
 
-String lastObxErrorString([err]) {
-  if (err != null) return "code $err";
 
+String lastObxErrorString([int err = 0]) {
   int code = bindings.obx_last_error_code();
   String text = Utf8.fromUtf8(bindings.obx_last_error_message().cast<Utf8>());
+
+  if (code == 0 && text.isEmpty) {
+    return (err != 0) ? "code $err" : "unknown native error";
+  }
 
   return code == 0 ? text : "$code $text";
 }
