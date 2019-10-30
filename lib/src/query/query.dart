@@ -51,7 +51,7 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp.eq, caseSensitive, false);
   }
 
-  Condition notEqual(String p, {bool caseSensitive = false}) {
+  Condition notEquals(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp.notEq, caseSensitive, false);
   }
 
@@ -102,7 +102,7 @@ class QueryIntegerProperty extends QueryProperty {
     return _op(p, ConditionOp.eq);
   }
 
-  Condition notEqual(int p) {
+  Condition notEquals(int p) {
     return _op(p, ConditionOp.notEq);
   }
 
@@ -174,7 +174,7 @@ class QueryBooleanProperty extends QueryProperty {
     return IntegerCondition(ConditionOp.eq, this, (p ? 1 : 0));
   }
 
-  Condition notEqual(bool p) {
+  Condition notEquals(bool p) {
     return IntegerCondition(ConditionOp.notEq, this, (p ? 1 : 0));
   }
 
