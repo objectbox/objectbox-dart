@@ -101,7 +101,7 @@ box.put(Note.construct("Hello world!"));
 
 final queryNullText = box.query(Note_.text.isNull()).build();
 
-assert (queryNullText.count() == 3);
+assert(queryNullText.count() == 3);
 
 queryNullText.close(); // We have to manually close queries and query builders.
 ```
@@ -113,11 +113,11 @@ respectively `==`, `>`, `<`, `&`, `|`.
 ```dart
 // final box ...
 
-box.query(text.equal("meh").or(text.equal("bleh")).or(text.contains("Hello"))).build();
+box.query(value.greaterThan(10).or(date.IsNull())).build();
 
 // equivalent to
 
-final overloaded = ((text == "meh") | (text == "bleh")) | text.contains("Hello");
+final overloaded = (value > 10) | date.IsNull();
 box.query(overloaded as Condition).build(); // the cast is necessary due to the type analyzer
 ```
 

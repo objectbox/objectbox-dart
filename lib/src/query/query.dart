@@ -83,7 +83,7 @@ class QueryStringProperty extends QueryProperty {
     return _opWithEqual(p, ConditionOp.lt, caseSensitive, withEqual);
   }
 
-  Condition operator ==(String p) => equals(p);
+//  Condition operator ==(String p) => equals(p); // see issue #43
 //  Condition operator != (String p) => notEqual(p); // not overloadable
 }
 
@@ -130,8 +130,8 @@ class QueryIntegerProperty extends QueryProperty {
     return notInList(list);
   }
 
-  // Condition operator != (int p) => notEqual(p); // not overloadable
-  Condition operator ==(int p) => equals(p);
+// Condition operator != (int p) => notEqual(p); // not overloadable
+// Condition operator ==(int p) => equals(p); // see issue #43
 }
 
 class QueryDoubleProperty extends QueryProperty {
@@ -163,8 +163,8 @@ class QueryDoubleProperty extends QueryProperty {
 
   Condition operator >(double p) => greaterThan(p);
 
-  // Note: currently not supported - override the operator and throw explicitly to prevent the default comparison.
-  void operator ==(double p) => DoubleCondition(ConditionOp.eq, this, null, null);
+// Note: currently not supported - override the operator and throw explicitly to prevent the default comparison.
+// void operator ==(double p) => DoubleCondition(ConditionOp.eq, this, null, null); // see issue #43
 }
 
 class QueryBooleanProperty extends QueryProperty {
@@ -178,7 +178,7 @@ class QueryBooleanProperty extends QueryProperty {
     return IntegerCondition(ConditionOp.notEq, this, (p ? 1 : 0));
   }
 
-  Condition operator ==(bool p) => equals(p);
+// Condition operator ==(bool p) => equals(p); // see issue #43
 }
 
 enum ConditionOp {

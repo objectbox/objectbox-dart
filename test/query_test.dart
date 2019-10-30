@@ -48,13 +48,14 @@ void main() {
     final d = TestEntity_.d;
     final b = TestEntity_.b;
 
-    final anyQuery0 =
-        (d.between(0.79, 0.81) & ((b == false) as Condition)) | (d.between(0.69, 0.71) & ((b == false) as Condition));
+    // #43 final anyQuery0 = (d.between(0.79, 0.81) & ((b == false) as Condition)) | (d.between(0.69, 0.71) & ((b == false) as Condition));
+    final anyQuery0 = (d.between(0.79, 0.81) & b.equals(false) | (d.between(0.69, 0.71) & b.equals(false)));
     final anyQuery1 = (d.between(0.79, 0.81).and(b.equals(false))).or(d.between(0.69, 0.71).and(b.equals(false)));
     final anyQuery2 = d.between(0.79, 0.81).and(b.equals(false)).or(d.between(0.69, 0.71).and(b.equals(false)));
     final anyQuery3 = d.between(0.79, 0.81).and(b.equals(false)).or(d.between(0.69, 0.71)).and(b.equals(false));
 
-    final allQuery0 = d.between(0.09, 0.11) & ((b == true) as Condition);
+    // #43 final allQuery0 = d.between(0.09, 0.11) & ((b == true) as Condition);
+    final allQuery0 = d.between(0.09, 0.11) & b.equals(true);
 
     final q0 = box.query(b.equals(false)).build();
     final qany0 = box.query(anyQuery0).build();
@@ -152,10 +153,10 @@ void main() {
     final q0 = box.query(text.notNull()).build();
     final result0 = q0.findIds();
 
-    final q2 = box.query((text == "blh") as Condition).build();
+    final q2 = box.query(text.equals("blh")).build();
     final result2 = q2.findIds();
 
-    final q3 = box.query((text == "can't find this") as Condition).build();
+    final q3 = box.query(text.equals("can't find this")).build();
     final result3 = q3.findIds();
 
     expect(result0.length, 7);
@@ -218,7 +219,8 @@ void main() {
     final text = TestEntity_.text;
     final number = TestEntity_.number;
 
-    Condition cond1 = ((text == "Hello") as Condition) | ((number == 1337) as Condition);
+    // #43 Condition cond1 = ((text == "Hello") as Condition) | ((number == 1337) as Condition);
+    Condition cond1 = text.equals("Hello") | number.equals(1337);
     Condition cond2 = text.equals("Hello") | number.equals(1337);
     Condition cond3 = text.equals("What?").and(text.equals("Hello")).or(text.equals("World"));
     Condition cond4 = text
@@ -228,10 +230,11 @@ void main() {
         .or(text.equals("Cruel"))
         .or(text.equals("World"));
     Condition cond5 = text.equals("bleh") & number.equals(-1337);
-    Condition cond6 = ((text == "Hello") as Condition) & ((number == 1337) as Condition);
+    // #43 Condition cond6 = ((text == "Hello") as Condition) & ((number == 1337) as Condition);
+    Condition cond6 = text.equals("Hello") & number.equals(1337);
 
-    final selfInference1 = (text == "Hello") & (number == 1337);
-    final selfInference2 = (text == "Hello") | (number == 1337);
+    // #43 final selfInference1 = (text == "Hello") & (number == 1337);
+    // #43 final selfInference2 = (text == "Hello") | (number == 1337);
 
     final q1 = box.query(cond1).build();
     final q2 = box.query(cond2).build();
@@ -239,8 +242,8 @@ void main() {
     final q4 = box.query(cond4).build();
     final q5 = box.query(cond5).build();
     final q6 = box.query(cond6).build();
-    final q7 = box.query(selfInference1 as Condition).build();
-    final q8 = box.query(selfInference2 as Condition).build();
+    // #43 final q7 = box.query(selfInference1 as Condition).build();
+    // #43 final q8 = box.query(selfInference2 as Condition).build();
 
     expect(q1.count(), 3);
     expect(q2.count(), 3);
@@ -248,10 +251,11 @@ void main() {
     expect(q4.count(), 3);
     expect(q5.count(), 1);
     expect(q6.count(), 0);
-    expect(q7.count(), 0);
-    expect(q8.count(), 3);
+    // #43 expect(q7.count(), 0);
+    // #43 expect(q8.count(), 3);
 
-    [q1, q2, q3, q4, q5, q6, q7, q8].forEach((q) => q.close());
+    // #43 [q1, q2, q3, q4, q5, q6, q7, q8].forEach((q) => q.close());
+    [q1, q2, q3, q4, q5, q6].forEach((q) => q.close());
   });
 
   test(".describe query", () {
@@ -299,15 +303,15 @@ void main() {
       q.close();
     };
 
-    check(((n == 0) & (b == false)) | ((n == 1) & (b == true)) as Condition,
+    check((n.equals(0) & b.equals(false)) | (n.equals(1) & b.equals(true)),
         '((id == 0\n AND b == 0)\n OR (id == 1\n AND b == 1))');
-    check((n == 0) & (b == false) | (n == 1) & (b == true) as Condition,
+    check(n.equals(0) & b.equals(false) | n.equals(1) & b.equals(true),
         '((id == 0\n AND b == 0)\n OR (id == 1\n AND b == 1))');
-    check(((n == 0) & (b == false)) | ((n == 1) | (b == true)) as Condition,
+    check((n.equals(0) & b.equals(false)) | (n.equals(1) | b.equals(true)),
         '((id == 0\n AND b == 0)\n OR (id == 1\n OR b == 1))');
-    check(((n == 0) & (b == false)) | (n == 1) | (b == true) as Condition,
+    check((n.equals(0) & b.equals(false)) | n.equals(1) | b.equals(true),
         '((id == 0\n AND b == 0)\n OR id == 1\n OR b == 1)');
-    check((n == 0) | (b == false) & (n == 1) | (b == true) as Condition,
+    check(n.equals(0) | b.equals(false) & n.equals(1) | b.equals(true),
         '(id == 0\n OR (b == 0\n AND id == 1)\n OR b == 1)');
   });
 
