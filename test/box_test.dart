@@ -63,6 +63,9 @@ void main() {
     box.putMany(items);
     final List<TestEntity> itemsFetched = box.getAll();
     expect(itemsFetched.length, equals(items.length));
+    expect(itemsFetched[0].text, items[0].text);
+    expect(itemsFetched[1].text, items[1].text);
+    expect(itemsFetched[2].text, items[2].text);
   });
 
   test(".putMany returns the new item IDs", () {
@@ -175,6 +178,7 @@ void main() {
     write_func() {
       box.putMany(simple_items);
     }
+
     store.runInTransaction(TxMode.Write, write_func);
     count = box.count();
     expect(count, equals(6));

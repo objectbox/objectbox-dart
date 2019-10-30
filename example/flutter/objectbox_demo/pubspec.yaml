@@ -1,0 +1,27 @@
+name: objectbox_demo
+description: An example project for the objectbox-dart binding.
+version: 0.3.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+  path_provider: any
+  intl: any
+  objectbox:
+    path: ../../..
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^1.0.0
+  objectbox_model_generator:
+    path: ../../../generator
+
+flutter:
+  uses-material-design: true
+  assets:
+    - objectbox-model.json

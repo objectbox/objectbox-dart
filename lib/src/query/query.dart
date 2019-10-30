@@ -567,11 +567,11 @@ class Query<T> {
 
   // For testing purposes
   String describe() {
-    return Utf8.fromUtf8(bindings.obx_query_describe(_cQuery).cast<Utf8>());
+    return cString(bindings.obx_query_describe(_cQuery));
   }
 
   // For testing purposes
   String describeParameters() {
-    return Utf8.fromUtf8(bindings.obx_query_describe_params(_cQuery).cast<Utf8>());
+    return cString(bindings.obx_query_describe_params(_cQuery));
   }
 }

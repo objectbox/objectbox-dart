@@ -12,7 +12,7 @@ class QueryBuilder<T> {
 
   void _throwExceptionIfNecessary() {
     if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
-      final msg = Utf8.fromUtf8(bindings.obx_qb_error_message(_cBuilder).cast<Utf8>());
+      final msg = cString(bindings.obx_qb_error_message(_cBuilder));
       throw ObjectBoxException("$msg");
     }
   }
