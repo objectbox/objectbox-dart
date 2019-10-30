@@ -4,6 +4,8 @@ import "dart:io" show Platform;
 import "signatures.dart";
 import "structs.dart";
 
+// ignore_for_file: non_constant_identifier_names
+
 // bundles all C functions to be exposed to Dart
 class _ObjectBoxBindings {
   DynamicLibrary objectbox;

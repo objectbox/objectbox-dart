@@ -57,16 +57,16 @@ class Store {
   ///
   /// Returns type of [fn] if [return] is called in [fn]
   R runInTransaction<R>(TxMode mode, R Function() fn) {
-    bool wanna_write = mode == TxMode.Write;
-    Pointer<Void> txn = wanna_write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
+    bool write = mode == TxMode.Write;
+    Pointer<Void> txn = write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
     checkObxPtr(txn, "failed to create transaction");
     try {
-      if (wanna_write) {
+      if (write) {
         checkObx(bindings.obx_txn_mark_success(txn, 1));
       }
       return fn();
     } catch (ex) {
-      if (wanna_write) {
+      if (write) {
         checkObx(bindings.obx_txn_mark_success(txn, 0));
       }
       rethrow;

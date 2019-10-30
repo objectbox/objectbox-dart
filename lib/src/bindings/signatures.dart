@@ -1,6 +1,8 @@
 import "dart:ffi";
 import 'structs.dart';
 
+// ignore_for_file: non_constant_identifier_names
+
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();

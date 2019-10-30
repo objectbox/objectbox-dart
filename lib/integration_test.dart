@@ -1,7 +1,5 @@
 library integration_test;
 
-import 'dart:ffi';
-import 'package:ffi/ffi.dart';
 import 'package:objectbox/objectbox.dart';
 import './src/bindings/constants.dart';
 import './src/bindings/helpers.dart';
