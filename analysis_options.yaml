@@ -3,3 +3,8 @@ include: package:pedantic/analysis_options.yaml
 linter:
   rules:
     unrelated_type_equality_checks: false  # query condition operator overrides
+
+analyzer:
+  exclude:
+    - example/**
+    - generator/**   # needs to be checked separately because its a separate package
