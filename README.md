@@ -9,33 +9,10 @@ However, the ObjectBox core supports many more features, e.g. queries, indexing,
 To bring all these features to Dart, we're asking the community to help out. PRs are more than welcome!
 The ObjectBox team will try its best to guide you and answer questions. 
 
-Contributing
-------------------
-This project is completely managed here on GitHub using its [issue tracker](https://github.com/objectbox/objectbox-dart/issues) and [project boards](https://github.com/objectbox/objectbox-dart/projects).
-
-To prepare an upcoming version, we create a (Kanban like) board for it.
-Once it is decided which features and fixes go into the version, the according issues are added to the board.
-Issues on the board are referred to as "cards" which move from left to right:
-
-* New cards start in the "To Do" column.
-  Within the column, cards are ordered: more important tasks should be above less important ones.  
-* Once somebody starts on a task, the according card is moved to "In progress".
-  Also, please assign yourself to the issue.
-* Once a task is considered complete (e.g. PR is made), put it in the "Review" column.
-* Once another person had a look and is happy, the task is finally moved to "Done"
- 
-Anyone can contribute, be it by coding, improving docs or just proposing a new feature. 
-Look for tasks having a **"help wanted"** tag.
-
-#### Feedback
+### Feedback
 Also, please let us know your feedback by opening an issue:
 for example, if you experience errors or if you have ideas for how to improve the API.
 Thanks!
-
-#### Code style
-Please make sure that all code submitted via Pull Request is formatted using `dartfmt -l 120`. 
-You can configure your IDE to do this automatically, e.g. VS Code needs the project-specific settings 
-`"editor.defaultFormatter": "Dart-Code.dart-code"` and `"dart.lineLength": 120`.
 
 Getting started
 ---------------
@@ -172,9 +149,10 @@ There are two basic ways to make the conversion: generated binding code, or impl
 The latter is used at the moment (helped us to get started quickly).
 A future version will exchange that with code generation.  
 
-Changelog
+See also
 ---------
-[CHANGELOG.md](CHANGELOG.md)
+* [Changelog](CHANGELOG.md)
+* [Contribution guidelines](CONTRIBUTING.md)
 
 License
 -------
