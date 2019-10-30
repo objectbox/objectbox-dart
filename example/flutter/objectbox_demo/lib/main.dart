@@ -52,7 +52,7 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
 
   void _addNote() {
     Note newNote = Note.construct(_noteInputController.text);
-    _box.put(newNote);
+    newNote.id = _box.put(newNote);
     setState(() => _notes.add(newNote));
     _noteInputController.text = "";
   }
