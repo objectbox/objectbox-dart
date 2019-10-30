@@ -5,9 +5,10 @@ import './src/bindings/constants.dart';
 import './src/bindings/helpers.dart';
 import './src/bindings/bindings.dart';
 
+// Todo: maybe make this a standalone package
+
 /// Implements simple integration tests for platform compatibility.
 /// It's functions are designed to be callable from flutter apps - to test on the target platform.
-/// Todo: maybe make this a standalone package
 class IntegrationTest {
   static const int64_max = 9223372036854775807;
 
