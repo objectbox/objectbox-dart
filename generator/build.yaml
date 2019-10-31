@@ -7,7 +7,7 @@ targets:
 builders:
   objectbox:
     target: ":objectbox_generator"
-    import: "package:objectbox_generator/builder.dart"
+    import: "package:objectbox_generator/objectbox_generator.dart"
     builder_factories: ["objectboxModelFactory"]
     build_extensions: {".dart": [".objectbox_model.g.part"]}
     auto_apply: dependents

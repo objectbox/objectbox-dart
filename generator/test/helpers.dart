@@ -5,7 +5,7 @@ import "package:test/test.dart";
 import 'package:build/build.dart';
 import 'package:glob/glob.dart' show Glob;
 import "package:build/src/asset/id.dart";
-import "package:objectbox_generator/builder.dart";
+import "package:objectbox_generator/objectbox_generator.dart";
 import "package:build/src/asset/reader.dart";
 import "package:build/src/asset/writer.dart";
 import "package:build/src/analyzer/resolver.dart";
