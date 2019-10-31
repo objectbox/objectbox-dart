@@ -374,21 +374,21 @@ void main() {
     final condition = text.notNull();
 
     final query = box.query(condition).order(text).build();
-
-    final queryWithFlags = box.query(condition).order(text, flags: Order.descending | Order.caseSensitive).build();
-
     final result1 = query.find().map((e) => e.text).toList();
-    final result2 = queryWithFlags.find().map((e) => e.text).toList();
 
     expect("Cruel", result1[0]);
-    expect("World", result2[0]);
     expect("Hello", result1[2]);
-    expect("Hello", result2[2]);
     expect("HELLO", result1[3]);
+
+    final queryReverseOrder = box.query(condition).order(text, flags: Order.descending | Order.caseSensitive).build();
+    final result2 = queryReverseOrder.find().map((e) => e.text).toList();
+
+    expect("World", result2[0]);
+    expect("Hello", result2[2]);
     expect("HELLO", result2[3]);
 
     query.close();
-    queryWithFlags.close();
+    queryReverseOrder.close();
   });
 
   tearDown(() {
