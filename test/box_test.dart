@@ -63,9 +63,9 @@ void main() {
     box.putMany(items);
     final List<TestEntity> itemsFetched = box.getAll();
     expect(itemsFetched.length, equals(items.length));
-    expect(itemsFetched[0].text, items[0].text);
-    expect(itemsFetched[1].text, items[1].text);
-    expect(itemsFetched[2].text, items[2].text);
+    expect(itemsFetched[0].text, equals(items[0].text));
+    expect(itemsFetched[1].text, equals(items[1].text));
+    expect(itemsFetched[2].text, equals(items[2].text));
   });
 
   test(".putMany returns the new item IDs", () {
