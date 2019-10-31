@@ -16,9 +16,8 @@ class Note {
 
   Note();
   Note.construct(this.text) {
-    // only uses seconds instead of milliseconds right now, as all instance variables of type "int"
-    // but "id" are casted to a 32 bit integer during Flatbuffers marshalling
-    date = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    date = DateTime.now().millisecondsSinceEpoch;
+    print("constructed date: $date");
   }
 }
 
@@ -110,7 +109,7 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
                           alignment: Alignment.centerRight,
                           child: Text(
                             "Click a note to remove it",
-                            style: new TextStyle(
+                            style: TextStyle(
                               fontSize: 11.0,
                               color: Colors.grey,
                             ),
@@ -150,15 +149,15 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
                               children: <Widget>[
                                 Text(
                                   _notes[index].text,
-                                  style: new TextStyle(
+                                  style: TextStyle(
                                     fontSize: 15.0,
                                   ),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5.0),
                                   child: Text(
-                                    "Added on ${new DateFormat('dd.MM.yyyy hh:mm:ss').format(new DateTime.fromMillisecondsSinceEpoch(_notes[index].date * 1000))}",
-                                    style: new TextStyle(
+                                    "Added on ${DateFormat('dd.MM.yyyy hh:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(_notes[index].date))}",
+                                    style: TextStyle(
                                       fontSize: 12.0,
                                     ),
                                   ),
