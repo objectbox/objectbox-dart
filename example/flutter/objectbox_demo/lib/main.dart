@@ -51,6 +51,7 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
   List<Note> _notes = [];
 
   void _addNote() {
+    if (_noteInputController.text.isEmpty) return;
     Note newNote = Note.construct(_noteInputController.text);
     newNote.id = _box.put(newNote);
     setState(() => _notes.add(newNote));
