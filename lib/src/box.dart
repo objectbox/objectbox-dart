@@ -228,14 +228,9 @@ class Box<T> {
   }
 
   bool remove(int id) {
-    try {
-      checkObx(bindings.obx_box_remove(_cBox, id));
-    } on ObjectBoxException catch (ex) {
-      if (ex.msg == "code 404") {
-        return false;
-      }
-      rethrow;
-    }
+    final err = bindings.obx_box_remove(_cBox, id);
+    if (err == OBXError.OBX_NOT_FOUND) return false;
+    checkObx(err); // throws on other errors
     return true;
   }
 
