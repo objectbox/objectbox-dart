@@ -14,7 +14,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_model_generator:
+  objectbox_generator:
     path: generator
   pedantic: ^1.8.0+1
   test: ^1.0.0

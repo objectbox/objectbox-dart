@@ -2,11 +2,11 @@
 
 To make it possible to read and write ObjectBox entity instances as easily as possible, wrapper code needs to be generated. Such code is only generated for Dart classes which have been annotated to indicate that they represent an ObjectBox entity (i.e. using [`@Entity`](/lib/src/annotations.dart#L1)). For a Dart source file called `myentity.dart`, which contains an entity definition, a file called `myentity.g.dart` is generated in the same directory by invoking the command `pub run build_runner build`.
 
-Unfortunately, only few documentation exists on how to generate code using Dart's `build`, `source_gen` and `build_runner`, so the approach taken here by `objectbox_model_generator` is documented in the following.
+Unfortunately, only few documentation exists on how to generate code using Dart's `build`, `source_gen` and `build_runner`, so the approach taken here by `objectbox_generator` is documented in the following.
 
 ## Basics
 
-In order to set up code generation, a new package needs to be created exclusively for this task. Here, it it called `objectbox_model_generator`. This package needs to contain a file called [`build.yaml`](/generator/build.yaml) as well as an entry point for the builder, [`builder.dart`](/generator/lib/builder.dart), and a generator specifically for one annotation class, [`generator.dart`](/generator/lib/src/generator.dart). The latter needs to contain a class which extends `GeneratorForAnnotation<obx.Entity>` and overrides `Future<String> generateForAnnotatedElement(Element elementBare, ConstantReader annotation, BuildStep buildStep)`, which returns a string containing the generated code for a single annotation instance.
+In order to set up code generation, a new package needs to be created exclusively for this task. Here, it it called `objectbox_generator`. This package needs to contain a file called [`build.yaml`](/generator/build.yaml) as well as an entry point for the builder, [`builder.dart`](/generator/lib/builder.dart), and a generator specifically for one annotation class, [`generator.dart`](/generator/lib/src/generator.dart). The latter needs to contain a class which extends `GeneratorForAnnotation<obx.Entity>` and overrides `Future<String> generateForAnnotatedElement(Element elementBare, ConstantReader annotation, BuildStep buildStep)`, which returns a string containing the generated code for a single annotation instance.
 
 It is then possible to traverse through the annotated class in `generateForAnnotatedElement` and e.g. determine all class member fields and their types. Additionally, such member fields can be annotated themselves, but because here, only the `@Entity` annotation is explicitly handled using a separate generator class, member annotations can be read and processed in line.
 
@@ -20,7 +20,7 @@ Eventually, `mergeEntity` either throws an error in case the model cannot be mer
 
 ## Testing
 
-For accomplishing actually automated testing capabilities for `objectbox_model_generator`, various wrapper classes are needed, as the `build` package is only designed to generate output _files_; yet, during testing, it is necessary to dump generated code to string variables, so they can be compared easily by Dart's `test` framework.
+For accomplishing actually automated testing capabilities for `objectbox_generator`, various wrapper classes are needed, as the `build` package is only designed to generate output _files_; yet, during testing, it is necessary to dump generated code to string variables, so they can be compared easily by Dart's `test` framework.
 
 The entry function for generator testing is the main function of [`generator_test.dart`](/generator/test/generator_test.dart). It makes sure that any existing file called `objectbox-model.json` is removed before every test, because we want a fresh start each time.
 
