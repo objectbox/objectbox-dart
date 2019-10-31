@@ -92,6 +92,18 @@ void main() {
     expect(fetchedItems[2].text, equals("Two"));
   });
 
+  test("limit integers are stored correctly", () {
+    final int64Min = -9223372036854775808;
+    final int64Max = 9223372036854775807;
+    final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity.initInteger(n)).toList();
+    expect("${items[0].number}", equals("$int64Min"));
+    expect("${items[1].number}", equals("$int64Max"));
+    final List<int> ids = box.putMany(items);
+    final List<TestEntity> fetchedItems = box.getMany([ids[0], ids[1]]);
+    expect(fetchedItems[0].number, equals(int64Min));
+    expect(fetchedItems[1].number, equals(int64Max));
+  });
+
   test(".count() works", () {
     expect(box.count(), equals(0));
     List<int> ids = box.putMany(simpleItems);
