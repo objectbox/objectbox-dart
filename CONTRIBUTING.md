@@ -22,3 +22,13 @@ Issues on the [project board](https://github.com/objectbox/objectbox-dart/projec
   Also, please assign yourself to the issue.
 * Once a task is considered complete (e.g. PR is made), put it in the "Review" column.
 * Once another person had a look and is happy, the task is finally moved to "Done" and its closed.
+
+### Basic technical approach
+ObjectBox offers a [C API](https://github.com/objectbox/objectbox-c) which can be called by [Dart FFI](https://dart.dev/server/c-interop).
+The C API is is also used by the ObjectBox language bindings for [Go](https://github.com/objectbox/objectbox-go), [Swift](https://github.com/objectbox/objectbox-swift), and [Python](https://github.com/objectbox/objectbox-python).
+These language bindings currently serve as an example for this Dart implementation.
+
+Internally, ObjectBox uses [FlatBuffers](https://google.github.io/flatbuffers/) to store objects.
+There are two basic ways to make the conversion: generated binding code, or implicit FlatBuffers conversion.
+The latter is used at the moment (helped us to get started quickly).
+A future version will exchange that with code generation.  

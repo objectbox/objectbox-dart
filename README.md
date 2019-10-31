@@ -2,45 +2,48 @@ ObjectBox for Dart/Flutter
 ==========================
 ObjectBox for Dart is a standalone database storing Dart objects locally, with strong ACID semantics.
 
-Help wanted
------------
-ObjectBox for Dart is still in a prototype stage supporting only the most basic database tasks, like putting and getting objects.
-However, the ObjectBox core supports many more features, e.g. queries, indexing, async operations, transaction control.
-To bring all these features to Dart, we're asking the community to help out. PRs are more than welcome!
-The ObjectBox team will try its best to guide you and answer questions. 
+Installation
+------------
+Add the following dependencies to your `pubspec.yaml`:
+```yaml
+dependencies:
+  objectbox: ^0.4.0
 
-### Feedback
-Also, please let us know your feedback by opening an issue:
-for example, if you experience errors or if you have ideas for how to improve the API.
-Thanks!
+dev_dependencies:
+  build_runner: ^1.0.0
+  objectbox_generator: ^0.4.0
+```
+
+Proceed based on whether you're developing a Flutter app or a standalone dart program:
+1. **Flutter** only steps:
+    * Install the packages `flutter pub get`
+    * Add `objectbox-android` dependency to your `android/app/build.gradle` 
+        ```
+        dependencies {
+            implementation "io.objectbox:objectbox-android:2.4.1"
+            ...
+       ```
+    * iOS coming soon  
+1. **Dart standalone programs**:
+    * Install the packages `pub get`
+    * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
+       * macOS/Linux: execute the following command (answer Y when it asks about installing to /usr/lib) 
+            ```shell script
+            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7
+            ```
+       * macOS: if dart later complains that it cannot find the `libobjectbox.dylib` you probably have to unsign the 
+         `dart` binary (source: [dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841)):
+            ```shell script
+            sudo xcode --remove-signature $(which dart)
+            ```
+       * Windows: use "Git Bash" or similar to execute the following command 
+            ```shell script
+            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7
+            ```
+            Then copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges).
+
 
 Getting started
----------------
-To try out the demo code in this repository, follow these steps:
-
-1. Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
-   * macOS/Linux: `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7` (answer Y when it asks about installing to /usr/lib).
-   * Windows: 
-        * use "Git Bash" or similar to execute `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7`
-        * copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges)
-2. Back in this repository, run `pub get`.
-3. Execute `pub run build_runner build`. This regenerates the ObjectBox model to make it usable in Dart 
-   (i.e. the file `test/test.g.dart`) and is necessary each time you add or change a class annotated with `@Entity(...)`.
-4. Finally run `pub run test` to run the unit tests.
-
-Mac OS signed dart binary issue
--------------------------------
-
-If dart complains that it cannot find the `libobjectbox.dylib`, after you've installed by following step 1,
-then you probably have to unsign the dart binary:
-
-```bash
-sudo xcode --remove-signature `which dart`
-``` 
-
-source: [dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841)
-
-Dart integration
 ----------------
 In general, Dart class annotations are used to mark classes as ObjectBox entities and provide meta information.
 Note that right now, only a limited set of types is supported; this will be expanded upon in the near future.
@@ -87,8 +90,7 @@ print("refetched note: ${box.get(note.id)}");
 store.close();
 ```
 
-Query and QueryBuilder
-----------------------
+### Query and QueryBuilder
 
 Basic querying can be done with e.g.:
 
@@ -121,8 +123,7 @@ final overloaded = (value > 10) | date.IsNull();
 box.query(overloaded as Condition).build(); // the cast is necessary due to the type analyzer
 ```
 
-Ordering
---------
+### Ordering
 
 The results from a query can be ordered using the `order` method, e.g.
 
@@ -138,16 +139,16 @@ final qt = box.query(Entity_.text.notNull())
   .build();
 ```
 
-Basic technical approach
-------------------------
-ObjectBox offers a [C API](https://github.com/objectbox/objectbox-c) which can be called by [Dart FFI](https://dart.dev/server/c-interop).
-The C API is is also used by the ObjectBox language bindings for [Go](https://github.com/objectbox/objectbox-go), [Swift](https://github.com/objectbox/objectbox-swift), and [Python](https://github.com/objectbox/objectbox-python).
-These language bindings currently serve as an example for this Dart implementation.
+Help wanted
+-----------
+ObjectBox for Dart is still in an early stage with limited feature set (compared to other languages).
+To bring all these features to Dart, we're asking the community to help out. PRs are more than welcome!
+The ObjectBox team will try its best to guide you and answer questions. 
 
-Internally, ObjectBox uses [FlatBuffers](https://google.github.io/flatbuffers/) to store objects.
-There are two basic ways to make the conversion: generated binding code, or implicit FlatBuffers conversion.
-The latter is used at the moment (helped us to get started quickly).
-A future version will exchange that with code generation.  
+### Feedback
+Also, please let us know your feedback by opening an issue:
+for example, if you experience errors or if you have ideas for how to improve the API.
+Thanks!
 
 See also
 ---------
