@@ -26,7 +26,7 @@ class Store {
 
     try {
       checkObx(bindings.obx_opt_model(opt, model.ptr));
-      if (directory != null && directory.length != 0) {
+      if (directory != null && directory.isNotEmpty) {
         var cStr = Utf8.toUtf8(directory).cast<Uint8>();
         try {
           checkObx(bindings.obx_opt_directory(opt, cStr));
@@ -49,18 +49,27 @@ class Store {
     checkObx(bindings.obx_store_close(_cStore));
   }
 
-  EntityDefinition<T> entityDef<T>(T) {
+  EntityDefinition<T> entityDef<T>() {
     return _entityDefinitions[T];
   }
 
   /// Executes a given function inside a transaction
+  ///
+  /// Returns type of [fn] if [return] is called in [fn]
   R runInTransaction<R>(TxMode mode, R Function() fn) {
-    assert(mode == TxMode.Read, "write transactions are currently not supported"); // TODO implement
-
-    Pointer<Void> txn = bindings.obx_txn_read(_cStore);
-    checkObxPtr(txn, "failed to created transaction");
+    bool write = mode == TxMode.Write;
+    Pointer<Void> txn = write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
+    checkObxPtr(txn, "failed to create transaction");
     try {
+      if (write) {
+        checkObx(bindings.obx_txn_mark_success(txn, 1));
+      }
       return fn();
+    } catch (ex) {
+      if (write) {
+        checkObx(bindings.obx_txn_mark_success(txn, 0));
+      }
+      rethrow;
     } finally {
       checkObx(bindings.obx_txn_close(txn));
     }

@@ -1,103 +1,277 @@
-import "dart:io";
 import "package:test/test.dart";
 import "package:objectbox/objectbox.dart";
-part "box_test.g.dart";
-
-@Entity()
-class TestEntity {
-  @Id()
-  int id;
-
-  String text;
-
-  TestEntity();
-  TestEntity.constructWithId(this.id, this.text);
-  TestEntity.construct(this.text);
-}
+import "entity.dart";
+import 'test_env.dart';
 
 void main() {
-  Store store;
+  TestEnv env;
   Box box;
+  Store store;
 
-  group("box", () {
-    setUp(() {
-      store = Store([TestEntity_OBXDefs]);
-      box = Box<TestEntity>(store);
-    });
+  final List<TestEntity> simpleItems =
+      ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.initText(s)).toList();
 
-    test(".put() returns a valid id", () {
-      int putId = box.put(TestEntity.construct("Hello"));
-      expect(putId, greaterThan(0));
-    });
+  setUp(() {
+    env = TestEnv("box");
+    box = env.box;
+    store = env.store;
+  });
 
-    test(".get() returns the correct item", () {
-      final int putId = box.put(TestEntity.construct("Hello"));
-      final TestEntity item = box.get(putId);
-      expect(item.id, equals(putId));
-      expect(item.text, equals("Hello"));
-    });
+  test(".put() returns a valid id", () {
+    int putId = box.put(TestEntity.initText("Hello"));
+    expect(putId, greaterThan(0));
+  });
 
-    test(".put() and box.get() keep Unicode characters", () {
-      final String text = "😄你好";
-      final TestEntity inst = box.get(box.put(TestEntity.construct(text)));
-      expect(inst.text, equals(text));
-    });
+  test(".get() returns the correct item", () {
+    final int putId = box.put(TestEntity.initText("Hello"));
+    final TestEntity item = box.get(putId);
+    expect(item.id, equals(putId));
+    expect(item.text, equals("Hello"));
+  });
 
-    test(".put() can update an item", () {
-      final int putId1 = box.put(TestEntity.construct("One"));
-      final int putId2 = box.put(TestEntity.constructWithId(putId1, "Two"));
-      expect(putId2, equals(putId1));
-      final TestEntity item = box.get(putId2);
-      expect(item.text, equals("Two"));
-    });
+  test(".put() and box.get() keep Unicode characters", () {
+    final String text = "😄你好";
+    final TestEntity inst = box.get(box.put(TestEntity.initText(text)));
+    expect(inst.text, equals(text));
+  });
 
-    test(".getAll retrieves all items", () {
-      final int id1 = box.put(TestEntity.construct("One"));
-      final int id2 = box.put(TestEntity.construct("Two"));
-      final int id3 = box.put(TestEntity.construct("Three"));
-      final List<TestEntity> items = box.getAll();
-      expect(items.length, equals(3));
-      expect(items.where((i) => i.id == id1).single.text, equals("One"));
-      expect(items.where((i) => i.id == id2).single.text, equals("Two"));
-      expect(items.where((i) => i.id == id3).single.text, equals("Three"));
-    });
+  test(".put() can update an item", () {
+    final int putId1 = box.put(TestEntity.initText("One"));
+    final int putId2 = box.put(TestEntity.initId(putId1, "Two"));
+    expect(putId2, equals(putId1));
+    final TestEntity item = box.get(putId2);
+    expect(item.text, equals("Two"));
+  });
 
-    test(".putMany inserts multiple items", () {
-      final List<TestEntity> items = [
-        TestEntity.construct("One"),
-        TestEntity.construct("Two"),
-        TestEntity.construct("Three")
-      ];
-      box.putMany(items);
-      final List<TestEntity> itemsFetched = box.getAll();
-      expect(itemsFetched.length, equals(items.length));
-    });
+  test(".getAll retrieves all items", () {
+    final int id1 = box.put(TestEntity.initText("One"));
+    final int id2 = box.put(TestEntity.initText("Two"));
+    final int id3 = box.put(TestEntity.initText("Three"));
+    final List<TestEntity> items = box.getAll();
+    expect(items.length, equals(3));
+    expect(items.where((i) => i.id == id1).single.text, equals("One"));
+    expect(items.where((i) => i.id == id2).single.text, equals("Two"));
+    expect(items.where((i) => i.id == id3).single.text, equals("Three"));
+  });
 
-    test(".putMany returns the new item IDs", () {
-      final List<TestEntity> items =
-          ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity.construct(s)).toList();
-      final List<int> ids = box.putMany(items);
-      expect(ids.length, equals(items.length));
-      for (int i = 0; i < items.length; ++i) expect(box.get(ids[i]).text, equals(items[i].text));
-    });
+  test(".putMany inserts multiple items", () {
+    final List<TestEntity> items = [
+      TestEntity.initText("One"),
+      TestEntity.initText("Two"),
+      TestEntity.initText("Three")
+    ];
+    box.putMany(items);
+    final List<TestEntity> itemsFetched = box.getAll();
+    expect(itemsFetched.length, equals(items.length));
+    expect(itemsFetched[0].text, equals(items[0].text));
+    expect(itemsFetched[1].text, equals(items[1].text));
+    expect(itemsFetched[2].text, equals(items[2].text));
+  });
 
-    test(".getMany correctly handles non-existant items", () {
-      final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.construct(s)).toList();
-      final List<int> ids = box.putMany(items);
-      int otherId = 1;
-      while (ids.indexWhere((id) => id == otherId) != -1) ++otherId;
-      final List<TestEntity> fetchedItems = box.getMany([ids[0], otherId, ids[1]]);
-      expect(fetchedItems.length, equals(3));
-      expect(fetchedItems[0].text, equals("One"));
-      expect(fetchedItems[1], equals(null));
-      expect(fetchedItems[2].text, equals("Two"));
-    });
+  test(".putMany returns the new item IDs", () {
+    final List<TestEntity> items =
+        ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity.initText(s)).toList();
+    final List<int> ids = box.putMany(items);
+    expect(ids.length, equals(items.length));
+    for (int i = 0; i < items.length; ++i) {
+      expect(box.get(ids[i]).text, equals(items[i].text));
+    }
+  });
 
-    tearDown(() {
-      if (store != null) store.close();
-      store = null;
-      var dir = new Directory("objectbox");
-      if (dir.existsSync()) dir.deleteSync(recursive: true);
+  test(".getMany correctly handles non-existant items", () {
+    final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.initText(s)).toList();
+    final List<int> ids = box.putMany(items);
+    int otherId = 1;
+    while (ids.indexWhere((id) => id == otherId) != -1) {
+      ++otherId;
+    }
+    final List<TestEntity> fetchedItems = box.getMany([ids[0], otherId, ids[1]]);
+    expect(fetchedItems.length, equals(3));
+    expect(fetchedItems[0].text, equals("One"));
+    expect(fetchedItems[1], equals(null));
+    expect(fetchedItems[2].text, equals("Two"));
+  });
+
+  test("limit integers are stored correctly", () {
+    final int64Min = -9223372036854775808;
+    final int64Max = 9223372036854775807;
+    final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity.initInteger(n)).toList();
+    expect("${items[0].number}", equals("$int64Min"));
+    expect("${items[1].number}", equals("$int64Max"));
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0].number, equals(int64Min));
+    expect(fetchedItems[1].number, equals(int64Max));
+  });
+
+  test("null properties are handled correctly", () {
+    final List<TestEntity> items = [TestEntity(), TestEntity.initInteger(10), TestEntity.initText("Hello")];
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0].id, isNot(equals(null)));
+    expect(fetchedItems[0].number, equals(null));
+    expect(fetchedItems[0].text, equals(null));
+    expect(fetchedItems[0].b, equals(null));
+    expect(fetchedItems[0].d, equals(null));
+    expect(fetchedItems[1].id, isNot(equals(null)));
+    expect(fetchedItems[1].number, isNot(equals(null)));
+    expect(fetchedItems[1].text, equals(null));
+    expect(fetchedItems[1].b, equals(null));
+    expect(fetchedItems[1].d, equals(null));
+    expect(fetchedItems[2].id, isNot(equals(null)));
+    expect(fetchedItems[2].number, equals(null));
+    expect(fetchedItems[2].text, isNot(equals(null)));
+    expect(fetchedItems[2].b, equals(null));
+    expect(fetchedItems[2].d, equals(null));
+  });
+
+  test(".count() works", () {
+    expect(box.count(), equals(0));
+    List<int> ids = box.putMany(simpleItems);
+    expect(box.count(), equals(6));
+    expect(box.count(limit: 2), equals(2));
+    expect(box.count(limit: 10), equals(6));
+    //add more
+    ids.addAll(box.putMany(simpleItems));
+    expect(box.count(), equals(12));
+  });
+
+  test(".isEmpty() works", () {
+    bool isEmpty = box.isEmpty();
+    expect(isEmpty, equals(true));
+    //check complementary
+    box.putMany(simpleItems);
+    isEmpty = box.isEmpty();
+    expect(isEmpty, equals(false));
+  });
+
+  test(".contains() works", () {
+    int id = box.put(TestEntity.initText("container"));
+    bool contains = box.contains(id);
+    expect(contains, equals(true));
+    //check complementary
+    box.remove(id);
+    contains = box.contains(id);
+    expect(contains, equals(false));
+  });
+
+  test(".containsMany() works", () {
+    List<int> ids = box.putMany(simpleItems);
+    bool contains = box.containsMany(ids);
+    expect(contains, equals(true));
+    //check with one missing id
+    box.remove(ids[1]);
+    contains = box.containsMany(ids);
+    expect(contains, equals(false));
+    //check complementary
+    box.removeAll();
+    contains = box.containsMany(ids);
+    expect(contains, equals(false));
+  });
+
+  test(".remove(id) works", () {
+    final List<int> ids = box.putMany(simpleItems);
+    //check if single id remove works
+    expect(box.remove(ids[1]), equals(true));
+    expect(box.count(), equals(5));
+    //check what happens if id already deleted -> throws OBJBOXEX 404
+    bool success = box.remove(ids[1]);
+    expect(box.count(), equals(5));
+    expect(success, equals(false));
+  });
+
+  test(".removeMany(ids) works", () {
+    final List<int> ids = box.putMany(simpleItems);
+    expect(box.count(), equals(6));
+    box.removeMany(ids.sublist(4));
+    expect(box.count(), equals(4));
+    //again test what happens if ids already deleted
+    box.removeMany(ids.sublist(4));
+    expect(box.count(), equals(4));
+
+    // verify the right items were removed
+    final List<int> remainingIds = box.getAll().map((o) => (o as TestEntity).id).toList();
+    expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
+  });
+
+  test(".removeAll() works", () {
+    List<int> ids = box.putMany(simpleItems);
+    int removed = box.removeAll();
+    expect(removed, equals(6));
+    expect(box.count(), equals(0));
+    //try with different number of items
+    List<TestEntity> items = ["one", "two", "three"].map((s) => TestEntity.initText(s)).toList();
+    ids.addAll(box.putMany(items));
+    removed = box.removeAll();
+    expect(removed, equals(3));
+  });
+
+  test("simple write in txn works", () {
+    int count;
+    fn() {
+      box.putMany(simpleItems);
+    }
+
+    store.runInTransaction(TxMode.Write, fn);
+    count = box.count();
+    expect(count, equals(6));
+  });
+
+  test("failing transactions", () {
+    try {
+      store.runInTransaction(TxMode.Write, () {
+        box.putMany(simpleItems);
+        throw Exception("Test exception");
+      });
+    } on Exception {
+      ; //otherwise test fails due to not handling exceptions
+    } finally {
+      expect(box.count(), equals(0));
+    }
+  });
+
+  test("recursive write in write transaction", () {
+    store.runInTransaction(TxMode.Write, () {
+      box.putMany(simpleItems);
+      store.runInTransaction(TxMode.Write, () {
+        box.putMany(simpleItems);
+      });
     });
+    expect(box.count(), equals(12));
+  });
+
+  test("recursive read in write transaction", () {
+    int count = store.runInTransaction(TxMode.Write, () {
+      box.putMany(simpleItems);
+      return store.runInTransaction(TxMode.Read, () {
+        return box.count();
+      });
+    });
+    expect(count, equals(6));
+  });
+
+  test("recursive write in read -> fails during creation", () {
+    try {
+      store.runInTransaction(TxMode.Read, () {
+        box.count();
+        return store.runInTransaction(TxMode.Write, () {
+          return box.putMany(simpleItems);
+        });
+      });
+    } on ObjectBoxException catch (ex) {
+      expect(ex.toString(), startsWith("ObjectBoxException: failed to create transaction"));
+    }
+  });
+
+  test("failing in recursive txn", () {
+    store.runInTransaction(TxMode.Write, () {
+      //should throw code10001 -> valid until fix
+      List<int> ids = store.runInTransaction(TxMode.Read, () {
+        return box.putMany(simpleItems);
+      });
+      expect(ids.length, equals(6));
+    });
+  });
+
+  tearDown(() {
+    env.close();
   });
 }

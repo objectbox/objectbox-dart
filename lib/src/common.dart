@@ -1,7 +1,6 @@
 import "dart:ffi";
 
 import "bindings/bindings.dart";
-import "package:ffi/ffi.dart";
 
 class Version {
   final int major;
@@ -27,10 +26,13 @@ Version versionLib() {
   }
 }
 
-class ObjectBoxException {
+class ObjectBoxException implements Exception {
   final String message;
+  final String msg;
 
-  ObjectBoxException(msg) : message = "ObjectBoxException: " + msg;
+  ObjectBoxException(msg)
+      : message = "ObjectBoxException: " + msg,
+        msg = msg;
 
   String toString() => message;
 }

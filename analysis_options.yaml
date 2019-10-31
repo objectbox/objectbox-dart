@@ -1,0 +1,11 @@
+include: package:pedantic/analysis_options.yaml
+
+linter:
+  rules:
+    # additional rules used by pub.dev
+    - non_constant_identifier_names
+
+analyzer:
+  exclude:
+    - example/**
+    - generator/**   # needs to be checked separately because its a separate package

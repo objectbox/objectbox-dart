@@ -8,9 +8,11 @@ import "../modelinfo/index.dart";
 
 class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
-  static const fb.Reader<_OBXFBEntity> reader = const _OBXFBEntityReader();
-  factory _OBXFBEntity(Uint8List bytes) {
-    fb.BufferContext rootRef = new fb.BufferContext.fromBytes(bytes);
+
+  static const fb.Reader<_OBXFBEntity> reader = _OBXFBEntityReader();
+
+  factory _OBXFBEntity(final Uint8List bytes) {
+    fb.BufferContext rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
 
@@ -24,7 +26,7 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
   const _OBXFBEntityReader();
 
   @override
-  _OBXFBEntity createObject(fb.BufferContext bc, int offset) => new _OBXFBEntity._(bc, offset);
+  _OBXFBEntity createObject(fb.BufferContext bc, int offset) => _OBXFBEntity._(bc, offset);
 }
 
 class OBXFlatbuffersManager<T> {
@@ -33,8 +35,8 @@ class OBXFlatbuffersManager<T> {
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
-  ByteBuffer marshal(propVals) {
-    var builder = new fb.Builder(initialSize: 1024);
+  Pointer<OBX_bytes> marshal(Map<String, dynamic> propVals) {
+    var builder = fb.Builder(initialSize: 1024);
 
     // write all strings
     Map<String, int> offsets = {};
@@ -73,19 +75,24 @@ class OBXFlatbuffersManager<T> {
         case OBXPropertyType.String:
           builder.addOffset(field, offsets[p.name]);
           break;
+        case OBXPropertyType.Float:
+          builder.addFloat32(field, value);
+          break;
+        case OBXPropertyType.Double:
+          builder.addFloat64(field, value);
+          break;
         default:
           throw Exception("unsupported type: ${p.type}"); // TODO: support more types
       }
     });
 
     var endOffset = builder.endTable();
-    return ByteBuffer.allocate(builder.finish(endOffset));
+    return OBX_bytes.managedCopyOf(builder.finish(endOffset));
   }
 
-  T unmarshal(ByteBuffer buffer) {
-    if (buffer.size == 0 || buffer.address == 0) return null;
+  T unmarshal(final Uint8List bytes) {
+    final entity = _OBXFBEntity(bytes);
     Map<String, dynamic> propVals = {};
-    var entity = new _OBXFBEntity(buffer.data);
 
     _modelEntity.properties.forEach((p) {
       var propReader;
@@ -111,6 +118,12 @@ class OBXFlatbuffersManager<T> {
         case OBXPropertyType.String:
           propReader = fb.StringReader();
           break;
+        case OBXPropertyType.Float:
+          propReader = fb.Float32Reader();
+          break;
+        case OBXPropertyType.Double:
+          propReader = fb.Float64Reader();
+          break;
         default:
           throw Exception("unsupported type: ${p.type}"); // TODO: support more types
       }
@@ -122,7 +135,12 @@ class OBXFlatbuffersManager<T> {
   }
 
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T> unmarshalArray(Pointer<Uint64> bytesArray) {
-    return ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => unmarshal(b)).toList();
+  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray, {bool allowMissing = false}) {
+    final OBX_bytes_array array = bytesArray.load();
+    var fn = (OBX_bytes b) => unmarshal(b.data);
+    if (allowMissing) {
+      fn = (OBX_bytes b) => b.isEmpty ? null : unmarshal(b.data);
+    }
+    return array.items().map<T>(fn).toList();
   }
 }

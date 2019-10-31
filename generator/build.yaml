@@ -1,0 +1,18 @@
+targets:
+  $default:
+    builders:
+      objectbox_generator|objectbox:
+        enabled: true
+
+builders:
+  objectbox:
+    target: ":objectbox_generator"
+    import: "package:objectbox_generator/objectbox_generator.dart"
+    builder_factories: ["objectboxModelFactory"]
+    build_extensions: {".dart": [".objectbox_model.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]
+    defaults:
+      generate_for:
+        exclude: ["example/**"]
