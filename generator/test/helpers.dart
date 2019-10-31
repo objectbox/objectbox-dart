@@ -38,12 +38,16 @@ class _SingleFileAssetReader extends AssetReader {
   }
 
   Future<bool> canRead(AssetId id) async => true; //this.id == id;
-  Future<List<int>> readAsBytes(AssetId id) => throw UnimplementedError();
-  Stream<AssetId> findAssets(Glob glob, {String package}) => Stream.fromIterable([id]); // throw UnimplementedError();
+
+  Stream<AssetId> findAssets(Glob glob, {String package}) => Stream.fromIterable([id]);
+
+  @override
+  Future<List<int>> readAsBytes(AssetId id) async => utf8.encode(await readAsString(id));
 
   @override
   Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
     if (id.package != "objectbox" && id.package != "objectbox_generator") return "";
+    if (id.path.endsWith(".g.dart")) return "";
 
     String path = id.path;
     if (id.package == "objectbox") path = "../" + path;
