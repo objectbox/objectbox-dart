@@ -23,7 +23,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
             implementation "io.objectbox:objectbox-android:2.4.1"
             ...
        ```
-    * iOS coming soon  
+    * iOS coming soon
 1. **Dart standalone programs**:
     * Install the packages `pub get`
     * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
@@ -42,6 +42,8 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
             ```
             Then copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges).
 
+ObjectBox generates code binding code for classes you want stored based using build_runner.
+After you've defined your persisted entities (see below), run `pub run build_runner build` or `flutter pub run build_runner build`.
 
 Getting started
 ----------------
