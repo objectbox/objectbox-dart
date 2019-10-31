@@ -98,10 +98,29 @@ void main() {
     final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity.initInteger(n)).toList();
     expect("${items[0].number}", equals("$int64Min"));
     expect("${items[1].number}", equals("$int64Max"));
-    final List<int> ids = box.putMany(items);
-    final List<TestEntity> fetchedItems = box.getMany([ids[0], ids[1]]);
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
     expect(fetchedItems[0].number, equals(int64Min));
     expect(fetchedItems[1].number, equals(int64Max));
+  });
+
+  test("null properties are handled correctly", () {
+    final List<TestEntity> items = [TestEntity(), TestEntity.initInteger(10), TestEntity.initText("Hello")];
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0].id, isNot(equals(null)));
+    expect(fetchedItems[0].number, equals(null));
+    expect(fetchedItems[0].text, equals(null));
+    expect(fetchedItems[0].b, equals(null));
+    expect(fetchedItems[0].d, equals(null));
+    expect(fetchedItems[1].id, isNot(equals(null)));
+    expect(fetchedItems[1].number, isNot(equals(null)));
+    expect(fetchedItems[1].text, equals(null));
+    expect(fetchedItems[1].b, equals(null));
+    expect(fetchedItems[1].d, equals(null));
+    expect(fetchedItems[2].id, isNot(equals(null)));
+    expect(fetchedItems[2].number, equals(null));
+    expect(fetchedItems[2].text, isNot(equals(null)));
+    expect(fetchedItems[2].b, equals(null));
+    expect(fetchedItems[2].d, equals(null));
   });
 
   test(".count() works", () {
