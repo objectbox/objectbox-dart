@@ -29,7 +29,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
     * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
        * macOS/Linux: execute the following command (answer Y when it asks about installing to /usr/lib) 
             ```shell script
-            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7
+            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7.2
             ```
        * macOS: if dart later complains that it cannot find the `libobjectbox.dylib` you probably have to unsign the 
          `dart` binary (source: [dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841)):
@@ -38,7 +38,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
             ```
        * Windows: use "Git Bash" or similar to execute the following command 
             ```shell script
-            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7
+            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) 0.7.2
             ```
             Then copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges).
 
