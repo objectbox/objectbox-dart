@@ -9,7 +9,7 @@ import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
-import "query/index.dart";
+import "query/query.dart";
 
 enum _PutMode {
   Put,
