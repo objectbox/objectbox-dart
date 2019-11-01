@@ -1,6 +1,8 @@
 import "dart:ffi";
 import 'structs.dart';
 
+// ignore_for_file: non_constant_identifier_names
+
 // common functions
 typedef obx_version_native_t = Void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
 typedef obx_version_string_native_t = Pointer<Uint8> Function();
@@ -16,10 +18,12 @@ typedef obx_last_error_clear_native_t = Void Function();
 // schema model creation
 typedef obx_model_native_t = Pointer<Void> Function();
 typedef obx_model_free_native_t = Int32 Function(Pointer<Void>);
+typedef obx_model_error_code_native_t = Int32 Function(Pointer<Void>);
+typedef obx_model_error_message_native_t = Pointer<Uint8> Function(Pointer<Void>);
 typedef obx_model_entity_native_t = Int32 Function(
     Pointer<Void> model, Pointer<Uint8> name, Uint32 entity_id, Uint64 entity_uid);
 typedef obx_model_property_native_t = Int32 Function(
-    Pointer<Void> model, Pointer<Uint8> name, Uint32 type, Uint64 property_id, Uint64 property_uid);
+    Pointer<Void> model, Pointer<Uint8> name, Uint32 type, Uint32 property_id, Uint64 property_uid);
 typedef obx_model_property_flags_native_t = Int32 Function(Pointer<Void> model, Uint32 flags);
 typedef obx_model_entity_last_property_id_native_t = Int32 Function(
     Pointer<Void> model, Uint32 property_id, Uint64 property_uid);
@@ -41,6 +45,7 @@ typedef obx_txn_read_native_t = Pointer<Void> Function(Pointer<Void> store);
 typedef obx_txn_close_native_t = Int32 Function(Pointer<Void> txn);
 typedef obx_txn_abort_native_t = Int32 Function(Pointer<Void> txn);
 typedef obx_txn_success_native_t = Int32 Function(Pointer<Void> txn);
+typedef obx_txn_mark_success_native_t = Int32 Function(Pointer<Void> txn, Uint8 wasSuccessful);
 
 // box management
 typedef obx_box_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
@@ -48,14 +53,15 @@ typedef obx_box_contains_native_t = Int32 Function(Pointer<Void> box, Uint64 id,
 typedef obx_box_contains_many_native_t = Int32 Function(
     Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<Uint8> out_contains);
 typedef obx_box_get_native_t = Int32 Function(
-    Pointer<Void> box, Uint64 id, Pointer<Pointer<Void>> data, Pointer<Int32> size);
-typedef obx_box_get_many_native_t = Pointer<Uint64> Function(Pointer<Void> box, Pointer<OBX_id_array> ids);
-typedef obx_box_get_all_native_t = Pointer<Uint64> Function(Pointer<Void> box);
+    Pointer<Void> box, Uint64 id, Pointer<Pointer<Uint8>> data, Pointer<IntPtr> size);
+typedef obx_box_get_many_native_t = Pointer<OBX_bytes_array> Function(Pointer<Void> box, Pointer<OBX_id_array> ids);
+typedef obx_box_get_all_native_t = Pointer<OBX_bytes_array> Function(Pointer<Void> box);
 typedef obx_box_id_for_put_native_t = Uint64 Function(Pointer<Void> box, Uint64 id_or_zero);
 typedef obx_box_ids_for_put_native_t = Int32 Function(Pointer<Void> box, Uint64 count, Pointer<Uint64> out_first_id);
-typedef obx_box_put_native_t = Int32 Function(Pointer<Void> box, Uint64 id, Pointer<Void> data, Int32 size, Int32 mode);
+typedef obx_box_put_native_t = Int32 Function(
+    Pointer<Void> box, Uint64 id, Pointer<Uint8> data, IntPtr size, Int32 mode);
 typedef obx_box_put_many_native_t = Int32 Function(
-    Pointer<Void> box, Pointer<Uint64> objects, Pointer<Uint64> ids, Int32 mode);
+    Pointer<Void> box, Pointer<OBX_bytes_array> objects, Pointer<Uint64> ids, Int32 mode);
 typedef obx_box_remove_native_t = Int32 Function(Pointer<Void> box, Uint64 id);
 typedef obx_box_remove_all_native_t = Int32 Function(Pointer<Void> box, Pointer<Uint64> removed);
 typedef obx_box_remove_many_native_t = Int32 Function(
@@ -131,7 +137,7 @@ typedef obx_query_t = Pointer<Void> Function(Pointer<Void> builder);
 typedef obx_query_close_native_t = Int32 Function(Pointer<Void> query);
 typedef obx_query_close_dart_t = int Function(Pointer<Void> query);
 
-typedef obx_query_find_t<T> = Pointer<Uint64> Function(Pointer<Void> query, T offset, T limit);
+typedef obx_query_find_t<T> = Pointer<OBX_bytes_array> Function(Pointer<Void> query, T offset, T limit);
 typedef obx_query_find_ids_t<T> = Pointer<OBX_id_array> Function(Pointer<Void> query, T offset, T limit);
 
 typedef obx_query_count_native_t = Int32 Function(Pointer<Void> query, Pointer<Uint64> count);
@@ -151,3 +157,9 @@ typedef obx_query_prop_find_t<T, V> = Pointer<T> Function(Pointer<Void> query, P
 typedef obx_query_prop_distinct_t<T, V> = T Function(Pointer<Void> query, V distinct); // T = (Int32, int), V = (Int8, int)
 typedef obx_query_prop_distinct2_t<T, V> = T Function(Pointer<Void> query, V distinct, V caseSensitive);
 typedef obx_query_prop_op_t<T, V> = T Function(Pointer<Void> query, Pointer<V> out);
+
+// Utilities
+
+typedef obx_bytes_array_t<SizeT> = Pointer<OBX_bytes_array> Function(SizeT count);
+typedef obx_bytes_array_set_t<Ret, SizeT> = Ret Function(
+    Pointer<OBX_bytes_array> array, SizeT index, Pointer<Uint8> data, SizeT size);

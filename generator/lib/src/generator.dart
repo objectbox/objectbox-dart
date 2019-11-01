@@ -2,16 +2,14 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "package:analyzer/dart/element/element.dart";
+import 'package:build/build.dart';
 import "package:build/src/builder/build_step.dart";
 import "package:source_gen/source_gen.dart";
-
 import "package:objectbox/objectbox.dart" as obx;
-import "package:objectbox/src/annotations.dart";
 import "package:objectbox/src/bindings/constants.dart";
-
+import "package:objectbox/src/modelinfo/index.dart";
 import "code_chunks.dart";
 import "merge.dart";
-import "package:objectbox/src/modelinfo/index.dart";
 
 class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
   static const ALL_MODELS_JSON = "objectbox-model.json";
@@ -26,8 +24,8 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
     return ModelInfo.fromMap(json.decode(await (File(ALL_MODELS_JSON).readAsString())));
   }
 
-  final _propertyChecker = const TypeChecker.fromRuntime(Property);
-  final _idChecker = const TypeChecker.fromRuntime(Id);
+  final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
+  final _idChecker = const TypeChecker.fromRuntime(obx.Id);
 
   @override
   Future<String> generateForAnnotatedElement(
@@ -83,10 +81,10 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
           fieldType = _propertyAnnotation.getField('type').toIntValue();
           flags = _propertyAnnotation.getField('flag').toIntValue() ?? 0;
 
-          print(
+          log.info(
               "annotated property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
         } else {
-          print(
+          log.info(
               "property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
         }
 
@@ -108,8 +106,8 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
             // ob: 8 bytes
             fieldType = OBXPropertyType.Double;
           } else {
-            print(
-                "warning: skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
+            log.warning(
+                "skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
             continue;
           }
         }
@@ -127,7 +125,12 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       // merge existing model and annotated model that was just read, then write new final model to file
       mergeEntity(allModels, readEntity);
-      await File(ALL_MODELS_JSON).writeAsString(JsonEncoder.withIndent("  ").convert(allModels.toMap()));
+      final modelJson = JsonEncoder.withIndent("  ").convert(allModels.toMap());
+      await File(ALL_MODELS_JSON).writeAsString(modelJson);
+
+      // add model-json to the generated code
+      ret = ret.replaceFirst('||MODEL-JSON||', modelJson);
+
       readEntity = allModels.findEntityByName(element.name);
       if (readEntity == null) return ret;
 
@@ -139,7 +142,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
 
       return ret;
     } catch (e, s) {
-      print(s);
+      log.warning(s);
       rethrow;
     }
   }

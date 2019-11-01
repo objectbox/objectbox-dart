@@ -9,16 +9,30 @@ checkObx(errorCode) {
   if (errorCode != OBXError.OBX_SUCCESS) throw ObjectBoxException(lastObxErrorString(errorCode));
 }
 
-Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String msg, [bool hasLastError = false]) {
-  if (ptr == null || ptr.address == 0) throw ObjectBoxException("$msg: ${hasLastError ? lastObxErrorString() : ""}");
+Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String msg) {
+  if (ptr == null || ptr.address == 0) {
+    final info = lastObxErrorString();
+    throw ObjectBoxException(info.isEmpty ? msg : "$msg: $info");
+  }
   return ptr;
 }
 
-String lastObxErrorString([err]) {
-  if (err != null) return "code $err";
+String lastObxErrorString([int err = 0]) {
+  int code = bindings.obx_last_error_code();
+  String text = cString(bindings.obx_last_error_message());
 
-  int last = bindings.obx_last_error_code();
-  int last2 = bindings.obx_last_error_secondary();
-  String desc = Utf8.fromUtf8(bindings.obx_last_error_message().cast<Utf8>());
-  return "code $last, $last2 ($desc)";
+  if (code == 0 && text.isEmpty) {
+    return (err != 0) ? "code $err" : "unknown native error";
+  }
+
+  return code == 0 ? text : "$code $text";
+}
+
+String cString(Pointer<Uint8> charPtr) {
+  // Utf8.fromUtf8 segfaults when called on nullptr
+  if (charPtr.address == 0) {
+    return "";
+  }
+
+  return Utf8.fromUtf8(charPtr.cast<Utf8>());
 }

@@ -15,6 +15,26 @@ import "package:ffi/ffi.dart";
 part "builder.dart";
 part "property.dart";
 
+class Order {
+  /// Reverts the order from ascending (default) to descending.
+  static final descending = 1;
+
+  /// Makes upper case letters (e.g. "Z") be sorted before lower case letters (e.g. "a").
+  /// If not specified, the default is case insensitive for ASCII characters.
+  static final caseSensitive = 2;
+
+  /// For scalars only: changes the comparison to unsigned (default is signed).
+  static final unsigned = 4;
+
+  /// null values will be put last.
+  /// If not specified, by default null values will be put first.
+  static final nullsLast = 8;
+
+  /// null values should be treated equal to zero (scalars only).
+  static final nullsAsZero = 16;
+}
+
+
 /// The QueryProperty types are responsible for the operator overloading.
 /// A QueryBuilder will be constructed, based on the any / all operations applied.
 /// When build() is called on the QueryBuilder a Query object will be created.
@@ -52,7 +72,7 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp.eq, caseSensitive, false);
   }
 
-  Condition notEqual(String p, {bool caseSensitive = false}) {
+  Condition notEquals(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp.notEq, caseSensitive, false);
   }
 
@@ -84,7 +104,7 @@ class QueryStringProperty extends QueryProperty {
     return _opWithEqual(p, ConditionOp.lt, caseSensitive, withEqual);
   }
 
-  Condition operator ==(String p) => equals(p);
+//  Condition operator ==(String p) => equals(p); // see issue #43
 //  Condition operator != (String p) => notEqual(p); // not overloadable
 }
 
@@ -103,7 +123,7 @@ class QueryIntegerProperty extends QueryProperty {
     return _op(p, ConditionOp.eq);
   }
 
-  Condition notEqual(int p) {
+  Condition notEquals(int p) {
     return _op(p, ConditionOp.notEq);
   }
 
@@ -131,8 +151,8 @@ class QueryIntegerProperty extends QueryProperty {
     return notInList(list);
   }
 
-  // Condition operator != (int p) => notEqual(p); // not overloadable
-  Condition operator ==(int p) => equals(p);
+// Condition operator != (int p) => notEqual(p); // not overloadable
+// Condition operator ==(int p) => equals(p); // see issue #43
 }
 
 class QueryDoubleProperty extends QueryProperty {
@@ -164,8 +184,8 @@ class QueryDoubleProperty extends QueryProperty {
 
   Condition operator >(double p) => greaterThan(p);
 
-  // Note: currently not supported - override the operator and throw explicitly to prevent the default comparison.
-  void operator ==(double p) => DoubleCondition(ConditionOp.eq, this, null, null);
+// Note: currently not supported - override the operator and throw explicitly to prevent the default comparison.
+// void operator ==(double p) => DoubleCondition(ConditionOp.eq, this, null, null); // see issue #43
 }
 
 class QueryBooleanProperty extends QueryProperty {
@@ -175,11 +195,11 @@ class QueryBooleanProperty extends QueryProperty {
     return IntegerCondition(ConditionOp.eq, this, (p ? 1 : 0));
   }
 
-  Condition notEqual(bool p) {
+  Condition notEquals(bool p) {
     return IntegerCondition(ConditionOp.notEq, this, (p ? 1 : 0));
   }
 
-  Condition operator ==(bool p) => equals(p);
+// Condition operator ==(bool p) => equals(p); // see issue #43
 }
 
 enum ConditionOp {
@@ -522,7 +542,7 @@ class Query<T> {
 
   // package private ctor
   Query._(this._store, this._fbManager, Pointer<Void> cBuilder) {
-    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query", true);
+    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query");
   }
 
   int count() {
@@ -568,12 +588,12 @@ class Query<T> {
 
   // For testing purposes
   String describe() {
-    return Utf8.fromUtf8(bindings.obx_query_describe(_cQuery).cast<Utf8>());
+    return cString(bindings.obx_query_describe(_cQuery));
   }
 
   // For testing purposes
   String describeParameters() {
-    return Utf8.fromUtf8(bindings.obx_query_describe_params(_cQuery).cast<Utf8>());
+    return cString(bindings.obx_query_describe_params(_cQuery));
   }
 
   /// Not to be confused with QueryProperty...
