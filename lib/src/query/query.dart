@@ -596,7 +596,10 @@ class Query<T> {
     return cString(bindings.obx_query_describe_params(_cQuery));
   }
 
-  /// Not to be confused with QueryProperty...
+  /// Not to be confused with QueryProperty
+  /// The return type still has to be casted to the specific type
+  /// e.g. IntegerPropertyQuery for specific type-bound operations.
+  /// Non-specific operations are count, and distinct
   PQ property<PQ extends PropertyQuery>(QueryProperty qp) {
     if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
       return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
@@ -607,5 +610,17 @@ class Query<T> {
     }else {
       throw Exception("Property query: unsupported type (OBXPropertyType: ${qp._type})");
     }
+  }
+
+  IntegerPropertyQuery integerProperty(QueryProperty qp) {
+    return property<IntegerPropertyQuery>(qp);
+  }
+
+  DoublePropertyQuery floatProperty(QueryProperty qp) {
+    return property<DoublePropertyQuery>(qp);
+  }
+
+  StringPropertyQuery stringProperty(QueryProperty qp) {
+    return property<StringPropertyQuery>(qp);
   }
 }
