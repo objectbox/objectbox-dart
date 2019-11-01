@@ -5,7 +5,7 @@ import "package:test/test.dart";
 import 'package:build/build.dart';
 import 'package:glob/glob.dart' show Glob;
 import "package:build/src/asset/id.dart";
-import "package:objectbox_model_generator/builder.dart";
+import "package:objectbox_generator/objectbox_generator.dart";
 import "package:build/src/asset/reader.dart";
 import "package:build/src/asset/writer.dart";
 import "package:build/src/analyzer/resolver.dart";
@@ -32,22 +32,26 @@ class _SingleFileAssetReader extends AssetReader {
   AssetId id;
 
   _SingleFileAssetReader(this.id) {
-    if (id.package != "objectbox_model_generator") {
-      throw Exception("asset package needs to be 'objectbox_model_generator', but got '${id.package}'");
+    if (id.package != "objectbox_generator") {
+      throw Exception("asset package needs to be 'objectbox_generator', but got '${id.package}'");
     }
   }
 
   Future<bool> canRead(AssetId id) async => true; //this.id == id;
-  Future<List<int>> readAsBytes(AssetId id) => throw UnimplementedError();
-  Stream<AssetId> findAssets(Glob glob, {String package}) => Stream.fromIterable([id]); // throw UnimplementedError();
+
+  Stream<AssetId> findAssets(Glob glob, {String package}) => Stream.fromIterable([id]);
+
+  @override
+  Future<List<int>> readAsBytes(AssetId id) async => utf8.encode(await readAsString(id));
 
   @override
   Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) async {
-    if (id.package != "objectbox" && id.package != "objectbox_model_generator") return "";
+    if (id.package != "objectbox" && id.package != "objectbox_generator") return "";
+    if (id.path.endsWith(".g.dart")) return "";
 
     String path = id.path;
     if (id.package == "objectbox") path = "../" + path;
-    if (id.package == "objectbox_model_generator" && id.path.startsWith("test/cases") && id.path.endsWith(".dart")) {
+    if (id.package == "objectbox_generator" && id.path.startsWith("test/cases") && id.path.endsWith(".dart")) {
       path += "_testcase";
     }
     if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound) throw AssetNotFoundException(id);
@@ -56,7 +60,7 @@ class _SingleFileAssetReader extends AssetReader {
 }
 
 Future<String> _buildGeneratorOutput(String caseName) async {
-  AssetId assetId = AssetId("objectbox_model_generator", "test/cases/$caseName/$caseName.dart");
+  AssetId assetId = AssetId("objectbox_generator", "test/cases/$caseName/$caseName.dart");
   var writer = _InMemoryAssetWriter();
   var reader = _SingleFileAssetReader(assetId);
   Resolvers resolvers = AnalyzerResolvers();

@@ -1,6 +1,7 @@
 import "dart:ffi";
 import "dart:typed_data" show Uint8List;
 import "package:flat_buffers/flat_buffers.dart" as fb;
+import "package:ffi/ffi.dart" show allocate, free;
 
 import "constants.dart";
 import "structs.dart";
@@ -8,8 +9,10 @@ import "../modelinfo/index.dart";
 
 class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
+
   static const fb.Reader<_OBXFBEntity> reader = _OBXFBEntityReader();
-  factory _OBXFBEntity(Uint8List bytes) {
+
+  factory _OBXFBEntity(final Uint8List bytes) {
     fb.BufferContext rootRef = fb.BufferContext.fromBytes(bytes);
     return reader.read(rootRef, 0);
   }
@@ -33,7 +36,7 @@ class OBXFlatbuffersManager<T> {
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
-  ByteBuffer marshal(propVals) {
+  Pointer<OBX_bytes> marshal(Map<String, dynamic> propVals) {
     var builder = fb.Builder(initialSize: 1024);
 
     // write all strings
@@ -85,13 +88,12 @@ class OBXFlatbuffersManager<T> {
     });
 
     var endOffset = builder.endTable();
-    return ByteBuffer.allocate(builder.finish(endOffset));
+    return OBX_bytes.managedCopyOf(builder.finish(endOffset));
   }
 
-  T unmarshal(ByteBuffer buffer) {
-    if (buffer.size == 0 || buffer.address == 0) return null;
+  T unmarshal(final Uint8List bytes) {
+    final entity = _OBXFBEntity(bytes);
     Map<String, dynamic> propVals = {};
-    var entity = _OBXFBEntity(buffer.data);
 
     _modelEntity.properties.forEach((p) {
       var propReader;
@@ -134,7 +136,12 @@ class OBXFlatbuffersManager<T> {
   }
 
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T> unmarshalArray(Pointer<Uint64> bytesArray) {
-    return ByteBufferArray.fromOBXBytesArray(bytesArray).buffers.map<T>((b) => unmarshal(b)).toList();
+  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray, {bool allowMissing = false}) {
+    final OBX_bytes_array array = bytesArray.ref;
+    var fn = (OBX_bytes b) => unmarshal(b.data);
+    if (allowMissing) {
+      fn = (OBX_bytes b) => b.isEmpty ? null : unmarshal(b.data);
+    }
+    return array.items().map<T>(fn).toList();
   }
 }

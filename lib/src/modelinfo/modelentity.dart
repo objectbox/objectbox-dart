@@ -16,9 +16,7 @@ class ModelEntity {
 
   ModelEntity.fromMap(Map<String, dynamic> data, this.model) {
     id = IdUid(data["id"]);
-    if (data.containsKey("lastPropertyId") && data["lastPropertyId"] != null) {
-      lastPropertyId = IdUid(data["lastPropertyId"]);
-    }
+    lastPropertyId = IdUid(data["lastPropertyId"]);
     name = data["name"];
     properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
     validate();

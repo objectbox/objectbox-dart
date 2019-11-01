@@ -9,4 +9,4 @@ export "src/model.dart";
 export "src/store.dart";
 export "src/box.dart";
 export "src/modelinfo/index.dart";
-export "src/query/index.dart";
+export "src/query/query.dart";
