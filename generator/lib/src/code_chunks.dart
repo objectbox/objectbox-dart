@@ -7,21 +7,17 @@ class CodeChunks {
       Map<int, ModelEntity> _allOBXModelEntities;
 
       void _loadOBXModelEntities() {
-      if (FileSystemEntity.typeSync("objectbox-model.json") == FileSystemEntityType.notFound) {
-          throw Exception("objectbox-model.json not found");
-      }
-
-      _allOBXModelEntities = {};
-      ModelInfo modelInfo = ModelInfo.fromMap(json.decode(File("objectbox-model.json").readAsStringSync()));
-      modelInfo.entities.forEach((e) => _allOBXModelEntities[e.id.uid] = e);
+        _allOBXModelEntities = {};
+        ModelInfo modelInfo = ModelInfo.fromMap(||MODEL-JSON||);
+        modelInfo.entities.forEach((e) => _allOBXModelEntities[e.id.uid] = e);
       }
 
       ModelEntity _getOBXModelEntity(int entityUid) {
-      if (_allOBXModelEntities == null) _loadOBXModelEntities();
-      if (!_allOBXModelEntities.containsKey(entityUid)) {
-          throw Exception("entity uid missing in objectbox-model.json: \$entityUid");
-      }
-      return _allOBXModelEntities[entityUid];
+        if (_allOBXModelEntities == null) _loadOBXModelEntities();
+        if (!_allOBXModelEntities.containsKey(entityUid)) {
+            throw Exception("entity uid missing in objectbox-model.json: \$entityUid");
+        }
+        return _allOBXModelEntities[entityUid];
       }
     """;
 

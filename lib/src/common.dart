@@ -29,11 +29,11 @@ Version versionLib() {
 
 class ObjectBoxException implements Exception {
   final String message;
-  final String raw_msg;
+  final String msg;
 
   ObjectBoxException(msg)
       : message = "ObjectBoxException: " + msg,
-        raw_msg = msg;
+        msg = msg;
 
   String toString() => message;
 }

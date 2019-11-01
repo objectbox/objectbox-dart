@@ -1,4 +1,5 @@
 import "dart:ffi";
+import 'dart:typed_data';
 
 import "package:ffi/ffi.dart" show allocate, free;
 
@@ -10,7 +11,7 @@ import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
 import "modelinfo/index.dart";
-import "query/index.dart";
+import "query/query.dart";
 
 enum _PutMode {
   Put,
@@ -55,12 +56,14 @@ class Box<T> {
     }
 
     // put object into box and free the buffer
-    ByteBuffer buffer = _fbManager.marshal(propVals);
+    final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(propVals);
     try {
+      final OBX_bytes bytes = bytesPtr.ref;
       checkObx(bindings.obx_box_put(
-          _cBox, propVals[_modelEntity.idPropName], buffer.voidPtr, buffer.size, _getOBXPutMode(mode)));
+          _cBox, propVals[_modelEntity.idPropName], bytes.ptr, bytes.length, _getOBXPutMode(mode)));
     } finally {
-      buffer.free(); // TODO change ByteBuffer to a struct
+      // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
+      OBX_bytes.freeManaged(bytesPtr);
     }
     return propVals[_modelEntity.idPropName];
   }
@@ -104,48 +107,61 @@ class Box<T> {
       }
 
       // marshal all objects to be put into the box
-      var putObjects = ByteBufferArray(allPropVals.map<ByteBuffer>(_fbManager.marshal).toList()).toOBXBytesArray();
+      // final bytesArrayPtr = OBX_bytes_array.createManaged(allPropVals.length);
+      final bytesArrayPtr =
+          checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
+      final listToFree = List<Pointer<OBX_bytes>>();
       try {
-        checkObx(bindings.obx_box_put_many(_cBox, putObjects.ptr, allIdsMemory, _getOBXPutMode(mode)));
+        // final OBX_bytes_array bytesArray = bytesArrayPtr.value;
+        for (int i = 0; i < allPropVals.length; i++) {
+          // bytesArray.setAndFree(i, _fbManager.marshal(allPropVals[i]));
+          final bytesPtr = _fbManager.marshal(allPropVals[i]);
+          listToFree.add(bytesPtr);
+          final OBX_bytes bytes = bytesPtr.ref;
+          bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.length);
+        }
+
+        checkObx(bindings.obx_box_put_many(_cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
-        putObjects.free();
+        // OBX_bytes_array.freeManaged(bytesArrayPtr, true);
+        bindings.obx_bytes_array_free(bytesArrayPtr);
+        listToFree.forEach(OBX_bytes.freeManaged);
       }
     } finally {
       free(allIdsMemory);
     }
+
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 
   get(int id) {
-    Pointer<Pointer<Void>> dataPtr = allocate<Pointer<Void>>();
-    Pointer<Int32> sizePtr = allocate<Int32>();
+    final dataPtrPtr = allocate<Pointer<Uint8>>();
+    final sizePtr = allocate<IntPtr>();
 
-    // get element with specified id from database
-    return _store.runInTransaction(TxMode.Read, () {
-      ByteBuffer buffer;
-      try {
-        checkObx(bindings.obx_box_get(_cBox, id, dataPtr, sizePtr));
+    try {
+      // get element with specified id from database
+      return _store.runInTransaction(TxMode.Read, () {
+        checkObx(bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr));
 
-        Pointer<Uint8> data = Pointer<Uint8>.fromAddress(dataPtr.value.address);
-        var size = sizePtr.value;
+        Pointer<Uint8> dataPtr = dataPtrPtr.value;
+        final size = sizePtr.value;
 
-        // transform bytes from memory to Dart byte list
-        buffer = ByteBuffer(data, size);
-      } finally {
-        free(dataPtr);
-        free(sizePtr);
-      }
+        // create a no-copy view
+        final bytes = dataPtr.asTypedList(size);
 
-      return _fbManager.unmarshal(buffer);
-    });
+        return _fbManager.unmarshal(bytes);
+      });
+    } finally {
+      free(dataPtrPtr);
+      free(sizePtr);
+    }
   }
 
-  List<T> _getMany(Pointer<Uint64> Function() cCall) {
+  List<T> _getMany(bool allowMissing, Pointer<OBX_bytes_array> Function() cCall) {
     return _store.runInTransaction(TxMode.Read, () {
-      // OBX_bytes_array*, has two Uint64 members (data and size)
-      Pointer<Uint64> bytesArray = cCall();
+      final bytesArray = cCall();
       try {
-        return _fbManager.unmarshalArray(bytesArray);
+        return _fbManager.unmarshalArray(bytesArray, allowMissing: allowMissing);
       } finally {
         bindings.obx_bytes_array_free(bytesArray);
       }
@@ -156,14 +172,17 @@ class Box<T> {
   List<T> getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
+    const bool allowMissing = true; // returns null if null is encountered in the data found
     return OBX_id_array.executeWith(
         ids,
-        (ptr) => _getMany(
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box", true)));
+        (ptr) => _getMany(allowMissing,
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box")));
   }
 
   List<T> getAll() {
-    return _getMany(() => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box", true));
+    const bool allowMissing = false; // throw if null is encountered in the data found
+    return _getMany(
+        allowMissing, () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"));
   }
 
   QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
@@ -211,14 +230,9 @@ class Box<T> {
   }
 
   bool remove(int id) {
-    try {
-      checkObx(bindings.obx_box_remove(_cBox, id));
-    } on ObjectBoxException catch (ex) {
-      if (ex.raw_msg == "code 404") {
-        return false;
-      }
-      rethrow;
-    }
+    final err = bindings.obx_box_remove(_cBox, id);
+    if (err == OBXError.OBX_NOT_FOUND) return false;
+    checkObx(err); // throws on other errors
     return true;
   }
 

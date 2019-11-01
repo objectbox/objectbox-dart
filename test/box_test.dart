@@ -8,7 +8,7 @@ void main() {
   Box box;
   Store store;
 
-  final List<TestEntity> simple_items =
+  final List<TestEntity> simpleItems =
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.initText(s)).toList();
 
   setUp(() {
@@ -63,6 +63,9 @@ void main() {
     box.putMany(items);
     final List<TestEntity> itemsFetched = box.getAll();
     expect(itemsFetched.length, equals(items.length));
+    expect(itemsFetched[0].text, equals(items[0].text));
+    expect(itemsFetched[1].text, equals(items[1].text));
+    expect(itemsFetched[2].text, equals(items[2].text));
   });
 
   test(".putMany returns the new item IDs", () {
@@ -89,14 +92,45 @@ void main() {
     expect(fetchedItems[2].text, equals("Two"));
   });
 
+  test("limit integers are stored correctly", () {
+    final int64Min = -9223372036854775808;
+    final int64Max = 9223372036854775807;
+    final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity.initInteger(n)).toList();
+    expect("${items[0].number}", equals("$int64Min"));
+    expect("${items[1].number}", equals("$int64Max"));
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0].number, equals(int64Min));
+    expect(fetchedItems[1].number, equals(int64Max));
+  });
+
+  test("null properties are handled correctly", () {
+    final List<TestEntity> items = [TestEntity(), TestEntity.initInteger(10), TestEntity.initText("Hello")];
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0].id, isNot(equals(null)));
+    expect(fetchedItems[0].number, equals(null));
+    expect(fetchedItems[0].text, equals(null));
+    expect(fetchedItems[0].b, equals(null));
+    expect(fetchedItems[0].d, equals(null));
+    expect(fetchedItems[1].id, isNot(equals(null)));
+    expect(fetchedItems[1].number, isNot(equals(null)));
+    expect(fetchedItems[1].text, equals(null));
+    expect(fetchedItems[1].b, equals(null));
+    expect(fetchedItems[1].d, equals(null));
+    expect(fetchedItems[2].id, isNot(equals(null)));
+    expect(fetchedItems[2].number, equals(null));
+    expect(fetchedItems[2].text, isNot(equals(null)));
+    expect(fetchedItems[2].b, equals(null));
+    expect(fetchedItems[2].d, equals(null));
+  });
+
   test(".count() works", () {
     expect(box.count(), equals(0));
-    List<int> ids = box.putMany(simple_items);
+    List<int> ids = box.putMany(simpleItems);
     expect(box.count(), equals(6));
     expect(box.count(limit: 2), equals(2));
     expect(box.count(limit: 10), equals(6));
     //add more
-    ids.addAll(box.putMany(simple_items));
+    ids.addAll(box.putMany(simpleItems));
     expect(box.count(), equals(12));
   });
 
@@ -104,7 +138,7 @@ void main() {
     bool isEmpty = box.isEmpty();
     expect(isEmpty, equals(true));
     //check complementary
-    box.putMany(simple_items);
+    box.putMany(simpleItems);
     isEmpty = box.isEmpty();
     expect(isEmpty, equals(false));
   });
@@ -120,7 +154,7 @@ void main() {
   });
 
   test(".containsMany() works", () {
-    List<int> ids = box.putMany(simple_items);
+    List<int> ids = box.putMany(simpleItems);
     bool contains = box.containsMany(ids);
     expect(contains, equals(true));
     //check with one missing id
@@ -134,7 +168,7 @@ void main() {
   });
 
   test(".remove(id) works", () {
-    final List<int> ids = box.putMany(simple_items);
+    final List<int> ids = box.putMany(simpleItems);
     //check if single id remove works
     expect(box.remove(ids[1]), equals(true));
     expect(box.count(), equals(5));
@@ -145,7 +179,7 @@ void main() {
   });
 
   test(".removeMany(ids) works", () {
-    final List<int> ids = box.putMany(simple_items);
+    final List<int> ids = box.putMany(simpleItems);
     expect(box.count(), equals(6));
     box.removeMany(ids.sublist(4));
     expect(box.count(), equals(4));
@@ -159,7 +193,7 @@ void main() {
   });
 
   test(".removeAll() works", () {
-    List<int> ids = box.putMany(simple_items);
+    List<int> ids = box.putMany(simpleItems);
     int removed = box.removeAll();
     expect(removed, equals(6));
     expect(box.count(), equals(0));
@@ -172,10 +206,11 @@ void main() {
 
   test("simple write in txn works", () {
     int count;
-    write_func() {
-      box.putMany(simple_items);
+    fn() {
+      box.putMany(simpleItems);
     }
-    store.runInTransaction(TxMode.Write, write_func);
+
+    store.runInTransaction(TxMode.Write, fn);
     count = box.count();
     expect(count, equals(6));
   });
@@ -183,7 +218,7 @@ void main() {
   test("failing transactions", () {
     try {
       store.runInTransaction(TxMode.Write, () {
-        box.putMany(simple_items);
+        box.putMany(simpleItems);
         throw Exception("Test exception");
       });
     } on Exception {
@@ -195,9 +230,9 @@ void main() {
 
   test("recursive write in write transaction", () {
     store.runInTransaction(TxMode.Write, () {
-      box.putMany(simple_items);
+      box.putMany(simpleItems);
       store.runInTransaction(TxMode.Write, () {
-        box.putMany(simple_items);
+        box.putMany(simpleItems);
       });
     });
     expect(box.count(), equals(12));
@@ -205,7 +240,7 @@ void main() {
 
   test("recursive read in write transaction", () {
     int count = store.runInTransaction(TxMode.Write, () {
-      box.putMany(simple_items);
+      box.putMany(simpleItems);
       return store.runInTransaction(TxMode.Read, () {
         return box.count();
       });
@@ -214,16 +249,15 @@ void main() {
   });
 
   test("recursive write in read -> fails during creation", () {
-    List<int> ids;
     try {
-      ids = store.runInTransaction(TxMode.Read, () {
+      store.runInTransaction(TxMode.Read, () {
         box.count();
         return store.runInTransaction(TxMode.Write, () {
-          return box.putMany(simple_items);
+          return box.putMany(simpleItems);
         });
       });
     } on ObjectBoxException catch (ex) {
-      expect(ex.toString(), equals("ObjectBoxException: failed to create transaction: "));
+      expect(ex.toString(), startsWith("ObjectBoxException: failed to create transaction"));
     }
   });
 
@@ -231,7 +265,7 @@ void main() {
     store.runInTransaction(TxMode.Write, () {
       //should throw code10001 -> valid until fix
       List<int> ids = store.runInTransaction(TxMode.Read, () {
-        return box.putMany(simple_items);
+        return box.putMany(simpleItems);
       });
       expect(ids.length, equals(6));
     });
