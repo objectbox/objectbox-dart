@@ -616,7 +616,7 @@ class Query<T> {
     return property<IntegerPropertyQuery>(qp);
   }
 
-  DoublePropertyQuery floatProperty(QueryProperty qp) {
+  DoublePropertyQuery doubleProperty(QueryProperty qp) {
     return property<DoublePropertyQuery>(qp);
   }
 
