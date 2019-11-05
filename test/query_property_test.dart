@@ -70,7 +70,7 @@ void main() {
     box.putMany(floatList);
 
     // int
-    final query = box.query((tLong < 2) as Condition).build();
+    final query = box.query((tLong < 100) as Condition).build();
 
     for (int i=0; i<tIntegers.length; i++) {
       final queryInt = query.property(tLong);
@@ -271,13 +271,13 @@ void main() {
     box.putMany(integerList);
 
 //    final query = box.query(((tLong < 2 | tString.endsWith("suffix")) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
-    final query = box.query(tLong.lessThan(2).or(tString.endsWith("suffix")).or(tDouble.between(0.0, 0.2))).build();
+    final query = box.query(tLong.lessThan(100).or(tString.endsWith("suffix")).or(tDouble.between(-100000.0, 100000.0))).build();
 
     tIntegers.forEach((i) {
       final qp = query.property(i) as IntegerPropertyQuery;
 
-      expect(qp.find(), 0); // TODO change
-      expect(qp.find(defaultValue:-1), 0); // TODO change
+      expect(qp.find(defaultValue:-1), [5, 5, 6, 6, 7, 8, 9, 10]); // TODO change
+      expect(qp.find(), [5, 5, 6, 6, 7, 8, 9, 10]); // TODO change
 
       qp.close();
     });
