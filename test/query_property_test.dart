@@ -114,7 +114,8 @@ void main() {
 
   });
 
-  test(".sum", () {
+  final add = (a, b) => a + b;
+  test(".sum integers", () {
     box.putMany(integerList);
 
     final query = box.query((tLong < 100) as Condition).build();
@@ -129,8 +130,6 @@ void main() {
 
     final all = box.getAll();
 
-    final add = (a, b) => a + b;
-
     final sumShort = all.map((s) => s.tShort).toList().fold(0, add);
     final sumInt = all.map((s) => s.tInt).toList().fold(0, add);
     final sumLong = all.map((s) => s.tLong).toList().fold(0, add);
@@ -142,7 +141,8 @@ void main() {
     query.close();
   });
 
-  test(".min", () {
+  final min = (a,b) => a < b ? a : b;
+  test(".min integers", () {
     box.putMany(integerList);
 
     final query = box.query((tLong < 100) as Condition).build();
@@ -157,8 +157,6 @@ void main() {
 
     final all = box.getAll();
 
-    final min = (a,b) => a < b ? a : b;
-
     final minShort = all.map((s) => s.tShort).toList().reduce(min);
     final minInt = all.map((s) => s.tInt).toList().reduce(min);
     final minLong = all.map((s) => s.tLong).toList().reduce(min);
@@ -170,7 +168,8 @@ void main() {
     query.close();
   });
 
-  test(".max", () {
+  final max = (a,b) => a > b ? a : b;
+  test(".max integers", () {
     box.putMany(integerList);
 
     final query = box.query((tLong < 100) as Condition).build();
@@ -185,8 +184,6 @@ void main() {
 
     final all = box.getAll();
 
-    final max = (a,b) => a > b ? a : b;
-
     final maxShort = all.map((s) => s.tShort).toList().reduce(max);
     final maxInt = all.map((s) => s.tInt).toList().reduce(max);
     final maxLong = all.map((s) => s.tLong).toList().reduce(max);
@@ -194,6 +191,78 @@ void main() {
     expect(propMax(tShort), maxShort);
     expect(propMax(tInt), maxInt);
     expect(propMax(tLong), maxLong);
+
+    query.close();
+  });
+
+  test(".sum floats", () {
+    box.putMany(floatList);
+
+    final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+    final propSum = (qp) {
+      final p = query.doubleProperty(qp);
+      try {
+        return p.sum();
+      }finally {
+        p.close();
+      }
+    };
+
+    final all = box.getAll();
+
+    final sumFloat = all.map((s) => s.tFloat).toList().fold(0, add);
+    final sumDouble = all.map((s) => s.tDouble).toList().fold(0, add);
+
+    expect(propSum(tFloat), sumFloat);
+    expect(propSum(tDouble), sumDouble);
+
+    query.close();
+  });
+
+  test(".min floats", () {
+    box.putMany(floatList);
+
+    final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+    final propMin = (qp) {
+      final p = query.doubleProperty(qp);
+      try {
+        return p.min();
+      }finally {
+        p.close();
+      }
+    };
+
+    final all = box.getAll();
+
+    final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
+    final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
+
+    expect(propMin(tFloat), minFloat);
+    expect(propMin(tDouble), minDouble);
+
+    query.close();
+  });
+
+  test(".max floats", () {
+    box.putMany(floatList);
+
+    final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+    final propMax = (qp) {
+      final p = query.doubleProperty(qp);
+      try {
+        return p.max();
+      }finally {
+        p.close();
+      }
+    };
+
+    final all = box.getAll();
+
+    final maxFloat = all.map((s) => s.tFloat).toList().reduce(max);
+    final maxDouble = all.map((s) => s.tDouble).toList().reduce(max);
+
+    expect(propMax(tFloat), maxFloat);
+    expect(propMax(tDouble), maxDouble);
 
     query.close();
   });
@@ -256,7 +325,7 @@ void main() {
 
     // floats
     final qpFloat = (p, avg) {
-      final qp = query.floatProperty(p);
+      final qp = query.doubleProperty(p);
       expect(qp.average(), avg);
       qp.close();
     };
