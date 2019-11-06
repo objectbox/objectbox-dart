@@ -117,11 +117,11 @@ respectively `>`, `<`, `&`, `|`.
 ```dart
 // final box ...
 
-box.query(value.greaterThan(10).or(date.IsNull())).build();
+box.query(value.greaterThan(10).or(date.isNull())).build();
 
 // equivalent to
 
-final overloaded = (value > 10) | date.IsNull();
+final overloaded = (value > 10) | date.isNull();
 box.query(overloaded as Condition).build(); // the cast is necessary due to the type analyzer
 ```
 
@@ -137,7 +137,7 @@ final q = box.query(Entity_.number > 0)
 // ...
 
 final qt = box.query(Entity_.text.notNull())
-  .order(Entity_.text, flags: OBXOrderFlag.DESCENDING | OBXOrderFlag.CASE_SENSITIVE)
+  .order(Entity_.text, flags: Order.descending | Order.caseSensitive)
   .build();
 ```
 
