@@ -34,7 +34,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
        * macOS: if dart later complains that it cannot find the `libobjectbox.dylib` you probably have to unsign the 
          `dart` binary (source: [dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841)):
             ```shell script
-            sudo xcode --remove-signature $(which dart)
+            sudo codesign --remove-signature $(which dart)
             ```
        * Windows: use "Git Bash" or similar to execute the following command 
             ```shell script
@@ -111,8 +111,8 @@ queryNullText.close(); // We have to manually close queries and query builders.
 ```
 
 More complex queries can be constructed using `and/or` operators.
-Also there is basic operator overloading support for `equal`, `greater`, `less`, `and` and `or`,
-respectively `==`, `>`, `<`, `&`, `|`.
+Also there is basic operator overloading support for `greater`, `less`, `and` and `or`,
+respectively `>`, `<`, `&`, `|`.
 
 ```dart
 // final box ...
