@@ -51,7 +51,8 @@ class Box<T> {
   int put(T object, {_PutMode mode = _PutMode.Put}) {
     var propVals = _entityReader(object);
     if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
-      final id = bindings.obx_box_id_for_put(_cBox, 0); // TODO check error if 0 was returned instead of an ID
+      final id = bindings.obx_box_id_for_put(_cBox, 0);
+      if (id == 0) throw ObjectBoxException(lastObxErrorString());
       propVals[_modelEntity.idPropName] = id;
     }
 
