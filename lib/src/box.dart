@@ -108,14 +108,11 @@ class Box<T> {
       }
 
       // marshal all objects to be put into the box
-      // final bytesArrayPtr = OBX_bytes_array.createManaged(allPropVals.length);
       final bytesArrayPtr =
           checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
       final listToFree = List<Pointer<OBX_bytes>>();
       try {
-        // final OBX_bytes_array bytesArray = bytesArrayPtr.value;
         for (int i = 0; i < allPropVals.length; i++) {
-          // bytesArray.setAndFree(i, _fbManager.marshal(allPropVals[i]));
           final bytesPtr = _fbManager.marshal(allPropVals[i]);
           listToFree.add(bytesPtr);
           final OBX_bytes bytes = bytesPtr.ref;
@@ -124,7 +121,6 @@ class Box<T> {
 
         checkObx(bindings.obx_box_put_many(_cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
-        // OBX_bytes_array.freeManaged(bytesArrayPtr, true);
         bindings.obx_bytes_array_free(bytesArrayPtr);
         listToFree.forEach(OBX_bytes.freeManaged);
       }

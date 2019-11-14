@@ -116,47 +116,4 @@ class OBX_bytes_array extends Struct {
     }
     return result;
   }
-
-  /// TODO: try this with new Dart 2.6 FFI... with the previous versions it was causing memory corruption issues.
-  /// It's supposed to be used by PutMany()
-//  /// Create a dart-managed OBX_bytes_array.
-//  static Pointer<OBX_bytes_array> createManaged(int count) {
-//    final ptr = allocate<OBX_bytes_array>();
-//    final OBX_bytes_array array = ptr.ref;
-//    array.length = count;
-//    array._items = allocate<OBX_bytes>(count: count);
-//    return ptr;
-//  }
-//
-//  /// Replace the data at the given index with the passed pointer.
-//  void setAndFree(int i, Pointer<OBX_bytes> src) {
-//    assert(i >= 0 && i < length);
-//
-//    final OBX_bytes srcBytes = src.ref;
-//    final OBX_bytes tarBytes = _items.elementAt(i).ref;
-//
-//    assert(!srcBytes.isEmpty);
-//    assert(tarBytes.isEmpty);
-//
-//    tarBytes._dataPtr = srcBytes._dataPtr;
-//    tarBytes.length = srcBytes.length;
-//
-//    srcBytes._dataPtr.value = nullptr.address;
-//    srcBytes.length = 0;
-//    free(src);
-//  }
-//
-//  /// Free a dart-created OBX_bytes pointer.
-//  static void freeManaged(Pointer<OBX_bytes_array> ptr, bool freeIncludedBytes) {
-//    final OBX_bytes_array array = ptr.ref;
-//    if (freeIncludedBytes) {
-//      for (int i = 0; i < array.length; i++) {
-//        // Calling OBX_bytes.freeManaged() would cause double free
-//        final OBX_bytes bytes = array._items.elementAt(i).ref;
-//        free(bytes._dataPtr);
-//      }
-//    }
-//    free(array._items);
-//    free(ptr);
-//  }
 }
