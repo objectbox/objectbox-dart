@@ -1,5 +1,5 @@
 import "dart:ffi";
-import "package:ffi/ffi.dart" show allocate, free, Utf8;
+import "package:ffi/ffi.dart" show allocate, free;
 
 import "bindings/bindings.dart";
 

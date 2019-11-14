@@ -1,6 +1,5 @@
 import 'dart:ffi';
-import "dart:typed_data" show Uint8List, Uint64List;
-
+import "dart:typed_data" show Uint8List;
 import "package:ffi/ffi.dart" show allocate, free;
 
 import '../common.dart';
@@ -56,9 +55,8 @@ class OBX_bytes extends Struct {
   int length;
 
   /// Get access to the data (no-copy)
-  Uint8List get data => isEmpty
-      ? throw ObjectBoxException("can't access data of empty OBX_bytes")
-      : _dataPtr.asTypedList(length);
+  Uint8List get data =>
+      isEmpty ? throw ObjectBoxException("can't access data of empty OBX_bytes") : _dataPtr.asTypedList(length);
 
   bool get isEmpty => length == 0 || _dataPtr.address == 0;
 

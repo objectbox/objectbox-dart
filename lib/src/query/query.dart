@@ -34,7 +34,6 @@ class Order {
   static final nullsAsZero = 16;
 }
 
-
 /// The QueryProperty types are responsible for the operator overloading.
 /// A QueryBuilder will be constructed, based on the any / all operations applied.
 /// When build() is called on the QueryBuilder a Query object will be created.
@@ -298,7 +297,6 @@ class StringCondition extends PropertyCondition<String> {
     final utf8Str = Utf8.toUtf8(_value);
     var uint8Str = utf8Str.cast<Uint8>();
     try {
-
       return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0);
     } finally {
       // https://github.com/dart-lang/ffi/blob/master/lib/src/utf8.dart#L56
@@ -329,7 +327,6 @@ class StringCondition extends PropertyCondition<String> {
     final utf8Str = Utf8.toUtf8(_value);
     var uint8Str = utf8Str.cast<Uint8>();
     try {
-
       return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
     } finally {
       free(utf8Str);
@@ -374,7 +371,7 @@ class IntegerCondition extends PropertyCondition<int> {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
 
-  // ideally it should be implemented like this, but this doesn't work, TODO try this out on dart-2.6
+  // ideally it should be implemented like this, but this doesn't work, TODO report to google, doesn't work with 2.6 yet
   /*
   int _opList<P extends NativeType>(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<P> func) {
 

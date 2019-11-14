@@ -1,7 +1,6 @@
 import "dart:ffi";
 import "dart:typed_data" show Uint8List;
 import "package:flat_buffers/flat_buffers.dart" as fb;
-import "package:ffi/ffi.dart" show allocate, free;
 
 import "constants.dart";
 import "structs.dart";
