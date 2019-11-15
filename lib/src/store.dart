@@ -53,9 +53,9 @@ class Store {
     return _entityDefinitions[T];
   }
 
-  /// Executes a given function inside a transaction
+  /// Executes a given function inside a transaction.
   ///
-  /// Returns type of [fn] if [return] is called in [fn]
+  /// Returns type of [fn] if [return] is called in [fn].
   R runInTransaction<R>(TxMode mode, R Function() fn) {
     bool write = mode == TxMode.Write;
     Pointer<Void> txn = write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
