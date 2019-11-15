@@ -13,6 +13,8 @@ enum TxMode {
   Write,
 }
 
+/// Represents an ObjectBox database and works together with [Box] to allow getting and putting Objects of
+/// specific type.
 class Store {
   Pointer<Void> _cStore;
   Map<Type, EntityDefinition> _entityDefinitions = {};
@@ -45,6 +47,10 @@ class Store {
     checkObxPtr(_cStore, "failed to create store");
   }
 
+  /// Closes this store.
+  ///
+  /// This method is useful for unit tests; most real applications should open a Store once and keep it open until
+  /// the app dies.
   close() {
     checkObx(bindings.obx_store_close(_cStore));
   }
@@ -75,5 +81,6 @@ class Store {
     }
   }
 
+  /// The low-level pointer to this store.
   get ptr => _cStore;
 }

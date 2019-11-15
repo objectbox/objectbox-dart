@@ -17,6 +17,7 @@ enum _PutMode {
   Update,
 }
 
+/// A box to store objects of a particular class.
 class Box<T> {
   Store _store;
   Pointer<Void> _cBox;
