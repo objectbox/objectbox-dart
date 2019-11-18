@@ -1,4 +1,5 @@
 import "dart:ffi";
+import "package:ffi/ffi.dart" show allocate, free;
 
 import "bindings/bindings.dart";
 
@@ -14,15 +15,15 @@ class Version {
 
 /// Returns the underlying ObjectBox-C library version
 Version versionLib() {
-  var majorPtr = Pointer<Int32>.allocate(), minorPtr = Pointer<Int32>.allocate(), patchPtr = Pointer<Int32>.allocate();
+  var majorPtr = allocate<Int32>(), minorPtr = allocate<Int32>(), patchPtr = allocate<Int32>();
 
   try {
     bindings.obx_version(majorPtr, minorPtr, patchPtr);
-    return Version(majorPtr.load<int>(), minorPtr.load<int>(), patchPtr.load<int>());
+    return Version(majorPtr.value, minorPtr.value, patchPtr.value);
   } finally {
-    majorPtr.free();
-    minorPtr.free();
-    patchPtr.free();
+    free(majorPtr);
+    free(minorPtr);
+    free(patchPtr);
   }
 }
 

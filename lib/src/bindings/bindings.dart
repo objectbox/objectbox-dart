@@ -13,15 +13,16 @@ class _ObjectBoxBindings {
   // common functions
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
   Pointer<Uint8> Function() obx_version_string;
-  void Function(Pointer<Uint64> structPtr) obx_string_array_free,
-      obx_int64_array_free,
-      obx_int32_array_free,
-      obx_int16_array_free,
-      obx_int8_array_free,
-      obx_double_array_free,
-      obx_float_array_free;
-  obx_free_t<OBX_bytes_array> obx_bytes_array_free;
-  obx_free_t<OBX_id_array> obx_id_array_free;
+
+  obx_free_dart_t<OBX_bytes_array> obx_bytes_array_free;
+  obx_free_dart_t<OBX_id_array> obx_id_array_free;
+  //  obx_free_dart_t<OBX__array> obx_string_array_free;
+  //  obx_free_dart_t<OBX__array> obx_int64_array_free;
+  //  obx_free_dart_t<OBX__array> obx_int32_array_free;
+  //  obx_free_dart_t<OBX__array> obx_int16_array_free;
+  //  obx_free_dart_t<OBX__array> obx_int8_array_free;
+  //  obx_free_dart_t<OBX__array> obx_double_array_free;
+  //  obx_free_dart_t<OBX__array> obx_float_array_free;
 
   // error info
   int Function() obx_last_error_code;
@@ -154,15 +155,15 @@ class _ObjectBoxBindings {
     // common functions
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
     obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
-    obx_bytes_array_free = _fn<obx_free_t<OBX_bytes_array>>("obx_bytes_array_free").asFunction();
-    obx_id_array_free = _fn<obx_free_t<OBX_id_array>>("obx_id_array_free").asFunction();
-    obx_string_array_free = _fn<obx_free_struct_native_t>("obx_string_array_free").asFunction();
-    obx_int64_array_free = _fn<obx_free_struct_native_t>("obx_int64_array_free").asFunction();
-    obx_int32_array_free = _fn<obx_free_struct_native_t>("obx_int32_array_free").asFunction();
-    obx_int16_array_free = _fn<obx_free_struct_native_t>("obx_int16_array_free").asFunction();
-    obx_int8_array_free = _fn<obx_free_struct_native_t>("obx_int8_array_free").asFunction();
-    obx_double_array_free = _fn<obx_free_struct_native_t>("obx_double_array_free").asFunction();
-    obx_float_array_free = _fn<obx_free_struct_native_t>("obx_float_array_free").asFunction();
+    obx_bytes_array_free = _fn<obx_free_native_t<Pointer<OBX_bytes_array>>>("obx_bytes_array_free").asFunction();
+    obx_id_array_free = _fn<obx_free_native_t<Pointer<OBX_id_array>>>("obx_id_array_free").asFunction();
+//    obx_string_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_string_array_free").asFunction();
+//    obx_int64_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int64_array_free").asFunction();
+//    obx_int32_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int32_array_free").asFunction();
+//    obx_int16_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int16_array_free").asFunction();
+//    obx_int8_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_int8_array_free").asFunction();
+//    obx_double_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_double_array_free").asFunction();
+//    obx_float_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_float_array_free").asFunction();
 
     // error info
     obx_last_error_code = _fn<obx_last_error_code_native_t>("obx_last_error_code").asFunction();

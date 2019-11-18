@@ -136,7 +136,7 @@ class OBXFlatbuffersManager<T> {
 
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
   List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray, {bool allowMissing = false}) {
-    final OBX_bytes_array array = bytesArray.load();
+    final OBX_bytes_array array = bytesArray.ref;
     var fn = (OBX_bytes b) => unmarshal(b.data);
     if (allowMissing) {
       fn = (OBX_bytes b) => b.isEmpty ? null : unmarshal(b.data);

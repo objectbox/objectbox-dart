@@ -47,7 +47,7 @@ class Model {
     try {
       _check(bindings.obx_model_entity(_cModel, name.cast<Uint8>(), entity.id.id, entity.id.uid));
     } finally {
-      name.free();
+      free(name);
     }
 
     // add all properties
@@ -62,7 +62,7 @@ class Model {
     try {
       _check(bindings.obx_model_property(_cModel, name.cast<Uint8>(), prop.type, prop.id.id, prop.id.uid));
     } finally {
-      name.free();
+      free(name);
     }
 
     if (prop.flags != 0) {
