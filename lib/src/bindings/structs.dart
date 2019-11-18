@@ -18,7 +18,7 @@ class OBX_id_array extends Struct {
   int length;
 
   /// Get a copy of the list
-  List<int> items() => _itemsPtr.asTypedList(length);
+  List<int> items() => _itemsPtr.asTypedList(length).toList();
 
   /// Execute the given function, managing the resources consistently
   static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
