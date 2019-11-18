@@ -28,11 +28,11 @@ String lastObxErrorString([int err = 0]) {
   return code == 0 ? text : "$code $text";
 }
 
-String cString(Pointer<Uint8> charPtr) {
+String cString(Pointer<Utf8> charPtr) {
   // Utf8.fromUtf8 segfaults when called on nullptr
   if (charPtr.address == 0) {
     return "";
   }
 
-  return Utf8.fromUtf8(charPtr.cast<Utf8>());
+  return Utf8.fromUtf8(charPtr);
 }

@@ -31,7 +31,7 @@ class Store {
       if (directory != null && directory.isNotEmpty) {
         var cStr = Utf8.toUtf8(directory);
         try {
-          checkObx(bindings.obx_opt_directory(opt, cStr.cast<Uint8>()));
+          checkObx(bindings.obx_opt_directory(opt, cStr));
         } finally {
           free(cStr);
         }

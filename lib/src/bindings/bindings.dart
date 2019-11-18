@@ -1,6 +1,6 @@
 import "dart:ffi";
 import "dart:io" show Platform;
-
+import 'package:ffi/ffi.dart';
 import "signatures.dart";
 import "structs.dart";
 
@@ -12,10 +12,11 @@ class _ObjectBoxBindings {
 
   // common functions
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
-  Pointer<Uint8> Function() obx_version_string;
+  Pointer<Utf8> Function() obx_version_string;
 
   obx_free_dart_t<OBX_bytes_array> obx_bytes_array_free;
   obx_free_dart_t<OBX_id_array> obx_id_array_free;
+
   //  obx_free_dart_t<OBX__array> obx_string_array_free;
   //  obx_free_dart_t<OBX__array> obx_int64_array_free;
   //  obx_free_dart_t<OBX__array> obx_int32_array_free;
@@ -26,7 +27,7 @@ class _ObjectBoxBindings {
 
   // error info
   int Function() obx_last_error_code;
-  Pointer<Uint8> Function() obx_last_error_message;
+  Pointer<Utf8> Function() obx_last_error_message;
   int Function() obx_last_error_secondary;
   void Function() obx_last_error_clear;
 
@@ -34,17 +35,16 @@ class _ObjectBoxBindings {
   Pointer<Void> Function() obx_model;
   int Function(Pointer<Void> model) obx_model_free;
   int Function(Pointer<Void> model) obx_model_error_code;
-  Pointer<Uint8> Function(Pointer<Void> model) obx_model_error_message;
-  int Function(Pointer<Void> model, Pointer<Uint8> name, int entity_id, int entity_uid) obx_model_entity;
-  int Function(Pointer<Void> model, Pointer<Uint8> name, int type, int property_id, int property_uid)
-      obx_model_property;
+  Pointer<Utf8> Function(Pointer<Void> model) obx_model_error_message;
+  int Function(Pointer<Void> model, Pointer<Utf8> name, int entity_id, int entity_uid) obx_model_entity;
+  int Function(Pointer<Void> model, Pointer<Utf8> name, int type, int property_id, int property_uid) obx_model_property;
   int Function(Pointer<Void> model, int flags) obx_model_property_flags;
   int Function(Pointer<Void> model, int property_id, int property_uid) obx_model_entity_last_property_id;
   int Function(Pointer<Void> model, int entity_id, int entity_uid) obx_model_last_entity_id;
 
   // object store management
   Pointer<Void> Function() obx_opt;
-  int Function(Pointer<Void> opt, Pointer<Uint8> dir) obx_opt_directory;
+  int Function(Pointer<Void> opt, Pointer<Utf8> dir) obx_opt_directory;
   void Function(Pointer<Void> opt, int size_in_kb) obx_opt_max_db_size_in_kb;
   void Function(Pointer<Void> opt, int file_mode) obx_opt_file_mode;
   void Function(Pointer<Void> opt, int max_readers) obx_opt_max_readers;
