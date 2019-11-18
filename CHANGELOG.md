@@ -2,7 +2,7 @@
 ------------------
 * Dart 2.6 support - breaking change due to Dart 2.6 FFI changes.
   Please keep using 0.4 if you're on Dart 2.5 or Flutter. Currently no Flutter version comes with Dart 2.6 final.
-  (thanks [Jasm Sison](https://github.com/Buggaboo) for [#54](https://github.com/objectbox/objectbox-dart/pull/57))
+  (thanks [Jasm Sison](https://github.com/Buggaboo) for [#57](https://github.com/objectbox/objectbox-dart/pull/57))
 * Docs fixes & improvements
 
 0.4.0 (2019-10-31)
