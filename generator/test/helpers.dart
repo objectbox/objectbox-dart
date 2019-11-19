@@ -69,9 +69,14 @@ Future<String> _buildGeneratorOutput(String caseName) async {
   return writer.output;
 }
 
-void testGeneratorOutput(String caseName) {
+void testGeneratorOutput(String caseName, bool updateExpected) {
   test(caseName, () async {
     String built = await _buildGeneratorOutput(caseName);
+
+    if (updateExpected) {
+      await File("test/cases/$caseName/$caseName.g.dart_expected").writeAsString(built);
+    }
+
     String expected = await File("test/cases/$caseName/$caseName.g.dart_expected").readAsString();
     expect(built, equals(expected));
 
