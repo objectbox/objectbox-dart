@@ -68,12 +68,16 @@ Future<Map<AssetId, String>> _buildGeneratorOutput(String caseName) async {
 
 void checkExpectedContents(String path, String contents, bool updateExpected) async {
   final expectedFile = File(path);
+  final expectedContents = await expectedFile.readAsString();
 
   if (updateExpected) {
+    if (expectedContents != contents) {
+      print("Updating $path");
+    }
     await expectedFile.writeAsString(contents);
+  } else {
+    expect(contents, equals(expectedContents));
   }
-
-  expect(contents, equals(await expectedFile.readAsString()));
 }
 
 void testGeneratorOutput(String caseName, bool updateExpected) {
