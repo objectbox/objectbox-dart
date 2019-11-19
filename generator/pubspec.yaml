@@ -19,3 +19,8 @@ dev_dependencies:
   test: ^1.0.0
   glob: ^1.1.0
   build_resolvers: ^1.0.0
+
+# NOTE: remove before publishing
+dependency_overrides:
+  objectbox:
+    path: ..
