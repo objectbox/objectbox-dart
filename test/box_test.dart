@@ -9,7 +9,7 @@ void main() {
   Store store;
 
   final List<TestEntity> simpleItems =
-      ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity.initText(s)).toList();
+      ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity(tString: s)).toList();
 
   setUp(() {
     env = TestEnv("box");
@@ -18,68 +18,68 @@ void main() {
   });
 
   test(".put() returns a valid id", () {
-    int putId = box.put(TestEntity.initText("Hello"));
+    int putId = box.put(TestEntity(tString: "Hello"));
     expect(putId, greaterThan(0));
   });
 
   test(".get() returns the correct item", () {
-    final int putId = box.put(TestEntity.initText("Hello"));
+    final int putId = box.put(TestEntity(tString: "Hello"));
     final TestEntity item = box.get(putId);
     expect(item.id, equals(putId));
-    expect(item.text, equals("Hello"));
+    expect(item.tString, equals("Hello"));
   });
 
   test(".put() and box.get() keep Unicode characters", () {
     final String text = "😄你好";
-    final TestEntity inst = box.get(box.put(TestEntity.initText(text)));
-    expect(inst.text, equals(text));
+    final TestEntity inst = box.get(box.put(TestEntity(tString: text)));
+    expect(inst.tString, equals(text));
   });
 
   test(".put() can update an item", () {
-    final int putId1 = box.put(TestEntity.initText("One"));
-    final int putId2 = box.put(TestEntity.initId(putId1, "Two"));
+    final int putId1 = box.put(TestEntity(tString: "One"));
+    final int putId2 = box.put(TestEntity(tString: "Two")..id = putId1);
     expect(putId2, equals(putId1));
     final TestEntity item = box.get(putId2);
-    expect(item.text, equals("Two"));
+    expect(item.tString, equals("Two"));
   });
 
   test(".getAll retrieves all items", () {
-    final int id1 = box.put(TestEntity.initText("One"));
-    final int id2 = box.put(TestEntity.initText("Two"));
-    final int id3 = box.put(TestEntity.initText("Three"));
+    final int id1 = box.put(TestEntity(tString: "One"));
+    final int id2 = box.put(TestEntity(tString: "Two"));
+    final int id3 = box.put(TestEntity(tString: "Three"));
     final List<TestEntity> items = box.getAll();
     expect(items.length, equals(3));
-    expect(items.where((i) => i.id == id1).single.text, equals("One"));
-    expect(items.where((i) => i.id == id2).single.text, equals("Two"));
-    expect(items.where((i) => i.id == id3).single.text, equals("Three"));
+    expect(items.where((i) => i.id == id1).single.tString, equals("One"));
+    expect(items.where((i) => i.id == id2).single.tString, equals("Two"));
+    expect(items.where((i) => i.id == id3).single.tString, equals("Three"));
   });
 
   test(".putMany inserts multiple items", () {
     final List<TestEntity> items = [
-      TestEntity.initText("One"),
-      TestEntity.initText("Two"),
-      TestEntity.initText("Three")
+      TestEntity(tString: "One"),
+      TestEntity(tString: "Two"),
+      TestEntity(tString: "Three")
     ];
     box.putMany(items);
     final List<TestEntity> itemsFetched = box.getAll();
     expect(itemsFetched.length, equals(items.length));
-    expect(itemsFetched[0].text, equals(items[0].text));
-    expect(itemsFetched[1].text, equals(items[1].text));
-    expect(itemsFetched[2].text, equals(items[2].text));
+    expect(itemsFetched[0].tString, equals(items[0].tString));
+    expect(itemsFetched[1].tString, equals(items[1].tString));
+    expect(itemsFetched[2].tString, equals(items[2].tString));
   });
 
   test(".putMany returns the new item IDs", () {
     final List<TestEntity> items =
-        ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity.initText(s)).toList();
+        ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity(tString: s)).toList();
     final List<int> ids = box.putMany(items);
     expect(ids.length, equals(items.length));
     for (int i = 0; i < items.length; ++i) {
-      expect(box.get(ids[i]).text, equals(items[i].text));
+      expect(box.get(ids[i]).tString, equals(items[i].tString));
     }
   });
 
   test(".getMany correctly handles non-existant items", () {
-    final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity.initText(s)).toList();
+    final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity(tString: s)).toList();
     final List<int> ids = box.putMany(items);
     int otherId = 1;
     while (ids.indexWhere((id) => id == otherId) != -1) {
@@ -87,40 +87,40 @@ void main() {
     }
     final List<TestEntity> fetchedItems = box.getMany([ids[0], otherId, ids[1]]);
     expect(fetchedItems.length, equals(3));
-    expect(fetchedItems[0].text, equals("One"));
+    expect(fetchedItems[0].tString, equals("One"));
     expect(fetchedItems[1], equals(null));
-    expect(fetchedItems[2].text, equals("Two"));
+    expect(fetchedItems[2].tString, equals("Two"));
   });
 
   test("limit integers are stored correctly", () {
     final int64Min = -9223372036854775808;
     final int64Max = 9223372036854775807;
-    final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity.initInteger(n)).toList();
-    expect("${items[0].number}", equals("$int64Min"));
-    expect("${items[1].number}", equals("$int64Max"));
+    final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList();
+    expect("${items[0].tLong}", equals("$int64Min"));
+    expect("${items[1].tLong}", equals("$int64Max"));
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0].number, equals(int64Min));
-    expect(fetchedItems[1].number, equals(int64Max));
+    expect(fetchedItems[0].tLong, equals(int64Min));
+    expect(fetchedItems[1].tLong, equals(int64Max));
   });
 
   test("null properties are handled correctly", () {
-    final List<TestEntity> items = [TestEntity(), TestEntity.initInteger(10), TestEntity.initText("Hello")];
+    final List<TestEntity> items = [TestEntity(), TestEntity(tLong: 10), TestEntity(tString: "Hello")];
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
     expect(fetchedItems[0].id, isNot(equals(null)));
-    expect(fetchedItems[0].number, equals(null));
-    expect(fetchedItems[0].text, equals(null));
-    expect(fetchedItems[0].b, equals(null));
-    expect(fetchedItems[0].d, equals(null));
+    expect(fetchedItems[0].tLong, equals(null));
+    expect(fetchedItems[0].tString, equals(null));
+    expect(fetchedItems[0].tBool, equals(null));
+    expect(fetchedItems[0].tDouble, equals(null));
     expect(fetchedItems[1].id, isNot(equals(null)));
-    expect(fetchedItems[1].number, isNot(equals(null)));
-    expect(fetchedItems[1].text, equals(null));
-    expect(fetchedItems[1].b, equals(null));
-    expect(fetchedItems[1].d, equals(null));
+    expect(fetchedItems[1].tLong, isNot(equals(null)));
+    expect(fetchedItems[1].tString, equals(null));
+    expect(fetchedItems[1].tBool, equals(null));
+    expect(fetchedItems[1].tDouble, equals(null));
     expect(fetchedItems[2].id, isNot(equals(null)));
-    expect(fetchedItems[2].number, equals(null));
-    expect(fetchedItems[2].text, isNot(equals(null)));
-    expect(fetchedItems[2].b, equals(null));
-    expect(fetchedItems[2].d, equals(null));
+    expect(fetchedItems[2].tLong, equals(null));
+    expect(fetchedItems[2].tString, isNot(equals(null)));
+    expect(fetchedItems[2].tBool, equals(null));
+    expect(fetchedItems[2].tDouble, equals(null));
   });
 
   test(".count() works", () {
@@ -144,7 +144,7 @@ void main() {
   });
 
   test(".contains() works", () {
-    int id = box.put(TestEntity.initText("container"));
+    int id = box.put(TestEntity(tString: "container"));
     bool contains = box.contains(id);
     expect(contains, equals(true));
     //check complementary
@@ -198,7 +198,7 @@ void main() {
     expect(removed, equals(6));
     expect(box.count(), equals(0));
     //try with different number of items
-    List<TestEntity> items = ["one", "two", "three"].map((s) => TestEntity.initText(s)).toList();
+    List<TestEntity> items = ["one", "two", "three"].map((s) => TestEntity(tString: s)).toList();
     ids.addAll(box.putMany(items));
     removed = box.removeAll();
     expect(removed, equals(3));
