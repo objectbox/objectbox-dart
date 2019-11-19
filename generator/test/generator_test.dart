@@ -1,5 +1,7 @@
 import "dart:io";
 import "package:test/test.dart";
+import 'package:glob/glob.dart' show Glob;
+import 'package:path/path.dart';
 
 import "helpers.dart";
 
@@ -9,7 +11,10 @@ void main() async {
       File("objectbox-model.json").deleteSync();
     });
 
-    Map<String, String> envVars = Platform.environment;
-    testGeneratorOutput("single_entity", envVars['GENERATOR'] == "update-expected");
+    final updateExpected = Platform.environment['GENERATOR'] == "update-expected";
+
+    for (var testCase in Glob("test/cases/*").listSync()) {
+      testGeneratorOutput(basename(testCase.path), updateExpected);
+    }
   });
 }
