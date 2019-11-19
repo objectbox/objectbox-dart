@@ -8,13 +8,19 @@ class ModelEntity {
   String name;
   List<ModelProperty> properties;
   String idPropName;
-  ModelInfo model;
+  ModelInfo _model;
 
-  ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this.model) {
+  ModelInfo get model => (_model == null) ? throw Exception("model is null") : _model;
+
+  set model(ModelInfo model) {
+    this._model = model;
+  }
+
+  ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this._model) {
     validate();
   }
 
-  ModelEntity.fromMap(Map<String, dynamic> data, this.model) {
+  ModelEntity.fromMap(Map<String, dynamic> data) {
     id = IdUid(data["id"]);
     lastPropertyId = IdUid(data["lastPropertyId"]);
     name = data["name"];
@@ -25,7 +31,6 @@ class ModelEntity {
   void validate() {
     if (name == null || name.isEmpty) throw Exception("name is not defined");
     if (properties == null) throw Exception("properties is null");
-    if (model == null) throw Exception("model is null");
 
     if (properties.isEmpty) {
       if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");

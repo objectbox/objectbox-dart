@@ -33,7 +33,7 @@ class ModelInfo {
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
-    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e, this)).toList();
+    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e)..model = this).toList();
     lastEntityId = IdUid(data["lastEntityId"]);
     lastIndexId = IdUid(data["lastIndexId"]);
     lastRelationId = IdUid(data["lastRelationId"]);
