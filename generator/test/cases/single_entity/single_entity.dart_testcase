@@ -1,11 +1,18 @@
 import "package:objectbox/objectbox.dart";
 part "single_entity.g.dart";
 
+/// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
+class TestingUnknownAnnotation {
+  const TestingUnknownAnnotation();
+}
+
 @Entity(uid: 1234)
+@TestingUnknownAnnotation()
 class SingleEntity {
   @Id(uid: 5678)
   int id;
 
   @Property(uid: 4321)
+  @TestingUnknownAnnotation()
   String texta;
 }
