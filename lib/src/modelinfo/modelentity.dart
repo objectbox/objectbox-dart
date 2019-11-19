@@ -1,3 +1,4 @@
+import '../util.dart';
 import "iduid.dart";
 import "modelinfo.dart";
 import "modelproperty.dart";
@@ -35,6 +36,7 @@ class ModelEntity {
     if (properties.isEmpty) {
       if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");
     } else {
+      if (lastPropertyId == null) throw Exception("lastPropertyId is null");
       var entity = this;
       bool lastPropertyIdFound = false;
 
@@ -55,16 +57,16 @@ class ModelEntity {
         }
       });
 
-      if (properties.isNotEmpty && !lastPropertyIdFound) {
+      if (!lastPropertyIdFound && !listContains(model.retiredPropertyUids, lastPropertyId.uid)) {
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
       }
-    }
 
-    for (int i = 0; i < properties.length; ++i) {
-      final ModelProperty p = properties[i];
-      if ((p.flags & OBXPropertyFlag.ID) != 0) {
-        idPropName = p.name;
-        break;
+      for (int i = 0; i < properties.length; ++i) {
+        final ModelProperty p = properties[i];
+        if ((p.flags & OBXPropertyFlag.ID) != 0) {
+          idPropName = p.name;
+          break;
+        }
       }
     }
   }
