@@ -118,9 +118,22 @@
           "type": 2
         }
       ]
+    },
+    {
+      "id": "3:3569200127393812728",
+      "lastPropertyId": "1:2429256362396080523",
+      "name": "TestEntity2",
+      "properties": [
+        {
+          "id": "1:2429256362396080523",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        }
+      ]
     }
   ],
-  "lastEntityId": "2:2679953000475642792",
+  "lastEntityId": "3:3569200127393812728",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

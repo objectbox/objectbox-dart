@@ -5,7 +5,14 @@ import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
 
 class CodeChunks {
   // TODO ModelInfo, once per DB
-  static String modelInfoLoader() => """
+  static String modelInfoDefinition(ModelInfo modelInfo) => """
+      import 'package:objectbox/objectbox.dart';
+      
+      ModelInfo getObjectBoxModel() => ModelInfo(
+        lastEntityId: IdUid(${modelInfo.lastEntityId.id}, ${modelInfo.lastEntityId.uid}),
+        lastRelationId: IdUid(${modelInfo.lastRelationId.id}, ${modelInfo.lastRelationId.uid}),
+        lastIndexId: IdUid(${modelInfo.lastIndexId.id}, ${modelInfo.lastIndexId.uid}),
+      );
     """;
 
   static String instanceBuildersReaders(ModelEntity readEntity) {

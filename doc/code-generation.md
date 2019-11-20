@@ -6,7 +6,7 @@ Unfortunately, only few documentation exists on how to generate code using Dart'
 
 ## Basics
 
-In order to set up code generation, a new package needs to be created exclusively for this task. Here, it it called `objectbox_generator`. This package needs to contain a file called [`build.yaml`](/generator/build.yaml) as well as an entry point for the builder, [`objectbox_generator.dart`](/generator/lib/objectbox_generator.dart), and a generator specifically for one annotation class, [`generator.dart`](/generator/lib/src/generator.dart). The latter needs to contain a class which extends `GeneratorForAnnotation<obx.Entity>` and overrides `Future<String> generateForAnnotatedElement(Element elementBare, ConstantReader annotation, BuildStep buildStep)`, which returns a string containing the generated code for a single annotation instance.
+In order to set up code generation, a new package needs to be created exclusively for this task. Here, it it called `objectbox_generator`. This package needs to contain a file called [`build.yaml`](/generator/build.yaml) as well as an entry point for the builder, [`objectbox_generator.dart`](/generator/lib/objectbox_generator.dart), and a generator specifically for one annotation class, [`generator.dart`](/generator/lib/src/entity_binding.dart). The latter needs to contain a class which extends `GeneratorForAnnotation<obx.Entity>` and overrides `Future<String> generateForAnnotatedElement(Element elementBare, ConstantReader annotation, BuildStep buildStep)`, which returns a string containing the generated code for a single annotation instance.
 
 It is then possible to traverse through the annotated class in `generateForAnnotatedElement` and e.g. determine all class member fields and their types. Additionally, such member fields can be annotated themselves, but because here, only the `@Entity` annotation is explicitly handled using a separate generator class, member annotations can be read and processed in line.
 
@@ -28,7 +28,7 @@ The entry function for generator testing is the main function of [`generator_tes
 
 The `build` package internally uses designated classes for reading from and writing to files or, to be more general, any kind of _assets_. In this case, we do not want to involve any kind of files as output and only very specific files as input, so it is necessary to create our own versions of the so-called `AssetReader` and `AssetWriter`.
 
-In [`helpers.dart`](/generator/test/helpers.dart), `_InMemoryAssetWriter` is supposed to receive a single output string and store it in memory. Eventually, the string it stores will be the output of [`EntityGenerator`](/generator/lib/src/generator.dart#L15).
+In [`helpers.dart`](/generator/test/helpers.dart), `_InMemoryAssetWriter` is supposed to receive a single output string and store it in memory. Eventually, the string it stores will be the output of [`EntityGenerator`](/generator/lib/src/entity_binding.dart#L15).
 
 On the other hand, `_SingleFileAssetReader` shall read a single input Dart source file from the [`test/cases`](/generator/test/cases) directory. Note that currently, test cases have the rather ugly file extension `.dart_testcase`, such as [`single_entity.dart_testcase`](/generator/test/cases/single_entity/single_entity.dart_testcase). This is a workaround, because otherwise, running `pub run build_runner build` in the repository's root directory would generate `.g.dart` files from _all_ `.dart` files in the repository. An option to exclude certain directories from `build_runner` is yet to be found.
 

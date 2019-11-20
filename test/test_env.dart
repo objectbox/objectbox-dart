@@ -1,6 +1,7 @@
 import "dart:io";
 import "package:objectbox/objectbox.dart";
 import "entity.dart";
+import '../objectbox_model.dart';
 
 class TestEnv {
   final Directory dir;

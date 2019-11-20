@@ -1,15 +1,18 @@
+# See docs:
+#  https://pub.dev/packages/build_config
+#  https://github.com/dart-lang/build/blob/master/docs/build_yaml_format.md
+
 targets:
   $default:
     builders:
-      objectbox_generator|objectbox:
+      objectbox_generator|entities:
         enabled: true
 
 builders:
-  objectbox:
-    target: ":objectbox_generator"
+  entities:
     import: "package:objectbox_generator/objectbox_generator.dart"
-    builder_factories: ["objectboxModelFactory"]
-    build_extensions: {".dart": [".objectbox_model.g.part"]}
+    builder_factories: ["entityBindingBuilder"]
+    build_extensions: {".dart": [".objectbox_entity.g.part"]}
     auto_apply: dependents
     build_to: cache
     applies_builders: ["source_gen|combining_builder"]

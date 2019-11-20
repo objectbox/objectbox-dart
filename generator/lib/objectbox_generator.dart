@@ -1,5 +1,6 @@
 import "package:build/build.dart";
 import "package:source_gen/source_gen.dart";
-import "package:objectbox_generator/src/generator.dart";
+import "src/entity_binding.dart";
 
-Builder objectboxModelFactory(BuilderOptions options) => SharedPartBuilder([EntityGenerator()], "objectbox_model");
+Builder entityBindingBuilder(BuilderOptions options) => SharedPartBuilder([EntityGenerator()], "objectbox_entity");
+

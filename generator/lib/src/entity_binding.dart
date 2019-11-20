@@ -12,16 +12,22 @@ import "code_chunks.dart";
 import "merge.dart";
 
 class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
-  static const ALL_MODELS_JSON = "objectbox-model.json";
-
-  // each .g.dart file needs to get a header with functions to load the ALL_MODELS_JSON file exactly once. Store the input .dart file ids this has already been done for here
-  List<String> entityHeaderDone = [];
+  static const modelJSON = "objectbox-model.json";
+  static const modelDart = "objectbox_model.dart";
 
   Future<ModelInfo> _loadModelInfo() async {
-    if ((await FileSystemEntity.type(ALL_MODELS_JSON)) == FileSystemEntityType.notFound) {
+    if ((await FileSystemEntity.type(modelJSON)) == FileSystemEntityType.notFound) {
       return ModelInfo.createDefault();
     }
-    return ModelInfo.fromMap(json.decode(await (File(ALL_MODELS_JSON).readAsString())));
+    return ModelInfo.fromMap(json.decode(await (File(modelJSON).readAsString())));
+  }
+
+  void _writeModelInfo(ModelInfo modelInfo) async {
+    final json = JsonEncoder.withIndent("  ").convert(modelInfo.toMap());
+    await File(modelJSON).writeAsString(json);
+
+    final code = CodeChunks.modelInfoDefinition(modelInfo);
+    await File(modelDart).writeAsString(code);
   }
 
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
@@ -36,19 +42,16 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       }
       var element = elementBare as ClassElement;
 
+      log.warning(buildStep.inputId.toString());
+
       // load existing model from JSON file if possible
       String inputFileId = buildStep.inputId.toString();
-      ModelInfo allModels = await _loadModelInfo();
+      ModelInfo modelInfo = await _loadModelInfo();
 
-      // optionally add header for loading the .g.json file
-      var ret = "";
-      if (!entityHeaderDone.contains(inputFileId)) {
-        ret += CodeChunks.modelInfoLoader();
-        entityHeaderDone.add(inputFileId);
-      }
+      var code = "";
 
       // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-      ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], allModels);
+      ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], modelInfo);
       var entityUid = annotation.read("uid");
       if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
 
@@ -124,20 +127,19 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       }
 
       // merge existing model and annotated model that was just read, then write new final model to file
-      mergeEntity(allModels, readEntity);
-      final modelJson = JsonEncoder.withIndent("  ").convert(allModels.toMap());
-      await File(ALL_MODELS_JSON).writeAsString(modelJson);
+      mergeEntity(modelInfo, readEntity);
+      _writeModelInfo(modelInfo);
 
-      readEntity = allModels.findEntityByName(element.name);
-      if (readEntity == null) return ret;
+      readEntity = modelInfo.findEntityByName(element.name);
+      if (readEntity == null) return code;
 
       // main code for instance builders and readers
-      ret += CodeChunks.instanceBuildersReaders(readEntity);
+      code += CodeChunks.instanceBuildersReaders(readEntity);
 
       // for building queries
-      ret += CodeChunks.queryConditionClasses(readEntity);
+      code += CodeChunks.queryConditionClasses(readEntity);
 
-      return ret;
+      return code;
     } catch (e, s) {
       log.warning(s);
       rethrow;
