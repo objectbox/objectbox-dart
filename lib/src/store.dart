@@ -13,6 +13,8 @@ enum TxMode {
   Write,
 }
 
+/// Represents an ObjectBox database and works together with [Box] to allow getting and putting Objects of
+/// specific type.
 class Store {
   Pointer<Void> _cStore;
   Map<Type, EntityDefinition> _entityDefinitions = {};
@@ -29,7 +31,7 @@ class Store {
       if (directory != null && directory.isNotEmpty) {
         var cStr = Utf8.toUtf8(directory);
         try {
-          checkObx(bindings.obx_opt_directory(opt, cStr.cast<Uint8>()));
+          checkObx(bindings.obx_opt_directory(opt, cStr));
         } finally {
           free(cStr);
         }
@@ -45,6 +47,10 @@ class Store {
     checkObxPtr(_cStore, "failed to create store");
   }
 
+  /// Closes this store.
+  ///
+  /// This method is useful for unit tests; most real applications should open a Store once and keep it open until
+  /// the app dies.
   close() {
     checkObx(bindings.obx_store_close(_cStore));
   }
@@ -53,9 +59,9 @@ class Store {
     return _entityDefinitions[T];
   }
 
-  /// Executes a given function inside a transaction
+  /// Executes a given function inside a transaction.
   ///
-  /// Returns type of [fn] if [return] is called in [fn]
+  /// Returns type of [fn] if [return] is called in [fn].
   R runInTransaction<R>(TxMode mode, R Function() fn) {
     bool write = mode == TxMode.Write;
     Pointer<Void> txn = write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
@@ -75,5 +81,6 @@ class Store {
     }
   }
 
+  /// The low-level pointer to this store.
   get ptr => _cStore;
 }

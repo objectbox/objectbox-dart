@@ -1,7 +1,6 @@
 library query;
 
 import "dart:ffi";
-
 import "package:ffi/ffi.dart" show allocate, free, Utf8;
 
 import "../store.dart";
@@ -34,7 +33,6 @@ class Order {
   /// null values should be treated equal to zero (scalars only).
   static final nullsAsZero = 16;
 }
-
 
 /// The QueryProperty types are responsible for the operator overloading.
 /// A QueryBuilder will be constructed, based on the any / all operations applied.
@@ -296,44 +294,37 @@ class StringCondition extends PropertyCondition<String> {
   }
 
   int _op1(QueryBuilder builder, obx_qb_cond_string_op_1_dart_t func) {
-    final utf8Str = Utf8.toUtf8(_value);
-    var uint8Str = utf8Str.cast<Uint8>();
+    final cStr = Utf8.toUtf8(_value);
     try {
-
-      return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0);
+      return func(builder._cBuilder, _property._propertyId, cStr, _caseSensitive ? 1 : 0);
     } finally {
-      // https://github.com/dart-lang/ffi/blob/master/lib/src/utf8.dart#L56
-      free(utf8Str);
+      free(cStr);
     }
   }
 
   int _inside(QueryBuilder builder) {
     final func = bindings.obx_qb_string_in;
     final listLength = _list.length;
-    final arrayOfUint8Ptrs = allocate<Pointer<Uint8>>(count: listLength);
+    final arrayOfCStrings = allocate<Pointer<Utf8>>(count: listLength);
     try {
       for (int i = 0; i < _list.length; i++) {
-        var uint8Str = Utf8.toUtf8(_list[i]).cast<Uint8>();
-        arrayOfUint8Ptrs.elementAt(i).value = uint8Str;
+        arrayOfCStrings.elementAt(i).value = Utf8.toUtf8(_list[i]);
       }
-      return func(builder._cBuilder, _property._propertyId, arrayOfUint8Ptrs, listLength, _caseSensitive ? 1 : 0);
+      return func(builder._cBuilder, _property._propertyId, arrayOfCStrings, listLength, _caseSensitive ? 1 : 0);
     } finally {
       for (int i = 0; i < _list.length; i++) {
-        var uint8Str = arrayOfUint8Ptrs.elementAt(i).value;
-        free(uint8Str); // I assume the casted Uint8 retains the same Utf8 address
+        free(arrayOfCStrings.elementAt(i).value);
       }
-      free(arrayOfUint8Ptrs); // It probably doesn't release recursively
+      free(arrayOfCStrings);
     }
   }
 
   int _opWithEqual(QueryBuilder builder, obx_qb_string_lt_gt_op_dart_t func) {
-    final utf8Str = Utf8.toUtf8(_value);
-    var uint8Str = utf8Str.cast<Uint8>();
+    final cStr = Utf8.toUtf8(_value);
     try {
-
-      return func(builder._cBuilder, _property._propertyId, uint8Str, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
+      return func(builder._cBuilder, _property._propertyId, cStr, _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
     } finally {
-      free(utf8Str);
+      free(cStr);
     }
   }
 
@@ -375,7 +366,7 @@ class IntegerCondition extends PropertyCondition<int> {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
 
-  // ideally it should be implemented like this, but this doesn't work, TODO try this out on dart-2.6
+  // ideally it should be implemented like this, but this doesn't work, TODO report to google, doesn't work with 2.6 yet
   /*
   int _opList<P extends NativeType>(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<P> func) {
 

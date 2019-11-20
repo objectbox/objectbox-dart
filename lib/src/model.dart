@@ -45,7 +45,7 @@ class Model {
     // start entity
     var name = Utf8.toUtf8(entity.name);
     try {
-      _check(bindings.obx_model_entity(_cModel, name.cast<Uint8>(), entity.id.id, entity.id.uid));
+      _check(bindings.obx_model_entity(_cModel, name, entity.id.id, entity.id.uid));
     } finally {
       free(name);
     }
@@ -60,7 +60,7 @@ class Model {
   void addProperty(ModelProperty prop) {
     var name = Utf8.toUtf8(prop.name);
     try {
-      _check(bindings.obx_model_property(_cModel, name.cast<Uint8>(), prop.type, prop.id.id, prop.id.uid));
+      _check(bindings.obx_model_property(_cModel, name, prop.type, prop.id.id, prop.id.uid));
     } finally {
       free(name);
     }

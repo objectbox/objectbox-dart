@@ -1,6 +1,4 @@
 import "dart:ffi";
-import 'dart:typed_data';
-
 import "package:ffi/ffi.dart" show allocate, free;
 
 import 'common.dart';
@@ -19,6 +17,7 @@ enum _PutMode {
   Update,
 }
 
+/// A box to store objects of a particular class.
 class Box<T> {
   Store _store;
   Pointer<Void> _cBox;
@@ -47,11 +46,16 @@ class Box<T> {
     }
   }
 
-  // if the respective ID property is given as null or 0, a newly assigned ID is returned, otherwise the existing ID is returned
+  /// Puts the given Object in the box (aka persisting it). If this is a new entity (its ID property is 0), a new ID
+  /// will be assigned to the entity (and returned). If the entity was already put in the box before, it will be
+  /// overwritten.
+  ///
+  /// Performance note: if you want to put several entities, consider [putMany] instead.
   int put(T object, {_PutMode mode = _PutMode.Put}) {
     var propVals = _entityReader(object);
     if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
-      final id = bindings.obx_box_id_for_put(_cBox, 0); // TODO check error if 0 was returned instead of an ID
+      final id = bindings.obx_box_id_for_put(_cBox, 0);
+      if (id == 0) throw ObjectBoxException(lastObxErrorString());
       propVals[_modelEntity.idPropName] = id;
     }
 
@@ -68,7 +72,8 @@ class Box<T> {
     return propVals[_modelEntity.idPropName];
   }
 
-  // only instances whose ID property ot null or 0 will be given a new, valid number for that. A list of the final IDs is returned
+  /// Puts the given [objects] into this Box in a single transaction. Returns a list of all IDs of the inserted
+  /// Objects.
   List<int> putMany(List<T> objects, {_PutMode mode = _PutMode.Put}) {
     if (objects.isEmpty) return [];
 
@@ -107,14 +112,11 @@ class Box<T> {
       }
 
       // marshal all objects to be put into the box
-      // final bytesArrayPtr = OBX_bytes_array.createManaged(allPropVals.length);
       final bytesArrayPtr =
           checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
       final listToFree = List<Pointer<OBX_bytes>>();
       try {
-        // final OBX_bytes_array bytesArray = bytesArrayPtr.value;
         for (int i = 0; i < allPropVals.length; i++) {
-          // bytesArray.setAndFree(i, _fbManager.marshal(allPropVals[i]));
           final bytesPtr = _fbManager.marshal(allPropVals[i]);
           listToFree.add(bytesPtr);
           final OBX_bytes bytes = bytesPtr.ref;
@@ -123,7 +125,6 @@ class Box<T> {
 
         checkObx(bindings.obx_box_put_many(_cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
-        // OBX_bytes_array.freeManaged(bytesArrayPtr, true);
         bindings.obx_bytes_array_free(bytesArrayPtr);
         listToFree.forEach(OBX_bytes.freeManaged);
       }
@@ -134,6 +135,7 @@ class Box<T> {
     return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
   }
 
+  /// Retrieves the stored object with the ID [id] from this box's database. Returns null if not found.
   get(int id) {
     final dataPtrPtr = allocate<Pointer<Uint8>>();
     final sizePtr = allocate<IntPtr>();
@@ -168,7 +170,8 @@ class Box<T> {
     });
   }
 
-  // returns list of ids.length objects of type T, each corresponding to the location of its ID in the ids array. Non-existant IDs become null
+  /// Returns a list of [ids.length] Objects of type T, each corresponding to the location of its ID in [ids].
+  /// Non-existant IDs become null.
   List<T> getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
@@ -179,14 +182,18 @@ class Box<T> {
             () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box")));
   }
 
+  /// Returns all stored objects in this Box.
   List<T> getAll() {
     const bool allowMissing = false; // throw if null is encountered in the data found
     return _getMany(
         allowMissing, () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"));
   }
 
+  /// Returns a builder to create queries for Object matching supplied criteria.
   QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
+  /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
+  /// is lower.
   int count({int limit = 0}) {
     Pointer<Uint64> count = allocate<Uint64>();
     try {
@@ -197,6 +204,7 @@ class Box<T> {
     }
   }
 
+  /// Returns true if no objects are in this box.
   bool isEmpty() {
     Pointer<Uint8> isEmpty = allocate<Uint8>();
     try {
@@ -207,6 +215,7 @@ class Box<T> {
     }
   }
 
+  /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
     Pointer<Uint8> contains = allocate<Uint8>();
     try {
@@ -217,6 +226,7 @@ class Box<T> {
     }
   }
 
+  /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
   bool containsMany(List<int> ids) {
     Pointer<Uint8> contains = allocate<Uint8>();
     try {
@@ -229,6 +239,8 @@ class Box<T> {
     }
   }
 
+  /// Removes (deletes) the Object with the ID [id]. Returns true if an entity was actually removed and false if no
+  /// entity exists with the given ID.
   bool remove(int id) {
     final err = bindings.obx_box_remove(_cBox, id);
     if (err == OBXError.OBX_NOT_FOUND) return false;
@@ -236,6 +248,7 @@ class Box<T> {
     return true;
   }
 
+  /// Removes (deletes) Objects by their ID in a single transaction. Returns a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
     Pointer<Uint64> removedIds = allocate<Uint64>();
     try {
@@ -248,6 +261,7 @@ class Box<T> {
     }
   }
 
+  /// Removes (deletes) ALL Objects in a single transaction.
   int removeAll() {
     Pointer<Uint64> removedItems = allocate<Uint64>();
     try {
@@ -258,5 +272,6 @@ class Box<T> {
     }
   }
 
+  /// The low-level pointer to this box.
   get ptr => _cBox;
 }

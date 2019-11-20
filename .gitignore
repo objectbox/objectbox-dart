@@ -11,3 +11,4 @@ lib/*.so
 lib/*.a
 .vscode/
 **/*.g.dart
+doc/api

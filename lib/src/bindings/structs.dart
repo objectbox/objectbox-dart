@@ -1,8 +1,6 @@
 import 'dart:ffi';
-import "dart:typed_data" show Uint8List, Uint64List, Float64List, Float32List, DoubleList, FloatList;
-import "package:ffi/ffi.dart";
-
-import "package:ffi/ffi.dart" show allocate, free;
+import "dart:typed_data" show Uint8List;
+import "package:ffi/ffi.dart" show allocate, free, Utf8;
 
 import '../common.dart';
 
@@ -20,7 +18,7 @@ class OBX_id_array extends Struct {
   int length;
 
   /// Get a copy of the list
-  List<int> items() => _itemsPtr.asTypedList(length);
+  List<int> items() => _itemsPtr.asTypedList(length).toList();
 
   /// Execute the given function, managing the resources consistently
   static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
@@ -57,16 +55,15 @@ class OBX_bytes extends Struct {
   int length;
 
   /// Get access to the data (no-copy)
-  Uint8List get data => isEmpty
-      ? throw ObjectBoxException("can't access data of empty OBX_bytes")
-      : _dataPtr.asTypedList(length);
+  Uint8List get data =>
+      isEmpty ? throw ObjectBoxException("can't access data of empty OBX_bytes") : _dataPtr.asTypedList(length);
 
   bool get isEmpty => length == 0 || _dataPtr.address == 0;
 
   Pointer<Uint8> get ptr => _dataPtr;
 
   /// Returns a pointer to OBX_bytes with copy of the passed data.
-  /// Warning: this creates an two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
+  /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
   static Pointer<OBX_bytes> managedCopyOf(Uint8List data) {
     final ptr = allocate<OBX_bytes>();
     final OBX_bytes bytes = ptr.ref;
@@ -74,8 +71,8 @@ class OBX_bytes extends Struct {
     const align = true; // ObjectBox requires data to be aligned to the length of 4
     bytes.length = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
 
-    // TODO (perf) find a way to get access to the underlying memory of Uint8List to avoid a copy
-    //  In that case, don't forget to change the caller (FlatbuffersManager) which expect to get a copy
+    // NOTE: currently there's no way to get access to the underlying memory of Uint8List to avoid a copy.
+    // See https://github.com/dart-lang/ffi/issues/27
     // if (data.length == bytes.length) {
     //   bytes._dataPtr = data.some-way-to-get-the-underlying-memory-pointer
     //   return ptr;
@@ -117,49 +114,6 @@ class OBX_bytes_array extends Struct {
     }
     return result;
   }
-
-  /// TODO: try this with new Dart 2.6 FFI... with the previous versions it was causing memory corruption issues.
-  /// It's supposed to be used by PutMany()
-//  /// Create a dart-managed OBX_bytes_array.
-//  static Pointer<OBX_bytes_array> createManaged(int count) {
-//    final ptr = allocate<OBX_bytes_array>();
-//    final OBX_bytes_array array = ptr.ref;
-//    array.length = count;
-//    array._items = allocate<OBX_bytes>(count: count);
-//    return ptr;
-//  }
-//
-//  /// Replace the data at the given index with the passed pointer.
-//  void setAndFree(int i, Pointer<OBX_bytes> src) {
-//    assert(i >= 0 && i < length);
-//
-//    final OBX_bytes srcBytes = src.ref;
-//    final OBX_bytes tarBytes = _items.elementAt(i).ref;
-//
-//    assert(!srcBytes.isEmpty);
-//    assert(tarBytes.isEmpty);
-//
-//    tarBytes._dataPtr = srcBytes._dataPtr;
-//    tarBytes.length = srcBytes.length;
-//
-//    srcBytes._dataPtr.value = nullptr.address;
-//    srcBytes.length = 0;
-//    free(src);
-//  }
-//
-//  /// Free a dart-created OBX_bytes pointer.
-//  static void freeManaged(Pointer<OBX_bytes_array> ptr, bool freeIncludedBytes) {
-//    final OBX_bytes_array array = ptr.ref;
-//    if (freeIncludedBytes) {
-//      for (int i = 0; i < array.length; i++) {
-//        // Calling OBX_bytes.freeManaged() would cause double free
-//        final OBX_bytes bytes = array._items.elementAt(i).ref;
-//        free(bytes._dataPtr);
-//      }
-//    }
-//    free(array._items);
-//    free(ptr);
-//  }
 }
 
 class OBX_int8_array extends Struct {
@@ -168,7 +122,7 @@ class OBX_int8_array extends Struct {
   @IntPtr() // size_t
   int count;
 
-  List<int> items() => _itemsPtr.asTypedList(count);
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
 }
 
 class OBX_int16_array extends Struct {
@@ -177,7 +131,7 @@ class OBX_int16_array extends Struct {
   @IntPtr() // size_t
   int count;
 
-  List<int> items() => _itemsPtr.asTypedList(count);
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
 }
 
 class OBX_int32_array extends Struct {
@@ -186,7 +140,7 @@ class OBX_int32_array extends Struct {
   @IntPtr() // size_t
   int count;
 
-  List<int> items() => _itemsPtr.asTypedList(count);
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
 }
 
 class OBX_int64_array extends Struct {
@@ -195,7 +149,7 @@ class OBX_int64_array extends Struct {
   @IntPtr() // size_t
   int count;
 
-  List<int> items() => _itemsPtr.asTypedList(count);
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
 }
 
 class OBX_string_array extends Struct {
@@ -221,7 +175,7 @@ class OBX_float_array extends Struct {
   @IntPtr() // size_t
   int count;
 
-  List<double> items() => _itemsPtr.asTypedList(count);
+  List<double> items() => _itemsPtr.asTypedList(count).toList();
 }
 
 
@@ -232,5 +186,5 @@ class OBX_double_array extends Struct {
   @IntPtr() // size_t
   int count;
 
-  List<double> items() => _itemsPtr.asTypedList(count);
+  List<double> items() => _itemsPtr.asTypedList(count).toList();
 }

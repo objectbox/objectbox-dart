@@ -86,7 +86,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
     try {
       return ptr.ref.items();
     } finally {
-      bindings.obx_int8_array_free(ptr.cast<Uint64>());
+      bindings.obx_int8_array_free(ptr);
     }
   }
 
@@ -94,7 +94,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
     try {
       return ptr.ref.items();
     } finally {
-      bindings.obx_int16_array_free(ptr.cast<Uint64>());
+      bindings.obx_int16_array_free(ptr);
     }
   }
 
@@ -102,7 +102,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
     try {
       return ptr.ref.items();
     } finally {
-      bindings.obx_int32_array_free(ptr.cast<Uint64>());
+      bindings.obx_int32_array_free(ptr);
     }
   }
 
@@ -110,7 +110,7 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
     try {
       return ptr.ref.items();
     }finally {
-      bindings.obx_int64_array_free(ptr.cast<Uint64>());
+      bindings.obx_int64_array_free(ptr);
     }
   }
 
@@ -163,7 +163,7 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
     try {
       return ptr.ref.items();
     }finally {
-      bindings.obx_float_array_free(ptr.cast<Uint64>());
+      bindings.obx_float_array_free(ptr);
     }
   }
 
@@ -171,7 +171,7 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
     try {
       return ptr.ref.items();
     }finally {
-      bindings.obx_double_array_free(ptr.cast<Uint64>());
+      bindings.obx_double_array_free(ptr);
     }
   }
 
@@ -204,7 +204,7 @@ class StringPropertyQuery extends PropertyQuery {
     try {
       return ptr.ref.items();
     }finally {
-      bindings.obx_string_array_free(ptr.cast<Uint64>());
+      bindings.obx_string_array_free(ptr);
     }
   }
 

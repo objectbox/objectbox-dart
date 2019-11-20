@@ -14,14 +14,14 @@ void main() {
 
   test(".null and .notNull", () {
     box.putMany([
-      TestEntity.initDoubleAndBoolean(0.1, true),
-      TestEntity.initDoubleAndBoolean(0.3, false),
-      TestEntity.initText("one"),
-      TestEntity.initText("two"),
+      TestEntity(tDouble: 0.1, tBool: true),
+      TestEntity(tDouble: 0.3, tBool: false),
+      TestEntity(tString: "one"),
+      TestEntity(tString: "two"),
     ] as List<TestEntity>);
 
-    final b = TestEntity_.b;
-    final t = TestEntity_.text;
+    final b = TestEntity_.tBool;
+    final t = TestEntity_.tString;
 
     final qbNull = box.query(b.isNull()).build();
     final qbNotNull = box.query(b.notNull()).build();
@@ -38,15 +38,15 @@ void main() {
 
   test(".count doubles and booleans", () {
     box.putMany([
-      TestEntity.initDoubleAndBoolean(0.1, true),
-      TestEntity.initDoubleAndBoolean(0.3, false),
-      TestEntity.initDoubleAndBoolean(0.5, true),
-      TestEntity.initDoubleAndBoolean(0.7, false),
-      TestEntity.initDoubleAndBoolean(0.9, true)
+      TestEntity(tDouble: 0.1, tBool: true),
+      TestEntity(tDouble: 0.3, tBool: false),
+      TestEntity(tDouble: 0.5, tBool: true),
+      TestEntity(tDouble: 0.7, tBool: false),
+      TestEntity(tDouble: 0.9, tBool: true)
     ] as List<TestEntity>);
 
-    final d = TestEntity_.d;
-    final b = TestEntity_.b;
+    final d = TestEntity_.tDouble;
+    final b = TestEntity_.tBool;
 
     // #43 final anyQuery0 = (d.between(0.79, 0.81) & ((b == false) as Condition)) | (d.between(0.69, 0.71) & ((b == false) as Condition));
     final anyQuery0 = (d.between(0.79, 0.81) & b.equals(false) | (d.between(0.69, 0.71) & b.equals(false)));
@@ -77,19 +77,19 @@ void main() {
 
   test(".count matches of `greater` and `less`", () {
     box.putMany([
-      TestEntity.initIntegerAndText(1336, "mord"),
-      TestEntity.initIntegerAndText(1337, "more"),
-      TestEntity.initIntegerAndText(1338, "morf"),
-      TestEntity.initDoubleAndBoolean(0.0, false),
-      TestEntity.initDoubleAndBoolean(0.1, true),
-      TestEntity.initDoubleAndBoolean(0.2, true),
-      TestEntity.initDoubleAndBoolean(0.3, false),
+      TestEntity(tLong: 1336, tString: "mord"),
+      TestEntity(tLong: 1337, tString: "more"),
+      TestEntity(tLong: 1338, tString: "morf"),
+      TestEntity(tDouble: 0.0, tBool: false),
+      TestEntity(tDouble: 0.1, tBool: true),
+      TestEntity(tDouble: 0.2, tBool: true),
+      TestEntity(tDouble: 0.3, tBool: false),
     ] as List<TestEntity>);
 
-    final d = TestEntity_.d;
-    final b = TestEntity_.b;
-    final t = TestEntity_.text;
-    final n = TestEntity_.number;
+    final d = TestEntity_.tDouble;
+    final b = TestEntity_.tBool;
+    final t = TestEntity_.tString;
+    final n = TestEntity_.tLong;
 
     final q0 = box.query(d.greaterThan(0.1)).build();
     final q1 = box.query(b.equals(false)).build();
@@ -111,13 +111,13 @@ void main() {
   });
 
   test(".count matches of `in`, `contains`", () {
-    box.put(TestEntity.initIntegerAndText(1337, "meh"));
-    box.put(TestEntity.initIntegerAndText(1, "bleh"));
-    box.put(TestEntity.initIntegerAndText(1337, "bleh"));
-    box.put(TestEntity.initIntegerAndText(1337, "blh"));
+    box.put(TestEntity(tLong: 1337, tString: "meh"));
+    box.put(TestEntity(tLong: 1, tString: "bleh"));
+    box.put(TestEntity(tLong: 1337, tString: "bleh"));
+    box.put(TestEntity(tLong: 1337, tString: "blh"));
 
-    final text = TestEntity_.text;
-    final number = TestEntity_.number;
+    final text = TestEntity_.tString;
+    final number = TestEntity_.tLong;
 
     final qs0 = box.query(text.inside(["meh"])).build();
     final qs1 = box.query(text.inside(["bleh"])).build();
@@ -140,15 +140,15 @@ void main() {
   });
 
   test(".findIds returns List<int>", () {
-    box.put(TestEntity.initId(0, "meh"));
-    box.put(TestEntity.initId(0, "bleh"));
-    box.put(TestEntity.initId(0, "bleh"));
-    box.put(TestEntity.initId(0, "helb"));
-    box.put(TestEntity.initId(0, "helb"));
-    box.put(TestEntity.initId(0, "bleh"));
-    box.put(TestEntity.initId(0, "blh"));
+    box.put(TestEntity(tString: "meh"));
+    box.put(TestEntity(tString: "bleh"));
+    box.put(TestEntity(tString: "bleh"));
+    box.put(TestEntity(tString: "helb"));
+    box.put(TestEntity(tString: "helb"));
+    box.put(TestEntity(tString: "bleh"));
+    box.put(TestEntity(tString: "blh"));
 
-    final text = TestEntity_.text;
+    final text = TestEntity_.tString;
 
     final q0 = box.query(text.notNull()).build();
     final result0 = q0.findIds();
@@ -169,11 +169,11 @@ void main() {
   });
 
   test(".find returns List<TestEntity>", () {
-    box.put(TestEntity.initInteger(0));
-    box.put(TestEntity.initText("test"));
-    box.put(TestEntity.initText("test"));
+    box.put(TestEntity());
+    box.put(TestEntity(tString: "test"));
+    box.put(TestEntity(tString: "test"));
 
-    final text = TestEntity_.text;
+    final text = TestEntity_.tString;
 
     var q = box.query(text.notNull()).build();
     expect(q.find().length, 2);
@@ -185,39 +185,39 @@ void main() {
   });
 
   test(".findFirst returns TestEntity", () {
-    box.put(TestEntity.initInteger(0));
-    box.put(TestEntity.initText("test1t"));
-    box.put(TestEntity.initText("test"));
+    box.put(TestEntity(tLong: 0));
+    box.put(TestEntity(tString: "test1t"));
+    box.put(TestEntity(tString: "test"));
 
-    final text = TestEntity_.text;
-    final number = TestEntity_.number;
+    final text = TestEntity_.tString;
+    final number = TestEntity_.tLong;
 
     final c = text.startsWith("t") & text.endsWith("t");
 
     var q = box.query(c).build();
 
-    expect(q.findFirst().text, "test1t");
+    expect(q.findFirst().tString, "test1t");
     q.close();
 
     q = box.query(number.notNull()).build();
-    expect(q.findFirst().number, 0);
+    expect(q.findFirst().tLong, 0);
     q.close();
   });
 
   test(".count items after grouping with and/or", () {
-    box.put(TestEntity.initText("Hello"));
-    box.put(TestEntity.initText("Goodbye"));
-    box.put(TestEntity.initText("World"));
+    box.put(TestEntity(tString: "Hello"));
+    box.put(TestEntity(tString: "Goodbye"));
+    box.put(TestEntity(tString: "World"));
 
-    box.put(TestEntity.initInteger(1337));
-    box.put(TestEntity.initInteger(80085));
+    box.put(TestEntity(tLong: 1337));
+    box.put(TestEntity(tLong: 80085));
 
-    box.put(TestEntity.initIntegerAndText(-1337, "meh"));
-    box.put(TestEntity.initIntegerAndText(-1332 + -5, "bleh"));
-    box.put(TestEntity.initIntegerAndText(1337, "Goodbye"));
+    box.put(TestEntity(tLong: -1337, tString: "meh"));
+    box.put(TestEntity(tLong: -1332 + -5, tString: "bleh"));
+    box.put(TestEntity(tLong: 1337, tString: "Goodbye"));
 
-    final text = TestEntity_.text;
-    final number = TestEntity_.number;
+    final text = TestEntity_.tString;
+    final number = TestEntity_.tLong;
 
     // #43 Condition cond1 = ((text == "Hello") as Condition) | ((number == 1337) as Condition);
     Condition cond1 = text.equals("Hello") | number.equals(1337);
@@ -230,11 +230,11 @@ void main() {
         .or(text.equals("Cruel"))
         .or(text.equals("World"));
     Condition cond5 = text.equals("bleh") & number.equals(-1337);
-    // #43 Condition cond6 = ((text == "Hello") as Condition) & ((number == 1337) as Condition);
+    // #43 Condition cond6 = ((tString == "Hello") as Condition) & ((tLong == 1337) as Condition);
     Condition cond6 = text.equals("Hello") & number.equals(1337);
 
-    // #43 final selfInference1 = (text == "Hello") & (number == 1337);
-    // #43 final selfInference2 = (text == "Hello") | (number == 1337);
+    // #43 final selfInference1 = (tString == "Hello") & (tLong == 1337);
+    // #43 final selfInference2 = (tString == "Hello") | (tLong == 1337);
 
     final q1 = box.query(cond1).build();
     final q2 = box.query(cond2).build();
@@ -259,8 +259,8 @@ void main() {
   });
 
   test(".describe query", () {
-    final text = TestEntity_.text;
-    final number = TestEntity_.number;
+    final text = TestEntity_.tString;
+    final number = TestEntity_.tLong;
     Condition c = text
         .equals("Goodbye")
         .and(number.equals(1337))
@@ -269,7 +269,7 @@ void main() {
         .or(text.equals("World"));
     final q = box.query(c).build();
     // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
-    expect(q.describe(), "Query for entity TestEntity with 7 conditions with properties number, text");
+    expect(q.describe(), "Query for entity TestEntity with 7 conditions with properties tLong, tString");
     q.close();
 
     for (int j = 1; j < 20; j++) {
@@ -278,7 +278,7 @@ void main() {
         tc = tc.or(text.endsWith("lo"));
       }
       final q = box.query(tc).build();
-      expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties text''');
+      expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
       q.close();
     }
 
@@ -288,14 +288,14 @@ void main() {
         tc = tc.and(text.startsWith("lo"));
       }
       final q = box.query(tc).build();
-      expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties text''');
+      expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
       q.close();
     }
   });
 
   test("query condition grouping", () {
     final n = TestEntity_.id;
-    final b = TestEntity_.b;
+    final b = TestEntity_.tBool;
 
     final check = (Condition condition, String text) {
       final q = box.query(condition).build();
@@ -304,20 +304,20 @@ void main() {
     };
 
     check((n.equals(0) & b.equals(false)) | (n.equals(1) & b.equals(true)),
-        '((id == 0\n AND b == 0)\n OR (id == 1\n AND b == 1))');
+        '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))');
     check(n.equals(0) & b.equals(false) | n.equals(1) & b.equals(true),
-        '((id == 0\n AND b == 0)\n OR (id == 1\n AND b == 1))');
+        '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))');
     check((n.equals(0) & b.equals(false)) | (n.equals(1) | b.equals(true)),
-        '((id == 0\n AND b == 0)\n OR (id == 1\n OR b == 1))');
+        '((id == 0\n AND tBool == 0)\n OR (id == 1\n OR tBool == 1))');
     check((n.equals(0) & b.equals(false)) | n.equals(1) | b.equals(true),
-        '((id == 0\n AND b == 0)\n OR id == 1\n OR b == 1)');
+        '((id == 0\n AND tBool == 0)\n OR id == 1\n OR tBool == 1)');
     check(n.equals(0) | b.equals(false) & n.equals(1) | b.equals(true),
-        '(id == 0\n OR (b == 0\n AND id == 1)\n OR b == 1)');
+        '(id == 0\n OR (tBool == 0\n AND id == 1)\n OR tBool == 1)');
   });
 
   test(".describeParameters query", () {
-    final text = TestEntity_.text;
-    final number = TestEntity_.number;
+    final text = TestEntity_.tString;
+    final number = TestEntity_.tLong;
     Condition c = text
         .equals("Goodbye")
         .and(number.equals(1337))
@@ -325,21 +325,22 @@ void main() {
         .or(text.equals("Cruel"))
         .or(text.equals("World"));
     final q = box.query(c).build();
-    final expectedString =
-      '((text ==(i) "Goodbye"\n'
-      ' AND number == 1337)\n'
-      ' OR number == 1337\n'
-      ' OR text ==(i) "Cruel"\n'
-      ' OR text ==(i) "World")';
+    final expectedString = [
+      '''((tString ==(i) "Goodbye"''',
+      ''' AND tLong == 1337)''',
+      ''' OR tLong == 1337''',
+      ''' OR tString ==(i) "Cruel"''',
+      ''' OR tString ==(i) "World")'''
+    ].join("\n");
     expect(q.describeParameters(), expectedString);
     q.close();
 
     for (int j = 1; j < 20; j++) {
       var tc = text.equals("Goodbye");
-      var expected = ['''text ==(i) "Goodbye"'''];
+      var expected = ['''tString ==(i) "Goodbye"'''];
       for (int i = 0; i < j; i++) {
         tc = tc.and(text.endsWith("ye"));
-        expected.add(''' AND text ends with(i) "ye"''');
+        expected.add(''' AND tString ends with(i) "ye"''');
       }
       final q = box.query(tc).build();
       expect(q.describeParameters(), '''(${expected.join("\n")})''');
@@ -348,10 +349,10 @@ void main() {
 
     for (int j = 1; j < 20; j++) {
       var tc = text.equals("Goodbye");
-      var expected = ['''text ==(i) "Goodbye"'''];
+      var expected = ['''tString ==(i) "Goodbye"'''];
       for (int i = 0; i < j; i++) {
         tc = tc.or(text.startsWith("Good"));
-        expected.add(''' OR text starts with(i) "Good"''');
+        expected.add(''' OR tString starts with(i) "Good"''');
       }
       final q = box.query(tc).build();
       expect(q.describeParameters(), '''(${expected.join("\n")})''');
@@ -360,27 +361,27 @@ void main() {
   });
 
   test(".order queryBuilder", () {
-    box.put(TestEntity.initText("World"));
-    box.put(TestEntity.initText("Hello"));
-    box.put(TestEntity.initText("HELLO"));
-    box.put(TestEntity.initText("World"));
-    box.put(TestEntity.initText("Goodbye"));
-    box.put(TestEntity.initText("Cruel"));
-    box.put(TestEntity.initInteger(1337));
+    box.put(TestEntity(tString: "World"));
+    box.put(TestEntity(tString: "Hello"));
+    box.put(TestEntity(tString: "HELLO"));
+    box.put(TestEntity(tString: "World"));
+    box.put(TestEntity(tString: "Goodbye"));
+    box.put(TestEntity(tString: "Cruel"));
+    box.put(TestEntity(tLong: 1337));
 
-    final text = TestEntity_.text;
+    final text = TestEntity_.tString;
 
     final condition = text.notNull();
 
     final query = box.query(condition).order(text).build();
-    final result1 = query.find().map((e) => e.text).toList();
+    final result1 = query.find().map((e) => e.tString).toList();
 
     expect("Cruel", result1[0]);
     expect("Hello", result1[2]);
     expect("HELLO", result1[3]);
 
     final queryReverseOrder = box.query(condition).order(text, flags: Order.descending | Order.caseSensitive).build();
-    final result2 = queryReverseOrder.find().map((e) => e.text).toList();
+    final result2 = queryReverseOrder.find().map((e) => e.tString).toList();
 
     expect("World", result2[0]);
     expect("Hello", result2[2]);

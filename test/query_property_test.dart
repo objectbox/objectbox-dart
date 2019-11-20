@@ -4,35 +4,35 @@ import "entity.dart";
 import 'test_env.dart';
 
 void main() {
-  TestEnv<TestEntityProperty> env;
+  TestEnv<TestEntity> env;
   Box box;
 
   setUp(() {
-    env = TestEnv(TestEntityProperty_OBXDefs, "query_property");
+    env = TestEnv(TestEntity_OBXDefs, "query_property");
     box = env.box;
   });
 
   final integers = [0, 0, 1, 1, 2, 3, 4, 5];
-  final integerList = integers.map((i) => TestEntityProperty.initIntegers(true, 1+i, 2+i, 3+i, 4+i, 5+i)).toList();
+  final integerList = integers.map((i) => TestEntity(tBool:true, tByte:1+i, tShort:2+i, tChar:3+i, tInt:4+i, tLong:5+i)).toList();
   final strings = ["string", "another", "string", "1withSuffix", "2withSuffix", "1withSuffix"];
-  final stringList  = strings.map((s) => TestEntityProperty.initString(s)).toList();
+  final stringList  = strings.map((s) => TestEntity(tString:s)).toList();
   final floats = [ 0.1, 0.1, 0.1, 0.1, 0.1 ]; // [0, 0.0, 0.1, 0.2, 0.1];
-  final floatList  = floats.map((f) => TestEntityProperty.initFloats(0.1+f, 0.1+f)).toList();
+  final floatList  = floats.map((f) => TestEntity(tFloat:0.1+f, tDouble:0.1+f)).toList();
 
-  final tBool = TestEntityProperty_.tBool;
-  final tChar = TestEntityProperty_.tChar;
-  final tByte = TestEntityProperty_.tByte;
+  final tBool = TestEntity_.tBool;
+  final tChar = TestEntity_.tChar;
+  final tByte = TestEntity_.tByte;
 
-  final tLong = TestEntityProperty_.tLong;
-  final tInt = TestEntityProperty_.tInt;
-  final tShort = TestEntityProperty_.tShort;
-  final tIntegers = [ tLong, tInt, tShort ];
+  final tLong = TestEntity_.tLong;
+  final tInt = TestEntity_.tInt;
+  final tShort = TestEntity_.tShort;
+  final tIntegers = [ tShort, tInt, tLong ]; // starts resp. 2, 4, 5
 
-  final tFloat = TestEntityProperty_.tFloat;
-  final tDouble = TestEntityProperty_.tDouble;
+  final tFloat = TestEntity_.tFloat;
+  final tDouble = TestEntity_.tDouble;
   final tFloats = [ tFloat, tDouble ];
 
-  final tString = TestEntityProperty_.tString;
+  final tString = TestEntity_.tString;
 
   test(".count (basic query)", () {
     box.putMany(integerList);
@@ -273,14 +273,16 @@ void main() {
 //    final query = box.query(((tLong < 2 | tString.endsWith("suffix")) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
     final query = box.query(tLong.lessThan(100).or(tString.endsWith("suffix")).or(tDouble.between(-100000.0, 100000.0))).build();
 
-    tIntegers.forEach((i) {
-      final qp = query.property(i) as IntegerPropertyQuery;
+    final start = [ 2, 4, 5 ];
+    for (int i=0; i<tIntegers.length; i++) {
+      final qp = query.property(tIntegers[i]) as IntegerPropertyQuery;
 
-      expect(qp.find(defaultValue:-1), [5, 5, 6, 6, 7, 8, 9, 10]); // TODO change
-      expect(qp.find(), [5, 5, 6, 6, 7, 8, 9, 10]); // TODO change
+      final mappedIntegers = integers.map((j) => j + start[i]).toList();
+      expect(qp.find(defaultValue:-1), mappedIntegers);
+      expect(qp.find(), mappedIntegers);
 
       qp.close();
-    });
+    }
 
     tFloats.forEach((f) {
       final qp = query.property(f) as DoublePropertyQuery;
