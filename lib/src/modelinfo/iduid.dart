@@ -1,7 +1,12 @@
 class IdUid {
   int _id, _uid;
 
-  IdUid(String str) {
+  IdUid(int newId, int newUid) {
+    id = newId;
+    uid = newUid;
+  }
+
+  IdUid.fromString(String str) {
     if (str == null || str == "" || str == "0:0") {
       _id = 0;
       _uid = 0;
@@ -12,11 +17,6 @@ class IdUid {
     if (spl.length != 2) throw Exception("IdUid has invalid format, wrong number of columns: $str");
     id = int.parse(spl[0]);
     uid = int.parse(spl[1]);
-  }
-
-  IdUid.create(int newId, int newUid) {
-    id = newId;
-    uid = newUid;
   }
 
   IdUid.empty()

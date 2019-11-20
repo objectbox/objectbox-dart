@@ -22,8 +22,8 @@ class ModelEntity {
   }
 
   ModelEntity.fromMap(Map<String, dynamic> data) {
-    id = IdUid(data["id"]);
-    lastPropertyId = IdUid(data["lastPropertyId"]);
+    id = IdUid.fromString(data["id"]);
+    lastPropertyId = IdUid.fromString(data["lastPropertyId"]);
     name = data["name"];
     properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
     validate();
@@ -105,7 +105,7 @@ class ModelEntity {
     if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    var property = ModelProperty(IdUid.create(id, uniqueUid), name, 0, 0, this);
+    var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
     properties.add(property);
     lastPropertyId = property.id;
     return property;

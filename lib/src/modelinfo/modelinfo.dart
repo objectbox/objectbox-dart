@@ -19,6 +19,20 @@ class ModelInfo {
   List<int> retiredEntityUids, retiredIndexUids, retiredPropertyUids, retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
 
+  ModelInfo(
+      {this.entities,
+      this.lastEntityId,
+      this.lastIndexId,
+      this.lastRelationId,
+      this.lastSequenceId,
+      this.retiredEntityUids,
+      this.retiredIndexUids,
+      this.retiredPropertyUids,
+      this.retiredRelationUids,
+      this.modelVersion,
+      this.modelVersionParserMinimum,
+      this.version});
+
   ModelInfo.createDefault()
       : entities = [],
         lastEntityId = IdUid.empty(),
@@ -35,10 +49,10 @@ class ModelInfo {
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
     entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e)..model = this).toList();
-    lastEntityId = IdUid(data["lastEntityId"]);
-    lastIndexId = IdUid(data["lastIndexId"]);
-    lastRelationId = IdUid(data["lastRelationId"]);
-    lastSequenceId = IdUid(data["lastSequenceId"]);
+    lastEntityId = IdUid.fromString(data["lastEntityId"]);
+    lastIndexId = IdUid.fromString(data["lastIndexId"]);
+    lastRelationId = IdUid.fromString(data["lastRelationId"]);
+    lastSequenceId = IdUid.fromString(data["lastSequenceId"]);
     modelVersion = data["modelVersion"];
     modelVersionParserMinimum = data["modelVersionParserMinimum"];
     retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
@@ -141,7 +155,7 @@ class ModelInfo {
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
+    var entity = ModelEntity(IdUid(id, uniqueUid), null, name, [], this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
