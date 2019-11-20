@@ -22,9 +22,9 @@ class PropertyQuery {
   }
 
   int count() {
-    final ptr = allocate<Uint64>();
-    checkObx(bindings.obx_query_prop_count(_cProp, ptr));
+    final ptr = allocate<Uint64>(count: 1);
     try {
+      checkObx(bindings.obx_query_prop_count(_cProp, ptr));
       return ptr.value;
     }finally {
       free(ptr);
@@ -191,13 +191,23 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
 
 class StringPropertyQuery extends PropertyQuery {
 
+  bool _caseSensitive = false;
+
   StringPropertyQuery (Pointer<Void> query, int propertyId, int obxType): super(query, propertyId, obxType);
 
   // distinct is already taken in the base type (can't overload with two params)
   // you could use that one instead
-  void caseSensitive(bool caseSensitive) {
+  set caseSensitive(bool caseSensitive) {
+    _caseSensitive = caseSensitive;
     checkObx(bindings.obx_query_prop_distinct_string(_cProp, _distinct ? 1 : 0
-        , caseSensitive ? 1 : 0));
+        , _caseSensitive ? 1 : 0));
+  }
+
+  get caseSensitive => _caseSensitive;
+
+  set distinct (bool d) {
+    _distinct = d;
+    checkObx(bindings.obx_query_prop_distinct_string(_cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
   List<String> _unpack(Pointer<OBX_string_array> ptr) {

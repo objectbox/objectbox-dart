@@ -14,10 +14,10 @@ void main() {
 
   final integers = [0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = integers.map((i) => TestEntity(tBool:true, tByte:1+i, tShort:2+i, tChar:3+i, tInt:4+i, tLong:5+i)).toList();
-  final strings = ["string", "another", "string", "1withSuffix", "2withSuffix", "1withSuffix"];
+  final strings = ["string", "another", "string", "1withSuffix", "2withSuffix", "1withsuffix", "2withsuffix", "swing" ];
   final stringList  = strings.map((s) => TestEntity(tString:s)).toList();
   final floats = [ 0.1, 0.1, 0.1, 0.1, 0.1 ]; // [0, 0.0, 0.1, 0.2, 0.1];
-  final floatList  = floats.map((f) => TestEntity(tFloat:0.1+f, tDouble:0.1+f)).toList();
+  final floatList  = floats.map((f) => TestEntity(tFloat:0.1+f, tDouble:0.2+f)).toList();
 
   final tBool = TestEntity_.tBool;
   final tChar = TestEntity_.tChar;
@@ -52,7 +52,7 @@ void main() {
     });
 
     final queryString = box.query(tString.contains('t')).build();
-    expect(queryString.count(), 6);
+    expect(queryString.count(), 7);
     queryString.close();
 
     final queryBool = box.query(tBool.equals(true)).build();
@@ -62,31 +62,6 @@ void main() {
     final queryChar = box.query(tChar.greaterThan(0)).build();
     expect(queryChar.count(), 8);
     queryChar.close();
-  });
-
-  test(".distinct, .count, .close property query", () {
-    box.putMany(integerList);
-    box.putMany(stringList);
-    box.putMany(floatList);
-
-    // int
-    final query = box.query((tLong < 100) as Condition).build();
-
-    for (int i=0; i<tIntegers.length; i++) {
-      final queryInt = query.property(tLong);
-      expect(queryInt.count(), 4);
-      queryInt.close();
-    }
-
-    // TODO NPE on queryInt (no errors thrown), can't reuse queryInt, turn on when fixed (dart 2.6?)
-//    final tLongDistinctCount = queryInt..distinct(true)..count();
-//    expect(2, tLongDistinctCount);
-
-    final queryInt2 = query.property(tLong);
-    expect(queryInt2..distinct(true)..count(), 2);
-    queryInt2.close();
-
-    query.close();
   });
 
   test("query.property(E_.field) property query, type inference", () {
@@ -269,13 +244,17 @@ void main() {
 
   test(".find", () {
     box.putMany(integerList);
+    box.putMany(floatList);
+    box.putMany(stringList);
 
 //    final query = box.query(((tLong < 2 | tString.endsWith("suffix")) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
-    final query = box.query(tLong.lessThan(100).or(tString.endsWith("suffix")).or(tDouble.between(-100000.0, 100000.0))).build();
+    final queryIntegers = box.query(tLong.lessThan(100)).build();
+    final queryFloats   = box.query(tDouble.between(-1.0, 1.0)).build();
+    final queryStrings  = box.query(tString.endsWith("suffix")).build();
 
     final start = [ 2, 4, 5 ];
     for (int i=0; i<tIntegers.length; i++) {
-      final qp = query.property(tIntegers[i]) as IntegerPropertyQuery;
+      final qp = queryIntegers.property(tIntegers[i]) as IntegerPropertyQuery;
 
       final mappedIntegers = integers.map((j) => j + start[i]).toList();
       expect(qp.find(defaultValue:-1), mappedIntegers);
@@ -285,61 +264,139 @@ void main() {
     }
 
     tFloats.forEach((f) {
-      final qp = query.property(f) as DoublePropertyQuery;
+      final qp = queryFloats.property(f) as DoublePropertyQuery;
 
-      expect(qp.find(), 0); // TODO change
-      expect(qp.find(defaultValue:-0.1), 0); // TODO change
+      double d = tFloat == f ? 0.20000000298023224 : 0.30000000000000004;
+
+      expect(qp.find(), [ d, d, d, d, d ]);
+      expect(qp.find(defaultValue:-0.1), [ d, d, d, d, d ]);
 
       qp.close();
     });
 
-    final qp = query.property(tString) as StringPropertyQuery;
+    final qp = queryStrings.property(tString) as StringPropertyQuery;
 
-    expect(qp.find(), ""); // TODO change
-    expect(qp..distinct(true) ..caseSensitive(true)..find(), ""); // TODO change
-    expect(qp..distinct(false)..caseSensitive(true)..find(defaultValue:"meh"), ""); // TODO change
-    expect(qp..distinct(true) ..caseSensitive(false)..find(), ""); // TODO change
-    expect(qp..distinct(false)..caseSensitive(false)..find(defaultValue:"meh"), ""); // TODO change
-    expect(qp..distinct(true) ..caseSensitive(true)..find(), ""); // TODO change
-    expect(qp..distinct(false)..caseSensitive(true)..find(defaultValue:"meh"), ""); // TODO change
-    expect(qp..distinct(true) ..caseSensitive(false)..find(), ""); // TODO change
-    expect(qp..distinct(false)..caseSensitive(false)..find(defaultValue:"meh"), ""); // TODO change
+    final defaultResult = ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix'];
+    expect(qp.find(), defaultResult);
+    expect((qp..distinct = true ..caseSensitive = true) .find(), ['2withsuffix', '1withsuffix', '2withSuffix', '1withSuffix'] );
+    expect((qp..distinct = false..caseSensitive = true) .find(defaultValue:"meh"), ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix']);
+    expect((qp..distinct = true ..caseSensitive = false).find(), ['2withSuffix', '1withSuffix']);
+    expect((qp..distinct = false..caseSensitive = false).find(defaultValue:"meh"), defaultResult);
     qp.close();
 
-    query.close();
+    queryIntegers.close();
+    queryFloats.close();
+    queryStrings.close();
   });
 
   test(".average", () {
-    final query = box.query(tDouble.lessThan(1000.0).or(tLong.lessThan(1000))).build();
+    box.putMany(integerList);
+    box.putMany(floatList);
+
+    final queryIntegers = box.query(tLong.lessThan(1000)).build();
+    final queryFloats   = box.query(tDouble.lessThan(1000.0)).build();
 
     // integers
     double intBaseAvg = integers.reduce((a,b) => a + b) / integers.length;
 
     final qpInteger = (p, avg) {
-      final qp = query.integerProperty(p);
+      final qp = queryIntegers.integerProperty(p);
       expect(qp.average(), avg);
       qp.close();
     };
 
-    qpInteger(tLong, intBaseAvg + 1); // TODO the avg is 3.0, but the ob avg is 0.0
-    qpInteger(tInt, intBaseAvg + 1);
-    qpInteger(tShort, intBaseAvg + 1);
+    qpInteger(tLong, intBaseAvg + 5);
+    qpInteger(tInt, intBaseAvg + 4);
+    qpInteger(tShort, intBaseAvg + 2);
 
     // floats
     final qpFloat = (p, avg) {
-      final qp = query.doubleProperty(p);
+      final qp = queryFloats.doubleProperty(p);
       expect(qp.average(), avg);
       qp.close();
     };
 
     double floatBaseAvg = floats.reduce((a,b) => a + b) / floats.length;
 
-    qpFloat(tFloat,  floatBaseAvg + 12345);
-    qpFloat(tDouble, floatBaseAvg + 12345);
+    qpFloat(tFloat,  floatBaseAvg + 0.10000000298023224);
+    qpFloat(tDouble, 0.30000000000000004);
 
     // close
-    query.close();
+    queryFloats.close();
+    queryIntegers.close();
   });
+
+  test(".find() default values on null results" , () {
+    box.putMany(integerList);
+    box.putMany(stringList);
+    box.putMany(floatList);
+
+    final queryIntegers = box.query(tLong.greaterThan(1000)).build();
+    final queryFloats   = box.query(tDouble.greaterThan(1000.0)).build();
+    final queryStrings  = box.query(tString.equals("can't find this")).build();
+
+    final integerDefaultValue = -2;
+
+    final qpInteger = (p, dv) {
+      final qp = queryIntegers.integerProperty(p);
+      expect(qp.find(defaultValue: -2), dv);
+      qp.close();
+    };
+
+    tIntegers.forEach((i) {
+      qpInteger(i, integerDefaultValue);
+    });
+
+    // floats
+    final floatDefaultValue = -1337.0;
+
+    final qpFloat = (p, dv) {
+      final qp = queryFloats.doubleProperty(p);
+      expect(qp.find(defaultValue: -1337.0), dv);
+      qp.close();
+    };
+
+    qpFloat(tFloat, floatDefaultValue);
+    qpFloat(tDouble, floatDefaultValue);
+
+  });
+
+  test(".distinct, .count, .close property query", () {
+    box.putMany(integerList);
+    box.putMany(stringList);
+    box.putMany(floatList);
+
+    // int
+    tIntegers.forEach((t) {
+      final query = box.query(t.lessThan(100)).build();
+      final queryInt = query.property(t);
+      expect(queryInt.count(), 4); // TODO replace
+      expect((queryInt..distinct = true).count(), 4); // TODO replace
+      queryInt.close();
+      query.close();
+    });
+
+    // floats
+    tFloats.forEach((t) {
+      final query = box.query(t.lessThan(100.0)).build();
+      final queryFloat = query.property(t);
+      expect(queryFloat.count(), 4); // TODO replace
+      expect((queryFloat..distinct = true).count(), 4); // TODO replace
+      queryFloat.close();
+      query.close();
+    });
+
+    // string
+    final query = box.query(tString.contains("t")).build();
+    final queryString = query.property(tString);
+    expect(queryString.count(), 4); // TODO replace
+    expect((queryString..distinct = true).count(), 4); // TODO replace
+    queryString.close();
+    query.close();
+
+  });
+
+  // TODO write tests for byte and char
 
   tearDown(() {
     env.close();
