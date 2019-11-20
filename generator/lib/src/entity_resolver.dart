@@ -1,59 +1,55 @@
 import "dart:async";
 import "dart:convert";
-import "dart:io";
 import "package:analyzer/dart/element/element.dart";
 import 'package:build/build.dart';
-import "package:build/src/builder/build_step.dart";
 import "package:source_gen/source_gen.dart";
 import "package:objectbox/objectbox.dart" as obx;
 import "package:objectbox/src/bindings/constants.dart";
 import "package:objectbox/src/modelinfo/index.dart";
-import "code_chunks.dart";
-import "merge.dart";
 
-class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
-  static const modelJSON = "objectbox-model.json";
-  static const modelDart = "objectbox_model.dart";
+/// EntityResolver finds all classes with an @Entity annotation and generates ".objectbox.info" files in build cache.
+/// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
+class EntityResolver extends Builder {
+  @override
+  final buildExtensions = {
+    '.dart': ['.objectbox.info']
+  };
 
-  Future<ModelInfo> _loadModelInfo() async {
-    if ((await FileSystemEntity.type(modelJSON)) == FileSystemEntityType.notFound) {
-      return ModelInfo.createDefault();
-    }
-    return ModelInfo.fromMap(json.decode(await (File(modelJSON).readAsString())));
-  }
-
-  void _writeModelInfo(ModelInfo modelInfo) async {
-    final json = JsonEncoder.withIndent("  ").convert(modelInfo.toMap());
-    await File(modelJSON).writeAsString(json);
-
-    final code = CodeChunks.modelInfoDefinition(modelInfo);
-    await File(modelDart).writeAsString(code);
-  }
-
+  final _annotationChecker = const TypeChecker.fromRuntime(obx.Entity);
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
 
   @override
-  Future<String> generateForAnnotatedElement(
-      Element elementBare, ConstantReader annotation, BuildStep buildStep) async {
+  FutureOr<void> build(BuildStep buildStep) async {
+    final resolver = buildStep.resolver;
+    if (!await resolver.isLibrary(buildStep.inputId)) return;
+    final libReader = LibraryReader(await buildStep.inputLibrary);
+
+    // generate for all entities
+    final entities = List<Map<String, dynamic>>();
+    for (var annotatedEl in libReader.annotatedWith(_annotationChecker)) {
+      entities.add(generateForAnnotatedElement(annotatedEl.element, annotatedEl.annotation).toMap());
+    }
+
+    if (entities.isEmpty) return;
+
+    final json = JsonEncoder().convert(entities);
+    await buildStep.writeAsString(buildStep.inputId.changeExtension(".objectbox.info"), json);
+  }
+
+  ModelEntity generateForAnnotatedElement(Element elementBare, ConstantReader annotation) {
     try {
       if (elementBare is! ClassElement) {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
       }
       var element = elementBare as ClassElement;
 
-      log.warning(buildStep.inputId.toString());
-
-      // load existing model from JSON file if possible
-      String inputFileId = buildStep.inputId.toString();
-      ModelInfo modelInfo = await _loadModelInfo();
-
-      var code = "";
-
       // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-      ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], modelInfo);
+      ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], null);
       var entityUid = annotation.read("uid");
       if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
+
+      log.info("entity ${readEntity.name}(${readEntity.id})");
 
       // read all suitable annotated properties
       bool hasIdProperty = false;
@@ -64,11 +60,11 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         if (_idChecker.hasAnnotationOfExact(f)) {
           if (hasIdProperty) {
             throw InvalidGenerationSourceError(
-                "in target ${elementBare.name}: has more than one properties annotated with @Id");
+              "in target ${elementBare.name}: has more than one properties annotated with @Id");
           }
           if (f.type.toString() != "int") {
             throw InvalidGenerationSourceError(
-                "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+              "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
           }
 
           hasIdProperty = true;
@@ -83,12 +79,6 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
           propUid = _propertyAnnotation.getField('uid').toIntValue();
           fieldType = _propertyAnnotation.getField('type').toIntValue();
           flags = _propertyAnnotation.getField('flag').toIntValue() ?? 0;
-
-          log.info(
-              "annotated property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
-        } else {
-          log.info(
-              "property found on ${f.name} with parameters: propUid(${propUid}) fieldType(${fieldType}) flags(${flags})");
         }
 
         if (fieldType == null) {
@@ -110,7 +100,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
             fieldType = OBXPropertyType.Double;
           } else {
             log.warning(
-                "skipping field '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
+              "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
             continue;
           }
         }
@@ -119,6 +109,8 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         ModelProperty prop = ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
         if (propUid != null) prop.id.uid = propUid;
         readEntity.properties.add(prop);
+
+        log.info("  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}");
       }
 
       // some checks on the entity's integrity
@@ -126,20 +118,7 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
         throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
       }
 
-      // merge existing model and annotated model that was just read, then write new final model to file
-      mergeEntity(modelInfo, readEntity);
-      _writeModelInfo(modelInfo);
-
-      readEntity = modelInfo.findEntityByName(element.name);
-      if (readEntity == null) return code;
-
-      // main code for instance builders and readers
-      code += CodeChunks.instanceBuildersReaders(readEntity);
-
-      // for building queries
-      code += CodeChunks.queryConditionClasses(readEntity);
-
-      return code;
+      return readEntity;
     } catch (e, s) {
       log.warning(s);
       rethrow;
