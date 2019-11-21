@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:convert';
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
@@ -6,43 +7,33 @@ import 'package:path/path.dart' as path;
 import 'package:objectbox/objectbox.dart';
 import 'entity_resolver.dart';
 import 'merge.dart';
+import 'code_chunks.dart';
 
 /// CodeBuilder collects all ".objectbox.info" files created by EntityResolver and generates objectbox-model.json and
 /// objectbox_model.dart
 class CodeBuilder extends Builder {
   static final jsonFile = 'objectbox-model.json';
-  static final codeFile = 'objectbox_model.dart';
+  static final codeFile = 'objectbox.g.dart';
 
   @override
   final buildExtensions = {r'$lib$': _outputs, r'$test$': _outputs};
-  static final _outputs = [jsonFile, codeFile];
+
+  // we can't write `jsonFile` as part of the output because we want it persisted, not removed before each generation
+  static final _outputs = [codeFile];
+
+  String dir(BuildStep buildStep) => path.dirname(buildStep.inputId.path);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
-    // will be only called once, for the whole directory
-    final dir = path.dirname(buildStep.inputId.path);
+    // build() will be called only twice, once for the `lib` directory and once for the `test` directory
 
     // map from file name to a "json" representation of entities
     final files = Map<String, List<dynamic>>();
-    final glob = Glob(path.join(dir, '**' + EntityResolver.suffix));
+    final glob = Glob(path.join(dir(buildStep), '**' + EntityResolver.suffix));
     await for (final input in buildStep.findAssets(glob)) {
       files[input.path] = json.decode(await buildStep.readAsString(input));
     }
     if (files.isEmpty) return;
-
-    log.info("Package: ${buildStep.inputId.package}");
-    log.info("Found entity files: ${files.keys}");
-
-    // load an existing model or initialize a new one
-    ModelInfo model;
-    final jsonId = AssetId(buildStep.inputId.package, path.join(dir, jsonFile));
-    if (await buildStep.canRead(jsonId)) {
-      log.info("Reading model: ${jsonId.path}");
-      model = ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
-    } else {
-      log.warning("Creating new model: ${jsonId.path}");
-      model = ModelInfo.createDefault();
-    }
 
     // collect all entities and sort them by name
     final entities = List<ModelEntity>();
@@ -53,33 +44,51 @@ class CodeBuilder extends Builder {
     }
     entities.sort((a, b) => a.name.compareTo(b.name));
 
+    log.info("Package: ${buildStep.inputId.package}");
+    log.info("Found ${entities.length} entities in: ${files.keys}");
+
+    // update the model JSON with the read entities
+    final model = await updateModel(entities, buildStep);
+
+    // generate binding code
+    updateCode(model, files.keys.toList(growable: false), buildStep);
+  }
+
+  Future<ModelInfo> updateModel(List<ModelEntity> entities, BuildStep buildStep) async {
+    // load an existing model or initialize a new one
+    ModelInfo model;
+    final jsonId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), jsonFile));
+    if (await buildStep.canRead(jsonId)) {
+      log.info("Reading model: ${jsonId.path}");
+      model = ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
+    } else {
+      log.warning("Creating new model: ${jsonId.path}");
+      model = ModelInfo.createDefault();
+    }
+
     // merge existing model and annotated model that was just read, then write new final model to file
     entities.forEach((entity) => mergeEntity(model, entity));
 
-    // write model info
-    await buildStep.writeAsString(jsonId, JsonEncoder.withIndent("  ").convert(model.toMap()));
+    // TODO remove ("retire") missing entities
 
-    // TODO write code
+    // write model info
+    // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.
+    // await buildStep.writeAsString(jsonId, JsonEncoder.withIndent("  ").convert(model.toMap()));
+    await File(jsonId.path).writeAsString(JsonEncoder.withIndent("  ").convert(model.toMap()));
+
+    return model;
   }
 
-//
-//      // load existing model from JSON file if possible
-//      ModelInfo modelInfo = await _loadModelInfo();
-//
-//      var code = "";
+  void updateCode(ModelInfo model, List<String> infoFiles, BuildStep buildStep) async {
+    // transform "/lib/path/entity.objectbox.info" to "path/entity.dart"
+    final imports = infoFiles
+        .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
+        .toList();
 
-//      // merge existing model and annotated model that was just read, then write new final model to file
-//      mergeEntity(modelInfo, readEntity);
-//      _writeModelInfo(modelInfo);
-//
-//      readEntity = modelInfo.findEntityByName(element.name);
-//      if (readEntity == null) return code;
-//
-//      // main code for instance builders and readers
-//      code += CodeChunks.instanceBuildersReaders(readEntity);
-//
-//      // for building queries
-//      code += CodeChunks.queryConditionClasses(readEntity);
-//
-//      return code;
+    var code = CodeChunks.objectboxDart(model, imports);
+
+    final codeId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), codeFile));
+    log.info("Generating code to: ${codeId.path}");
+    await buildStep.writeAsString(codeId, code);
+  }
 }
