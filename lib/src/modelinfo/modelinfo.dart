@@ -143,9 +143,9 @@ class ModelInfo {
     return ret;
   }
 
-  ModelEntity createCopiedEntity(ModelEntity other) {
+  ModelEntity addEntity(ModelEntity other) {
     ModelEntity ret = createEntity(other.name, other.id.uid);
-    other.properties.forEach((p) => ret.createCopiedProperty(p));
+    other.properties.forEach((p) => ret.addProperty(p));
     return ret;
   }
 
@@ -159,6 +159,18 @@ class ModelInfo {
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
+  }
+
+  void removeEntity(ModelEntity entity) {
+    if (entity == null) throw Exception("entity == null");
+
+    final foundEntity = findSameEntity(entity);
+    if (foundEntity == null) {
+      throw Exception("cannot remove entity '${entity.name}' with id ${entity.id.toString()}: not found");
+    }
+    entities = entities.where((p) => p != foundEntity).toList();
+    retiredEntityUids.add(entity.id.uid);
+    entity.properties.forEach((prop) => retiredPropertyUids.add(prop.id.uid));
   }
 
   int generateUid() {

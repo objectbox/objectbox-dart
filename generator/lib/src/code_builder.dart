@@ -6,7 +6,6 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:objectbox/objectbox.dart';
 import 'entity_resolver.dart';
-import 'merge.dart';
 import 'code_chunks.dart';
 
 /// CodeBuilder collects all ".objectbox.info" files created by EntityResolver and generates objectbox-model.json and
@@ -67,9 +66,7 @@ class CodeBuilder extends Builder {
     }
 
     // merge existing model and annotated model that was just read, then write new final model to file
-    entities.forEach((entity) => mergeEntity(model, entity));
-
-    // TODO remove ("retire") missing entities
+    merge(model, entities);
 
     // write model info
     // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.
@@ -85,10 +82,63 @@ class CodeBuilder extends Builder {
         .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
         .toList();
 
-    var code = CodeChunks.objectboxDart(model, imports);
+    final code = CodeChunks.objectboxDart(model, imports);
 
     final codeId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), codeFile));
     log.info("Generating code to: ${codeId.path}");
     await buildStep.writeAsString(codeId, code);
+  }
+
+  void merge(ModelInfo model, List<ModelEntity> entities) {
+    // update existing and add new, while collecting all entity IDs at the end
+    final currentEntityIds = Map<int, bool>();
+    entities.forEach((entity) {
+      final id = mergeEntity(model, entity);
+      currentEntityIds[id.id] = true;
+    });
+
+    // remove ("retire") missing entities
+    model.entities.where((entity) => !currentEntityIds.containsKey(entity.id.id)).forEach((entity) {
+      log.warning("Entity ${entity.name}(${entity.id.toString()}) not found in the code, removing from the model");
+      model.removeEntity(entity);
+    });
+
+    entities.forEach((entity) => mergeEntity(model, entity));
+  }
+
+  void mergeProperty(ModelEntity entity, ModelProperty prop) {
+    ModelProperty propInModel = entity.findSameProperty(prop);
+    if (propInModel == null) {
+      log.info("Found new property ${entity.name}.${prop.name}");
+      entity.addProperty(prop);
+    } else {
+      propInModel.type = prop.type;
+      propInModel.flags = prop.flags;
+    }
+  }
+
+  IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
+    // "readEntity" only contains the entity info directly read from the annotations and Dart source (i.e. with missing ID, lastPropertyId etc.)
+    // "entityInModel" is the entity from the model with all correct id/uid, lastPropertyId etc.
+    ModelEntity entityInModel = modelInfo.findSameEntity(entity);
+
+    if (entityInModel == null) {
+      log.info("Found new entity ${entity.name}");
+      // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged
+      final createdEntity = modelInfo.addEntity(entity);
+      return createdEntity.id;
+    }
+
+    // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
+    entity.properties.forEach((p) => mergeProperty(entityInModel, p));
+
+    // then remove all properties not present anymore in readEntity
+    entityInModel.properties.where((p) => entity.findSameProperty(p) == null).forEach((p) {
+      log.warning(
+          "Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model");
+      entityInModel.removeProperty(p);
+    });
+
+    return entityInModel.id;
   }
 }

@@ -111,30 +111,21 @@ class ModelEntity {
     return property;
   }
 
-  ModelProperty createCopiedProperty(ModelProperty prop) {
+  ModelProperty addProperty(ModelProperty prop) {
     ModelProperty ret = createProperty(prop.name, prop.id.uid);
     ret.type = prop.type;
     ret.flags = prop.flags;
     return ret;
   }
 
-  void _recalculateLastPropertyId() {
-    // assign id/uid of property with largest id to lastPropertyId
-    lastPropertyId = null;
-    properties.forEach((p) {
-      if (lastPropertyId == null || p.id.id > lastPropertyId.id) lastPropertyId = p.id;
-    });
-  }
-
   void removeProperty(ModelProperty prop) {
-    if (prop == null) return;
+    if (prop == null) throw Exception("prop == null");
     ModelProperty foundProp = findSameProperty(prop);
     if (foundProp == null) {
       throw Exception("cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
     }
     properties = properties.where((p) => p != foundProp).toList();
     model.retiredPropertyUids.add(prop.id.uid);
-    _recalculateLastPropertyId();
   }
 
   bool containsUid(int searched) {
