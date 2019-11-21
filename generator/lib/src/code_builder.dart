@@ -5,6 +5,7 @@ import 'package:build/build.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:objectbox/objectbox.dart';
+import 'package:dart_style/dart_style.dart';
 import 'entity_resolver.dart';
 import 'code_chunks.dart';
 
@@ -82,7 +83,8 @@ class CodeBuilder extends Builder {
         .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
         .toList();
 
-    final code = CodeChunks.objectboxDart(model, imports);
+    var code = CodeChunks.objectboxDart(model, imports);
+    code = DartFormatter().format(code);
 
     final codeId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), codeFile));
     log.info("Generating code to: ${codeId.path}");
