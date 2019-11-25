@@ -4,6 +4,8 @@ import "modelinfo.dart";
 import "modelproperty.dart";
 import "package:objectbox/src/bindings/constants.dart";
 
+/// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
+/// information: id, name and last property id.
 class ModelEntity {
   IdUid id, lastPropertyId;
   String name;

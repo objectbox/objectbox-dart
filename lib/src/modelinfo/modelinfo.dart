@@ -7,6 +7,10 @@ import "iduid.dart";
 const _minModelVersion = 5;
 const _maxModelVersion = 5;
 
+/// In order to represent the model stored in `objectbox-model.json` in Dart, several classes have been introduced.
+/// Conceptually, these classes are comparable to how models are handled in ObjectBox Java and ObjectBox Go; eventually,
+/// ObjectBox Dart models will be fully compatible to them. This is also why for explanations on most concepts related
+/// to ObjectBox models, you can refer to the [existing documentation](https://docs.objectbox.io/advanced).
 class ModelInfo {
   static const notes = [
     "KEEP THIS FILE! Check it into a version control system (VCS) like git.",

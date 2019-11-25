@@ -30,8 +30,8 @@ builders:
     # build_extensions: Required. A map from input extension to the list of output extensions that may be created
     # for that input. This must match the merged buildExtensions maps from each Builder in builder_factories.
     build_extensions:
-      "$lib$": ["/objectbox_model.dart"]
-      "$test": ["/objectbox_model.dart"]
+      "$lib$": ["objectbox.g.dart"]
+      "$test": ["objectbox.g.dart"]
     required_inputs: ['.objectbox.info']
     auto_apply: dependents
     build_to: source
