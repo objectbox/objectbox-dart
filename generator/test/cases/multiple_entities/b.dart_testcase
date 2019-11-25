@@ -1,0 +1,8 @@
+import "package:objectbox/objectbox.dart";
+part "b.g.dart";
+
+@Entity(uid: 2)
+class B {
+  @Id(uid: 21)
+  int id;
+}

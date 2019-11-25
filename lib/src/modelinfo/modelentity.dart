@@ -1,3 +1,4 @@
+import '../util.dart';
 import "iduid.dart";
 import "modelinfo.dart";
 import "modelproperty.dart";
@@ -8,15 +9,21 @@ class ModelEntity {
   String name;
   List<ModelProperty> properties;
   String idPropName;
-  ModelInfo model;
+  ModelInfo _model;
 
-  ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this.model) {
+  ModelInfo get model => (_model == null) ? throw Exception("model is null") : _model;
+
+  set model(ModelInfo model) {
+    this._model = model;
+  }
+
+  ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this._model) {
     validate();
   }
 
-  ModelEntity.fromMap(Map<String, dynamic> data, this.model) {
-    id = IdUid(data["id"]);
-    lastPropertyId = IdUid(data["lastPropertyId"]);
+  ModelEntity.fromMap(Map<String, dynamic> data) {
+    id = IdUid.fromString(data["id"]);
+    lastPropertyId = IdUid.fromString(data["lastPropertyId"]);
     name = data["name"];
     properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
     validate();
@@ -25,11 +32,11 @@ class ModelEntity {
   void validate() {
     if (name == null || name.isEmpty) throw Exception("name is not defined");
     if (properties == null) throw Exception("properties is null");
-    if (model == null) throw Exception("model is null");
 
     if (properties.isEmpty) {
       if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");
     } else {
+      if (lastPropertyId == null) throw Exception("lastPropertyId is null");
       var entity = this;
       bool lastPropertyIdFound = false;
 
@@ -50,16 +57,16 @@ class ModelEntity {
         }
       });
 
-      if (properties.isNotEmpty && !lastPropertyIdFound) {
+      if (!lastPropertyIdFound && !listContains(model.retiredPropertyUids, lastPropertyId.uid)) {
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
       }
-    }
 
-    for (int i = 0; i < properties.length; ++i) {
-      final ModelProperty p = properties[i];
-      if ((p.flags & OBXPropertyFlag.ID) != 0) {
-        idPropName = p.name;
-        break;
+      for (int i = 0; i < properties.length; ++i) {
+        final ModelProperty p = properties[i];
+        if ((p.flags & OBXPropertyFlag.ID) != 0) {
+          idPropName = p.name;
+          break;
+        }
       }
     }
   }
@@ -98,7 +105,7 @@ class ModelEntity {
     if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    var property = ModelProperty(IdUid.create(id, uniqueUid), name, 0, 0, this);
+    var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
     properties.add(property);
     lastPropertyId = property.id;
     return property;

@@ -12,7 +12,7 @@ class ModelProperty {
   }
 
   ModelProperty.fromMap(Map<String, dynamic> data, this.entity) {
-    id = IdUid(data["id"]);
+    id = IdUid.fromString(data["id"]);
     name = data["name"];
     type = data["type"];
     flags = data.containsKey("flags") ? data["flags"] : 0;

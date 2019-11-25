@@ -1,0 +1,34 @@
+// **************************************************************************
+// EntityGenerator
+// **************************************************************************
+
+ModelEntity _A_OBXModelGetter() {
+  return ModelEntity.fromMap({
+    "id": "1:1",
+    "lastPropertyId": "1:11",
+    "name": "A",
+    "properties": [
+      {"id": "1:11", "name": "id", "type": 6, "flags": 1}
+    ]
+  });
+}
+
+A _A_OBXBuilder(Map<String, dynamic> members) {
+  A r = A();
+  r.id = members["id"];
+  return r;
+}
+
+Map<String, dynamic> _A_OBXReader(A inst) {
+  Map<String, dynamic> r = {};
+  r["id"] = inst.id;
+  return r;
+}
+
+const A_OBXDefs =
+    EntityDefinition<A>(_A_OBXModelGetter, _A_OBXReader, _A_OBXBuilder);
+
+class A_ {
+  static final id =
+      QueryIntegerProperty(entityId: 1, propertyId: 1, obxType: 6);
+}

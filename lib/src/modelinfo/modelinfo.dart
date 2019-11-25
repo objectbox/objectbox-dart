@@ -1,5 +1,6 @@
 import "dart:math";
 
+import '../util.dart';
 import "modelentity.dart";
 import "iduid.dart";
 
@@ -18,6 +19,20 @@ class ModelInfo {
   List<int> retiredEntityUids, retiredIndexUids, retiredPropertyUids, retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
 
+  ModelInfo(
+      {this.entities,
+      this.lastEntityId,
+      this.lastIndexId,
+      this.lastRelationId,
+      this.lastSequenceId,
+      this.retiredEntityUids,
+      this.retiredIndexUids,
+      this.retiredPropertyUids,
+      this.retiredRelationUids,
+      this.modelVersion,
+      this.modelVersionParserMinimum,
+      this.version});
+
   ModelInfo.createDefault()
       : entities = [],
         lastEntityId = IdUid.empty(),
@@ -33,11 +48,11 @@ class ModelInfo {
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data) {
-    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e, this)).toList();
-    lastEntityId = IdUid(data["lastEntityId"]);
-    lastIndexId = IdUid(data["lastIndexId"]);
-    lastRelationId = IdUid(data["lastRelationId"]);
-    lastSequenceId = IdUid(data["lastSequenceId"]);
+    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e)..model = this).toList();
+    lastEntityId = IdUid.fromString(data["lastEntityId"]);
+    lastIndexId = IdUid.fromString(data["lastIndexId"]);
+    lastRelationId = IdUid.fromString(data["lastRelationId"]);
+    lastSequenceId = IdUid.fromString(data["lastSequenceId"]);
     modelVersion = data["modelVersion"];
     modelVersionParserMinimum = data["modelVersionParserMinimum"];
     retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
@@ -63,6 +78,7 @@ class ModelInfo {
     if (retiredIndexUids == null) throw Exception("retiredIndexUids is null");
     if (retiredPropertyUids == null) throw Exception("retiredPropertyUids is null");
     if (retiredRelationUids == null) throw Exception("retiredRelationUids is null");
+    if (lastEntityId == null) throw Exception("lastEntityId is null");
 
     var model = this;
     bool lastEntityIdFound = false;
@@ -83,7 +99,7 @@ class ModelInfo {
       }
     });
 
-    if (entities.isNotEmpty && !lastEntityIdFound) {
+    if (!lastEntityIdFound && !listContains(model.retiredEntityUids, lastEntityId.uid)) {
       throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
     }
   }
@@ -139,7 +155,7 @@ class ModelInfo {
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
     int uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = ModelEntity(IdUid.create(id, uniqueUid), null, name, [], this);
+    var entity = ModelEntity(IdUid(id, uniqueUid), null, name, [], this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
@@ -158,16 +174,16 @@ class ModelInfo {
     throw Exception("internal error: could not generate a unique UID");
   }
 
-  bool containsUid(int searched) {
-    if (lastEntityId.uid == searched) return true;
-    if (lastIndexId.uid == searched) return true;
-    if (lastRelationId.uid == searched) return true;
-    if (lastSequenceId.uid == searched) return true;
-    if (entities.indexWhere((e) => e.containsUid(searched)) != -1) return true;
-    if (retiredEntityUids.indexWhere((x) => x == searched) != -1) return true;
-    if (retiredIndexUids.indexWhere((x) => x == searched) != -1) return true;
-    if (retiredPropertyUids.indexWhere((x) => x == searched) != -1) return true;
-    if (retiredRelationUids.indexWhere((x) => x == searched) != -1) return true;
+  bool containsUid(int uid) {
+    if (lastEntityId.uid == uid) return true;
+    if (lastIndexId.uid == uid) return true;
+    if (lastRelationId.uid == uid) return true;
+    if (lastSequenceId.uid == uid) return true;
+    if (entities.indexWhere((e) => e.containsUid(uid)) != -1) return true;
+    if (listContains(retiredEntityUids, uid)) return true;
+    if (listContains(retiredIndexUids, uid)) return true;
+    if (listContains(retiredPropertyUids, uid)) return true;
+    if (listContains(retiredRelationUids, uid)) return true;
     return false;
   }
 }

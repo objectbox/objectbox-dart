@@ -1,31 +1,18 @@
+import "dart:convert";
 import "package:objectbox/src/modelinfo/index.dart";
 import "package:objectbox/src/bindings/constants.dart" show OBXPropertyType;
 import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
 
 class CodeChunks {
+  // TODO ModelInfo, once per DB
   static String modelInfoLoader() => """
-      Map<int, ModelEntity> _allOBXModelEntities;
-
-      void _loadOBXModelEntities() {
-        _allOBXModelEntities = {};
-        ModelInfo modelInfo = ModelInfo.fromMap(||MODEL-JSON||);
-        modelInfo.entities.forEach((e) => _allOBXModelEntities[e.id.uid] = e);
-      }
-
-      ModelEntity _getOBXModelEntity(int entityUid) {
-        if (_allOBXModelEntities == null) _loadOBXModelEntities();
-        if (!_allOBXModelEntities.containsKey(entityUid)) {
-            throw Exception("entity uid missing in objectbox-model.json: \$entityUid");
-        }
-        return _allOBXModelEntities[entityUid];
-      }
     """;
 
   static String instanceBuildersReaders(ModelEntity readEntity) {
     String name = readEntity.name;
     return """
         ModelEntity _${name}_OBXModelGetter() {
-          return _getOBXModelEntity(${readEntity.id.uid});
+          return ModelEntity.fromMap(${JsonEncoder().convert(readEntity.toMap())});
         }
 
         $name _${name}_OBXBuilder(Map<String, dynamic> members) {

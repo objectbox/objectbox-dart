@@ -128,9 +128,6 @@ class EntityGenerator extends GeneratorForAnnotation<obx.Entity> {
       final modelJson = JsonEncoder.withIndent("  ").convert(allModels.toMap());
       await File(ALL_MODELS_JSON).writeAsString(modelJson);
 
-      // add model-json to the generated code
-      ret = ret.replaceFirst('||MODEL-JSON||', modelJson);
-
       readEntity = allModels.findEntityByName(element.name);
       if (readEntity == null) return ret;
 
