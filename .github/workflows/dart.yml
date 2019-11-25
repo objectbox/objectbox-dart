@@ -12,9 +12,10 @@ jobs:
       - name: Install dependencies
         working-directory: generator
         run: pub get
-      - name: Run tests
-        working-directory: generator
-        run: pub run test
+# Disabled temporarily, pending rework in #37
+#      - name: Run tests
+#        working-directory: generator
+#        run: pub run test
 
   lib:
     needs: generator
