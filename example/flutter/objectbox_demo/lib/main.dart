@@ -3,7 +3,7 @@ import 'package:objectbox/objectbox.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-part "main.g.dart";
+import 'objectbox.g.dart';
 
 @Entity()
 class Note {
@@ -65,7 +65,7 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
   @override
   void initState() {
     getApplicationDocumentsDirectory().then((dir) {
-      _store = Store([Note_OBXDefs], directory: dir.path + "/objectbox");
+      _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
       _box = Box<Note>(_store);
       List<Note> notesFromDb = _box.getAll();
       setState(() => _notes = notesFromDb);

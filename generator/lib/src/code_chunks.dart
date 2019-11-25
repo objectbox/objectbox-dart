@@ -4,41 +4,50 @@ import "package:objectbox/src/bindings/constants.dart" show OBXPropertyType;
 import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
 
 class CodeChunks {
-  // TODO ModelInfo, once per DB
-  static String modelInfoLoader() => """
+  static String objectboxDart(ModelInfo model, List<String> imports) => """
+    // GENERATED CODE - DO NOT MODIFY BY HAND
+    
+    import 'package:objectbox/objectbox.dart';
+    export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
+    import '${imports.join("';\n import '")}';
+    
+    ModelDefinition getObjectBoxModel() {
+      final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap(forCodeGen: true))});
+      
+      final bindings = Map<Type, EntityDefinition>();
+      ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 
+      
+      return ModelDefinition(model, bindings);
+    }
+    
+    ${model.entities.map((entity) => queryConditionClasses(entity)).join("\n")}
     """;
 
-  static String instanceBuildersReaders(ModelEntity readEntity) {
-    String name = readEntity.name;
+  static String entityBinding(ModelEntity entity) {
+    String name = entity.name;
     return """
-        ModelEntity _${name}_OBXModelGetter() {
-          return ModelEntity.fromMap(${JsonEncoder().convert(readEntity.toMap())});
-        }
-
-        $name _${name}_OBXBuilder(Map<String, dynamic> members) {
+      EntityDefinition<${name}>(
+        model: model.findEntityByUid(${entity.id.uid}),
+        reader: ($name inst) => {
+          ${entity.properties.map((p) => "\"${p.name}\": inst.${p.name}").join(",\n")}
+        },
+        writer: (Map<String, dynamic> members) {
           $name r = $name();
-          ${readEntity.properties.map((p) => "r.${p.name} = members[\"${p.name}\"];").join()}
+          ${entity.properties.map((p) => "r.${p.name} = members[\"${p.name}\"];").join()}
           return r;
         }
-
-        Map<String, dynamic> _${name}_OBXReader($name inst) {
-          Map<String, dynamic> r = {};
-          ${readEntity.properties.map((p) => "r[\"${p.name}\"] = inst.${p.name};").join()}
-          return r;
-        }
-
-        const ${name}_OBXDefs = EntityDefinition<${name}>(_${name}_OBXModelGetter, _${name}_OBXReader, _${name}_OBXBuilder);
+      )
       """;
   }
 
-  static String _queryConditionBuilder(ModelEntity readEntity) {
+  static String _queryConditionBuilder(ModelEntity entity) {
     final ret = <String>[];
-    for (var f in readEntity.properties) {
-      final name = f.name;
+    for (var prop in entity.properties) {
+      final name = prop.name;
 
       // see OBXPropertyType
       String fieldType;
-      switch (f.type) {
+      switch (prop.type) {
         case OBXPropertyType.Bool:
           fieldType = "Boolean";
           break;
@@ -64,21 +73,21 @@ class CodeChunks {
         case OBXPropertyType.Long:
           continue integer;
         default:
-          throw InvalidGenerationSourceError("Unsupported property type (${f.type}): ${readEntity.name}.${name}");
+          throw InvalidGenerationSourceError("Unsupported property type (${prop.type}): ${entity.name}.${name}");
       }
 
       ret.add("""
-        static final ${name} = Query${fieldType}Property(entityId:${readEntity.id.id}, propertyId:${f.id.id}, obxType:${f.type});
+        static final ${name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
         """);
     }
     return ret.join();
   }
 
-  static String queryConditionClasses(ModelEntity readEntity) {
+  static String queryConditionClasses(ModelEntity entity) {
     // TODO add entity.id check to throw an error Box if the wrong entity.property is used
     return """
-    class ${readEntity.name}_ {
-      ${_queryConditionBuilder(readEntity)}
+    class ${entity.name}_ {
+      ${_queryConditionBuilder(entity)}
     }""";
   }
 }

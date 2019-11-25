@@ -1,6 +1,7 @@
 import "modelentity.dart";
 import "iduid.dart";
 
+/// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
   IdUid id;
   String name;

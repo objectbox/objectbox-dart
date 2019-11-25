@@ -62,7 +62,7 @@ Future<Map<AssetId, String>> _buildGeneratorOutput(String caseName) async {
   var reader = _SingleFileAssetReader();
   Resolvers resolvers = AnalyzerResolvers();
 
-  await runBuilder(objectboxModelFactory(BuilderOptions.empty), entities, reader, writer, resolvers);
+  await runBuilder(entityBindingBuilder(BuilderOptions.empty), entities, reader, writer, resolvers);
   return writer.output;
 }
 
@@ -85,7 +85,7 @@ void testGeneratorOutput(String caseName, bool updateExpected) {
     Map<AssetId, String> built = await _buildGeneratorOutput(caseName);
 
     built.forEach((assetId, generatedCode) async {
-      final expectedPath = assetId.path.replaceAll(".objectbox_model.g.part", ".g.dart_expected");
+      final expectedPath = assetId.path.replaceAll(".objectbox_entity.g.part", ".g.dart_expected");
       checkExpectedContents(expectedPath, generatedCode, updateExpected);
     });
 

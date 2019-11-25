@@ -1,7 +1,7 @@
 import "package:test/test.dart";
-import "package:objectbox/objectbox.dart";
 import "entity.dart";
 import 'test_env.dart';
+import 'objectbox.g.dart';
 
 void main() {
   TestEnv env;

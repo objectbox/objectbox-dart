@@ -7,6 +7,10 @@ import "iduid.dart";
 const _minModelVersion = 5;
 const _maxModelVersion = 5;
 
+/// In order to represent the model stored in `objectbox-model.json` in Dart, several classes have been introduced.
+/// Conceptually, these classes are comparable to how models are handled in ObjectBox Java and ObjectBox Go; eventually,
+/// ObjectBox Dart models will be fully compatible to them. This is also why for explanations on most concepts related
+/// to ObjectBox models, you can refer to the [existing documentation](https://docs.objectbox.io/advanced).
 class ModelInfo {
   static const notes = [
     "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
@@ -55,10 +59,10 @@ class ModelInfo {
     lastSequenceId = IdUid.fromString(data["lastSequenceId"]);
     modelVersion = data["modelVersion"];
     modelVersionParserMinimum = data["modelVersionParserMinimum"];
-    retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
-    retiredIndexUids = data["retiredIndexUids"].map<int>((x) => x as int).toList();
-    retiredPropertyUids = data["retiredPropertyUids"].map<int>((x) => x as int).toList();
-    retiredRelationUids = data["retiredRelationUids"].map<int>((x) => x as int).toList();
+    retiredEntityUids = List<int>.from(data["retiredEntityUids"] ?? []);
+    retiredIndexUids = List<int>.from(data["retiredIndexUids"] ?? []);
+    retiredPropertyUids = List<int>.from(data["retiredPropertyUids"] ?? []);
+    retiredRelationUids = List<int>.from(data["retiredRelationUids"] ?? []);
     version = data["version"];
     validate();
   }
@@ -104,23 +108,27 @@ class ModelInfo {
     }
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({bool forCodeGen = false}) {
     Map<String, dynamic> ret = {};
-    ret["_note1"] = notes[0];
-    ret["_note2"] = notes[1];
-    ret["_note3"] = notes[2];
+    if (!forCodeGen) {
+      ret["_note1"] = notes[0];
+      ret["_note2"] = notes[1];
+      ret["_note3"] = notes[2];
+    }
     ret["entities"] = entities.map((p) => p.toMap()).toList();
     ret["lastEntityId"] = lastEntityId.toString();
     ret["lastIndexId"] = lastIndexId.toString();
     ret["lastRelationId"] = lastRelationId.toString();
     ret["lastSequenceId"] = lastSequenceId.toString();
     ret["modelVersion"] = modelVersion;
-    ret["modelVersionParserMinimum"] = modelVersionParserMinimum;
-    ret["retiredEntityUids"] = retiredEntityUids;
-    ret["retiredIndexUids"] = retiredIndexUids;
-    ret["retiredPropertyUids"] = retiredPropertyUids;
-    ret["retiredRelationUids"] = retiredRelationUids;
-    ret["version"] = version;
+    if (!forCodeGen) {
+      ret["modelVersionParserMinimum"] = modelVersionParserMinimum;
+      ret["retiredEntityUids"] = retiredEntityUids;
+      ret["retiredIndexUids"] = retiredIndexUids;
+      ret["retiredPropertyUids"] = retiredPropertyUids;
+      ret["retiredRelationUids"] = retiredRelationUids;
+      ret["version"] = version;
+    }
     return ret;
   }
 
@@ -143,9 +151,9 @@ class ModelInfo {
     return ret;
   }
 
-  ModelEntity createCopiedEntity(ModelEntity other) {
+  ModelEntity addEntity(ModelEntity other) {
     ModelEntity ret = createEntity(other.name, other.id.uid);
-    other.properties.forEach((p) => ret.createCopiedProperty(p));
+    other.properties.forEach((p) => ret.addProperty(p));
     return ret;
   }
 
@@ -159,6 +167,18 @@ class ModelInfo {
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
+  }
+
+  void removeEntity(ModelEntity entity) {
+    if (entity == null) throw Exception("entity == null");
+
+    final foundEntity = findSameEntity(entity);
+    if (foundEntity == null) {
+      throw Exception("cannot remove entity '${entity.name}' with id ${entity.id.toString()}: not found");
+    }
+    entities = entities.where((p) => p != foundEntity).toList();
+    retiredEntityUids.add(entity.id.uid);
+    entity.properties.forEach((prop) => retiredPropertyUids.add(prop.id.uid));
   }
 
   int generateUid() {

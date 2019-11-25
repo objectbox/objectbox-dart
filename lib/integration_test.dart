@@ -28,7 +28,7 @@ class IntegrationTest {
     modelInfo.lastEntityId = entity.id;
     modelInfo.validate();
 
-    final model = Model(modelInfo.entities);
+    final model = Model(modelInfo);
     checkObx(bindings.obx_model_free(model.ptr));
   }
 }

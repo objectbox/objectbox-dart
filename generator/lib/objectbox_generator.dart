@@ -1,5 +1,7 @@
 import "package:build/build.dart";
-import "package:source_gen/source_gen.dart";
-import "package:objectbox_generator/src/generator.dart";
+import "src/entity_resolver.dart";
+import "src/code_builder.dart";
 
-Builder objectboxModelFactory(BuilderOptions options) => SharedPartBuilder([EntityGenerator()], "objectbox_model");
+Builder entityResolverFactory(BuilderOptions options) => EntityResolver();
+
+Builder codeGeneratorFactory(BuilderOptions options) => CodeBuilder();
