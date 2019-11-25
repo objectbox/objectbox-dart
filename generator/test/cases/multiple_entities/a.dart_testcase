@@ -1,8 +1,0 @@
-import "package:objectbox/objectbox.dart";
-part "a.g.dart";
-
-@Entity(uid: 1)
-class A {
-  @Id(uid: 11)
-  int id;
-}
