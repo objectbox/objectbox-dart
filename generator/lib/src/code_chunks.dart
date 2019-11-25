@@ -12,7 +12,7 @@ class CodeChunks {
     import '${imports.join("';\n import '")}';
     
     ModelDefinition getObjectBoxModel() {
-      final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap())});
+      final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap(forCodeGen: true))});
       
       final bindings = Map<Type, EntityDefinition>();
       ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 

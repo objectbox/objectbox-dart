@@ -59,10 +59,10 @@ class ModelInfo {
     lastSequenceId = IdUid.fromString(data["lastSequenceId"]);
     modelVersion = data["modelVersion"];
     modelVersionParserMinimum = data["modelVersionParserMinimum"];
-    retiredEntityUids = data["retiredEntityUids"].map<int>((x) => x as int).toList();
-    retiredIndexUids = data["retiredIndexUids"].map<int>((x) => x as int).toList();
-    retiredPropertyUids = data["retiredPropertyUids"].map<int>((x) => x as int).toList();
-    retiredRelationUids = data["retiredRelationUids"].map<int>((x) => x as int).toList();
+    retiredEntityUids = List<int>.from(data["retiredEntityUids"] ?? []);
+    retiredIndexUids = List<int>.from(data["retiredIndexUids"] ?? []);
+    retiredPropertyUids = List<int>.from(data["retiredPropertyUids"] ?? []);
+    retiredRelationUids = List<int>.from(data["retiredRelationUids"] ?? []);
     version = data["version"];
     validate();
   }
@@ -108,23 +108,27 @@ class ModelInfo {
     }
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({bool forCodeGen = false}) {
     Map<String, dynamic> ret = {};
-    ret["_note1"] = notes[0];
-    ret["_note2"] = notes[1];
-    ret["_note3"] = notes[2];
+    if (!forCodeGen) {
+      ret["_note1"] = notes[0];
+      ret["_note2"] = notes[1];
+      ret["_note3"] = notes[2];
+    }
     ret["entities"] = entities.map((p) => p.toMap()).toList();
     ret["lastEntityId"] = lastEntityId.toString();
     ret["lastIndexId"] = lastIndexId.toString();
     ret["lastRelationId"] = lastRelationId.toString();
     ret["lastSequenceId"] = lastSequenceId.toString();
     ret["modelVersion"] = modelVersion;
-    ret["modelVersionParserMinimum"] = modelVersionParserMinimum;
-    ret["retiredEntityUids"] = retiredEntityUids;
-    ret["retiredIndexUids"] = retiredIndexUids;
-    ret["retiredPropertyUids"] = retiredPropertyUids;
-    ret["retiredRelationUids"] = retiredRelationUids;
-    ret["version"] = version;
+    if (!forCodeGen) {
+      ret["modelVersionParserMinimum"] = modelVersionParserMinimum;
+      ret["retiredEntityUids"] = retiredEntityUids;
+      ret["retiredIndexUids"] = retiredIndexUids;
+      ret["retiredPropertyUids"] = retiredPropertyUids;
+      ret["retiredRelationUids"] = retiredRelationUids;
+      ret["version"] = version;
+    }
     return ret;
   }
 

@@ -59,10 +59,10 @@ class CodeBuilder extends Builder {
     ModelInfo model;
     final jsonId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), jsonFile));
     if (await buildStep.canRead(jsonId)) {
-      log.info("Reading model: ${jsonId.path}");
+      log.info("Using model: ${jsonId.path}");
       model = ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
     } else {
-      log.warning("Creating new model: ${jsonId.path}");
+      log.warning("Creating model: ${jsonId.path}");
       model = ModelInfo.createDefault();
     }
 
@@ -87,7 +87,7 @@ class CodeBuilder extends Builder {
     code = DartFormatter().format(code);
 
     final codeId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), codeFile));
-    log.info("Generating code to: ${codeId.path}");
+    log.info("Generating code: ${codeId.path}");
     await buildStep.writeAsString(codeId, code);
   }
 
