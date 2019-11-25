@@ -9,6 +9,8 @@ jobs:
       image:  google/dart:latest
     steps:
       - uses: actions/checkout@v1
+      - name: Install ObjectBox C-API
+        run: ./install.sh
       - name: Run tests
         run: ./generator/test.sh
 
