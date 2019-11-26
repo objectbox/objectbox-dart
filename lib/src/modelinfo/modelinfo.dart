@@ -50,10 +50,7 @@ class ModelInfo {
       modelVersionParserMinimum = _maxModelVersion,
       version = 1;
 
-  ModelInfo.fromMap(Map<String, dynamic> data) {
-    entities = data["entities"].map<ModelEntity>((e) =>
-    ModelEntity.fromMap(e)
-      ..model = this).toList();
+  ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true}) {
     lastEntityId = IdUid.fromString(data["lastEntityId"]);
     lastIndexId = IdUid.fromString(data["lastIndexId"]);
     lastRelationId = IdUid.fromString(data["lastRelationId"]);
@@ -65,7 +62,9 @@ class ModelInfo {
     retiredPropertyUids = List<int>.from(data["retiredPropertyUids"] ?? []);
     retiredRelationUids = List<int>.from(data["retiredRelationUids"] ?? []);
     version = data["version"];
-    validate();
+    entities = data["entities"].map<ModelEntity>((e) =>
+      ModelEntity.fromMap(e, model: this, check: check)).toList();
+    if (check) validate();
   }
 
   void validate() {

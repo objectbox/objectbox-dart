@@ -15,15 +15,12 @@ class ModelEntity {
 
   ModelInfo get model => (_model == null) ? throw Exception("model is null") : _model;
 
-  set model(ModelInfo model) {
-    this._model = model;
-  }
-
   ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this._model) {
     validate();
   }
 
-  ModelEntity.fromMap(Map<String, dynamic> data, {bool check = true}) {
+  ModelEntity.fromMap(Map<String, dynamic> data, {ModelInfo model, bool check = true}) {
+    _model = model;
     id = IdUid.fromString(data["id"]);
     lastPropertyId = IdUid.fromString(data["lastPropertyId"]);
     name = data["name"];
