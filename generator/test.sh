@@ -1,17 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-myDir=$(dirname $0)
+myDir=$(dirname "$0")
 
-for testCase in "${myDir}"/test/*/ ; do
-    echo "Testing $testCase"
+function runTestFile() {
+  file="${1}.dart"
+  if [ -f "${file}" ]; then
+    # execute "N-pre.dart" file if it exists
+    if [ "${1}" != "0" ]; then
+      echo "Executing ${1}-pre.dart"
+      dart "${1}-pre.dart"
+    fi
 
-    # Clean up beforehand by remove all ignored files
-    git clean -fXd $testCase
+    # build before each step, except for "0.dart"
+    if [ "${1}" != "0" ]; then
+      echo "Running build_runner before ${file}"
+      pub run build_runner build
+    fi
+    echo "Running ${file}"
+    pub run test "${file}"
+  fi
+}
 
-    cd $testCase
-    pub get
-    pub run test ./before.dart
-    pub run build_runner build
-    pub run test ./after.dart
-done
+function runTestCase() {
+  testCase=$1
+  echo "Testing ${testCase}"
+
+  # Clean up beforehand by removing all ignored files
+  git clean -fXd "${testCase}"
+
+  cd "${testCase}"
+
+  pub get
+  for i in {0..9}; do
+    runTestFile $i
+  done
+
+  cd -
+}
+
+if [ $# -eq 0 ]; then
+  for testCase in "${myDir}"/test/*/; do
+    runTestCase "${testCase}"
+  done
+else
+  runTestCase "${myDir}/test/$1"
+fi

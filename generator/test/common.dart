@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 /// Configures test cases to check that the model is specified correctly
 commonModelTests(ModelDefinition defs) {
   test("model bindings", () {
-    expect(defs.bindings.length, 3);
+    expect(defs.bindings.length, defs.model.entities.length);
   });
 
   test("unique UIDs", () {
@@ -16,7 +16,6 @@ commonModelTests(ModelDefinition defs) {
           ..addAll(entity.properties.map((prop) => prop.id.uid)))
         .reduce((List<int> a, List<int> b) => a + b);
 
-    expect(allUIDs.length, 7);
     expect(allUIDs.toSet().length, allUIDs.length);
   });
 

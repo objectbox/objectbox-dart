@@ -136,7 +136,7 @@ class Box<T> {
   }
 
   /// Retrieves the stored object with the ID [id] from this box's database. Returns null if not found.
-  get(int id) {
+  T get(int id) {
     final dataPtrPtr = allocate<Pointer<Uint8>>();
     final sizePtr = allocate<IntPtr>();
 
