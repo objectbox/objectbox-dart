@@ -115,6 +115,7 @@ class CodeBuilder extends Builder {
       log.info("Found new property ${entity.name}.${prop.name}");
       entity.addProperty(prop);
     } else {
+      propInModel.name = prop.name;
       propInModel.type = prop.type;
       propInModel.flags = prop.flags;
     }
@@ -131,6 +132,8 @@ class CodeBuilder extends Builder {
       final createdEntity = modelInfo.addEntity(entity);
       return createdEntity.id;
     }
+
+    entityInModel.name = entity.name;
 
     // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));
