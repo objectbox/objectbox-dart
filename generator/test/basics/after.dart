@@ -3,25 +3,26 @@ import 'lib/lib.dart';
 import 'lib/objectbox.g.dart';
 import 'package:test/test.dart';
 import '../test_env.dart';
+import '../common.dart';
 
 void main() {
-  TestEnv<Note> env;
+  TestEnv<A> env;
+  ModelDefinition defs = getObjectBoxModel();
 
   setUp(() {
-    env = TestEnv<Note>(getObjectBoxModel());
+    env = TestEnv<A>(defs);
   });
 
   tearDown(() {
     env.close();
   });
 
+  commonModelTests(defs);
+
   test("project must be generated properly", () {
     expect(TestEnv.dir.existsSync(), true);
-    expect(new File("lib/objectbox.g.dart").existsSync(), true);
-    expect(new File("lib/objectbox-model.json").existsSync(), true);
+    expect(File("lib/objectbox.g.dart").existsSync(), true);
+    expect(File("lib/objectbox-model.json").existsSync(), true);
   });
 
-  test("model bindings", () {
-    expect(env.model.bindings.length, equals(1));
-  });
 }

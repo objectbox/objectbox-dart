@@ -11,7 +11,7 @@ for testCase in "${myDir}"/test/*/ ; do
 
     cd $testCase
     pub get
-    pub run test ./before_generation.dart
+    pub run test ./before.dart
     pub run build_runner build
-    pub run test ./after_generation.dart
+    pub run test ./after.dart
 done

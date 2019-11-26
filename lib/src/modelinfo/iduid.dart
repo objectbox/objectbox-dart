@@ -38,7 +38,7 @@ class IdUid {
     _uid = uid;
   }
 
-  get id => _id;
-  get uid => _uid;
+  int get id => _id;
+  int get uid => _uid;
   String toString() => "$id:$uid";
 }
