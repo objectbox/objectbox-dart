@@ -39,7 +39,7 @@ class CodeBuilder extends Builder {
     final entities = List<ModelEntity>();
     for (final entitiesList in files.values) {
       for (final entityMap in entitiesList) {
-        entities.add(ModelEntity.fromMap(entityMap));
+        entities.add(ModelEntity.fromMap(entityMap, check: false));
       }
     }
     entities.sort((a, b) => a.name.compareTo(b.name));
@@ -68,6 +68,7 @@ class CodeBuilder extends Builder {
 
     // merge existing model and annotated model that was just read, then write new final model to file
     merge(model, entities);
+    model.validate();
 
     // write model info
     // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.

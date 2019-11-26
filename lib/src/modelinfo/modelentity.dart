@@ -23,12 +23,12 @@ class ModelEntity {
     validate();
   }
 
-  ModelEntity.fromMap(Map<String, dynamic> data) {
+  ModelEntity.fromMap(Map<String, dynamic> data, {bool check = true}) {
     id = IdUid.fromString(data["id"]);
     lastPropertyId = IdUid.fromString(data["lastPropertyId"]);
     name = data["name"];
-    properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
-    validate();
+    properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this, check: check)).toList();
+    if (check) validate();
   }
 
   void validate() {
@@ -46,14 +46,17 @@ class ModelEntity {
         if (p.entity != entity) {
           throw Exception("property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
         }
+        p.validate();
         if (lastPropertyId.id < p.id.id) {
           throw Exception(
-              "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
+            "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id
+              .toString()}");
         }
         if (lastPropertyId.id == p.id.id) {
           if (lastPropertyId.uid != p.id.uid) {
             throw Exception(
-                "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id.toString()}");
+              "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id
+                .toString()}");
           }
           lastPropertyIdFound = true;
         }
