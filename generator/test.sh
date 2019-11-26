@@ -7,7 +7,7 @@ function runTestFile() {
   file="${1}.dart"
   if [ -f "${file}" ]; then
     # execute "N-pre.dart" file if it exists
-    if [ "${1}" != "0" ]; then
+    if [[ "${1}" != "0" && -f "${1}-pre.dart" ]]; then
       echo "Executing ${1}-pre.dart"
       dart "${1}-pre.dart"
     fi
