@@ -1,14 +1,14 @@
 import "package:test/test.dart";
-import "package:objectbox/objectbox.dart";
 import "entity.dart";
 import 'test_env.dart';
+import 'objectbox.g.dart';
 
 void main() {
   TestEnv env;
   Box box;
 
   setUp(() {
-    env = TestEnv<TestEntity>(TestEntity_OBXDefs, "query");
+    env = TestEnv("query");
     box = env.box;
   });
 

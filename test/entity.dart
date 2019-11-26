@@ -1,10 +1,15 @@
 import "package:objectbox/objectbox.dart";
 
-part 'entity.g.dart';
+/// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
+class TestingUnknownAnnotation {
+  const TestingUnknownAnnotation();
+}
 
 @Entity()
+@TestingUnknownAnnotation()
 class TestEntity {
   @Id()
+  @TestingUnknownAnnotation()
   int id;
 
   // implicitly determined types

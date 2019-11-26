@@ -1,6 +1,7 @@
 import "modelentity.dart";
 import "iduid.dart";
 
+/// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
   IdUid id;
   String name;
@@ -12,7 +13,7 @@ class ModelProperty {
   }
 
   ModelProperty.fromMap(Map<String, dynamic> data, this.entity) {
-    id = IdUid(data["id"]);
+    id = IdUid.fromString(data["id"]);
     name = data["name"];
     type = data["type"];
     flags = data.containsKey("flags") ? data["flags"] : 0;

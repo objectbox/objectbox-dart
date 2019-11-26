@@ -12,7 +12,7 @@ void main() {
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity(tString: s)).toList();
 
   setUp(() {
-    env = TestEnv<TestEntity>(TestEntity_OBXDefs, "box");
+    env = TestEnv("box");
     box = env.box;
     store = env.store;
   });

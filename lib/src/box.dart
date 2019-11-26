@@ -27,7 +27,7 @@ class Box<T> {
 
   Box(this._store) {
     EntityDefinition<T> entityDefs = _store.entityDef<T>();
-    _modelEntity = entityDefs.getModel();
+    _modelEntity = entityDefs.model;
     _entityReader = entityDefs.reader;
     _fbManager = OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 

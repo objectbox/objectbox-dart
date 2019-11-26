@@ -1,17 +1,17 @@
 import "dart:io";
-import "package:objectbox/objectbox.dart";
 import "entity.dart";
+import 'objectbox.g.dart';
 
-class TestEnv<Entity> {
+class TestEnv {
   final Directory dir;
   Store store;
-  Box<Entity> box;
+  Box<TestEntity> box;
 
-  TestEnv(EntityDefinition<Entity> definition, String name) : dir = Directory("testdata-" + name) {
+  TestEnv(String name) : dir = Directory("testdata-" + name) {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
 
-    store = Store([definition], directory: dir.path);
-    box = Box<Entity>(store);
+    store = Store(getObjectBoxModel(), directory: dir.path);
+    box = Box<TestEntity>(store);
   }
 
   close() {
