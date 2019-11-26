@@ -17,7 +17,7 @@ void main() {
     env.close();
   });
 
-  commonModelTests(defs);
+  commonModelTests(defs, readModelJson("lib"));
 
   test("project must be generated properly", () {
     expect(TestEnv.dir.existsSync(), true);

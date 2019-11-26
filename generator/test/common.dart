@@ -1,8 +1,16 @@
+import 'dart:io';
+import "dart:convert";
+import 'package:path/path.dart' as path;
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
+/// it's necessary to read json model because the generated one doesn't contain all the information
+ModelInfo readModelJson(String dir) {
+  return ModelInfo.fromMap(json.decode(File(path.join(dir, "objectbox-model.json")).readAsStringSync()));
+}
+
 /// Configures test cases to check that the model is specified correctly
-commonModelTests(ModelDefinition defs) {
+commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
   test("model bindings", () {
     expect(defs.bindings.length, defs.model.entities.length);
   });
@@ -40,21 +48,21 @@ commonModelTests(ModelDefinition defs) {
 
   test("lastPropertyId", () {
     for (final entity in defs.model.entities) {
-      testLastId(entity.lastPropertyId, entity.properties.map((el) => el.id), defs.model.retiredPropertyUids);
+      testLastId(entity.lastPropertyId, entity.properties.map((el) => el.id), jsonModel.retiredPropertyUids);
     }
   });
 
   test("lastEntityId", () {
-    testLastId(defs.model.lastEntityId, defs.model.entities.map((el) => el.id), defs.model.retiredEntityUids);
+    testLastId(defs.model.lastEntityId, defs.model.entities.map((el) => el.id), jsonModel.retiredEntityUids);
   });
 
   // TODO when indexes are available
 //  test("lastIndexId", () {
-//    testLastId(defs.model.lastIndexId, defs.model.entities.map((el) => ...), defs.model.retiredIndexUids);
+//    testLastId(defs.model.lastIndexId, defs.model.entities.map((el) => ...), jsonModel.retiredIndexUids);
 //  });
 
   // TODO when relations are available
 //  test("lastRelationId", () {
-//    testLastId(defs.model.lastRelationId, defs.model.entities.map((el) => ...), defs.model.retiredRelationUids);
+//    testLastId(defs.model.lastRelationId, defs.model.entities.map((el) => ...), jsonModel.retiredRelationUids);
 //  });
 }
