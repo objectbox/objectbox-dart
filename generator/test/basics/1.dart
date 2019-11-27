@@ -24,5 +24,4 @@ void main() {
     expect(File("lib/objectbox.g.dart").existsSync(), true);
     expect(File("lib/objectbox-model.json").existsSync(), true);
   });
-
 }

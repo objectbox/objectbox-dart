@@ -23,32 +23,33 @@ class ModelInfo {
   List<int> retiredEntityUids, retiredIndexUids, retiredPropertyUids, retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
 
-  ModelInfo({this.entities,
-    this.lastEntityId,
-    this.lastIndexId,
-    this.lastRelationId,
-    this.lastSequenceId,
-    this.retiredEntityUids,
-    this.retiredIndexUids,
-    this.retiredPropertyUids,
-    this.retiredRelationUids,
-    this.modelVersion,
-    this.modelVersionParserMinimum,
-    this.version});
+  ModelInfo(
+      {this.entities,
+      this.lastEntityId,
+      this.lastIndexId,
+      this.lastRelationId,
+      this.lastSequenceId,
+      this.retiredEntityUids,
+      this.retiredIndexUids,
+      this.retiredPropertyUids,
+      this.retiredRelationUids,
+      this.modelVersion,
+      this.modelVersionParserMinimum,
+      this.version});
 
   ModelInfo.createDefault()
-    : entities = [],
-      lastEntityId = IdUid.empty(),
-      lastIndexId = IdUid.empty(),
-      lastRelationId = IdUid.empty(),
-      lastSequenceId = IdUid.empty(),
-      retiredEntityUids = [],
-      retiredIndexUids = [],
-      retiredPropertyUids = [],
-      retiredRelationUids = [],
-      modelVersion = _maxModelVersion,
-      modelVersionParserMinimum = _maxModelVersion,
-      version = 1;
+      : entities = [],
+        lastEntityId = IdUid.empty(),
+        lastIndexId = IdUid.empty(),
+        lastRelationId = IdUid.empty(),
+        lastSequenceId = IdUid.empty(),
+        retiredEntityUids = [],
+        retiredIndexUids = [],
+        retiredPropertyUids = [],
+        retiredRelationUids = [],
+        modelVersion = _maxModelVersion,
+        modelVersionParserMinimum = _maxModelVersion,
+        version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true}) {
     lastEntityId = IdUid.fromString(data["lastEntityId"]);
@@ -62,19 +63,18 @@ class ModelInfo {
     retiredPropertyUids = List<int>.from(data["retiredPropertyUids"] ?? []);
     retiredRelationUids = List<int>.from(data["retiredRelationUids"] ?? []);
     version = data["version"];
-    entities = data["entities"].map<ModelEntity>((e) =>
-      ModelEntity.fromMap(e, model: this, check: check)).toList();
+    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e, model: this, check: check)).toList();
     if (check) validate();
   }
 
   void validate() {
     if (modelVersion < _minModelVersion) {
       throw Exception(
-        "the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually");
+          "the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually");
     }
     if (modelVersion > _maxModelVersion) {
       throw Exception(
-        "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator");
+          "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator");
     }
 
     if (entities == null) throw Exception("entities is null");
@@ -84,28 +84,26 @@ class ModelInfo {
     if (retiredRelationUids == null) throw Exception("retiredRelationUids is null");
     if (lastEntityId == null) throw Exception("lastEntityId is null");
 
-    var model = this;
     bool lastEntityIdFound = false;
-    entities.forEach((e) {
-      if (e.model != model) {
+    for (final e in entities) {
+      if (e.model != this) {
         throw Exception("entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
       }
       e.validate();
       if (lastEntityId.id < e.id.id) {
         throw Exception(
-          "lastEntityId ${lastEntityId.toString()} is lower than the one of entity '${e.name}' with id ${e.id
-            .toString()}");
+            "lastEntityId ${lastEntityId.toString()} is lower than the one of entity '${e.name}' with id ${e.id.toString()}");
       }
       if (lastEntityId.id == e.id.id) {
         if (lastEntityId.uid != e.id.uid) {
           throw Exception(
-            "lastEntityId ${lastEntityId.toString()} does not match entity '${e.name}' with id ${e.id.toString()}");
+              "lastEntityId ${lastEntityId.toString()} does not match entity '${e.name}' with id ${e.id.toString()}");
         }
         lastEntityIdFound = true;
       }
-    });
+    }
 
-    if (!lastEntityIdFound && !listContains(model.retiredEntityUids, lastEntityId.uid)) {
+    if (!lastEntityIdFound && !listContains(this.retiredEntityUids, lastEntityId.uid)) {
       throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
     }
   }

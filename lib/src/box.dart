@@ -53,23 +53,24 @@ class Box<T> {
   /// Performance note: if you want to put several entities, consider [putMany] instead.
   int put(T object, {_PutMode mode = _PutMode.Put}) {
     var propVals = _entityReader(object);
-    if (propVals[_modelEntity.idPropName] == null || propVals[_modelEntity.idPropName] == 0) {
-      final id = bindings.obx_box_id_for_put(_cBox, 0);
+
+    int id = propVals[_modelEntity.idProperty.name];
+    if (id == null || id == 0) {
+      id = bindings.obx_box_id_for_put(_cBox, 0);
       if (id == 0) throw ObjectBoxException(lastObxErrorString());
-      propVals[_modelEntity.idPropName] = id;
+      propVals[_modelEntity.idProperty.name] = id;
     }
 
     // put object into box and free the buffer
     final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(propVals);
     try {
       final OBX_bytes bytes = bytesPtr.ref;
-      checkObx(bindings.obx_box_put(
-          _cBox, propVals[_modelEntity.idPropName], bytes.ptr, bytes.length, _getOBXPutMode(mode)));
+      checkObx(bindings.obx_box_put(_cBox, id, bytes.ptr, bytes.length, _getOBXPutMode(mode)));
     } finally {
       // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
       OBX_bytes.freeManaged(bytesPtr);
     }
-    return propVals[_modelEntity.idPropName];
+    return id;
   }
 
   /// Puts the given [objects] into this Box in a single transaction. Returns a list of all IDs of the inserted
@@ -81,7 +82,7 @@ class Box<T> {
     var allPropVals = objects.map(_entityReader).toList();
     int missingIdsCount = 0;
     for (var instPropVals in allPropVals) {
-      if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0) {
+      if (instPropVals[_modelEntity.idProperty.name] == null || instPropVals[_modelEntity.idProperty.name] == 0) {
         ++missingIdsCount;
       }
     }
@@ -97,8 +98,8 @@ class Box<T> {
         free(nextIdPtr);
       }
       for (var instPropVals in allPropVals) {
-        if (instPropVals[_modelEntity.idPropName] == null || instPropVals[_modelEntity.idPropName] == 0) {
-          instPropVals[_modelEntity.idPropName] = nextId++;
+        if (instPropVals[_modelEntity.idProperty.name] == null || instPropVals[_modelEntity.idProperty.name] == 0) {
+          instPropVals[_modelEntity.idProperty.name] = nextId++;
         }
       }
     }
@@ -108,7 +109,7 @@ class Box<T> {
     Pointer<Uint64> allIdsMemory = allocate<Uint64>(count: objects.length);
     try {
       for (int i = 0; i < allPropVals.length; ++i) {
-        allIdsMemory.elementAt(i).value = (allPropVals[i][_modelEntity.idPropName] as int);
+        allIdsMemory.elementAt(i).value = (allPropVals[i][_modelEntity.idProperty.name] as int);
       }
 
       // marshal all objects to be put into the box
@@ -132,7 +133,7 @@ class Box<T> {
       free(allIdsMemory);
     }
 
-    return allPropVals.map((p) => p[_modelEntity.idPropName] as int).toList();
+    return allPropVals.map((p) => p[_modelEntity.idProperty.name] as int).toList();
   }
 
   /// Retrieves the stored object with the ID [id] from this box's database. Returns null if not found.
