@@ -325,7 +325,7 @@ class _ObjectBoxBindings {
     obx_query_prop_max_int = _fn<obx_query_prop_op_t<Int32, Int64>>("obx_query_prop_max_int").asFunction();
     obx_query_prop_sum_int = _fn<obx_query_prop_op_t<Int32, Int64>>("obx_query_prop_sum_int").asFunction();
 
-    obx_query_prop_string_find = _fn<obx_query_prop_find_t<OBX_string_array, Int8>>("obx_query_prop_string_find").asFunction();
+    obx_query_prop_string_find = _fn<obx_query_prop_find_native_t<Pointer<OBX_string_array>, Int8>>("obx_query_prop_string_find").asFunction();
     obx_query_prop_int64_find = _fn<obx_query_prop_find_t<OBX_int64_array, Int64>>("obx_query_prop_int64_find").asFunction();
     obx_query_prop_int32_find = _fn<obx_query_prop_find_t<OBX_int32_array, Int32>>("obx_query_prop_int32_find").asFunction();
     obx_query_prop_int16_find = _fn<obx_query_prop_find_t<OBX_int16_array, Int16>>("obx_query_prop_int16_find").asFunction();
