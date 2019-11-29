@@ -114,8 +114,8 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
     }
   }
 
-  List<int> find({int defaultValue}) {
-    final ptr = defaultValue != null ? (allocate<Int64>()..value = defaultValue) : Pointer<Int64>.fromAddress(0);
+  List<int> find({int replaceNullWith}) {
+    final ptr = replaceNullWith != null ? (allocate<Int64>()..value = replaceNullWith) : Pointer<Int64>.fromAddress(0);
     switch(_type) {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
@@ -175,8 +175,8 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
     }
   }
 
-  List<double> find({double defaultValue}) {
-    final ptr = defaultValue != null ? (allocate<Double>()..value = defaultValue) : Pointer<Double>.fromAddress(0);
+  List<double> find({double replaceNullWith}) {
+    final ptr = replaceNullWith != null ? (allocate<Double>()..value = replaceNullWith) : Pointer<Double>.fromAddress(0);
     switch(_type) {
       case OBXPropertyType.Float:
         return _unpack32(_curryWithDefault<OBX_float_array, Float>
@@ -218,8 +218,8 @@ class StringPropertyQuery extends PropertyQuery {
     }
   }
 
-  List<String> find({String defaultValue}) {
-    final ptr = defaultValue != null ? Utf8.toUtf8(defaultValue).cast<Int8>() : Pointer<Int8>.fromAddress(0);
+  List<String> find({String replaceNullWith}) {
+    final ptr = replaceNullWith != null ? Utf8.toUtf8(replaceNullWith).cast<Int8>() : Pointer<Int8>.fromAddress(0);
     return _unpack(_curryWithDefault<OBX_string_array, Int8>
       (bindings.obx_query_prop_string_find, ptr, "find utf8"));
   }

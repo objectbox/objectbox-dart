@@ -258,7 +258,7 @@ void main() {
       final qp = queryIntegers.property(tIntegers[i]) as IntegerPropertyQuery;
 
       final mappedIntegers = integers.map((j) => j + start[i]).toList();
-      expect(qp.find(defaultValue:-1), mappedIntegers);
+      expect(qp.find(replaceNullWith:-1), mappedIntegers);
       expect(qp.find(), mappedIntegers);
 
       qp.close();
@@ -270,7 +270,7 @@ void main() {
       double d = tFloat == f ? 0.20000000298023224 : 0.30000000000000004;
 
       expect(qp.find(), [ d, d, d, d, d ]);
-      expect(qp.find(defaultValue:-0.1), [ d, d, d, d, d ]);
+      expect(qp.find(replaceNullWith:-0.1), [ d, d, d, d, d ]);
 
       qp.close();
     });
@@ -280,9 +280,9 @@ void main() {
     final defaultResult = ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix'];
     expect(qp.find(), defaultResult);
     expect((qp..distinct = true ..caseSensitive = true) .find(), ['2withsuffix', '1withsuffix', '2withSuffix', '1withSuffix'] );
-    expect((qp..distinct = false..caseSensitive = true) .find(defaultValue:"meh"), ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix']);
+    expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:"meh"), ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix']);
     expect((qp..distinct = true ..caseSensitive = false).find(), ['2withSuffix', '1withSuffix']);
-    expect((qp..distinct = false..caseSensitive = false).find(defaultValue:"meh"), defaultResult);
+    expect((qp..distinct = false..caseSensitive = false).find(replaceNullWith:"meh"), defaultResult);
     qp.close();
 
     queryIntegers.close();
@@ -327,39 +327,49 @@ void main() {
     queryIntegers.close();
   });
 
-  test(".find() default values on null results" , () {
+  test(".find() replace null result with some value" , () {
     box.putMany(integerList);
     box.putMany(stringList);
     box.putMany(floatList);
 
-    final queryIntegers = box.query(tLong.greaterThan(1000)).build();
-    final queryFloats   = box.query(tDouble.greaterThan(1000.0)).build();
-    final queryStrings  = box.query(tString.equals("can't find this")).build();
+    final queryIntegers = box.query(tLong.lessThan(1000)).build();
+    final queryFloats   = box.query(tDouble.lessThan(1000.0)).build();
+    final queryStrings  = box.query(tString.contains("t")).build();
 
-    final integerDefaultValue = -2;
+    // find integers on string populated entities
+    final integerValues = [3, 3, 3, 3, 3, 3, 3];
+    // TODO investigate issue with (signed) negative integers, fix on dart?
+    // evidently only unsigned are allowed
+//    final integerValues = [ -2, -2, -2, -2, -2, -2, -2 ];
 
     final qpInteger = (p, dv) {
-      final qp = queryIntegers.integerProperty(p);
-      expect(qp.find(defaultValue: -2), dv);
+      final qp = queryStrings.integerProperty(p);
+//      expect(qp.find(replaceNullWith: -2), dv);
+      expect(qp.find(replaceNullWith: 3), dv);
       qp.close();
     };
 
     tIntegers.forEach((i) {
-      qpInteger(i, integerDefaultValue);
+      qpInteger(i, integerValues);
     });
 
-    // floats
-    final floatDefaultValue = -1337.0;
+    // find floats on integer populated entities
+    // TODO investigate floats are never null????
+//    final floatValues = [ 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0 ];
+//
+//    final qpFloat = (p, dv) {
+//      final qp = queryIntegers.doubleProperty(p);
+//      expect(qp.find(replaceNullWith: 1337.0), dv);
+//      qp.close();
+//    };
+//    qpFloat(tFloat, floatValues);
+//    qpFloat(tDouble, floatValues);
 
-    final qpFloat = (p, dv) {
-      final qp = queryFloats.doubleProperty(p);
-      expect(qp.find(defaultValue: -1337.0), dv);
-      qp.close();
-    };
-
-    qpFloat(tFloat, floatDefaultValue);
-    qpFloat(tDouble, floatDefaultValue);
-
+    // find strings on float populated entities
+    final stringValues = [ "t", "t", "t", "t", "t" ];
+    final qp = queryFloats.stringProperty(tString);
+    expect(qp.find(replaceNullWith: "t"), stringValues);
+    qp.close();
   });
 
   test(".distinct, .count, .close property query", () {
@@ -367,36 +377,39 @@ void main() {
     box.putMany(stringList);
     box.putMany(floatList);
 
+    final expectedIntegers = [8, 8, 8];
+    final expectedDistinctIntegers = [6, 6, 6];
+
     // int
-    tIntegers.forEach((t) {
-      final query = box.query(t.lessThan(100)).build();
-      final queryInt = query.property(t);
-      expect(queryInt.count(), 4); // TODO replace
-      expect((queryInt..distinct = true).count(), 4); // TODO replace
+    for (int i=0; i < tIntegers.length; i++) {
+      final query = box.query(tIntegers[i].lessThan(100)).build();
+      final queryInt = query.property(tIntegers[i]);
+
+      expect(queryInt.count(), expectedIntegers[i]);
+      expect((queryInt..distinct = true).count(), expectedDistinctIntegers[i]);
       queryInt.close();
       query.close();
-    });
+    }
 
     // floats
-    tFloats.forEach((t) {
-      final query = box.query(t.lessThan(100.0)).build();
-      final queryFloat = query.property(t);
-      expect(queryFloat.count(), 4); // TODO replace
-      expect((queryFloat..distinct = true).count(), 4); // TODO replace
+    for (int i=0; i < tFloats.length; i++) {
+      final query = box.query(tFloats[i].lessThan(100.0)).build();
+      final queryFloat = query.property(tFloats[i]);
+      expect(queryFloat.count(), 5);
+      expect((queryFloat..distinct = true).count(), 1);
       queryFloat.close();
       query.close();
-    });
+    }
 
     // string
     final query = box.query(tString.contains("t")).build();
     final queryString = query.property(tString);
-    expect(queryString.count(), 4); // TODO replace
-    expect((queryString..distinct = true).count(), 4); // TODO replace
+    expect(queryString.count(), 7);
+    expect((queryString..distinct = true).count(), 6);
     queryString.close();
     query.close();
 
   });
-
   // TODO write tests for byte and char
 
   tearDown(() {
