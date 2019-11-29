@@ -73,7 +73,6 @@ New (not yet persisted) objects typically have _Id_ value of `0` or `null`: call
 
 ```dart
 import "package:objectbox/objectbox.dart";
-part "note.g.dart";
 
 @Entity()
 class Note {
@@ -92,7 +91,11 @@ In your main function, you can then create a _store_ which needs an array of you
 Finally, you need a _box_, representing the interface for objects of one specific entity type.
 
 ```dart
-var store = Store([Note_OBXDefs]);
+import 'objectbox.g.dart';
+
+// ...
+
+var store = Store(getObjectBoxModel());
 var box = Box<Note>(store);
 
 var note = Note.construct("Hello");
@@ -151,6 +154,37 @@ final qt = box.query(Entity_.text.notNull())
   .order(Entity_.text, flags: Order.descending | Order.caseSensitive)
   .build();
 ```
+
+### Querying properties
+
+The sum, average, minimum and maximum etc. can be calculated on a property of a query.
+Calculating the minimum can be done like this, e.g.:
+
+```dart
+final tFloat = Entity_.tFloat;
+final tDouble = Entity_.tDouble;
+final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+final propMin = (qp) {
+  final p = query.doubleProperty(qp);
+  try {
+    return p.min();
+  }finally {
+    p.close();
+  }
+};
+
+final all = box.getAll();
+
+final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
+final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
+
+assert(propMin(tFloat) == minFloat, "These are the same");
+assert(propMin(tDouble) == minDouble, "These should also be the same");
+```
+
+Also the value of a property, present on all the instances of an entity can be returned
+with `find`, or counted with `count`.
+
 
 Help wanted
 -----------
