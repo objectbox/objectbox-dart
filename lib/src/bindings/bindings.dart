@@ -315,7 +315,7 @@ class _ObjectBoxBindings {
     obx_query_prop_distinct =        _fn<obx_query_prop_distinct_t<Int32, Int8>>("obx_query_prop_distinct").asFunction();
     obx_query_prop_distinct_string = _fn<obx_query_prop_distinct2_t<Int32, Int8>>("obx_query_prop_distinct_string").asFunction();
 
-    obx_query_prop_count = _fn<obx_query_prop_op_t<Int32, Uint64>>("obx_query_prop_string_find").asFunction();
+    obx_query_prop_count = _fn<obx_query_prop_op_t<Int32, Uint64>>("obx_query_prop_count").asFunction();
     obx_query_prop_avg = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_avg").asFunction();
     obx_query_prop_min = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_min").asFunction();
     obx_query_prop_max = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_max").asFunction();
