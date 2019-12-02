@@ -28,13 +28,6 @@ dev_dependencies:
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
 1. **Flutter** only steps:
     * Install the packages `flutter pub get`
-    * Add `objectbox-android` dependency to your `android/app/build.gradle` 
-        ```
-        dependencies {
-            implementation "io.objectbox:objectbox-android:2.4.1"
-            ...
-       ```
-    * iOS coming soon
 1. **Dart standalone programs**:
     * Install the packages `pub get`
     * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:

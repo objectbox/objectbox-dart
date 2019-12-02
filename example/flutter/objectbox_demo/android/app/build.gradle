@@ -59,7 +59,6 @@ flutter {
 }
 
 dependencies {
-    implementation "io.objectbox:objectbox-android:2.4.1"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'

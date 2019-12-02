@@ -18,3 +18,8 @@ dev_dependencies:
     path: generator
   pedantic: ^1.8.0+1
   test: ^1.0.0
+
+# The minimal configuration for flutter to pick up this package as a flutter-plugin with native dependencies
+flutter:
+  plugin:
+    android:
