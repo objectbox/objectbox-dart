@@ -29,7 +29,7 @@ class CodeBuilder extends Builder {
 
     // map from file name to a "json" representation of entities
     final files = Map<String, List<dynamic>>();
-    final glob = Glob(path.join(dir(buildStep), '**' + EntityResolver.suffix));
+    final glob = Glob(dir(buildStep) + '/**' + EntityResolver.suffix);
     await for (final input in buildStep.findAssets(glob)) {
       files[input.path] = json.decode(await buildStep.readAsString(input));
     }
@@ -57,7 +57,7 @@ class CodeBuilder extends Builder {
   Future<ModelInfo> updateModel(List<ModelEntity> entities, BuildStep buildStep) async {
     // load an existing model or initialize a new one
     ModelInfo model;
-    final jsonId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), jsonFile));
+    final jsonId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + jsonFile);
     if (await buildStep.canRead(jsonId)) {
       log.info("Using model: ${jsonId.path}");
       model = ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
@@ -80,13 +80,13 @@ class CodeBuilder extends Builder {
   void updateCode(ModelInfo model, List<String> infoFiles, BuildStep buildStep) async {
     // transform "/lib/path/entity.objectbox.info" to "path/entity.dart"
     final imports = infoFiles
-        .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
-        .toList();
+      .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
+      .toList();
 
     var code = CodeChunks.objectboxDart(model, imports);
     code = DartFormatter().format(code);
 
-    final codeId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), codeFile));
+    final codeId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + codeFile);
     log.info("Generating code: ${codeId.path}");
     await buildStep.writeAsString(codeId, code);
   }
@@ -137,7 +137,7 @@ class CodeBuilder extends Builder {
     // then remove all properties not present anymore in readEntity
     entityInModel.properties.where((p) => entity.findSameProperty(p) == null).forEach((p) {
       log.warning(
-          "Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model");
+        "Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model");
       entityInModel.removeProperty(p);
     });
 
