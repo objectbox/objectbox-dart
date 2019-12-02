@@ -23,7 +23,7 @@ class Box<T> {
   Pointer<Void> _cBox;
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;
-  OBXFlatbuffersManager _fbManager;
+  OBXFlatbuffersManager<T> _fbManager;
 
   Box(this._store) {
     EntityDefinition<T> entityDefs = _store.entityDef<T>();
