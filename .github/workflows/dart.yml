@@ -9,13 +9,10 @@ jobs:
       image:  google/dart:latest
     steps:
       - uses: actions/checkout@v1
-      - name: Install dependencies
-        working-directory: generator
-        run: pub get
-# Disabled temporarily, pending rework in #37
-#      - name: Run tests
-#        working-directory: generator
-#        run: pub run test
+      - name: Install ObjectBox C-API
+        run: ./install.sh
+      - name: Run tests
+        run: ./generator/test.sh
 
   lib:
     needs: generator

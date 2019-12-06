@@ -12,12 +12,12 @@ class ModelProperty {
     validate();
   }
 
-  ModelProperty.fromMap(Map<String, dynamic> data, this.entity) {
+  ModelProperty.fromMap(Map<String, dynamic> data, this.entity, {bool check = true}) {
     id = IdUid.fromString(data["id"]);
     name = data["name"];
     type = data["type"];
     flags = data.containsKey("flags") ? data["flags"] : 0;
-    validate();
+    if (check) validate();
   }
 
   void validate() {

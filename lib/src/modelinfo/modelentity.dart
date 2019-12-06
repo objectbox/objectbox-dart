@@ -10,25 +10,25 @@ class ModelEntity {
   IdUid id, lastPropertyId;
   String name;
   List<ModelProperty> properties;
-  String idPropName;
+  ModelProperty idProperty;
   ModelInfo _model;
 
   ModelInfo get model => (_model == null) ? throw Exception("model is null") : _model;
-
-  set model(ModelInfo model) {
-    this._model = model;
-  }
 
   ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this._model) {
     validate();
   }
 
-  ModelEntity.fromMap(Map<String, dynamic> data) {
+  ModelEntity.fromMap(Map<String, dynamic> data, {ModelInfo model, bool check = true}) {
+    _model = model;
     id = IdUid.fromString(data["id"]);
     lastPropertyId = IdUid.fromString(data["lastPropertyId"]);
     name = data["name"];
-    properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this)).toList();
-    validate();
+    properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this, check: check)).toList();
+    if (check) validate();
+
+    idProperty = properties.firstWhere((p) => (p.flags & OBXPropertyFlag.ID) != 0);
+    if (check && idProperty == null) throw Exception("idProperty is null");
   }
 
   void validate() {
@@ -39,13 +39,13 @@ class ModelEntity {
       if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");
     } else {
       if (lastPropertyId == null) throw Exception("lastPropertyId is null");
-      var entity = this;
-      bool lastPropertyIdFound = false;
 
-      properties.forEach((p) {
-        if (p.entity != entity) {
+      bool lastPropertyIdFound = false;
+      for (final p in properties) {
+        if (p.entity != this) {
           throw Exception("property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
         }
+        p.validate();
         if (lastPropertyId.id < p.id.id) {
           throw Exception(
               "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
@@ -57,18 +57,10 @@ class ModelEntity {
           }
           lastPropertyIdFound = true;
         }
-      });
+      }
 
       if (!lastPropertyIdFound && !listContains(model.retiredPropertyUids, lastPropertyId.uid)) {
         throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
-      }
-
-      for (int i = 0; i < properties.length; ++i) {
-        final ModelProperty p = properties[i];
-        if ((p.flags & OBXPropertyFlag.ID) != 0) {
-          idPropName = p.name;
-          break;
-        }
       }
     }
   }

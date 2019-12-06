@@ -39,7 +39,7 @@ class CodeBuilder extends Builder {
     final entities = List<ModelEntity>();
     for (final entitiesList in files.values) {
       for (final entityMap in entitiesList) {
-        entities.add(ModelEntity.fromMap(entityMap));
+        entities.add(ModelEntity.fromMap(entityMap, check: false));
       }
     }
     entities.sort((a, b) => a.name.compareTo(b.name));
@@ -68,6 +68,7 @@ class CodeBuilder extends Builder {
 
     // merge existing model and annotated model that was just read, then write new final model to file
     merge(model, entities);
+    model.validate();
 
     // write model info
     // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.
@@ -114,6 +115,7 @@ class CodeBuilder extends Builder {
       log.info("Found new property ${entity.name}.${prop.name}");
       entity.addProperty(prop);
     } else {
+      propInModel.name = prop.name;
       propInModel.type = prop.type;
       propInModel.flags = prop.flags;
     }
@@ -130,6 +132,8 @@ class CodeBuilder extends Builder {
       final createdEntity = modelInfo.addEntity(entity);
       return createdEntity.id;
     }
+
+    entityInModel.name = entity.name;
 
     // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));
