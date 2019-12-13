@@ -123,6 +123,29 @@ void main() {
     expect(fetchedItems[2].tDouble, equals(null));
   });
 
+  test("all types are handled correctly", () {
+    TestEntity item = TestEntity(
+        tString: "Hello",
+        tLong: 1234,
+        tDouble: 3.14159,
+        tBool: true,
+        tByte: 123,
+        tShort: -4567,
+        tChar: 'x'.codeUnitAt(0),
+        tInt: 789012,
+        tFloat: -2.71);
+    final fetchedItem = box.get(box.put(item));
+    expect(fetchedItem.tString, equals("Hello"));
+    expect(fetchedItem.tLong, equals(1234));
+    expect((fetchedItem.tDouble - 3.14159).abs(), lessThan(0.000000000001));
+    expect(fetchedItem.tBool, equals(true));
+    expect(fetchedItem.tByte, equals(123));
+    expect(fetchedItem.tShort, equals(-4567));
+    expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
+    expect(fetchedItem.tInt, equals(789012));
+    expect((fetchedItem.tFloat - (-2.71)).abs(), lessThan(0.0000001));
+  });
+
   test(".count() works", () {
     expect(box.count(), equals(0));
     List<int> ids = box.putMany(simpleItems);
