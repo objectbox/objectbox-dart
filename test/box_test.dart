@@ -125,6 +125,43 @@ void main() {
     expect(fetchedItems[9].tLong, equals(int64Max));
   });
 
+  test("special floating point values are handled correctly", () {
+    final valsFloat = [
+      double.infinity,
+      1.1754943508222875e-38,
+      3.4028234663852886e+38,
+      -3.4028234663852886e+38,
+      double.nan,
+      double.negativeInfinity
+    ];
+    final valsDouble = [
+      double.infinity,
+      double.maxFinite,
+      -double.maxFinite,
+      double.minPositive,
+      double.nan,
+      double.negativeInfinity
+    ];
+    final List<TestEntity> items = [
+      ...valsFloat.map((n) => TestEntity(tFloat: n)).toList(),
+      ...valsDouble.map((n) => TestEntity(tDouble: n)).toList()
+    ];
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    List<double> fetchedVals = [];
+    for (var i = 0; i < fetchedItems.length; i++) {
+      fetchedVals.add(i < valsFloat.length ? fetchedItems[i].tFloat : fetchedItems[i].tDouble);
+    }
+
+    for (var i = 0; i < fetchedVals.length; i++) {
+      double expected = i < valsFloat.length ? valsFloat[i] : valsDouble[i - valsFloat.length];
+      if (expected.isNaN) {
+        expect(fetchedVals[i].isNaN, equals(true));
+      } else {
+        expect(fetchedVals[i], equals(expected));
+      }
+    }
+  });
+
   test("null properties are handled correctly", () {
     final List<TestEntity> items = [TestEntity(), TestEntity(tLong: 10), TestEntity(tString: "Hello")];
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
