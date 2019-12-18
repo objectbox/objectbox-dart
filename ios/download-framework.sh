@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# NOTE: run before publishing
+
 obxSwiftVersion="1.2.0"
 
 dir=$(dirname "$0")
