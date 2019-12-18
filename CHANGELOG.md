@@ -1,5 +1,6 @@
 Next
 ------------------
+* Flutter iOS support
 * Generator fixes and rework to support multiple entity files in addition to many entities in a single file. 
     Please move `objectbox-model.json` to `lib/` before running the generator. 
 * Simplified Android support (automatic dependency).
