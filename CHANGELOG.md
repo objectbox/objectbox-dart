@@ -1,3 +1,11 @@
+Next
+------------------
+* Generator fixes and rework to support multiple entity files in addition to many entities in a single file. 
+    Please move `objectbox-model.json` to `lib/` before running the generator. 
+* Simplified Android support (automatic dependency).
+* Docs improvements
+* Updated to objectbox-c 0.8.1
+
 0.5.0 (2019-11-18)
 ------------------
 * Dart 2.6 support - breaking change due to Dart 2.6 FFI changes.
