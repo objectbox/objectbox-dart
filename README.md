@@ -50,52 +50,28 @@ After you've defined your persisted entities (see below), run `pub run build_run
 Getting started
 ----------------
 In general, Dart class annotations are used to mark classes as ObjectBox entities and provide meta information.
-Note that right now, only a limited set of types is supported; this will be expanded upon in the near future.
 Entity IDs and UIDs that are defined in their respective annotations need to be unique across all entities, while 
 property IDs only need to be unique in their respective entity; property UIDs also need to be globally unique.
 
-### Object IDs
-
-Each entity is required to have an _Id_ property of type _Long_.
+Each entity is required to have an ID property of type `int`.
 Already persisted entities have an ID greater or equal to 1.
-New (not yet persisted) objects typically have _Id_ value of `0` or `null`: calling `Box.put` automatically assigns a new ID to the object.
+New (not yet persisted) objects typically have ID value of `0` or `null`: calling `Box.put` automatically assigns a new ID to the object.
 
 ### Example
+For a code example, see [example/README.md](example/README.md)
 
+### Box
+Box is your main interface for storing and retrieving data.
 ```dart
-import "package:objectbox/objectbox.dart";
-part "note.g.dart";
-
-@Entity()
-class Note {
-    @Id()       // automatically always 'int' in Dart code and 'Long' in ObjectBox
-    int id;
-
-    String text;
-
-    Note();             // empty default constructor needed
-    Note.construct(this.text);
-    toString() => "Note{id: $id, text: $text}";
-}
-```
-
-In your main function, you can then create a _store_ which needs an array of your entity classes and definitions to be constructed. If you have several entities, construct your store like `Store([[Entity1, Entity1_OBXDefs], [Entity2, Entity2_OBXDefs]])` etc.
-Finally, you need a _box_, representing the interface for objects of one specific entity type.
-
-```dart
-var store = Store([Note_OBXDefs]);
 var box = Box<Note>(store);
-
-var note = Note.construct("Hello");
+    
+var note = Note(text: "Hello");
 note.id = box.put(note);
 print("new note got id ${note.id}");
 print("refetched note: ${box.get(note.id)}");
-
-store.close();
 ```
 
 ### Query and QueryBuilder
-
 Basic querying can be done with e.g.:
 
 ```dart
@@ -128,7 +104,6 @@ box.query(overloaded as Condition).build(); // the cast is necessary due to the 
 ```
 
 ### Ordering
-
 The results from a query can be ordered using the `order` method, e.g.
 
 ```dart
