@@ -12,19 +12,14 @@ class Model {
 
   get ptr => _cModel;
 
-  Model(List<ModelEntity> modelEntities) {
+  Model(ModelInfo model) {
     _cModel = checkObxPtr(bindings.obx_model(), "failed to create model");
 
     try {
-      // transform classes into model descriptions and loop through them
-      modelEntities.forEach(addEntity);
+      model.entities.forEach(addEntity);
 
       // set last entity id
-      // TODO read last entity ID from the model
-      if (modelEntities.isNotEmpty) {
-        ModelEntity lastEntity = modelEntities[modelEntities.length - 1];
-        bindings.obx_model_last_entity_id(_cModel, lastEntity.id.id, lastEntity.id.uid);
-      }
+      bindings.obx_model_last_entity_id(_cModel, model.lastEntityId.id, model.lastEntityId.uid);
     } catch (e) {
       bindings.obx_model_free(_cModel);
       _cModel = null;
@@ -45,7 +40,7 @@ class Model {
     // start entity
     var name = Utf8.toUtf8(entity.name);
     try {
-      _check(bindings.obx_model_entity(_cModel, name.cast<Uint8>(), entity.id.id, entity.id.uid));
+      _check(bindings.obx_model_entity(_cModel, name, entity.id.id, entity.id.uid));
     } finally {
       free(name);
     }
@@ -60,7 +55,7 @@ class Model {
   void addProperty(ModelProperty prop) {
     var name = Utf8.toUtf8(prop.name);
     try {
-      _check(bindings.obx_model_property(_cModel, name.cast<Uint8>(), prop.type, prop.id.id, prop.id.uid));
+      _check(bindings.obx_model_property(_cModel, name, prop.type, prop.id.id, prop.id.uid));
     } finally {
       free(name);
     }

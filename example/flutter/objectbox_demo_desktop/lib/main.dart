@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
-import "package:objectbox/objectbox.dart";
-part "main.g.dart";
+import 'package:objectbox/objectbox.dart';
+import 'objectbox.g.dart';
 
 @Entity()
 class Note {
@@ -68,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    _store = Store([Note_OBXDefs]);
+    _store = Store(getObjectBoxModel());
     _box = Box<Note>(_store);
     super.initState();
   }

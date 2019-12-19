@@ -1,12 +1,9 @@
 import "dart:ffi";
-
+import "package:ffi/ffi.dart";
 import "bindings/bindings.dart";
 import "bindings/helpers.dart";
 import "modelinfo/index.dart";
-
 import "model.dart";
-
-import "package:ffi/ffi.dart";
 
 enum TxMode {
   Read,
@@ -17,11 +14,10 @@ enum TxMode {
 /// specific type.
 class Store {
   Pointer<Void> _cStore;
-  Map<Type, EntityDefinition> _entityDefinitions = {};
+  final ModelDefinition defs;
 
-  Store(List<EntityDefinition> defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
-    defs.forEach((d) => _entityDefinitions[d.type()] = d);
-    var model = Model(defs.map((d) => d.getModel()).toList());
+  Store(this.defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
+    var model = Model(defs.model);
 
     var opt = bindings.obx_opt();
     checkObxPtr(opt, "failed to create store options");
@@ -31,7 +27,7 @@ class Store {
       if (directory != null && directory.isNotEmpty) {
         var cStr = Utf8.toUtf8(directory);
         try {
-          checkObx(bindings.obx_opt_directory(opt, cStr.cast<Uint8>()));
+          checkObx(bindings.obx_opt_directory(opt, cStr));
         } finally {
           free(cStr);
         }
@@ -56,7 +52,7 @@ class Store {
   }
 
   EntityDefinition<T> entityDef<T>() {
-    return _entityDefinitions[T];
+    return defs.bindings[T];
   }
 
   /// Executes a given function inside a transaction.

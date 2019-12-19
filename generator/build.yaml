@@ -1,18 +1,37 @@
+# See docs:
+#  https://pub.dev/packages/build_config
+#  https://github.com/dart-lang/build/blob/master/docs/build_yaml_format.md
+#  https://github.com/dart-lang/build/blob/master/docs/transforming_code.md
+
 targets:
   $default:
     builders:
-      objectbox_generator|objectbox:
+      objectbox_generator|resolver:
+        enabled: true
+      objectbox_generator|generator:
         enabled: true
 
 builders:
-  objectbox:
-    target: ":objectbox_generator"
+  # Finds all classes annotated with @Entity annotation and creates intermediate files for the generator.
+  # It's executed multiple times, once per file
+  resolver:
     import: "package:objectbox_generator/objectbox_generator.dart"
-    builder_factories: ["objectboxModelFactory"]
-    build_extensions: {".dart": [".objectbox_model.g.part"]}
+    builder_factories: ["entityResolverFactory"]
+    # build_extensions: Required. A map from input extension to the list of output extensions that may be created
+    # for that input. This must match the merged buildExtensions maps from each Builder in builder_factories.
+    build_extensions: {'.dart': ['.objectbox.info']}
     auto_apply: dependents
     build_to: cache
-    applies_builders: ["source_gen|combining_builder"]
-    defaults:
-      generate_for:
-        exclude: ["example/**"]
+
+  # Writes objectbox_model.dart and objectbox-model.json from the prepared .objectbox.info files found in the repo.
+  generator:
+    import: "package:objectbox_generator/objectbox_generator.dart"
+    builder_factories: ["codeGeneratorFactory"]
+    # build_extensions: Required. A map from input extension to the list of output extensions that may be created
+    # for that input. This must match the merged buildExtensions maps from each Builder in builder_factories.
+    build_extensions:
+      "$lib$": ["objectbox.g.dart"]
+      "$test": ["objectbox.g.dart"]
+    required_inputs: ['.objectbox.info']
+    auto_apply: dependents
+    build_to: source

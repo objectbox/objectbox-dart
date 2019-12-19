@@ -1,8 +1,10 @@
 import 'dart:ffi';
 import "dart:typed_data" show Uint8List;
 import "package:ffi/ffi.dart" show allocate, free;
-
 import '../common.dart';
+
+// Disable some linter rules for this file
+// ignore_for_file: camel_case_types
 
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
@@ -18,7 +20,7 @@ class OBX_id_array extends Struct {
   int length;
 
   /// Get a copy of the list
-  List<int> items() => _itemsPtr.asTypedList(length);
+  List<int> items() => _itemsPtr.asTypedList(length).toList();
 
   /// Execute the given function, managing the resources consistently
   static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
@@ -63,7 +65,7 @@ class OBX_bytes extends Struct {
   Pointer<Uint8> get ptr => _dataPtr;
 
   /// Returns a pointer to OBX_bytes with copy of the passed data.
-  /// Warning: this creates an two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
+  /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
   static Pointer<OBX_bytes> managedCopyOf(Uint8List data) {
     final ptr = allocate<OBX_bytes>();
     final OBX_bytes bytes = ptr.ref;
@@ -71,8 +73,8 @@ class OBX_bytes extends Struct {
     const align = true; // ObjectBox requires data to be aligned to the length of 4
     bytes.length = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
 
-    // TODO (perf) find a way to get access to the underlying memory of Uint8List to avoid a copy
-    //  In that case, don't forget to change the caller (FlatbuffersManager) which expect to get a copy
+    // NOTE: currently there's no way to get access to the underlying memory of Uint8List to avoid a copy.
+    // See https://github.com/dart-lang/ffi/issues/27
     // if (data.length == bytes.length) {
     //   bytes._dataPtr = data.some-way-to-get-the-underlying-memory-pointer
     //   return ptr;
