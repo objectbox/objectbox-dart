@@ -35,7 +35,7 @@ class QueryBuilder<T> {
 
   QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
     if (p._entityId != _entityId) {
-      throw Exception("Passed a property of another entity: ${p._entityId} instead of ${_entityId}");
+      throw Exception("Passed a property of another entity: ${p._entityId} instead of $_entityId");
     }
     _createBuilder();
     checkObx(bindings.obx_qb_order(_cBuilder, p._propertyId, flags));
