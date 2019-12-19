@@ -55,6 +55,16 @@ class CodeBuilder extends Builder {
   }
 
   Future<ModelInfo> updateModel(List<ModelEntity> entities, BuildStep buildStep) async {
+    {
+      // TODO temporary v0.5 -> v0.6 update - check if the model file exists in the old location
+      final oldJson = AssetId(buildStep.inputId.package, "objectbox-model.json");
+      if (File(oldJson.path).existsSync()) {
+        throw StateError(""
+            "Found objectbox-model.json in the package root. This is the old behaviour before ObjectBox v0.6\n"
+            "Please move objectbox-model.json to lib/objectbox-model.json and run the build_runner again.\n");
+      }
+    }
+
     // load an existing model or initialize a new one
     ModelInfo model;
     final jsonId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + jsonFile);
@@ -81,8 +91,8 @@ class CodeBuilder extends Builder {
   void updateCode(ModelInfo model, List<String> infoFiles, BuildStep buildStep) async {
     // transform "/lib/path/entity.objectbox.info" to "path/entity.dart"
     final imports = infoFiles
-      .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
-      .toList();
+        .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
+        .toList();
 
     var code = CodeChunks.objectboxDart(model, imports);
     code = DartFormatter().format(code);
@@ -141,7 +151,7 @@ class CodeBuilder extends Builder {
     // then remove all properties not present anymore in readEntity
     entityInModel.properties.where((p) => entity.findSameProperty(p) == null).forEach((p) {
       log.warning(
-        "Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model");
+          "Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model");
       entityInModel.removeProperty(p);
     });
 
