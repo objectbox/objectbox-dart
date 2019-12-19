@@ -26,6 +26,7 @@ dev_dependencies:
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
 1. **Flutter** only steps:
     * Install the packages `flutter pub get`
+    * Note: only debug versions (e.g. `flutter run`) work at the moment, `flutter build` currently fails for release builds
 1. **Dart standalone programs**:
     * Install the packages `pub get`
     * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
