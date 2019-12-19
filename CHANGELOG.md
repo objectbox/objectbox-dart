@@ -1,4 +1,4 @@
-Next
+0.6.0 (2019-12-19)
 ------------------
 * Flutter iOS support
 * Generator fixes and rework to support multiple entity files in addition to many entities in a single file. 
