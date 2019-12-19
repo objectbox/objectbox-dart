@@ -12,12 +12,7 @@ Pod::Spec.new do |s|
   s.author           = 'ObjectBox'
   s.platform         = :ios, '8.0'
 
-  # Get the ObjectBox.framework from the objectbox-swift release
-  # TODO: getting from http currently doesn't work - see https://github.com/flutter/flutter/issues/45778
-  # To circumvent this, we're currently including the extracted framework in the package when publishing to pub.dev
-  # Therefore, you need to run ./ios/download-framework.sh before publishing the package (or if you're working on
-  # ObjectBox-Dart as a developer and need to test it for iOS)
-  # s.source = { :http => 'https://github.com/objectbox/objectbox-swift/releases/download/v1.2.0/ObjectBox-framework-1.2.0.zip' }
+  # Get the ObjectBox.framework from the objectbox-swift release (see README.md)
   s.source = { :path => '.' }
 
   s.ios.vendored_frameworks = 'Carthage/Build/iOS/ObjectBox.framework'
