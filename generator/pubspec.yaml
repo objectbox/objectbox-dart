@@ -13,6 +13,8 @@ dependencies:
   source_gen: ^0.9.0
   analyzer: ">=0.35.0 <0.100.0"
   glob: ^1.1.0
+  path: ^1.6.0
+  dart_style: ^1.3.0
 
 # NOTE: remove before publishing
 dependency_overrides:
