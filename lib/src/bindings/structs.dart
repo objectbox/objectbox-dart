@@ -1,8 +1,10 @@
 import 'dart:ffi';
 import "dart:typed_data" show Uint8List;
 import "package:ffi/ffi.dart" show allocate, free;
-
 import '../common.dart';
+
+// Disable some linter rules for this file
+// ignore_for_file: camel_case_types
 
 // Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
 
