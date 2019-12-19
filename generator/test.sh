@@ -40,9 +40,9 @@ function runTestCase() {
 }
 
 if [ $# -eq 0 ]; then
-  for testCase in "${myDir}"/tests/*/; do
+  for testCase in "${myDir}"/integration-tests/*/; do
     runTestCase "${testCase}"
   done
 else
-  runTestCase "${myDir}/tests/$1"
+  runTestCase "${myDir}/integration-tests/$1"
 fi
