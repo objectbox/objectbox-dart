@@ -32,7 +32,7 @@ class OBX_id_array extends Struct {
     array.length = items.length;
     array._itemsPtr = allocate<Uint64>(count: array.length);
     for (int i = 0; i < items.length; ++i) {
-      array._itemsPtr.elementAt(i).value = items[i];
+      array._itemsPtr[i] = items[i];
     }
 
     // call the function with the structure and free afterwards
@@ -83,7 +83,7 @@ class OBX_bytes extends Struct {
     // create a copy of the data
     bytes._dataPtr = allocate<Uint8>(count: bytes.length);
     for (int i = 0; i < data.length; ++i) {
-      bytes._dataPtr.elementAt(i).value = data[i];
+      bytes._dataPtr[i] = data[i];
     }
 
     return ptr;
