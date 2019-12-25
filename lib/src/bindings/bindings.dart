@@ -8,7 +8,7 @@ import "structs.dart";
 
 // bundles all C functions to be exposed to Dart
 class _ObjectBoxBindings {
-  DynamicLibrary objectbox;
+  DynamicLibrary lib;
 
   // common functions
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
@@ -158,7 +158,7 @@ class _ObjectBoxBindings {
 
   // TODO return .asFunction() -> requires properly determined static return type
   Pointer<NativeFunction<T>> _fn<T extends Function>(String name) {
-    return objectbox.lookup<NativeFunction<T>>(name);
+    return lib.lookup<NativeFunction<T>>(name);
   }
 
   _ObjectBoxBindings() {
@@ -167,14 +167,21 @@ class _ObjectBoxBindings {
       libName += ".dll";
     } else if (Platform.isMacOS) {
       libName = "lib" + libName + ".dylib";
+    } else if (Platform.isIOS) {
+      // this works in combination with `'OTHER_LDFLAGS' => '-framework ObjectBox'` in objectbox.podspec
+      lib = DynamicLibrary.process();
+      // alternatively, if `DynamicLibrary.process()` wasn't faster (it should be though...)
+      // libName = "ObjectBox.framework/ObjectBox";
     } else if (Platform.isAndroid) {
       libName = "lib" + libName + "-jni.so";
     } else if (Platform.isLinux) {
       libName = "lib" + libName + ".so";
     } else {
-      throw Exception("unsupported platform detected");
+      throw Exception("unsupported platform detected: ${Platform.operatingSystem}");
     }
-    objectbox = DynamicLibrary.open(libName);
+    if (lib == null) {
+      lib = DynamicLibrary.open(libName);
+    }
 
     // common functions
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();

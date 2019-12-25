@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:objectbox/objectbox.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'objectbox.g.dart';
@@ -15,38 +14,39 @@ class Note {
   int date; // TODO: use DateTime class
 
   Note();
+
   Note.construct(this.text) {
     date = DateTime.now().millisecondsSinceEpoch;
     print("constructed date: $date");
   }
 }
 
-void main() => runApp(OBDemoApp());
+void main() => runApp(MyApp());
 
-class OBDemoApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'OB Example',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: OBDemoHomePage(title: 'OB Example'),
+      home: MyHomePage(title: 'OB Example'),
     );
   }
 }
 
-class OBDemoHomePage extends StatefulWidget {
-  OBDemoHomePage({Key key, this.title}) : super(key: key);
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _OBDemoHomePageState createState() => _OBDemoHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _OBDemoHomePageState extends State<OBDemoHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   Store _store;
-  Box _box;
+  Box<Note> _box;
   List<Note> _notes = [];
 
   void _addNote() {
@@ -64,6 +64,8 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
 
   @override
   void initState() {
+    super.initState();
+
     getApplicationDocumentsDirectory().then((dir) {
       _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
       _box = Box<Note>(_store);
@@ -71,8 +73,6 @@ class _OBDemoHomePageState extends State<OBDemoHomePage> {
       setState(() => _notes = notesFromDb);
       // TODO: don't show UI before this point
     });
-
-    super.initState();
   }
 
   @override

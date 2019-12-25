@@ -29,7 +29,7 @@ class CodeBuilder extends Builder {
 
     // map from file name to a "json" representation of entities
     final files = Map<String, List<dynamic>>();
-    final glob = Glob(path.join(dir(buildStep), '**' + EntityResolver.suffix));
+    final glob = Glob(dir(buildStep) + '/**' + EntityResolver.suffix);
     await for (final input in buildStep.findAssets(glob)) {
       files[input.path] = json.decode(await buildStep.readAsString(input));
     }
@@ -39,7 +39,7 @@ class CodeBuilder extends Builder {
     final entities = List<ModelEntity>();
     for (final entitiesList in files.values) {
       for (final entityMap in entitiesList) {
-        entities.add(ModelEntity.fromMap(entityMap));
+        entities.add(ModelEntity.fromMap(entityMap, check: false));
       }
     }
     entities.sort((a, b) => a.name.compareTo(b.name));
@@ -55,9 +55,19 @@ class CodeBuilder extends Builder {
   }
 
   Future<ModelInfo> updateModel(List<ModelEntity> entities, BuildStep buildStep) async {
+    {
+      // TODO temporary v0.5 -> v0.6 update - check if the model file exists in the old location
+      final oldJson = AssetId(buildStep.inputId.package, "objectbox-model.json");
+      if (File(oldJson.path).existsSync()) {
+        throw StateError(""
+            "Found objectbox-model.json in the package root. This is the old behaviour before ObjectBox v0.6\n"
+            "Please move objectbox-model.json to lib/objectbox-model.json and run the build_runner again.\n");
+      }
+    }
+
     // load an existing model or initialize a new one
     ModelInfo model;
-    final jsonId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), jsonFile));
+    final jsonId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + jsonFile);
     if (await buildStep.canRead(jsonId)) {
       log.info("Using model: ${jsonId.path}");
       model = ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
@@ -68,6 +78,7 @@ class CodeBuilder extends Builder {
 
     // merge existing model and annotated model that was just read, then write new final model to file
     merge(model, entities);
+    model.validate();
 
     // write model info
     // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.
@@ -86,7 +97,7 @@ class CodeBuilder extends Builder {
     var code = CodeChunks.objectboxDart(model, imports);
     code = DartFormatter().format(code);
 
-    final codeId = AssetId(buildStep.inputId.package, path.join(dir(buildStep), codeFile));
+    final codeId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + codeFile);
     log.info("Generating code: ${codeId.path}");
     await buildStep.writeAsString(codeId, code);
   }
@@ -114,6 +125,7 @@ class CodeBuilder extends Builder {
       log.info("Found new property ${entity.name}.${prop.name}");
       entity.addProperty(prop);
     } else {
+      propInModel.name = prop.name;
       propInModel.type = prop.type;
       propInModel.flags = prop.flags;
     }
@@ -130,6 +142,8 @@ class CodeBuilder extends Builder {
       final createdEntity = modelInfo.addEntity(entity);
       return createdEntity.id;
     }
+
+    entityInModel.name = entity.name;
 
     // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));

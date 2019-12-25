@@ -29,16 +29,18 @@ class IdUid {
         this._uid = 0;
 
   set id(int id) {
-    if (id <= 0 || id > ((1 << 63) - 1)) throw Exception("id out of bounds: $id");
+    if (id < 0 || id > ((1 << 63) - 1)) throw Exception("id out of bounds: $id");
     _id = id;
   }
 
   set uid(int uid) {
-    if (uid <= 0 || uid > ((1 << 63) - 1)) throw Exception("uid out of bounds: $uid");
+    if (uid < 0 || uid > ((1 << 63) - 1)) throw Exception("uid out of bounds: $uid");
     _uid = uid;
   }
 
-  get id => _id;
-  get uid => _uid;
-  String toString() => "$id:$uid";
+  int get id => _id;
+
+  int get uid => _uid;
+
+  String toString() => "$_id:$_uid";
 }

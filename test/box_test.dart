@@ -92,15 +92,74 @@ void main() {
     expect(fetchedItems[2].tString, equals("Two"));
   });
 
-  test("limit integers are stored correctly", () {
+  test("all limit integers are stored correctly", () {
+    final int8Min = -128;
+    final int8Max = 127;
+    final uint8Min = 0;
+    final uint8Max = 255;
+    final int16Min = -32768;
+    final int16Max = 32767;
+    final int32Min = -2147483648;
+    final int32Max = 2147483647;
     final int64Min = -9223372036854775808;
     final int64Max = 9223372036854775807;
-    final List<TestEntity> items = [int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList();
-    expect("${items[0].tLong}", equals("$int64Min"));
-    expect("${items[1].tLong}", equals("$int64Max"));
+    final List<TestEntity> items = [
+      ...[int8Min, int8Max].map((n) => TestEntity(tChar: n)).toList(),
+      ...[uint8Min, uint8Max].map((n) => TestEntity(tByte: n)).toList(),
+      ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)).toList(),
+      ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)).toList(),
+      ...[int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList()
+    ];
+    expect("${items[8].tLong}", equals("$int64Min"));
+    expect("${items[9].tLong}", equals("$int64Max"));
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0].tLong, equals(int64Min));
-    expect(fetchedItems[1].tLong, equals(int64Max));
+    expect(fetchedItems[0].tChar, equals(int8Min));
+    expect(fetchedItems[1].tChar, equals(int8Max));
+    expect(fetchedItems[2].tByte, equals(uint8Min));
+    expect(fetchedItems[3].tByte, equals(uint8Max));
+    expect(fetchedItems[4].tShort, equals(int16Min));
+    expect(fetchedItems[5].tShort, equals(int16Max));
+    expect(fetchedItems[6].tInt, equals(int32Min));
+    expect(fetchedItems[7].tInt, equals(int32Max));
+    expect(fetchedItems[8].tLong, equals(int64Min));
+    expect(fetchedItems[9].tLong, equals(int64Max));
+  });
+
+  test("special floating point values are handled correctly", () {
+    final valsFloat = [
+      double.infinity,
+      1.1754943508222875e-38,
+      3.4028234663852886e+38,
+      -3.4028234663852886e+38,
+      double.nan,
+      double.negativeInfinity
+    ];
+    final valsDouble = [
+      double.infinity,
+      double.maxFinite,
+      -double.maxFinite,
+      double.minPositive,
+      double.nan,
+      double.negativeInfinity
+    ];
+    final List<TestEntity> items = [
+      ...valsFloat.map((n) => TestEntity(tFloat: n)).toList(),
+      ...valsDouble.map((n) => TestEntity(tDouble: n)).toList()
+    ];
+    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    List<double> fetchedVals = [];
+    for (var i = 0; i < fetchedItems.length; i++) {
+      fetchedVals.add(i < valsFloat.length ? fetchedItems[i].tFloat : fetchedItems[i].tDouble);
+    }
+
+    for (var i = 0; i < fetchedVals.length; i++) {
+      double expected = i < valsFloat.length ? valsFloat[i] : valsDouble[i - valsFloat.length];
+      if (expected.isNaN) {
+        expect(fetchedVals[i].isNaN, equals(true));
+      } else {
+        expect(fetchedVals[i], equals(expected));
+      }
+    }
   });
 
   test("null properties are handled correctly", () {
@@ -121,6 +180,29 @@ void main() {
     expect(fetchedItems[2].tString, isNot(equals(null)));
     expect(fetchedItems[2].tBool, equals(null));
     expect(fetchedItems[2].tDouble, equals(null));
+  });
+
+  test("all types are handled correctly", () {
+    TestEntity item = TestEntity(
+        tString: "Hello",
+        tLong: 1234,
+        tDouble: 3.14159,
+        tBool: true,
+        tByte: 123,
+        tShort: -4567,
+        tChar: 'x'.codeUnitAt(0),
+        tInt: 789012,
+        tFloat: -2.71);
+    final fetchedItem = box.get(box.put(item));
+    expect(fetchedItem.tString, equals("Hello"));
+    expect(fetchedItem.tLong, equals(1234));
+    expect((fetchedItem.tDouble - 3.14159).abs(), lessThan(0.000000000001));
+    expect(fetchedItem.tBool, equals(true));
+    expect(fetchedItem.tByte, equals(123));
+    expect(fetchedItem.tShort, equals(-4567));
+    expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
+    expect(fetchedItem.tInt, equals(789012));
+    expect((fetchedItem.tFloat - (-2.71)).abs(), lessThan(0.0000001));
   });
 
   test(".count() works", () {

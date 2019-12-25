@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-cLibVersion=0.7
+cLibVersion=0.8.1
 os=$(uname)
 
 # if there's no tty this is probably part of a docker build - therefore we install the c-api explicitly

@@ -1,7 +1,16 @@
+0.6.0 (2019-12-19)
+------------------
+* Flutter iOS support
+* Generator fixes and rework to support multiple entity files in addition to many entities in a single file. 
+    Please move `objectbox-model.json` to `lib/` before running the generator. 
+* Simplified Android support (automatic dependency).
+* Docs improvements
+* Updated to objectbox-c 0.8.1
+
 0.5.0 (2019-11-18)
 ------------------
 * Dart 2.6 support - breaking change due to Dart 2.6 FFI changes.
-  Please keep using 0.4 if you're on Dart 2.5 or Flutter. Currently no Flutter version comes with Dart 2.6 final.
+  Please keep using 0.4 if you're on Dart 2.5/Flutter 1.9. 
   (thanks [Jasm Sison](https://github.com/Buggaboo) for [#57](https://github.com/objectbox/objectbox-dart/pull/57))
 * Docs fixes & improvements
 
