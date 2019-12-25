@@ -152,6 +152,14 @@ typedef obx_query_visit_native_t = Int32 Function(
 typedef obx_query_visit_dart_t = int Function(
     Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, int offset, int limit);
 
+// observers
+
+typedef obx_observer_t<U extends NativeType, T extends NativeType> = U Function(Pointer<Void> user_data, Pointer<Uint32> entity_id, T type_ids_count);
+typedef obx_observer_single_type_t<U extends NativeType> = U Function(Pointer<Void> user_data);
+typedef obx_observe_t = Pointer<Void> Function(Pointer<Void> store, Pointer<NativeFunction<obx_observer_t<Void, Uint32>>> callback, Pointer<Void> user_data);
+typedef obx_observe_single_type_t<T> = Pointer<Void> Function(Pointer<Void> store, T entity_id, Pointer<NativeFunction<obx_observer_single_type_t<Void>>> callback, Pointer<Void> user_data);
+typedef obx_observer_close_t<U extends NativeType> = U Function(Pointer<Void> observer);
+
 // Utilities
 
 typedef obx_bytes_array_t<SizeT> = Pointer<OBX_bytes_array> Function(SizeT count);

@@ -128,6 +128,12 @@ class _ObjectBoxBindings {
 
   obx_query_visit_dart_t obx_query_visit;
 
+  // Observers
+
+  obx_observe_t obx_observe;
+  obx_observe_single_type_t<int> obx_observe_single_type;
+  obx_observer_close_t<void> obx_observer_close;
+
   // Utilities
   obx_bytes_array_t<int> obx_bytes_array;
   obx_bytes_array_set_t<int, int> obx_bytes_array_set;
@@ -290,6 +296,11 @@ class _ObjectBoxBindings {
     obx_query_describe_params = _fn<obx_query_describe_t>("obx_query_describe_params").asFunction();
 
     obx_query_visit = _fn<obx_query_visit_native_t>("obx_query_visit").asFunction();
+
+    // observers
+    obx_observe = _fn<obx_observe_t>("obx_observe").asFunction();
+    obx_observe_single_type = _fn<obx_observe_single_type_t<Uint32>>("obx_observe_single_type").asFunction();
+    obx_observer_close = _fn<obx_observer_close_t<Void>>("obx_observer_close").asFunction();
 
     // Utilities
     obx_bytes_array = _fn<obx_bytes_array_t<IntPtr>>("obx_bytes_array").asFunction();

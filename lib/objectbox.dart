@@ -7,3 +7,4 @@ export "src/store.dart";
 export "src/box.dart";
 export "src/modelinfo/index.dart";
 export "src/query/query.dart";
+export "src/bindings/bindings.dart";
