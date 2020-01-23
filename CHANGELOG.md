@@ -1,3 +1,8 @@
+0.6.1 (2020-01-23)
+------------------
+* Fix Flutter Android/iOS release build failures
+* Updated to objectbox-c 0.8.2
+
 0.6.0 (2019-12-19)
 ------------------
 * Flutter iOS support
