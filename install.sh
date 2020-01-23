@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -eu
 
-cLibVersion=0.8.1
+# https://github.com/objectbox/objectbox-c/releases
+cLibVersion=0.8.2
 os=$(uname)
 
 # if there's no tty this is probably part of a docker build - therefore we install the c-api explicitly

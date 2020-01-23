@@ -307,7 +307,7 @@ class StringCondition extends PropertyCondition<String> {
     final arrayOfCStrings = allocate<Pointer<Utf8>>(count: listLength);
     try {
       for (int i = 0; i < _list.length; i++) {
-        arrayOfCStrings.elementAt(i).value = Utf8.toUtf8(_list[i]);
+        arrayOfCStrings[i] = Utf8.toUtf8(_list[i]);
       }
       return func(builder._cBuilder, _property._propertyId, arrayOfCStrings, listLength, _caseSensitive ? 1 : 0);
     } finally {
@@ -373,7 +373,7 @@ class IntegerCondition extends PropertyCondition<int> {
     final listPtr = allocate<P>(count: length);
     try {
       for (int i=0; i<length; i++) {
-        listPtr.elementAt(i).value = _list[i] as int; // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
+        listPtr[i] = _list[i] as int; // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
       }
       return func(builder._cBuilder, _property.propertyId, listPtr, length);
     }finally {
@@ -388,7 +388,7 @@ class IntegerCondition extends PropertyCondition<int> {
     final listPtr = allocate<Int32>(count: length);
     try {
       for (int i = 0; i < length; i++) {
-        listPtr.elementAt(i).value = _list[i];
+        listPtr[i] = _list[i];
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
@@ -402,7 +402,7 @@ class IntegerCondition extends PropertyCondition<int> {
     final listPtr = allocate<Int64>(count: length);
     try {
       for (int i = 0; i < length; i++) {
-        listPtr.elementAt(i).value = _list[i];
+        listPtr[i] = _list[i];
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
@@ -506,7 +506,7 @@ class ConditionGroup extends Condition {
           throw Exception("Failed to create condition " + _conditions[i].toString());
         }
 
-        intArrayPtr.elementAt(i).value = cid;
+        intArrayPtr[i] = cid;
       }
 
       // root All (AND) is implicit so no need to actually combine the conditions

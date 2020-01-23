@@ -109,7 +109,7 @@ class Box<T> {
     Pointer<Uint64> allIdsMemory = allocate<Uint64>(count: objects.length);
     try {
       for (int i = 0; i < allPropVals.length; ++i) {
-        allIdsMemory.elementAt(i).value = (allPropVals[i][_modelEntity.idProperty.name] as int);
+        allIdsMemory[i] = (allPropVals[i][_modelEntity.idProperty.name] as int);
       }
 
       // marshal all objects to be put into the box
