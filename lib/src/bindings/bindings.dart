@@ -13,6 +13,7 @@ class _ObjectBoxBindings {
   // common functions
   void Function(Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch) obx_version;
   Pointer<Utf8> Function() obx_version_string;
+  int Function() obx_supports_bytes_array;
 
   obx_free_dart_t<OBX_bytes_array> obx_bytes_array_free;
   obx_free_dart_t<OBX_id_array> obx_id_array_free;
@@ -162,6 +163,7 @@ class _ObjectBoxBindings {
     // common functions
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();
     obx_version_string = _fn<obx_version_string_native_t>("obx_version_string").asFunction();
+    obx_supports_bytes_array = _fn<obx_supports_bytes_array_native_t>("obx_supports_bytes_array").asFunction();
     obx_bytes_array_free = _fn<obx_free_native_t<Pointer<OBX_bytes_array>>>("obx_bytes_array_free").asFunction();
     obx_id_array_free = _fn<obx_free_native_t<Pointer<OBX_id_array>>>("obx_id_array_free").asFunction();
 //    obx_string_array_free = _fn<obx_free_native_t<Pointer<>>>("obx_string_array_free").asFunction();
