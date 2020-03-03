@@ -11,6 +11,8 @@ typedef obx_version_string_native_t = Pointer<Utf8> Function();
 typedef obx_free_dart_t<T extends NativeType> = void Function(Pointer<T> ptr);
 typedef obx_free_native_t<T extends NativeType> = Void Function(T ptr); // no Pointer<T>, code analysis fails on usage
 
+typedef obx_data_visitor_native_t = Uint8 Function(Pointer<Void> user_data, Pointer<Uint8> data, IntPtr size);
+
 // error info
 typedef obx_last_error_code_native_t = Int32 Function();
 typedef obx_last_error_message_native_t = Pointer<Utf8> Function();
