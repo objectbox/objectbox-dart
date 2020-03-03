@@ -204,6 +204,21 @@ void main() {
     q.close();
   });
 
+  test(".find works on large arrays", () {
+    // This would fail on 32-bit system if objectbox-c obx_supports_bytes_array() wasn't respected
+    final length = 10 * 1000;
+    final largeString = 'A' * length;
+    expect(largeString.length, length);
+
+    box.put(TestEntity(tString: largeString));
+    box.put(TestEntity(tString: largeString));
+
+    List<TestEntity> items = box.query(TestEntity_.id.greaterThan(0)).build().find();
+    expect(items.length, 2);
+    expect(items[0].tString, largeString);
+    expect(items[1].tString, largeString);
+  });
+
   test(".count items after grouping with and/or", () {
     box.put(TestEntity(tString: "Hello"));
     box.put(TestEntity(tString: "Goodbye"));

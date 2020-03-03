@@ -79,7 +79,7 @@ typedef obx_box_is_empty_native_t = Int32 Function(Pointer<Void> box, Pointer<Ui
 // typedef Pointer<Int8> -> char[]
 // typedef Pointer<Int32> -> int (e.g. obx_qb_cond);
 
-// query builider
+// query builder
 typedef obx_query_builder_native_t = Pointer<Void> Function(Pointer<Void> store, Uint32 entity_id);
 typedef obx_query_builder_dart_t = Pointer<Void> Function(Pointer<Void> store, int entity_id);
 
@@ -150,10 +150,10 @@ typedef obx_query_count_dart_t = int Function(Pointer<Void> query, Pointer<Uint6
 
 typedef obx_query_describe_t = Pointer<Utf8> Function(Pointer<Void> query);
 
-typedef obx_query_visit_native_t = Int32 Function(
-    Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, Uint64 offset, Uint64 limit);
-typedef obx_query_visit_dart_t = int Function(
-    Pointer<Void> query, Pointer<Void> visitor, Pointer<Void> user_data, int offset, int limit);
+typedef obx_query_visit_native_t = Int32 Function(Pointer<Void> query,
+    Pointer<NativeFunction<obx_data_visitor_native_t>> visitor, Pointer<Void> user_data, Uint64 offset, Uint64 limit);
+typedef obx_query_visit_dart_t = int Function(Pointer<Void> query,
+    Pointer<NativeFunction<obx_data_visitor_native_t>> visitor, Pointer<Void> user_data, int offset, int limit);
 
 // Utilities
 
