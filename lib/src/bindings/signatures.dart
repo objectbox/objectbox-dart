@@ -61,6 +61,10 @@ typedef obx_box_get_native_t = Int32 Function(
     Pointer<Void> box, Uint64 id, Pointer<Pointer<Uint8>> data, Pointer<IntPtr> size);
 typedef obx_box_get_many_native_t = Pointer<OBX_bytes_array> Function(Pointer<Void> box, Pointer<OBX_id_array> ids);
 typedef obx_box_get_all_native_t = Pointer<OBX_bytes_array> Function(Pointer<Void> box);
+typedef obx_box_visit_many_native_t = Int32 Function(Pointer<Void> box, Pointer<OBX_id_array> ids,
+    Pointer<NativeFunction<obx_data_visitor_native_t>> visitor, Pointer<Void> user_data);
+typedef obx_box_visit_all_native_t = Int32 Function(
+    Pointer<Void> box, Pointer<NativeFunction<obx_data_visitor_native_t>> visitor, Pointer<Void> user_data);
 typedef obx_box_id_for_put_native_t = Uint64 Function(Pointer<Void> box, Uint64 id_or_zero);
 typedef obx_box_ids_for_put_native_t = Int32 Function(Pointer<Void> box, Uint64 count, Pointer<Uint64> out_first_id);
 typedef obx_box_put_native_t = Int32 Function(

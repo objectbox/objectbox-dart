@@ -69,6 +69,10 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> box, int id, Pointer<Pointer<Uint8>> data, Pointer<IntPtr> size) obx_box_get;
   Pointer<OBX_bytes_array> Function(Pointer<Void> box, Pointer<OBX_id_array> ids) obx_box_get_many;
   Pointer<OBX_bytes_array> Function(Pointer<Void> box) obx_box_get_all;
+  int Function(Pointer<Void> box, Pointer<OBX_id_array> ids, Pointer<NativeFunction<obx_data_visitor_native_t>> visitor,
+      Pointer<Void> user_data) obx_box_visit_many;
+  int Function(Pointer<Void> box, Pointer<NativeFunction<obx_data_visitor_native_t>> visitor, Pointer<Void> user_data)
+      obx_box_visit_all;
   int Function(Pointer<Void> box, int id_or_zero) obx_box_id_for_put;
   int Function(Pointer<Void> box, int count, Pointer<Uint64> out_first_id) obx_box_ids_for_put;
   int Function(Pointer<Void> box, int id, Pointer<Uint8> data, int size, int mode) obx_box_put;
@@ -217,6 +221,8 @@ class _ObjectBoxBindings {
     obx_box_get = _fn<obx_box_get_native_t>("obx_box_get").asFunction();
     obx_box_get_many = _fn<obx_box_get_many_native_t>("obx_box_get_many").asFunction();
     obx_box_get_all = _fn<obx_box_get_all_native_t>("obx_box_get_all").asFunction();
+    obx_box_visit_many = _fn<obx_box_visit_many_native_t>("obx_box_visit_many").asFunction();
+    obx_box_visit_all = _fn<obx_box_visit_all_native_t>("obx_box_visit_all").asFunction();
     obx_box_id_for_put = _fn<obx_box_id_for_put_native_t>("obx_box_id_for_put").asFunction();
     obx_box_ids_for_put = _fn<obx_box_ids_for_put_native_t>("obx_box_ids_for_put").asFunction();
     obx_box_put = _fn<obx_box_put_native_t>("obx_box_put").asFunction();

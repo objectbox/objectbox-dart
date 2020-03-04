@@ -212,8 +212,9 @@ void main() {
 
     box.put(TestEntity(tString: largeString));
     box.put(TestEntity(tString: largeString));
+    box.put(TestEntity(tString: largeString));
 
-    List<TestEntity> items = box.query(TestEntity_.id.greaterThan(0)).build().find();
+    List<TestEntity> items = box.query(TestEntity_.id.lessThan(3)).build().find();
     expect(items.length, 2);
     expect(items[0].tString, largeString);
     expect(items[1].tString, largeString);
