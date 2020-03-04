@@ -168,7 +168,7 @@ class Box<T> {
       if (_supportsBytesArrays) {
         final bytesArray = cGetArray();
         try {
-          return _fbManager.unmarshalArray(bytesArray, allowMissing: false);
+          return _fbManager.unmarshalArray(bytesArray, allowMissing: allowMissing);
         } finally {
           bindings.obx_bytes_array_free(bytesArray);
         }
