@@ -2,17 +2,16 @@ import 'dart:ffi';
 import 'signatures.dart';
 import "package:ffi/ffi.dart" show allocate, free;
 
-typedef bool dataVisitorCallback(Pointer<Uint8> dataPtr, int length);
+int _lastId = 0;
+final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
 
-int visitorId = 0;
-final callbacks = <int, dataVisitorCallback>{};
-
+// called from C, forwards calls to the actual callback registered at the given ID
 int _forwarder(Pointer<Void> callbackId, Pointer<Uint8> dataPtr, int size) {
-  if (callbackId == null) {
-    throw Exception("Data-visitor callback issued with NULL user_data");
+  if (callbackId == null || callbackId.address == 0) {
+    throw Exception("Data-visitor callback issued with NULL user_data (callback ID)");
   }
 
-  return callbacks[callbackId.cast<Int64>().value](dataPtr, size) ? 1 : 0;
+  return _callbacks[callbackId.cast<Int64>().value](dataPtr, size) ? 1 : 0;
 }
 
 /// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
@@ -24,20 +23,20 @@ class DataVisitor {
 
   Pointer<Void> get userData => _idPtr.cast<Void>();
 
-  DataVisitor(dataVisitorCallback callback) {
+  DataVisitor(bool Function(Pointer<Uint8> dataPtr, int length) callback) {
     // cycle through ids until we find an empty slot
-    visitorId++;
-    var initialId = visitorId;
-    while (callbacks.containsKey(visitorId)) {
-      visitorId++;
+    _lastId++;
+    var initialId = _lastId;
+    while (_callbacks.containsKey(_lastId)) {
+      _lastId++;
 
-      if (initialId == visitorId) {
+      if (initialId == _lastId) {
         throw Exception("Data-visitor callbacks queue full - can't allocate another");
       }
     }
     // register the visitor
-    _id = visitorId;
-    callbacks[_id] = callback;
+    _id = _lastId;
+    _callbacks[_id] = callback;
 
     _idPtr = allocate<Int64>();
     _idPtr.value = _id;
@@ -45,7 +44,7 @@ class DataVisitor {
 
   void close() {
     // unregister the visitor
-    callbacks.remove(_id);
+    _callbacks.remove(_id);
     free(_idPtr);
   }
 }
