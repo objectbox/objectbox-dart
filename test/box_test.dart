@@ -78,7 +78,29 @@ void main() {
     }
   });
 
-  test(".getMany correctly handles non-existant items", () {
+  test(".getAll/getMany works on large arrays", () {
+    // This would fail on 32-bit system if objectbox-c obx_supports_bytes_array() wasn't respected
+    final length = 10 * 1000;
+    final largeString = 'A' * length;
+    expect(largeString.length, length);
+
+    box.put(TestEntity(tString: largeString));
+    box.put(TestEntity(tString: largeString));
+
+    List<TestEntity> items = box.getAll();
+    expect(items.length, 2);
+    expect(items[0].tString, largeString);
+    expect(items[1].tString, largeString);
+
+    box.put(TestEntity(tString: largeString));
+
+    items = box.getMany([1, 2]);
+    expect(items.length, 2);
+    expect(items[0].tString, largeString);
+    expect(items[1].tString, largeString);
+  });
+
+  test(".getMany correctly handles non-existent items", () {
     final List<TestEntity> items = ["One", "Two"].map((s) => TestEntity(tString: s)).toList();
     final List<int> ids = box.putMany(items);
     int otherId = 1;
