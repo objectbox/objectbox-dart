@@ -172,29 +172,29 @@ class Box<T> {
         } finally {
           bindings.obx_bytes_array_free(bytesArray);
         }
-      }
-
-      final results = <T>[];
-      final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-        if (dataPtr == null || dataPtr.address == 0 || length == 0) {
-          if (allowMissing) {
-            results.add(null);
-            return true;
-          } else {
-            throw Exception('Object not found');
+      } else {
+        final results = <T>[];
+        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
+          if (dataPtr == null || dataPtr.address == 0 || length == 0) {
+            if (allowMissing) {
+              results.add(null);
+              return true;
+            } else {
+              throw Exception('Object not found');
+            }
           }
-        }
-        final bytes = dataPtr.asTypedList(length);
-        results.add(_fbManager.unmarshal(bytes));
-        return true;
-      });
+          final bytes = dataPtr.asTypedList(length);
+          results.add(_fbManager.unmarshal(bytes));
+          return true;
+        });
 
-      try {
-        cVisit(visitor);
-      } finally {
-        visitor.close();
+        try {
+          cVisit(visitor);
+        } finally {
+          visitor.close();
+        }
+        return results;
       }
-      return results;
     });
   }
 
