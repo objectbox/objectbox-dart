@@ -1,3 +1,7 @@
+0.6.2 (2020-03-09)
+------------------
+* 32-bit large object arrays support
+
 0.6.1 (2020-01-23)
 ------------------
 * Fix Flutter Android/iOS release build failures
