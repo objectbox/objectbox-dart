@@ -1,6 +1,6 @@
 0.6.2 (2020-03-09)
 ------------------
-* 32-bit large object arrays support
+* Support large object arrays on 32-bit platforms/emulators.
 
 0.6.1 (2020-01-23)
 ------------------
