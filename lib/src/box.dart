@@ -5,6 +5,7 @@ import 'common.dart';
 import "store.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
+import "bindings/data_visitor.dart";
 import "bindings/flatbuffers.dart";
 import "bindings/helpers.dart";
 import "bindings/structs.dart";
@@ -24,8 +25,9 @@ class Box<T> {
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;
   OBXFlatbuffersManager<T> _fbManager;
+  final bool _supportsBytesArrays;
 
-  Box(this._store) {
+  Box(this._store) : _supportsBytesArrays = bindings.obx_supports_bytes_array() == 1 {
     EntityDefinition<T> entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.model;
     _entityReader = entityDefs.reader;
@@ -160,34 +162,63 @@ class Box<T> {
     }
   }
 
-  List<T> _getMany(bool allowMissing, Pointer<OBX_bytes_array> Function() cCall) {
+  List<T> _getMany(
+      bool allowMissing, Pointer<OBX_bytes_array> Function() cGetArray, void Function(DataVisitor) cVisit) {
     return _store.runInTransaction(TxMode.Read, () {
-      final bytesArray = cCall();
-      try {
-        return _fbManager.unmarshalArray(bytesArray, allowMissing: allowMissing);
-      } finally {
-        bindings.obx_bytes_array_free(bytesArray);
+      if (_supportsBytesArrays) {
+        final bytesArray = cGetArray();
+        try {
+          return _fbManager.unmarshalArray(bytesArray, allowMissing: allowMissing);
+        } finally {
+          bindings.obx_bytes_array_free(bytesArray);
+        }
+      } else {
+        final results = <T>[];
+        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
+          if (dataPtr == null || dataPtr.address == 0 || length == 0) {
+            if (allowMissing) {
+              results.add(null);
+              return true;
+            } else {
+              throw Exception('Object not found');
+            }
+          }
+          final bytes = dataPtr.asTypedList(length);
+          results.add(_fbManager.unmarshal(bytes));
+          return true;
+        });
+
+        try {
+          cVisit(visitor);
+        } finally {
+          visitor.close();
+        }
+        return results;
       }
     });
   }
 
   /// Returns a list of [ids.length] Objects of type T, each corresponding to the location of its ID in [ids].
-  /// Non-existant IDs become null.
+  /// Non-existent IDs become null.
   List<T> getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
-    const bool allowMissing = true; // returns null if null is encountered in the data found
+    const bool allowMissing = true; // result includes null if an object is missing
     return OBX_id_array.executeWith(
         ids,
-        (ptr) => _getMany(allowMissing,
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box")));
+        (ptr) => _getMany(
+            allowMissing,
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box"),
+            (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(_cBox, ptr, visitor.fn, visitor.userData))));
   }
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
     const bool allowMissing = false; // throw if null is encountered in the data found
     return _getMany(
-        allowMissing, () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"));
+        allowMissing,
+        () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"),
+        (DataVisitor visitor) => checkObx(bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
