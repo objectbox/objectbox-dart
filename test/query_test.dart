@@ -12,6 +12,18 @@ void main() {
     box = env.box;
   });
 
+  test("ignore transient fields", () {
+    box.put(
+      TestEntity(tDouble: 0.1, ignore: 1337));
+
+    final d = TestEntity_.tDouble;
+
+    final q = box.query(d.between(0.0, 0.2)).build();
+
+    expect(q.count(), 1);
+    expect(q.findFirst().ignore, null);
+  });
+
   test(".null and .notNull", () {
     box.putMany([
       TestEntity(tDouble: 0.1, tBool: true),
