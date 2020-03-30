@@ -20,3 +20,7 @@ class Id {
   final int uid;
   const Id({this.uid});
 }
+
+class Transient {
+  const Transient();
+}

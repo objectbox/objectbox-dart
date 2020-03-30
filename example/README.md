@@ -14,6 +14,12 @@ class Note {
     int id;
     String text;
     
+    @Transient()
+    int these, fields, are, ignored;
+    
+    @Transient()
+    String thisToo;
+    
     Note({this.text}); // empty default constructor needed but it can have optional args
     toString() => "Note{id: $id, text: $text}";
 }

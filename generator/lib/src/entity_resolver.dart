@@ -19,6 +19,7 @@ class EntityResolver extends Builder {
   final _annotationChecker = const TypeChecker.fromRuntime(obx.Entity);
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
+  final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -54,6 +55,12 @@ class EntityResolver extends Builder {
     // read all suitable annotated properties
     bool hasIdProperty = false;
     for (var f in element.fields) {
+
+      if (_transientChecker.hasAnnotationOfExact(f)) {
+        log.warning("  skipping property '${f.name}' in entity '${element.name}', marked with the @Transient annotation.");
+        continue;
+      }
+
       int fieldType, flags = 0;
       int propUid;
 
