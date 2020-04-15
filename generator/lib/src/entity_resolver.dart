@@ -57,7 +57,7 @@ class EntityResolver extends Builder {
     for (var f in element.fields) {
 
       if (_transientChecker.hasAnnotationOfExact(f)) {
-        log.warning("  skipping property '${f.name}' in entity '${element.name}', marked with the @Transient annotation.");
+        log.info("  skipping property ${f.name} (annotated with @Transient)");
         continue;
       }
 
