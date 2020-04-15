@@ -12,7 +12,7 @@ void main() {
     box = env.box;
   });
 
-  test("ignore transient fields", () {
+  test("ignore transient field", () {
     box.put(
       TestEntity(tDouble: 0.1, ignore: 1337));
 
@@ -22,6 +22,25 @@ void main() {
 
     expect(q.count(), 1);
     expect(q.findFirst().ignore, null);
+  });
+
+  test("ignore multiple transient fields", () {
+    final entity = TestEntity.ignoredExcept(1337);
+
+    box.put(entity);
+
+    expect(entity.omit, -1);
+    expect(entity.disregard, 1);
+
+    final i = TestEntity_.tInt;
+
+    final q = box.query(i.equals(1337)).build();
+
+    final result = q.findFirst();
+
+    expect(q.count(), 1);
+    expect(result.disregard, null);
+    expect(result.omit, null);
   });
 
   test(".null and .notNull", () {

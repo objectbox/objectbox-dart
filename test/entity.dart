@@ -21,6 +21,9 @@ class TestEntity {
   @Transient()
   int ignore;
 
+  @Transient()
+  int omit, disregard;
+
   // A group of fields can also be ignored
   //  @Transient()
   //  String ignore, these, forNow;
@@ -60,4 +63,9 @@ class TestEntity {
       this.tFloat,
       this.ignore
       });
+
+  TestEntity.ignoredExcept(this.tInt) {
+    this.omit = -1;
+    this.disregard = 1;
+  }
 }
