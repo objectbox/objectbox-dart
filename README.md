@@ -16,11 +16,11 @@ Installation
 Add the following dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^0.6.2
+  objectbox: ^0.6.3
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_generator: ^0.6.2
+  objectbox_generator: ^0.6.3
 ```
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
