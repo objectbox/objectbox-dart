@@ -1,3 +1,8 @@
+0.6.4 (2020-05-12)
+------------------
+* Update to objectbox-swift 1.3.0
+* Update to objectbox-android 2.5.1
+
 0.6.3 (2020-05-07)
 ------------------
 * Update FlatBuffers to 1.12.0
