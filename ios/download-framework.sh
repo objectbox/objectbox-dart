@@ -4,7 +4,7 @@ set -euo pipefail
 # NOTE: run this script before publishing
 
 # https://github.com/objectbox/objectbox-swift/releases/
-obxSwiftVersion="1.2.0"
+obxSwiftVersion="1.3.0"
 
 dir=$(dirname "$0")
 
