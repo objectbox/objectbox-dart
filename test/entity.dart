@@ -24,10 +24,6 @@ class TestEntity {
   @Transient()
   int omit, disregard;
 
-  // A group of fields can also be ignored
-  //  @Transient()
-  //  String ignore, these, forNow;
-
   // explicitly declared types, see OB-C, objectbox.h
 
   // OBXPropertyType.Byte | 1 byte
