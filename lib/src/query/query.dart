@@ -7,6 +7,7 @@ import "../store.dart";
 import "../common.dart";
 import "../bindings/bindings.dart";
 import "../bindings/constants.dart";
+import "../bindings/data_visitor.dart";
 import "../bindings/flatbuffers.dart";
 import "../bindings/helpers.dart";
 import "../bindings/structs.dart";
@@ -572,11 +573,25 @@ class Query<T> {
 
   List<T> find({int offset = 0, int limit = 0}) {
     return _store.runInTransaction(TxMode.Read, () {
-      final bytesArray = checkObxPtr(bindings.obx_query_find(_cQuery, offset, limit), "find");
-      try {
-        return _fbManager.unmarshalArray(bytesArray);
-      } finally {
-        bindings.obx_bytes_array_free(bytesArray);
+      if (bindings.obx_supports_bytes_array() == 1) {
+        final bytesArray = checkObxPtr(bindings.obx_query_find(_cQuery, offset, limit), "find");
+        try {
+          return _fbManager.unmarshalArray(bytesArray);
+        } finally {
+          bindings.obx_bytes_array_free(bytesArray);
+        }
+      } else {
+        final results = <T>[];
+        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
+          final bytes = dataPtr.asTypedList(length);
+          results.add(_fbManager.unmarshal(bytes));
+          return true;
+        });
+
+        final err = bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData, offset, limit);
+        visitor.close();
+        checkObx(err);
+        return results;
       }
     });
   }
