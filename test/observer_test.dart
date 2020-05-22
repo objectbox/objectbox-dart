@@ -1,11 +1,15 @@
 import "package:test/test.dart";
+import "package:objectbox/src/bindings/bindings.dart";
+import "package:objectbox/src/bindings/signatures.dart";
 import "entity.dart";
+import "entity2.dart";
 import 'test_env.dart';
 import 'objectbox.g.dart';
 import "dart:ffi";
 import "dart:io";
-import "dart:async"; // TODO start to experiment with StreamController / yield / sink / Future
+import "dart:async";
 
+// Pointer.fromAddress(0) does not fire at all
 Pointer<Void> randomPtr = Pointer.fromAddress(1337);
 Completer globalSingleCompleter = Completer();
 Completer globalAnyCompleter = Completer();
@@ -15,19 +19,20 @@ void callbackSingleType(Pointer<Void> user_data) {
   globalSingleCompleter.complete;
 }
 
-void callbackAnyType(Pointer<Void> user_data, Pointer<Uint32> mutated_idss, int mutated_count) {
+void callbackAnyType(Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
   expect(user_data.address, randomPtr.address);
-//  expect(mutated_ids.address, 0); // TODO
-//  expect(mutated_count, 1); // TODO size of the array at mutated_idss
+  for (var i=0; i<mutated_count; i++) {
+    print("test 0: id: ${mutated_ids[i]}, memloc: $mutated_ids, count: $mutated_count");
+  }
   globalAnyCompleter.complete;
 }
 
+// dart callback signatures
 typedef Single = void Function(Pointer<Void>);
 typedef Any    = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
 /**
- * Initial idea, to support of whatever flavor of
- * reactive dart library (rxdart / stream)
+ * Initial idea, to support streams
  * user_data can be used to tag a callback function object
  */
 class Observable /* extension Observable on Store... */ {
@@ -52,8 +57,6 @@ class Observable /* extension Observable on Store... */ {
     singleCompleter.complete;
   }
 
-  // TODO plugin rx/stream framework
-  // TODO allow multiple callbacks?
   void observeSingleType(int entityId, Single fn, Pointer<Void> identifier) {
     singleCompleter = Completer();
     single = fn;
@@ -61,8 +64,6 @@ class Observable /* extension Observable on Store... */ {
     singleObserver = bindings.obx_observe_single_type(store.ptr, entityId, callback, identifier);
   }
 
-  // TODO plugin rx/stream framework
-  // TODO allow >1 callbacks?
   void observe(Any fn, Pointer<Void> identifier) {
     completer = Completer();
     any = fn;
@@ -88,8 +89,11 @@ void main() async {
 
   final testEntityId = getObjectBoxModel().model.findEntityByName("TestEntity").id.id;
 
-  final List<TestEntity> simpleItems = <String>["One", "Two", "Three", "Four", "Five", "Six"].map((s) =>
+  final List<TestEntity> simpleStringItems = <String>["One", "Two", "Three", "Four", "Five", "Six"].map((s) =>
       TestEntity(tString: s)).toList();
+
+  final List<TestEntity> simpleNumberItems = [1,2,3,4,5,6].map((s) =>
+      TestEntity(tInt: s)).toList();
 
   setUp(() {
     env = TestEnv("observers");
@@ -97,7 +101,8 @@ void main() async {
     store = env.store;
   });
 
-  /// Non static function can't be used for ffi
+  /// Non static function can't be used for ffi, but you can call a dynamic function
+  /// aka closure inside a static function
   //  void callbackAnyTypeNonStatic(Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
   //    expect(user_data.address, 0);
   //    expect(mutated_count, 1);
@@ -108,15 +113,18 @@ void main() async {
     var putCount = 0;
     o.observe((Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
       expect(user_data.address, randomPtr.address);
-      print("test 1: $mutated_ids, $mutated_count");
-      putCount++;
-//      expect(mutated_ids, TODO);
-//      expect(mutated_count, TODO);
+      for (var i=0; i<mutated_count; i++) {
+        print("test 1: id: ${mutated_ids[i]}, memloc: $mutated_ids, count: $mutated_count");
+        putCount++;
+      }
     }, randomPtr);
-    simpleItems.forEach((i) => box.put(i));
-    box.putMany(simpleItems);
-    await o.anyComplete();
-    expect(putCount, 7);
+
+    box.putMany(simpleStringItems);
+    simpleStringItems.forEach((i) => box.put(i));
+    simpleNumberItems.forEach((i) => box.put(i));
+
+    await o.anyComplete(); // block, otherwise no results
+    expect(putCount, 13);
   });
 
   test("Observe a single entity with class member callback", () async {
@@ -124,20 +132,37 @@ void main() async {
     var putCount = 0;
     o.observeSingleType(testEntityId, (Pointer<Void> user_data) {
       print("test 2");
-//      expect(user_data.address, equals(randomPtr.address)); // never fails
       putCount++;
     }, randomPtr);
-    simpleItems.forEach((i) => box.put(i));
-    box.putMany(simpleItems);
+
+    box.putMany(simpleStringItems);
+    simpleStringItems.forEach((i) => box.put(i));
+    simpleNumberItems.forEach((i) => box.put(i));
+
     await o.singleComplete();
-    expect(putCount, 7);
+    expect(putCount, 13);
   });
 
   test("Observe any entity with static callback", () async {
     final callback = Pointer.fromFunction<obx_observer_t<Void, Uint32>>(callbackAnyType);
-    final observer = bindings.obx_observe(store.ptr, callback, randomPtr);
-    simpleItems.forEach((i) => box.put(i));
-    box.putMany(simpleItems);
+    final observer = bindings.obx_observe(store.ptr, callback, Pointer.fromAddress(1337));
+
+    box.putMany(simpleStringItems);
+
+    print('count: ${box.count()}');
+    box.remove(1);
+    print('count: ${box.count()}');
+
+    // update value
+    final entity2 = box.get(2);
+    entity2.tString = "Dva";
+    box.put(entity2);
+
+    final box2 = Box<TestEntity2>(store);
+    box2.put(TestEntity2());
+    box2.remove(1);
+    box2.put(TestEntity2());
+
     await globalAnyCompleter.isCompleted;
     bindings.obx_observer_close(observer);
   });
@@ -145,8 +170,11 @@ void main() async {
   test("Observe single entity", () async {
     final callback = Pointer.fromFunction<obx_observer_single_type_t<Void>>(callbackSingleType);
     final observer = bindings.obx_observe_single_type(store.ptr, testEntityId, callback, randomPtr);
-    box.putMany(simpleItems);
-    simpleItems.forEach((i) => box.put(i));
+
+    box.putMany(simpleStringItems);
+    simpleStringItems.forEach((i) => box.put(i));
+    simpleNumberItems.forEach((i) => box.put(i));
+
     await globalSingleCompleter.isCompleted;
     bindings.obx_observer_close(observer);
   });
