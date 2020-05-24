@@ -16,11 +16,11 @@ Installation
 Add the following dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^0.6.2
+  objectbox: ^0.6.4
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_generator: ^0.6.2
+  objectbox_generator: ^0.6.4
 ```
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
@@ -186,6 +186,19 @@ Also, please let us know your feedback by opening an issue:
 for example, if you experience errors or if you have ideas for how to improve the API.
 Thanks!
 
+FAQ
+---
+**Q:** After adding ObjectBox, the size of the APK increased significantly. Why is that?<br>
+**A:** Flutter compresses its native libraries (.so files) by default in the APK.
+ObjectBox instructs the Android build to use uncompressed native libraries instead
+(following the [official Android recommendations](https://developer.android.com/topic/performance/reduce-apk-size#extract-false)).
+This setting affects the Flutter native libraries as well. Thus the now uncompressed Flutter libraries add to the APK size as well;
+we've seen an additional 19 MB for the standard Flutter libraries.
+_This is bad, right?_ Nope, actually uncompressed libraries use **less** storage space on device and have other advantages.
+For details, please review the [official Android recommendations](https://developer.android.com/topic/performance/reduce-apk-size#extract-false)
+and the [ObjectBox FAQ entry](https://docs.objectbox.io/faq#how-much-does-objectbox-add-to-my-apk-size) on this.
+Both links also explain how to force compression using `android:extractNativeLibs="true"`.
+
 See also
 ---------
 * [Changelog](CHANGELOG.md)
@@ -193,7 +206,7 @@ See also
 
 License
 -------
-    Copyright 2019 ObjectBox Ltd. All rights reserved.
+    Copyright 2020 ObjectBox Ltd. All rights reserved.
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

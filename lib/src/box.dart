@@ -59,7 +59,7 @@ class Box<T> {
     int id = propVals[_modelEntity.idProperty.name];
     if (id == null || id == 0) {
       id = bindings.obx_box_id_for_put(_cBox, 0);
-      if (id == 0) throw ObjectBoxException(lastObxErrorString());
+      if (id == 0) throw latestNativeError();
       propVals[_modelEntity.idProperty.name] = id;
     }
 

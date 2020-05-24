@@ -28,12 +28,20 @@ Version versionLib() {
 }
 
 class ObjectBoxException implements Exception {
-  final String message;
-  final String msg;
+  final String dartMsg;
+  final int nativeCode;
+  final String nativeMsg;
 
-  ObjectBoxException(msg)
-      : message = "ObjectBoxException: " + msg,
-        msg = msg;
+  ObjectBoxException({String dartMsg, int nativeCode, String nativeMsg})
+      : dartMsg = dartMsg,
+        nativeCode = nativeCode,
+        nativeMsg = nativeMsg;
 
-  String toString() => message;
+  @override
+  String toString() {
+    var result = 'ObjectBoxException: ';
+    if (dartMsg != null) result += dartMsg + ': ';
+    if (nativeCode != 0) result += '$nativeCode ';
+    return result + nativeMsg;
+  }
 }
