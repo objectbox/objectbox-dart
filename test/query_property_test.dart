@@ -14,10 +14,10 @@ void main() {
   });
 
   final integers = [0, 0, 1, 1, 2, 3, 4, 5];
-  final integerList = integers.map((i) => TestEntity(tBool:true, tByte:1+i, tShort:2+i, tChar:3+i, tInt:4+i, tLong:5+i)).toList();
-  final strings = ["string", "another", "string", "1withSuffix", "2withSuffix", "1withsuffix", "2withsuffix", "swing" ];
+  final integerList = integers.map((i) => TestEntity(tBool:true, tChar:3+i, tByte:1+i, tShort:2+i, tInt:4+i, tLong:5+i)).toList();
+  final strings = ["string", "another", "string", "1withSuffix", "2withSuffix", "1withSuffix", "2withSuffix", "swing", '2WITHSUFFIX'];
   final stringList  = strings.map((s) => TestEntity(tString:s)).toList();
-  final floats = [ 0.1, 0.1, 0.1, 0.1, 0.1 ]; // [0, 0.0, 0.1, 0.2, 0.1];
+  final floats = [0, 0.0, 0.1, 0.2, 0.1];
   final floatList  = floats.map((f) => TestEntity(tFloat:0.1+f, tDouble:0.2+f)).toList();
 
   final tBool = TestEntity_.tBool;
@@ -27,7 +27,9 @@ void main() {
   final tLong = TestEntity_.tLong;
   final tInt = TestEntity_.tInt;
   final tShort = TestEntity_.tShort;
-  final tIntegers = [ tShort, tInt, tLong ]; // starts resp. 2, 4, 5
+
+  // OB prohibits aggregate operations on tBool & tChar
+  final tIntegers = [ /*tBool, tChar,*/ tByte, tShort, tInt, tLong ]; // starts resp. 1, 2, 4, 5
 
   final tFloat = TestEntity_.tFloat;
   final tDouble = TestEntity_.tDouble;
@@ -53,7 +55,7 @@ void main() {
     });
 
     final queryString = box.query(tString.contains('t')).build();
-    expect(queryString.count(), 7);
+    expect(queryString.count(), 8);
     queryString.close();
 
     final queryBool = box.query(tBool.equals(true)).build();
@@ -109,10 +111,15 @@ void main() {
     final sumShort = all.map((s) => s.tShort).toList().fold(0, add);
     final sumInt = all.map((s) => s.tInt).toList().fold(0, add);
     final sumLong = all.map((s) => s.tLong).toList().fold(0, add);
+//    final sumChar = all.map((s) => s.tChar).toList().fold(0, add);
+    final sumByte = all.map((s) => s.tByte).toList().fold(0, add);
 
     expect(propSum(tShort), sumShort);
     expect(propSum(tInt), sumInt);
     expect(propSum(tLong), sumLong);
+
+    expect(propSum(tByte), sumByte);
+//    expect(propSum(tChar), sumChar); // ObjectBoxException: 10002 Property does not allow sum: tChar
 
     query.close();
   });
@@ -137,9 +144,15 @@ void main() {
     final minInt = all.map((s) => s.tInt).toList().reduce(min);
     final minLong = all.map((s) => s.tLong).toList().reduce(min);
 
+    final minByte = all.map((s) => s.tByte).toList().reduce(min);
+    final minChar = all.map((s) => s.tChar).toList().reduce(min);
+
     expect(propMin(tShort), minShort);
     expect(propMin(tInt), minInt);
     expect(propMin(tLong), minLong);
+
+    expect(propMin(tByte), minByte);
+//    expect(propMin(tChar), minChar); // ObjectBoxException: 10002 Property does not allow max: tChar
 
     query.close();
   });
@@ -163,10 +176,13 @@ void main() {
     final maxShort = all.map((s) => s.tShort).toList().reduce(max);
     final maxInt = all.map((s) => s.tInt).toList().reduce(max);
     final maxLong = all.map((s) => s.tLong).toList().reduce(max);
+    final maxByte = all.map((s) => s.tByte).toList().reduce(max);
 
     expect(propMax(tShort), maxShort);
     expect(propMax(tInt), maxInt);
     expect(propMax(tLong), maxLong);
+
+    expect(propMax(tByte), maxByte);
 
     query.close();
   });
@@ -253,7 +269,7 @@ void main() {
     final queryFloats   = box.query(tDouble.between(-1.0, 1.0)).build();
     final queryStrings  = box.query(tString.endsWith("suffix")).build();
 
-    final start = [ 2, 4, 5 ];
+    final start = [ 1, 2, 4, 5 ];
     for (int i=0; i<tIntegers.length; i++) {
       final qp = queryIntegers.property(tIntegers[i]) as IntegerPropertyQuery;
 
@@ -267,21 +283,26 @@ void main() {
     tFloats.forEach((f) {
       final qp = queryFloats.property(f) as DoublePropertyQuery;
 
-      double d = tFloat == f ? 0.20000000298023224 : 0.30000000000000004;
+      final increment = tFloat == f ? 0.1 : 0.2;
+      final expected = floats.map((f) => (f + increment).toStringAsFixed(2)).toList();
 
-      expect(qp.find(), [ d, d, d, d, d ]);
-      expect(qp.find(replaceNullWith:-0.1), [ d, d, d, d, d ]);
+      expect(qp.find().map((f) => f.toStringAsFixed(2)).toList(), expected);
 
       qp.close();
     });
 
     final qp = queryStrings.property(tString) as StringPropertyQuery;
 
-    final defaultResult = ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix'];
+    addSuffix(List<int> s) {
+      return s.map((t) => '${t}withSuffix').toList();
+    }
+
+    final CAPS = ['2WITHSUFFIX'];
+    final defaultResult = addSuffix([1,2,1,2]) + CAPS;
     expect(qp.find(), defaultResult);
-    expect((qp..distinct = true ..caseSensitive = true) .find(), ['2withsuffix', '1withsuffix', '2withSuffix', '1withSuffix'] );
-    expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:"meh"), ['1withSuffix', '2withSuffix', '1withsuffix', '2withsuffix']);
-    expect((qp..distinct = true ..caseSensitive = false).find(), ['2withSuffix', '1withSuffix']);
+    expect((qp..distinct = true ..caseSensitive = true) .find(), CAPS + addSuffix([2,1]) );
+    expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:"meh"), addSuffix([1,2,1,2]) + CAPS);
+    expect((qp..distinct = true ..caseSensitive = false).find(), addSuffix([2,1]));
     expect((qp..distinct = false..caseSensitive = false).find(replaceNullWith:"meh"), defaultResult);
     qp.close();
 
@@ -313,19 +334,24 @@ void main() {
     // floats
     final qpFloat = (p, avg) {
       final qp = queryFloats.doubleProperty(p);
-      expect(qp.average(), avg);
+      expect(qp.average().toStringAsFixed(2), avg.toString());
       qp.close();
     };
 
     double floatBaseAvg = floats.reduce((a,b) => a + b) / floats.length;
 
-    qpFloat(tFloat,  floatBaseAvg + 0.10000000298023224);
-    qpFloat(tDouble, 0.30000000000000004);
+    qpFloat(tFloat,  floatBaseAvg + 0.1);
+    qpFloat(tDouble, floatBaseAvg + 0.2);
+
+    // char, byte
+//    qpInteger(tChar, intBaseAvg); // ObjectBoxException: 10002 Property does not allow avg: tChar
+    qpInteger(tByte, intBaseAvg + 1);
 
     // close
     queryFloats.close();
     queryIntegers.close();
   });
+
 
   test(".find() replace null result with some value" , () {
     box.putMany(integerList);
@@ -337,14 +363,11 @@ void main() {
     final queryStrings  = box.query(tString.contains("t")).build();
 
     // find integers on string populated entities
-    final integerValues = [3, 3, 3, 3, 3, 3, 3];
-    // TODO investigate issue with (signed) negative integers, fix on dart?
-    // evidently only unsigned are allowed
-//    final integerValues = [ -2, -2, -2, -2, -2, -2, -2 ];
+    final integerValues = [3, 3, 3, 3, 3, 3, 3, 3];
 
+    // ObjectBoxException: find int8: 10203 Property "tChar" is of type Char, but we expected a property of type Byte in this context
     final qpInteger = (p, dv) {
       final qp = queryStrings.integerProperty(p);
-//      expect(qp.find(replaceNullWith: -2), dv);
       expect(qp.find(replaceNullWith: 3), dv);
       qp.close();
     };
@@ -353,17 +376,33 @@ void main() {
       qpInteger(i, integerValues);
     });
 
+    /// Only unsigned 'replaceWithNull' values are allowed for
+    /// tShort and tInteger. Is this an architecture, dart or OB bug/feature/issue?
+    final negIntegerValues = [ -2, -2, -2, -2, -2, -2, -2, -2 ];
+
+    final qpNegInteger = (p, dv) {
+      final qp = queryStrings.integerProperty(p);
+      expect(qp.find(replaceNullWith: -2), dv);
+      qp.close();
+    };
+
+    qpNegInteger(tLong, negIntegerValues);
+
     // find floats on integer populated entities
-    // TODO investigate floats are never null????
-//    final floatValues = [ 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0 ];
-//
-//    final qpFloat = (p, dv) {
-//      final qp = queryIntegers.doubleProperty(p);
-//      expect(qp.find(replaceNullWith: 1337.0), dv);
-//      qp.close();
-//    };
+    final floatValues = [ 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0 ];
+
+    final qpFloat = (p, dv) {
+      final qp = queryIntegers.doubleProperty(p);
+      expect(qp.find(replaceNullWith: 1337.0), dv);
+      qp.close();
+    };
+
+    qpFloat(tDouble, floatValues);
+
+    /// Evidently, tFloat is never null, it's always initialized to 0.0,
+    /// so, 'replaceWithNull' is useless here.
+    /// Is this an architecture, dart or OB bug/feature/issue?
 //    qpFloat(tFloat, floatValues);
-//    qpFloat(tDouble, floatValues);
 
     // find strings on float populated entities
     final stringValues = [ "t", "t", "t", "t", "t" ];
@@ -377,8 +416,8 @@ void main() {
     box.putMany(stringList);
     box.putMany(floatList);
 
-    final expectedIntegers = [8, 8, 8];
-    final expectedDistinctIntegers = [6, 6, 6];
+    final expectedIntegers = [8, 8, 8, 8];
+    final expectedDistinctIntegers = [6, 6, 6, 6];
 
     // int
     for (int i=0; i < tIntegers.length; i++) {
@@ -396,21 +435,24 @@ void main() {
       final query = box.query(tFloats[i].lessThan(100.0)).build();
       final queryFloat = query.property(tFloats[i]);
       expect(queryFloat.count(), 5);
-      expect((queryFloat..distinct = true).count(), 1);
+      expect((queryFloat..distinct = true).count(), 3);
       queryFloat.close();
       query.close();
     }
 
     // string
     final query = box.query(tString.contains("t")).build();
-    final queryString = query.property(tString);
-    expect(queryString.count(), 7);
-    expect((queryString..distinct = true).count(), 6);
+    final queryString = query.property(tString) as StringPropertyQuery;
+    expect(queryString.count(), 8);
+    expect((queryString..distinct = true).count(), 5);
+    expect((queryString..distinct = false..caseSensitive = false).count(), 8);
+    expect((queryString..distinct = false..caseSensitive = true).count(), 8);
+    expect((queryString..distinct = true..caseSensitive = false).count(), 5);
+    expect((queryString..distinct = true..caseSensitive = true).count(), 5);
     queryString.close();
     query.close();
 
   });
-  // TODO write tests for byte and char
 
   tearDown(() {
     env.close();
