@@ -14,11 +14,8 @@ class Note {
     int id;
     String text;
     
-    @Transient()
-    int these, fields, are, ignored;
-    
-    @Transient()
-    String thisToo;
+    @Transient() // field is ignored, entity will not have this property
+    int notPersisted;
     
     Note({this.text}); // empty default constructor needed but it can have optional args
     toString() => "Note{id: $id, text: $text}";

@@ -118,19 +118,6 @@ final qt = box.query(Entity_.text.notNull())
   .build();
 ```
 
-### Transient fields
-Fields that you *don't* wish to persist in objectbox, could be
-annotated with `@Transient`.
-
-```dart
-@Entity class k {
-  @Transient()
-  String ignoreThis;
-  
-  //...
-}
-```
-
 Help wanted
 -----------
 ObjectBox for Dart is still in an early stage with limited feature set (compared to other languages).
