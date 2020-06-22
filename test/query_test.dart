@@ -316,7 +316,8 @@ void main() {
         .or(text.equals("World"));
     final q = box.query(c).build();
     // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
-    expect(q.describe(), "Query for entity TestEntity with 7 conditions with properties tLong, tString");
+    // note: order of properties is not guaranteed (currently OS specific).
+    expect(q.describe(), matches('Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
     q.close();
 
     for (int j = 1; j < 20; j++) {
