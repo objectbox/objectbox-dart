@@ -142,6 +142,12 @@ For details, please review the [official Android recommendations](https://develo
 and the [ObjectBox FAQ entry](https://docs.objectbox.io/faq#how-much-does-objectbox-add-to-my-apk-size) on this.
 Both links also explain how to force compression using `android:extractNativeLibs="true"`.
 
+**Q:** Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", does it not support 32-bit devices?
+<br>
+**A:** No, only 64-bit devices are supported. When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
+so we decided to not ship armv7 support. To resolve the build error, in your XCode project
+look under Architectures and replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). 
+
 See also
 ---------
 * [Changelog](CHANGELOG.md)
