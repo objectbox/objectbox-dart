@@ -26,6 +26,8 @@ dev_dependencies:
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
 1. **Flutter** only steps:
     * Install the packages `flutter pub get`
+    * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
+      See [FAQ](#faq) for details.
 1. **Dart standalone programs**:
     * Install the packages `pub get`
     * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
