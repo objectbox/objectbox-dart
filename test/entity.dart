@@ -61,7 +61,7 @@ class TestEntity {
       });
 
   TestEntity.ignoredExcept(this.tInt) {
-    this.omit = -1;
-    this.disregard = 1;
+    omit = -1;
+    disregard = 1;
   }
 }
