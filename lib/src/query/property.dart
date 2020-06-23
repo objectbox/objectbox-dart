@@ -199,7 +199,7 @@ class StringPropertyQuery extends PropertyQuery {
   // you could use that one instead
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
-    checkObx(bindings.obx_query_prop_distinct_string(_cProp, _distinct ? 1 : 0
+    checkObx(bindings.obx_query_prop_distinct_case(_cProp, _distinct ? 1 : 0
         , _caseSensitive ? 1 : 0));
   }
 
@@ -207,7 +207,7 @@ class StringPropertyQuery extends PropertyQuery {
 
   set distinct (bool d) {
     _distinct = d;
-    checkObx(bindings.obx_query_prop_distinct_string(_cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
+    checkObx(bindings.obx_query_prop_distinct_case(_cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
   List<String> _unpack(Pointer<OBX_string_array> ptr) {

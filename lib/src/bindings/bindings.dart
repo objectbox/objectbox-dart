@@ -138,7 +138,7 @@ class _ObjectBoxBindings {
   obx_query_prop_close_t<int> obx_query_prop_close;
 
   obx_query_prop_distinct_t<int, int> obx_query_prop_distinct;
-  obx_query_prop_distinct2_t<int, int> obx_query_prop_distinct_string;
+  obx_query_prop_distinct2_t<int, int> obx_query_prop_distinct_case;
 
   obx_query_prop_op_t<int, Uint64> obx_query_prop_count;
 
@@ -328,7 +328,7 @@ class _ObjectBoxBindings {
     obx_query_prop_close = _fn<obx_query_prop_close_t<Int32>>("obx_query_prop_close").asFunction();
 
     obx_query_prop_distinct =        _fn<obx_query_prop_distinct_t<Int32, Int8>>("obx_query_prop_distinct").asFunction();
-    obx_query_prop_distinct_string = _fn<obx_query_prop_distinct2_t<Int32, Int8>>("obx_query_prop_distinct_string").asFunction();
+    obx_query_prop_distinct_case = _fn<obx_query_prop_distinct2_t<Int32, Int8>>("obx_query_prop_distinct_case").asFunction();
 
     obx_query_prop_count = _fn<obx_query_prop_op_t<Int32, Uint64>>("obx_query_prop_count").asFunction();
     obx_query_prop_avg = _fn<obx_query_prop_op_t<Int32, Double>>("obx_query_prop_avg").asFunction();
