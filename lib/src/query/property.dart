@@ -48,10 +48,10 @@ mixin _CommonNumeric on PropertyQuery {
 
   double average() {
     final ptr = allocate<Double>();
-    checkObx(bindings.obx_query_prop_avg(_cProp, ptr));
     try {
+      checkObx(bindings.obx_query_prop_avg(_cProp, ptr));
       return ptr.value;
-    }finally {
+    } finally {
       free(ptr);
     }
   }
@@ -64,10 +64,10 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
 
   int _op(obx_query_prop_op_t<int, Int64> fn) {
     final ptr = allocate<Int64>();
-    checkObx(fn(_cProp, ptr));
     try {
+      checkObx(fn(_cProp, ptr));
       return ptr.value;
-    }finally {
+    } finally {
       free(ptr);
     }
   }
@@ -141,10 +141,10 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
 
   double _op(obx_query_prop_op_t<int, Double> fn) {
     final ptr = allocate<Double>();
-    checkObx(fn(_cProp, ptr));
     try {
+      checkObx(fn(_cProp, ptr));
       return ptr.value;
-    }finally {
+    } finally {
       free(ptr);
     }
   }
