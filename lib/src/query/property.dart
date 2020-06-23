@@ -32,7 +32,7 @@ class PropertyQuery {
   }
 
   Pointer<TStruct> _curryWithDefault<TStruct extends Struct, N extends NativeType>
-      (obx_query_prop_find_t<TStruct, N> findFn, Pointer<N> cDefault, String errorMessage) {
+      (obx_query_prop_find_native_t<Pointer<TStruct>, N> findFn, Pointer<N> cDefault, String errorMessage) {
     try {
       return checkObxPtr(findFn(_cProp, cDefault), errorMessage);
     }finally {
