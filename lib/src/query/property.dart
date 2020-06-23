@@ -131,6 +131,8 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
       case OBXPropertyType.Long:  // Int64
         return _unpack64(_curryWithDefault<OBX_int64_array, Int64>
           (bindings.obx_query_prop_int64_find, ptr.cast<Int64>(), "find int64"));
+      default:
+        throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
     }
   }
 }
@@ -184,6 +186,8 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
       case OBXPropertyType.Double:
         return _unpack64(_curryWithDefault<OBX_double_array, Double>
           (bindings.obx_query_prop_double_find, ptr.cast<Double>(), "find float64"));
+      default:
+        throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
     }
   }
 
@@ -199,8 +203,7 @@ class StringPropertyQuery extends PropertyQuery {
   // you could use that one instead
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
-    checkObx(bindings.obx_query_prop_distinct_case(_cProp, _distinct ? 1 : 0
-        , _caseSensitive ? 1 : 0));
+    checkObx(bindings.obx_query_prop_distinct_case(_cProp, _distinct ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
   get caseSensitive => _caseSensitive;
