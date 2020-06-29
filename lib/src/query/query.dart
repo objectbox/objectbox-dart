@@ -613,11 +613,11 @@ class Query<T> {
   PQ property<PQ extends PropertyQuery>(QueryProperty qp) {
     if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
       return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
-    }else if (OBXPropertyType.Float == qp._type || qp._type == OBXPropertyType.Double) {
+    } else if (OBXPropertyType.Float == qp._type || qp._type == OBXPropertyType.Double) {
       return DoublePropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
-    }else if (OBXPropertyType.String == qp._type) {
+    } else if (OBXPropertyType.String == qp._type) {
       return StringPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
-    }else {
+    } else {
       throw Exception('Property query: unsupported type (OBXPropertyType: ${qp._type})');
     }
   }

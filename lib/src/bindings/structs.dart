@@ -156,7 +156,6 @@ class OBX_int64_array extends Struct {
 }
 
 class OBX_string_array extends Struct {
-
   Pointer<Pointer<Uint8>> _itemsPtr;
 
   @IntPtr() // size_t
@@ -172,7 +171,6 @@ class OBX_string_array extends Struct {
 }
 
 class OBX_float_array extends Struct {
-
   Pointer<Float> _itemsPtr;
 
   @IntPtr() // size_t
@@ -181,9 +179,7 @@ class OBX_float_array extends Struct {
   List<double> items() => _itemsPtr.asTypedList(count).toList();
 }
 
-
 class OBX_double_array extends Struct {
-
   Pointer<Double> _itemsPtr;
 
   @IntPtr() // size_t

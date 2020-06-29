@@ -1,5 +1,6 @@
-import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:test/test.dart';
+
 import 'entity.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
@@ -14,11 +15,23 @@ void main() {
   });
 
   final integers = [0, 0, 1, 1, 2, 3, 4, 5];
-  final integerList = integers.map((i) => TestEntity(tBool:true, tChar:3+i, tByte:1+i, tShort:2+i, tInt:4+i, tLong:5+i)).toList();
-  final strings = ['string', 'another', 'string', '1withSuffix', '2withSuffix', '1withSuffix', '2withSuffix', 'swing', '2WITHSUFFIX'];
-  final stringList  = strings.map((s) => TestEntity(tString:s)).toList();
+  final integerList = integers
+      .map((i) => TestEntity(tBool: true, tChar: 3 + i, tByte: 1 + i, tShort: 2 + i, tInt: 4 + i, tLong: 5 + i))
+      .toList();
+  final strings = [
+    'string',
+    'another',
+    'string',
+    '1withSuffix',
+    '2withSuffix',
+    '1withSuffix',
+    '2withSuffix',
+    'swing',
+    '2WITHSUFFIX'
+  ];
+  final stringList = strings.map((s) => TestEntity(tString: s)).toList();
   final floats = [0, 0.0, 0.1, 0.2, 0.1];
-  final floatList  = floats.map((f) => TestEntity(tFloat:0.1+f, tDouble:0.2+f)).toList();
+  final floatList = floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
   final tBool = TestEntity_.tBool;
   final tChar = TestEntity_.tChar;
@@ -29,11 +42,11 @@ void main() {
   final tShort = TestEntity_.tShort;
 
   // OB prohibits aggregate operations on tBool & tChar
-  final tIntegers = [ /*tBool, tChar,*/ tByte, tShort, tInt, tLong ]; // starts resp. 1, 2, 4, 5
+  final tIntegers = [/*tBool, tChar,*/ tByte, tShort, tInt, tLong]; // starts resp. 1, 2, 4, 5
 
   final tFloat = TestEntity_.tFloat;
   final tDouble = TestEntity_.tDouble;
-  final tFloats = [ tFloat, tDouble ];
+  final tFloats = [tFloat, tDouble];
 
   final tString = TestEntity_.tString;
 
@@ -89,7 +102,6 @@ void main() {
     final qp = query.property(tString);
     expect(qp is StringPropertyQuery, true);
     qp.close();
-
   });
 
   final add = (a, b) => a + b;
@@ -101,7 +113,7 @@ void main() {
       final p = query.integerProperty(qp);
       try {
         return p.sum();
-      }finally {
+      } finally {
         p.close();
       }
     };
@@ -124,7 +136,7 @@ void main() {
     query.close();
   });
 
-  final min = (a,b) => a < b ? a : b;
+  final min = (a, b) => a < b ? a : b;
   test('.min integers', () {
     box.putMany(integerList);
 
@@ -133,7 +145,7 @@ void main() {
       final p = query.integerProperty(qp);
       try {
         return p.min();
-      }finally {
+      } finally {
         p.close();
       }
     };
@@ -157,7 +169,7 @@ void main() {
     query.close();
   });
 
-  final max = (a,b) => a > b ? a : b;
+  final max = (a, b) => a > b ? a : b;
   test('.max integers', () {
     box.putMany(integerList);
 
@@ -166,7 +178,7 @@ void main() {
       final p = query.integerProperty(qp);
       try {
         return p.max();
-      }finally {
+      } finally {
         p.close();
       }
     };
@@ -195,7 +207,7 @@ void main() {
       final p = query.doubleProperty(qp);
       try {
         return p.sum();
-      }finally {
+      } finally {
         p.close();
       }
     };
@@ -219,7 +231,7 @@ void main() {
       final p = query.doubleProperty(qp);
       try {
         return p.min();
-      }finally {
+      } finally {
         p.close();
       }
     };
@@ -243,7 +255,7 @@ void main() {
       final p = query.doubleProperty(qp);
       try {
         return p.max();
-      }finally {
+      } finally {
         p.close();
       }
     };
@@ -266,15 +278,15 @@ void main() {
 
 //    final query = box.query(((tLong < 2 | tString.endsWith('suffix')) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
     final queryIntegers = box.query(tLong.lessThan(100)).build();
-    final queryFloats   = box.query(tDouble.between(-1.0, 1.0)).build();
-    final queryStrings  = box.query(tString.endsWith('suffix')).build();
+    final queryFloats = box.query(tDouble.between(-1.0, 1.0)).build();
+    final queryStrings = box.query(tString.endsWith('suffix')).build();
 
-    final start = [ 1, 2, 4, 5 ];
-    for (var i=0; i<tIntegers.length; i++) {
+    final start = [1, 2, 4, 5];
+    for (var i = 0; i < tIntegers.length; i++) {
       final qp = queryIntegers.property(tIntegers[i]) as IntegerPropertyQuery;
 
       final mappedIntegers = integers.map((j) => j + start[i]).toList();
-      expect(qp.find(replaceNullWith:-1), mappedIntegers);
+      expect(qp.find(replaceNullWith: -1), mappedIntegers);
       expect(qp.find(), mappedIntegers);
 
       qp.close();
@@ -298,7 +310,7 @@ void main() {
     }
 
     final caps = ['2WITHSUFFIX'];
-    final defaultResult = addSuffix([1,2,1,2]) + caps;
+    final defaultResult = addSuffix([1, 2, 1, 2]) + caps;
     expect(qp.find(), defaultResult);
     expect((qp..distinct = true ..caseSensitive = true) .find(), caps + addSuffix([2,1]) );
     expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:'meh'), addSuffix([1,2,1,2]) + caps);
@@ -316,10 +328,10 @@ void main() {
     box.putMany(floatList);
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
-    final queryFloats   = box.query(tDouble.lessThan(1000.0)).build();
+    final queryFloats = box.query(tDouble.lessThan(1000.0)).build();
 
     // integers
-    var intBaseAvg = integers.reduce((a,b) => a + b) / integers.length;
+    var intBaseAvg = integers.reduce((a, b) => a + b) / integers.length;
 
     final qpInteger = (p, avg) {
       final qp = queryIntegers.integerProperty(p);
@@ -338,9 +350,9 @@ void main() {
       qp.close();
     };
 
-    var floatBaseAvg = floats.reduce((a,b) => a + b) / floats.length;
+    var floatBaseAvg = floats.reduce((a, b) => a + b) / floats.length;
 
-    qpFloat(tFloat,  floatBaseAvg + 0.1);
+    qpFloat(tFloat, floatBaseAvg + 0.1);
     qpFloat(tDouble, floatBaseAvg + 0.2);
 
     // char, byte
@@ -352,15 +364,14 @@ void main() {
     queryIntegers.close();
   });
 
-
-  test('.find() replace null result with some value' , () {
+  test('.find() replace null result with some value', () {
     box.putMany(integerList);
     box.putMany(stringList);
     box.putMany(floatList);
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
-    final queryFloats   = box.query(tDouble.lessThan(1000.0)).build();
-    final queryStrings  = box.query(tString.contains('t')).build();
+    final queryFloats = box.query(tDouble.lessThan(1000.0)).build();
+    final queryStrings = box.query(tString.contains('t')).build();
 
     // find integers on string populated entities
     final integerValues = [3, 3, 3, 3, 3, 3, 3, 3];
@@ -378,7 +389,7 @@ void main() {
 
     /// Only unsigned 'replaceWithNull' values are allowed for
     /// tShort and tInteger. Is this an architecture, dart or OB bug/feature/issue?
-    final negIntegerValues = [ -2, -2, -2, -2, -2, -2, -2, -2 ];
+    final negIntegerValues = [-2, -2, -2, -2, -2, -2, -2, -2];
 
     final qpNegInteger = (p, dv) {
       final qp = queryStrings.integerProperty(p);
@@ -389,7 +400,7 @@ void main() {
     qpNegInteger(tLong, negIntegerValues);
 
     // find floats on integer populated entities
-    final floatValues = [ 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0 ];
+    final floatValues = [1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0];
 
     final qpFloat = (p, dv) {
       final qp = queryIntegers.doubleProperty(p);
@@ -405,7 +416,7 @@ void main() {
 //    qpFloat(tFloat, floatValues);
 
     // find strings on float populated entities
-    final stringValues = [ 't', 't', 't', 't', 't' ];
+    final stringValues = ['t', 't', 't', 't', 't'];
     final qp = queryFloats.stringProperty(tString);
     expect(qp.find(replaceNullWith: 't'), stringValues);
     qp.close();
@@ -420,7 +431,7 @@ void main() {
     final expectedDistinctIntegers = [6, 6, 6, 6];
 
     // int
-    for (var i=0; i < tIntegers.length; i++) {
+    for (var i = 0; i < tIntegers.length; i++) {
       final query = box.query(tIntegers[i].lessThan(100)).build();
       final queryInt = query.property(tIntegers[i]);
 
@@ -431,7 +442,7 @@ void main() {
     }
 
     // floats
-    for (var i=0; i < tFloats.length; i++) {
+    for (var i = 0; i < tFloats.length; i++) {
       final query = box.query(tFloats[i].lessThan(100.0)).build();
       final queryFloat = query.property(tFloats[i]);
       expect(queryFloat.count(), 5);
@@ -451,11 +462,9 @@ void main() {
     expect((queryString..distinct = true..caseSensitive = true).count(), 5);
     queryString.close();
     query.close();
-
   });
 
   tearDown(() {
     env.close();
   });
 }
-
