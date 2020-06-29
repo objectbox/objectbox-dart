@@ -303,20 +303,43 @@ void main() {
       qp.close();
     });
 
-    final qp = queryStrings.property(tString) as StringPropertyQuery;
+    final stringQuery = queryStrings.property(tString) as StringPropertyQuery;
 
-    List<String> addSuffix(List<int> s) {
-      return s.map((t) => '${t}withSuffix').toList();
-    }
+    // Note: results are in no particular order, so sort them before comparing.
+    final defaultResults = ['1withSuffix', '1withSuffix', '2WITHSUFFIX', '2withSuffix', '2withSuffix'];
+    var results = stringQuery.find()
+      ..sort();
+    expect(results, defaultResults);
 
-    final caps = ['2WITHSUFFIX'];
-    final defaultResult = addSuffix([1, 2, 1, 2]) + caps;
-    expect(qp.find(), defaultResult);
-    expect((qp..distinct = true ..caseSensitive = true) .find(), caps + addSuffix([2,1]) );
-    expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:'meh'), addSuffix([1,2,1,2]) + caps);
-    expect((qp..distinct = true ..caseSensitive = false).find(), addSuffix([2,1]));
-    expect((qp..distinct = false..caseSensitive = false).find(replaceNullWith:'meh'), defaultResult);
-    qp.close();
+    var resultsNone = (stringQuery
+      ..distinct = false
+      ..caseSensitive = false)
+        .find(replaceNullWith: 'meh')
+      ..sort();
+    expect(resultsNone, defaultResults);
+
+    var resultsDC = (stringQuery
+          ..distinct = true
+          ..caseSensitive = true)
+        .find()
+          ..sort();
+    expect(resultsDC, ['1withSuffix', '2WITHSUFFIX', '2withSuffix']);
+
+    var resultsC = (stringQuery
+          ..distinct = false
+          ..caseSensitive = true)
+        .find(replaceNullWith: 'meh')
+          ..sort();
+    expect(resultsC, defaultResults);
+
+    var resultsD = (stringQuery
+          ..distinct = true
+          ..caseSensitive = false)
+        .find()
+          ..sort();
+    expect(resultsD, ['1withSuffix', '2withSuffix']);
+
+    stringQuery.close();
 
     queryIntegers.close();
     queryFloats.close();
