@@ -390,7 +390,6 @@ void main() {
     queryAndCheck(tInt, 3, 'int null->positive');
     queryAndCheck(tLong, 3, 'long null->positive');
     
-    // FIXME For 8/16/32 bit integers, a signed not-null value is returned as unsigned (e.g. -1 -> 255/65535/4294967295).
     queryAndCheck(tByte, -2, 'byte null->negative');
     queryAndCheck(tShort, -2, 'short null->negative');
     queryAndCheck(tInt, -2, 'int null->negative');

@@ -120,7 +120,7 @@ class OBX_bytes_array extends Struct {
 }
 
 class OBX_int8_array extends Struct {
-  Pointer<Uint8> _itemsPtr;
+  Pointer<Int8> _itemsPtr;
 
   @IntPtr() // size_t
   int count;
@@ -129,7 +129,7 @@ class OBX_int8_array extends Struct {
 }
 
 class OBX_int16_array extends Struct {
-  Pointer<Uint16> _itemsPtr;
+  Pointer<Int16> _itemsPtr;
 
   @IntPtr() // size_t
   int count;
@@ -138,7 +138,7 @@ class OBX_int16_array extends Struct {
 }
 
 class OBX_int32_array extends Struct {
-  Pointer<Uint32> _itemsPtr;
+  Pointer<Int32> _itemsPtr;
 
   @IntPtr() // size_t
   int count;
@@ -147,7 +147,7 @@ class OBX_int32_array extends Struct {
 }
 
 class OBX_int64_array extends Struct {
-  Pointer<Uint64> _itemsPtr;
+  Pointer<Int64> _itemsPtr;
 
   @IntPtr() // size_t
   int count;
