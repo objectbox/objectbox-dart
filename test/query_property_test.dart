@@ -1,6 +1,6 @@
-import "package:test/test.dart";
-import "package:objectbox/objectbox.dart";
-import "entity.dart";
+import 'package:test/test.dart';
+import 'package:objectbox/objectbox.dart';
+import 'entity.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
@@ -9,13 +9,13 @@ void main() {
   Box box;
 
   setUp(() {
-    env = TestEnv("query_property");
+    env = TestEnv('query_property');
     box = env.box;
   });
 
   final integers = [0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = integers.map((i) => TestEntity(tBool:true, tChar:3+i, tByte:1+i, tShort:2+i, tInt:4+i, tLong:5+i)).toList();
-  final strings = ["string", "another", "string", "1withSuffix", "2withSuffix", "1withSuffix", "2withSuffix", "swing", '2WITHSUFFIX'];
+  final strings = ['string', 'another', 'string', '1withSuffix', '2withSuffix', '1withSuffix', '2withSuffix', 'swing', '2WITHSUFFIX'];
   final stringList  = strings.map((s) => TestEntity(tString:s)).toList();
   final floats = [0, 0.0, 0.1, 0.2, 0.1];
   final floatList  = floats.map((f) => TestEntity(tFloat:0.1+f, tDouble:0.2+f)).toList();
@@ -37,19 +37,19 @@ void main() {
 
   final tString = TestEntity_.tString;
 
-  test(".count (basic query)", () {
+  test('.count (basic query)', () {
     box.putMany(integerList);
     box.putMany(stringList);
     box.putMany(floatList);
 
     tIntegers.forEach((i) {
-      final queryInt = box.query((i as QueryIntegerProperty).greaterThan(0)).build();
+      final queryInt = box.query(i.greaterThan(0)).build();
       expect(queryInt.count(), 8);
       queryInt.close();
     });
 
     tFloats.forEach((f) {
-      final queryFloat = box.query((f as QueryDoubleProperty).lessThan(1.0)).build();
+      final queryFloat = box.query(f.lessThan(1.0)).build();
       expect(queryFloat.count(), 5);
       queryFloat.close();
     });
@@ -67,12 +67,12 @@ void main() {
     queryChar.close();
   });
 
-  test("query.property(E_.field) property query, type inference", () {
+  test('query.property(E_.field) property query, type inference', () {
     box.putMany(integerList);
     box.putMany(stringList);
     box.putMany(floatList);
 
-    final query = box.query((tLong < 2) as Condition).build();
+    final query = box.query(tLong < 2).build();
 
     tIntegers.forEach((i) {
       final qp = query.property(i);
@@ -93,10 +93,10 @@ void main() {
   });
 
   final add = (a, b) => a + b;
-  test(".sum integers", () {
+  test('.sum integers', () {
     box.putMany(integerList);
 
-    final query = box.query((tLong < 100) as Condition).build();
+    final query = box.query((tLong < 100)).build();
     final propSum = (qp) {
       final p = query.integerProperty(qp);
       try {
@@ -125,10 +125,10 @@ void main() {
   });
 
   final min = (a,b) => a < b ? a : b;
-  test(".min integers", () {
+  test('.min integers', () {
     box.putMany(integerList);
 
-    final query = box.query((tLong < 100) as Condition).build();
+    final query = box.query((tLong < 100)).build();
     final propMin = (qp) {
       final p = query.integerProperty(qp);
       try {
@@ -145,7 +145,7 @@ void main() {
     final minLong = all.map((s) => s.tLong).toList().reduce(min);
 
     final minByte = all.map((s) => s.tByte).toList().reduce(min);
-    final minChar = all.map((s) => s.tChar).toList().reduce(min);
+//    final minChar = all.map((s) => s.tChar).toList().reduce(min);
 
     expect(propMin(tShort), minShort);
     expect(propMin(tInt), minInt);
@@ -158,10 +158,10 @@ void main() {
   });
 
   final max = (a,b) => a > b ? a : b;
-  test(".max integers", () {
+  test('.max integers', () {
     box.putMany(integerList);
 
-    final query = box.query((tLong < 100) as Condition).build();
+    final query = box.query((tLong < 100)).build();
     final propMax = (qp) {
       final p = query.integerProperty(qp);
       try {
@@ -187,10 +187,10 @@ void main() {
     query.close();
   });
 
-  test(".sum floats", () {
+  test('.sum floats', () {
     box.putMany(floatList);
 
-    final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+    final query = box.query((tFloat > -0.01).or(tDouble > -0.01)).build();
     final propSum = (qp) {
       final p = query.doubleProperty(qp);
       try {
@@ -211,10 +211,10 @@ void main() {
     query.close();
   });
 
-  test(".min floats", () {
+  test('.min floats', () {
     box.putMany(floatList);
 
-    final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+    final query = box.query((tFloat > -0.01).or(tDouble > -0.01)).build();
     final propMin = (qp) {
       final p = query.doubleProperty(qp);
       try {
@@ -235,10 +235,10 @@ void main() {
     query.close();
   });
 
-  test(".max floats", () {
+  test('.max floats', () {
     box.putMany(floatList);
 
-    final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
+    final query = box.query((tFloat > -0.01).or(tDouble > -0.01)).build();
     final propMax = (qp) {
       final p = query.doubleProperty(qp);
       try {
@@ -259,18 +259,18 @@ void main() {
     query.close();
   });
 
-  test(".find", () {
+  test('.find', () {
     box.putMany(integerList);
     box.putMany(floatList);
     box.putMany(stringList);
 
-//    final query = box.query(((tLong < 2 | tString.endsWith("suffix")) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
+//    final query = box.query(((tLong < 2 | tString.endsWith('suffix')) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
     final queryIntegers = box.query(tLong.lessThan(100)).build();
     final queryFloats   = box.query(tDouble.between(-1.0, 1.0)).build();
-    final queryStrings  = box.query(tString.endsWith("suffix")).build();
+    final queryStrings  = box.query(tString.endsWith('suffix')).build();
 
     final start = [ 1, 2, 4, 5 ];
-    for (int i=0; i<tIntegers.length; i++) {
+    for (var i=0; i<tIntegers.length; i++) {
       final qp = queryIntegers.property(tIntegers[i]) as IntegerPropertyQuery;
 
       final mappedIntegers = integers.map((j) => j + start[i]).toList();
@@ -293,17 +293,17 @@ void main() {
 
     final qp = queryStrings.property(tString) as StringPropertyQuery;
 
-    addSuffix(List<int> s) {
+    List<String> addSuffix(List<int> s) {
       return s.map((t) => '${t}withSuffix').toList();
     }
 
-    final CAPS = ['2WITHSUFFIX'];
-    final defaultResult = addSuffix([1,2,1,2]) + CAPS;
+    final caps = ['2WITHSUFFIX'];
+    final defaultResult = addSuffix([1,2,1,2]) + caps;
     expect(qp.find(), defaultResult);
-    expect((qp..distinct = true ..caseSensitive = true) .find(), CAPS + addSuffix([2,1]) );
-    expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:"meh"), addSuffix([1,2,1,2]) + CAPS);
+    expect((qp..distinct = true ..caseSensitive = true) .find(), caps + addSuffix([2,1]) );
+    expect((qp..distinct = false..caseSensitive = true) .find(replaceNullWith:'meh'), addSuffix([1,2,1,2]) + caps);
     expect((qp..distinct = true ..caseSensitive = false).find(), addSuffix([2,1]));
-    expect((qp..distinct = false..caseSensitive = false).find(replaceNullWith:"meh"), defaultResult);
+    expect((qp..distinct = false..caseSensitive = false).find(replaceNullWith:'meh'), defaultResult);
     qp.close();
 
     queryIntegers.close();
@@ -311,7 +311,7 @@ void main() {
     queryStrings.close();
   });
 
-  test(".average", () {
+  test('.average', () {
     box.putMany(integerList);
     box.putMany(floatList);
 
@@ -319,7 +319,7 @@ void main() {
     final queryFloats   = box.query(tDouble.lessThan(1000.0)).build();
 
     // integers
-    double intBaseAvg = integers.reduce((a,b) => a + b) / integers.length;
+    var intBaseAvg = integers.reduce((a,b) => a + b) / integers.length;
 
     final qpInteger = (p, avg) {
       final qp = queryIntegers.integerProperty(p);
@@ -338,7 +338,7 @@ void main() {
       qp.close();
     };
 
-    double floatBaseAvg = floats.reduce((a,b) => a + b) / floats.length;
+    var floatBaseAvg = floats.reduce((a,b) => a + b) / floats.length;
 
     qpFloat(tFloat,  floatBaseAvg + 0.1);
     qpFloat(tDouble, floatBaseAvg + 0.2);
@@ -353,19 +353,19 @@ void main() {
   });
 
 
-  test(".find() replace null result with some value" , () {
+  test('.find() replace null result with some value' , () {
     box.putMany(integerList);
     box.putMany(stringList);
     box.putMany(floatList);
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
     final queryFloats   = box.query(tDouble.lessThan(1000.0)).build();
-    final queryStrings  = box.query(tString.contains("t")).build();
+    final queryStrings  = box.query(tString.contains('t')).build();
 
     // find integers on string populated entities
     final integerValues = [3, 3, 3, 3, 3, 3, 3, 3];
 
-    // ObjectBoxException: find int8: 10203 Property "tChar" is of type Char, but we expected a property of type Byte in this context
+    // ObjectBoxException: find int8: 10203 Property 'tChar' is of type Char, but we expected a property of type Byte in this context
     final qpInteger = (p, dv) {
       final qp = queryStrings.integerProperty(p);
       expect(qp.find(replaceNullWith: 3), dv);
@@ -405,13 +405,13 @@ void main() {
 //    qpFloat(tFloat, floatValues);
 
     // find strings on float populated entities
-    final stringValues = [ "t", "t", "t", "t", "t" ];
+    final stringValues = [ 't', 't', 't', 't', 't' ];
     final qp = queryFloats.stringProperty(tString);
-    expect(qp.find(replaceNullWith: "t"), stringValues);
+    expect(qp.find(replaceNullWith: 't'), stringValues);
     qp.close();
   });
 
-  test(".distinct, .count, .close property query", () {
+  test('.distinct, .count, .close property query', () {
     box.putMany(integerList);
     box.putMany(stringList);
     box.putMany(floatList);
@@ -420,7 +420,7 @@ void main() {
     final expectedDistinctIntegers = [6, 6, 6, 6];
 
     // int
-    for (int i=0; i < tIntegers.length; i++) {
+    for (var i=0; i < tIntegers.length; i++) {
       final query = box.query(tIntegers[i].lessThan(100)).build();
       final queryInt = query.property(tIntegers[i]);
 
@@ -431,7 +431,7 @@ void main() {
     }
 
     // floats
-    for (int i=0; i < tFloats.length; i++) {
+    for (var i=0; i < tFloats.length; i++) {
       final query = box.query(tFloats[i].lessThan(100.0)).build();
       final queryFloat = query.property(tFloats[i]);
       expect(queryFloat.count(), 5);
@@ -441,7 +441,7 @@ void main() {
     }
 
     // string
-    final query = box.query(tString.contains("t")).build();
+    final query = box.query(tString.contains('t')).build();
     final queryString = query.property(tString) as StringPropertyQuery;
     expect(queryString.count(), 8);
     expect((queryString..distinct = true).count(), 5);

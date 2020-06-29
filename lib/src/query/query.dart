@@ -618,7 +618,7 @@ class Query<T> {
     }else if (OBXPropertyType.String == qp._type) {
       return StringPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
     }else {
-      throw Exception("Property query: unsupported type (OBXPropertyType: ${qp._type})");
+      throw Exception('Property query: unsupported type (OBXPropertyType: ${qp._type})');
     }
   }
 

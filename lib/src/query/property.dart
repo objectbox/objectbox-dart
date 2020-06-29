@@ -6,15 +6,15 @@ class PropertyQuery {
   bool _distinct;
 
   PropertyQuery(Pointer<Void> cQuery, int propertyId, int obxType) {
-    this._type = obxType;
-    _cProp = checkObxPtr(bindings.obx_query_prop(cQuery, propertyId), "property query");
+    _type = obxType;
+    _cProp = checkObxPtr(bindings.obx_query_prop(cQuery, propertyId), 'property query');
   }
 
   void close() {
     checkObx(bindings.obx_query_prop_close(_cProp));
   }
 
-  get distinct => _distinct;
+  bool get distinct => _distinct;
 
   set distinct (bool d) {
     _distinct = d;
@@ -121,16 +121,16 @@ class IntegerPropertyQuery extends PropertyQuery with _CommonNumeric {
       case OBXPropertyType.Byte:
       case OBXPropertyType.Char:  // Int8
         return _unpack8(_curryWithDefault<OBX_int8_array, Int8>
-          (bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), "find int8"));
+          (bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), 'find int8'));
       case OBXPropertyType.Short: // Int16
         return _unpack16(_curryWithDefault<OBX_int16_array, Int16>
-          (bindings.obx_query_prop_int16_find, ptr.cast<Int16>(), "find int16"));
+          (bindings.obx_query_prop_int16_find, ptr.cast<Int16>(), 'find int16'));
       case OBXPropertyType.Int:   // Int32
         return _unpack32(_curryWithDefault<OBX_int32_array, Int32>
-          (bindings.obx_query_prop_int32_find, ptr.cast<Int32>(), "find int32"));
+          (bindings.obx_query_prop_int32_find, ptr.cast<Int32>(), 'find int32'));
       case OBXPropertyType.Long:  // Int64
         return _unpack64(_curryWithDefault<OBX_int64_array, Int64>
-          (bindings.obx_query_prop_int64_find, ptr.cast<Int64>(), "find int64"));
+          (bindings.obx_query_prop_int64_find, ptr.cast<Int64>(), 'find int64'));
       default:
         throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
     }
@@ -182,10 +182,10 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
     switch(_type) {
       case OBXPropertyType.Float:
         return _unpack32(_curryWithDefault<OBX_float_array, Float>
-          (bindings.obx_query_prop_float_find, ptr.cast<Float>(), "find float32"));
+          (bindings.obx_query_prop_float_find, ptr.cast<Float>(), 'find float32'));
       case OBXPropertyType.Double:
         return _unpack64(_curryWithDefault<OBX_double_array, Double>
-          (bindings.obx_query_prop_double_find, ptr.cast<Double>(), "find float64"));
+          (bindings.obx_query_prop_double_find, ptr.cast<Double>(), 'find float64'));
       default:
         throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
     }
@@ -206,8 +206,9 @@ class StringPropertyQuery extends PropertyQuery {
     checkObx(bindings.obx_query_prop_distinct_case(_cProp, _distinct ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
-  get caseSensitive => _caseSensitive;
+  bool get caseSensitive => _caseSensitive;
 
+  @override
   set distinct (bool d) {
     _distinct = d;
     checkObx(bindings.obx_query_prop_distinct_case(_cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
@@ -224,7 +225,7 @@ class StringPropertyQuery extends PropertyQuery {
   List<String> find({String replaceNullWith}) {
     final ptr = replaceNullWith != null ? Utf8.toUtf8(replaceNullWith).cast<Int8>() : Pointer<Int8>.fromAddress(0);
     return _unpack(_curryWithDefault<OBX_string_array, Int8>
-      (bindings.obx_query_prop_string_find, ptr, "find utf8"));
+      (bindings.obx_query_prop_string_find, ptr, 'find utf8'));
   }
 
 }
