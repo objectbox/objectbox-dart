@@ -178,15 +178,17 @@ class DoublePropertyQuery extends PropertyQuery with _CommonNumeric {
   }
 
   List<double> find({double replaceNullWith}) {
-    final ptr =
-        replaceNullWith != null ? (allocate<Double>()..value = replaceNullWith) : Pointer<Double>.fromAddress(0);
     switch (_type) {
       case OBXPropertyType.Float:
+        final valueIfNull =
+            replaceNullWith != null ? (allocate<Float>()..value = replaceNullWith) : Pointer<Float>.fromAddress(0);
         return _unpack32(_curryWithDefault<OBX_float_array, Float>(
-            bindings.obx_query_prop_float_find, ptr.cast<Float>(), 'find float32'));
+            bindings.obx_query_prop_float_find, valueIfNull, 'find float32'));
       case OBXPropertyType.Double:
+        final valueIfNull =
+            replaceNullWith != null ? (allocate<Double>()..value = replaceNullWith) : Pointer<Double>.fromAddress(0);
         return _unpack64(_curryWithDefault<OBX_double_array, Double>(
-            bindings.obx_query_prop_double_find, ptr.cast<Double>(), 'find float64'));
+            bindings.obx_query_prop_double_find, valueIfNull, 'find float64'));
       default:
         throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
     }

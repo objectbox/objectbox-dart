@@ -408,7 +408,6 @@ void main() {
     };
 
     queryAndCheck(tDouble, 1337.0, 'null double');
-    /// FIXME null float property always returns 0.0.
     queryAndCheck(tFloat, 1337.0, 'null float');
   });
 
