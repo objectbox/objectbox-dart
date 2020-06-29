@@ -359,9 +359,9 @@ void main() {
     qpInteger(tShort, intBaseAvg + 2);
 
     // floats
-    final qpFloat = (p, avg) {
+    final qpFloat = (p, double avg) {
       final qp = queryFloats.doubleProperty(p);
-      expect(qp.average().toStringAsFixed(2), avg.toString());
+      expect(qp.average().toStringAsFixed(2), avg.toStringAsFixed(2));
       qp.close();
     };
 
