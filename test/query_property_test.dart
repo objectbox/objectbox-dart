@@ -14,9 +14,9 @@ void main() {
     box = env.box;
   });
 
-  final integers = [0, 0, 1, 1, 2, 3, 4, 5];
+  final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = integers
-      .map((i) => TestEntity(tBool: true, tChar: 3 + i, tByte: 1 + i, tShort: 2 + i, tInt: 4 + i, tLong: 5 + i))
+      .map((i) => TestEntity(tBool: true, tByte: 1 + i, tShort: 2 + i, tChar: 3 + i, tInt: 4 + i, tLong: 5 + i))
       .toList();
   final strings = [
     'string',
@@ -30,7 +30,7 @@ void main() {
     '2WITHSUFFIX'
   ];
   final stringList = strings.map((s) => TestEntity(tString: s)).toList();
-  final floats = [0, 0.0, 0.1, 0.2, 0.1];
+  final floats = [-0.5, 0, 0.0, 0.1, 0.2, 0.1];
   final floatList = floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
   final tBool = TestEntity_.tBool;
@@ -63,7 +63,7 @@ void main() {
 
     tFloats.forEach((f) {
       final queryFloat = box.query(f.lessThan(1.0)).build();
-      expect(queryFloat.count(), 5);
+      expect(queryFloat.count(), 6);
       queryFloat.close();
     });
 
@@ -72,7 +72,7 @@ void main() {
     queryString.close();
 
     final queryBool = box.query(tBool.equals(true)).build();
-    expect(queryBool.count(), 8);
+    expect(queryBool.count(), 9);
     queryBool.close();
 
     final queryChar = box.query(tChar.greaterThan(0)).build();
@@ -120,18 +120,15 @@ void main() {
 
     final all = box.getAll();
 
+    final sumByte = all.map((s) => s.tByte).toList().fold(0, add);
     final sumShort = all.map((s) => s.tShort).toList().fold(0, add);
     final sumInt = all.map((s) => s.tInt).toList().fold(0, add);
     final sumLong = all.map((s) => s.tLong).toList().fold(0, add);
-//    final sumChar = all.map((s) => s.tChar).toList().fold(0, add);
-    final sumByte = all.map((s) => s.tByte).toList().fold(0, add);
 
+    expect(propSum(tByte), sumByte);
     expect(propSum(tShort), sumShort);
     expect(propSum(tInt), sumInt);
     expect(propSum(tLong), sumLong);
-
-    expect(propSum(tByte), sumByte);
-//    expect(propSum(tChar), sumChar); // ObjectBoxException: 10002 Property does not allow sum: tChar
 
     query.close();
   });
@@ -152,19 +149,15 @@ void main() {
 
     final all = box.getAll();
 
+    final minByte = all.map((s) => s.tByte).toList().reduce(min);
     final minShort = all.map((s) => s.tShort).toList().reduce(min);
     final minInt = all.map((s) => s.tInt).toList().reduce(min);
     final minLong = all.map((s) => s.tLong).toList().reduce(min);
 
-    final minByte = all.map((s) => s.tByte).toList().reduce(min);
-//    final minChar = all.map((s) => s.tChar).toList().reduce(min);
-
+    expect(propMin(tByte), minByte);
     expect(propMin(tShort), minShort);
     expect(propMin(tInt), minInt);
     expect(propMin(tLong), minLong);
-
-    expect(propMin(tByte), minByte);
-//    expect(propMin(tChar), minChar); // ObjectBoxException: 10002 Property does not allow max: tChar
 
     query.close();
   });
@@ -185,16 +178,15 @@ void main() {
 
     final all = box.getAll();
 
+    final maxByte = all.map((s) => s.tByte).toList().reduce(max);
     final maxShort = all.map((s) => s.tShort).toList().reduce(max);
     final maxInt = all.map((s) => s.tInt).toList().reduce(max);
     final maxLong = all.map((s) => s.tLong).toList().reduce(max);
-    final maxByte = all.map((s) => s.tByte).toList().reduce(max);
 
+    expect(propMax(tByte), maxByte);
     expect(propMax(tShort), maxShort);
     expect(propMax(tInt), maxInt);
     expect(propMax(tLong), maxLong);
-
-    expect(propMax(tByte), maxByte);
 
     query.close();
   });
@@ -202,7 +194,7 @@ void main() {
   test('.sum floats', () {
     box.putMany(floatList);
 
-    final query = box.query((tFloat > -0.01).or(tDouble > -0.01)).build();
+    final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final propSum = (qp) {
       final p = query.doubleProperty(qp);
       try {
@@ -226,7 +218,7 @@ void main() {
   test('.min floats', () {
     box.putMany(floatList);
 
-    final query = box.query((tFloat > -0.01).or(tDouble > -0.01)).build();
+    final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final propMin = (qp) {
       final p = query.doubleProperty(qp);
       try {
@@ -250,7 +242,7 @@ void main() {
   test('.max floats', () {
     box.putMany(floatList);
 
-    final query = box.query((tFloat > -0.01).or(tDouble > -0.01)).build();
+    final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final propMax = (qp) {
       final p = query.doubleProperty(qp);
       try {
@@ -276,7 +268,6 @@ void main() {
     box.putMany(floatList);
     box.putMany(stringList);
 
-//    final query = box.query(((tLong < 2 | tString.endsWith('suffix')) as Condition) | tDouble.between(0.0, 0.2)) as Condition).build();
     final queryIntegers = box.query(tLong.lessThan(100)).build();
     final queryFloats = box.query(tDouble.between(-1.0, 1.0)).build();
     final queryStrings = box.query(tString.endsWith('suffix')).build();
@@ -362,6 +353,7 @@ void main() {
       qp.close();
     };
 
+    qpInteger(tByte, intBaseAvg + 1);
     qpInteger(tLong, intBaseAvg + 5);
     qpInteger(tInt, intBaseAvg + 4);
     qpInteger(tShort, intBaseAvg + 2);
@@ -377,10 +369,6 @@ void main() {
 
     qpFloat(tFloat, floatBaseAvg + 0.1);
     qpFloat(tDouble, floatBaseAvg + 0.2);
-
-    // char, byte
-//    qpInteger(tChar, intBaseAvg); // ObjectBoxException: 10002 Property does not allow avg: tChar
-    qpInteger(tByte, intBaseAvg + 1);
 
     // close
     queryFloats.close();
@@ -440,16 +428,13 @@ void main() {
     box.putMany(stringList);
     box.putMany(floatList);
 
-    final expectedIntegers = [8, 8, 8, 8];
-    final expectedDistinctIntegers = [6, 6, 6, 6];
-
     // int
     for (var i = 0; i < tIntegers.length; i++) {
       final query = box.query(tIntegers[i].lessThan(100)).build();
       final queryInt = query.property(tIntegers[i]);
 
-      expect(queryInt.count(), expectedIntegers[i]);
-      expect((queryInt..distinct = true).count(), expectedDistinctIntegers[i]);
+      expect(queryInt.count(), 9);
+      expect((queryInt..distinct = true).count(), 7);
       queryInt.close();
       query.close();
     }
@@ -458,8 +443,8 @@ void main() {
     for (var i = 0; i < tFloats.length; i++) {
       final query = box.query(tFloats[i].lessThan(100.0)).build();
       final queryFloat = query.property(tFloats[i]);
-      expect(queryFloat.count(), 5);
-      expect((queryFloat..distinct = true).count(), 3);
+      expect(queryFloat.count(), 6);
+      expect((queryFloat..distinct = true).count(), 4);
       queryFloat.close();
       query.close();
     }
