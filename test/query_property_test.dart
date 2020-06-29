@@ -387,61 +387,51 @@ void main() {
     queryIntegers.close();
   });
 
-  test('.find() replace null result with some value', () {
-    box.putMany(integerList);
+  test('.find() replace null integers', () {
+    // integers are null on string populated entities
     box.putMany(stringList);
-    box.putMany(floatList);
+
+    final queryStrings = box.query(tString.contains('t')).build();
+    final queryAndCheck = (prop, valueIfNull, reason) {
+      final qp = queryStrings.integerProperty(prop);
+      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull, reason: reason);
+      qp.close();
+    };
+    queryAndCheck(tByte, 3, 'byte null->positive');
+    queryAndCheck(tShort, 3, 'short null->positive');
+    queryAndCheck(tInt, 3, 'int null->positive');
+    queryAndCheck(tLong, 3, 'long null->positive');
+    
+    // FIXME For 8/16/32 bit integers, a signed not-null value is returned as unsigned (e.g. -1 -> 255/65535/4294967295).
+    queryAndCheck(tByte, -2, 'byte null->negative');
+    queryAndCheck(tShort, -2, 'short null->negative');
+    queryAndCheck(tInt, -2, 'int null->negative');
+    queryAndCheck(tLong, -2, 'long null->negative');
+  });
+
+  test('.find() replace null floats', () {
+    // floats are null on integer populated entities
+    box.putMany(integerList);
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
-    final queryFloats = box.query(tDouble.lessThan(1000.0)).build();
-    final queryStrings = box.query(tString.contains('t')).build();
-
-    // find integers on string populated entities
-    final integerValues = [3, 3, 3, 3, 3, 3, 3, 3];
-
-    // ObjectBoxException: find int8: 10203 Property 'tChar' is of type Char, but we expected a property of type Byte in this context
-    final qpInteger = (p, dv) {
-      final qp = queryStrings.integerProperty(p);
-      expect(qp.find(replaceNullWith: 3), dv);
-      qp.close();
-    };
-
-    tIntegers.forEach((i) {
-      qpInteger(i, integerValues);
-    });
-
-    /// Only unsigned 'replaceWithNull' values are allowed for
-    /// tShort and tInteger. Is this an architecture, dart or OB bug/feature/issue?
-    final negIntegerValues = [-2, -2, -2, -2, -2, -2, -2, -2];
-
-    final qpNegInteger = (p, dv) {
-      final qp = queryStrings.integerProperty(p);
-      expect(qp.find(replaceNullWith: -2), dv);
-      qp.close();
-    };
-
-    qpNegInteger(tLong, negIntegerValues);
-
-    // find floats on integer populated entities
-    final floatValues = [1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0, 1337.0];
-
-    final qpFloat = (p, dv) {
+    final queryAndCheck = (p, valueIfNull, reason) {
       final qp = queryIntegers.doubleProperty(p);
-      expect(qp.find(replaceNullWith: 1337.0), dv);
+      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull, reason: reason);
       qp.close();
     };
 
-    qpFloat(tDouble, floatValues);
+    queryAndCheck(tDouble, 1337.0, 'null double');
+    /// FIXME null float property always returns 0.0.
+    queryAndCheck(tFloat, 1337.0, 'null float');
+  });
 
-    /// Evidently, tFloat is never null, it's always initialized to 0.0,
-    /// so, 'replaceWithNull' is useless here.
-    /// Is this an architecture, dart or OB bug/feature/issue?
-//    qpFloat(tFloat, floatValues);
+  test('.find() replace null strings', () {
+    // strings are null on float populated entities
+    box.putMany(floatList);
 
-    // find strings on float populated entities
-    final stringValues = ['t', 't', 't', 't', 't'];
+    final queryFloats = box.query(tDouble.lessThan(1000.0)).build();
     final qp = queryFloats.stringProperty(tString);
-    expect(qp.find(replaceNullWith: 't'), stringValues);
+    expect(qp.find(replaceNullWith: 't').first, 't');
     qp.close();
   });
 
