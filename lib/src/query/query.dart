@@ -606,10 +606,20 @@ class Query<T> {
     return cString(bindings.obx_query_describe_params(_cQuery));
   }
 
-  /// Not to be confused with QueryProperty
-  /// The return type still has to be casted to the specific type
-  /// e.g. IntegerPropertyQuery for specific type-bound operations.
-  /// Non-specific operations are count, and distinct
+  /// Creates a property query for the given property [qp].
+  ///
+  /// Uses the same conditions as this query, but results only include the values of the given property.
+  /// To obtain results cast the returned [PropertyQuery] to a specific type.
+  ///
+  /// ```dart
+  /// var q = query.property(tInteger) as IntegerPropertyQuery;
+  /// var results = q.find()
+  /// ```
+  ///
+  /// Alternatively call a type-specific function.
+  /// ```dart
+  /// var q = query.integerProperty(tInteger);
+  /// ```
   PQ property<PQ extends PropertyQuery>(QueryProperty qp) {
     if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
       return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
