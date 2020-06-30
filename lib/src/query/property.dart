@@ -22,11 +22,15 @@ abstract class PropertyQuery<T> {
 
   bool get distinct => _distinct;
 
+  /// Set to only return distinct values.
+  ///
+  /// E.g. 1,2,3 instead of 1,1,2,3,3,3. Strings default to case-insensitive comparision.
   set distinct(bool d) {
     _distinct = d;
     checkObx(bindings.obx_query_prop_distinct(_cProp, d ? 1 : 0));
   }
 
+  /// Returns the count of non-null values.
   int count() {
     final ptr = allocate<Uint64>(count: 1);
     try {
@@ -208,8 +212,9 @@ class StringPropertyQuery extends PropertyQuery<String> {
 
   StringPropertyQuery(Pointer<Void> query, int propertyId, int obxType) : super(query, propertyId, obxType);
 
-  // distinct is already taken in the base type (can't overload with two params)
-  // you could use that one instead
+  /// Set to return case sensitive distinct values.
+  ///
+  /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
     checkObx(bindings.obx_query_prop_distinct_case(_cProp, _distinct ? 1 : 0, _caseSensitive ? 1 : 0));
