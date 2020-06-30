@@ -120,36 +120,33 @@ final qt = box.query(Entity_.text.notNull())
   .build();
 ```
 
-### Querying properties
+### Property Queries
 
-The sum, average, minimum and maximum etc. can be calculated on a property of a query.
-Calculating the minimum can be done like this, e.g.:
+Instead of returning complete entities, with property queries only values or an aggregate of a property can be returned.
+Build a regular query with conditions as seen above, then turn it into a property query, e.g.:
 
 ```dart
-final tFloat = Entity_.tFloat;
-final tDouble = Entity_.tDouble;
-final query = box.query((tFloat > -0.01).or(tDouble > -0.01) as Condition).build();
-final propMin = (qp) {
-  final p = query.doubleProperty(qp);
-  try {
-    return p.min();
-  }finally {
-    p.close();
-  }
-};
+// final query ...
+                            
+// Use distinct or caseSensitive to refine results.
+final textQuery = query.stringProperty(Note_.text)
+    ..distinct = true
+    ..caseSensitive = true;
+final texts = textQuery.find();
+textQuery.close();
 
-final all = box.getAll();
+// Get aggregates, like min, max, avg, sum and count.
+final createdQuery = query.integerProperty(Note_.created);
+final min = createdQuery.min();
+createdQuery.close();
 
-final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
-final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
+// Set replaceNullWith to map null values.
+final scoreQuery = query.doubleProperty(Note_.score);
+final scores = scoreQuery.find(replaceNullWith: 0.0);
+scoreQuery.close();
 
-assert(propMin(tFloat) == minFloat, "These are the same");
-assert(propMin(tDouble) == minDouble, "These should also be the same");
+query.close();
 ```
-
-Also the value of a property, present on all the instances of an entity can be returned
-with `find`, or counted with `count`.
-
 
 Help wanted
 -----------
