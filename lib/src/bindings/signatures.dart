@@ -169,7 +169,8 @@ typedef obx_query_prop_find_native_t<T, V extends NativeType> = T Function(
 typedef obx_query_prop_distinct_t<T, V> = T Function(
     Pointer<Void> query, V distinct); // T = (Int32, int), V = (Int8, int)
 typedef obx_query_prop_distinct2_t<T, V> = T Function(Pointer<Void> query, V distinct, V caseSensitive);
-typedef obx_query_prop_op_t<T, V extends NativeType> = T Function(Pointer<Void> query, Pointer<V> out);
+typedef obx_query_prop_op_t<T, V extends NativeType> = T Function(
+    Pointer<Void> query, Pointer<V> outValue, Pointer<Int64> outCount);
 
 // Utilities
 
