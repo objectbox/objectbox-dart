@@ -57,8 +57,7 @@ class TestEntity {
       this.tChar,
       this.tInt,
       this.tFloat,
-      this.ignore
-      });
+      this.ignore});
 
   TestEntity.ignoredExcept(this.tInt) {
     omit = -1;

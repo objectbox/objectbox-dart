@@ -298,15 +298,14 @@ void main() {
 
     // Note: results are in no particular order, so sort them before comparing.
     final defaultResults = ['1withSuffix', '1withSuffix', '2WITHSUFFIX', '2withSuffix', '2withSuffix'];
-    var results = stringQuery.find()
-      ..sort();
+    var results = stringQuery.find()..sort();
     expect(results, defaultResults);
 
     var resultsNone = (stringQuery
-      ..distinct = false
-      ..caseSensitive = false)
+          ..distinct = false
+          ..caseSensitive = false)
         .find(replaceNullWith: 'meh')
-      ..sort();
+          ..sort();
     expect(resultsNone, defaultResults);
 
     var resultsDC = (stringQuery
@@ -389,7 +388,7 @@ void main() {
     queryAndCheck(tShort, 3, 'short null->positive');
     queryAndCheck(tInt, 3, 'int null->positive');
     queryAndCheck(tLong, 3, 'long null->positive');
-    
+
     queryAndCheck(tByte, -2, 'byte null->negative');
     queryAndCheck(tShort, -2, 'short null->negative');
     queryAndCheck(tInt, -2, 'int null->negative');
@@ -452,10 +451,30 @@ void main() {
     final queryString = query.property(tString) as StringPropertyQuery;
     expect(queryString.count(), 8);
     expect((queryString..distinct = true).count(), 5);
-    expect((queryString..distinct = false..caseSensitive = false).count(), 8);
-    expect((queryString..distinct = false..caseSensitive = true).count(), 8);
-    expect((queryString..distinct = true..caseSensitive = false).count(), 5);
-    expect((queryString..distinct = true..caseSensitive = true).count(), 5);
+    expect(
+        (queryString
+              ..distinct = false
+              ..caseSensitive = false)
+            .count(),
+        8);
+    expect(
+        (queryString
+              ..distinct = false
+              ..caseSensitive = true)
+            .count(),
+        8);
+    expect(
+        (queryString
+              ..distinct = true
+              ..caseSensitive = false)
+            .count(),
+        5);
+    expect(
+        (queryString
+              ..distinct = true
+              ..caseSensitive = true)
+            .count(),
+        5);
     queryString.close();
     query.close();
   });

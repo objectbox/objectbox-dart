@@ -130,8 +130,8 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
       case OBXPropertyType.Char: // Int8
-        return _unpack8(_curryWithDefault<OBX_int8_array, Int8>(
-            bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), 'find int8'));
+        return _unpack8(
+            _curryWithDefault<OBX_int8_array, Int8>(bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), 'find int8'));
       case OBXPropertyType.Short: // Int16
         return _unpack16(_curryWithDefault<OBX_int16_array, Int16>(
             bindings.obx_query_prop_int16_find, ptr.cast<Int16>(), 'find int16'));
@@ -194,8 +194,8 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
       case OBXPropertyType.Float:
         final valueIfNull =
             replaceNullWith != null ? (allocate<Float>()..value = replaceNullWith) : Pointer<Float>.fromAddress(0);
-        return _unpack32(_curryWithDefault<OBX_float_array, Float>(
-            bindings.obx_query_prop_float_find, valueIfNull, 'find float32'));
+        return _unpack32(
+            _curryWithDefault<OBX_float_array, Float>(bindings.obx_query_prop_float_find, valueIfNull, 'find float32'));
       case OBXPropertyType.Double:
         final valueIfNull =
             replaceNullWith != null ? (allocate<Double>()..value = replaceNullWith) : Pointer<Double>.fromAddress(0);
