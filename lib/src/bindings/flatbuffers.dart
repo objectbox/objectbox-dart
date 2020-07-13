@@ -104,7 +104,7 @@ class OBXFlatbuffersManager<T> {
           propReader = fb.Int8Reader();
           break;
         case OBXPropertyType.Byte:
-          propReader = fb.Uint8Reader();
+          propReader = fb.Int8Reader();
           break;
         case OBXPropertyType.Short:
           propReader = fb.Int16Reader();

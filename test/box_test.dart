@@ -117,8 +117,6 @@ void main() {
   test("all limit integers are stored correctly", () {
     final int8Min = -128;
     final int8Max = 127;
-    final uint8Min = 0;
-    final uint8Max = 255;
     final int16Min = -32768;
     final int16Max = 32767;
     final int32Min = -2147483648;
@@ -127,7 +125,7 @@ void main() {
     final int64Max = 9223372036854775807;
     final List<TestEntity> items = [
       ...[int8Min, int8Max].map((n) => TestEntity(tChar: n)).toList(),
-      ...[uint8Min, uint8Max].map((n) => TestEntity(tByte: n)).toList(),
+      ...[int8Min, int8Max].map((n) => TestEntity(tByte: n)).toList(),
       ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)).toList(),
       ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)).toList(),
       ...[int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList()
@@ -137,8 +135,8 @@ void main() {
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
     expect(fetchedItems[0].tChar, equals(int8Min));
     expect(fetchedItems[1].tChar, equals(int8Max));
-    expect(fetchedItems[2].tByte, equals(uint8Min));
-    expect(fetchedItems[3].tByte, equals(uint8Max));
+    expect(fetchedItems[2].tByte, equals(int8Min));
+    expect(fetchedItems[3].tByte, equals(int8Max));
     expect(fetchedItems[4].tShort, equals(int16Min));
     expect(fetchedItems[5].tShort, equals(int16Max));
     expect(fetchedItems[6].tInt, equals(int32Min));
