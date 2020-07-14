@@ -55,7 +55,6 @@ class EntityResolver extends Builder {
     // read all suitable annotated properties
     bool hasIdProperty = false;
     for (var f in element.fields) {
-
       if (_transientChecker.hasAnnotationOfExact(f)) {
         log.info("  skipping property ${f.name} (annotated with @Transient)");
         continue;

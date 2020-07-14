@@ -120,6 +120,34 @@ final qt = box.query(Entity_.text.notNull())
   .build();
 ```
 
+### Property Queries
+
+Instead of returning complete entities, with property queries only values or an aggregate of a property can be returned.
+Build a regular query with conditions as seen above, then turn it into a property query, e.g.:
+
+```dart
+// final query ...
+                            
+// Use distinct or caseSensitive to refine results.
+final textQuery = query.stringProperty(Note_.text)
+    ..distinct = true
+    ..caseSensitive = true;
+final texts = textQuery.find();
+textQuery.close();
+
+// Get aggregates, like min, max, avg, sum and count.
+final createdQuery = query.integerProperty(Note_.created);
+final min = createdQuery.min();
+createdQuery.close();
+
+// Set replaceNullWith to map null values.
+final scoreQuery = query.doubleProperty(Note_.score);
+final scores = scoreQuery.find(replaceNullWith: 0.0);
+scoreQuery.close();
+
+query.close();
+```
+
 Help wanted
 -----------
 ObjectBox for Dart is still in an early stage with limited feature set (compared to other languages).

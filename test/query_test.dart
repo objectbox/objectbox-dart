@@ -13,8 +13,7 @@ void main() {
   });
 
   test("ignore transient field", () {
-    box.put(
-      TestEntity(tDouble: 0.1, ignore: 1337));
+    box.put(TestEntity(tDouble: 0.1, ignore: 1337));
 
     final d = TestEntity_.tDouble;
 
@@ -317,7 +316,8 @@ void main() {
     final q = box.query(c).build();
     // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
     // note: order of properties is not guaranteed (currently OS specific).
-    expect(q.describe(), matches('Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
+    expect(q.describe(),
+        matches('Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
     q.close();
 
     for (int j = 1; j < 20; j++) {
