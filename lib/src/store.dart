@@ -4,6 +4,7 @@ import "bindings/bindings.dart";
 import "bindings/helpers.dart";
 import "modelinfo/index.dart";
 import "model.dart";
+import "common.dart";
 
 enum TxMode {
   Read,
@@ -40,7 +41,23 @@ class Store {
       rethrow;
     }
     _cStore = bindings.obx_store_open(opt);
-    checkObxPtr(_cStore, "failed to create store");
+
+    try {
+      checkObxPtr(_cStore, "failed to create store");
+    } on ObjectBoxException catch (e) {
+      // Recognize common problems when trying to open/create a database
+      // 10199 = OBX_ERROR_STORAGE_GENERAL
+      if (e.nativeCode == 10199 && e.nativeMsg != null && e.nativeMsg.contains('Dir does not exist')) {
+        // 13 = permissions denied, 30 = read-only filesystem
+        if (e.nativeMsg.endsWith(' (13)') || e.nativeMsg.endsWith(' (30)')) {
+          final msg = e.nativeMsg +
+              " - this usually indicates a problem with permissions; if you're using Flutter you may need to use " +
+              "getApplicationDocumentsDirectory() from the path_provider package, see example/README.md";
+          throw ObjectBoxException(dartMsg: e.dartMsg, nativeCode: e.nativeCode, nativeMsg: msg);
+        }
+      }
+      rethrow;
+    }
   }
 
   /// Closes this store.

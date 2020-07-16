@@ -13,7 +13,7 @@ class QueryBuilder<T> {
   void _throwExceptionIfNecessary() {
     if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
       final msg = cString(bindings.obx_qb_error_message(_cBuilder));
-      throw ObjectBoxException("$msg");
+      throw ObjectBoxException(nativeMsg: msg);
     }
   }
 

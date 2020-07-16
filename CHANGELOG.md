@@ -1,3 +1,13 @@
+0.6.4 (2020-05-12)
+------------------
+* Update to objectbox-swift 1.3.0
+* Update to objectbox-android 2.5.1
+
+0.6.3 (2020-05-07)
+------------------
+* Update FlatBuffers to 1.12.0
+* Provide error hinting when DB can't be created (e.g. when an app docs directory isn't passed properly on Flutter).
+
 0.6.2 (2020-03-09)
 ------------------
 * Support large object arrays on 32-bit platforms/emulators.

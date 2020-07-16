@@ -14,6 +14,7 @@ import "../bindings/structs.dart";
 import "../bindings/signatures.dart";
 
 part "builder.dart";
+part "property.dart";
 
 class Order {
   /// Reverts the order from ascending (default) to descending.
@@ -603,5 +604,43 @@ class Query<T> {
   // For testing purposes
   String describeParameters() {
     return cString(bindings.obx_query_describe_params(_cQuery));
+  }
+
+  /// Creates a property query for the given property [qp].
+  ///
+  /// Uses the same conditions as this query, but results only include the values of the given property.
+  /// To obtain results cast the returned [PropertyQuery] to a specific type.
+  ///
+  /// ```dart
+  /// var q = query.property(tInteger) as IntegerPropertyQuery;
+  /// var results = q.find()
+  /// ```
+  ///
+  /// Alternatively call a type-specific function.
+  /// ```dart
+  /// var q = query.integerProperty(tInteger);
+  /// ```
+  PQ property<PQ extends PropertyQuery>(QueryProperty qp) {
+    if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
+      return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+    } else if (OBXPropertyType.Float == qp._type || qp._type == OBXPropertyType.Double) {
+      return DoublePropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+    } else if (OBXPropertyType.String == qp._type) {
+      return StringPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+    } else {
+      throw Exception('Property query: unsupported type (OBXPropertyType: ${qp._type})');
+    }
+  }
+
+  IntegerPropertyQuery integerProperty(QueryProperty qp) {
+    return property<IntegerPropertyQuery>(qp);
+  }
+
+  DoublePropertyQuery doubleProperty(QueryProperty qp) {
+    return property<DoublePropertyQuery>(qp);
+  }
+
+  StringPropertyQuery stringProperty(QueryProperty qp) {
+    return property<StringPropertyQuery>(qp);
   }
 }

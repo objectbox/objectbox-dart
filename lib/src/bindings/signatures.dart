@@ -167,6 +167,19 @@ typedef obx_observe_t = Pointer<Void> Function(Pointer<Void> store, Pointer<Nati
 typedef obx_observe_single_type_t<T> = Pointer<Void> Function(Pointer<Void> store, T entity_id, Pointer<NativeFunction<obx_observer_single_type_t<Void>>> callback, Pointer<Void> user_data);
 typedef obx_observer_close_t<U extends NativeType> = U Function(Pointer<Void> observer);
 
+// query property
+
+typedef obx_query_prop_t<T> = Pointer<Void> Function(Pointer<Void> query, T propertyId); // Uint32 -> int
+typedef obx_query_prop_close_t<T> = T Function(Pointer<Void> query); // obx_err -> Int32 -> int
+// note: can not use return type Pointer<T> as it throws off code analysis.
+typedef obx_query_prop_find_native_t<T, V extends NativeType> = T Function(
+    Pointer<Void> query, Pointer<V> value_if_null);
+typedef obx_query_prop_distinct_t<T, V> = T Function(
+    Pointer<Void> query, V distinct); // T = (Int32, int), V = (Int8, int)
+typedef obx_query_prop_distinct2_t<T, V> = T Function(Pointer<Void> query, V distinct, V caseSensitive);
+typedef obx_query_prop_op_t<T, V extends NativeType> = T Function(
+    Pointer<Void> query, Pointer<V> outValue, Pointer<Int64> outCount);
+
 // Utilities
 
 typedef obx_bytes_array_t<SizeT> = Pointer<OBX_bytes_array> Function(SizeT count);

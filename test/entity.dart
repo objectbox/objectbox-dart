@@ -18,6 +18,12 @@ class TestEntity {
   double tDouble;
   bool tBool;
 
+  @Transient()
+  int ignore;
+
+  @Transient()
+  int omit, disregard;
+
   // explicitly declared types, see OB-C, objectbox.h
 
   // OBXPropertyType.Byte | 1 byte
@@ -50,5 +56,11 @@ class TestEntity {
       this.tShort,
       this.tChar,
       this.tInt,
-      this.tFloat});
+      this.tFloat,
+      this.ignore});
+
+  TestEntity.ignoredExcept(this.tInt) {
+    omit = -1;
+    disregard = 1;
+  }
 }

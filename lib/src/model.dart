@@ -33,7 +33,7 @@ class Model {
     int code = bindings.obx_model_error_code(_cModel);
     String text = cString(bindings.obx_model_error_message(_cModel));
 
-    throw ObjectBoxException("$code $text");
+    throw ObjectBoxException(nativeCode: code, nativeMsg: text);
   }
 
   void addEntity(ModelEntity entity) {

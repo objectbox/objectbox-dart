@@ -1,6 +1,6 @@
 import 'dart:ffi';
 import "dart:typed_data" show Uint8List;
-import "package:ffi/ffi.dart" show allocate, free;
+import "package:ffi/ffi.dart" show allocate, free, Utf8;
 import '../common.dart';
 
 // Disable some linter rules for this file
@@ -57,8 +57,9 @@ class OBX_bytes extends Struct {
   int length;
 
   /// Get access to the data (no-copy)
-  Uint8List get data =>
-      isEmpty ? throw ObjectBoxException("can't access data of empty OBX_bytes") : _dataPtr.asTypedList(length);
+  Uint8List get data => isEmpty
+      ? throw ObjectBoxException(dartMsg: "can't access data of empty OBX_bytes")
+      : _dataPtr.asTypedList(length);
 
   bool get isEmpty => length == 0 || _dataPtr.address == 0;
 
@@ -116,4 +117,73 @@ class OBX_bytes_array extends Struct {
     }
     return result;
   }
+}
+
+class OBX_int8_array extends Struct {
+  Pointer<Int8> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
+}
+
+class OBX_int16_array extends Struct {
+  Pointer<Int16> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
+}
+
+class OBX_int32_array extends Struct {
+  Pointer<Int32> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
+}
+
+class OBX_int64_array extends Struct {
+  Pointer<Int64> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<int> items() => _itemsPtr.asTypedList(count).toList();
+}
+
+class OBX_string_array extends Struct {
+  Pointer<Pointer<Uint8>> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<String> items() {
+    final list = <String>[];
+    for (var i = 0; i < count; i++) {
+      list.add(Utf8.fromUtf8(_itemsPtr.elementAt(i).value.cast<Utf8>()));
+    }
+    return list;
+  }
+}
+
+class OBX_float_array extends Struct {
+  Pointer<Float> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<double> items() => _itemsPtr.asTypedList(count).toList();
+}
+
+class OBX_double_array extends Struct {
+  Pointer<Double> _itemsPtr;
+
+  @IntPtr() // size_t
+  int count;
+
+  List<double> items() => _itemsPtr.asTypedList(count).toList();
 }
