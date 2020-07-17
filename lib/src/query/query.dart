@@ -533,11 +533,12 @@ class ConditionGroupAll extends ConditionGroup {
 
 class Query<T> {
   Pointer<Void> _cQuery;
-  Store _store;
+  Store store;
   OBXFlatbuffersManager _fbManager;
+  int entityId;
 
   // package private ctor
-  Query._(this._store, this._fbManager, Pointer<Void> cBuilder) {
+  Query._(this.store, this._fbManager, Pointer<Void> cBuilder, this.entityId) {
     _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query");
   }
 
@@ -572,7 +573,7 @@ class Query<T> {
   }
 
   List<T> find({int offset = 0, int limit = 0}) {
-    return _store.runInTransaction(TxMode.Read, () {
+    return store.runInTransaction(TxMode.Read, () {
       if (bindings.obx_supports_bytes_array() == 1) {
         final bytesArray = checkObxPtr(bindings.obx_query_find(_cQuery, offset, limit), "find");
         try {

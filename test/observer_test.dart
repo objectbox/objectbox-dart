@@ -6,38 +6,29 @@ import "entity2.dart";
 import 'test_env.dart';
 import 'objectbox.g.dart';
 import "dart:ffi";
-import "dart:io";
-import "dart:async";
 
-// Pointer.fromAddress(0) does not fire at all
+// ignore_for_file: non_constant_identifier_names
+
+/// Pointer.fromAddress(0) does not fire at all
 Pointer<Void> randomPtr = Pointer.fromAddress(1337);
-Completer globalSingleCompleter = Completer();
-Completer globalAnyCompleter = Completer();
 
+var callbackSingleTypeCounter = 0;
 void callbackSingleType(Pointer<Void> user_data) {
   expect(user_data.address, randomPtr.address);
-  globalSingleCompleter.complete;
+  callbackSingleTypeCounter++;
 }
 
+var callbackAnyTypeCounter = 0;
 void callbackAnyType(Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
   expect(user_data.address, randomPtr.address);
-  for (var i=0; i<mutated_count; i++) {
-    print("test 0: id: ${mutated_ids[i]}, memloc: $mutated_ids, count: $mutated_count");
-  }
-  globalAnyCompleter.complete;
+  callbackAnyTypeCounter++;
 }
 
 // dart callback signatures
 typedef Single = void Function(Pointer<Void>);
 typedef Any    = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
-/**
- * Initial idea, to support streams
- * user_data can be used to tag a callback function object
- */
-class Observable /* extension Observable on Store... */ {
-  static Completer completer, singleCompleter;
-
+class Observable {
   static Pointer<Void> singleObserver, anyObserver;
 
   static Single single;
@@ -49,36 +40,22 @@ class Observable /* extension Observable on Store... */ {
 
   static void _anyCallback(Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
     any(user_data, mutated_ids, mutated_count);
-    completer.complete;
   }
 
   static void _singleCallback(Pointer<Void> user_data) {
     single(user_data);
-    singleCompleter.complete;
   }
 
   void observeSingleType(int entityId, Single fn, Pointer<Void> identifier) {
-    singleCompleter = Completer();
     single = fn;
     final callback = Pointer.fromFunction<obx_observer_single_type_t<Void>>(_singleCallback);
     singleObserver = bindings.obx_observe_single_type(store.ptr, entityId, callback, identifier);
   }
 
   void observe(Any fn, Pointer<Void> identifier) {
-    completer = Completer();
     any = fn;
     final callback = Pointer.fromFunction<obx_observer_t<Void, Uint32>>(_anyCallback);
     anyObserver = bindings.obx_observe(store.ptr, callback, identifier);
-  }
-
-  Future<void> singleComplete() async {
-    final willDispose = await singleCompleter.isCompleted;
-    bindings.obx_observer_close(singleObserver);
-  }
-
-  Future<void> anyComplete() async {
-    await completer.isCompleted;
-    bindings.obx_observer_close(anyObserver);
   }
 }
 
@@ -113,25 +90,6 @@ void main() async {
     var putCount = 0;
     o.observe((Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
       expect(user_data.address, randomPtr.address);
-      for (var i=0; i<mutated_count; i++) {
-        print("test 1: id: ${mutated_ids[i]}, memloc: $mutated_ids, count: $mutated_count");
-        putCount++;
-      }
-    }, randomPtr);
-
-    box.putMany(simpleStringItems);
-    simpleStringItems.forEach((i) => box.put(i));
-    simpleNumberItems.forEach((i) => box.put(i));
-
-    await o.anyComplete(); // block, otherwise no results
-    expect(putCount, 13);
-  });
-
-  test("Observe a single entity with class member callback", () async {
-    final o = Observable.fromStore(store);
-    var putCount = 0;
-    o.observeSingleType(testEntityId, (Pointer<Void> user_data) {
-      print("test 2");
       putCount++;
     }, randomPtr);
 
@@ -139,7 +97,22 @@ void main() async {
     simpleStringItems.forEach((i) => box.put(i));
     simpleNumberItems.forEach((i) => box.put(i));
 
-    await o.singleComplete();
+    bindings.obx_observer_close(Observable.anyObserver);
+    expect(putCount, 13);
+  });
+
+  test("Observe a single entity with class member callback", () async {
+    final o = Observable.fromStore(store);
+    var putCount = 0;
+    o.observeSingleType(testEntityId, (Pointer<Void> user_data) {
+      putCount++;
+    }, randomPtr);
+
+    box.putMany(simpleStringItems);
+    simpleStringItems.forEach((i) => box.put(i));
+    simpleNumberItems.forEach((i) => box.put(i));
+
+    bindings.obx_observer_close(Observable.singleObserver);
     expect(putCount, 13);
   });
 
@@ -149,9 +122,7 @@ void main() async {
 
     box.putMany(simpleStringItems);
 
-    print('count: ${box.count()}');
     box.remove(1);
-    print('count: ${box.count()}');
 
     // update value
     final entity2 = box.get(2);
@@ -163,7 +134,7 @@ void main() async {
     box2.remove(1);
     box2.put(TestEntity2());
 
-    await globalAnyCompleter.isCompleted;
+    expect(callbackAnyTypeCounter, 6);
     bindings.obx_observer_close(observer);
   });
 
@@ -175,7 +146,7 @@ void main() async {
     simpleStringItems.forEach((i) => box.put(i));
     simpleNumberItems.forEach((i) => box.put(i));
 
-    await globalSingleCompleter.isCompleted;
+    expect(callbackSingleTypeCounter, 13);
     bindings.obx_observer_close(observer);
   });
 
