@@ -35,7 +35,11 @@ class Observable {
 
   // #53 ffi:Pointer finalizer
   static unsubscribe(Store store) {
+    if (!anyObserver.containsKey(store.ptr.address)) {
+      return;
+    }
     bindings.obx_observer_close(anyObserver[store.ptr.address]);
+    anyObserver.remove(store.ptr.address);
   }
 }
 
