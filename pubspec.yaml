@@ -22,5 +22,9 @@ dev_dependencies:
 # The minimal configuration for flutter to pick up this package as a flutter-plugin with native dependencies
 flutter:
   plugin:
-    android:
-    ios:
+    platforms:
+#      android:
+#        package: io.objectbox.flutter.objectbox
+#        pluginClass: ObjectboxPlugin
+      ios:
+        pluginClass: ObjectboxPlugin
