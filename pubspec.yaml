@@ -23,8 +23,8 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
-#      android:
-#        package: io.objectbox.flutter.objectbox
-#        pluginClass: ObjectboxPlugin
+      android:
+        package: io.objectbox.flutter.objectbox
+        pluginClass: ObjectboxPlugin
       ios:
         pluginClass: ObjectboxPlugin
