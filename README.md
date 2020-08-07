@@ -4,6 +4,12 @@ ObjectBox for Dart is a standalone database storing Dart objects locally, with s
 
 Flutter/Dart compatibility
 --------------------------
+
+> :warning: **Flutter v1.20 iOS support currently broken**: You won't be able to compile the app or run on simulator 
+> with the latest flutter yet. Please consider delaying the flutter upgrade for a couple of days until objectbox-dart v0.7.0 
+> is released with the necessary integration changes. You won't need to change your code, changes are only in the 
+> tooling & plugin integration. If you're interested in more dev-related details, you can follow issue #112.
+
 This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
 However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
 Versions starting with ObjectBox 0.5 support Dart 2.6+ as well as Flutter 1.12+.
