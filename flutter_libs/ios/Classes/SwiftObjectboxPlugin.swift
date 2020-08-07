@@ -1,10 +1,10 @@
 import Flutter
 import UIKit
 
-public class SwiftObjectboxPlugin: NSObject, FlutterPlugin {
+public class SwiftObjectBoxFlutterPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "objectbox", binaryMessenger: registrar.messenger())
-    let instance = SwiftObjectboxPlugin()
+    let channel = FlutterMethodChannel(name: "objectbox_flutter_libs", binaryMessenger: registrar.messenger())
+    let instance = SwiftObjectBoxFlutterPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 

@@ -9,8 +9,8 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-/** ObjectboxPlugin */
-public class ObjectboxPlugin implements FlutterPlugin, MethodCallHandler {
+/** ObjectBoxFlutterPlugin */
+public class ObjectBoxFlutterPlugin implements FlutterPlugin, MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -34,7 +34,7 @@ public class ObjectboxPlugin implements FlutterPlugin, MethodCallHandler {
   // in the same class.
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "objectbox");
-    channel.setMethodCallHandler(new ObjectboxPlugin());
+    channel.setMethodCallHandler(new ObjectBoxFlutterPlugin());
   }
 
   @Override
