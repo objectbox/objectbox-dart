@@ -9,9 +9,8 @@ environment:
 
 flutter:
   plugin:
-    platforms:
-      android:
-        package: io.objectbox.flutter.objectbox
-        pluginClass: ObjectBoxFlutterPlugin
-      ios:
-        pluginClass: ObjectBoxFlutterPlugin
+    android:
+      package: io.objectbox.flutter.objectbox
+      pluginClass: ObjectBoxFlutterPlugin
+    ios:
+      pluginClass: ObjectBoxFlutterPlugin

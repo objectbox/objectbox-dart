@@ -28,3 +28,5 @@ dependency_overrides:
     path: ../../..
   objectbox_generator:
     path: ../../../generator
+  objectbox_flutter_libs:
+    path: ../../../flutter_libs

@@ -1,5 +1,5 @@
 # Provides the compiled framework as released in objectbox-swift. No dart-related sources.
-# Run `pod lib lint objectbox.podspec' to validate before publishing.
+# Run `pod lib lint objectbox_flutter_libs.podspec' to validate before publishing.
 # This package is not distributed as a CocoaPod, rather it's automatically used by Flutter when creating
 #  ios/{app}.podspec in client applications using objectbox-dart as a dependency.
 # Some of the lines from the original podspec are commented out but left for future reference, in case it stops working.
