@@ -11,7 +11,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: io.objectbox.flutter.objectbox
+        package: io.objectbox.flutter
         pluginClass: ObjectBoxFlutterPlugin
       ios:
         pluginClass: ObjectBoxFlutterPlugin

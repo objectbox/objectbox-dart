@@ -1,4 +1,4 @@
-package io.objectbox.flutter.objectbox;
+package io.objectbox.flutter;
 
 import androidx.annotation.NonNull;
 
