@@ -117,7 +117,7 @@ class Box<T> {
       // marshal all objects to be put into the box
       final bytesArrayPtr =
           checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
-      final listToFree = List<Pointer<OBX_bytes>>();
+      final listToFree = <Pointer<OBX_bytes>>[];
       try {
         for (int i = 0; i < allPropVals.length; i++) {
           final bytesPtr = _fbManager.marshal(allPropVals[i]);

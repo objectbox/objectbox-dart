@@ -111,7 +111,7 @@ class OBX_bytes_array extends Struct {
 
   /// Get a list of the underlying OBX_bytes (a shallow copy).
   List<OBX_bytes> items() {
-    final result = List<OBX_bytes>();
+    final result = <OBX_bytes>[];
     for (int i = 0; i < length; i++) {
       result.add(_items.elementAt(i).ref);
     }
