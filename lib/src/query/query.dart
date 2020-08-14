@@ -310,12 +310,12 @@ class StringCondition extends PropertyCondition<String> {
     final listLength = _list.length;
     final arrayOfCStrings = allocate<Pointer<Utf8>>(count: listLength);
     try {
-      for (int i = 0; i < _list.length; i++) {
+      for (var i = 0; i < _list.length; i++) {
         arrayOfCStrings[i] = Utf8.toUtf8(_list[i]);
       }
       return func(builder._cBuilder, _property._propertyId, arrayOfCStrings, listLength, _caseSensitive ? 1 : 0);
     } finally {
-      for (int i = 0; i < _list.length; i++) {
+      for (var i = 0; i < _list.length; i++) {
         free(arrayOfCStrings.elementAt(i).value);
       }
       free(arrayOfCStrings);
@@ -377,7 +377,7 @@ class IntegerCondition extends PropertyCondition<int> {
     int length = _list.length;
     final listPtr = allocate<P>(count: length);
     try {
-      for (int i=0; i<length; i++) {
+      for (var i=0; i<length; i++) {
         listPtr[i] = _list[i] as int; // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
       }
       return func(builder._cBuilder, _property.propertyId, listPtr, length);
@@ -389,10 +389,10 @@ class IntegerCondition extends PropertyCondition<int> {
 
   // TODO replace nasty duplication with implementation above, when fix is in
   int _opList32(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<Int32> func) {
-    int length = _list.length;
+    final length = _list.length;
     final listPtr = allocate<Int32>(count: length);
     try {
-      for (int i = 0; i < length; i++) {
+      for (var i = 0; i < length; i++) {
         listPtr[i] = _list[i];
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
@@ -403,10 +403,10 @@ class IntegerCondition extends PropertyCondition<int> {
 
   // TODO replace duplication with implementation above, when fix is in
   int _opList64(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<Int64> func) {
-    int length = _list.length;
+    final length = _list.length;
     final listPtr = allocate<Int64>(count: length);
     try {
-      for (int i = 0; i < length; i++) {
+      for (var i = 0; i < length; i++) {
         listPtr[i] = _list[i];
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
@@ -507,7 +507,7 @@ class ConditionGroup extends Condition {
 
     final intArrayPtr = allocate<Int32>(count: size);
     try {
-      for (int i = 0; i < size; ++i) {
+      for (var i = 0; i < size; ++i) {
         final cid = _conditions[i].apply(builder, false);
         if (cid == 0) {
           builder._throwExceptionIfNecessary();
@@ -570,7 +570,7 @@ class Query<T> {
   List<int> findIds({int offset = 0, int limit = 0}) {
     final idArrayPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
     try {
-      OBX_id_array idArray = idArrayPtr.ref;
+      final idArray = idArrayPtr.ref;
       return idArray.length == 0 ? <int>[] : idArray.items();
     } finally {
       bindings.obx_id_array_free(idArrayPtr);

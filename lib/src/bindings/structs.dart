@@ -23,15 +23,16 @@ class OBX_id_array extends Struct {
   List<int> items() => _itemsPtr.asTypedList(length).toList();
 
   /// Execute the given function, managing the resources consistently
-  static R executeWith<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
+  static R executeWith<R>(
+      List<int> items, R Function(Pointer<OBX_id_array>) fn) {
     // allocate a temporary structure
     final ptr = allocate<OBX_id_array>();
 
     // fill it with data
-    OBX_id_array array = ptr.ref;
+    final array = ptr.ref;
     array.length = items.length;
     array._itemsPtr = allocate<Uint64>(count: array.length);
-    for (int i = 0; i < items.length; ++i) {
+    for (var i = 0; i < items.length; ++i) {
       array._itemsPtr[i] = items[i];
     }
 
@@ -58,7 +59,8 @@ class OBX_bytes extends Struct {
 
   /// Get access to the data (no-copy)
   Uint8List get data => isEmpty
-      ? throw ObjectBoxException(dartMsg: "can't access data of empty OBX_bytes")
+      ? throw ObjectBoxException(
+          dartMsg: "can't access data of empty OBX_bytes")
       : _dataPtr.asTypedList(length);
 
   bool get isEmpty => length == 0 || _dataPtr.address == 0;
@@ -69,9 +71,10 @@ class OBX_bytes extends Struct {
   /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
   static Pointer<OBX_bytes> managedCopyOf(Uint8List data) {
     final ptr = allocate<OBX_bytes>();
-    final OBX_bytes bytes = ptr.ref;
+    final bytes = ptr.ref;
 
-    const align = true; // ObjectBox requires data to be aligned to the length of 4
+    const align =
+        true; // ObjectBox requires data to be aligned to the length of 4
     bytes.length = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
 
     // NOTE: currently there's no way to get access to the underlying memory of Uint8List to avoid a copy.
@@ -83,7 +86,7 @@ class OBX_bytes extends Struct {
 
     // create a copy of the data
     bytes._dataPtr = allocate<Uint8>(count: bytes.length);
-    for (int i = 0; i < data.length; ++i) {
+    for (var i = 0; i < data.length; ++i) {
       bytes._dataPtr[i] = data[i];
     }
 
@@ -92,8 +95,7 @@ class OBX_bytes extends Struct {
 
   /// Free a dart-created OBX_bytes pointer.
   static void freeManaged(Pointer<OBX_bytes> ptr) {
-    final OBX_bytes bytes = ptr.ref;
-    free(bytes._dataPtr);
+    free(ptr.ref._dataPtr);
     free(ptr);
   }
 }
@@ -112,7 +114,7 @@ class OBX_bytes_array extends Struct {
   /// Get a list of the underlying OBX_bytes (a shallow copy).
   List<OBX_bytes> items() {
     final result = <OBX_bytes>[];
-    for (int i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
       result.add(_items.elementAt(i).ref);
     }
     return result;

@@ -3,6 +3,8 @@ import "entity.dart";
 import 'test_env.dart';
 import 'objectbox.g.dart';
 
+// ignore_for_file: omit_local_variable_types
+
 void main() {
   TestEnv env;
   Box<TestEntity> box;
@@ -320,9 +322,9 @@ void main() {
         matches('Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
     q.close();
 
-    for (int j = 1; j < 20; j++) {
+    for (var j = 1; j < 20; j++) {
       var tc = text.equals("Hello");
-      for (int i = 0; i < j; i++) {
+      for (var i = 0; i < j; i++) {
         tc = tc.or(text.endsWith("lo"));
       }
       final q = box.query(tc).build();
@@ -330,9 +332,9 @@ void main() {
       q.close();
     }
 
-    for (int j = 1; j < 20; j++) {
+    for (var j = 1; j < 20; j++) {
       var tc = text.equals("Hello");
-      for (int i = 0; i < j; i++) {
+      for (var i = 0; i < j; i++) {
         tc = tc.and(text.startsWith("lo"));
       }
       final q = box.query(tc).build();
@@ -383,10 +385,10 @@ void main() {
     expect(q.describeParameters(), expectedString);
     q.close();
 
-    for (int j = 1; j < 20; j++) {
+    for (var j = 1; j < 20; j++) {
       var tc = text.equals("Goodbye");
       var expected = ['''tString ==(i) "Goodbye"'''];
-      for (int i = 0; i < j; i++) {
+      for (var i = 0; i < j; i++) {
         tc = tc.and(text.endsWith("ye"));
         expected.add(''' AND tString ends with(i) "ye"''');
       }
@@ -395,10 +397,10 @@ void main() {
       q.close();
     }
 
-    for (int j = 1; j < 20; j++) {
+    for (var j = 1; j < 20; j++) {
       var tc = text.equals("Goodbye");
       var expected = ['''tString ==(i) "Goodbye"'''];
-      for (int i = 0; i < j; i++) {
+      for (var i = 0; i < j; i++) {
         tc = tc.or(text.startsWith("Good"));
         expected.add(''' OR tString starts with(i) "Good"''');
       }

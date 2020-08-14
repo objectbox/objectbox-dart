@@ -40,7 +40,7 @@ class ModelEntity {
     } else {
       if (lastPropertyId == null) throw Exception("lastPropertyId is null");
 
-      bool lastPropertyIdFound = false;
+      var lastPropertyIdFound = false;
       for (final p in properties) {
         if (p.entity != this) {
           throw Exception("property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
@@ -66,7 +66,7 @@ class ModelEntity {
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> ret = {};
+    final ret = <String, dynamic>{};
     ret["id"] = id.toString();
     ret["lastPropertyId"] = lastPropertyId == null ? null : lastPropertyId.toString();
     ret["name"] = name;
@@ -75,7 +75,7 @@ class ModelEntity {
   }
 
   ModelProperty findPropertyByUid(int uid) {
-    int idx = properties.indexWhere((p) => p.id.uid == uid);
+    final idx = properties.indexWhere((p) => p.id.uid == uid);
     return idx == -1 ? null : properties[idx];
   }
 
@@ -93,10 +93,10 @@ class ModelEntity {
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {
-    int id = 1;
+    var id = 1;
     if (properties.isNotEmpty) id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
-    int uniqueUid = uid == 0 ? model.generateUid() : uid;
+    final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
     var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
     properties.add(property);
@@ -105,15 +105,15 @@ class ModelEntity {
   }
 
   ModelProperty addProperty(ModelProperty prop) {
-    ModelProperty ret = createProperty(prop.name, prop.id.uid);
-    ret.type = prop.type;
-    ret.flags = prop.flags;
-    return ret;
+    final modelProp = createProperty(prop.name, prop.id.uid);
+    modelProp.type = prop.type;
+    modelProp.flags = prop.flags;
+    return modelProp;
   }
 
   void removeProperty(ModelProperty prop) {
     if (prop == null) throw Exception("prop == null");
-    ModelProperty foundProp = findSameProperty(prop);
+    final foundProp = findSameProperty(prop);
     if (foundProp == null) {
       throw Exception("cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
     }

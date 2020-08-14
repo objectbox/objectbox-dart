@@ -17,8 +17,8 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String dartMsg) {
 }
 
 ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
-  int code = bindings.obx_last_error_code();
-  String text = cString(bindings.obx_last_error_message());
+  final code = bindings.obx_last_error_code();
+  final text = cString(bindings.obx_last_error_message());
 
   if (code == 0 && text.isEmpty) {
     return ObjectBoxException(dartMsg: dartMsg, nativeCode: codeIfMissing, nativeMsg: 'unknown native error');

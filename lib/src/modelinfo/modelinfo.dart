@@ -84,7 +84,7 @@ class ModelInfo {
     if (retiredRelationUids == null) throw Exception("retiredRelationUids is null");
     if (lastEntityId == null) throw Exception("lastEntityId is null");
 
-    bool lastEntityIdFound = false;
+    var lastEntityIdFound = false;
     for (final e in entities) {
       if (e.model != this) {
         throw Exception("entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
@@ -109,7 +109,7 @@ class ModelInfo {
   }
 
   Map<String, dynamic> toMap({bool forCodeGen = false}) {
-    Map<String, dynamic> ret = {};
+    final ret = <String, dynamic>{};
     if (!forCodeGen) {
       ret["_note1"] = notes[0];
       ret["_note2"] = notes[1];
@@ -133,7 +133,7 @@ class ModelInfo {
   }
 
   ModelEntity findEntityByUid(int uid) {
-    int idx = entities.indexWhere((e) => e.id.uid == uid);
+    final idx = entities.indexWhere((e) => e.id.uid == uid);
     return idx == -1 ? null : entities[idx];
   }
 
@@ -152,16 +152,16 @@ class ModelInfo {
   }
 
   ModelEntity addEntity(ModelEntity other) {
-    ModelEntity ret = createEntity(other.name, other.id.uid);
-    other.properties.forEach((p) => ret.addProperty(p));
-    return ret;
+    final modelEntity = createEntity(other.name, other.id.uid);
+    other.properties.forEach((p) => modelEntity.addProperty(p));
+    return modelEntity;
   }
 
   ModelEntity createEntity(String name, [int uid = 0]) {
-    int id = 1;
+    var id = 1;
     if (entities.isNotEmpty) id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
-    int uniqueUid = uid == 0 ? generateUid() : uid;
+    final uniqueUid = uid == 0 ? generateUid() : uid;
 
     var entity = ModelEntity(IdUid(id, uniqueUid), null, name, [], this);
     entities.add(entity);
@@ -183,9 +183,9 @@ class ModelInfo {
 
   int generateUid() {
     var rng = Random();
-    for (int i = 0; i < 1000; ++i) {
+    for (var i = 0; i < 1000; ++i) {
       // Dart can only generate random numbers up to 1 << 32, so concat two of them and remove the upper bit to make the number non-negative
-      int uid = rng.nextInt(1 << 32);
+      var uid = rng.nextInt(1 << 32);
       uid |= rng.nextInt(1 << 32) << 32;
       uid &= ~(1 << 63);
       if (uid != 0 && !containsUid(uid)) return uid;

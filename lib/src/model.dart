@@ -30,10 +30,9 @@ class Model {
   void _check(int errorCode) {
     if (errorCode == OBXError.OBX_SUCCESS) return;
 
-    int code = bindings.obx_model_error_code(_cModel);
-    String text = cString(bindings.obx_model_error_message(_cModel));
-
-    throw ObjectBoxException(nativeCode: code, nativeMsg: text);
+    throw ObjectBoxException(
+        nativeCode: bindings.obx_model_error_code(_cModel),
+        nativeMsg: cString(bindings.obx_model_error_message(_cModel)));
   }
 
   void addEntity(ModelEntity entity) {

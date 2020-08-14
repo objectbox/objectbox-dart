@@ -3,12 +3,14 @@ import "package:objectbox/objectbox.dart";
 import "entity.dart";
 import 'test_env.dart';
 
+// ignore_for_file: omit_local_variable_types
+
 void main() {
   TestEnv env;
   Store store;
   Box<TestEntity> box;
 
-  final List<TestEntity> simpleItems =
+    final List<TestEntity> simpleItems =
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity(tString: s)).toList();
 
   setUp(() {
@@ -73,7 +75,7 @@ void main() {
         ["One", "Two", "Three", "Four", "Five", "Six", "Seven"].map((s) => TestEntity(tString: s)).toList();
     final List<int> ids = box.putMany(items);
     expect(ids.length, equals(items.length));
-    for (int i = 0; i < items.length; ++i) {
+    for (var i = 0; i < items.length; ++i) {
       expect(box.get(ids[i]).tString, equals(items[i].tString));
     }
   });

@@ -26,7 +26,7 @@ class ModelProperty {
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> ret = {};
+    final ret = <String, dynamic>{};
     ret["id"] = id.toString();
     ret["name"] = name;
     ret["type"] = type;

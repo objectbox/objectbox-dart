@@ -27,7 +27,7 @@ class Box<T> {
   final bool _supportsBytesArrays;
 
   Box(this._store) : _supportsBytesArrays = bindings.obx_supports_bytes_array() == 1 {
-    EntityDefinition<T> entityDefs = _store.entityDef<T>();
+    final entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.model;
     _entityReader = entityDefs.reader;
     _fbManager = OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
@@ -64,9 +64,10 @@ class Box<T> {
     }
 
     // put object into box and free the buffer
+    // ignore: omit_local_variable_types
     final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(propVals);
     try {
-      final OBX_bytes bytes = bytesPtr.ref;
+      final bytes = bytesPtr.ref;
       checkObx(bindings.obx_box_put(_cBox, id, bytes.ptr, bytes.length, _getOBXPutMode(mode)));
     } finally {
       // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
@@ -82,7 +83,7 @@ class Box<T> {
 
     // read all property values and find number of instances where ID is missing
     var allPropVals = objects.map(_entityReader).toList();
-    int missingIdsCount = 0;
+    var missingIdsCount = 0;
     for (var instPropVals in allPropVals) {
       if (instPropVals[_modelEntity.idProperty.name] == null || instPropVals[_modelEntity.idProperty.name] == 0) {
         ++missingIdsCount;
@@ -91,8 +92,8 @@ class Box<T> {
 
     // generate new IDs for these instances and set them
     if (missingIdsCount != 0) {
-      int nextId = 0;
-      Pointer<Uint64> nextIdPtr = allocate<Uint64>(count: 1);
+      var nextId = 0;
+      final nextIdPtr = allocate<Uint64>(count: 1);
       try {
         checkObx(bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
         nextId = nextIdPtr.value;
@@ -108,9 +109,9 @@ class Box<T> {
 
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
     // generate this list now (only needed if not all IDs have been generated)
-    Pointer<Uint64> allIdsMemory = allocate<Uint64>(count: objects.length);
+    final allIdsMemory = allocate<Uint64>(count: objects.length);
     try {
-      for (int i = 0; i < allPropVals.length; ++i) {
+      for (var i = 0; i < allPropVals.length; ++i) {
         allIdsMemory[i] = (allPropVals[i][_modelEntity.idProperty.name] as int);
       }
 
@@ -119,10 +120,10 @@ class Box<T> {
           checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
       final listToFree = <Pointer<OBX_bytes>>[];
       try {
-        for (int i = 0; i < allPropVals.length; i++) {
+        for (var i = 0; i < allPropVals.length; i++) {
           final bytesPtr = _fbManager.marshal(allPropVals[i]);
           listToFree.add(bytesPtr);
-          final OBX_bytes bytes = bytesPtr.ref;
+          final bytes = bytesPtr.ref;
           bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.length);
         }
 
@@ -148,6 +149,7 @@ class Box<T> {
       return _store.runInTransaction(TxMode.Read, () {
         checkObx(bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr));
 
+        // ignore: omit_local_variable_types
         Pointer<Uint8> dataPtr = dataPtrPtr.value;
         final size = sizePtr.value;
 
@@ -203,7 +205,7 @@ class Box<T> {
   List<T> getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
-    const bool allowMissing = true; // result includes null if an object is missing
+    const allowMissing = true; // result includes null if an object is missing
     return OBX_id_array.executeWith(
         ids,
         (ptr) => _getMany(
@@ -214,7 +216,7 @@ class Box<T> {
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    const bool allowMissing = false; // throw if null is encountered in the data found
+    const allowMissing = false; // throw if null is encountered in the data found
     return _getMany(
         allowMissing,
         () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"),
@@ -227,7 +229,7 @@ class Box<T> {
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
   /// is lower.
   int count({int limit = 0}) {
-    Pointer<Uint64> count = allocate<Uint64>();
+    final count = allocate<Uint64>();
     try {
       checkObx(bindings.obx_box_count(_cBox, limit, count));
       return count.value;
@@ -238,7 +240,7 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    Pointer<Uint8> isEmpty = allocate<Uint8>();
+    final isEmpty = allocate<Uint8>();
     try {
       checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
       return isEmpty.value > 0 ? true : false;
@@ -249,7 +251,7 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    Pointer<Uint8> contains = allocate<Uint8>();
+    final contains = allocate<Uint8>();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
       return contains.value > 0 ? true : false;
@@ -260,7 +262,7 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
   bool containsMany(List<int> ids) {
-    Pointer<Uint8> contains = allocate<Uint8>();
+    final contains = allocate<Uint8>();
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
         checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
@@ -282,7 +284,7 @@ class Box<T> {
 
   /// Removes (deletes) Objects by their ID in a single transaction. Returns a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
-    Pointer<Uint64> removedIds = allocate<Uint64>();
+    final removedIds = allocate<Uint64>();
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
         checkObx(bindings.obx_box_remove_many(_cBox, ptr, removedIds));
@@ -295,7 +297,7 @@ class Box<T> {
 
   /// Removes (deletes) ALL Objects in a single transaction.
   int removeAll() {
-    Pointer<Uint64> removedItems = allocate<Uint64>();
+    final removedItems = allocate<Uint64>();
     try {
       checkObx(bindings.obx_box_remove_all(_cBox, removedItems));
       return removedItems.value;
