@@ -329,6 +329,7 @@ class StringCondition extends PropertyCondition<String> {
     }
   }
 
+  @override
   int apply(QueryBuilder builder, bool isRoot) {
     final c = tryApply(builder);
     if (c != 0) {
@@ -412,6 +413,7 @@ class IntegerCondition extends PropertyCondition<int> {
     }
   }
 
+  @override
   int apply(QueryBuilder builder, bool isRoot) {
     final c = tryApply(builder);
     if (c != 0) {
@@ -465,6 +467,7 @@ class DoubleCondition extends PropertyCondition<double> {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
 
+  @override
   int apply(QueryBuilder builder, bool isRoot) {
     final c = tryApply(builder);
     if (c != 0) {
@@ -490,6 +493,7 @@ class ConditionGroup extends Condition {
 
   ConditionGroup(this._conditions, this._func);
 
+  @override
   int apply(QueryBuilder builder, bool isRoot) {
     final size = _conditions.length;
 

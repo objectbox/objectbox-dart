@@ -42,5 +42,6 @@ class IdUid {
 
   int get uid => _uid;
 
+  @override
   String toString() => "$_id:$_uid";
 }

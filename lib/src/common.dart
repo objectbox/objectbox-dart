@@ -10,6 +10,7 @@ class Version {
 
   const Version(this.major, this.minor, this.patch);
 
+  @override
   toString() => "$major.$minor.$patch";
 }
 
