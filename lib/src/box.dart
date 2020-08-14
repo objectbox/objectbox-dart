@@ -36,7 +36,7 @@ class Box<T> {
     checkObxPtr(_cBox, "failed to create box");
   }
 
-  _getOBXPutMode(_PutMode mode) {
+  int _getOBXPutMode(_PutMode mode) {
     switch (mode) {
       case _PutMode.Put:
         return OBXPutMode.PUT;
@@ -45,6 +45,7 @@ class Box<T> {
       case _PutMode.Update:
         return OBXPutMode.UPDATE;
     }
+    throw Exception("Invalid put mode " + mode.toString());
   }
 
   /// Puts the given Object in the box (aka persisting it). If this is a new entity (its ID property is 0), a new ID
@@ -304,5 +305,5 @@ class Box<T> {
   }
 
   /// The low-level pointer to this box.
-  get ptr => _cBox;
+  Pointer<Void> get ptr => _cBox;
 }

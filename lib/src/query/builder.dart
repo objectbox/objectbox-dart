@@ -17,7 +17,7 @@ class QueryBuilder<T> {
     }
   }
 
-  _createBuilder() => _cBuilder ??= bindings.obx_qb_create(_store.ptr, _entityId);
+  Pointer<Void> _createBuilder() => _cBuilder ??= bindings.obx_qb_create(_store.ptr, _entityId);
 
   Query build() {
     _createBuilder();

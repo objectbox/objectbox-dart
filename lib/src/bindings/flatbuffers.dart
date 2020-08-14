@@ -19,7 +19,7 @@ class _OBXFBEntity {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  getProp(propReader, int field) => propReader.vTableGet(_bc, _bcOffset, field);
+  dynamic getProp(propReader, int field) => propReader.vTableGet(_bc, _bcOffset, field);
 }
 
 class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {

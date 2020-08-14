@@ -64,7 +64,7 @@ class Store {
   ///
   /// This method is useful for unit tests; most real applications should open a Store once and keep it open until
   /// the app dies.
-  close() {
+  void close() {
     checkObx(bindings.obx_store_close(_cStore));
   }
 
@@ -95,5 +95,5 @@ class Store {
   }
 
   /// The low-level pointer to this store.
-  get ptr => _cStore;
+  Pointer<Void> get ptr => _cStore;
 }

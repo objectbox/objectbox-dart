@@ -12,11 +12,11 @@ import './src/bindings/bindings.dart';
 class IntegrationTest {
   static const int64_max = 9223372036854775807;
 
-  static int64() {
+  static void int64() {
     assert("9223372036854775807" == "$int64_max");
   }
 
-  static model() {
+  static void model() {
     // create a model with a single entity and a single property
     final modelInfo = ModelInfo.createDefault();
     final property = ModelProperty(IdUid(1, int64_max - 1), "id", OBXPropertyType.Long, 0, null);

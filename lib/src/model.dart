@@ -10,7 +10,7 @@ import "modelinfo/index.dart";
 class Model {
   Pointer<Void> _cModel;
 
-  get ptr => _cModel;
+  Pointer<Void> get ptr => _cModel;
 
   Model(ModelInfo model) {
     _cModel = checkObxPtr(bindings.obx_model(), "failed to create model");

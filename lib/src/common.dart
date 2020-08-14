@@ -11,7 +11,7 @@ class Version {
   const Version(this.major, this.minor, this.patch);
 
   @override
-  toString() => "$major.$minor.$patch";
+  String toString() => "$major.$minor.$patch";
 }
 
 /// Returns the underlying ObjectBox-C library version

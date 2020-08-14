@@ -5,7 +5,7 @@ import "bindings.dart";
 import "constants.dart";
 import "../common.dart";
 
-checkObx(int code) {
+void checkObx(int code) {
   if (code != OBXError.OBX_SUCCESS) throw latestNativeError(codeIfMissing: code);
 }
 

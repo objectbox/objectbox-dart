@@ -308,7 +308,7 @@ void main() {
 
   test("simple write in txn works", () {
     int count;
-    fn() {
+    void fn() {
       box.putMany(simpleItems);
     }
 
