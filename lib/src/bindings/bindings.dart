@@ -181,9 +181,7 @@ class _ObjectBoxBindings {
     } else {
       throw Exception("unsupported platform detected: ${Platform.operatingSystem}");
     }
-    if (lib == null) {
-      lib = DynamicLibrary.open(libName);
-    }
+    lib ??= DynamicLibrary.open(libName);
 
     // common functions
     obx_version = _fn<obx_version_native_t>("obx_version").asFunction();

@@ -89,8 +89,7 @@ class ModelEntity {
   ModelProperty findSameProperty(ModelProperty other) {
     ModelProperty ret;
     if (other.id.uid != 0) ret = findPropertyByUid(other.id.uid);
-    if (ret == null) ret = findPropertyByName(other.name);
-    return ret;
+    return ret ??= findPropertyByName(other.name);
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {
