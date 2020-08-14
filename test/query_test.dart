@@ -5,7 +5,7 @@ import 'objectbox.g.dart';
 
 void main() {
   TestEnv env;
-  Box box;
+  Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv("query");
@@ -48,7 +48,7 @@ void main() {
       TestEntity(tDouble: 0.3, tBool: false),
       TestEntity(tString: "one"),
       TestEntity(tString: "two"),
-    ] as List<TestEntity>);
+    ]);
 
     final b = TestEntity_.tBool;
     final t = TestEntity_.tString;
@@ -73,7 +73,7 @@ void main() {
       TestEntity(tDouble: 0.5, tBool: true),
       TestEntity(tDouble: 0.7, tBool: false),
       TestEntity(tDouble: 0.9, tBool: true)
-    ] as List<TestEntity>);
+    ]);
 
     final d = TestEntity_.tDouble;
     final b = TestEntity_.tBool;
@@ -114,7 +114,7 @@ void main() {
       TestEntity(tDouble: 0.1, tBool: true),
       TestEntity(tDouble: 0.2, tBool: true),
       TestEntity(tDouble: 0.3, tBool: false),
-    ] as List<TestEntity>);
+    ]);
 
     final d = TestEntity_.tDouble;
     final b = TestEntity_.tBool;

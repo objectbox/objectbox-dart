@@ -7,6 +7,9 @@ import 'test_env.dart';
 
 void main() {
   TestEnv env;
+
+  // TODO change to Box<TestEntity> box;
+  //  breaks min/max functions below - can't be dynamic anymore
   Box box;
 
   setUp(() {
@@ -16,7 +19,13 @@ void main() {
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = integers
-      .map((i) => TestEntity(tBool: true, tByte: 1 + i, tShort: 2 + i, tChar: 3 + i, tInt: 4 + i, tLong: 5 + i))
+      .map((i) => TestEntity(
+          tBool: true,
+          tByte: 1 + i,
+          tShort: 2 + i,
+          tChar: 3 + i,
+          tInt: 4 + i,
+          tLong: 5 + i))
       .toList();
   final strings = [
     'string',
@@ -31,7 +40,8 @@ void main() {
   ];
   final stringList = strings.map((s) => TestEntity(tString: s)).toList();
   final floats = [-0.5, 0, 0.0, 0.1, 0.2, 0.1];
-  final floatList = floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
+  final floatList =
+      floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
   final tBool = TestEntity_.tBool;
   final tChar = TestEntity_.tChar;
@@ -42,7 +52,13 @@ void main() {
   final tShort = TestEntity_.tShort;
 
   // OB prohibits aggregate operations on tBool & tChar
-  final tIntegers = [/*tBool, tChar,*/ tByte, tShort, tInt, tLong]; // starts resp. 1, 2, 4, 5
+  final tIntegers = [
+    /*tBool, tChar,*/
+    tByte,
+    tShort,
+    tInt,
+    tLong
+  ]; // starts resp. 1, 2, 4, 5
 
   final tFloat = TestEntity_.tFloat;
   final tDouble = TestEntity_.tDouble;
@@ -287,7 +303,8 @@ void main() {
       final qp = queryFloats.property(f) as DoublePropertyQuery;
 
       final increment = tFloat == f ? 0.1 : 0.2;
-      final expected = floats.map((f) => (f + increment).toStringAsFixed(2)).toList();
+      final expected =
+          floats.map((f) => (f + increment).toStringAsFixed(2)).toList();
 
       expect(qp.find().map((f) => f.toStringAsFixed(2)).toList(), expected);
 
@@ -297,7 +314,13 @@ void main() {
     final stringQuery = queryStrings.property(tString) as StringPropertyQuery;
 
     // Note: results are in no particular order, so sort them before comparing.
-    final defaultResults = ['1withSuffix', '1withSuffix', '2WITHSUFFIX', '2withSuffix', '2withSuffix'];
+    final defaultResults = [
+      '1withSuffix',
+      '1withSuffix',
+      '2WITHSUFFIX',
+      '2withSuffix',
+      '2withSuffix'
+    ];
     var results = stringQuery.find()..sort();
     expect(results, defaultResults);
 
@@ -381,7 +404,8 @@ void main() {
     final queryStrings = box.query(tString.contains('t')).build();
     final queryAndCheck = (prop, valueIfNull, reason) {
       final qp = queryStrings.integerProperty(prop);
-      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull, reason: reason);
+      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
+          reason: reason);
       qp.close();
     };
     queryAndCheck(tByte, 3, 'byte null->positive');
@@ -402,7 +426,8 @@ void main() {
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
     final queryAndCheck = (p, valueIfNull, reason) {
       final qp = queryIntegers.doubleProperty(p);
-      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull, reason: reason);
+      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
+          reason: reason);
       qp.close();
     };
 

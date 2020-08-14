@@ -5,8 +5,8 @@ import 'test_env.dart';
 
 void main() {
   TestEnv env;
-  Box box;
   Store store;
+  Box<TestEntity> box;
 
   final List<TestEntity> simpleItems =
       ["One", "Two", "Three", "Four", "Five", "Six"].map((s) => TestEntity(tString: s)).toList();
@@ -290,7 +290,7 @@ void main() {
     expect(box.count(), equals(4));
 
     // verify the right items were removed
-    final List<int> remainingIds = box.getAll().map((o) => (o as TestEntity).id).toList();
+    final List<int> remainingIds = box.getAll().map((o) => o.id).toList();
     expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
   });
 
