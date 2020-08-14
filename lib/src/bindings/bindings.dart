@@ -170,7 +170,7 @@ class _ObjectBoxBindings {
     } else if (Platform.isMacOS) {
       libName = "lib" + libName + ".dylib";
     } else if (Platform.isIOS) {
-      // this works in combination with `'OTHER_LDFLAGS' => '-framework ObjectBox'` in objectbox.podspec
+      // this works in combination with `'OTHER_LDFLAGS' => '-framework ObjectBox'` in objectbox_flutter_libs.podspec
       lib = DynamicLibrary.process();
       // alternatively, if `DynamicLibrary.process()` wasn't faster (it should be though...)
       // libName = "ObjectBox.framework/ObjectBox";

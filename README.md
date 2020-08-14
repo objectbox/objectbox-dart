@@ -4,15 +4,13 @@ ObjectBox for Dart is a standalone database storing Dart objects locally, with s
 
 Flutter/Dart compatibility
 --------------------------
-
-> :warning: **Flutter v1.20 iOS support currently broken**: You won't be able to compile the app or run on simulator 
-> with the latest flutter yet. Please consider delaying the flutter upgrade for a couple of days until objectbox-dart v0.7.0 
-> is released with the necessary integration changes. You won't need to change your code, changes are only in the 
-> tooling & plugin integration. If you're interested in more dev-related details, you can follow issue #112.
+Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
+To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: ^0.7.0` 
+as an additional dependency, in addition to `objectbox`.
 
 This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
 However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
-Versions starting with ObjectBox 0.5 support Dart 2.6+ as well as Flutter 1.12+.
+Versions between ObjectBox v0.5 up to v0.6.x support Dart 2.6+ as well as Flutter 1.12+ and Flutter 1.17+.  
 
 The last supported version for Flutter 1.9/Dart 2.5 is ObjectBox 0.4.*, so if you can't upgrade yet, please use the 
 latest 0.4.x version instead.
@@ -31,6 +29,12 @@ dev_dependencies:
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
 1. **Flutter** only steps:
+    * Add additional dependency to include native libraries (required in Flutter):
+      ```yaml
+      dependencies:
+        objectbox: ^0.6.4
+        objectbox_flutter_libs: ^0.6.4
+      ```
     * Install the packages `flutter pub get`
     * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
       See [FAQ](#faq) for details.
