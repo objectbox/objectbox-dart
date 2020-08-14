@@ -1,11 +1,11 @@
-import "dart:ffi";
-import "package:ffi/ffi.dart";
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
 
 import 'bindings/constants.dart';
-import "bindings/bindings.dart";
-import "bindings/helpers.dart";
+import 'bindings/bindings.dart';
+import 'bindings/helpers.dart';
 import 'common.dart';
-import "modelinfo/index.dart";
+import 'modelinfo/index.dart';
 
 class Model {
   Pointer<Void> _cModel;
@@ -13,7 +13,7 @@ class Model {
   Pointer<Void> get ptr => _cModel;
 
   Model(ModelInfo model) {
-    _cModel = checkObxPtr(bindings.obx_model(), "failed to create model");
+    _cModel = checkObxPtr(bindings.obx_model(), 'failed to create model');
 
     try {
       model.entities.forEach(addEntity);

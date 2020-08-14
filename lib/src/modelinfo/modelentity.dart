@@ -1,8 +1,8 @@
 import '../util.dart';
-import "iduid.dart";
-import "modelinfo.dart";
-import "modelproperty.dart";
-import "package:objectbox/src/bindings/constants.dart";
+import 'iduid.dart';
+import 'modelinfo.dart';
+import 'modelproperty.dart';
+import 'package:objectbox/src/bindings/constants.dart';
 
 /// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
 /// information: id, name and last property id.
@@ -13,7 +13,7 @@ class ModelEntity {
   ModelProperty idProperty;
   ModelInfo _model;
 
-  ModelInfo get model => (_model == null) ? throw Exception("model is null") : _model;
+  ModelInfo get model => (_model == null) ? throw Exception('model is null') : _model;
 
   ModelEntity(this.id, this.lastPropertyId, this.name, this.properties, this._model) {
     validate();
@@ -21,24 +21,24 @@ class ModelEntity {
 
   ModelEntity.fromMap(Map<String, dynamic> data, {ModelInfo model, bool check = true}) {
     _model = model;
-    id = IdUid.fromString(data["id"]);
-    lastPropertyId = IdUid.fromString(data["lastPropertyId"]);
-    name = data["name"];
-    properties = data["properties"].map<ModelProperty>((p) => ModelProperty.fromMap(p, this, check: check)).toList();
+    id = IdUid.fromString(data['id']);
+    lastPropertyId = IdUid.fromString(data['lastPropertyId']);
+    name = data['name'];
+    properties = data['properties'].map<ModelProperty>((p) => ModelProperty.fromMap(p, this, check: check)).toList();
     if (check) validate();
 
     idProperty = properties.firstWhere((p) => (p.flags & OBXPropertyFlag.ID) != 0);
-    if (check && idProperty == null) throw Exception("idProperty is null");
+    if (check && idProperty == null) throw Exception('idProperty is null');
   }
 
   void validate() {
-    if (name == null || name.isEmpty) throw Exception("name is not defined");
-    if (properties == null) throw Exception("properties is null");
+    if (name == null || name.isEmpty) throw Exception('name is not defined');
+    if (properties == null) throw Exception('properties is null');
 
     if (properties.isEmpty) {
-      if (lastPropertyId != null) throw Exception("lastPropertyId is not null although there are no properties");
+      if (lastPropertyId != null) throw Exception('lastPropertyId is not null although there are no properties');
     } else {
-      if (lastPropertyId == null) throw Exception("lastPropertyId is null");
+      if (lastPropertyId == null) throw Exception('lastPropertyId is null');
 
       var lastPropertyIdFound = false;
       for (final p in properties) {
@@ -60,17 +60,17 @@ class ModelEntity {
       }
 
       if (!lastPropertyIdFound && !listContains(model.retiredPropertyUids, lastPropertyId.uid)) {
-        throw Exception("lastPropertyId ${lastPropertyId.toString()} does not match any property");
+        throw Exception('lastPropertyId ${lastPropertyId.toString()} does not match any property');
       }
     }
   }
 
   Map<String, dynamic> toMap() {
     final ret = <String, dynamic>{};
-    ret["id"] = id.toString();
-    ret["lastPropertyId"] = lastPropertyId == null ? null : lastPropertyId.toString();
-    ret["name"] = name;
-    ret["properties"] = properties.map((p) => p.toMap()).toList();
+    ret['id'] = id.toString();
+    ret['lastPropertyId'] = lastPropertyId == null ? null : lastPropertyId.toString();
+    ret['name'] = name;
+    ret['properties'] = properties.map((p) => p.toMap()).toList();
     return ret;
   }
 
@@ -82,7 +82,7 @@ class ModelEntity {
   ModelProperty findPropertyByName(String name) {
     final found = properties.where((p) => p.name.toLowerCase() == name.toLowerCase()).toList();
     if (found.isEmpty) return null;
-    if (found.length >= 2) throw Exception("ambiguous property name: $name; please specify a UID in its annotation");
+    if (found.length >= 2) throw Exception('ambiguous property name: $name; please specify a UID in its annotation');
     return found[0];
   }
 
@@ -95,7 +95,7 @@ class ModelEntity {
   ModelProperty createProperty(String name, [int uid = 0]) {
     var id = 1;
     if (properties.isNotEmpty) id = lastPropertyId.id + 1;
-    if (uid != 0 && model.containsUid(uid)) throw Exception("uid already exists: $uid");
+    if (uid != 0 && model.containsUid(uid)) throw Exception('uid already exists: $uid');
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
     var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
@@ -112,7 +112,7 @@ class ModelEntity {
   }
 
   void removeProperty(ModelProperty prop) {
-    if (prop == null) throw Exception("prop == null");
+    if (prop == null) throw Exception('prop == null');
     final foundProp = findSameProperty(prop);
     if (foundProp == null) {
       throw Exception("cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");

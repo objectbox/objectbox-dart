@@ -1,15 +1,15 @@
-import "dart:ffi";
-import "package:ffi/ffi.dart" show allocate, free;
+import 'dart:ffi';
+import 'package:ffi/ffi.dart' show allocate, free;
 
-import "store.dart";
-import "bindings/bindings.dart";
-import "bindings/constants.dart";
-import "bindings/data_visitor.dart";
-import "bindings/flatbuffers.dart";
-import "bindings/helpers.dart";
-import "bindings/structs.dart";
-import "modelinfo/index.dart";
-import "query/query.dart";
+import 'store.dart';
+import 'bindings/bindings.dart';
+import 'bindings/constants.dart';
+import 'bindings/data_visitor.dart';
+import 'bindings/flatbuffers.dart';
+import 'bindings/helpers.dart';
+import 'bindings/structs.dart';
+import 'modelinfo/index.dart';
+import 'query/query.dart';
 
 enum _PutMode {
   Put,
@@ -33,7 +33,7 @@ class Box<T> {
     _fbManager = OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
 
     _cBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
-    checkObxPtr(_cBox, "failed to create box");
+    checkObxPtr(_cBox, 'failed to create box');
   }
 
   int _getOBXPutMode(_PutMode mode) {
@@ -45,7 +45,7 @@ class Box<T> {
       case _PutMode.Update:
         return OBXPutMode.UPDATE;
     }
-    throw Exception("Invalid put mode " + mode.toString());
+    throw Exception('Invalid put mode ' + mode.toString());
   }
 
   /// Puts the given Object in the box (aka persisting it). If this is a new entity (its ID property is 0), a new ID
@@ -117,7 +117,7 @@ class Box<T> {
 
       // marshal all objects to be put into the box
       final bytesArrayPtr =
-          checkObxPtr(bindings.obx_bytes_array(allPropVals.length), "could not create OBX_bytes_array");
+          checkObxPtr(bindings.obx_bytes_array(allPropVals.length), 'could not create OBX_bytes_array');
       final listToFree = <Pointer<OBX_bytes>>[];
       try {
         for (var i = 0; i < allPropVals.length; i++) {
@@ -210,7 +210,7 @@ class Box<T> {
         ids,
         (ptr) => _getMany(
             allowMissing,
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), "failed to get many objects from box"),
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), 'failed to get many objects from box'),
             (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(_cBox, ptr, visitor.fn, visitor.userData))));
   }
 
@@ -219,7 +219,7 @@ class Box<T> {
     const allowMissing = false; // throw if null is encountered in the data found
     return _getMany(
         allowMissing,
-        () => checkObxPtr(bindings.obx_box_get_all(_cBox), "failed to get all objects from box"),
+        () => checkObxPtr(bindings.obx_box_get_all(_cBox), 'failed to get all objects from box'),
         (DataVisitor visitor) => checkObx(bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
   }
 

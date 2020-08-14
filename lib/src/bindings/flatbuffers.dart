@@ -1,10 +1,10 @@
-import "dart:ffi";
-import "dart:typed_data" show Uint8List;
-import "package:flat_buffers/flat_buffers.dart" as fb;
+import 'dart:ffi';
+import 'dart:typed_data' show Uint8List;
+import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import "constants.dart";
-import "structs.dart";
-import "../modelinfo/index.dart";
+import 'constants.dart';
+import 'structs.dart';
+import '../modelinfo/index.dart';
 
 class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
@@ -82,7 +82,7 @@ class OBXFlatbuffersManager<T> {
           builder.addFloat64(field, value);
           break;
         default:
-          throw Exception("unsupported type: ${p.type}"); // TODO: support more types
+          throw Exception('unsupported type: ${p.type}'); // TODO: support more types
       }
     });
 
@@ -125,7 +125,7 @@ class OBXFlatbuffersManager<T> {
           propReader = fb.Float64Reader();
           break;
         default:
-          throw Exception("unsupported type: ${p.type}"); // TODO: support more types
+          throw Exception('unsupported type: ${p.type}'); // TODO: support more types
       }
 
       propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);

@@ -1,26 +1,26 @@
 library query;
 
-import "dart:ffi";
-import "package:ffi/ffi.dart" show allocate, free, Utf8;
+import 'dart:ffi';
+import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 
-import "../store.dart";
-import "../common.dart";
-import "../bindings/bindings.dart";
-import "../bindings/constants.dart";
-import "../bindings/data_visitor.dart";
-import "../bindings/flatbuffers.dart";
-import "../bindings/helpers.dart";
-import "../bindings/structs.dart";
-import "../bindings/signatures.dart";
+import '../store.dart';
+import '../common.dart';
+import '../bindings/bindings.dart';
+import '../bindings/constants.dart';
+import '../bindings/data_visitor.dart';
+import '../bindings/flatbuffers.dart';
+import '../bindings/helpers.dart';
+import '../bindings/structs.dart';
+import '../bindings/signatures.dart';
 
-part "builder.dart";
-part "property.dart";
+part 'builder.dart';
+part 'property.dart';
 
 class Order {
   /// Reverts the order from ascending (default) to descending.
   static final descending = 1;
 
-  /// Makes upper case letters (e.g. "Z") be sorted before lower case letters (e.g. "a").
+  /// Makes upper case letters (e.g. 'Z') be sorted before lower case letters (e.g. 'a').
   /// If not specified, the default is case insensitive for ASCII characters.
   static final caseSensitive = 2;
 
@@ -356,7 +356,7 @@ class StringCondition extends PropertyCondition<String> {
       case ConditionOp.inside:
         return _inside(builder); // bindings.obx_qb_string_in
       default:
-        throw Exception("Unsupported operation ${_op.toString()}");
+        throw Exception('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -440,7 +440,7 @@ class IntegerCondition extends PropertyCondition<int> {
           case OBXPropertyType.Long:
             return _opList64(builder, bindings.obx_qb_int64_in);
           default:
-            throw Exception("Unsupported type for IN: ${_property._type}");
+            throw Exception('Unsupported type for IN: ${_property._type}');
         }
         break;
       case ConditionOp.notIn:
@@ -450,11 +450,11 @@ class IntegerCondition extends PropertyCondition<int> {
           case OBXPropertyType.Long:
             return _opList64(builder, bindings.obx_qb_int64_not_in);
           default:
-            throw Exception("Unsupported type for IN: ${_property._type}");
+            throw Exception('Unsupported type for IN: ${_property._type}');
         }
         break;
       default:
-        throw Exception("Unsupported operation ${_op.toString()}");
+        throw Exception('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -462,7 +462,7 @@ class IntegerCondition extends PropertyCondition<int> {
 class DoubleCondition extends PropertyCondition<double> {
   DoubleCondition(ConditionOp op, QueryProperty prop, double value, double value2) : super(op, prop, value, value2) {
     assert(
-        op != ConditionOp.eq, "Equality operator is not supported on floating point numbers - use between() instead.");
+        op != ConditionOp.eq, 'Equality operator is not supported on floating point numbers - use between() instead.');
   }
 
   int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<double> func) {
@@ -484,7 +484,7 @@ class DoubleCondition extends PropertyCondition<double> {
       case ConditionOp.between:
         return bindings.obx_qb_double_between(builder._cBuilder, _property._propertyId, _value, _value2);
       default:
-        throw Exception("Unsupported operation ${_op.toString()}");
+        throw Exception('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -511,7 +511,7 @@ class ConditionGroup extends Condition {
         final cid = _conditions[i].apply(builder, false);
         if (cid == 0) {
           builder._throwExceptionIfNecessary();
-          throw Exception("Failed to create condition " + _conditions[i].toString());
+          throw Exception('Failed to create condition ' + _conditions[i].toString());
         }
 
         intArrayPtr[i] = cid;
@@ -544,7 +544,7 @@ class Query<T> {
 
   // package private ctor
   Query._(this._store, this._fbManager, Pointer<Void> cBuilder) {
-    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query");
+    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), 'create query');
   }
 
   int count() {
@@ -568,7 +568,7 @@ class Query<T> {
   }
 
   List<int> findIds({int offset = 0, int limit = 0}) {
-    final idArrayPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), "find ids");
+    final idArrayPtr = checkObxPtr(bindings.obx_query_find_ids(_cQuery, offset, limit), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
       return idArray.length == 0 ? <int>[] : idArray.items();
@@ -580,7 +580,7 @@ class Query<T> {
   List<T> find({int offset = 0, int limit = 0}) {
     return _store.runInTransaction(TxMode.Read, () {
       if (bindings.obx_supports_bytes_array() == 1) {
-        final bytesArray = checkObxPtr(bindings.obx_query_find(_cQuery, offset, limit), "find");
+        final bytesArray = checkObxPtr(bindings.obx_query_find(_cQuery, offset, limit), 'find');
         try {
           return _fbManager.unmarshalArray(bytesArray);
         } finally {

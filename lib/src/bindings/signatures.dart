@@ -1,4 +1,4 @@
-import "dart:ffi";
+import 'dart:ffi';
 import 'structs.dart';
 import 'package:ffi/ffi.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:ffi';
-import "dart:typed_data" show Uint8List;
-import "package:ffi/ffi.dart" show allocate, free, Utf8;
+import 'dart:typed_data' show Uint8List;
+import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 import '../common.dart';
 
 // Disable some linter rules for this file

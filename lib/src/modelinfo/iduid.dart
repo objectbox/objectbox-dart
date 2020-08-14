@@ -12,14 +12,14 @@ class IdUid {
   }
 
   IdUid.fromString(String str) {
-    if (str == null || str == "" || str == "0:0") {
+    if (str == null || str == '' || str == '0:0') {
       _id = 0;
       _uid = 0;
       return;
     }
 
-    var spl = str.split(":");
-    if (spl.length != 2) throw Exception("IdUid has invalid format, wrong number of columns: $str");
+    var spl = str.split(':');
+    if (spl.length != 2) throw Exception('IdUid has invalid format, wrong number of columns: $str');
     id = int.parse(spl[0]);
     uid = int.parse(spl[1]);
   }
@@ -29,12 +29,12 @@ class IdUid {
         _uid = 0;
 
   set id(int id) {
-    if (id < 0 || id > ((1 << 63) - 1)) throw Exception("id out of bounds: $id");
+    if (id < 0 || id > ((1 << 63) - 1)) throw Exception('id out of bounds: $id');
     _id = id;
   }
 
   set uid(int uid) {
-    if (uid < 0 || uid > ((1 << 63) - 1)) throw Exception("uid out of bounds: $uid");
+    if (uid < 0 || uid > ((1 << 63) - 1)) throw Exception('uid out of bounds: $uid');
     _uid = uid;
   }
 
@@ -43,5 +43,5 @@ class IdUid {
   int get uid => _uid;
 
   @override
-  String toString() => "$_id:$_uid";
+  String toString() => '$_id:$_uid';
 }

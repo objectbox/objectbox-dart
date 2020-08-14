@@ -13,14 +13,14 @@ class IntegrationTest {
   static const int64_max = 9223372036854775807;
 
   static void int64() {
-    assert("9223372036854775807" == "$int64_max");
+    assert('9223372036854775807' == '$int64_max');
   }
 
   static void model() {
     // create a model with a single entity and a single property
     final modelInfo = ModelInfo.createDefault();
-    final property = ModelProperty(IdUid(1, int64_max - 1), "id", OBXPropertyType.Long, 0, null);
-    final entity = ModelEntity(IdUid(1, int64_max), null, "entity", [], modelInfo);
+    final property = ModelProperty(IdUid(1, int64_max - 1), 'id', OBXPropertyType.Long, 0, null);
+    final entity = ModelEntity(IdUid(1, int64_max), null, 'entity', [], modelInfo);
     property.entity = entity;
     entity.properties.add(property);
     entity.lastPropertyId = property.id;

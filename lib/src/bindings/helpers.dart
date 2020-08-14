@@ -1,9 +1,9 @@
-import "dart:ffi";
-import "package:ffi/ffi.dart";
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
 
-import "bindings.dart";
-import "constants.dart";
-import "../common.dart";
+import 'bindings.dart';
+import 'constants.dart';
+import '../common.dart';
 
 void checkObx(int code) {
   if (code != OBXError.OBX_SUCCESS) throw latestNativeError(codeIfMissing: code);
@@ -30,7 +30,7 @@ ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
 String cString(Pointer<Utf8> charPtr) {
   // Utf8.fromUtf8 segfaults when called on nullptr
   if (charPtr.address == 0) {
-    return "";
+    return '';
   }
 
   return Utf8.fromUtf8(charPtr);

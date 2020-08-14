@@ -1,10 +1,10 @@
-import "dart:ffi";
-import "package:ffi/ffi.dart";
-import "bindings/bindings.dart";
-import "bindings/helpers.dart";
-import "modelinfo/index.dart";
-import "model.dart";
-import "common.dart";
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+import 'bindings/bindings.dart';
+import 'bindings/helpers.dart';
+import 'modelinfo/index.dart';
+import 'model.dart';
+import 'common.dart';
 
 enum TxMode {
   Read,
@@ -21,7 +21,7 @@ class Store {
     var model = Model(defs.model);
 
     var opt = bindings.obx_opt();
-    checkObxPtr(opt, "failed to create store options");
+    checkObxPtr(opt, 'failed to create store options');
 
     try {
       checkObx(bindings.obx_opt_model(opt, model.ptr));
@@ -43,7 +43,7 @@ class Store {
     _cStore = bindings.obx_store_open(opt);
 
     try {
-      checkObxPtr(_cStore, "failed to create store");
+      checkObxPtr(_cStore, 'failed to create store');
     } on ObjectBoxException catch (e) {
       // Recognize common problems when trying to open/create a database
       // 10199 = OBX_ERROR_STORAGE_GENERAL
@@ -52,7 +52,7 @@ class Store {
         if (e.nativeMsg.endsWith(' (13)') || e.nativeMsg.endsWith(' (30)')) {
           final msg = e.nativeMsg +
               " - this usually indicates a problem with permissions; if you're using Flutter you may need to use " +
-              "getApplicationDocumentsDirectory() from the path_provider package, see example/README.md";
+              'getApplicationDocumentsDirectory() from the path_provider package, see example/README.md';
           throw ObjectBoxException(dartMsg: e.dartMsg, nativeCode: e.nativeCode, nativeMsg: msg);
         }
       }
@@ -78,7 +78,7 @@ class Store {
   R runInTransaction<R>(TxMode mode, R Function() fn) {
     final write = mode == TxMode.Write;
     final txn = write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
-    checkObxPtr(txn, "failed to create transaction");
+    checkObxPtr(txn, 'failed to create transaction');
     try {
       if (write) {
         checkObx(bindings.obx_txn_mark_success(txn, 1));

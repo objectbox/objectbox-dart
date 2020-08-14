@@ -1,6 +1,6 @@
 import 'dart:ffi';
 import 'signatures.dart';
-import "package:ffi/ffi.dart" show allocate, free;
+import 'package:ffi/ffi.dart' show allocate, free;
 
 /// This file implements C call forwarding using a trampoline approach.
 ///
@@ -30,7 +30,7 @@ final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
 // called from C, forwards calls to the actual callback registered at the given ID
 int _forwarder(Pointer<Void> callbackId, Pointer<Uint8> dataPtr, int size) {
   if (callbackId == null || callbackId.address == 0) {
-    throw Exception("Data-visitor callback issued with NULL user_data (callback ID)");
+    throw Exception('Data-visitor callback issued with NULL user_data (callback ID)');
   }
 
   return _callbacks[callbackId.cast<Int64>().value](dataPtr, size) ? 1 : 0;
