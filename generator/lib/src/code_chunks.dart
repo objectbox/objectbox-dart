@@ -7,6 +7,9 @@ class CodeChunks {
   static String objectboxDart(ModelInfo model, List<String> imports) => """
     // GENERATED CODE - DO NOT MODIFY BY HAND
     
+    // Currently loading model from "JSON" which always encodes with double quotes
+    // ignore_for_file: prefer_single_quotes
+        
     import 'package:objectbox/objectbox.dart';
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     import '${imports.join("';\n import '")}';
@@ -14,7 +17,7 @@ class CodeChunks {
     ModelDefinition getObjectBoxModel() {
       final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap(forCodeGen: true))}, check: false);
       
-      final bindings = Map<Type, EntityDefinition>();
+      final bindings = <Type, EntityDefinition>{};
       ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 
       
       return ModelDefinition(model, bindings);
@@ -24,16 +27,16 @@ class CodeChunks {
     """;
 
   static String entityBinding(ModelEntity entity) {
-    String name = entity.name;
+    final name = entity.name;
     return """
       EntityDefinition<${name}>(
         model: model.findEntityByUid(${entity.id.uid}),
         reader: ($name inst) => {
-          ${entity.properties.map((p) => "\"${p.name}\": inst.${p.name}").join(",\n")}
+          ${entity.properties.map((p) => "'${p.name}': inst.${p.name}").join(",\n")}
         },
         writer: (Map<String, dynamic> members) {
-          $name r = $name();
-          ${entity.properties.map((p) => "r.${p.name} = members[\"${p.name}\"];").join()}
+          final r = $name();
+          ${entity.properties.map((p) => "r.${p.name} = members['${p.name}'];").join()}
           return r;
         }
       )
