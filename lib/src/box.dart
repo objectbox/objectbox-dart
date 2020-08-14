@@ -1,7 +1,6 @@
 import "dart:ffi";
 import "package:ffi/ffi.dart" show allocate, free;
 
-import 'common.dart';
 import "store.dart";
 import "bindings/bindings.dart";
 import "bindings/constants.dart";
