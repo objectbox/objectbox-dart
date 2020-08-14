@@ -39,7 +39,9 @@ class Order {
 /// A QueryBuilder will be constructed, based on the any / all operations applied.
 /// When build() is called on the QueryBuilder a Query object will be created.
 class QueryProperty {
-  int _propertyId, _entityId, _type;
+  final int _propertyId;
+  final int _entityId;
+  final int _type;
 
   QueryProperty(this._entityId, this._propertyId, this._type);
 
@@ -252,11 +254,11 @@ abstract class Condition {
 }
 
 abstract class PropertyCondition<DartType> extends Condition {
-  QueryProperty _property;
+  final QueryProperty _property;
   DartType _value, _value2;
   List<DartType> _list;
 
-  ConditionOp _op;
+  final ConditionOp _op;
 
   PropertyCondition(this._op, this._property, this._value, [this._value2]);
 
@@ -488,8 +490,8 @@ class DoubleCondition extends PropertyCondition<double> {
 }
 
 class ConditionGroup extends Condition {
-  List<Condition> _conditions;
-  obx_qb_join_op_dart_t _func;
+  final List<Condition> _conditions;
+  final obx_qb_join_op_dart_t _func;
 
   ConditionGroup(this._conditions, this._func);
 
@@ -537,8 +539,8 @@ class ConditionGroupAll extends ConditionGroup {
 
 class Query<T> {
   Pointer<Void> _cQuery;
-  Store _store;
-  OBXFlatbuffersManager _fbManager;
+  final Store _store;
+  final OBXFlatbuffersManager _fbManager;
 
   // package private ctor
   Query._(this._store, this._fbManager, Pointer<Void> cBuilder) {

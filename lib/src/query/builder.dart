@@ -2,11 +2,11 @@ part of query;
 
 // Construct a tree from the first condition object
 class QueryBuilder<T> {
-  Store _store;
-  int _entityId; // aka model id, entity id
-  Condition _queryCondition;
+  final Store _store;
+  final int _entityId; // aka model id, entity id
+  final Condition _queryCondition;
   Pointer<Void> _cBuilder;
-  OBXFlatbuffersManager _fbManager;
+  final OBXFlatbuffersManager _fbManager;
 
   QueryBuilder(this._store, this._fbManager, this._entityId, this._queryCondition);
 

@@ -19,7 +19,7 @@ enum _PutMode {
 
 /// A box to store objects of a particular class.
 class Box<T> {
-  Store _store;
+  final Store _store;
   Pointer<Void> _cBox;
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;

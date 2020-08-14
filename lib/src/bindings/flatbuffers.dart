@@ -30,8 +30,8 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
 }
 
 class OBXFlatbuffersManager<T> {
-  ModelEntity _modelEntity;
-  ObjectWriter<T> _entityBuilder;
+  final ModelEntity _modelEntity;
+  final ObjectWriter<T> _entityBuilder;
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
