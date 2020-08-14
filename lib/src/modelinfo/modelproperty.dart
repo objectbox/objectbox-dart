@@ -12,7 +12,8 @@ class ModelProperty {
     validate();
   }
 
-  ModelProperty.fromMap(Map<String, dynamic> data, this.entity, {bool check = true}) {
+  ModelProperty.fromMap(Map<String, dynamic> data, this.entity,
+      {bool check = true}) {
     id = IdUid.fromString(data['id']);
     name = data['name'];
     type = data['type'];
@@ -21,8 +22,12 @@ class ModelProperty {
   }
 
   void validate() {
-    if (type == null || type < 0) throw Exception('type must be defined and may not be < 0');
-    if (flags == null || flags < 0) throw Exception('flags must be defined and may not be < 0');
+    if (type == null || type < 0) {
+      throw Exception('type must be defined and may not be < 0');
+    }
+    if (flags == null || flags < 0) {
+      throw Exception('flags must be defined and may not be < 0');
+    }
   }
 
   Map<String, dynamic> toMap() {

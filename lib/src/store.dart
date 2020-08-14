@@ -17,7 +17,8 @@ class Store {
   Pointer<Void> _cStore;
   final ModelDefinition defs;
 
-  Store(this.defs, {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
+  Store(this.defs,
+      {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
     var model = Model(defs.model);
 
     var opt = bindings.obx_opt();
@@ -33,9 +34,15 @@ class Store {
           free(cStr);
         }
       }
-      if (maxDBSizeInKB != null && maxDBSizeInKB > 0) bindings.obx_opt_max_db_size_in_kb(opt, maxDBSizeInKB);
-      if (fileMode != null && fileMode >= 0) bindings.obx_opt_file_mode(opt, fileMode);
-      if (maxReaders != null && maxReaders > 0) bindings.obx_opt_max_readers(opt, maxReaders);
+      if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
+        bindings.obx_opt_max_db_size_in_kb(opt, maxDBSizeInKB);
+      }
+      if (fileMode != null && fileMode >= 0) {
+        bindings.obx_opt_file_mode(opt, fileMode);
+      }
+      if (maxReaders != null && maxReaders > 0) {
+        bindings.obx_opt_max_readers(opt, maxReaders);
+      }
     } catch (e) {
       bindings.obx_opt_free(opt);
       rethrow;
@@ -47,13 +54,16 @@ class Store {
     } on ObjectBoxException catch (e) {
       // Recognize common problems when trying to open/create a database
       // 10199 = OBX_ERROR_STORAGE_GENERAL
-      if (e.nativeCode == 10199 && e.nativeMsg != null && e.nativeMsg.contains('Dir does not exist')) {
+      if (e.nativeCode == 10199 &&
+          e.nativeMsg != null &&
+          e.nativeMsg.contains('Dir does not exist')) {
         // 13 = permissions denied, 30 = read-only filesystem
         if (e.nativeMsg.endsWith(' (13)') || e.nativeMsg.endsWith(' (30)')) {
           final msg = e.nativeMsg +
               " - this usually indicates a problem with permissions; if you're using Flutter you may need to use " +
               'getApplicationDocumentsDirectory() from the path_provider package, see example/README.md';
-          throw ObjectBoxException(dartMsg: e.dartMsg, nativeCode: e.nativeCode, nativeMsg: msg);
+          throw ObjectBoxException(
+              dartMsg: e.dartMsg, nativeCode: e.nativeCode, nativeMsg: msg);
         }
       }
       rethrow;
@@ -77,7 +87,9 @@ class Store {
   /// Returns type of [fn] if [return] is called in [fn].
   R runInTransaction<R>(TxMode mode, R Function() fn) {
     final write = mode == TxMode.Write;
-    final txn = write ? bindings.obx_txn_write(_cStore) : bindings.obx_txn_read(_cStore);
+    final txn = write
+        ? bindings.obx_txn_write(_cStore)
+        : bindings.obx_txn_read(_cStore);
     checkObxPtr(txn, 'failed to create transaction');
     try {
       if (write) {

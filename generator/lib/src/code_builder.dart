@@ -54,10 +54,12 @@ class CodeBuilder extends Builder {
     updateCode(model, files.keys.toList(growable: false), buildStep);
   }
 
-  Future<ModelInfo> updateModel(List<ModelEntity> entities, BuildStep buildStep) async {
+  Future<ModelInfo> updateModel(
+      List<ModelEntity> entities, BuildStep buildStep) async {
     {
       // TODO temporary v0.5 -> v0.6 update - check if the model file exists in the old location
-      final oldJson = AssetId(buildStep.inputId.package, "objectbox-model.json");
+      final oldJson =
+          AssetId(buildStep.inputId.package, "objectbox-model.json");
       if (File(oldJson.path).existsSync()) {
         throw StateError(""
             "Found objectbox-model.json in the package root. This is the old behaviour before ObjectBox v0.6\n"
@@ -67,10 +69,12 @@ class CodeBuilder extends Builder {
 
     // load an existing model or initialize a new one
     ModelInfo model;
-    final jsonId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + jsonFile);
+    final jsonId =
+        AssetId(buildStep.inputId.package, dir(buildStep) + "/" + jsonFile);
     if (await buildStep.canRead(jsonId)) {
       log.info("Using model: ${jsonId.path}");
-      model = ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
+      model =
+          ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
     } else {
       log.warning("Creating model: ${jsonId.path}");
       model = ModelInfo.createDefault();
@@ -83,21 +87,26 @@ class CodeBuilder extends Builder {
     // write model info
     // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.
     // await buildStep.writeAsString(jsonId, JsonEncoder.withIndent("  ").convert(model.toMap()));
-    await File(jsonId.path).writeAsString(JsonEncoder.withIndent("  ").convert(model.toMap()));
+    await File(jsonId.path)
+        .writeAsString(JsonEncoder.withIndent("  ").convert(model.toMap()));
 
     return model;
   }
 
-  void updateCode(ModelInfo model, List<String> infoFiles, BuildStep buildStep) async {
+  void updateCode(
+      ModelInfo model, List<String> infoFiles, BuildStep buildStep) async {
     // transform "/lib/path/entity.objectbox.info" to "path/entity.dart"
     final imports = infoFiles
-        .map((file) => file.replaceFirst(EntityResolver.suffix, ".dart").replaceFirst(dir(buildStep) + "/", ""))
+        .map((file) => file
+            .replaceFirst(EntityResolver.suffix, ".dart")
+            .replaceFirst(dir(buildStep) + "/", ""))
         .toList();
 
     var code = CodeChunks.objectboxDart(model, imports);
     code = DartFormatter().format(code);
 
-    final codeId = AssetId(buildStep.inputId.package, dir(buildStep) + "/" + codeFile);
+    final codeId =
+        AssetId(buildStep.inputId.package, dir(buildStep) + "/" + codeFile);
     log.info("Generating code: ${codeId.path}");
     await buildStep.writeAsString(codeId, code);
   }
@@ -111,8 +120,11 @@ class CodeBuilder extends Builder {
     });
 
     // remove ("retire") missing entities
-    model.entities.where((entity) => !currentEntityIds.containsKey(entity.id.id)).forEach((entity) {
-      log.warning("Entity ${entity.name}(${entity.id.toString()}) not found in the code, removing from the model");
+    model.entities
+        .where((entity) => !currentEntityIds.containsKey(entity.id.id))
+        .forEach((entity) {
+      log.warning(
+          "Entity ${entity.name}(${entity.id.toString()}) not found in the code, removing from the model");
       model.removeEntity(entity);
     });
 
@@ -149,7 +161,9 @@ class CodeBuilder extends Builder {
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));
 
     // then remove all properties not present anymore in readEntity
-    entityInModel.properties.where((p) => entity.findSameProperty(p) == null).forEach((p) {
+    entityInModel.properties
+        .where((p) => entity.findSameProperty(p) == null)
+        .forEach((p) {
       log.warning(
           "Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model");
       entityInModel.removeProperty(p);

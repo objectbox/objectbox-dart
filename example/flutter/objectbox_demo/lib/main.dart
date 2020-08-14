@@ -99,7 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       Padding(
                         padding: EdgeInsets.only(right: 10.0),
                         child: TextField(
-                          decoration: InputDecoration(hintText: 'Enter new note'),
+                          decoration:
+                              InputDecoration(hintText: 'Enter new note'),
                           controller: _noteInputController,
                         ),
                       ),
@@ -143,7 +144,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: Container(
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 10.0),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 18.0, horizontal: 10.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -165,7 +167,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               ],
                             ),
                           ),
-                          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black12))),
+                          decoration: BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(color: Colors.black12))),
                         ),
                       ),
                     ],

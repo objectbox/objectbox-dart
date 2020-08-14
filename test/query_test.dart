@@ -81,10 +81,19 @@ void main() {
     final b = TestEntity_.tBool;
 
     // #43 final anyQuery0 = (d.between(0.79, 0.81) & ((b == false) as Condition)) | (d.between(0.69, 0.71) & ((b == false) as Condition));
-    final anyQuery0 = (d.between(0.79, 0.81) & b.equals(false) | (d.between(0.69, 0.71) & b.equals(false)));
-    final anyQuery1 = (d.between(0.79, 0.81).and(b.equals(false))).or(d.between(0.69, 0.71).and(b.equals(false)));
-    final anyQuery2 = d.between(0.79, 0.81).and(b.equals(false)).or(d.between(0.69, 0.71).and(b.equals(false)));
-    final anyQuery3 = d.between(0.79, 0.81).and(b.equals(false)).or(d.between(0.69, 0.71)).and(b.equals(false));
+    final anyQuery0 = (d.between(0.79, 0.81) & b.equals(false) |
+        (d.between(0.69, 0.71) & b.equals(false)));
+    final anyQuery1 = (d.between(0.79, 0.81).and(b.equals(false)))
+        .or(d.between(0.69, 0.71).and(b.equals(false)));
+    final anyQuery2 = d
+        .between(0.79, 0.81)
+        .and(b.equals(false))
+        .or(d.between(0.69, 0.71).and(b.equals(false)));
+    final anyQuery3 = d
+        .between(0.79, 0.81)
+        .and(b.equals(false))
+        .or(d.between(0.69, 0.71))
+        .and(b.equals(false));
 
     // #43 final allQuery0 = d.between(0.09, 0.11) & ((b == true) as Condition);
     final allQuery0 = d.between(0.09, 0.11) & b.equals(true);
@@ -246,7 +255,8 @@ void main() {
     box.put(TestEntity(tString: largeString));
     box.put(TestEntity(tString: largeString));
 
-    List<TestEntity> items = box.query(TestEntity_.id.lessThan(3)).build().find();
+    List<TestEntity> items =
+        box.query(TestEntity_.id.lessThan(3)).build().find();
     expect(items.length, 2);
     expect(items[0].tString, largeString);
     expect(items[1].tString, largeString);
@@ -270,7 +280,8 @@ void main() {
     // #43 Condition cond1 = ((text == 'Hello') as Condition) | ((number == 1337) as Condition);
     Condition cond1 = text.equals('Hello') | number.equals(1337);
     Condition cond2 = text.equals('Hello') | number.equals(1337);
-    Condition cond3 = text.equals('What?').and(text.equals('Hello')).or(text.equals('World'));
+    Condition cond3 =
+        text.equals('What?').and(text.equals('Hello')).or(text.equals('World'));
     Condition cond4 = text
         .equals('Goodbye')
         .and(number.equals(1337))
@@ -318,8 +329,10 @@ void main() {
     final q = box.query(c).build();
     // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
     // note: order of properties is not guaranteed (currently OS specific).
-    expect(q.describe(),
-        matches('Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
+    expect(
+        q.describe(),
+        matches(
+            'Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
     q.close();
 
     for (var j = 1; j < 20; j++) {
@@ -328,7 +341,8 @@ void main() {
         tc = tc.or(text.endsWith('lo'));
       }
       final q = box.query(tc).build();
-      expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
+      expect(q.describe(),
+          '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
       q.close();
     }
 
@@ -338,7 +352,8 @@ void main() {
         tc = tc.and(text.startsWith('lo'));
       }
       final q = box.query(tc).build();
-      expect(q.describe(), '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
+      expect(q.describe(),
+          '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
       q.close();
     }
   });
@@ -430,7 +445,10 @@ void main() {
     expect('Hello', result1[2]);
     expect('HELLO', result1[3]);
 
-    final queryReverseOrder = box.query(condition).order(text, flags: Order.descending | Order.caseSensitive).build();
+    final queryReverseOrder = box
+        .query(condition)
+        .order(text, flags: Order.descending | Order.caseSensitive)
+        .build();
     final result2 = queryReverseOrder.find().map((e) => e.tString).toList();
 
     expect('World', result2[0]);

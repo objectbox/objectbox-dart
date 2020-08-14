@@ -30,25 +30,32 @@ class EntityResolver extends Builder {
     // generate for all entities
     final entities = List<Map<String, dynamic>>();
     for (var annotatedEl in libReader.annotatedWith(_annotationChecker)) {
-      entities.add(generateForAnnotatedElement(annotatedEl.element, annotatedEl.annotation).toMap());
+      entities.add(generateForAnnotatedElement(
+              annotatedEl.element, annotatedEl.annotation)
+          .toMap());
     }
 
     if (entities.isEmpty) return;
 
     final json = JsonEncoder().convert(entities);
-    await buildStep.writeAsString(buildStep.inputId.changeExtension(suffix), json);
+    await buildStep.writeAsString(
+        buildStep.inputId.changeExtension(suffix), json);
   }
 
-  ModelEntity generateForAnnotatedElement(Element elementBare, ConstantReader annotation) {
+  ModelEntity generateForAnnotatedElement(
+      Element elementBare, ConstantReader annotation) {
     if (elementBare is! ClassElement) {
-      throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
+      throw InvalidGenerationSourceError(
+          "in target ${elementBare.name}: annotated element isn't a class");
     }
     var element = elementBare as ClassElement;
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], null);
+    ModelEntity readEntity =
+        ModelEntity(IdUid.empty(), null, element.name, [], null);
     var entityUid = annotation.read("uid");
-    if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
+    if (entityUid != null && !entityUid.isNull)
+      readEntity.id.uid = entityUid.intValue;
 
     log.info("entity ${readEntity.name}(${readEntity.id})");
 
@@ -112,16 +119,19 @@ class EntityResolver extends Builder {
       }
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-      ModelProperty prop = ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+      ModelProperty prop =
+          ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
       if (propUid != null) prop.id.uid = propUid;
       readEntity.properties.add(prop);
 
-      log.info("  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}");
+      log.info(
+          "  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}");
     }
 
     // some checks on the entity's integrity
     if (!hasIdProperty) {
-      throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
+      throw InvalidGenerationSourceError(
+          "in target ${elementBare.name}: has no properties annotated with @Id");
     }
 
     return readEntity;

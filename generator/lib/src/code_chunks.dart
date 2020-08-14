@@ -73,7 +73,8 @@ class CodeChunks {
         case OBXPropertyType.Long:
           continue integer;
         default:
-          throw InvalidGenerationSourceError("Unsupported property type (${prop.type}): ${entity.name}.${name}");
+          throw InvalidGenerationSourceError(
+              "Unsupported property type (${prop.type}): ${entity.name}.${name}");
       }
 
       ret.add("""

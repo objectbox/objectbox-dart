@@ -10,8 +10,14 @@ void main() {
   Store store;
   Box<TestEntity> box;
 
-    final List<TestEntity> simpleItems =
-      ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((s) => TestEntity(tString: s)).toList();
+  final List<TestEntity> simpleItems = [
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six'
+  ].map((s) => TestEntity(tString: s)).toList();
 
   setUp(() {
     env = TestEnv('box');
@@ -71,8 +77,15 @@ void main() {
   });
 
   test('.putMany returns the new item IDs', () {
-    final List<TestEntity> items =
-        ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven'].map((s) => TestEntity(tString: s)).toList();
+    final List<TestEntity> items = [
+      'One',
+      'Two',
+      'Three',
+      'Four',
+      'Five',
+      'Six',
+      'Seven'
+    ].map((s) => TestEntity(tString: s)).toList();
     final List<int> ids = box.putMany(items);
     expect(ids.length, equals(items.length));
     for (var i = 0; i < items.length; ++i) {
@@ -103,13 +116,15 @@ void main() {
   });
 
   test('.getMany correctly handles non-existent items', () {
-    final List<TestEntity> items = ['One', 'Two'].map((s) => TestEntity(tString: s)).toList();
+    final List<TestEntity> items =
+        ['One', 'Two'].map((s) => TestEntity(tString: s)).toList();
     final List<int> ids = box.putMany(items);
     int otherId = 1;
     while (ids.indexWhere((id) => id == otherId) != -1) {
       ++otherId;
     }
-    final List<TestEntity> fetchedItems = box.getMany([ids[0], otherId, ids[1]]);
+    final List<TestEntity> fetchedItems =
+        box.getMany([ids[0], otherId, ids[1]]);
     expect(fetchedItems.length, equals(3));
     expect(fetchedItems[0].tString, equals('One'));
     expect(fetchedItems[1], equals(null));
@@ -171,11 +186,15 @@ void main() {
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
     List<double> fetchedVals = [];
     for (var i = 0; i < fetchedItems.length; i++) {
-      fetchedVals.add(i < valsFloat.length ? fetchedItems[i].tFloat : fetchedItems[i].tDouble);
+      fetchedVals.add(i < valsFloat.length
+          ? fetchedItems[i].tFloat
+          : fetchedItems[i].tDouble);
     }
 
     for (var i = 0; i < fetchedVals.length; i++) {
-      double expected = i < valsFloat.length ? valsFloat[i] : valsDouble[i - valsFloat.length];
+      double expected = i < valsFloat.length
+          ? valsFloat[i]
+          : valsDouble[i - valsFloat.length];
       if (expected.isNaN) {
         expect(fetchedVals[i].isNaN, equals(true));
       } else {
@@ -185,7 +204,11 @@ void main() {
   });
 
   test('null properties are handled correctly', () {
-    final List<TestEntity> items = [TestEntity(), TestEntity(tLong: 10), TestEntity(tString: 'Hello')];
+    final List<TestEntity> items = [
+      TestEntity(),
+      TestEntity(tLong: 10),
+      TestEntity(tString: 'Hello')
+    ];
     final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
     expect(fetchedItems[0].id, isNot(equals(null)));
     expect(fetchedItems[0].tLong, equals(null));
@@ -302,7 +325,8 @@ void main() {
     expect(removed, equals(6));
     expect(box.count(), equals(0));
     //try with different number of items
-    List<TestEntity> items = ['one', 'two', 'three'].map((s) => TestEntity(tString: s)).toList();
+    List<TestEntity> items =
+        ['one', 'two', 'three'].map((s) => TestEntity(tString: s)).toList();
     ids.addAll(box.putMany(items));
     removed = box.removeAll();
     expect(removed, equals(3));
@@ -361,7 +385,8 @@ void main() {
         });
       });
     } on ObjectBoxException catch (ex) {
-      expect(ex.toString(), startsWith('ObjectBoxException: failed to create transaction'));
+      expect(ex.toString(),
+          startsWith('ObjectBoxException: failed to create transaction'));
     }
   });
 

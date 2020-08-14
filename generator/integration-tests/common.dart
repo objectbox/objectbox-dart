@@ -6,7 +6,8 @@ import 'package:test/test.dart';
 
 /// it's necessary to read json model because the generated one doesn't contain all the information
 ModelInfo readModelJson(String dir) {
-  return ModelInfo.fromMap(json.decode(File(path.join(dir, "objectbox-model.json")).readAsStringSync()));
+  return ModelInfo.fromMap(json
+      .decode(File(path.join(dir, "objectbox-model.json")).readAsStringSync()));
 }
 
 /// Configures test cases to check that the model is specified correctly
@@ -48,12 +49,14 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
 
   test("lastPropertyId", () {
     for (final entity in defs.model.entities) {
-      testLastId(entity.lastPropertyId, entity.properties.map((el) => el.id), jsonModel.retiredPropertyUids);
+      testLastId(entity.lastPropertyId, entity.properties.map((el) => el.id),
+          jsonModel.retiredPropertyUids);
     }
   });
 
   test("lastEntityId", () {
-    testLastId(defs.model.lastEntityId, defs.model.entities.map((el) => el.id), jsonModel.retiredEntityUids);
+    testLastId(defs.model.lastEntityId, defs.model.entities.map((el) => el.id),
+        jsonModel.retiredEntityUids);
   });
 
   // TODO when indexes are available

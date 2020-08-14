@@ -30,7 +30,8 @@ final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
 // called from C, forwards calls to the actual callback registered at the given ID
 int _forwarder(Pointer<Void> callbackId, Pointer<Uint8> dataPtr, int size) {
   if (callbackId == null || callbackId.address == 0) {
-    throw Exception('Data-visitor callback issued with NULL user_data (callback ID)');
+    throw Exception(
+        'Data-visitor callback issued with NULL user_data (callback ID)');
   }
 
   return _callbacks[callbackId.cast<Int64>().value](dataPtr, size) ? 1 : 0;
@@ -41,7 +42,8 @@ class DataVisitor {
   int _id;
   Pointer<Int64> _idPtr;
 
-  Pointer<NativeFunction<obx_data_visitor_native_t>> get fn => Pointer.fromFunction(_forwarder, 0);
+  Pointer<NativeFunction<obx_data_visitor_native_t>> get fn =>
+      Pointer.fromFunction(_forwarder, 0);
 
   Pointer<Void> get userData => _idPtr.cast<Void>();
 
@@ -53,7 +55,8 @@ class DataVisitor {
       _lastId++;
 
       if (initialId == _lastId) {
-        throw Exception("Data-visitor callbacks queue full - can't allocate another");
+        throw Exception(
+            "Data-visitor callbacks queue full - can't allocate another");
       }
     }
     // register the visitor

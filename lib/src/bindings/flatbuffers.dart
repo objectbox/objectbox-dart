@@ -19,14 +19,16 @@ class _OBXFBEntity {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  dynamic getProp(propReader, int field) => propReader.vTableGet(_bc, _bcOffset, field);
+  dynamic getProp(propReader, int field) =>
+      propReader.vTableGet(_bc, _bcOffset, field);
 }
 
 class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
   const _OBXFBEntityReader();
 
   @override
-  _OBXFBEntity createObject(fb.BufferContext bc, int offset) => _OBXFBEntity._(bc, offset);
+  _OBXFBEntity createObject(fb.BufferContext bc, int offset) =>
+      _OBXFBEntity._(bc, offset);
 }
 
 class OBXFlatbuffersManager<T> {
@@ -82,7 +84,8 @@ class OBXFlatbuffersManager<T> {
           builder.addFloat64(field, value);
           break;
         default:
-          throw Exception('unsupported type: ${p.type}'); // TODO: support more types
+          throw Exception(
+              'unsupported type: ${p.type}'); // TODO: support more types
       }
     });
 
@@ -125,7 +128,8 @@ class OBXFlatbuffersManager<T> {
           propReader = fb.Float64Reader();
           break;
         default:
-          throw Exception('unsupported type: ${p.type}'); // TODO: support more types
+          throw Exception(
+              'unsupported type: ${p.type}'); // TODO: support more types
       }
 
       propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);
@@ -135,7 +139,8 @@ class OBXFlatbuffersManager<T> {
   }
 
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray, {bool allowMissing = false}) {
+  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray,
+      {bool allowMissing = false}) {
     var fn = (OBX_bytes b) => unmarshal(b.data);
     if (allowMissing) {
       fn = (OBX_bytes b) => b.isEmpty ? null : unmarshal(b.data);

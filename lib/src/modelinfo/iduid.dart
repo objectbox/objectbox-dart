@@ -19,7 +19,10 @@ class IdUid {
     }
 
     var spl = str.split(':');
-    if (spl.length != 2) throw Exception('IdUid has invalid format, wrong number of columns: $str');
+    if (spl.length != 2) {
+      throw Exception(
+          'IdUid has invalid format, wrong number of columns: $str');
+    }
     id = int.parse(spl[0]);
     uid = int.parse(spl[1]);
   }
@@ -29,12 +32,16 @@ class IdUid {
         _uid = 0;
 
   set id(int id) {
-    if (id < 0 || id > ((1 << 63) - 1)) throw Exception('id out of bounds: $id');
+    if (id < 0 || id > ((1 << 63) - 1)) {
+      throw Exception('id out of bounds: $id');
+    }
     _id = id;
   }
 
   set uid(int uid) {
-    if (uid < 0 || uid > ((1 << 63) - 1)) throw Exception('uid out of bounds: $uid');
+    if (uid < 0 || uid > ((1 << 63) - 1)) {
+      throw Exception('uid out of bounds: $uid');
+    }
     _uid = uid;
   }
 

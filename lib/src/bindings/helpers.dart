@@ -6,7 +6,9 @@ import 'constants.dart';
 import '../common.dart';
 
 void checkObx(int code) {
-  if (code != OBXError.OBX_SUCCESS) throw latestNativeError(codeIfMissing: code);
+  if (code != OBXError.OBX_SUCCESS) {
+    throw latestNativeError(codeIfMissing: code);
+  }
 }
 
 Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String dartMsg) {
@@ -21,10 +23,14 @@ ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
   final text = cString(bindings.obx_last_error_message());
 
   if (code == 0 && text.isEmpty) {
-    return ObjectBoxException(dartMsg: dartMsg, nativeCode: codeIfMissing, nativeMsg: 'unknown native error');
+    return ObjectBoxException(
+        dartMsg: dartMsg,
+        nativeCode: codeIfMissing,
+        nativeMsg: 'unknown native error');
   }
 
-  return ObjectBoxException(dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
+  return ObjectBoxException(
+      dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
 }
 
 String cString(Pointer<Utf8> charPtr) {

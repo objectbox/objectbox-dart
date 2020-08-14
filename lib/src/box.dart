@@ -26,7 +26,8 @@ class Box<T> {
   OBXFlatbuffersManager<T> _fbManager;
   final bool _supportsBytesArrays;
 
-  Box(this._store) : _supportsBytesArrays = bindings.obx_supports_bytes_array() == 1 {
+  Box(this._store)
+      : _supportsBytesArrays = bindings.obx_supports_bytes_array() == 1 {
     final entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.model;
     _entityReader = entityDefs.reader;
@@ -68,7 +69,8 @@ class Box<T> {
     final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(propVals);
     try {
       final bytes = bytesPtr.ref;
-      checkObx(bindings.obx_box_put(_cBox, id, bytes.ptr, bytes.length, _getOBXPutMode(mode)));
+      checkObx(bindings.obx_box_put(
+          _cBox, id, bytes.ptr, bytes.length, _getOBXPutMode(mode)));
     } finally {
       // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
       OBX_bytes.freeManaged(bytesPtr);
@@ -85,7 +87,8 @@ class Box<T> {
     var allPropVals = objects.map(_entityReader).toList();
     var missingIdsCount = 0;
     for (var instPropVals in allPropVals) {
-      if (instPropVals[_modelEntity.idProperty.name] == null || instPropVals[_modelEntity.idProperty.name] == 0) {
+      if (instPropVals[_modelEntity.idProperty.name] == null ||
+          instPropVals[_modelEntity.idProperty.name] == 0) {
         ++missingIdsCount;
       }
     }
@@ -95,13 +98,15 @@ class Box<T> {
       var nextId = 0;
       final nextIdPtr = allocate<Uint64>(count: 1);
       try {
-        checkObx(bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
+        checkObx(
+            bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
         nextId = nextIdPtr.value;
       } finally {
         free(nextIdPtr);
       }
       for (var instPropVals in allPropVals) {
-        if (instPropVals[_modelEntity.idProperty.name] == null || instPropVals[_modelEntity.idProperty.name] == 0) {
+        if (instPropVals[_modelEntity.idProperty.name] == null ||
+            instPropVals[_modelEntity.idProperty.name] == 0) {
           instPropVals[_modelEntity.idProperty.name] = nextId++;
         }
       }
@@ -116,18 +121,21 @@ class Box<T> {
       }
 
       // marshal all objects to be put into the box
-      final bytesArrayPtr =
-          checkObxPtr(bindings.obx_bytes_array(allPropVals.length), 'could not create OBX_bytes_array');
+      final bytesArrayPtr = checkObxPtr(
+          bindings.obx_bytes_array(allPropVals.length),
+          'could not create OBX_bytes_array');
       final listToFree = <Pointer<OBX_bytes>>[];
       try {
         for (var i = 0; i < allPropVals.length; i++) {
           final bytesPtr = _fbManager.marshal(allPropVals[i]);
           listToFree.add(bytesPtr);
           final bytes = bytesPtr.ref;
-          bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.length);
+          bindings.obx_bytes_array_set(
+              bytesArrayPtr, i, bytes.ptr, bytes.length);
         }
 
-        checkObx(bindings.obx_box_put_many(_cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
+        checkObx(bindings.obx_box_put_many(
+            _cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
         bindings.obx_bytes_array_free(bytesArrayPtr);
         listToFree.forEach(OBX_bytes.freeManaged);
@@ -136,7 +144,9 @@ class Box<T> {
       free(allIdsMemory);
     }
 
-    return allPropVals.map((p) => p[_modelEntity.idProperty.name] as int).toList();
+    return allPropVals
+        .map((p) => p[_modelEntity.idProperty.name] as int)
+        .toList();
   }
 
   /// Retrieves the stored object with the ID [id] from this box's database. Returns null if not found.
@@ -165,12 +175,15 @@ class Box<T> {
   }
 
   List<T> _getMany(
-      bool allowMissing, Pointer<OBX_bytes_array> Function() cGetArray, void Function(DataVisitor) cVisit) {
+      bool allowMissing,
+      Pointer<OBX_bytes_array> Function() cGetArray,
+      void Function(DataVisitor) cVisit) {
     return _store.runInTransaction(TxMode.Read, () {
       if (_supportsBytesArrays) {
         final bytesArray = cGetArray();
         try {
-          return _fbManager.unmarshalArray(bytesArray, allowMissing: allowMissing);
+          return _fbManager.unmarshalArray(bytesArray,
+              allowMissing: allowMissing);
         } finally {
           bindings.obx_bytes_array_free(bytesArray);
         }
@@ -210,21 +223,27 @@ class Box<T> {
         ids,
         (ptr) => _getMany(
             allowMissing,
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr), 'failed to get many objects from box'),
-            (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(_cBox, ptr, visitor.fn, visitor.userData))));
+            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr),
+                'failed to get many objects from box'),
+            (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(
+                _cBox, ptr, visitor.fn, visitor.userData))));
   }
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    const allowMissing = false; // throw if null is encountered in the data found
+    const allowMissing =
+        false; // throw if null is encountered in the data found
     return _getMany(
         allowMissing,
-        () => checkObxPtr(bindings.obx_box_get_all(_cBox), 'failed to get all objects from box'),
-        (DataVisitor visitor) => checkObx(bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
+        () => checkObxPtr(bindings.obx_box_get_all(_cBox),
+            'failed to get all objects from box'),
+        (DataVisitor visitor) => checkObx(
+            bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
-  QueryBuilder query(Condition qc) => QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
+  QueryBuilder query(Condition qc) =>
+      QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
   /// is lower.

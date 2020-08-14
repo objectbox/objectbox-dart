@@ -16,7 +16,9 @@ class Version {
 
 /// Returns the underlying ObjectBox-C library version
 Version versionLib() {
-  var majorPtr = allocate<Int32>(), minorPtr = allocate<Int32>(), patchPtr = allocate<Int32>();
+  var majorPtr = allocate<Int32>(),
+      minorPtr = allocate<Int32>(),
+      patchPtr = allocate<Int32>();
 
   try {
     bindings.obx_version(majorPtr, minorPtr, patchPtr);
