@@ -20,11 +20,11 @@ Installation
 Add the following dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^0.6.4
+  objectbox: ^0.7.0
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_generator: ^0.6.4
+  objectbox_generator: ^0.7.0
 ```
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
@@ -32,8 +32,8 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
     * Add additional dependency to include native libraries (required in Flutter):
       ```yaml
       dependencies:
-        objectbox: ^0.6.4
-        objectbox_flutter_libs: ^0.6.4
+        objectbox: ^0.7.0
+        objectbox_flutter_libs: ^0.7.0
       ```
     * Install the packages `flutter pub get`
     * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
