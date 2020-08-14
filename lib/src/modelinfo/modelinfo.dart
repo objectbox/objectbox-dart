@@ -103,7 +103,7 @@ class ModelInfo {
       }
     }
 
-    if (!lastEntityIdFound && !listContains(this.retiredEntityUids, lastEntityId.uid)) {
+    if (!lastEntityIdFound && !listContains(retiredEntityUids, lastEntityId.uid)) {
       throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
     }
   }

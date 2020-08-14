@@ -25,8 +25,8 @@ class IdUid {
   }
 
   IdUid.empty()
-      : this._id = 0,
-        this._uid = 0;
+      : _id = 0,
+        _uid = 0;
 
   set id(int id) {
     if (id < 0 || id > ((1 << 63) - 1)) throw Exception("id out of bounds: $id");
