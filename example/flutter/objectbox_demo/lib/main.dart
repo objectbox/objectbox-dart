@@ -17,7 +17,7 @@ class Note {
 
   Note.construct(this.text) {
     date = DateTime.now().millisecondsSinceEpoch;
-    print("constructed date: $date");
+    print('constructed date: $date');
   }
 }
 
@@ -51,10 +51,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _addNote() {
     if (_noteInputController.text.isEmpty) return;
-    Note newNote = Note.construct(_noteInputController.text);
+    final newNote = Note.construct(_noteInputController.text);
     newNote.id = _box.put(newNote);
     setState(() => _notes.add(newNote));
-    _noteInputController.text = "";
+    _noteInputController.text = '';
   }
 
   void _removeNote(int index) {
@@ -67,9 +67,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     getApplicationDocumentsDirectory().then((dir) {
-      _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
+      _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
       _box = Box<Note>(_store);
-      List<Note> notesFromDb = _box.getAll();
+      final notesFromDb = _box.getAll();
       setState(() => _notes = notesFromDb);
       // TODO: don't show UI before this point
     });
@@ -109,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                            "Click a note to remove it",
+                            'Click a note to remove it',
                             style: TextStyle(
                               fontSize: 11.0,
                               color: Colors.grey,
@@ -123,8 +123,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 Column(
                   children: <Widget>[
                     RaisedButton(
-                      onPressed: this._addNote,
-                      child: Text("Add"),
+                      onPressed: _addNote,
+                      child: Text('Add'),
                     )
                   ],
                 )
@@ -138,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: _notes.length,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
-                  onTap: () => this._removeNote(index),
+                  onTap: () => _removeNote(index),
                   child: Row(
                     children: <Widget>[
                       Expanded(
