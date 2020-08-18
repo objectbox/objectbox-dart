@@ -3,6 +3,7 @@ import 'package:objectbox/objectbox.dart';
 import 'entity.dart';
 import 'test_env.dart';
 
+// We want to have types explicit - verifying the return types of functions.
 // ignore_for_file: omit_local_variable_types
 
 void main() {
