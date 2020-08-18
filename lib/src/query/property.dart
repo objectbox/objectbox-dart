@@ -7,7 +7,8 @@ abstract class PropertyQuery<T> {
 
   PropertyQuery(Pointer<Void> cQuery, int propertyId, int obxType) {
     _type = obxType;
-    _cProp = checkObxPtr(bindings.obx_query_prop(cQuery, propertyId), 'property query');
+    _cProp = checkObxPtr(
+        bindings.obx_query_prop(cQuery, propertyId), 'property query');
   }
 
   /// Returns values of this property matching the query.
@@ -41,8 +42,11 @@ abstract class PropertyQuery<T> {
     }
   }
 
-  Pointer<TStruct> _curryWithDefault<TStruct extends Struct, N extends NativeType>(
-      obx_query_prop_find_native_t<Pointer<TStruct>, N> findFn, Pointer<N> cDefault, String errorMessage) {
+  Pointer<TStruct>
+      _curryWithDefault<TStruct extends Struct, N extends NativeType>(
+          obx_query_prop_find_native_t<Pointer<TStruct>, N> findFn,
+          Pointer<N> cDefault,
+          String errorMessage) {
     try {
       return checkObxPtr(findFn(_cProp, cDefault), errorMessage);
     } finally {
@@ -67,7 +71,8 @@ mixin _CommonNumeric<T> on PropertyQuery<T> {
 }
 
 class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
-  IntegerPropertyQuery(Pointer<Void> query, int propertyId, int obxType) : super(query, propertyId, obxType);
+  IntegerPropertyQuery(Pointer<Void> query, int propertyId, int obxType)
+      : super(query, propertyId, obxType);
 
   int _op(obx_query_prop_op_t<int, Int64> fn) {
     final ptr = allocate<Int64>();
@@ -125,30 +130,40 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
 
   @override
   List<int> find({int replaceNullWith}) {
-    final ptr = replaceNullWith != null ? (allocate<Int64>()..value = replaceNullWith) : Pointer<Int64>.fromAddress(0);
+    final ptr = replaceNullWith != null
+        ? (allocate<Int64>()..value = replaceNullWith)
+        : Pointer<Int64>.fromAddress(0);
     switch (_type) {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
       case OBXPropertyType.Char: // Int8
-        return _unpack8(
-            _curryWithDefault<OBX_int8_array, Int8>(bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), 'find int8'));
+        return _unpack8(_curryWithDefault<OBX_int8_array, Int8>(
+            bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), 'find int8'));
       case OBXPropertyType.Short: // Int16
         return _unpack16(_curryWithDefault<OBX_int16_array, Int16>(
-            bindings.obx_query_prop_int16_find, ptr.cast<Int16>(), 'find int16'));
+            bindings.obx_query_prop_int16_find,
+            ptr.cast<Int16>(),
+            'find int16'));
       case OBXPropertyType.Int: // Int32
         return _unpack32(_curryWithDefault<OBX_int32_array, Int32>(
-            bindings.obx_query_prop_int32_find, ptr.cast<Int32>(), 'find int32'));
+            bindings.obx_query_prop_int32_find,
+            ptr.cast<Int32>(),
+            'find int32'));
       case OBXPropertyType.Long: // Int64
         return _unpack64(_curryWithDefault<OBX_int64_array, Int64>(
-            bindings.obx_query_prop_int64_find, ptr.cast<Int64>(), 'find int64'));
+            bindings.obx_query_prop_int64_find,
+            ptr.cast<Int64>(),
+            'find int64'));
       default:
-        throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
+        throw Exception(
+            'Property query: unsupported type (OBXPropertyType: ${_type})');
     }
   }
 }
 
 class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
-  DoublePropertyQuery(Pointer<Void> query, int propertyId, int obxType) : super(query, propertyId, obxType);
+  DoublePropertyQuery(Pointer<Void> query, int propertyId, int obxType)
+      : super(query, propertyId, obxType);
 
   double _op(obx_query_prop_op_t<int, Double> fn) {
     final ptr = allocate<Double>();
@@ -192,17 +207,20 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
   List<double> find({double replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Float:
-        final valueIfNull =
-            replaceNullWith != null ? (allocate<Float>()..value = replaceNullWith) : Pointer<Float>.fromAddress(0);
-        return _unpack32(
-            _curryWithDefault<OBX_float_array, Float>(bindings.obx_query_prop_float_find, valueIfNull, 'find float32'));
+        final valueIfNull = replaceNullWith != null
+            ? (allocate<Float>()..value = replaceNullWith)
+            : Pointer<Float>.fromAddress(0);
+        return _unpack32(_curryWithDefault<OBX_float_array, Float>(
+            bindings.obx_query_prop_float_find, valueIfNull, 'find float32'));
       case OBXPropertyType.Double:
-        final valueIfNull =
-            replaceNullWith != null ? (allocate<Double>()..value = replaceNullWith) : Pointer<Double>.fromAddress(0);
+        final valueIfNull = replaceNullWith != null
+            ? (allocate<Double>()..value = replaceNullWith)
+            : Pointer<Double>.fromAddress(0);
         return _unpack64(_curryWithDefault<OBX_double_array, Double>(
             bindings.obx_query_prop_double_find, valueIfNull, 'find float64'));
       default:
-        throw Exception('Property query: unsupported type (OBXPropertyType: ${_type})');
+        throw Exception(
+            'Property query: unsupported type (OBXPropertyType: ${_type})');
     }
   }
 }
@@ -210,14 +228,16 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
 class StringPropertyQuery extends PropertyQuery<String> {
   bool _caseSensitive = false;
 
-  StringPropertyQuery(Pointer<Void> query, int propertyId, int obxType) : super(query, propertyId, obxType);
+  StringPropertyQuery(Pointer<Void> query, int propertyId, int obxType)
+      : super(query, propertyId, obxType);
 
   /// Set to return case sensitive distinct values.
   ///
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
-    checkObx(bindings.obx_query_prop_distinct_case(_cProp, _distinct ? 1 : 0, _caseSensitive ? 1 : 0));
+    checkObx(bindings.obx_query_prop_distinct_case(
+        _cProp, _distinct ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
   bool get caseSensitive => _caseSensitive;
@@ -225,7 +245,8 @@ class StringPropertyQuery extends PropertyQuery<String> {
   @override
   set distinct(bool d) {
     _distinct = d;
-    checkObx(bindings.obx_query_prop_distinct_case(_cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
+    checkObx(bindings.obx_query_prop_distinct_case(
+        _cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
   List<String> _unpack(Pointer<OBX_string_array> ptr) {
@@ -238,7 +259,10 @@ class StringPropertyQuery extends PropertyQuery<String> {
 
   @override
   List<String> find({String replaceNullWith}) {
-    final ptr = replaceNullWith != null ? Utf8.toUtf8(replaceNullWith).cast<Int8>() : Pointer<Int8>.fromAddress(0);
-    return _unpack(_curryWithDefault<OBX_string_array, Int8>(bindings.obx_query_prop_string_find, ptr, 'find utf8'));
+    final ptr = replaceNullWith != null
+        ? Utf8.toUtf8(replaceNullWith).cast<Int8>()
+        : Pointer<Int8>.fromAddress(0);
+    return _unpack(_curryWithDefault<OBX_string_array, Int8>(
+        bindings.obx_query_prop_string_find, ptr, 'find utf8'));
   }
 }

@@ -1,0 +1,27 @@
+name: Code analysis
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image:  google/dart:latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: pub get
+
+      - uses: axel-op/dart-package-analyzer@v3
+        id: analysis # set an id for the current step
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      # You can then use this id to retrieve the outputs in the next steps.
+      # The following step shows how to exit the workflow with an error if a score is below 100:
+      - name: Check scores
+        shell: bash
+        run: |
+          if [[ "90" -gt "${{ steps.analysis.outputs.total }}" ]]; then
+            echo "Score is less then 90, please check the analysis report and resolve the issues"
+            exit 1
+          fi

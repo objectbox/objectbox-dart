@@ -1,8 +1,8 @@
-import "dart:math";
+import 'dart:math';
 
 import '../util.dart';
-import "modelentity.dart";
-import "iduid.dart";
+import 'modelentity.dart';
+import 'iduid.dart';
 
 const _minModelVersion = 5;
 const _maxModelVersion = 5;
@@ -13,14 +13,17 @@ const _maxModelVersion = 5;
 /// to ObjectBox models, you can refer to the [existing documentation](https://docs.objectbox.io/advanced).
 class ModelInfo {
   static const notes = [
-    "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
-    "ObjectBox manages crucial IDs for your object model. See docs for details.",
-    "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+    'KEEP THIS FILE! Check it into a version control system (VCS) like git.',
+    'ObjectBox manages crucial IDs for your object model. See docs for details.',
+    'If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.',
   ];
 
   List<ModelEntity> entities;
   IdUid lastEntityId, lastIndexId, lastRelationId, lastSequenceId;
-  List<int> retiredEntityUids, retiredIndexUids, retiredPropertyUids, retiredRelationUids;
+  List<int> retiredEntityUids,
+      retiredIndexUids,
+      retiredPropertyUids,
+      retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
 
   ModelInfo(
@@ -52,42 +55,50 @@ class ModelInfo {
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true}) {
-    lastEntityId = IdUid.fromString(data["lastEntityId"]);
-    lastIndexId = IdUid.fromString(data["lastIndexId"]);
-    lastRelationId = IdUid.fromString(data["lastRelationId"]);
-    lastSequenceId = IdUid.fromString(data["lastSequenceId"]);
-    modelVersion = data["modelVersion"];
-    modelVersionParserMinimum = data["modelVersionParserMinimum"];
-    retiredEntityUids = List<int>.from(data["retiredEntityUids"] ?? []);
-    retiredIndexUids = List<int>.from(data["retiredIndexUids"] ?? []);
-    retiredPropertyUids = List<int>.from(data["retiredPropertyUids"] ?? []);
-    retiredRelationUids = List<int>.from(data["retiredRelationUids"] ?? []);
-    version = data["version"];
-    entities = data["entities"].map<ModelEntity>((e) => ModelEntity.fromMap(e, model: this, check: check)).toList();
+    lastEntityId = IdUid.fromString(data['lastEntityId']);
+    lastIndexId = IdUid.fromString(data['lastIndexId']);
+    lastRelationId = IdUid.fromString(data['lastRelationId']);
+    lastSequenceId = IdUid.fromString(data['lastSequenceId']);
+    modelVersion = data['modelVersion'];
+    modelVersionParserMinimum = data['modelVersionParserMinimum'];
+    retiredEntityUids = List<int>.from(data['retiredEntityUids'] ?? []);
+    retiredIndexUids = List<int>.from(data['retiredIndexUids'] ?? []);
+    retiredPropertyUids = List<int>.from(data['retiredPropertyUids'] ?? []);
+    retiredRelationUids = List<int>.from(data['retiredRelationUids'] ?? []);
+    version = data['version'];
+    entities = data['entities']
+        .map<ModelEntity>(
+            (e) => ModelEntity.fromMap(e, model: this, check: check))
+        .toList();
     if (check) validate();
   }
 
   void validate() {
     if (modelVersion < _minModelVersion) {
       throw Exception(
-          "the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually");
+          'the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually');
     }
     if (modelVersion > _maxModelVersion) {
       throw Exception(
-          "the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator");
+          'the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
     }
 
-    if (entities == null) throw Exception("entities is null");
-    if (retiredEntityUids == null) throw Exception("retiredEntityUids is null");
-    if (retiredIndexUids == null) throw Exception("retiredIndexUids is null");
-    if (retiredPropertyUids == null) throw Exception("retiredPropertyUids is null");
-    if (retiredRelationUids == null) throw Exception("retiredRelationUids is null");
-    if (lastEntityId == null) throw Exception("lastEntityId is null");
+    if (entities == null) throw Exception('entities is null');
+    if (retiredEntityUids == null) throw Exception('retiredEntityUids is null');
+    if (retiredIndexUids == null) throw Exception('retiredIndexUids is null');
+    if (retiredPropertyUids == null) {
+      throw Exception('retiredPropertyUids is null');
+    }
+    if (retiredRelationUids == null) {
+      throw Exception('retiredRelationUids is null');
+    }
+    if (lastEntityId == null) throw Exception('lastEntityId is null');
 
-    bool lastEntityIdFound = false;
+    var lastEntityIdFound = false;
     for (final e in entities) {
       if (e.model != this) {
-        throw Exception("entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
+        throw Exception(
+            "entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
       }
       e.validate();
       if (lastEntityId.id < e.id.id) {
@@ -103,65 +114,74 @@ class ModelInfo {
       }
     }
 
-    if (!lastEntityIdFound && !listContains(this.retiredEntityUids, lastEntityId.uid)) {
-      throw Exception("lastEntityId ${lastEntityId.toString()} does not match any entity");
+    if (!lastEntityIdFound &&
+        !listContains(retiredEntityUids, lastEntityId.uid)) {
+      throw Exception(
+          'lastEntityId ${lastEntityId.toString()} does not match any entity');
     }
   }
 
   Map<String, dynamic> toMap({bool forCodeGen = false}) {
-    Map<String, dynamic> ret = {};
+    final ret = <String, dynamic>{};
     if (!forCodeGen) {
-      ret["_note1"] = notes[0];
-      ret["_note2"] = notes[1];
-      ret["_note3"] = notes[2];
+      ret['_note1'] = notes[0];
+      ret['_note2'] = notes[1];
+      ret['_note3'] = notes[2];
     }
-    ret["entities"] = entities.map((p) => p.toMap()).toList();
-    ret["lastEntityId"] = lastEntityId.toString();
-    ret["lastIndexId"] = lastIndexId.toString();
-    ret["lastRelationId"] = lastRelationId.toString();
-    ret["lastSequenceId"] = lastSequenceId.toString();
-    ret["modelVersion"] = modelVersion;
+    ret['entities'] = entities.map((p) => p.toMap()).toList();
+    ret['lastEntityId'] = lastEntityId.toString();
+    ret['lastIndexId'] = lastIndexId.toString();
+    ret['lastRelationId'] = lastRelationId.toString();
+    ret['lastSequenceId'] = lastSequenceId.toString();
+    ret['modelVersion'] = modelVersion;
     if (!forCodeGen) {
-      ret["modelVersionParserMinimum"] = modelVersionParserMinimum;
-      ret["retiredEntityUids"] = retiredEntityUids;
-      ret["retiredIndexUids"] = retiredIndexUids;
-      ret["retiredPropertyUids"] = retiredPropertyUids;
-      ret["retiredRelationUids"] = retiredRelationUids;
-      ret["version"] = version;
+      ret['modelVersionParserMinimum'] = modelVersionParserMinimum;
+      ret['retiredEntityUids'] = retiredEntityUids;
+      ret['retiredIndexUids'] = retiredIndexUids;
+      ret['retiredPropertyUids'] = retiredPropertyUids;
+      ret['retiredRelationUids'] = retiredRelationUids;
+      ret['version'] = version;
     }
     return ret;
   }
 
   ModelEntity findEntityByUid(int uid) {
-    int idx = entities.indexWhere((e) => e.id.uid == uid);
+    final idx = entities.indexWhere((e) => e.id.uid == uid);
     return idx == -1 ? null : entities[idx];
   }
 
   ModelEntity findEntityByName(String name) {
-    final found = entities.where((e) => e.name.toLowerCase() == name.toLowerCase()).toList();
+    final found = entities
+        .where((e) => e.name.toLowerCase() == name.toLowerCase())
+        .toList();
     if (found.isEmpty) return null;
-    if (found.length >= 2) throw Exception("ambiguous entity name: $name; please specify a UID in its annotation");
+    if (found.length >= 2) {
+      throw Exception(
+          'ambiguous entity name: $name; please specify a UID in its annotation');
+    }
     return found[0];
   }
 
   ModelEntity findSameEntity(ModelEntity other) {
     ModelEntity ret;
     if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
-    if (ret == null) ret = findEntityByName(other.name);
+    ret ??= findEntityByName(other.name);
     return ret;
   }
 
   ModelEntity addEntity(ModelEntity other) {
-    ModelEntity ret = createEntity(other.name, other.id.uid);
-    other.properties.forEach((p) => ret.addProperty(p));
-    return ret;
+    final modelEntity = createEntity(other.name, other.id.uid);
+    other.properties.forEach((p) => modelEntity.addProperty(p));
+    return modelEntity;
   }
 
   ModelEntity createEntity(String name, [int uid = 0]) {
-    int id = 1;
+    var id = 1;
     if (entities.isNotEmpty) id = lastEntityId.id + 1;
-    if (uid != 0 && containsUid(uid)) throw Exception("uid already exists: $uid");
-    int uniqueUid = uid == 0 ? generateUid() : uid;
+    if (uid != 0 && containsUid(uid)) {
+      throw Exception('uid already exists: $uid');
+    }
+    final uniqueUid = uid == 0 ? generateUid() : uid;
 
     var entity = ModelEntity(IdUid(id, uniqueUid), null, name, [], this);
     entities.add(entity);
@@ -170,11 +190,12 @@ class ModelInfo {
   }
 
   void removeEntity(ModelEntity entity) {
-    if (entity == null) throw Exception("entity == null");
+    if (entity == null) throw Exception('entity == null');
 
     final foundEntity = findSameEntity(entity);
     if (foundEntity == null) {
-      throw Exception("cannot remove entity '${entity.name}' with id ${entity.id.toString()}: not found");
+      throw Exception(
+          "cannot remove entity '${entity.name}' with id ${entity.id.toString()}: not found");
     }
     entities = entities.where((p) => p != foundEntity).toList();
     retiredEntityUids.add(entity.id.uid);
@@ -183,15 +204,15 @@ class ModelInfo {
 
   int generateUid() {
     var rng = Random();
-    for (int i = 0; i < 1000; ++i) {
+    for (var i = 0; i < 1000; ++i) {
       // Dart can only generate random numbers up to 1 << 32, so concat two of them and remove the upper bit to make the number non-negative
-      int uid = rng.nextInt(1 << 32);
+      var uid = rng.nextInt(1 << 32);
       uid |= rng.nextInt(1 << 32) << 32;
       uid &= ~(1 << 63);
       if (uid != 0 && !containsUid(uid)) return uid;
     }
 
-    throw Exception("internal error: could not generate a unique UID");
+    throw Exception('internal error: could not generate a unique UID');
   }
 
   bool containsUid(int uid) {

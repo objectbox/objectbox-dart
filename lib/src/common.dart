@@ -1,7 +1,7 @@
-import "dart:ffi";
-import "package:ffi/ffi.dart" show allocate, free;
+import 'dart:ffi';
+import 'package:ffi/ffi.dart' show allocate, free;
 
-import "bindings/bindings.dart";
+import 'bindings/bindings.dart';
 
 class Version {
   final int major;
@@ -10,12 +10,15 @@ class Version {
 
   const Version(this.major, this.minor, this.patch);
 
-  toString() => "$major.$minor.$patch";
+  @override
+  String toString() => '$major.$minor.$patch';
 }
 
 /// Returns the underlying ObjectBox-C library version
 Version versionLib() {
-  var majorPtr = allocate<Int32>(), minorPtr = allocate<Int32>(), patchPtr = allocate<Int32>();
+  var majorPtr = allocate<Int32>(),
+      minorPtr = allocate<Int32>(),
+      patchPtr = allocate<Int32>();
 
   try {
     bindings.obx_version(majorPtr, minorPtr, patchPtr);

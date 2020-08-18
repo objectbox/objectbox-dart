@@ -2,8 +2,6 @@ include: package:pedantic/analysis_options.yaml
 
 linter:
   rules:
-    # too much of this so disable for now
-    prefer_single_quotes: false
     # additional rules used by pub.dev
     non_constant_identifier_names: true
 
