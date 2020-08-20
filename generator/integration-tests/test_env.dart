@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:objectbox/objectbox.dart';
 
 class TestEnv<Entity> {
-  static final dir = Directory("testdata");
+  static final dir = Directory('testdata');
   Store store;
   Box<Entity> box;
 
@@ -13,7 +13,7 @@ class TestEnv<Entity> {
     box = Box<Entity>(store);
   }
 
-  close() {
+  void close() {
     store.close();
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   }

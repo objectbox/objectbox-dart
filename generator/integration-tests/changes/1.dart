@@ -5,18 +5,18 @@ import 'lib/objectbox.g.dart';
 import '../common.dart';
 
 void main() {
-  ModelDefinition defs = getObjectBoxModel();
-  ModelInfo jsonModel = readModelJson("lib");
+  final defs = getObjectBoxModel();
+  final jsonModel = readModelJson('lib');
   commonModelTests(defs, jsonModel);
 
-  test("ensure current model looks like expected", () {
+  test('ensure current model looks like expected', () {
     final model = defs.model;
 
     expect(model.entities.length, 1);
-    expect(model.entities[0].name, "A");
+    expect(model.entities[0].name, 'A');
     expect(model.entities[0].properties.length, 2);
-    expect(model.entities[0].properties[0].name, "id");
-    expect(model.entities[0].properties[1].name, "text1");
+    expect(model.entities[0].properties[0].name, 'id');
+    expect(model.entities[0].properties[1].name, 'text1');
 
     expect(model.lastEntityId.toString(), model.entities[0].id.toString());
 
@@ -26,15 +26,15 @@ void main() {
   });
 
   /// this test doesn't really test anything, it just prepares the contents of the database for the next phase
-  test("data", () {
+  test('data', () {
     // this is the first test so let's delete the database directory beforehand
-    final dir = Directory("objectbox.1");
+    final dir = Directory('objectbox.1');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
 
     final store = Store(defs, directory: dir.path);
     final box = Box<A>(store);
 
-    final object = A()..text1 = "foo";
+    final object = A()..text1 = 'foo';
     box.put(object);
     store.close();
   });
