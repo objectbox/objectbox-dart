@@ -3,7 +3,7 @@ include: package:pedantic/analysis_options.yaml
 linter:
   rules:
     # additional rules used by pub.dev
-    - non_constant_identifier_names
+    non_constant_identifier_names: true
 
 analyzer:
   exclude:

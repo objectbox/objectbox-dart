@@ -1,3 +1,13 @@
+0.7.0 (2020-08-14)
+------------------
+* Flutter v1.20 support 
+    (move libs to separate package `objectbox_flutter_libs`, add it as a new dependency if you use Flutter) 
+* New property query support 
+    (thanks [Jasm Sison](https://github.com/Buggaboo) for [#75](https://github.com/objectbox/objectbox-dart/pull/75))
+* New `@Transient` annotation to skip storing select properties 
+    (thanks [Jasm Sison](https://github.com/Buggaboo) for [#98](https://github.com/objectbox/objectbox-dart/pull/98))
+* Handle `Byte` property as a signed `int8` (was previously unsigned) to align with other bindings 
+
 0.6.4 (2020-05-12)
 ------------------
 * Update to objectbox-swift 1.3.0

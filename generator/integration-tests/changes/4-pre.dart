@@ -5,7 +5,7 @@ void main() {
   // * remove a property
   // * remove an entity
 
-  File("lib/entities.dart").writeAsStringSync('''
+  File('lib/entities.dart').writeAsStringSync('''
 import 'package:objectbox/objectbox.dart';
 
 @Entity()

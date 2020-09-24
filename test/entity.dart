@@ -1,4 +1,4 @@
-import "package:objectbox/objectbox.dart";
+import 'package:objectbox/objectbox.dart';
 
 /// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
 class TestingUnknownAnnotation {

@@ -4,9 +4,13 @@ ObjectBox for Dart is a standalone database storing Dart objects locally, with s
 
 Flutter/Dart compatibility
 --------------------------
+Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
+To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: ^0.7.0` 
+as an additional dependency, in addition to `objectbox`.
+
 This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
 However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
-Versions starting with ObjectBox 0.5 support Dart 2.6+ as well as Flutter 1.12+.
+Versions between ObjectBox v0.5 up to v0.6.x support Dart 2.6+ as well as Flutter 1.12+ and Flutter 1.17+.  
 
 The last supported version for Flutter 1.9/Dart 2.5 is ObjectBox 0.4.*, so if you can't upgrade yet, please use the 
 latest 0.4.x version instead.
@@ -16,15 +20,21 @@ Installation
 Add the following dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^0.6.4
+  objectbox: ^0.7.0
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_generator: ^0.6.4
+  objectbox_generator: ^0.7.0
 ```
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
 1. **Flutter** only steps:
+    * Add additional dependency to include native libraries (required in Flutter):
+      ```yaml
+      dependencies:
+        objectbox: ^0.7.0
+        objectbox_flutter_libs: ^0.7.0
+      ```
     * Install the packages `flutter pub get`
     * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
       See [FAQ](#faq) for details.
@@ -33,7 +43,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
     * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide:
        * macOS/Linux: execute the following command (answer Y when it asks about installing to /usr/lib) 
             ```shell script
-            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/master/install.sh)
+            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
             ```
        * macOS: if dart later complains that it cannot find the `libobjectbox.dylib` you probably have to unsign the 
          `dart` binary (source: [dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841)):
@@ -42,7 +52,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
             ```
        * Windows: use "Git Bash" or similar to execute the following command 
             ```shell script
-            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/master/install.sh)
+            bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
             ```
             Then copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges).
 

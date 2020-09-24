@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
+import 'package:flutter/foundation.dart'
+    show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:objectbox/objectbox.dart';
 import 'objectbox.g.dart';

@@ -13,4 +13,4 @@ if [[ "$os" != MINGW* ]] && [[ "$os" != CYGWIN* ]]; then
   tty -s || cLibArgs="${cLibArgs} --install"
 fi
 
-bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/master/download.sh) ${cLibArgs} ${cLibVersion}
+bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh) ${cLibArgs} ${cLibVersion}

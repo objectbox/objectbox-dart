@@ -1,13 +1,13 @@
-import "dart:async";
-import "dart:convert";
-import "package:analyzer/dart/element/element.dart";
+import 'dart:async';
+import 'dart:convert';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
-import "package:source_gen/source_gen.dart";
-import "package:objectbox/objectbox.dart" as obx;
-import "package:objectbox/src/bindings/constants.dart";
-import "package:objectbox/src/modelinfo/index.dart";
+import 'package:source_gen/source_gen.dart';
+import 'package:objectbox/objectbox.dart' as obx;
+import 'package:objectbox/src/bindings/constants.dart';
+import 'package:objectbox/src/modelinfo/index.dart';
 
-/// EntityResolver finds all classes with an @Entity annotation and generates ".objectbox.info" files in build cache.
+/// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
 /// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
 class EntityResolver extends Builder {
   static const suffix = '.objectbox.info';
@@ -28,35 +28,42 @@ class EntityResolver extends Builder {
     final libReader = LibraryReader(await buildStep.inputLibrary);
 
     // generate for all entities
-    final entities = List<Map<String, dynamic>>();
+    final entities = <Map<String, dynamic>>[];
     for (var annotatedEl in libReader.annotatedWith(_annotationChecker)) {
-      entities.add(generateForAnnotatedElement(annotatedEl.element, annotatedEl.annotation).toMap());
+      entities.add(generateForAnnotatedElement(
+              annotatedEl.element, annotatedEl.annotation)
+          .toMap());
     }
 
     if (entities.isEmpty) return;
 
     final json = JsonEncoder().convert(entities);
-    await buildStep.writeAsString(buildStep.inputId.changeExtension(suffix), json);
+    await buildStep.writeAsString(
+        buildStep.inputId.changeExtension(suffix), json);
   }
 
-  ModelEntity generateForAnnotatedElement(Element elementBare, ConstantReader annotation) {
+  ModelEntity generateForAnnotatedElement(
+      Element elementBare, ConstantReader annotation) {
     if (elementBare is! ClassElement) {
-      throw InvalidGenerationSourceError("in target ${elementBare.name}: annotated element isn't a class");
+      throw InvalidGenerationSourceError(
+          "in target ${elementBare.name}: annotated element isn't a class");
     }
     var element = elementBare as ClassElement;
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    ModelEntity readEntity = ModelEntity(IdUid.empty(), null, element.name, [], null);
-    var entityUid = annotation.read("uid");
-    if (entityUid != null && !entityUid.isNull) readEntity.id.uid = entityUid.intValue;
+    final readEntity = ModelEntity(IdUid.empty(), null, element.name, [], null);
+    var entityUid = annotation.read('uid');
+    if (entityUid != null && !entityUid.isNull) {
+      readEntity.id.uid = entityUid.intValue;
+    }
 
-    log.info("entity ${readEntity.name}(${readEntity.id})");
+    log.info('entity ${readEntity.name}(${readEntity.id})');
 
     // read all suitable annotated properties
-    bool hasIdProperty = false;
+    var hasIdProperty = false;
     for (var f in element.fields) {
       if (_transientChecker.hasAnnotationOfExact(f)) {
-        log.info("  skipping property ${f.name} (annotated with @Transient)");
+        log.info('  skipping property ${f.name} (annotated with @Transient)');
         continue;
       }
 
@@ -66,9 +73,9 @@ class EntityResolver extends Builder {
       if (_idChecker.hasAnnotationOfExact(f)) {
         if (hasIdProperty) {
           throw InvalidGenerationSourceError(
-              "in target ${elementBare.name}: has more than one properties annotated with @Id");
+              'in target ${elementBare.name}: has more than one properties annotated with @Id');
         }
-        if (f.type.toString() != "int") {
+        if (f.type.toString() != 'int') {
           throw InvalidGenerationSourceError(
               "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
         }
@@ -90,17 +97,17 @@ class EntityResolver extends Builder {
       if (fieldType == null) {
         var fieldTypeStr = f.type.toString();
 
-        if (fieldTypeStr == "int") {
+        if (fieldTypeStr == 'int') {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Long;
-        } else if (fieldTypeStr == "String") {
+        } else if (fieldTypeStr == 'String') {
           fieldType = OBXPropertyType.String;
-        } else if (fieldTypeStr == "bool") {
+        } else if (fieldTypeStr == 'bool') {
           // dart: 1 byte
           // ob: 1 byte
           fieldType = OBXPropertyType.Bool;
-        } else if (fieldTypeStr == "double") {
+        } else if (fieldTypeStr == 'double') {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
@@ -112,16 +119,19 @@ class EntityResolver extends Builder {
       }
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-      ModelProperty prop = ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+      final prop =
+          ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
       if (propUid != null) prop.id.uid = propUid;
       readEntity.properties.add(prop);
 
-      log.info("  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}");
+      log.info(
+          '  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
     }
 
     // some checks on the entity's integrity
     if (!hasIdProperty) {
-      throw InvalidGenerationSourceError("in target ${elementBare.name}: has no properties annotated with @Id");
+      throw InvalidGenerationSourceError(
+          'in target ${elementBare.name}: has no properties annotated with @Id');
     }
 
     return readEntity;

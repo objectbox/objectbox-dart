@@ -5,16 +5,16 @@ void main() {
   // * add a new property
   // * add a new entity
 
-  File("lib/entities.dart").writeAsStringSync('''
+  File('lib/entities.dart').writeAsStringSync('''
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class A {
   @Id()
   int id;
-  
+
   String text1;
-  
+
   @Property(uid: 1003)
   String text2;
 
@@ -25,8 +25,8 @@ class A {
 class B {
   @Id()
   int id;
-  
-  bool value; 
+
+  bool value;
 
   B();
 }
