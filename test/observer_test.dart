@@ -54,7 +54,7 @@ class Observable {
 
   void observe(Any fn, Pointer<Void> identifier) {
     any = fn;
-    final callback = Pointer.fromFunction<obx_observer_t<Void, Uint32>>(_anyCallback);
+    final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
     anyObserver = bindings.obx_observe(store.ptr, callback, identifier);
   }
 }
@@ -117,7 +117,7 @@ void main() async {
   });
 
   test("Observe any entity with static callback", () async {
-    final callback = Pointer.fromFunction<obx_observer_t<Void, Uint32>>(callbackAnyType);
+    final callback = Pointer.fromFunction<obx_observer_t>(callbackAnyType);
     final observer = bindings.obx_observe(store.ptr, callback, Pointer.fromAddress(1337));
 
     box.putMany(simpleStringItems);

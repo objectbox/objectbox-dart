@@ -29,7 +29,7 @@ class Observable {
   }
 
   static void subscribe(Store store) {
-    final callback = Pointer.fromFunction<obx_observer_t<Void, Uint32>>(_anyCallback);
+    final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
     anyObserver[store.ptr.address] = bindings.obx_observe(store.ptr, callback, store.ptr);
   }
 
