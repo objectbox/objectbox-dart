@@ -1,4 +1,5 @@
 import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/src/bindings/constants.dart';
 
 /// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
 class TestingUnknownAnnotation {
@@ -27,23 +28,23 @@ class TestEntity {
   // explicitly declared types, see OB-C, objectbox.h
 
   // OBXPropertyType.Byte | 1 byte
-  @Property(type: 2)
+  @Property(type: OBXPropertyType.Byte)
   int tByte;
 
   // OBXPropertyType.Short | 2 bytes
-  @Property(type: 3)
+  @Property(type: OBXPropertyType.Short)
   int tShort;
 
   // OBXPropertyType.Char | 1 byte
-  @Property(type: 4)
+  @Property(type: OBXPropertyType.Char)
   int tChar;
 
   // OBXPropertyType.Int |  ob: 4 bytes, dart: 8 bytes
-  @Property(type: 5)
+  @Property(type: OBXPropertyType.Int)
   int tInt;
 
   // OBXPropertyType.Float | 4 bytes
-  @Property(type: 7)
+  @Property(type: OBXPropertyType.Float)
   double tFloat;
 
   TestEntity(
@@ -63,4 +64,44 @@ class TestEntity {
     omit = -1;
     disregard = 1;
   }
+
+  @Unique(type:OBXPropertyType.Byte)
+  int uByte;
+
+  @Unique(type:OBXPropertyType.Short)
+  int uShort;
+
+  @Unique(type:OBXPropertyType.Char)
+  int uChar;
+
+  @Unique(type:OBXPropertyType.Int)
+  int uInt;
+
+  @Unique(type:OBXPropertyType.Float)
+  double uFloat;
+
+  // implicitly determined types
+  @Unique()
+  String uString;
+
+  @Unique()
+  int uLong;
+
+  @Unique()
+  double uDouble;
+
+  @Unique()
+  bool uBool;
+
+  TestEntity.unique({
+    this.uString,
+    this.uLong,
+    this.uInt,
+    this.uShort,
+    this.uBool,
+    this.uByte,
+    this.uChar,
+    this.uDouble,
+    this.uFloat
+  });
 }

@@ -20,6 +20,7 @@ class EntityResolver extends Builder {
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
   final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
+  final _uniqueChecker = const TypeChecker.fromRuntime(obx.Unique);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -87,6 +88,11 @@ class EntityResolver extends Builder {
 
         final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
         propUid = _idAnnotation.getField('uid').toIntValue();
+      } else if (_uniqueChecker.hasAnnotationOfExact(f)) {
+        final _uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
+        propUid = _uniqueAnnotation.getField('uid').toIntValue();
+        fieldType = _uniqueAnnotation.getField('type').toIntValue();
+        flags = OBXPropertyFlag.UNIQUE;
       } else if (_propertyChecker.hasAnnotationOfExact(f)) {
         final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
         propUid = _propertyAnnotation.getField('uid').toIntValue();

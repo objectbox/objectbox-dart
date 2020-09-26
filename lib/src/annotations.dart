@@ -24,3 +24,8 @@ class Id {
 class Transient {
   const Transient();
 }
+
+class Unique {
+  final int uid, type;
+  const Unique({this.type, this.uid});
+}
