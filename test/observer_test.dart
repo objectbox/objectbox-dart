@@ -1,11 +1,11 @@
-import "package:test/test.dart";
-import "package:objectbox/src/bindings/bindings.dart";
-import "package:objectbox/src/bindings/signatures.dart";
-import "entity.dart";
-import "entity2.dart";
+import 'package:test/test.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
+import 'package:objectbox/src/bindings/signatures.dart';
+import 'entity.dart';
+import 'entity2.dart';
 import 'test_env.dart';
 import 'objectbox.g.dart';
-import "dart:ffi";
+import 'dart:ffi';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -64,16 +64,16 @@ void main() async {
   Box box;
   Store store;
 
-  final testEntityId = getObjectBoxModel().model.findEntityByName("TestEntity").id.id;
+  final testEntityId = getObjectBoxModel().model.findEntityByName('TestEntity').id.id;
 
-  final List<TestEntity> simpleStringItems = <String>["One", "Two", "Three", "Four", "Five", "Six"].map((s) =>
+  final List<TestEntity> simpleStringItems = <String>['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((s) =>
       TestEntity(tString: s)).toList();
 
   final List<TestEntity> simpleNumberItems = [1,2,3,4,5,6].map((s) =>
       TestEntity(tInt: s)).toList();
 
   setUp(() {
-    env = TestEnv("observers");
+    env = TestEnv('observers');
     box = env.box;
     store = env.store;
   });
@@ -85,7 +85,7 @@ void main() async {
   //    expect(mutated_count, 1);
   //  }
 
-  test("Observe any entity with class member callback", () async {
+  test('Observe any entity with class member callback', () async {
     final o = Observable.fromStore(store);
     var putCount = 0;
     o.observe((Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
@@ -101,7 +101,7 @@ void main() async {
     expect(putCount, 13);
   });
 
-  test("Observe a single entity with class member callback", () async {
+  test('Observe a single entity with class member callback', () async {
     final o = Observable.fromStore(store);
     var putCount = 0;
     o.observeSingleType(testEntityId, (Pointer<Void> user_data) {
@@ -116,7 +116,7 @@ void main() async {
     expect(putCount, 13);
   });
 
-  test("Observe any entity with static callback", () async {
+  test('Observe any entity with static callback', () async {
     final callback = Pointer.fromFunction<obx_observer_t>(callbackAnyType);
     final observer = bindings.obx_observe(store.ptr, callback, Pointer.fromAddress(1337));
 
@@ -126,7 +126,7 @@ void main() async {
 
     // update value
     final entity2 = box.get(2);
-    entity2.tString = "Dva";
+    entity2.tString = 'Dva';
     box.put(entity2);
 
     final box2 = Box<TestEntity2>(store);
@@ -138,7 +138,7 @@ void main() async {
     bindings.obx_observer_close(observer);
   });
 
-  test("Observe single entity", () async {
+  test('Observe single entity', () async {
     final callback = Pointer.fromFunction<obx_observer_single_type_t<Void>>(callbackSingleType);
     final observer = bindings.obx_observe_single_type(store.ptr, testEntityId, callback, randomPtr);
 
