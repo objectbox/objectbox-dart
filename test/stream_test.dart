@@ -29,8 +29,8 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
-    box.putMany([ TestEntity(tString: 'Goodbye'),
-      TestEntity(tString: 'for now') ] as List<TestEntity>);
+    box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
+      TestEntity(tString: 'for now') ]);
 
     await Future.delayed(Duration(seconds: 0)); // ffi explodes without
     expect(result,
@@ -51,8 +51,10 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
-    box.putMany([ TestEntity(tString: 'Goodbye'),
-      TestEntity(tString: 'for now') ] as List<TestEntity>);
+
+    // idem, see above
+    box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
+      TestEntity(tString: 'for now') ]);
 
     await Future.delayed(Duration(seconds: 0)); // ffi explodes without
     expect(result, [3, 3]);

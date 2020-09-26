@@ -66,11 +66,11 @@ void main() async {
 
   final testEntityId = getObjectBoxModel().model.findEntityByName('TestEntity').id.id;
 
-  final List<TestEntity> simpleStringItems = <String>['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((s) =>
-      TestEntity(tString: s)).toList();
+  final simpleStringItems = <String>['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((s) =>
+      TestEntity(tString: s)).toList().cast<TestEntity>();
 
-  final List<TestEntity> simpleNumberItems = [1,2,3,4,5,6].map((s) =>
-      TestEntity(tInt: s)).toList();
+  final simpleNumberItems = [1,2,3,4,5,6].map((s) =>
+      TestEntity(tInt: s)).toList().cast<TestEntity>();
 
   setUp(() {
     env = TestEnv('observers');
