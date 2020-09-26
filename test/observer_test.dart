@@ -48,7 +48,7 @@ class Observable {
 
   void observeSingleType(int entityId, Single fn, Pointer<Void> identifier) {
     single = fn;
-    final callback = Pointer.fromFunction<obx_observer_single_type_t<Void>>(_singleCallback);
+    final callback = Pointer.fromFunction<obx_observer_single_type_native_t>(_singleCallback);
     singleObserver = bindings.obx_observe_single_type(store.ptr, entityId, callback, identifier);
   }
 
@@ -139,7 +139,7 @@ void main() async {
   });
 
   test('Observe single entity', () async {
-    final callback = Pointer.fromFunction<obx_observer_single_type_t<Void>>(callbackSingleType);
+    final callback = Pointer.fromFunction<obx_observer_single_type_native_t>(callbackSingleType);
     final observer = bindings.obx_observe_single_type(store.ptr, testEntityId, callback, randomPtr);
 
     box.putMany(simpleStringItems);
