@@ -3,6 +3,8 @@ import 'package:objectbox/objectbox.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'objectbox.g.dart';
+import 'package:objectbox/src/observable.dart';
+import 'dart:async';
 
 @Entity()
 class Note {
@@ -47,19 +49,18 @@ class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   Store _store;
   Box<Note> _box;
-  List<Note> _notes = [];
+  List<Note> _notes = <Note>[];
+  StreamSubscription _subscription;
 
   void _addNote() {
     if (_noteInputController.text.isEmpty) return;
     final newNote = Note.construct(_noteInputController.text);
     newNote.id = _box.put(newNote);
-    setState(() => _notes.add(newNote));
     _noteInputController.text = '';
   }
 
   void _removeNote(int index) {
     _box.remove(_notes[index].id);
-    setState(() => _notes.removeAt(index));
   }
 
   @override
@@ -69,16 +70,69 @@ class _MyHomePageState extends State<MyHomePage> {
     getApplicationDocumentsDirectory().then((dir) {
       _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
       _box = Box<Note>(_store);
-      final notesFromDb = _box.getAll();
-      setState(() => _notes = notesFromDb);
       // TODO: don't show UI before this point
+      final dateProp = Note_.date;
+      final dummyQuery = dateProp.greaterThan(0);
+      final query = _box.query(dummyQuery)
+          .order(dateProp, flags: Order.descending).build();
+      final stream = query.findStream();
+      _subscription = stream.listen((ns) {
+        setState(() => _notes = ns.cast<Note>());
+      });
+
+      // default
+      setState(() => _notes = query.find());
     });
   }
 
   @override
   void dispose() {
     _noteInputController.dispose();
+    _store.unsubscribe();
+    _store.close();
     super.dispose();
+  }
+
+  GestureDetector _itemBuilder(BuildContext context, int index) {
+    return GestureDetector(
+      onTap: () => _removeNote(index),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: 18.0, horizontal: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      _notes[index].text,
+                      style: TextStyle(
+                        fontSize: 15.0,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 5.0),
+                      child: Text(
+                        "Added on ${DateFormat('dd.MM.yyyy hh:mm:ss')
+                            .format(DateTime.fromMillisecondsSinceEpoch(_notes[index].date))}",
+                        style: TextStyle(
+                          fontSize: 12.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              decoration: BoxDecoration(
+                  border: Border(
+                      bottom: BorderSide(color: Colors.black12))),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -100,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         padding: EdgeInsets.only(right: 10.0),
                         child: TextField(
                           decoration:
-                              InputDecoration(hintText: 'Enter new note'),
+                              InputDecoration(hintText: 'Enter a new note'),
                           controller: _noteInputController,
                         ),
                       ),
@@ -109,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                            'Click a note to remove it',
+                            'Tap a note to remove it',
                             style: TextStyle(
                               fontSize: 11.0,
                               color: Colors.grey,
@@ -136,49 +190,10 @@ class _MyHomePageState extends State<MyHomePage> {
               shrinkWrap: true,
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               itemCount: _notes.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () => _removeNote(index),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Container(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 18.0, horizontal: 10.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  _notes[index].text,
-                                  style: TextStyle(
-                                    fontSize: 15.0,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5.0),
-                                  child: Text(
-                                    "Added on ${DateFormat('dd.MM.yyyy hh:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(_notes[index].date))}",
-                                    style: TextStyle(
-                                      fontSize: 12.0,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          decoration: BoxDecoration(
-                              border: Border(
-                                  bottom: BorderSide(color: Colors.black12))),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+              itemBuilder: _itemBuilder,
+            )
+          )
+        ]
       ),
     );
   }
