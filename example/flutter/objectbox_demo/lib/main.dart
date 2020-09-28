@@ -49,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   Store _store;
   Box<Note> _box;
+  Query<Note> _query;
   List<Note> _notes = <Note>[];
   StreamSubscription _subscription;
 
@@ -73,21 +74,22 @@ class _MyHomePageState extends State<MyHomePage> {
       // TODO: don't show UI before this point
       final dateProp = Note_.date;
       final dummyQuery = dateProp.greaterThan(0);
-      final query = _box.query(dummyQuery)
+      _query = _box.query(dummyQuery)
           .order(dateProp, flags: Order.descending).build();
-      final stream = query.findStream();
+      final stream = _query.findStream();
       _subscription = stream.listen((ns) {
         setState(() => _notes = ns.cast<Note>());
       });
 
       // default
-      setState(() => _notes = query.find());
+      setState(() => _notes = _query.find());
     });
   }
 
   @override
   void dispose() {
     _noteInputController.dispose();
+    _query.close();
     _store.unsubscribe();
     _store.close();
     super.dispose();
