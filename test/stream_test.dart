@@ -29,12 +29,14 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
+    await Future.delayed(Duration(seconds: 0)); // ffi explodes without
+
     box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
       TestEntity(tString: 'for now') ]);
-
     await Future.delayed(Duration(seconds: 0)); // ffi explodes without
+
     expect(result,
-        ['for now, Goodbye, Hello world', 'for now, Goodbye, Hello world']);
+        ['Hello world', 'for now, Goodbye, Hello world']);
 
     await subscription.cancel();
   });
@@ -51,13 +53,14 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
+    await Future.delayed(Duration(seconds: 0)); // ffi explodes without
 
     // idem, see above
     box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
       TestEntity(tString: 'for now') ]);
-
     await Future.delayed(Duration(seconds: 0)); // ffi explodes without
-    expect(result, [3, 3]);
+
+    expect(result, [1, 3]);
 
     await subscription.cancel();
   });
