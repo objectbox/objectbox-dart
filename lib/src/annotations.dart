@@ -29,3 +29,8 @@ class Unique {
   final int uid, type;
   const Unique({this.type, this.uid});
 }
+
+class Index {
+  final int uid, type;
+  const Index({this.type, this.uid});
+}

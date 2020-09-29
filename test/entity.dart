@@ -104,4 +104,44 @@ class TestEntity {
     this.uDouble,
     this.uFloat
   });
+
+  @Index(type:OBXPropertyType.Byte)
+  int iByte;
+
+  @Index(type:OBXPropertyType.Short)
+  int iShort;
+
+  @Index(type:OBXPropertyType.Char)
+  int iChar;
+
+  @Index(type:OBXPropertyType.Int)
+  int iInt;
+
+  @Index(type:OBXPropertyType.Float)
+  double iFloat;
+
+  // implicitly determined types
+  @Index()
+  String iString;
+
+  @Index()
+  int iLong;
+
+  @Index()
+  double iDouble;
+
+  @Index()
+  bool iBool;
+
+  TestEntity.index({
+    this.iString,
+    this.iLong,
+    this.iInt,
+    this.iShort,
+    this.iBool,
+    this.iByte,
+    this.iChar,
+    this.iDouble,
+    this.iFloat
+  });
 }
