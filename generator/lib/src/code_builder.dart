@@ -127,8 +127,6 @@ class CodeBuilder extends Builder {
           'Entity ${entity.name}(${entity.id.toString()}) not found in the code, removing from the model');
       model.removeEntity(entity);
     });
-
-    entities.forEach((entity) => mergeEntity(model, entity));
   }
 
   void mergeProperty(ModelEntity entity, ModelProperty prop) {
