@@ -13,8 +13,8 @@ typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
 class Observable {
 
-  static final anyObserver = <int, Pointer<Void>>{};
-  static final any = <int, Map<int, Any>>{};
+  static final _anyObserver = <int, Pointer<Void>>{};
+  static final _any = <int, Map<int, Any>>{};
 
   // sync:true -> ObjectBoxException: 10001 TX is not active anymore: #101
   static final controller = StreamController<int>.broadcast();
@@ -25,8 +25,8 @@ class Observable {
     final storeAddress = user_data.address;
     for(var i=0; i<mutated_count; i++) {
       // call schema's callback
-      if (any.containsKey(storeAddress) && any[storeAddress].containsKey(mutated_ids[i])) {
-        any[storeAddress][mutated_ids[i]](user_data, mutated_ids, mutated_count);
+      if (_any.containsKey(storeAddress) && _any[storeAddress].containsKey(mutated_ids[i])) {
+        _any[storeAddress][mutated_ids[i]](user_data, mutated_ids, mutated_count);
       }
     }
   }
@@ -34,17 +34,17 @@ class Observable {
   static void subscribe(Store store) {
     final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
     final storePtr = store.ptr;
-    anyObserver[storePtr.address] = bindings.obx_observe(storePtr, callback, storePtr);
+    _anyObserver[storePtr.address] = bindings.obx_observe(storePtr, callback, storePtr);
   }
 
   // #53 ffi:Pointer finalizer
   static void unsubscribe(Store store) {
     final storeAddress = store.ptr.address;
-    if (!anyObserver.containsKey(storeAddress)) {
+    if (!_anyObserver.containsKey(storeAddress)) {
       return;
     }
-    bindings.obx_observer_close(anyObserver[storeAddress]);
-    anyObserver.remove(storeAddress);
+    bindings.obx_observer_close(_anyObserver[storeAddress]);
+    _anyObserver.remove(storeAddress);
   }
 }
 
@@ -58,14 +58,14 @@ extension Streamable<T> on Query<T> {
 
     final storePtr = store.ptr;
 
-    if (!Observable.anyObserver.containsKey(storePtr)) {
+    if (!Observable._anyObserver.containsKey(storePtr)) {
       store.subscribe();
     }
 
     final storeAddress = storePtr.address;
 
-    Observable.any[storeAddress] ??= <int, Any>{};
-    Observable.any[storeAddress][entityId] ??= (u, _, __) {
+    Observable._any[storeAddress] ??= <int, Any>{};
+    Observable._any[storeAddress][entityId] ??= (u, _, __) {
       // dummy value to trigger an event
       Observable.controller.add(u.address);
     };
