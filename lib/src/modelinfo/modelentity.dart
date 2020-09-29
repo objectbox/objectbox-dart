@@ -1,8 +1,8 @@
-import '../util.dart';
 import 'iduid.dart';
 import 'modelinfo.dart';
 import 'modelproperty.dart';
-import 'package:objectbox/src/bindings/constants.dart';
+import '../bindings/constants.dart';
+import '../util.dart';
 
 /// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
 /// information: id, name and last property id.
@@ -110,40 +110,38 @@ class ModelEntity {
     return ret ??= findPropertyByName(other.name);
   }
 
-  ModelProperty createProperty(String name, int uid, int indexUid) {
-    var id = 1;
-    if (properties.isNotEmpty) id = lastPropertyId.id + 1;
+  ModelProperty createProperty(
+      String name, int uid, int type, int flags, int indexUid) {
+    final id = properties.isNotEmpty ? lastPropertyId.id + 1 : 1;
     if (uid != 0 && model.containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
+    final property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
 
-    var isIndexer = property.flags.isIndexer;
-    if (isIndexer) {
+    if (flags.isIndexer) {
       if (indexUid != 0 && model.containsUid(indexUid)) {
         throw Exception('index uid already exists: $uid');
       }
       property.indexId = IdUid(_model.lastIndexId.id + 1,
           indexUid == 0 ? model.generateUid() : indexUid);
+
+      _model.lastIndexId = property.indexId;
     }
+
+    property.type = type;
+    property.flags = flags;
 
     properties.add(property);
     lastPropertyId = property.id;
-
-    if (isIndexer) {
-      _model.lastIndexId = property.indexId;
-    }
 
     return property;
   }
 
   ModelProperty addProperty(ModelProperty prop) {
-    final modelProp = createProperty(prop.name, prop.id.uid, prop.indexId.uid);
-    modelProp.type = prop.type;
-    modelProp.flags = prop.flags;
-    return modelProp;
+    return createProperty(
+        prop.name, prop.id.uid, prop.type, prop.flags, prop.indexId.uid);
   }
 
   void removeProperty(ModelProperty prop) {
@@ -155,14 +153,15 @@ class ModelEntity {
     }
     properties = properties.where((p) => p != foundProp).toList();
     model.retiredPropertyUids.add(prop.id.uid);
+
+    if (prop.flags.isIndexer) {
+      model.retiredIndexUids.add(prop.indexId.uid);
+    }
   }
 
   bool containsUid(int searched) {
     if (id.uid == searched) return true;
     if (lastPropertyId != null && lastPropertyId.uid == searched) return true;
-    if (properties.indexWhere((p) => p.containsUid(searched)) != -1) {
-      return true;
-    }
-    return false;
+    return properties.indexWhere((p) => p.containsUid(searched)) != -1;
   }
 }

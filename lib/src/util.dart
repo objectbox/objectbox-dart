@@ -5,7 +5,6 @@ bool listContains<T>(List<T> list, T item) =>
 
 extension Indexer on int {
   bool get isIndexer =>
-      this & (OBXPropertyFlag.INDEXED + OBXPropertyFlag.UNIQUE) == 40 ||
       this & OBXPropertyFlag.INDEXED == 8 ||
       this & OBXPropertyFlag.UNIQUE == 32;
 }

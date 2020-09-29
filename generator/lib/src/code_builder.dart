@@ -135,10 +135,15 @@ class CodeBuilder extends Builder {
       log.info('Found new property ${entity.name}.${prop.name}');
       entity.addProperty(prop);
     } else {
-      propInModel.name = prop.name;
-      propInModel.type = prop.type;
-      propInModel.flags = prop.flags;
-      propInModel.indexId = prop.indexId;
+      if (propInModel.name != prop.name) {
+        log.warning('The name of the property(${prop.name}) changed.');
+      }
+      if (propInModel.flags != prop.flags) {
+        log.warning('The flags of the property(${prop.name}) changed.');
+      }
+      if (propInModel.type != prop.type) {
+        log.warning('The type of the property(${prop.name}) changed.');
+      }
     }
   }
 

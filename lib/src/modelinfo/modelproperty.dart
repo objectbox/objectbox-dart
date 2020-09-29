@@ -19,8 +19,9 @@ class ModelProperty {
     name = data['name'];
     type = data['type'];
     flags = data.containsKey('flags') ? data['flags'] : 0;
-    indexId =
-        data.containsKey('indexId') ? IdUid.fromString(data['indexId']) : null;
+    if (flags.isIndexer) {
+      indexId = IdUid.fromString(data['indexId']);
+    }
     if (check) validate();
   }
 
