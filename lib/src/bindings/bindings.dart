@@ -43,11 +43,15 @@ class _ObjectBoxBindings {
       int entity_uid) obx_model_entity;
   int Function(Pointer<Void> model, Pointer<Utf8> name, int type,
       int property_id, int property_uid) obx_model_property;
+  int Function(Pointer<Void> model, int index_id, int index_uid)
+      obx_model_property_index_id;
   int Function(Pointer<Void> model, int flags) obx_model_property_flags;
   int Function(Pointer<Void> model, int property_id, int property_uid)
       obx_model_entity_last_property_id;
-  int Function(Pointer<Void> model, int entity_id, int entity_uid)
+  void Function(Pointer<Void> model, int entity_id, int entity_uid)
       obx_model_last_entity_id;
+  void Function(Pointer<Void> model, int entity_id, int index_uid)
+      obx_model_last_index_id;
 
   // object store management
   Pointer<Void> Function() obx_opt;
@@ -282,6 +286,9 @@ class _ObjectBoxBindings {
         _fn<obx_model_entity_native_t>('obx_model_entity').asFunction();
     obx_model_property =
         _fn<obx_model_property_native_t>('obx_model_property').asFunction();
+    obx_model_property_index_id =
+        _fn<obx_model_property_index_id_native_t>('obx_model_property_index_id')
+            .asFunction();
     obx_model_property_flags =
         _fn<obx_model_property_flags_native_t>('obx_model_property_flags')
             .asFunction();
@@ -291,6 +298,9 @@ class _ObjectBoxBindings {
             .asFunction();
     obx_model_last_entity_id =
         _fn<obx_model_last_entity_id_native_t>('obx_model_last_entity_id')
+            .asFunction();
+    obx_model_last_index_id =
+        _fn<obx_model_last_index_id_native_t>('obx_model_last_entity_id')
             .asFunction();
 
     // object store management

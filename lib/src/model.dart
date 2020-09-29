@@ -21,6 +21,12 @@ class Model {
       // set last entity id
       bindings.obx_model_last_entity_id(
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
+
+      // set last index id
+      if (model.lastIndexId != null) {
+        bindings.obx_model_last_index_id(
+            _cModel, model.lastIndexId.id, model.lastIndexId.uid);
+      }
     } catch (e) {
       bindings.obx_model_free(_cModel);
       _cModel = null;
@@ -59,6 +65,11 @@ class Model {
     try {
       _check(bindings.obx_model_property(
           _cModel, name, prop.type, prop.id.id, prop.id.uid));
+
+      if (prop.indexId != null) {
+        _check(bindings.obx_model_property_index_id(
+            _cModel, prop.indexId.id, prop.indexId.uid));
+      }
     } finally {
       free(name);
     }

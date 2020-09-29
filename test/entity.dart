@@ -77,18 +77,12 @@ class TestEntity {
   @Unique(type:OBXPropertyType.Int)
   int uInt;
 
-  @Unique(type:OBXPropertyType.Float)
-  double uFloat;
-
   // implicitly determined types
   @Unique()
   String uString;
 
   @Unique()
   int uLong;
-
-  @Unique()
-  double uDouble;
 
   @Unique()
   bool uBool;
@@ -101,8 +95,6 @@ class TestEntity {
     this.uBool,
     this.uByte,
     this.uChar,
-    this.uDouble,
-    this.uFloat
   });
 
   @Index(type:OBXPropertyType.Byte)
@@ -117,18 +109,12 @@ class TestEntity {
   @Index(type:OBXPropertyType.Int)
   int iInt;
 
-  @Index(type:OBXPropertyType.Float)
-  double iFloat;
-
   // implicitly determined types
   @Index()
   String iString;
 
   @Index()
   int iLong;
-
-  @Index()
-  double iDouble;
 
   @Index()
   bool iBool;
@@ -141,7 +127,5 @@ class TestEntity {
     this.iBool,
     this.iByte,
     this.iChar,
-    this.iDouble,
-    this.iFloat
   });
 }
