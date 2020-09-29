@@ -149,12 +149,12 @@ class EntityResolver extends Builder {
 
       log.info(
           '  ${isIndexer ? "index " : ""}property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
+    }
 
-      // some checks on the entity's integrity
-      if (!hasIdProperty) {
-        throw InvalidGenerationSourceError(
-            'in target ${elementBare.name}: has no properties annotated with @Id');
-      }
+    // some checks on the entity's integrity
+    if (!hasIdProperty) {
+      throw InvalidGenerationSourceError(
+          'in target ${elementBare.name}: has no properties annotated with @Id');
     }
 
     return readEntity;
