@@ -6,6 +6,7 @@ import 'package:source_gen/source_gen.dart';
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox/src/bindings/constants.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
+import 'package:objectbox/src/util.dart';
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
 /// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
@@ -70,7 +71,7 @@ class EntityResolver extends Builder {
       }
 
       int fieldType, flags = 0;
-      int propUid;
+      int propUid, indexUid;
 
       if (_idChecker.hasAnnotationOfExact(f)) {
         if (hasIdProperty) {
@@ -92,11 +93,13 @@ class EntityResolver extends Builder {
       } else if (_uniqueChecker.hasAnnotationOfExact(f)) {
         final _uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
         propUid = _uniqueAnnotation.getField('uid').toIntValue();
+        indexUid = _uniqueAnnotation.getField('indexUid').toIntValue();
         fieldType = _uniqueAnnotation.getField('type').toIntValue();
         flags = OBXPropertyFlag.UNIQUE;
       } else if (_indexChecker.hasAnnotationOfExact(f)) {
         final _indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
         propUid = _indexAnnotation.getField('uid').toIntValue();
+        indexUid = _indexAnnotation.getField('indexUid').toIntValue();
         fieldType = _indexAnnotation.getField('type').toIntValue();
         flags = OBXPropertyFlag.INDEXED;
       } else if (_propertyChecker.hasAnnotationOfExact(f)) {
@@ -133,17 +136,25 @@ class EntityResolver extends Builder {
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
       final prop =
           ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+
+      // TODO test on @Property(...) that uses the proper flags for index
+      final isIndexer = flags.isIndexer;
+
+      if (isIndexer) {
+        prop.indexId = indexUid == null ? IdUid.empty() : IdUid(0, indexUid);
+      }
+
       if (propUid != null) prop.id.uid = propUid;
       readEntity.properties.add(prop);
 
       log.info(
-          '  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
-    }
+          '  ${isIndexer ? "index " : ""}property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
 
-    // some checks on the entity's integrity
-    if (!hasIdProperty) {
-      throw InvalidGenerationSourceError(
-          'in target ${elementBare.name}: has no properties annotated with @Id');
+      // some checks on the entity's integrity
+      if (!hasIdProperty) {
+        throw InvalidGenerationSourceError(
+            'in target ${elementBare.name}: has no properties annotated with @Id');
+      }
     }
 
     return readEntity;

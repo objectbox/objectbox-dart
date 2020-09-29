@@ -1,9 +1,10 @@
 import 'modelentity.dart';
 import 'iduid.dart';
+import '../util.dart';
 
 /// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
-  IdUid id;
+  IdUid id, indexId;
   String name;
   int type, flags;
   ModelEntity entity;
@@ -18,6 +19,8 @@ class ModelProperty {
     name = data['name'];
     type = data['type'];
     flags = data.containsKey('flags') ? data['flags'] : 0;
+    indexId =
+        data.containsKey('indexId') ? IdUid.fromString(data['indexId']) : null;
     if (check) validate();
   }
 
@@ -36,6 +39,9 @@ class ModelProperty {
     ret['name'] = name;
     ret['type'] = type;
     if (flags != 0) ret['flags'] = flags;
+    if (flags.isIndexer) {
+      ret['indexId'] = indexId.toString();
+    }
     return ret;
   }
 

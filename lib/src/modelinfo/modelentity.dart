@@ -110,7 +110,7 @@ class ModelEntity {
     return ret ??= findPropertyByName(other.name);
   }
 
-  ModelProperty createProperty(String name, [int uid = 0]) {
+  ModelProperty createProperty(String name, int uid, int indexUid) {
     var id = 1;
     if (properties.isNotEmpty) id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
@@ -119,13 +119,28 @@ class ModelEntity {
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
     var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
+
+    var isIndexer = property.flags.isIndexer;
+    if (isIndexer) {
+      if (indexUid != 0 && model.containsUid(indexUid)) {
+        throw Exception('index uid already exists: $uid');
+      }
+      property.indexId = IdUid(_model.lastIndexId.id + 1,
+          indexUid == 0 ? model.generateUid() : indexUid);
+    }
+
     properties.add(property);
     lastPropertyId = property.id;
+
+    if (isIndexer) {
+      _model.lastIndexId = property.indexId;
+    }
+
     return property;
   }
 
   ModelProperty addProperty(ModelProperty prop) {
-    final modelProp = createProperty(prop.name, prop.id.uid);
+    final modelProp = createProperty(prop.name, prop.id.uid, prop.indexId.uid);
     modelProp.type = prop.type;
     modelProp.flags = prop.flags;
     return modelProp;

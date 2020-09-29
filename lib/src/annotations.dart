@@ -26,11 +26,11 @@ class Transient {
 }
 
 class Unique {
-  final int uid, type;
-  const Unique({this.type, this.uid});
+  final int uid, indexUid, type;
+  const Unique({this.type, this.uid, this.indexUid});
 }
 
 class Index {
-  final int uid, type;
-  const Index({this.type, this.uid});
+  final int uid, indexUid, type;
+  const Index({this.type, this.uid, this.indexUid});
 }
