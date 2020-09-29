@@ -73,7 +73,7 @@ class ViewModel {
 
   get queryStream => _query.findStream();
 
-  get allNotes => _box.getAll();
+  get allNotes => _query.find();
 
   void dispose() {
     _query.close();
