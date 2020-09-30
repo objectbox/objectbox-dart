@@ -84,15 +84,11 @@ class TestEntity {
   @Unique()
   int uLong;
 
-  @Unique()
-  bool uBool;
-
   TestEntity.unique({
     this.uString,
     this.uLong,
     this.uInt,
     this.uShort,
-    this.uBool,
     this.uByte,
     this.uChar,
   });
@@ -116,15 +112,11 @@ class TestEntity {
   @Index()
   int iLong;
 
-  @Index()
-  bool iBool;
-
   TestEntity.index({
     this.iString,
     this.iLong,
     this.iInt,
     this.iShort,
-    this.iBool,
     this.iByte,
     this.iChar,
   });
