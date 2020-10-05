@@ -29,11 +29,16 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
-    await Future.delayed(Duration(seconds: 0)); // ffi explodes without
+
+    // The delay is here to ensure that the
+    // callback execution is executed sequentially,
+    // otherwise the testing framework's execution
+    // will be prioritized (for some reason), before any callback.
+    await Future.delayed(Duration(seconds: 0));
 
     box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
       TestEntity(tString: 'for now') ]);
-    await Future.delayed(Duration(seconds: 0)); // ffi explodes without
+    await Future.delayed(Duration(seconds: 0));
 
     expect(result,
         ['Hello world', 'for now, Goodbye, Hello world']);
@@ -53,12 +58,12 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
-    await Future.delayed(Duration(seconds: 0)); // ffi explodes without
+    await Future.delayed(Duration(seconds: 0));
 
     // idem, see above
     box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
       TestEntity(tString: 'for now') ]);
-    await Future.delayed(Duration(seconds: 0)); // ffi explodes without
+    await Future.delayed(Duration(seconds: 0));
 
     expect(result, [1, 3]);
 
