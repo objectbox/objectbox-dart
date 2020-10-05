@@ -300,7 +300,7 @@ class _ObjectBoxBindings {
         _fn<obx_model_last_entity_id_native_t>('obx_model_last_entity_id')
             .asFunction();
     obx_model_last_index_id =
-        _fn<obx_model_last_index_id_native_t>('obx_model_last_entity_id')
+        _fn<obx_model_last_index_id_native_t>('obx_model_last_index_id')
             .asFunction();
 
     // object store management
