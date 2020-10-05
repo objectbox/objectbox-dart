@@ -65,9 +65,6 @@ class TestEntity {
     disregard = 1;
   }
 
-  @Unique(type:OBXPropertyType.Byte)
-  int uByte;
-
   @Unique(type:OBXPropertyType.Short)
   int uShort;
 
@@ -89,12 +86,8 @@ class TestEntity {
     this.uLong,
     this.uInt,
     this.uShort,
-    this.uByte,
     this.uChar,
   });
-
-  @Index(type:OBXPropertyType.Byte)
-  int iByte;
 
   @Index(type:OBXPropertyType.Short)
   int iShort;
@@ -117,7 +110,6 @@ class TestEntity {
     this.iLong,
     this.iInt,
     this.iShort,
-    this.iByte,
     this.iChar,
   });
 }
