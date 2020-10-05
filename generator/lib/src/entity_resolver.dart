@@ -141,6 +141,11 @@ class EntityResolver extends Builder {
       final isIndexer = flags.isIndexer;
 
       if (isIndexer) {
+        if (fieldType == OBXPropertyType.Float || fieldType == OBXPropertyType.Double || fieldType == OBXPropertyType.Byte) {
+          throw InvalidGenerationSourceError(
+              'property ${prop.name} with type ${prop.type} cannot be used as an index or made unique');
+        }
+
         prop.indexId = indexUid == null ? IdUid.empty() : IdUid(0, indexUid);
       }
 
