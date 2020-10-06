@@ -65,16 +65,20 @@ class TestEntity {
     disregard = 1;
   }
 
-  @Unique(type:OBXPropertyType.Byte)
+  @Property(type:OBXPropertyType.Byte)
+  @Unique()
   int uByte;
 
-  @Unique(type:OBXPropertyType.Short)
+  @Property(type:OBXPropertyType.Short)
+  @Unique()
   int uShort;
 
-  @Unique(type:OBXPropertyType.Char)
+  @Property(type:OBXPropertyType.Char)
+  @Unique()
   int uChar;
 
-  @Unique(type:OBXPropertyType.Int)
+  @Property(type: OBXPropertyType.Int)
+  @Unique()
   int uInt;
 
   // implicitly determined types
@@ -93,16 +97,20 @@ class TestEntity {
     this.uChar,
   });
 
-  @Index(type:OBXPropertyType.Byte)
+  @Property(type:OBXPropertyType.Byte)
+  @Index()
   int iByte;
 
-  @Index(type:OBXPropertyType.Short)
+  @Property(type:OBXPropertyType.Short)
+  @Index()
   int iShort;
 
-  @Index(type:OBXPropertyType.Char)
+  @Property(type:OBXPropertyType.Char)
+  @Index()
   int iChar;
 
-  @Index(type:OBXPropertyType.Int)
+  @Property(type:OBXPropertyType.Int)
+  @Index()
   int iInt;
 
   // implicitly determined types

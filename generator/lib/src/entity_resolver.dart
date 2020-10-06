@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox/src/bindings/constants.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:objectbox/src/util.dart';
+import 'package:source_gen/source_gen.dart';
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
 /// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
@@ -90,18 +91,6 @@ class EntityResolver extends Builder {
 
         final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
         propUid = _idAnnotation.getField('uid').toIntValue();
-      } else if (_uniqueChecker.hasAnnotationOfExact(f)) {
-        final _uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
-        propUid = _uniqueAnnotation.getField('uid').toIntValue();
-        indexUid = _uniqueAnnotation.getField('indexUid').toIntValue();
-        fieldType = _uniqueAnnotation.getField('type').toIntValue();
-        flags = OBXPropertyFlag.UNIQUE;
-      } else if (_indexChecker.hasAnnotationOfExact(f)) {
-        final _indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
-        propUid = _indexAnnotation.getField('uid').toIntValue();
-        indexUid = _indexAnnotation.getField('indexUid').toIntValue();
-        fieldType = _indexAnnotation.getField('type').toIntValue();
-        flags = OBXPropertyFlag.INDEXED;
       } else if (_propertyChecker.hasAnnotationOfExact(f)) {
         final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
         propUid = _propertyAnnotation.getField('uid').toIntValue();
@@ -133,6 +122,56 @@ class EntityResolver extends Builder {
         }
       }
 
+      // Index and unique index.
+      final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
+      final hasUniqueAnnotation = _uniqueChecker.hasAnnotationOfExact(f);
+      if (indexAnnotation != null || hasUniqueAnnotation) {
+        // Throw if property type does not support any index.
+        if (fieldType == OBXPropertyType.Float || fieldType == OBXPropertyType.Double || fieldType == OBXPropertyType.ByteVector) {
+          throw InvalidGenerationSourceError(
+              "in target ${elementBare.name}: @Index/@Unique is not supported for type '${f.type.toString()}' of field '${f.name}'");
+        }
+
+        // TODO Throw if index used on Id property.
+
+
+        // If available use index type from annotation.
+        var indexFlag;
+        if (indexAnnotation != null) {
+          indexFlag = indexAnnotation.getField('flag').toIntValue();
+          if (indexFlag != null &&
+              (indexFlag != OBXPropertyFlag.INDEXED
+              || indexFlag != OBXPropertyFlag.INDEX_HASH
+              || indexFlag != OBXPropertyFlag.INDEX_HASH64)) {
+            throw InvalidGenerationSourceError(
+                'in target ${elementBare.name}: @Index flag must be one of [OBXPropertyFlag.INDEXED, OBXPropertyFlag.INDEX_HASH, OBXPropertyFlag.INDEX_HASH64] or none for auto-detection');
+          }
+        }
+
+        // Fall back to index type based on property type.
+        final supportsHashIndex = fieldType == OBXPropertyType.String;
+        if (indexFlag == null) {
+          if (supportsHashIndex) {
+            indexFlag = OBXPropertyFlag.INDEX_HASH;
+          } else {
+            indexFlag = OBXPropertyFlag.INDEXED;
+          }
+        }
+
+        // Throw if HASH or HASH64 is not supported by property type.
+        if (!supportsHashIndex &&
+            (indexFlag == OBXPropertyFlag.INDEX_HASH ||
+                indexFlag == OBXPropertyFlag.INDEX_HASH64)) {
+          throw InvalidGenerationSourceError(
+              "in target ${elementBare.name}: a hash index is not supported for type '${f.type.toString()}' of field '${f.name}'");
+        }
+
+        flags |= indexFlag;
+        if (hasUniqueAnnotation) {
+          flags |= OBXPropertyFlag.UNIQUE;
+        }
+      }
+
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
       final prop =
           ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
@@ -141,11 +180,6 @@ class EntityResolver extends Builder {
       final isIndexer = flags.isIndexer;
 
       if (isIndexer) {
-        if (fieldType == OBXPropertyType.Float || fieldType == OBXPropertyType.Double || fieldType == OBXPropertyType.ByteVector) {
-          throw InvalidGenerationSourceError(
-              'property ${prop.name} with type ${prop.type} cannot be used as an index or made unique');
-        }
-
         prop.indexId = indexUid == null ? IdUid.empty() : IdUid(0, indexUid);
       }
 
