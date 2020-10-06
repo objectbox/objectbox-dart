@@ -141,7 +141,7 @@ class EntityResolver extends Builder {
       final isIndexer = flags.isIndexer;
 
       if (isIndexer) {
-        if (fieldType == OBXPropertyType.Float || fieldType == OBXPropertyType.Double || fieldType == OBXPropertyType.Byte) {
+        if (fieldType == OBXPropertyType.Float || fieldType == OBXPropertyType.Double || fieldType == OBXPropertyType.ByteVector) {
           throw InvalidGenerationSourceError(
               'property ${prop.name} with type ${prop.type} cannot be used as an index or made unique');
         }
