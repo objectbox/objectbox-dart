@@ -1,6 +1,7 @@
 # In development
 * Update to objectbox-c 0.10.0.
 * Update to objectbox-android 2.7.1.
+* Update to objectbox-swift 1.4.0.
 
 0.7.0 (2020-08-14)
 ------------------
