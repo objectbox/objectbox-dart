@@ -158,6 +158,10 @@ class _ObjectBoxBindings {
   // query
   obx_query_t obx_query_create;
   obx_query_close_dart_t obx_query_close;
+
+  obx_query_offset_dart_t obx_query_offset;
+  obx_query_limit_dart_t obx_query_limit;
+
   obx_query_find_t<int> obx_query_find;
   obx_query_find_ids_t<int> obx_query_find_ids;
 
@@ -482,6 +486,11 @@ class _ObjectBoxBindings {
     obx_query_create = _fn<obx_query_t>('obx_query').asFunction();
     obx_query_close =
         _fn<obx_query_close_native_t>('obx_query_close').asFunction();
+
+    obx_query_offset =
+        _fn<obx_query_offset_native_t>('obx_query_offset').asFunction();
+    obx_query_limit =
+        _fn<obx_query_offset_native_t>('obx_query_limit').asFunction();
 
     obx_query_find_ids =
         _fn<obx_query_find_ids_t<Uint64>>('obx_query_find_ids').asFunction();

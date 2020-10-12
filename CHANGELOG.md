@@ -4,6 +4,7 @@
 * Update to objectbox-swift 1.4.0.
 * String startsWith and endsWith condition: removed unused `descending` parameter, add `caseSensitive` parameter.
 * String greaterThan/lessThan condition: `withEqual` is deprecated, use the greaterOrEqual/lessOrEqual condition instead.
+* Query find/findIds `offset` and `limit` parameters are deprecated, set them using the equally named methods instead.
 
 0.7.0 (2020-08-14)
 ------------------

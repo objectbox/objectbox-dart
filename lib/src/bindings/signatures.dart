@@ -104,7 +104,7 @@ typedef obx_box_count_native_t = Int32 Function(
 typedef obx_box_is_empty_native_t = Int32 Function(
     Pointer<Void> box, Pointer<Uint8> is_empty);
 
-// no typedef for non-functions yet, see https://github.com/dart-lang/sdk/issues/2626
+// no typedef for non-functions yet, see https://github.com/dart-lang/language/issues/65
 // typedef obx_err = Int32
 // typedef Pointer<Int8> -> char[]
 // typedef Pointer<Int32> -> int (e.g. obx_qb_cond);
@@ -185,10 +185,17 @@ typedef obx_query_t = Pointer<Void> Function(Pointer<Void> builder);
 typedef obx_query_close_native_t = Int32 Function(Pointer<Void> query);
 typedef obx_query_close_dart_t = int Function(Pointer<Void> query);
 
+typedef obx_query_offset_native_t = Int32 Function(
+    Pointer<Void> query, Uint64 offset); // obx_err -> Int32
+typedef obx_query_offset_dart_t = int Function(Pointer<Void> query, int offset);
+typedef obx_query_limit_native_t = Int32 Function(
+    Pointer<Void> query, Uint64 limit); // obx_err -> Int32
+typedef obx_query_limit_dart_t = int Function(Pointer<Void> query, int limit);
+
 typedef obx_query_find_t<T> = Pointer<OBX_bytes_array> Function(
-    Pointer<Void> query, T offset, T limit);
+    Pointer<Void> query);
 typedef obx_query_find_ids_t<T> = Pointer<OBX_id_array> Function(
-    Pointer<Void> query, T offset, T limit);
+    Pointer<Void> query);
 
 typedef obx_query_count_native_t = Int32 Function(
     Pointer<Void> query, Pointer<Uint64> count);
@@ -200,15 +207,11 @@ typedef obx_query_describe_t = Pointer<Utf8> Function(Pointer<Void> query);
 typedef obx_query_visit_native_t = Int32 Function(
     Pointer<Void> query,
     Pointer<NativeFunction<obx_data_visitor_native_t>> visitor,
-    Pointer<Void> user_data,
-    Uint64 offset,
-    Uint64 limit);
+    Pointer<Void> user_data); // obx_err -> Int32
 typedef obx_query_visit_dart_t = int Function(
     Pointer<Void> query,
     Pointer<NativeFunction<obx_data_visitor_native_t>> visitor,
-    Pointer<Void> user_data,
-    int offset,
-    int limit);
+    Pointer<Void> user_data);
 
 // query property
 

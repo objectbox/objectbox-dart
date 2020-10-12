@@ -574,6 +574,30 @@ class Query<T> {
     _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), 'create query');
   }
 
+  /// Configure an [offset] for this query.
+  ///
+  /// All methods that support offset will return/process Objects starting at
+  /// this offset. Example use case: use together with limit to get a slice of
+  /// the whole result, e.g. for "result paging".
+  ///
+  /// Call with offset=0 to reset to the default behavior,
+  /// i.e. starting from the first element.
+  void offset(int offset) {
+    checkObx(bindings.obx_query_offset(_cQuery, offset));
+  }
+
+  /// Configure a [limit] for this query.
+  ///
+  /// All methods that support limit will return/process only the given number
+  /// of Objects. Example use case: use together with offset to get a slice of
+  /// the whole result, e.g. for "result paging".
+  ///
+  /// Call with limit=0 to reset to the default behavior -
+  /// zero limit means no limit applied.
+  void limit(int limit) {
+    checkObx(bindings.obx_query_limit(_cQuery, limit));
+  }
+
   int count() {
     final ptr = allocate<Uint64>(count: 1);
     try {
@@ -589,14 +613,28 @@ class Query<T> {
     checkObx(bindings.obx_query_close(_cQuery));
   }
 
+  /// Finds Objects matching the query and returns the first result or null
+  /// if there are no results.
   T findFirst() {
-    final list = find(offset: 0, limit: 1);
+    offset(0);
+    limit(1);
+    final list = find();
     return (list.isEmpty ? null : list[0]);
   }
 
+  /// Finds Objects matching the query and returns their IDs.
+  ///
+  /// [offset] and [limit] are deprecated, explicitly call
+  /// the equally named methods.
   List<int> findIds({int offset = 0, int limit = 0}) {
-    final idArrayPtr = checkObxPtr(
-        bindings.obx_query_find_ids(_cQuery, offset, limit), 'find ids');
+    if (offset > 0) {
+      this.offset(offset);
+    }
+    if (limit > 0) {
+      this.limit(limit);
+    }
+    final idArrayPtr =
+        checkObxPtr(bindings.obx_query_find_ids(_cQuery), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
       return idArray.length == 0 ? <int>[] : idArray.items();
@@ -605,11 +643,21 @@ class Query<T> {
     }
   }
 
+  /// Finds Objects matching the query.
+  ///
+  /// [offset] and [limit] are deprecated, explicitly call
+  /// the equally named methods.
   List<T> find({int offset = 0, int limit = 0}) {
+    if (offset > 0) {
+      this.offset(offset);
+    }
+    if (limit > 0) {
+      this.limit(limit);
+    }
     return _store.runInTransaction(TxMode.Read, () {
       if (bindings.obx_supports_bytes_array() == 1) {
-        final bytesArray = checkObxPtr(
-            bindings.obx_query_find(_cQuery, offset, limit), 'find');
+        final bytesArray =
+            checkObxPtr(bindings.obx_query_find(_cQuery), 'find');
         try {
           return _fbManager.unmarshalArray(bytesArray);
         } finally {
@@ -623,8 +671,8 @@ class Query<T> {
           return true;
         });
 
-        final err = bindings.obx_query_visit(
-            _cQuery, visitor.fn, visitor.userData, offset, limit);
+        final err =
+            bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData);
         visitor.close();
         checkObx(err);
         return results;
