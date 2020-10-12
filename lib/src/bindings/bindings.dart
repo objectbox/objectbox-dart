@@ -93,7 +93,7 @@ class _ObjectBoxBindings {
       obx_box_ids_for_put;
   int Function(
           Pointer<Void> box, int id, Pointer<Uint8> data, int size, int mode)
-      obx_box_put;
+      obx_box_put5;
   int Function(Pointer<Void> box, Pointer<OBX_bytes_array> objects,
       Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
@@ -340,7 +340,7 @@ class _ObjectBoxBindings {
         _fn<obx_box_id_for_put_native_t>('obx_box_id_for_put').asFunction();
     obx_box_ids_for_put =
         _fn<obx_box_ids_for_put_native_t>('obx_box_ids_for_put').asFunction();
-    obx_box_put = _fn<obx_box_put_native_t>('obx_box_put').asFunction();
+    obx_box_put5 = _fn<obx_box_put_native_t>('obx_box_put5').asFunction();
     obx_box_put_many =
         _fn<obx_box_put_many_native_t>('obx_box_put_many').asFunction();
     obx_box_remove =
