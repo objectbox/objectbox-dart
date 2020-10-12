@@ -1,3 +1,6 @@
+# In development
+* Update to objectbox-c 0.10.0.
+
 0.7.0 (2020-08-14)
 ------------------
 * Flutter v1.20 support 
