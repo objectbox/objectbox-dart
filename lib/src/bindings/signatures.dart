@@ -150,15 +150,6 @@ typedef obx_qb_cond_string_op_1_native_t = Int32 Function(Pointer<Void> builder,
 typedef obx_qb_cond_string_op_1_dart_t = int Function(Pointer<Void> builder,
     int property_id, Pointer<Utf8> value, int case_sensitive);
 
-typedef obx_qb_string_lt_gt_op_native_t = Int32 Function(
-    Pointer<Void> builder,
-    Uint32 property_id,
-    Pointer<Utf8> value,
-    Int8 case_sensitive,
-    Int8 with_equal);
-typedef obx_qb_string_lt_gt_op_dart_t = int Function(Pointer<Void> builder,
-    int property_id, Pointer<Utf8> value, int case_sensitive, int with_equal);
-
 typedef obx_qb_string_in_native_t = Int32 Function(
     Pointer<Void> builder,
     Uint32 property_id,
@@ -172,15 +163,10 @@ typedef obx_qb_string_in_dart_t = int Function(
     int count,
     int case_sensitive);
 
-typedef obx_qb_bytes_eq_native_t = Int32 Function(Pointer<Void> builder,
+typedef obx_qb_cond_bytes_native_t = Int32 Function(Pointer<Void> builder,
     Uint32 property_id, Pointer<Void> value, Uint64 size);
-typedef obx_qb_bytes_eq_dart_t = int Function(
+typedef obx_qb_cond_bytes_dart_t = int Function(
     Pointer<Void> builder, int property_id, Pointer<Void> value, int size);
-
-typedef obx_qb_bytes_lt_gt_native_t = Int32 Function(Pointer<Void> builder,
-    Uint32 property_id, Pointer<Void> value, Uint64 size, Int8 with_equal);
-typedef obx_qb_bytes_lt_gt_dart_t = int Function(Pointer<Void> builder,
-    int property_id, Pointer<Void> value, int size, int with_equal);
 
 typedef obx_qb_param_alias_native_t = Int32 Function(
     Pointer<Void> builder, Pointer<Utf8> alias);

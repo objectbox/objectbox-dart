@@ -59,14 +59,8 @@ class QueryStringProperty extends QueryProperty {
   QueryStringProperty({int entityId, int propertyId, int obxType})
       : super(entityId, propertyId, obxType);
 
-  Condition _op(String p, ConditionOp cop,
-      [bool caseSensitive = false, bool descending = false]) {
-    return StringCondition(cop, this, p, null, caseSensitive, descending);
-  }
-
-  Condition _opWithEqual(String p, ConditionOp cop,
-      [bool caseSensitive = false, bool withEqual = false]) {
-    return StringCondition._withEqual(cop, this, p, caseSensitive, withEqual);
+  Condition _op(String p, ConditionOp cop, [bool caseSensitive = false]) {
+    return StringCondition(cop, this, p, null, caseSensitive);
   }
 
   Condition _opList(List<String> list, ConditionOp cop,
@@ -75,23 +69,23 @@ class QueryStringProperty extends QueryProperty {
   }
 
   Condition equals(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.eq, caseSensitive, false);
+    return _op(p, ConditionOp.eq, caseSensitive);
   }
 
   Condition notEquals(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.notEq, caseSensitive, false);
+    return _op(p, ConditionOp.notEq, caseSensitive);
   }
 
-  Condition endsWith(String p, {bool descending = false}) {
-    return _op(p, ConditionOp.stringEnds, false, descending);
+  Condition endsWith(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp.stringEnds, caseSensitive);
   }
 
-  Condition startsWith(String p, {bool descending = false}) {
-    return _op(p, ConditionOp.stringStarts, false, descending);
+  Condition startsWith(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp.stringStarts, caseSensitive);
   }
 
   Condition contains(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringContains, caseSensitive, false);
+    return _op(p, ConditionOp.stringContains, caseSensitive);
   }
 
   Condition inside(List<String> list, {bool caseSensitive = false}) {
@@ -102,14 +96,32 @@ class QueryStringProperty extends QueryProperty {
     return _opList(list, ConditionOp.notIn, caseSensitive);
   }
 
+  /// Using [withEqual] is deprecated, use [greaterOrEqual] instead.
   Condition greaterThan(String p,
       {bool caseSensitive = false, bool withEqual = false}) {
-    return _opWithEqual(p, ConditionOp.gt, caseSensitive, withEqual);
+    if (withEqual) {
+      return greaterOrEqual(p, caseSensitive: caseSensitive);
+    } else {
+      return _op(p, ConditionOp.gt, caseSensitive);
+    }
   }
 
+  Condition greaterOrEqual(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp.greaterOrEq, caseSensitive);
+  }
+
+  /// Using [withEqual] is deprecated, use [lessOrEqual] instead.
   Condition lessThan(String p,
       {bool caseSensitive = false, bool withEqual = false}) {
-    return _opWithEqual(p, ConditionOp.lt, caseSensitive, withEqual);
+    if (withEqual) {
+      return lessOrEqual(p, caseSensitive: caseSensitive);
+    } else {
+      return _op(p, ConditionOp.lt, caseSensitive);
+    }
+  }
+
+  Condition lessOrEqual(String p, {bool caseSensitive = false}) {
+    return _op(p, ConditionOp.lessOrEq, caseSensitive);
   }
 
 //  Condition operator ==(String p) => equals(p); // see issue #43
@@ -222,7 +234,9 @@ enum ConditionOp {
   stringStarts,
   stringEnds,
   gt,
+  greaterOrEq,
   lt,
+  lessOrEq,
   inside,
   notIn,
   between,
@@ -289,10 +303,10 @@ abstract class PropertyCondition<DartType> extends Condition {
 }
 
 class StringCondition extends PropertyCondition<String> {
-  bool _caseSensitive, _withEqual;
+  bool _caseSensitive;
 
   StringCondition(ConditionOp op, QueryProperty prop, String value,
-      [String value2, bool caseSensitive, bool descending])
+      [String value2, bool caseSensitive])
       : super(op, prop, value, value2) {
     _caseSensitive = caseSensitive;
   }
@@ -301,13 +315,6 @@ class StringCondition extends PropertyCondition<String> {
       ConditionOp op, QueryProperty prop, List<String> list, bool caseSensitive)
       : super.fromList(op, prop, list) {
     _caseSensitive = caseSensitive;
-  }
-
-  StringCondition._withEqual(ConditionOp op, QueryProperty prop, String value,
-      bool caseSensitive, bool withEqual)
-      : super(op, prop, value) {
-    _caseSensitive = caseSensitive;
-    _withEqual = withEqual;
   }
 
   int _op1(QueryBuilder builder, obx_qb_cond_string_op_1_dart_t func) {
@@ -321,7 +328,7 @@ class StringCondition extends PropertyCondition<String> {
   }
 
   int _inside(QueryBuilder builder) {
-    final func = bindings.obx_qb_string_in;
+    final func = bindings.obx_qb_in_strings;
     final listLength = _list.length;
     final arrayOfCStrings = allocate<Pointer<Utf8>>(count: listLength);
     try {
@@ -338,16 +345,6 @@ class StringCondition extends PropertyCondition<String> {
     }
   }
 
-  int _opWithEqual(QueryBuilder builder, obx_qb_string_lt_gt_op_dart_t func) {
-    final cStr = Utf8.toUtf8(_value);
-    try {
-      return func(builder._cBuilder, _property._propertyId, cStr,
-          _caseSensitive ? 1 : 0, _withEqual ? 1 : 0);
-    } finally {
-      free(cStr);
-    }
-  }
-
   @override
   int apply(QueryBuilder builder, bool isRoot) {
     final c = tryApply(builder);
@@ -357,19 +354,23 @@ class StringCondition extends PropertyCondition<String> {
 
     switch (_op) {
       case ConditionOp.eq:
-        return _op1(builder, bindings.obx_qb_string_equal);
+        return _op1(builder, bindings.obx_qb_equals_string);
       case ConditionOp.notEq:
-        return _op1(builder, bindings.obx_qb_string_not_equal);
+        return _op1(builder, bindings.obx_qb_not_equals_string);
       case ConditionOp.stringContains:
-        return _op1(builder, bindings.obx_qb_string_contains);
+        return _op1(builder, bindings.obx_qb_contains_string);
       case ConditionOp.stringStarts:
-        return _op1(builder, bindings.obx_qb_string_starts_with);
+        return _op1(builder, bindings.obx_qb_starts_with_string);
       case ConditionOp.stringEnds:
-        return _op1(builder, bindings.obx_qb_string_ends_with);
+        return _op1(builder, bindings.obx_qb_ends_with_string);
       case ConditionOp.lt:
-        return _opWithEqual(builder, bindings.obx_qb_string_less);
+        return _op1(builder, bindings.obx_qb_less_than_string);
+      case ConditionOp.lessOrEq:
+        return _op1(builder, bindings.obx_qb_less_or_equal_string);
       case ConditionOp.gt:
-        return _opWithEqual(builder, bindings.obx_qb_string_greater);
+        return _op1(builder, bindings.obx_qb_greater_than_string);
+      case ConditionOp.greaterOrEq:
+        return _op1(builder, bindings.obx_qb_greater_or_equal_string);
       case ConditionOp.inside:
         return _inside(builder); // bindings.obx_qb_string_in
       default:
@@ -445,22 +446,22 @@ class IntegerCondition extends PropertyCondition<int> {
 
     switch (_op) {
       case ConditionOp.eq:
-        return _op1(builder, bindings.obx_qb_int_equal);
+        return _op1(builder, bindings.obx_qb_equals_int);
       case ConditionOp.notEq:
-        return _op1(builder, bindings.obx_qb_int_not_equal);
+        return _op1(builder, bindings.obx_qb_not_equals_int);
       case ConditionOp.gt:
-        return _op1(builder, bindings.obx_qb_int_greater);
+        return _op1(builder, bindings.obx_qb_greater_than_int);
       case ConditionOp.lt:
-        return _op1(builder, bindings.obx_qb_int_less);
+        return _op1(builder, bindings.obx_qb_less_than_int);
       case ConditionOp.between:
-        return bindings.obx_qb_int_between(
+        return bindings.obx_qb_between_2ints(
             builder._cBuilder, _property._propertyId, _value, _value2);
       case ConditionOp.inside:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList32(builder, bindings.obx_qb_int32_in);
+            return _opList32(builder, bindings.obx_qb_in_int32s);
           case OBXPropertyType.Long:
-            return _opList64(builder, bindings.obx_qb_int64_in);
+            return _opList64(builder, bindings.obx_qb_in_int64s);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -468,9 +469,9 @@ class IntegerCondition extends PropertyCondition<int> {
       case ConditionOp.notIn:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList32(builder, bindings.obx_qb_int32_not_in);
+            return _opList32(builder, bindings.obx_qb_not_in_int32s);
           case OBXPropertyType.Long:
-            return _opList64(builder, bindings.obx_qb_int64_not_in);
+            return _opList64(builder, bindings.obx_qb_not_in_int64s);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -502,11 +503,11 @@ class DoubleCondition extends PropertyCondition<double> {
 
     switch (_op) {
       case ConditionOp.gt:
-        return _op1(builder, bindings.obx_qb_double_greater);
+        return _op1(builder, bindings.obx_qb_greater_than_double);
       case ConditionOp.lt:
-        return _op1(builder, bindings.obx_qb_double_less);
+        return _op1(builder, bindings.obx_qb_less_than_double);
       case ConditionOp.between:
-        return bindings.obx_qb_double_between(
+        return bindings.obx_qb_between_2doubles(
             builder._cBuilder, _property._propertyId, _value, _value2);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
