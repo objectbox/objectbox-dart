@@ -138,20 +138,20 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
       case OBXPropertyType.Byte:
       case OBXPropertyType.Char: // Int8
         return _unpack8(_curryWithDefault<OBX_int8_array, Int8>(
-            bindings.obx_query_prop_int8_find, ptr.cast<Int8>(), 'find int8'));
+            bindings.obx_query_prop_find_int8s, ptr.cast<Int8>(), 'find int8'));
       case OBXPropertyType.Short: // Int16
         return _unpack16(_curryWithDefault<OBX_int16_array, Int16>(
-            bindings.obx_query_prop_int16_find,
+            bindings.obx_query_prop_find_int16s,
             ptr.cast<Int16>(),
             'find int16'));
       case OBXPropertyType.Int: // Int32
         return _unpack32(_curryWithDefault<OBX_int32_array, Int32>(
-            bindings.obx_query_prop_int32_find,
+            bindings.obx_query_prop_find_int32s,
             ptr.cast<Int32>(),
             'find int32'));
       case OBXPropertyType.Long: // Int64
         return _unpack64(_curryWithDefault<OBX_int64_array, Int64>(
-            bindings.obx_query_prop_int64_find,
+            bindings.obx_query_prop_find_int64s,
             ptr.cast<Int64>(),
             'find int64'));
       default:
@@ -211,13 +211,13 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
             ? (allocate<Float>()..value = replaceNullWith)
             : Pointer<Float>.fromAddress(0);
         return _unpack32(_curryWithDefault<OBX_float_array, Float>(
-            bindings.obx_query_prop_float_find, valueIfNull, 'find float32'));
+            bindings.obx_query_prop_find_floats, valueIfNull, 'find float32'));
       case OBXPropertyType.Double:
         final valueIfNull = replaceNullWith != null
             ? (allocate<Double>()..value = replaceNullWith)
             : Pointer<Double>.fromAddress(0);
         return _unpack64(_curryWithDefault<OBX_double_array, Double>(
-            bindings.obx_query_prop_double_find, valueIfNull, 'find float64'));
+            bindings.obx_query_prop_find_doubles, valueIfNull, 'find float64'));
       default:
         throw Exception(
             'Property query: unsupported type (OBXPropertyType: ${_type})');
@@ -263,6 +263,6 @@ class StringPropertyQuery extends PropertyQuery<String> {
         ? Utf8.toUtf8(replaceNullWith).cast<Int8>()
         : Pointer<Int8>.fromAddress(0);
     return _unpack(_curryWithDefault<OBX_string_array, Int8>(
-        bindings.obx_query_prop_string_find, ptr, 'find utf8'));
+        bindings.obx_query_prop_find_strings, ptr, 'find utf8'));
   }
 }
