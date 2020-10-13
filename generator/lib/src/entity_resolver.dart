@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox/src/bindings/constants.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
+import 'package:source_gen/source_gen.dart';
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
 /// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
@@ -75,7 +76,7 @@ class EntityResolver extends Builder {
           throw InvalidGenerationSourceError(
               'in target ${elementBare.name}: has more than one properties annotated with @Id');
         }
-        if (f.type.toString() != 'int') {
+        if (!f.type.isDartCoreInt) {
           throw InvalidGenerationSourceError(
               "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
         }
@@ -95,25 +96,25 @@ class EntityResolver extends Builder {
       }
 
       if (fieldType == null) {
-        var fieldTypeStr = f.type.toString();
+        var fieldTypeDart = f.type;
 
-        if (fieldTypeStr == 'int') {
+        if (fieldTypeDart.isDartCoreInt) {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Long;
-        } else if (fieldTypeStr == 'String') {
+        } else if (fieldTypeDart.isDartCoreString) {
           fieldType = OBXPropertyType.String;
-        } else if (fieldTypeStr == 'bool') {
+        } else if (fieldTypeDart.isDartCoreBool) {
           // dart: 1 byte
           // ob: 1 byte
           fieldType = OBXPropertyType.Bool;
-        } else if (fieldTypeStr == 'double') {
+        } else if (fieldTypeDart.isDartCoreDouble) {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
+              "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '${fieldTypeDart.toString()}'");
           continue;
         }
       }
