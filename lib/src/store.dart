@@ -17,6 +17,22 @@ class Store {
   Pointer<Void> _cStore;
   final ModelDefinition defs;
 
+  /// Creates a BoxStore using the model definition from your
+  /// `objectbox.g.dart` file.
+  ///
+  /// For example in a Dart app:
+  /// ```
+  /// var store = Store(getObjectBoxModel());
+  /// ```
+  ///
+  /// Or for a Flutter app:
+  /// ```
+  /// getApplicationDocumentsDirectory().then((dir) {
+  ///   _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
+  /// });
+  /// ```
+  ///
+  /// See our examples for more details.
   Store(this.defs,
       {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
     var model = Model(defs.model);

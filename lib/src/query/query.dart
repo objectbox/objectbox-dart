@@ -564,6 +564,11 @@ class ConditionGroupAll extends ConditionGroup {
   ConditionGroupAll(conditions) : super(conditions, bindings.obx_qb_all);
 }
 
+/// A repeatable Query returning the latest matching Objects.
+///
+/// Use [find] or related methods to fetch the latest results from the BoxStore.
+///
+/// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
   Pointer<Void> _cQuery;
   Store store;
@@ -599,6 +604,7 @@ class Query<T> {
     checkObx(bindings.obx_query_limit(_cQuery, limit));
   }
 
+  /// Returns the number of matching Objects.
   int count() {
     final ptr = allocate<Uint64>(count: 1);
     try {
@@ -609,6 +615,7 @@ class Query<T> {
     }
   }
 
+  /// Close the query and free resources.
   // TODO Document wrap with closure to fake auto close
   void close() {
     checkObx(bindings.obx_query_close(_cQuery));
@@ -681,12 +688,12 @@ class Query<T> {
     });
   }
 
-  // For testing purposes
+  /// For internal testing purposes.
   String describe() {
     return cString(bindings.obx_query_describe(_cQuery));
   }
 
-  // For testing purposes
+  /// For internal testing purposes.
   String describeParameters() {
     return cString(bindings.obx_query_describe_params(_cQuery));
   }
@@ -719,14 +726,17 @@ class Query<T> {
     }
   }
 
+  /// See [property] for details.
   IntegerPropertyQuery integerProperty(QueryProperty qp) {
     return property<IntegerPropertyQuery>(qp);
   }
 
+  /// See [property] for details.
   DoublePropertyQuery doubleProperty(QueryProperty qp) {
     return property<DoublePropertyQuery>(qp);
   }
 
+  /// See [property] for details.
   StringPropertyQuery stringProperty(QueryProperty qp) {
     return property<StringPropertyQuery>(qp);
   }

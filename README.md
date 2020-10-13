@@ -161,7 +161,7 @@ query.close();
 ### Streams
 
 Streams can be created from queries.
-The streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart);
+Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart).
 
 ```dart
     import "package:objectbox/src/observable.dart";
