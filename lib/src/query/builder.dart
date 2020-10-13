@@ -29,7 +29,7 @@ class QueryBuilder<T> {
     }
 
     try {
-      return Query<T>._(_store, _fbManager, _cBuilder);
+      return Query<T>._(_store, _fbManager, _cBuilder, _entityId);
     } finally {
       checkObx(bindings.obx_qb_close(_cBuilder));
     }

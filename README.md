@@ -158,6 +158,37 @@ scoreQuery.close();
 query.close();
 ```
 
+### Streams
+
+Streams can be created from queries.
+The streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart);
+
+```dart
+    import "package:objectbox/src/observable.dart";
+
+    // final store = ...
+    final query = box.query(condition).build();
+    final queryStream = query.stream;
+    final sub1 = queryStream.listen((query) {
+      print(query.count());
+    });
+
+    // box.put ...
+
+    sub1.cancel();
+
+    final stream = query.findStream(limit:5);
+    final sub2 = stream.listen((list) {
+      // ...
+    });
+
+    // clean up
+    sub2.cancel();
+    store.unsubscribe();
+
+    store.close();
+```
+
 Help wanted
 -----------
 ObjectBox for Dart is still in an early stage with limited feature set (compared to other languages).
