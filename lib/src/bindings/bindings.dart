@@ -1,6 +1,8 @@
 import 'dart:ffi';
 import 'dart:io' show Platform;
+
 import 'package:ffi/ffi.dart';
+
 import 'signatures.dart';
 import 'structs.dart';
 
@@ -93,7 +95,7 @@ class _ObjectBoxBindings {
       obx_box_ids_for_put;
   int Function(
           Pointer<Void> box, int id, Pointer<Uint8> data, int size, int mode)
-      obx_box_put;
+      obx_box_put5;
   int Function(Pointer<Void> box, Pointer<OBX_bytes_array> objects,
       Pointer<Uint64> ids, int mode) obx_box_put_many;
   int Function(Pointer<Void> box, int id) obx_box_remove;
@@ -115,31 +117,37 @@ class _ObjectBoxBindings {
 
   obx_qb_cond_operator_0_dart_t obx_qb_null, obx_qb_not_null;
 
-  obx_qb_cond_operator_1_dart_t<int> obx_qb_int_equal,
-      obx_qb_int_not_equal,
-      obx_qb_int_greater,
-      obx_qb_int_less;
+  obx_qb_cond_operator_1_dart_t<int> obx_qb_equals_int,
+      obx_qb_not_equals_int,
+      obx_qb_greater_than_int,
+      obx_qb_less_than_int;
 
-  obx_qb_cond_operator_2_dart_t<int> obx_qb_int_between;
+  obx_qb_cond_operator_2_dart_t<int> obx_qb_between_2ints;
 
-  obx_qb_cond_operator_in_dart_t<Int64> obx_qb_int64_in, obx_qb_int64_not_in;
-  obx_qb_cond_operator_in_dart_t<Int32> obx_qb_int32_in, obx_qb_int32_not_in;
+  obx_qb_cond_operator_in_dart_t<Int64> obx_qb_in_int64s, obx_qb_not_in_int64s;
+  obx_qb_cond_operator_in_dart_t<Int32> obx_qb_in_int32s, obx_qb_not_in_int32s;
 
-  obx_qb_cond_string_op_1_dart_t obx_qb_string_equal,
-      obx_qb_string_not_equal,
-      obx_qb_string_contains,
-      obx_qb_string_starts_with,
-      obx_qb_string_ends_with;
+  obx_qb_cond_string_op_1_dart_t obx_qb_equals_string,
+      obx_qb_not_equals_string,
+      obx_qb_contains_string,
+      obx_qb_starts_with_string,
+      obx_qb_ends_with_string,
+      obx_qb_greater_than_string,
+      obx_qb_greater_or_equal_string,
+      obx_qb_less_than_string,
+      obx_qb_less_or_equal_string;
 
-  obx_qb_cond_operator_1_dart_t<double> obx_qb_double_greater,
-      obx_qb_double_less;
-  obx_qb_cond_operator_2_dart_t<double> obx_qb_double_between;
+  obx_qb_cond_operator_1_dart_t<double> obx_qb_greater_than_double,
+      obx_qb_less_than_double;
+  obx_qb_cond_operator_2_dart_t<double> obx_qb_between_2doubles;
 
-  obx_qb_string_lt_gt_op_dart_t obx_qb_string_greater, obx_qb_string_less;
-  obx_qb_string_in_dart_t obx_qb_string_in;
+  obx_qb_string_in_dart_t obx_qb_in_strings;
 
-  obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
-  obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
+  obx_qb_cond_bytes_dart_t obx_qb_equals_bytes,
+      obx_qb_greater_than_bytes,
+      obx_qb_greater_or_equal_bytes,
+      obx_qb_less_than_bytes,
+      obx_qb_less_or_equal_bytes;
 
   obx_qb_join_op_dart_t obx_qb_all, obx_qb_any;
 
@@ -150,6 +158,10 @@ class _ObjectBoxBindings {
   // query
   obx_query_t obx_query_create;
   obx_query_close_dart_t obx_query_close;
+
+  obx_query_offset_dart_t obx_query_offset;
+  obx_query_limit_dart_t obx_query_limit;
+
   obx_query_find_t<int> obx_query_find;
   obx_query_find_ids_t<int> obx_query_find_ids;
 
@@ -183,19 +195,19 @@ class _ObjectBoxBindings {
       obx_query_prop_sum_int;
 
   obx_query_prop_find_native_t<Pointer<OBX_string_array>, Int8>
-      obx_query_prop_string_find;
+      obx_query_prop_find_strings;
   obx_query_prop_find_native_t<Pointer<OBX_int64_array>, Int64>
-      obx_query_prop_int64_find;
+      obx_query_prop_find_int64s;
   obx_query_prop_find_native_t<Pointer<OBX_int32_array>, Int32>
-      obx_query_prop_int32_find;
+      obx_query_prop_find_int32s;
   obx_query_prop_find_native_t<Pointer<OBX_int16_array>, Int16>
-      obx_query_prop_int16_find;
+      obx_query_prop_find_int16s;
   obx_query_prop_find_native_t<Pointer<OBX_int8_array>, Int8>
-      obx_query_prop_int8_find;
+      obx_query_prop_find_int8s;
   obx_query_prop_find_native_t<Pointer<OBX_double_array>, Double>
-      obx_query_prop_double_find;
+      obx_query_prop_find_doubles;
   obx_query_prop_find_native_t<Pointer<OBX_float_array>, Float>
-      obx_query_prop_float_find;
+      obx_query_prop_find_floats;
 
   // Utilities
   obx_bytes_array_t<int> obx_bytes_array;
@@ -345,7 +357,7 @@ class _ObjectBoxBindings {
         _fn<obx_box_id_for_put_native_t>('obx_box_id_for_put').asFunction();
     obx_box_ids_for_put =
         _fn<obx_box_ids_for_put_native_t>('obx_box_ids_for_put').asFunction();
-    obx_box_put = _fn<obx_box_put_native_t>('obx_box_put').asFunction();
+    obx_box_put5 = _fn<obx_box_put_native_t>('obx_box_put5').asFunction();
     obx_box_put_many =
         _fn<obx_box_put_many_native_t>('obx_box_put_many').asFunction();
     obx_box_remove =
@@ -374,80 +386,98 @@ class _ObjectBoxBindings {
     obx_qb_not_null =
         _fn<obx_qb_cond_operator_0_native_t>('obx_qb_not_null').asFunction();
 
-    obx_qb_int_equal =
-        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_int_equal')
+    // Integer conditions
+    obx_qb_equals_int =
+        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_equals_int')
             .asFunction();
-    obx_qb_int_not_equal =
-        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_int_not_equal')
+    obx_qb_not_equals_int =
+        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_not_equals_int')
             .asFunction();
-    obx_qb_int_greater =
-        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_int_greater')
+    obx_qb_greater_than_int =
+        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_greater_than_int')
             .asFunction();
-    obx_qb_int_less =
-        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_int_less')
-            .asFunction();
-
-    obx_qb_int_between =
-        _fn<obx_qb_cond_operator_2_native_t<Int64>>('obx_qb_int_between')
+    obx_qb_less_than_int =
+        _fn<obx_qb_cond_operator_1_native_t<Int64>>('obx_qb_less_than_int')
             .asFunction();
 
-    obx_qb_int64_in =
-        _fn<obx_qb_cond_operator_in_native_t<Int64>>('obx_qb_int64_in')
-            .asFunction();
-    obx_qb_int64_not_in =
-        _fn<obx_qb_cond_operator_in_native_t<Int64>>('obx_qb_int64_not_in')
+    obx_qb_between_2ints =
+        _fn<obx_qb_cond_operator_2_native_t<Int64>>('obx_qb_between_2ints')
             .asFunction();
 
-    obx_qb_int32_in =
-        _fn<obx_qb_cond_operator_in_native_t<Int32>>('obx_qb_int32_in')
+    obx_qb_in_int64s =
+        _fn<obx_qb_cond_operator_in_native_t<Int64>>('obx_qb_in_int64s')
             .asFunction();
-    obx_qb_int32_not_in =
-        _fn<obx_qb_cond_operator_in_native_t<Int32>>('obx_qb_int32_not_in')
-            .asFunction();
-
-    obx_qb_string_equal =
-        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_string_equal')
-            .asFunction();
-    obx_qb_string_not_equal =
-        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_string_not_equal')
-            .asFunction();
-    obx_qb_string_contains =
-        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_string_contains')
+    obx_qb_not_in_int64s =
+        _fn<obx_qb_cond_operator_in_native_t<Int64>>('obx_qb_not_in_int64s')
             .asFunction();
 
-    obx_qb_string_starts_with =
-        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_string_starts_with')
+    obx_qb_in_int32s =
+        _fn<obx_qb_cond_operator_in_native_t<Int32>>('obx_qb_in_int32s')
             .asFunction();
-    obx_qb_string_ends_with =
-        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_string_ends_with')
-            .asFunction();
-
-    obx_qb_string_greater =
-        _fn<obx_qb_string_lt_gt_op_native_t>('obx_qb_string_greater')
-            .asFunction();
-    obx_qb_string_less =
-        _fn<obx_qb_string_lt_gt_op_native_t>('obx_qb_string_less').asFunction();
-
-    obx_qb_string_in =
-        _fn<obx_qb_string_in_native_t>('obx_qb_string_in').asFunction();
-
-    obx_qb_double_greater =
-        _fn<obx_qb_cond_operator_1_native_t<Double>>('obx_qb_double_greater')
-            .asFunction();
-    obx_qb_double_less =
-        _fn<obx_qb_cond_operator_1_native_t<Double>>('obx_qb_double_less')
+    obx_qb_not_in_int32s =
+        _fn<obx_qb_cond_operator_in_native_t<Int32>>('obx_qb_not_in_int32s')
             .asFunction();
 
-    obx_qb_double_between =
-        _fn<obx_qb_cond_operator_2_native_t<Double>>('obx_qb_double_between')
+    // String conditions
+    obx_qb_equals_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_equals_string')
+            .asFunction();
+    obx_qb_not_equals_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_not_equals_string')
+            .asFunction();
+    obx_qb_contains_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_contains_string')
             .asFunction();
 
-    obx_qb_bytes_equal =
-        _fn<obx_qb_bytes_eq_native_t>('obx_qb_bytes_equal').asFunction();
-    obx_qb_bytes_greater =
-        _fn<obx_qb_bytes_lt_gt_native_t>('obx_qb_bytes_greater').asFunction();
-    obx_qb_bytes_less =
-        _fn<obx_qb_bytes_lt_gt_native_t>('obx_qb_bytes_less').asFunction();
+    obx_qb_starts_with_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_starts_with_string')
+            .asFunction();
+    obx_qb_ends_with_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_ends_with_string')
+            .asFunction();
+
+    obx_qb_greater_than_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_greater_than_string')
+            .asFunction();
+    obx_qb_greater_or_equal_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_greater_or_equal_string')
+            .asFunction();
+    obx_qb_less_than_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_less_than_string')
+            .asFunction();
+    obx_qb_less_or_equal_string =
+        _fn<obx_qb_cond_string_op_1_native_t>('obx_qb_less_or_equal_string')
+            .asFunction();
+
+    obx_qb_in_strings =
+        _fn<obx_qb_string_in_native_t>('obx_qb_in_strings').asFunction();
+
+    // Floating point conditions (double)
+    obx_qb_greater_than_double = _fn<obx_qb_cond_operator_1_native_t<Double>>(
+            'obx_qb_greater_than_double')
+        .asFunction();
+    obx_qb_less_than_double =
+        _fn<obx_qb_cond_operator_1_native_t<Double>>('obx_qb_less_than_double')
+            .asFunction();
+
+    obx_qb_between_2doubles =
+        _fn<obx_qb_cond_operator_2_native_t<Double>>('obx_qb_between_2doubles')
+            .asFunction();
+
+    // Bytes (blob) conditions (currently unused)
+    obx_qb_equals_bytes =
+        _fn<obx_qb_cond_bytes_native_t>('obx_qb_equals_bytes').asFunction();
+    obx_qb_greater_than_bytes =
+        _fn<obx_qb_cond_bytes_native_t>('obx_qb_greater_than_bytes')
+            .asFunction();
+    obx_qb_greater_or_equal_bytes =
+        _fn<obx_qb_cond_bytes_native_t>('obx_qb_greater_or_equal_bytes')
+            .asFunction();
+    obx_qb_less_than_bytes =
+        _fn<obx_qb_cond_bytes_native_t>('obx_qb_less_than_bytes').asFunction();
+    obx_qb_less_or_equal_bytes =
+        _fn<obx_qb_cond_bytes_native_t>('obx_qb_less_or_equal_bytes')
+            .asFunction();
 
     obx_qb_all = _fn<obx_qb_join_op_native_t>('obx_qb_all').asFunction();
     obx_qb_any = _fn<obx_qb_join_op_native_t>('obx_qb_any').asFunction();
@@ -461,6 +491,11 @@ class _ObjectBoxBindings {
     obx_query_create = _fn<obx_query_t>('obx_query').asFunction();
     obx_query_close =
         _fn<obx_query_close_native_t>('obx_query_close').asFunction();
+
+    obx_query_offset =
+        _fn<obx_query_offset_native_t>('obx_query_offset').asFunction();
+    obx_query_limit =
+        _fn<obx_query_offset_native_t>('obx_query_limit').asFunction();
 
     obx_query_find_ids =
         _fn<obx_query_find_ids_t<Uint64>>('obx_query_find_ids').asFunction();
@@ -523,33 +558,33 @@ class _ObjectBoxBindings {
         _fn<obx_query_prop_op_t<Int32, Int64>>('obx_query_prop_sum_int')
             .asFunction();
 
-    obx_query_prop_string_find =
+    obx_query_prop_find_strings =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_string_array>, Int8>>(
-                'obx_query_prop_string_find')
+                'obx_query_prop_find_strings')
             .asFunction();
-    obx_query_prop_int64_find =
+    obx_query_prop_find_int64s =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_int64_array>, Int64>>(
-                'obx_query_prop_int64_find')
+                'obx_query_prop_find_int64s')
             .asFunction();
-    obx_query_prop_int32_find =
+    obx_query_prop_find_int32s =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_int32_array>, Int32>>(
-                'obx_query_prop_int32_find')
+                'obx_query_prop_find_int32s')
             .asFunction();
-    obx_query_prop_int16_find =
+    obx_query_prop_find_int16s =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_int16_array>, Int16>>(
-                'obx_query_prop_int16_find')
+                'obx_query_prop_find_int16s')
             .asFunction();
-    obx_query_prop_int8_find =
+    obx_query_prop_find_int8s =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_int8_array>, Int8>>(
-                'obx_query_prop_int8_find')
+                'obx_query_prop_find_int8s')
             .asFunction();
-    obx_query_prop_double_find =
+    obx_query_prop_find_doubles =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_double_array>, Double>>(
-                'obx_query_prop_double_find')
+                'obx_query_prop_find_doubles')
             .asFunction();
-    obx_query_prop_float_find =
+    obx_query_prop_find_floats =
         _fn<obx_query_prop_find_native_t<Pointer<OBX_float_array>, Float>>(
-                'obx_query_prop_float_find')
+                'obx_query_prop_find_floats')
             .asFunction();
 
     // Utilities

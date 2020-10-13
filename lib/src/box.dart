@@ -69,7 +69,7 @@ class Box<T> {
     final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(propVals);
     try {
       final bytes = bytesPtr.ref;
-      checkObx(bindings.obx_box_put(
+      checkObx(bindings.obx_box_put5(
           _cBox, id, bytes.ptr, bytes.length, _getOBXPutMode(mode)));
     } finally {
       // because fbManager.marshal() allocates the inner bytes, we need to clean those as well

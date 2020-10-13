@@ -222,7 +222,8 @@ void main() {
     q.close();
 
     q = box.query(text.isNull()).build();
-    expect(q.find(offset: 0, limit: 1).length, 1);
+    q.limit(1);
+    expect(q.find().length, 1);
     q.close();
   });
 
