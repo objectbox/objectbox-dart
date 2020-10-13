@@ -516,8 +516,11 @@ class _ObjectBoxBindings {
 
     // observers
     obx_observe = _fn<obx_observe_t>('obx_observe').asFunction();
-    obx_observe_single_type = _fn<obx_observe_single_type_t<Uint32>>('obx_observe_single_type').asFunction();
-    obx_observer_close = _fn<obx_observer_close_native_t>('obx_observer_close').asFunction();
+    obx_observe_single_type =
+        _fn<obx_observe_single_type_t<Uint32>>('obx_observe_single_type')
+            .asFunction();
+    obx_observer_close =
+        _fn<obx_observer_close_native_t>('obx_observer_close').asFunction();
 
     // query property
     obx_query_prop =

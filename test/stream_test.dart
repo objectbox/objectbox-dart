@@ -1,9 +1,11 @@
-import 'package:test/test.dart';
 import 'dart:async';
-import 'entity.dart';
-import 'test_env.dart';
-import 'objectbox.g.dart';
+
 import 'package:objectbox/src/observable.dart';
+import 'package:test/test.dart';
+
+import 'entity.dart';
+import 'objectbox.g.dart';
+import 'test_env.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -17,7 +19,6 @@ void main() {
   });
 
   test('Subscribe to stream of entities', () async {
-
     final result = <String>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
@@ -36,18 +37,18 @@ void main() {
     // will be prioritized (for some reason), before any callback.
     await Future.delayed(Duration(seconds: 0));
 
-    box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
-      TestEntity(tString: 'for now') ]);
+    box.putMany(<TestEntity>[
+      TestEntity(tString: 'Goodbye'),
+      TestEntity(tString: 'for now')
+    ]);
     await Future.delayed(Duration(seconds: 0));
 
-    expect(result,
-        ['Hello world', 'for now, Goodbye, Hello world']);
+    expect(result, ['Hello world', 'for now, Goodbye, Hello world']);
 
     await subscription.cancel();
   });
 
   test('Subscribe to stream of query', () async {
-
     final result = <int>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
@@ -61,8 +62,10 @@ void main() {
     await Future.delayed(Duration(seconds: 0));
 
     // idem, see above
-    box.putMany(<TestEntity>[ TestEntity(tString: 'Goodbye'),
-      TestEntity(tString: 'for now') ]);
+    box.putMany(<TestEntity>[
+      TestEntity(tString: 'Goodbye'),
+      TestEntity(tString: 'for now')
+    ]);
     await Future.delayed(Duration(seconds: 0));
 
     expect(result, [1, 3]);

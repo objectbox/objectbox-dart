@@ -1,6 +1,8 @@
 import 'dart:ffi';
-import 'structs.dart';
+
 import 'package:ffi/ffi.dart';
+
+import 'structs.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -215,12 +217,20 @@ typedef obx_query_visit_dart_t = int Function(
 
 // observers
 
-typedef obx_observer_t = Void Function(Pointer<Void> user_data, Pointer<Uint32> entity_id, Uint32 type_ids_count);
-typedef obx_observer_single_type_native_t = Void Function(Pointer<Void> user_data);
-typedef obx_observer_single_type_dart_t = void Function(Pointer<Void> user_data);
+typedef obx_observer_t = Void Function(
+    Pointer<Void> user_data, Pointer<Uint32> entity_id, Uint32 type_ids_count);
+typedef obx_observer_single_type_native_t = Void Function(
+    Pointer<Void> user_data);
+typedef obx_observer_single_type_dart_t = void Function(
+    Pointer<Void> user_data);
 
-typedef obx_observe_t = Pointer<Void> Function(Pointer<Void> store, Pointer<NativeFunction<obx_observer_t>> callback, Pointer<Void> user_data);
-typedef obx_observe_single_type_t<T> = Pointer<Void> Function(Pointer<Void> store, T entity_id, Pointer<NativeFunction<obx_observer_single_type_native_t>> callback, Pointer<Void> user_data);
+typedef obx_observe_t = Pointer<Void> Function(Pointer<Void> store,
+    Pointer<NativeFunction<obx_observer_t>> callback, Pointer<Void> user_data);
+typedef obx_observe_single_type_t<T> = Pointer<Void> Function(
+    Pointer<Void> store,
+    T entity_id,
+    Pointer<NativeFunction<obx_observer_single_type_native_t>> callback,
+    Pointer<Void> user_data);
 typedef obx_observer_close_native_t = Void Function(Pointer<Void> observer);
 typedef obx_observer_close_dart_t = void Function(Pointer<Void> observer);
 

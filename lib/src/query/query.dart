@@ -567,12 +567,12 @@ class ConditionGroupAll extends ConditionGroup {
 class Query<T> {
   Pointer<Void> _cQuery;
   Store store;
-  OBXFlatbuffersManager _fbManager;
+  final OBXFlatbuffersManager _fbManager;
   int entityId;
 
   // package private ctor
   Query._(this.store, this._fbManager, Pointer<Void> cBuilder, this.entityId) {
-    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), "create query");
+    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), 'create query');
   }
 
   /// Configure an [offset] for this query.
