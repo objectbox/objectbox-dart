@@ -5,6 +5,8 @@
 * String startsWith and endsWith condition: removed unused `descending` parameter, add `caseSensitive` parameter.
 * String greaterThan/lessThan condition: `withEqual` is deprecated, use the greaterOrEqual/lessOrEqual condition instead.
 * Query find/findIds `offset` and `limit` parameters are deprecated, set them using the equally named methods instead.
+* New support to create a Dart Stream from a Query 
+    (thanks [@Buggaboo](https://github.com/Buggaboo) for [#88](https://github.com/objectbox/objectbox-dart/pull/88))
 
 0.7.0 (2020-08-14)
 ------------------
