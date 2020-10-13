@@ -23,7 +23,7 @@ class Note {
     print('constructed date: $date');
   }
 
-  get dateFormat => DateFormat('dd.MM.yyyy hh:mm:ss')
+  String get dateFormat => DateFormat('dd.MM.yyyy hh:mm:ss')
       .format(DateTime.fromMillisecondsSinceEpoch(date));
 }
 
@@ -71,9 +71,9 @@ class ViewModel {
 
   void removeNote(Note note) => _box.remove(note.id);
 
-  get queryStream => _query.findStream();
+  Stream<List<Note>> get queryStream => _query.findStream();
 
-  get allNotes => _query.find();
+  List<Note> get allNotes => _query.find();
 
   void dispose() {
     _query.close();
@@ -179,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         decoration:
                             InputDecoration(hintText: 'Enter a new note'),
                         controller: _noteInputController,
-                        onSubmitted: (String) => _addNote()
+                        onSubmitted: (value) => _addNote(),
                       ),
                     ),
                     Padding(
