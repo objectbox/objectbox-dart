@@ -20,7 +20,7 @@ class EntityResolver extends Builder {
     '.dart': [suffix]
   };
 
-  final _annotationChecker = const TypeChecker.fromRuntime(obx.Entity);
+  final _entityChecker = const TypeChecker.fromRuntime(obx.Entity);
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
   final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
@@ -36,9 +36,13 @@ class EntityResolver extends Builder {
 
     // generate for all entities
     final entities = <Map<String, dynamic>>[];
-    for (var annotatedEl in libReader.annotatedWith(_annotationChecker)) {
-      entities.add(generateForAnnotatedElement(
-              annotatedEl.element, annotatedEl.annotation)
+    final annotatedWithEntity = libReader.annotatedWith(_entityChecker);
+    final entityNames = annotatedWithEntity.map((a) => a.element.name).toSet();
+    final entityNamesAsList =
+        annotatedWithEntity.map((a) => 'List<${a.element.name}>').toSet();
+    for (var annotatedEl in annotatedWithEntity) {
+      entities.add(generateForAnnotatedElement(annotatedEl.element,
+              annotatedEl.annotation, entityNames, entityNamesAsList)
           .toMap());
     }
 
@@ -50,7 +54,10 @@ class EntityResolver extends Builder {
   }
 
   ModelEntity generateForAnnotatedElement(
-      Element elementBare, ConstantReader annotation) {
+      Element elementBare,
+      ConstantReader annotation,
+      Set<String> relatableEntityNames,
+      Set<String> relatableEntityNamesAsList) {
     if (elementBare is! ClassElement) {
       throw InvalidGenerationSourceError(
           "in target ${elementBare.name}: annotated element isn't a class");
@@ -123,7 +130,7 @@ class EntityResolver extends Builder {
       }
 
       if (fieldType == null) {
-        var fieldTypeDart = f.type;
+        final fieldTypeDart = f.type;
 
         if (fieldTypeDart.isDartCoreInt) {
           // dart: 8 bytes
@@ -147,6 +154,9 @@ class EntityResolver extends Builder {
             .contains(fieldTypeDart.element.name)) {
           fieldType = OBXPropertyType.ByteVector;
           dartFieldType = fieldTypeDart.element.name; // for code generation
+        } else if (areRelated(fieldTypeDart.toString().replaceAll('*', ''),
+            relatableEntityNames, relatableEntityNamesAsList)) {
+          fieldType = OBXPropertyType.Relation;
         } else {
           log.warning(
               "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${fieldTypeDart}'");
@@ -274,4 +284,9 @@ class EntityResolver extends Builder {
         listType is ParameterizedType ? listType.typeArguments : [];
     return typeArgs.length == 1 ? typeArgs[0] : null;
   }
+
+  bool areRelated(String typeString, Set<String> typeCollection,
+          Set<String> listTypeCollection) =>
+      typeCollection.contains(typeString) ||
+      listTypeCollection.contains(typeString);
 }

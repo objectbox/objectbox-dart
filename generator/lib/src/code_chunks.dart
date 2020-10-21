@@ -100,7 +100,7 @@ class CodeChunks {
         case OBXPropertyType.Date:
         case OBXPropertyType.DateNano:
         case OBXPropertyType.Relation:
-          fieldType = 'Integer';
+          fieldType = 'Relation';
           break;
         case OBXPropertyType.ByteVector:
           fieldType = 'ByteVector';
@@ -113,8 +113,12 @@ class CodeChunks {
               'Unsupported property type (${prop.type}): ${entity.name}.${name}');
       }
 
+      final relationTypeGenericParam = prop.type == OBXPropertyType.Relation
+          ? '<${prop.dartFieldType}>'
+          : '';
+
       ret.add('''
-        static final ${prop.name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+        static final ${prop.name} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
         ''');
     }
     return ret.join();

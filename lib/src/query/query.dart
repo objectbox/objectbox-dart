@@ -281,6 +281,14 @@ class QueryStringVectorProperty extends QueryProperty {
   }
 }
 
+class QueryRelationProperty<Target> extends QueryIntegerProperty {
+  QueryRelationProperty(
+      {/*required*/ int entityId,
+      /*required*/ int propertyId,
+      /*required*/ int obxType})
+      : super(entityId: entityId, propertyId: propertyId, obxType: obxType);
+}
+
 enum ConditionOp {
   isNull,
   notNull,
