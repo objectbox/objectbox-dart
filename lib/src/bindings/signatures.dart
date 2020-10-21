@@ -41,6 +41,19 @@ typedef obx_model_entity_last_property_id_native_t = Int32 Function(
     Pointer<Void> model, Uint32 property_id, Uint64 property_uid);
 typedef obx_model_last_entity_id_native_t = Int32 Function(
     Pointer<Void> model, Uint32 entity_id, Uint64 entity_uid);
+typedef obx_model_property_relation_native_t = Int32 Function(
+    Pointer<Void> model,
+    Pointer<Utf8> target_entity,
+    Uint32 entity_id,
+    Uint64 entity_uid);
+typedef obx_model_relation_native_t = Int32 Function(
+    Pointer<Void> model,
+    Uint32 relation_id,
+    Uint64 relation_uid,
+    Uint32 target_id,
+    Uint64 target_uid);
+typedef obx_model_last_relation_id_native_t = Void Function(
+    Pointer<Void> model, Uint32 relation_id, Uint64 relation_uid);
 
 // object store management
 typedef obx_opt_native_t = Pointer<Void> Function();
@@ -105,6 +118,15 @@ typedef obx_box_count_native_t = Int32 Function(
     Pointer<Void> box, Uint64 limit, Pointer<Uint64> _count);
 typedef obx_box_is_empty_native_t = Int32 Function(
     Pointer<Void> box, Pointer<Uint8> is_empty);
+
+typedef obx_box_rel_put_native_t = Int32 Function(
+    Pointer<Void> box, Uint32 relation_id, Uint64 source_id, Uint64 target_id);
+typedef obx_box_rel_remove_native_t = Int32 Function(
+    Pointer<Void> box, Uint32 relation_id, Uint64 source_id, Uint64 target_id);
+typedef obx_box_rel_get_ids_native_t = Pointer<OBX_id_array> Function(
+    Pointer<Void> box, Uint32 relation_id, Uint64 id);
+typedef obx_box_rel_get_backlink_ids_native_t = Pointer<OBX_id_array> Function(
+    Pointer<Void> box, Uint32 relation_id, Uint64 id);
 
 // no typedef for non-functions yet, see https://github.com/dart-lang/language/issues/65
 // typedef obx_err = Int32
@@ -179,6 +201,20 @@ typedef obx_qb_order_native_t = Int32 Function(
     Pointer<Void> builder, Uint32 property_id, Uint32 flags);
 typedef obx_qb_order_dart_t = int Function(
     Pointer<Void> builder, int property_id, int flags);
+
+typedef obx_qb_link_property_native_t = Pointer<Void> Function(
+    Pointer<Void> builder, Uint32 property_id);
+typedef obx_qb_backlink_property_native_t = Pointer<Void> Function(
+    Pointer<Void> builder, Uint32 source_entity_id, Uint32 source_property_id);
+typedef obx_qb_link_standalone_native_t = Pointer<Void> Function(
+    Pointer<Void> builder, Uint32 relation_id);
+typedef obx_qb_backlink_standalone_native_t = Pointer<Void> Function(
+    Pointer<Void> builder, Uint32 relation_id);
+typedef obx_qb_link_time_native_t = Pointer<Void> Function(
+    Pointer<Void> builder,
+    Uint32 linked_entity_id,
+    Uint32 begin_property_id,
+    Uint32 end_property_id);
 
 // query
 

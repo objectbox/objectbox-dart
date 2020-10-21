@@ -50,6 +50,12 @@ class _ObjectBoxBindings {
       obx_model_entity_last_property_id;
   int Function(Pointer<Void> model, int entity_id, int entity_uid)
       obx_model_last_entity_id;
+  int Function(Pointer<Void> model, Pointer<Utf8> target_entity, int entity_id,
+      int entity_uid) obx_model_property_relation;
+  int Function(Pointer<Void> model, int relation_id, int relation_uid,
+      int target_id, int target_uid) obx_model_relation;
+  void Function(Pointer<Void> model, int relation_id, int relation_uid)
+      obx_model_last_relation_id;
 
   // object store management
   Pointer<Void> Function() obx_opt;
@@ -109,6 +115,13 @@ class _ObjectBoxBindings {
       obx_box_count;
   int Function(Pointer<Void> box, Pointer<Uint8> is_empty) obx_box_is_empty;
 
+  // box relations
+  int Function(Pointer<Void> box, int relation_id, int source_id, int target_id)
+      obx_box_rel_put, obx_box_rel_remove;
+
+  Pointer<OBX_id_array> Function(Pointer<Void> box, int relation_id, int id)
+      obx_box_rel_get_ids, obx_box_rel_get_backlink_ids;
+
   // query builder
   obx_query_builder_dart_t obx_qb_create;
   obx_qb_close_dart_t obx_qb_close;
@@ -154,6 +167,18 @@ class _ObjectBoxBindings {
   obx_qb_param_alias_dart_t obx_qb_param_alias;
 
   obx_qb_order_dart_t obx_qb_order;
+
+  Pointer<Void> Function(Pointer<Void> builder, int property_id)
+      obx_qb_link_property;
+  Pointer<Void> Function(
+          Pointer<Void> builder, int source_entity_id, int source_property_id)
+      obx_qb_backlink_property;
+  Pointer<Void> Function(Pointer<Void> builder, int relation_id)
+      obx_qb_link_standalone;
+  Pointer<Void> Function(Pointer<Void> builder, int relation_id)
+      obx_qb_backlink_standalone;
+  Pointer<Void> Function(Pointer<Void> builder, int linked_entity_id,
+      int begin_property_id, int end_property_id) obx_qb_link_time;
 
   // query
   obx_query_t obx_query_create;
@@ -309,6 +334,14 @@ class _ObjectBoxBindings {
     obx_model_last_entity_id =
         _fn<obx_model_last_entity_id_native_t>('obx_model_last_entity_id')
             .asFunction();
+    obx_model_relation =
+        _fn<obx_model_relation_native_t>('obx_model_relation').asFunction();
+    obx_model_property_relation =
+        _fn<obx_model_property_relation_native_t>('obx_model_property_relation')
+            .asFunction();
+    obx_model_last_relation_id =
+        _fn<obx_model_last_relation_id_native_t>('obx_model_last_relation_id')
+            .asFunction();
 
     // object store management
     obx_opt = _fn<obx_opt_native_t>('obx_opt').asFunction();
@@ -371,6 +404,15 @@ class _ObjectBoxBindings {
     obx_box_count = _fn<obx_box_count_native_t>('obx_box_count').asFunction();
     obx_box_is_empty =
         _fn<obx_box_is_empty_native_t>('obx_box_is_empty').asFunction();
+
+    // box relations
+    obx_box_rel_put =
+        _fn<obx_box_rel_put_native_t>('obx_box_rel_put').asFunction();
+    obx_box_rel_remove = _fn<obx_box_rel_remove_native_t>('').asFunction();
+    obx_box_rel_get_ids = _fn<obx_box_rel_get_ids_native_t>('').asFunction();
+    obx_box_rel_get_backlink_ids = _fn<obx_box_rel_get_backlink_ids_native_t>(
+            'obx_box_rel_get_backlink_ids')
+        .asFunction();
 
     // query builder
     obx_qb_create =
@@ -486,6 +528,20 @@ class _ObjectBoxBindings {
         _fn<obx_qb_param_alias_native_t>('obx_qb_param_alias').asFunction();
 
     obx_qb_order = _fn<obx_qb_order_native_t>('obx_qb_order').asFunction();
+
+    obx_qb_link_property =
+        _fn<obx_qb_link_property_native_t>('obx_qb_link_property').asFunction();
+    obx_qb_backlink_property =
+        _fn<obx_qb_backlink_property_native_t>('obx_qb_backlink_property')
+            .asFunction();
+    obx_qb_link_standalone =
+        _fn<obx_qb_link_standalone_native_t>('obx_qb_link_standalone')
+            .asFunction();
+    obx_qb_backlink_standalone =
+        _fn<obx_qb_backlink_standalone_native_t>('obx_qb_backlink_standalone')
+            .asFunction();
+    obx_qb_link_time =
+        _fn<obx_qb_link_time_native_t>('obx_qb_link_time').asFunction();
 
     // query
     obx_query_create = _fn<obx_query_t>('obx_query').asFunction();
