@@ -2,11 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox/src/bindings/constants.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
+
+extension RelationCheck on DartType {
+  String get listSubType {
+    final name = this.toString();
+    return name.substring('List<'.length, name.length - 1);
+  }
+}
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
 /// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
@@ -17,7 +25,7 @@ class EntityResolver extends Builder {
     '.dart': [suffix]
   };
 
-  final _annotationChecker = const TypeChecker.fromRuntime(obx.Entity);
+  final _entityChecker = const TypeChecker.fromRuntime(obx.Entity);
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
   final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
@@ -30,9 +38,12 @@ class EntityResolver extends Builder {
 
     // generate for all entities
     final entities = <Map<String, dynamic>>[];
-    for (var annotatedEl in libReader.annotatedWith(_annotationChecker)) {
+    final annotatedWithEntity = libReader.annotatedWith(_entityChecker);
+    for (var annotatedEl in annotatedWithEntity) {
       entities.add(generateForAnnotatedElement(
-              annotatedEl.element, annotatedEl.annotation)
+              annotatedEl.element,
+              annotatedEl.annotation,
+              annotatedWithEntity.map((a) => a.element.name).toSet())
           .toMap());
     }
 
@@ -43,8 +54,8 @@ class EntityResolver extends Builder {
         buildStep.inputId.changeExtension(suffix), json);
   }
 
-  ModelEntity generateForAnnotatedElement(
-      Element elementBare, ConstantReader annotation) {
+  ModelEntity generateForAnnotatedElement(Element elementBare,
+      ConstantReader annotation, Set<String> relatableEntityNames) {
     if (elementBare is! ClassElement) {
       throw InvalidGenerationSourceError(
           "in target ${elementBare.name}: annotated element isn't a class");
@@ -112,6 +123,13 @@ class EntityResolver extends Builder {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
+        } else if (relatableEntityNames.contains(fieldTypeDart.toString()) ||
+            (fieldTypeDart.isDartCoreList &&
+                relatableEntityNames.contains(fieldTypeDart.listSubType))) {
+          fieldType = OBXPropertyType.Relation;
+          // TODO remove
+          // log.warning(relatableEntityNames.join(' ') +
+          //     '? ${fieldTypeDart.toString()} ${fieldTypeDart.isDartCoreList ? fieldTypeDart.listSubType : ""}');
         } else {
           log.warning(
               "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '${fieldTypeDart.toString()}'");

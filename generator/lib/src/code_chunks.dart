@@ -57,6 +57,9 @@ class CodeChunks {
         case OBXPropertyType.String:
           fieldType = "String";
           break;
+        case OBXPropertyType.Relation:
+          fieldType = 'Relation';
+          break;
         float:
         case OBXPropertyType.Double:
           fieldType = "Double";

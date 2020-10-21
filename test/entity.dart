@@ -63,4 +63,35 @@ class TestEntity {
     omit = -1;
     disregard = 1;
   }
+
+  RelatedEntityA relA;
+  RelatedEntityB relB;
+  List<RelatedEntityA> listA;
+  List<RelatedEntityB> listB;
+
+  TestEntity.relate({this.relA, this.relB, this.listA, this.listB});
+}
+
+@Entity()
+class RelatedEntityA {
+  @Id()
+  int id;
+
+  int tInt;
+  bool tBool;
+  RelatedEntityB relB;
+
+  RelatedEntityA({this.id, this.tInt, this.tBool, this.relB});
+}
+
+@Entity()
+class RelatedEntityB {
+  @Id()
+  int id;
+
+  String tString;
+  double tDouble;
+  RelatedEntityA relA;
+
+  RelatedEntityB({this.id, this.tString, this.tDouble, this.relA});
 }
