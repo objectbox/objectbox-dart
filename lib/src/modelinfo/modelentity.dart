@@ -138,8 +138,13 @@ class ModelEntity {
       throw Exception(
           "cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
     }
+
     properties = properties.where((p) => p != foundProp).toList();
-    model.retiredPropertyUids.add(prop.id.uid);
+    if (prop.type.isRelation) {
+      model.retiredRelationUids.add(prop.id.uid);
+    } else {
+      model.retiredPropertyUids.add(prop.id.uid);
+    }
   }
 
   bool containsUid(int searched) {

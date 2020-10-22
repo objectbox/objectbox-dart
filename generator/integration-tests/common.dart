@@ -59,13 +59,18 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
         jsonModel.retiredEntityUids);
   });
 
-  // TODO when indexes are available
+// TODO when indexes are available
+// TODO see one-liner in the next lastRelationId test
 //  test('lastIndexId', () {
 //    testLastId(defs.model.lastIndexId, defs.model.entities.map((el) => ...), jsonModel.retiredIndexUids);
 //  });
 
-  // TODO when relations are available
-//  test('lastRelationId', () {
-//    testLastId(defs.model.lastRelationId, defs.model.entities.map((el) => ...), jsonModel.retiredRelationUids);
-//  });
+  test('lastRelationId', () {
+    testLastId(
+        defs.model.lastRelationId,
+        defs.model.entities
+            .map((e) => e.properties.where((p) => p.isRelation))
+            .fold([], (a, b) => a + b).map((e) => e.id),
+        jsonModel.retiredRelationUids);
+  });
 }
