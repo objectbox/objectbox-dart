@@ -9,11 +9,9 @@ import 'package:objectbox/src/bindings/constants.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 
-extension RelationCheck on DartType {
-  String get listSubType {
-    final name = this.toString();
-    return name.substring('List<'.length, name.length - 1);
-  }
+String listSubType(DartType t) {
+  final name = t.toString();
+  return name.substring('List<'.length, name.length - 1);
 }
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
@@ -125,7 +123,7 @@ class EntityResolver extends Builder {
           fieldType = OBXPropertyType.Double;
         } else if (relatableEntityNames.contains(fieldTypeDart.toString()) ||
             (fieldTypeDart.isDartCoreList &&
-                relatableEntityNames.contains(fieldTypeDart.listSubType))) {
+                relatableEntityNames.contains(listSubType(fieldTypeDart)))) {
           fieldType = OBXPropertyType.Relation;
         } else {
           log.warning(
