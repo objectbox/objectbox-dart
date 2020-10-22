@@ -15,6 +15,22 @@ void main() {
     box = env.box;
   });
 
+  test('Query with no conditions, and order as desc ints', () {
+    box.putMany([
+      TestEntity(tInt: 0),
+      TestEntity(tInt: 10),
+      TestEntity(tInt: 100),
+      TestEntity(tInt: 10),
+      TestEntity(tInt: 0),
+    ]);
+
+    final listDesc = box.emptyQuery
+        .order(TestEntity_.tInt, flags: Order.descending)
+        .build()
+        .find();
+    expect(listDesc.map((t) => t.tInt).toList(), [100, 10, 10, 0, 0]);
+  });
+
   test('ignore transient field', () {
     box.put(TestEntity(tDouble: 0.1, ignore: 1337));
 

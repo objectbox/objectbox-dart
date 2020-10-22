@@ -257,6 +257,10 @@ class Box<T> {
     }
   }
 
+  /// When no conditions are required on properties
+  QueryBuilder get emptyQuery =>
+      QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id);
+
   /// Returns true if no objects are in this box.
   bool isEmpty() {
     final isEmpty = allocate<Uint8>();

@@ -8,8 +8,8 @@ class QueryBuilder<T> {
   Pointer<Void> _cBuilder;
   final OBXFlatbuffersManager _fbManager;
 
-  QueryBuilder(
-      this._store, this._fbManager, this._entityId, this._queryCondition);
+  QueryBuilder(this._store, this._fbManager, this._entityId,
+      [this._queryCondition]);
 
   void _throwExceptionIfNecessary() {
     if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
@@ -24,7 +24,7 @@ class QueryBuilder<T> {
   Query build() {
     _createBuilder();
 
-    if (0 == _queryCondition.apply(this, true)) {
+    if (_queryCondition != null && 0 == _queryCondition.apply(this, true)) {
       _throwExceptionIfNecessary();
     }
 

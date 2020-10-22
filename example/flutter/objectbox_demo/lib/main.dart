@@ -59,12 +59,8 @@ class ViewModel {
     _box = Box<Note>(_store);
 
     final dateProp = Note_.date;
-    final dummyCondition = dateProp.greaterThan(0);
 
-    _query = _box
-        .query(dummyCondition)
-        .order(dateProp, flags: Order.descending)
-        .build();
+    _query = _box.emptyQuery.order(dateProp, flags: Order.descending).build();
   }
 
   void addNote(Note note) => _box.put(note);
