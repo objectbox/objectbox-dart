@@ -6,6 +6,7 @@ import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'common.dart';
 import 'modelinfo/index.dart';
+import 'util.dart';
 
 class Model {
   Pointer<Void> _cModel;
@@ -21,6 +22,9 @@ class Model {
       // set last entity id
       bindings.obx_model_last_entity_id(
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
+
+      bindings.obx_model_last_relation_id(
+          _cModel, model.lastRelationId.id, model.lastRelationId.uid);
     } catch (e) {
       bindings.obx_model_free(_cModel);
       _cModel = null;
@@ -59,6 +63,11 @@ class Model {
     try {
       _check(bindings.obx_model_property(
           _cModel, name, prop.type, prop.id.id, prop.id.uid));
+
+      if (prop.type.isRelation) {
+        _check(bindings.obx_model_property_relation(
+            _cModel, name, prop.id.id, prop.id.uid));
+      }
     } finally {
       free(name);
     }

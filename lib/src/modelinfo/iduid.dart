@@ -49,6 +49,10 @@ class IdUid {
 
   int get uid => _uid;
 
+  bool get isEmpty {
+    return _id == 0 && _uid == 0;
+  }
+
   @override
   String toString() => '$_id:$_uid';
 }

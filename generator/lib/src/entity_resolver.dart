@@ -127,9 +127,6 @@ class EntityResolver extends Builder {
             (fieldTypeDart.isDartCoreList &&
                 relatableEntityNames.contains(fieldTypeDart.listSubType))) {
           fieldType = OBXPropertyType.Relation;
-          // TODO remove
-          // log.warning(relatableEntityNames.join(' ') +
-          //     '? ${fieldTypeDart.toString()} ${fieldTypeDart.isDartCoreList ? fieldTypeDart.listSubType : ""}');
         } else {
           log.warning(
               "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '${fieldTypeDart.toString()}'");

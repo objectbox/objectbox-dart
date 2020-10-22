@@ -169,6 +169,13 @@ class CodeBuilder extends Builder {
       entityInModel.removeProperty(p);
     });
 
+    final relationProps =
+        entityInModel.properties.where((p) => p.type.isRelation).toList();
+
+    if (relationProps.isNotEmpty) {
+      modelInfo.lastRelationId = relationProps.last.id;
+    }
+
     return entityInModel.id;
   }
 }

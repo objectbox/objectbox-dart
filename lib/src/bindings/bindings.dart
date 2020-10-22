@@ -408,8 +408,10 @@ class _ObjectBoxBindings {
     // box relations
     obx_box_rel_put =
         _fn<obx_box_rel_put_native_t>('obx_box_rel_put').asFunction();
-    obx_box_rel_remove = _fn<obx_box_rel_remove_native_t>('').asFunction();
-    obx_box_rel_get_ids = _fn<obx_box_rel_get_ids_native_t>('').asFunction();
+    obx_box_rel_remove =
+        _fn<obx_box_rel_remove_native_t>('obx_box_rel_remove').asFunction();
+    obx_box_rel_get_ids =
+        _fn<obx_box_rel_get_ids_native_t>('obx_box_rel_get_ids').asFunction();
     obx_box_rel_get_backlink_ids = _fn<obx_box_rel_get_backlink_ids_native_t>(
             'obx_box_rel_get_backlink_ids')
         .asFunction();

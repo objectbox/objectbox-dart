@@ -199,7 +199,15 @@ class ModelInfo {
     }
     entities = entities.where((p) => p != foundEntity).toList();
     retiredEntityUids.add(entity.id.uid);
-    entity.properties.forEach((prop) => retiredPropertyUids.add(prop.id.uid));
+
+    entity.properties.forEach((prop) {
+      final propType = prop.type;
+      if (propType.isRelation) {
+        retiredRelationUids.add(prop.id.uid);
+      } else {
+        retiredPropertyUids.add(prop.id.uid);
+      }
+    });
   }
 
   int generateUid() {
