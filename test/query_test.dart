@@ -24,10 +24,11 @@ void main() {
       TestEntity(tInt: 0),
     ]);
 
-    final listDesc = box.emptyQuery
-        .order(TestEntity_.tInt, flags: Order.descending)
-        .build()
-        .find();
+    var query =
+        box.emptyQuery.order(TestEntity_.tInt, flags: Order.descending).build();
+    final listDesc = query.find();
+    query.close();
+
     expect(listDesc.map((t) => t.tInt).toList(), [100, 10, 10, 0, 0]);
   });
 
