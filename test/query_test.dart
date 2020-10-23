@@ -25,7 +25,7 @@ void main() {
     ]);
 
     var query =
-        box.emptyQuery.order(TestEntity_.tInt, flags: Order.descending).build();
+        box.query().order(TestEntity_.tInt, flags: Order.descending).build();
     final listDesc = query.find();
     query.close();
 

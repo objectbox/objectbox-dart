@@ -242,7 +242,7 @@ class Box<T> {
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
-  QueryBuilder query(Condition qc) =>
+  QueryBuilder query([Condition qc]) =>
       QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
@@ -256,10 +256,6 @@ class Box<T> {
       free(count);
     }
   }
-
-  /// When no conditions are required on properties
-  QueryBuilder get emptyQuery =>
-      QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id);
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
