@@ -118,7 +118,7 @@ class ModelEntity {
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    var property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
+    var property = ModelProperty(IdUid(id, uniqueUid), name, null, 0, 0, this);
     properties.add(property);
     lastPropertyId = property.id;
     return property;

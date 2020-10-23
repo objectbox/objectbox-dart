@@ -4,11 +4,12 @@ import 'iduid.dart';
 /// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
   IdUid id;
-  String name;
+  String name, relationDartType;
   int type, flags;
   ModelEntity entity;
 
-  ModelProperty(this.id, this.name, this.type, this.flags, this.entity) {
+  ModelProperty(this.id, this.name, this.relationDartType, this.type,
+      this.flags, this.entity) {
     validate();
   }
 
@@ -17,6 +18,7 @@ class ModelProperty {
     id = IdUid.fromString(data['id']);
     name = data['name'];
     type = data['type'];
+    relationDartType = data['relationDartType'];
     flags = data.containsKey('flags') ? data['flags'] : 0;
     if (check) validate();
   }
@@ -35,6 +37,7 @@ class ModelProperty {
     ret['id'] = id.toString();
     ret['name'] = name;
     ret['type'] = type;
+    if (relationDartType != null) ret['relationDartType'] = relationDartType;
     if (flags != 0) ret['flags'] = flags;
     return ret;
   }

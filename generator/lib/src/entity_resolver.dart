@@ -78,6 +78,7 @@ class EntityResolver extends Builder {
 
       int fieldType, flags = 0;
       int propUid;
+      final dartTypeString = f.type.toString().replaceAll('*', '');
 
       if (_idChecker.hasAnnotationOfExact(f)) {
         if (hasIdProperty) {
@@ -105,7 +106,6 @@ class EntityResolver extends Builder {
 
       if (fieldType == null) {
         final fieldTypeDart = f.type;
-        final dartTypeString = f.type.toString().replaceAll('*', '');
 
         if (fieldTypeDart.isDartCoreInt) {
           // dart: 8 bytes
@@ -132,8 +132,13 @@ class EntityResolver extends Builder {
       }
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-      final prop =
-          ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+      final prop = ModelProperty(
+          IdUid.empty(),
+          f.name,
+          fieldType == OBXPropertyType.Relation ? dartTypeString : null,
+          fieldType,
+          flags,
+          readEntity);
       if (propUid != null) prop.id.uid = propUid;
       readEntity.properties.add(prop);
 

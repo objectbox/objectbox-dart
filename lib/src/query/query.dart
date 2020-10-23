@@ -225,7 +225,7 @@ class QueryBooleanProperty extends QueryProperty {
 // Condition operator ==(bool p) => equals(p); // see issue #43
 }
 
-class QueryRelationProperty extends QueryProperty {
+class QueryRelationProperty<Target> extends QueryProperty {
   QueryRelationProperty({int entityId, int propertyId, int obxType})
       : super(entityId, propertyId, obxType);
 }

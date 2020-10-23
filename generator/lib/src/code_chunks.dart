@@ -83,8 +83,12 @@ class CodeChunks {
               "Unsupported property type (${prop.type}): ${entity.name}.${name}");
       }
 
+      final relationTypeGenericParam = prop.type == OBXPropertyType.Relation
+          ? '<${prop.relationDartType}>'
+          : '';
+
       ret.add("""
-        static final ${name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+        static final ${name} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
         """);
     }
     return ret.join();
