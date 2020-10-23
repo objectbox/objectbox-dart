@@ -9,11 +9,6 @@ import 'package:objectbox/src/bindings/constants.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 
-String listSubType(DartType t) {
-  final name = t.toString();
-  return name.substring('List<'.length, name.length - 1);
-}
-
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
 /// It's using some tools from source_gen but defining its custom builder because source_gen expects only dart code.
 class EntityResolver extends Builder {
@@ -105,7 +100,8 @@ class EntityResolver extends Builder {
       }
 
       if (fieldType == null) {
-        var fieldTypeDart = f.type;
+        final fieldTypeDart = f.type;
+        final fieldTypeDartString = f.type.toString();
 
         if (fieldTypeDart.isDartCoreInt) {
           // dart: 8 bytes
@@ -121,9 +117,8 @@ class EntityResolver extends Builder {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
-        } else if (relatableEntityNames.contains(fieldTypeDart.toString()) ||
-            (fieldTypeDart.isDartCoreList &&
-                relatableEntityNames.contains(listSubType(fieldTypeDart)))) {
+        } else if (relatableEntityNames
+            .any((e) => fieldTypeDartString.contains(e))) {
           fieldType = OBXPropertyType.Relation;
         } else {
           log.warning(
