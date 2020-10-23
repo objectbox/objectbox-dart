@@ -82,6 +82,7 @@ class CodeBuilder extends Builder {
 
     // merge existing model and annotated model that was just read, then write new final model to file
     merge(model, entities);
+    assignLastPropertyIds(model);
     model.validate();
 
     // write model info
@@ -91,6 +92,18 @@ class CodeBuilder extends Builder {
         .writeAsString(JsonEncoder.withIndent('  ').convert(model.toMap()));
 
     return model;
+  }
+
+  void assignLastPropertyIds(ModelInfo model) {
+    model.entities.forEach((e) {
+      e.properties.forEach((p) {
+        if (p.type.isRelation) {
+          model.lastRelationId = p.id;
+          // }else if (p.type.isIndexer) {
+          //   model.lastIndexId = p.id;
+        }
+      });
+    });
   }
 
   void updateCode(
@@ -168,13 +181,6 @@ class CodeBuilder extends Builder {
           'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
       entityInModel.removeProperty(p);
     });
-
-    final relationProps =
-        entityInModel.properties.where((p) => p.type.isRelation).toList();
-
-    if (relationProps.isNotEmpty) {
-      modelInfo.lastRelationId = relationProps.last.id;
-    }
 
     return entityInModel.id;
   }
