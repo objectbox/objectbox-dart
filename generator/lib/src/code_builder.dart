@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:convert';
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
@@ -97,10 +98,12 @@ class CodeBuilder extends Builder {
   void assignLastPropertyIds(ModelInfo model) {
     model.entities.forEach((e) {
       e.properties.forEach((p) {
-        if (p.type.isRelation) {
-          model.lastRelationId = p.id;
-          // }else if (p.type.isIndexer) {
-          //   model.lastIndexId = p.id;
+        // if (p.isIndexer) {
+        //   model.lastIndexId = p.id; }else
+        if (p.isOneToOne) {
+          model.lastIndexId = p.relIndexId;
+        } else if (p.isManyToMany) {
+          model.lastRelationId = p.relationId;
         }
       });
     });
@@ -144,6 +147,17 @@ class CodeBuilder extends Builder {
     entities.forEach((entity) => mergeEntity(model, entity));
   }
 
+  int generateUid(int seed, Set<int> prohibited) {
+    final rng = Random(seed + DateTime.now().millisecondsSinceEpoch);
+    for (int i = 0; i < 1000; i++) {
+      var uid = rng.nextInt(1 << 32);
+      uid |= rng.nextInt(1 << 32) << 32;
+      uid &= ~(1 << 63);
+      if (!prohibited.contains(uid)) return uid;
+    }
+    return 0;
+  }
+
   void mergeProperty(ModelEntity entity, ModelProperty prop) {
     final propInModel = entity.findSameProperty(prop);
     if (propInModel == null) {
@@ -153,7 +167,10 @@ class CodeBuilder extends Builder {
       propInModel.name = prop.name;
       propInModel.type = prop.type;
       propInModel.flags = prop.flags;
-      propInModel.relationDartType = prop.relationDartType;
+      if (prop.type.isRelation) {
+        propInModel.targetEntityName = prop.targetEntityName;
+        propInModel.relIndexId = prop.relIndexId;
+      }
     }
   }
 
@@ -173,6 +190,50 @@ class CodeBuilder extends Builder {
 
     // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));
+
+    // one to one relation: get the highest relIndexId.id
+    // TODO Ask: Do we want to repair contiguous ids, if one prop is removed in the middle?
+    var relIndexIdCounter = entityInModel.properties
+        .where((p) => p.isOneToOne && p.relIndexId != null)
+        .map((p) => p.relIndexId.id)
+        .fold(1, (a, b) => a < b ? b : a);
+
+    // Prohibit reuse of indexUids
+    final avoidSameUidSet = Set<int>()..addAll(modelInfo.retiredIndexUids);
+
+    // one to one relation
+    entityInModel.properties.where((p) => p.isOneToOne).forEach((p) {
+      if (p.relIndexId == null) {
+        p.relIndexId = IdUid.empty();
+      }
+      if (p.relIndexId.isEmpty) {
+        p.relIndexId.id = relIndexIdCounter++;
+        p.relIndexId.uid = generateUid(entityInModel.id.uid, avoidSameUidSet);
+        avoidSameUidSet.add(p.relIndexId.uid);
+      }
+    });
+
+    // many to many relation
+    var relationIdCounter = entityInModel.properties
+        .where((p) => p.isManyToMany && p.relationId != null)
+        .map((p) => p.relationId.id)
+        .fold(1, (a, b) => a < b ? b : a);
+
+    final targetEntityMap = <String, IdUid>{};
+    final mapEntityNameToId =
+        modelInfo.entities.forEach((e) => targetEntityMap[e.name] = e.id);
+    entityInModel.properties.where((p) => p.isManyToMany).forEach((p) {
+      if (p.relationId == null) {
+        p.relationId = IdUid.empty();
+      }
+      if (p.relationId.isEmpty) {
+        p.relationId.id = relationIdCounter++;
+        p.relationId.uid = generateUid(entityInModel.id.uid, avoidSameUidSet);
+        avoidSameUidSet.add(p.relationId.uid);
+      }
+
+      p.targetEntityId = targetEntityMap[p.targetEntityName];
+    });
 
     // then remove all properties not present anymore in readEntity
     entityInModel.properties

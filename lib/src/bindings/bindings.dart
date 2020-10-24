@@ -46,10 +46,14 @@ class _ObjectBoxBindings {
   int Function(Pointer<Void> model, Pointer<Utf8> name, int type,
       int property_id, int property_uid) obx_model_property;
   int Function(Pointer<Void> model, int flags) obx_model_property_flags;
+  int Function(Pointer<Void> model, int index_id, int index_uid)
+      obx_model_property_index_id;
   int Function(Pointer<Void> model, int property_id, int property_uid)
       obx_model_entity_last_property_id;
-  int Function(Pointer<Void> model, int entity_id, int entity_uid)
+  void Function(Pointer<Void> model, int entity_id, int entity_uid)
       obx_model_last_entity_id;
+  void Function(Pointer<Void> model, int entity_id, int index_uid)
+      obx_model_last_index_id;
   int Function(Pointer<Void> model, Pointer<Utf8> target_entity, int entity_id,
       int entity_uid) obx_model_property_relation;
   int Function(Pointer<Void> model, int relation_id, int relation_uid,
@@ -67,6 +71,7 @@ class _ObjectBoxBindings {
   void Function(Pointer<Void> opt) obx_opt_free;
   Pointer<Void> Function(Pointer<Void> opt) obx_store_open;
   int Function(Pointer<Void> store) obx_store_close;
+  int Function(Pointer<Void> store, int flags) obx_store_debug_flags;
 
   // transactions
   Pointer<Void> Function(Pointer<Void> store) obx_txn_write;
@@ -324,6 +329,9 @@ class _ObjectBoxBindings {
         _fn<obx_model_entity_native_t>('obx_model_entity').asFunction();
     obx_model_property =
         _fn<obx_model_property_native_t>('obx_model_property').asFunction();
+    obx_model_property_index_id =
+        _fn<obx_model_property_index_id_native_t>('obx_model_property_index_id')
+            .asFunction();
     obx_model_property_flags =
         _fn<obx_model_property_flags_native_t>('obx_model_property_flags')
             .asFunction();
@@ -333,6 +341,9 @@ class _ObjectBoxBindings {
             .asFunction();
     obx_model_last_entity_id =
         _fn<obx_model_last_entity_id_native_t>('obx_model_last_entity_id')
+            .asFunction();
+    obx_model_last_index_id =
+        _fn<obx_model_last_index_id_native_t>('obx_model_last_index_id')
             .asFunction();
     obx_model_relation =
         _fn<obx_model_relation_native_t>('obx_model_relation').asFunction();
@@ -359,6 +370,9 @@ class _ObjectBoxBindings {
         _fn<obx_store_open_native_t>('obx_store_open').asFunction();
     obx_store_close =
         _fn<obx_store_close_native_t>('obx_store_close').asFunction();
+    obx_store_debug_flags =
+        _fn<obx_store_debug_flags_native_t>('obx_store_debug_flags')
+            .asFunction();
 
     // transactions
     obx_txn_write = _fn<obx_txn_write_native_t>('obx_txn_write').asFunction();

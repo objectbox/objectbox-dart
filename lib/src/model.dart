@@ -23,8 +23,15 @@ class Model {
       bindings.obx_model_last_entity_id(
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
 
-      bindings.obx_model_last_relation_id(
-          _cModel, model.lastRelationId.id, model.lastRelationId.uid);
+      if (model.lastRelationId != null) {
+        bindings.obx_model_last_relation_id(
+            _cModel, model.lastRelationId.id, model.lastRelationId.uid);
+      }
+
+      if (model.lastIndexId != null) {
+        bindings.obx_model_last_index_id(
+            _cModel, model.lastIndexId.id, model.lastIndexId.uid);
+      }
     } catch (e) {
       bindings.obx_model_free(_cModel);
       _cModel = null;
@@ -59,21 +66,32 @@ class Model {
   }
 
   void addProperty(ModelProperty prop) {
-    var name = Utf8.toUtf8(prop.name);
+    final name = Utf8.toUtf8(prop.name);
     try {
       _check(bindings.obx_model_property(
           _cModel, name, prop.type, prop.id.id, prop.id.uid));
 
-      if (prop.type.isRelation) {
-        _check(bindings.obx_model_property_relation(
-            _cModel, name, prop.id.id, prop.id.uid));
+      if (prop.flags != 0) {
+        _check(bindings.obx_model_property_flags(_cModel, prop.flags));
+      }
+
+      if (prop.isOneToOne) {
+        final targetEntityName = Utf8.toUtf8(prop.targetEntityName);
+
+        _check(bindings.obx_model_property_relation(_cModel, targetEntityName,
+            prop.relIndexId.id, prop.relIndexId.uid));
+
+        free(targetEntityName);
+      } else if (prop.isManyToMany) {
+        _check(bindings.obx_model_relation(
+            _cModel,
+            prop.relationId.id,
+            prop.relationId.uid,
+            prop.targetEntityId.id,
+            prop.targetEntityId.uid));
       }
     } finally {
       free(name);
-    }
-
-    if (prop.flags != 0) {
-      _check(bindings.obx_model_property_flags(_cModel, prop.flags));
     }
   }
 }

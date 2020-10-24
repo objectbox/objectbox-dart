@@ -83,3 +83,11 @@ class OBXError {
   /// A requested schema object (e.g. entity or property) was not found in the schema
   static const int OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND = 10503;
 }
+
+class OBXDebugFlags {
+  static const int LOG_TRANSACTIONS_READ = 1;
+  static const int LOG_TRANSACTIONS_WRITE = 2;
+  static const int LOG_QUERIES = 4;
+  static const int LOG_QUERY_PARAMETERS = 8;
+  static const int LOG_ASYNC_QUEUE = 16;
+}

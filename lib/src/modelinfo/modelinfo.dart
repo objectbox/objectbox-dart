@@ -201,12 +201,15 @@ class ModelInfo {
     retiredEntityUids.add(entity.id.uid);
 
     entity.properties.forEach((prop) {
-      final propType = prop.type;
-      if (propType.isRelation) {
-        retiredRelationUids.add(prop.id.uid);
-      } else {
-        retiredPropertyUids.add(prop.id.uid);
+      if (prop.isRelation) {
+        if (prop.targetEntityName.contains('<')) {
+          retiredRelationUids.add(prop.relationId.uid);
+        } else {
+          retiredIndexUids.add(prop.relIndexId.uid);
+        }
       }
+      // if (prop.isIndexer) { retiredIndexUids.add(prop.indexId.uid); }
+      retiredPropertyUids.add(prop.id.uid);
     });
   }
 

@@ -34,7 +34,11 @@ class Store {
   ///
   /// See our examples for more details.
   Store(this.defs,
-      {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
+      {String directory,
+      int maxDBSizeInKB,
+      int fileMode,
+      int maxReaders,
+      int debugFlags = 0}) {
     var model = Model(defs.model);
 
     var opt = bindings.obx_opt();
@@ -64,6 +68,9 @@ class Store {
       rethrow;
     }
     _cStore = bindings.obx_store_open(opt);
+    if (debugFlags != 0) {
+      checkObx(bindings.obx_store_debug_flags(_cStore, debugFlags));
+    }
 
     try {
       checkObxPtr(_cStore, 'failed to create store');

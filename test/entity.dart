@@ -63,13 +63,6 @@ class TestEntity {
     omit = -1;
     disregard = 1;
   }
-
-  RelatedEntityA relA;
-  RelatedEntityB relB;
-  List<RelatedEntityA> listA;
-  List<RelatedEntityB> listB;
-
-  TestEntity.relate({this.relA, this.relB, this.listA, this.listB});
 }
 
 @Entity()
@@ -91,7 +84,7 @@ class RelatedEntityB {
 
   String tString;
   double tDouble;
-  RelatedEntityA relA;
+  List<TestEntity> listTestEntity;
 
-  RelatedEntityB({this.id, this.tString, this.tDouble, this.relA});
+  RelatedEntityB({this.id, this.tString, this.tDouble, this.listTestEntity});
 }

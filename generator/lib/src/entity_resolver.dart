@@ -132,13 +132,20 @@ class EntityResolver extends Builder {
       }
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
+      final isRelation = fieldType == OBXPropertyType.Relation;
+
+      // setup relations
+      final isOneToOne =
+          isRelation && areRelated(dartTypeString, relatableEntityNames);
+      final isManyToMany =
+          isRelation && areRelated(dartTypeString, relatableEntityNamesAsList);
       final prop = ModelProperty(
-          IdUid.empty(),
-          f.name,
-          fieldType == OBXPropertyType.Relation ? dartTypeString : null,
-          fieldType,
-          flags,
-          readEntity);
+          IdUid.empty(), f.name, fieldType, flags, readEntity,
+          targetEntityName: isRelation ? dartTypeString : null,
+          relIndexId: isOneToOne ? IdUid.empty() : null,
+          relationId: isManyToMany ? IdUid.empty() : null,
+          targetEntityId: isManyToMany ? IdUid.empty() : null);
+
       if (propUid != null) prop.id.uid = propUid;
       readEntity.properties.add(prop);
 
@@ -155,8 +162,6 @@ class EntityResolver extends Builder {
     return readEntity;
   }
 
-  bool areRelated(String typeString, Set<String> typeCollection,
-          Set<String> listTypeCollection) =>
-      typeCollection.contains(typeString) ||
-      listTypeCollection.contains(typeString);
+  bool areRelated(String typeString, Set<String> s1, [Set<String> s2]) =>
+      s1.contains(typeString) || (s2 != null && s2.contains(typeString));
 }
