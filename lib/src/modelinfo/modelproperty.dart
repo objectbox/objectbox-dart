@@ -80,8 +80,8 @@ class ModelProperty {
   }
 
   bool get isRelation => OBXPropertyType.Relation == type;
-  bool get isOneToOne => isRelation && !targetEntityName.contains('<');
-  bool get isManyToMany => isRelation && targetEntityName.contains('<');
+  bool get isToOne => isRelation && !targetEntityName.contains('<');
+  bool get isToMany => isRelation && targetEntityName.contains('<');
   // bool get isIndexer => [
   //       OBXPropertyFlag.INDEXED,
   //       OBXPropertyFlag.UNIQUE,

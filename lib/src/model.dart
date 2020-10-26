@@ -6,7 +6,6 @@ import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'common.dart';
 import 'modelinfo/index.dart';
-import 'util.dart';
 
 class Model {
   Pointer<Void> _cModel;
@@ -75,14 +74,14 @@ class Model {
         _check(bindings.obx_model_property_flags(_cModel, prop.flags));
       }
 
-      if (prop.isOneToOne) {
+      if (prop.isToOne) {
         final targetEntityName = Utf8.toUtf8(prop.targetEntityName);
 
         _check(bindings.obx_model_property_relation(_cModel, targetEntityName,
             prop.relIndexId.id, prop.relIndexId.uid));
 
         free(targetEntityName);
-      } else if (prop.isManyToMany) {
+      } else if (prop.isToMany) {
         _check(bindings.obx_model_relation(
             _cModel,
             prop.relationId.id,

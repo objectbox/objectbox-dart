@@ -135,16 +135,16 @@ class EntityResolver extends Builder {
       final isRelation = fieldType == OBXPropertyType.Relation;
 
       // setup relations
-      final isOneToOne =
+      final isToOne =
           isRelation && areRelated(dartTypeString, relatableEntityNames);
-      final isManyToMany =
+      final isToMany =
           isRelation && areRelated(dartTypeString, relatableEntityNamesAsList);
       final prop = ModelProperty(
           IdUid.empty(), f.name, fieldType, flags, readEntity,
           targetEntityName: isRelation ? dartTypeString : null,
-          relIndexId: isOneToOne ? IdUid.empty() : null,
-          relationId: isManyToMany ? IdUid.empty() : null,
-          targetEntityId: isManyToMany ? IdUid.empty() : null);
+          relIndexId: isToOne ? IdUid.empty() : null,
+          relationId: isToMany ? IdUid.empty() : null,
+          targetEntityId: isToMany ? IdUid.empty() : null);
 
       if (propUid != null) prop.id.uid = propUid;
       readEntity.properties.add(prop);

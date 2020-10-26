@@ -100,9 +100,9 @@ class CodeBuilder extends Builder {
       e.properties.forEach((p) {
         // if (p.isIndexer) {
         //   model.lastIndexId = p.id; }else
-        if (p.isOneToOne) {
+        if (p.isToOne) {
           model.lastIndexId = p.relIndexId;
-        } else if (p.isManyToMany) {
+        } else if (p.isToMany) {
           model.lastRelationId = p.relationId;
         }
       });
@@ -194,7 +194,7 @@ class CodeBuilder extends Builder {
     // one to one relation: get the highest relIndexId.id
     // TODO Ask: Do we want to repair contiguous ids, if one prop is removed in the middle?
     var relIndexIdCounter = entityInModel.properties
-        .where((p) => p.isOneToOne && p.relIndexId != null)
+        .where((p) => p.isToOne && p.relIndexId != null)
         .map((p) => p.relIndexId.id)
         .fold(1, (a, b) => a < b ? b : a);
 
@@ -202,7 +202,7 @@ class CodeBuilder extends Builder {
     final avoidSameUidSet = Set<int>()..addAll(modelInfo.retiredIndexUids);
 
     // one to one relation
-    entityInModel.properties.where((p) => p.isOneToOne).forEach((p) {
+    entityInModel.properties.where((p) => p.isToOne).forEach((p) {
       if (p.relIndexId == null) {
         p.relIndexId = IdUid.empty();
       }
@@ -215,14 +215,14 @@ class CodeBuilder extends Builder {
 
     // many to many relation
     var relationIdCounter = entityInModel.properties
-        .where((p) => p.isManyToMany && p.relationId != null)
+        .where((p) => p.isToMany && p.relationId != null)
         .map((p) => p.relationId.id)
         .fold(1, (a, b) => a < b ? b : a);
 
     final targetEntityMap = <String, IdUid>{};
     final mapEntityNameToId =
         modelInfo.entities.forEach((e) => targetEntityMap[e.name] = e.id);
-    entityInModel.properties.where((p) => p.isManyToMany).forEach((p) {
+    entityInModel.properties.where((p) => p.isToMany).forEach((p) {
       if (p.relationId == null) {
         p.relationId = IdUid.empty();
       }
