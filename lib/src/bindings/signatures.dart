@@ -301,3 +301,10 @@ typedef obx_bytes_array_set_t<Ret, SizeT> = Ret Function(
     SizeT index,
     Pointer<Uint8> data,
     SizeT size);
+
+/*  // TODO
+    obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
+    obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
+
+    obx_qb_param_alias_dart_t obx_qb_param_alias;
+*/

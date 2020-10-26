@@ -8,8 +8,8 @@ class QueryBuilder<T> {
   Pointer<Void> _cBuilder;
   final OBXFlatbuffersManager _fbManager;
 
-  QueryBuilder(
-      this._store, this._fbManager, this._entityId, this._queryCondition);
+  QueryBuilder(this._store, this._fbManager, this._entityId,
+      [this._queryCondition]);
 
   void _throwExceptionIfNecessary() {
     if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
@@ -24,7 +24,7 @@ class QueryBuilder<T> {
   Query build() {
     _createBuilder();
 
-    if (0 == _queryCondition.apply(this, true)) {
+    if (_queryCondition != null && 0 == _queryCondition.apply(this, true)) {
       _throwExceptionIfNecessary();
     }
 
@@ -45,37 +45,3 @@ class QueryBuilder<T> {
     return this;
   }
 }
-
-/*  // Not done yet
-    obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
-    obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
-
-    obx_qb_param_alias_dart_t obx_qb_param_alias;
-*/
-
-//////
-//////
-
-/** Inspiration
-    Modifier and Type	Method	Description
-    <TARGET> QueryBuilder<TARGET>	backlink​(RelationInfo<TARGET,?> relationInfo)
-    Creates a backlink (reversed link) to another entity, for which you also can describe conditions using the returned builder.
-    void	close()
- ** QueryBuilder<T>	eager​(int limit, RelationInfo relationInfo, RelationInfo... more)
-    Like eager(RelationInfo, RelationInfo[]), but limits eager loading to the given count.
- ** QueryBuilder<T>	eager​(RelationInfo relationInfo, RelationInfo... more)
-    Specifies relations that should be resolved eagerly.
- ** QueryBuilder<T>	filter​(QueryFilter<T> filter) // dart has built-in higher order functions
-    Sets a filter that executes on primary query results (returned from the db core) on a Java level.
-    <TARGET> QueryBuilder<TARGET>	link​(RelationInfo<?,TARGET> relationInfo)
-    Creates a link to another entity, for which you also can describe conditions using the returned builder.
- ** QueryBuilder<T>	order​(Property<T> property)
-    Specifies given property to be used for sorting.
- ** QueryBuilder<T>	order​(Property<T> property, int flags)
-    Defines the order with which the results are ordered (default: none).
- ** QueryBuilder<T>	orderDesc​(Property<T> property)
-    Specifies given property in descending order to be used for sorting.
- ** QueryBuilder<T>	parameterAlias​(java.lang.String alias)
-    Assigns the given alias to the previous condition.
- ** QueryBuilder<T>	sort​(java.util.Comparator<T> comparator)
- */

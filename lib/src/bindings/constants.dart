@@ -47,6 +47,14 @@ class OBXError {
   /// This is NOT an error condition, and thus no last error info is set.
   static const int OBX_NOT_FOUND = 404;
 
+  /// Indicates that a function had "no success", which is typically a likely outcome and not a "hard error".
+  /// This is NOT an error condition, and thus no "last error" info is set.
+  static const int OBX_NO_SUCCESS = 1001;
+
+  /// Indicates that a function reached a time out, which is typically a likely outcome and not a "hard error".
+  /// This is NOT an error condition, and thus no "last error" info is set.
+  static const int OBX_TIMEOUT = 1002;
+
   // General errors
   static const int OBX_ERROR_ILLEGAL_STATE = 10001;
   static const int OBX_ERROR_ILLEGAL_ARGUMENT = 10002;
