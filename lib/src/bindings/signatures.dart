@@ -7,12 +7,17 @@ import 'structs.dart';
 // ignore_for_file: non_constant_identifier_names
 
 // typedefs for common signatures for different "classes", like store, box, ...
-// err fn(objectPtr)
+// obx_err fn(objectPtr)
 typedef obx_fn_nullary_native = Int32 Function(Pointer<Void> obj);
 typedef obx_fn_nullary_dart = int Function(Pointer<Void> obj);
-// err fn(void* objectPtr, Arg1 arg)
+// obx_err fn(void* objectPtr, Arg1 arg)
 typedef obx_fn_unary_native<Arg1> = Int32 Function(Pointer<Void> obj, Arg1 arg);
 typedef obx_fn_unary_dart<Arg1> = int Function(Pointer<Void> obj, Arg1 arg);
+// obx_err fn(void* objectPtr, Arg1 arg1, Arg2 arg2)
+typedef obx_fn_binary_native<Arg1, Arg2> = Int32 Function(
+    Pointer<Void> obj, Arg1 arg1, Arg2 arg2);
+typedef obx_fn_binary_dart<Arg1, Arg2> = int Function(
+    Pointer<Void> obj, Arg1 arg1, Arg2 arg2);
 
 // common functions
 typedef obx_version_native_t = Void Function(

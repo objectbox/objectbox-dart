@@ -222,6 +222,9 @@ class _ObjectBoxBindings {
   obx_fn_unary_dart<int> obx_sync_request_updates_mode;
   obx_fn_nullary_dart obx_sync_start;
   obx_fn_nullary_dart obx_sync_stop;
+  obx_fn_unary_dart<int> obx_sync_updates_request;
+  obx_fn_nullary_dart obx_sync_updates_cancel;
+  obx_fn_binary_dart<int, Pointer<Uint64>> obx_sync_outgoing_message_count;
 
   // TODO return .asFunction() -> requires properly determined static return type
   Pointer<NativeFunction<T>> _fn<T extends Function>(String name) {
@@ -620,6 +623,15 @@ class _ObjectBoxBindings {
             .asFunction();
     obx_sync_start = _fn<obx_fn_nullary_native>('obx_sync_start').asFunction();
     obx_sync_stop = _fn<obx_fn_nullary_native>('obx_sync_stop').asFunction();
+    obx_sync_updates_request =
+        _fn<obx_fn_unary_native<Uint8>>('obx_sync_updates_request')
+            .asFunction();
+    obx_sync_updates_cancel =
+        _fn<obx_fn_nullary_native>('obx_sync_updates_cancel').asFunction();
+    obx_sync_outgoing_message_count =
+        _fn<obx_fn_binary_native<Uint64, Pointer<Uint64>>>(
+                'obx_sync_outgoing_message_count')
+            .asFunction();
   }
 }
 

@@ -6,11 +6,8 @@ import 'package:ffi/ffi.dart';
 import 'store.dart';
 import 'bindings/bindings.dart';
 import 'bindings/constants.dart';
-import 'bindings/data_visitor.dart';
-import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
-import 'store.dart';
 
 /// Credentials used to authenticate a sync client against a server.
 class SyncCredentials {
@@ -164,10 +161,67 @@ class SyncClient {
   void stop() {
     checkObx(bindings.obx_sync_stop(_cSync));
   }
+
+  /// Request updates since we last synchronized our database.
+  /// @param subscribeForFuturePushes to keep sending us future updates as they come in.
+  /// @see updatesCancel() to stop the updates
+  bool requestUpdates(bool subscribeForFuturePushes) {
+    return checkObxSuccess(bindings.obx_sync_updates_request(
+        _cSync, subscribeForFuturePushes ? 1 : 0));
+  }
+
+  /// Cancel updates from the server so that it will stop sending updates.
+  /// @see updatesRequest()
+  bool cancelUpdates() {
+    return checkObxSuccess(bindings.obx_sync_updates_cancel(_cSync));
+  }
+
+  /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
+  /// Note: This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
+  ///       While this will still be fast, avoid calling this function excessively.
+  ///       2) the result follows transaction view semantics, thus it may not always match the actual value.
+  /// @return the number of messages in the outgoing queue
+  int outgoingMessageCount({int limit = 0}) {
+    final count = allocate<Uint64>();
+    try {
+      checkObx(bindings.obx_sync_outgoing_message_count(_cSync, limit, count));
+      return count.value;
+    } finally {
+      free(count);
+    }
+  }
 }
 
 class Sync {
+  static final Map<Store, SyncClient> _clients = {};
+
   static bool isAvailable() {
     return bindings.obx_sync_available() != 0;
+  }
+
+  /// Creates a sync client associated with the given store and configures it with the given options.
+  /// This does not initiate any connection attempts yet: call SyncClient::start() to do so.
+  /// Before start(), you can still configure some aspects of the sync client, e.g. its "request update" mode.
+  /// @note While you may not interact with SyncClient directly after start(), you need to hold on to the object.
+  ///       Make sure the SyncClient is not destroyed and thus synchronization can keep running in the background.
+  static SyncClient client(
+      Store store, String serverUri, SyncCredentials creds) {
+    if (_clients.containsKey(store)) {
+      throw Exception('Only one sync client can be active for a store');
+    }
+    _clients[store] = SyncClient(store, serverUri, creds);
+    return _clients[store];
+  }
+}
+
+extension SyncedStore on Store {
+  /// Return an existing SyncClient associated with the store or throws if not available.
+  /// See Sync::client() to create one first.
+  SyncClient syncClient() {
+    if (!Sync._clients.containsKey(this)) {
+      throw Exception(
+          'No sync client associated with this store yet. Use Sync::client() to start one first.');
+    }
+    return Sync._clients[this];
   }
 }
