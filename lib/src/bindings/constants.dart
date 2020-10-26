@@ -91,3 +91,43 @@ class OBXError {
   /// A requested schema object (e.g. entity or property) was not found in the schema
   static const int OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND = 10503;
 }
+
+class OBXSyncCredentialsType {
+  static const int NONE = 0;
+  static const int SHARED_SECRET = 1;
+  static const int GOOGLE_AUTH = 2;
+}
+
+// TODO sync prefix
+class OBXRequestUpdatesMode {
+  /// no updates by default, obx_sync_updates_request() must be called manually
+  static const int MANUAL = 0;
+
+  /// same as calling obx_sync_updates_request(sync, TRUE)
+  /// default mode unless overridden by obx_sync_request_updates_mode
+  static const int AUTO = 1;
+
+  /// same as calling obx_sync_updates_request(sync, FALSE)
+  static const int AUTO_NO_PUSHES = 2;
+}
+
+class OBXSyncState {
+  static const int CREATED = 1;
+  static const int STARTED = 2;
+  static const int CONNECTED = 3;
+  static const int LOGGED_IN = 4;
+  static const int DISCONNECTED = 5;
+  static const int STOPPED = 6;
+  static const int DEAD = 7;
+}
+
+class OBXSyncCode {
+  static const int OK = 20;
+  static const int REQ_REJECTED = 40;
+  static const int CREDENTIALS_REJECTED = 43;
+  static const int UNKNOWN = 50;
+  static const int AUTH_UNREACHABLE = 53;
+  static const int BAD_VERSION = 55;
+  static const int CLIENT_ID_TAKEN = 61;
+  static const int TX_VIOLATED_UNIQUE = 71;
+}

@@ -213,6 +213,16 @@ class _ObjectBoxBindings {
   obx_bytes_array_t<int> obx_bytes_array;
   obx_bytes_array_set_t<int, int> obx_bytes_array_set;
 
+  // Sync
+  int Function() obx_sync_available;
+  obx_sync_native_t obx_sync;
+  obx_fn_nullary_dart obx_sync_close;
+  obx_sync_credentials_dart_t obx_sync_credentials;
+  obx_fn_nullary_dart obx_sync_state;
+  obx_fn_unary_dart<int> obx_sync_request_updates_mode;
+  obx_fn_nullary_dart obx_sync_start;
+  obx_fn_nullary_dart obx_sync_stop;
+
   // TODO return .asFunction() -> requires properly determined static return type
   Pointer<NativeFunction<T>> _fn<T extends Function>(String name) {
     return lib.lookup<NativeFunction<T>>(name);
@@ -596,6 +606,20 @@ class _ObjectBoxBindings {
     obx_bytes_array_set =
         _fn<obx_bytes_array_set_t<Int32, IntPtr>>('obx_bytes_array_set')
             .asFunction();
+
+    // Sync
+    obx_sync_available =
+        _fn<obx_sync_available_native_t>('obx_sync_available').asFunction();
+    obx_sync = _fn<obx_sync_native_t>('obx_sync').asFunction();
+    obx_sync_close = _fn<obx_fn_nullary_native>('obx_sync_close').asFunction();
+    obx_sync_credentials =
+        _fn<obx_sync_credentials_native_t>('obx_sync_credentials').asFunction();
+    obx_sync_state = _fn<obx_fn_nullary_native>('obx_sync_state').asFunction();
+    obx_sync_request_updates_mode =
+        _fn<obx_fn_unary_native<Int32>>('obx_sync_request_updates_mode')
+            .asFunction();
+    obx_sync_start = _fn<obx_fn_nullary_native>('obx_sync_start').asFunction();
+    obx_sync_stop = _fn<obx_fn_nullary_native>('obx_sync_stop').asFunction();
   }
 }
 

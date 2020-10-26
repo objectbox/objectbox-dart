@@ -6,6 +6,14 @@ import 'structs.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
+// typedefs for common signatures for different "classes", like store, box, ...
+// err fn(objectPtr)
+typedef obx_fn_nullary_native = Int32 Function(Pointer<Void> obj);
+typedef obx_fn_nullary_dart = int Function(Pointer<Void> obj);
+// err fn(void* objectPtr, Arg1 arg)
+typedef obx_fn_unary_native<Arg1> = Int32 Function(Pointer<Void> obj, Arg1 arg);
+typedef obx_fn_unary_dart<Arg1> = int Function(Pointer<Void> obj, Arg1 arg);
+
 // common functions
 typedef obx_version_native_t = Void Function(
     Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
@@ -266,3 +274,12 @@ typedef obx_bytes_array_set_t<Ret, SizeT> = Ret Function(
 
     obx_qb_param_alias_dart_t obx_qb_param_alias;
 */
+
+// Sync
+typedef obx_sync_available_native_t = Uint8 Function();
+typedef obx_sync_native_t = Pointer<Void> Function(
+    Pointer<Void> store, Pointer<Utf8> serverUri);
+typedef obx_sync_credentials_native_t = Int32 Function(
+    Pointer<Void> sync, Int32 type, Pointer<Uint8> data, IntPtr size);
+typedef obx_sync_credentials_dart_t = int Function(
+    Pointer<Void> sync, int type, Pointer<Uint8> data, int size);
