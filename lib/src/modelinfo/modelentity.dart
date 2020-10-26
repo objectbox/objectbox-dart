@@ -128,6 +128,9 @@ class ModelEntity {
     final modelProp = createProperty(prop.name, prop.id.uid);
     modelProp.type = prop.type;
     modelProp.flags = prop.flags;
+
+    _hasRelations |= modelProp.isRelation;
+
     return modelProp;
   }
 
@@ -155,4 +158,7 @@ class ModelEntity {
     }
     return false;
   }
+
+  bool _hasRelations = false;
+  bool get hasRelations => _hasRelations;
 }
