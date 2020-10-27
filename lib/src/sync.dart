@@ -4,6 +4,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:ffi/ffi.dart';
 
 import 'store.dart';
+import 'util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/constants.dart';
 import 'bindings/helpers.dart';
@@ -63,6 +64,11 @@ class SyncClient {
   final Store _store;
   Pointer<Void> _cSync;
 
+  /// The low-level pointer to this box.
+  Pointer<Void> get ptr => (_cSync.address != 0)
+      ? _cSync
+      : throw Exception('SyncClient already closed');
+
   /// Creates a sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
   SyncClient(this._store, String serverUri, SyncCredentials creds) {
@@ -85,12 +91,21 @@ class SyncClient {
   /// It can no longer be used afterwards, make a new sync client instead.
   /// Does nothing if this sync client has already been closed.
   void close() {
-    checkObx(bindings.obx_sync_close(_cSync));
+    final err = bindings.obx_sync_close(_cSync);
+    _cSync = nullptr;
+    Sync._clients.remove(_store);
+    StoreCloseObserver.removeListener(_store, this);
+    checkObx(err);
+  }
+
+  /// Returns if this sync client is closed and can no longer be used.
+  bool isClosed() {
+    return _cSync.address == 0;
   }
 
   /// Gets the current sync client state.
   SyncState state() {
-    final state = bindings.obx_sync_state(_cSync);
+    final state = bindings.obx_sync_state(ptr);
     switch (state) {
       case OBXSyncState.CREATED:
         return SyncState.created;
@@ -117,9 +132,9 @@ class SyncClient {
     final cCreds = OBX_bytes.managedCopyOf(creds._data);
     try {
       checkObx(bindings.obx_sync_credentials(
-          _cSync,
+          ptr,
           creds._type,
-          creds._type == OBXSyncCredentialsType.NONE ? null : cCreds.ref.ptr,
+          creds._type == OBXSyncCredentialsType.NONE ? nullptr : cCreds.ref.ptr,
           cCreds.ref.length));
     } finally {
       OBX_bytes.freeManaged(cCreds);
@@ -143,7 +158,7 @@ class SyncClient {
       default:
         throw Exception('Unknown mode argument: ' + mode.toString());
     }
-    checkObx(bindings.obx_sync_request_updates_mode(_cSync, cMode));
+    checkObx(bindings.obx_sync_request_updates_mode(ptr, cMode));
   }
 
   /// Once the sync client is configured, you can "start" it to initiate synchronization.
@@ -154,12 +169,12 @@ class SyncClient {
   /// increasing backoff intervals.
   /// If you haven't set the credentials in the options during construction, call setCredentials() before start().
   void start() {
-    checkObx(bindings.obx_sync_start(_cSync));
+    checkObx(bindings.obx_sync_start(ptr));
   }
 
   /// Stops this sync client. Does nothing if it is already stopped.
   void stop() {
-    checkObx(bindings.obx_sync_stop(_cSync));
+    checkObx(bindings.obx_sync_stop(ptr));
   }
 
   /// Request updates since we last synchronized our database.
@@ -167,13 +182,13 @@ class SyncClient {
   /// @see updatesCancel() to stop the updates
   bool requestUpdates(bool subscribeForFuturePushes) {
     return checkObxSuccess(bindings.obx_sync_updates_request(
-        _cSync, subscribeForFuturePushes ? 1 : 0));
+        ptr, subscribeForFuturePushes ? 1 : 0));
   }
 
   /// Cancel updates from the server so that it will stop sending updates.
   /// @see updatesRequest()
   bool cancelUpdates() {
-    return checkObxSuccess(bindings.obx_sync_updates_cancel(_cSync));
+    return checkObxSuccess(bindings.obx_sync_updates_cancel(ptr));
   }
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
@@ -184,7 +199,7 @@ class SyncClient {
   int outgoingMessageCount({int limit = 0}) {
     final count = allocate<Uint64>();
     try {
-      checkObx(bindings.obx_sync_outgoing_message_count(_cSync, limit, count));
+      checkObx(bindings.obx_sync_outgoing_message_count(ptr, limit, count));
       return count.value;
     } finally {
       free(count);
@@ -209,19 +224,15 @@ class Sync {
     if (_clients.containsKey(store)) {
       throw Exception('Only one sync client can be active for a store');
     }
-    _clients[store] = SyncClient(store, serverUri, creds);
-    return _clients[store];
+    final client = SyncClient(store, serverUri, creds);
+    _clients[store] = client;
+    StoreCloseObserver.addListener(store, client, client.close);
+    return client;
   }
 }
 
 extension SyncedStore on Store {
-  /// Return an existing SyncClient associated with the store or throws if not available.
+  /// Return an existing SyncClient associated with the store or null if not available.
   /// See Sync::client() to create one first.
-  SyncClient syncClient() {
-    if (!Sync._clients.containsKey(this)) {
-      throw Exception(
-          'No sync client associated with this store yet. Use Sync::client() to start one first.');
-    }
-    return Sync._clients[this];
-  }
+  SyncClient syncClient() => Sync._clients[this];
 }
