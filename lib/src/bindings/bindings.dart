@@ -613,25 +613,33 @@ class _ObjectBoxBindings {
     // Sync
     obx_sync_available =
         _fn<obx_sync_available_native_t>('obx_sync_available').asFunction();
-    obx_sync = _fn<obx_sync_native_t>('obx_sync').asFunction();
-    obx_sync_close = _fn<obx_fn_nullary_native>('obx_sync_close').asFunction();
-    obx_sync_credentials =
-        _fn<obx_sync_credentials_native_t>('obx_sync_credentials').asFunction();
-    obx_sync_state = _fn<obx_fn_nullary_native>('obx_sync_state').asFunction();
-    obx_sync_request_updates_mode =
-        _fn<obx_fn_unary_native<Int32>>('obx_sync_request_updates_mode')
-            .asFunction();
-    obx_sync_start = _fn<obx_fn_nullary_native>('obx_sync_start').asFunction();
-    obx_sync_stop = _fn<obx_fn_nullary_native>('obx_sync_stop').asFunction();
-    obx_sync_updates_request =
-        _fn<obx_fn_unary_native<Uint8>>('obx_sync_updates_request')
-            .asFunction();
-    obx_sync_updates_cancel =
-        _fn<obx_fn_nullary_native>('obx_sync_updates_cancel').asFunction();
-    obx_sync_outgoing_message_count =
-        _fn<obx_fn_binary_native<Uint64, Pointer<Uint64>>>(
-                'obx_sync_outgoing_message_count')
-            .asFunction();
+    try {
+      obx_sync = _fn<obx_sync_native_t>('obx_sync').asFunction();
+      obx_sync_close =
+          _fn<obx_fn_nullary_native>('obx_sync_close').asFunction();
+      obx_sync_credentials =
+          _fn<obx_sync_credentials_native_t>('obx_sync_credentials')
+              .asFunction();
+      obx_sync_state =
+          _fn<obx_fn_nullary_native>('obx_sync_state').asFunction();
+      obx_sync_request_updates_mode =
+          _fn<obx_fn_unary_native<Int32>>('obx_sync_request_updates_mode')
+              .asFunction();
+      obx_sync_start =
+          _fn<obx_fn_nullary_native>('obx_sync_start').asFunction();
+      obx_sync_stop = _fn<obx_fn_nullary_native>('obx_sync_stop').asFunction();
+      obx_sync_updates_request =
+          _fn<obx_fn_unary_native<Uint8>>('obx_sync_updates_request')
+              .asFunction();
+      obx_sync_updates_cancel =
+          _fn<obx_fn_nullary_native>('obx_sync_updates_cancel').asFunction();
+      obx_sync_outgoing_message_count =
+          _fn<obx_fn_binary_native<Uint64, Pointer<Uint64>>>(
+                  'obx_sync_outgoing_message_count')
+              .asFunction();
+    } catch (e) {
+      // sync functions may be undefined when in non-sync lib
+    }
   }
 }
 
