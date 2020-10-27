@@ -72,4 +72,50 @@ void main() {
     expect(c1, isNot(equals(c2)));
     env2.close();
   });
+
+  test('SyncClient states (no server available)', () {
+    SyncClient client = createClient(store);
+    expect(client.state(), equals(SyncState.created));
+    client.start();
+    expect(client.state(), equals(SyncState.started));
+    client.stop();
+    expect(client.state(), equals(SyncState.stopped));
+  });
+
+  test('SyncClient access after closing must throw', () {
+    SyncClient c = createClient(store);
+    c.close();
+    expect(c.isClosed(), isTrue);
+
+    final error = throwsA(predicate(
+        (Exception e) => e.toString().contains('SyncClient already closed')));
+    expect(() => c.start(), error);
+    expect(() => c.stop(), error);
+    expect(() => c.state(), error);
+    expect(() => c.cancelUpdates(), error);
+    expect(() => c.requestUpdates(true), error);
+    expect(() => c.outgoingMessageCount(), error);
+    expect(() => c.setCredentials(SyncCredentials.none()), error);
+    expect(() => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto), error);
+  });
+
+  test('SyncClient simple coverage (no server available)', () {
+    SyncClient c = createClient(store);
+    expect(c.isClosed(), isFalse);
+    c.setCredentials(SyncCredentials.none());
+    c.setCredentials(SyncCredentials.googleAuthString('secret'));
+    c.setCredentials(SyncCredentials.sharedSecretString('secret'));
+    c.setCredentials(
+        SyncCredentials.googleAuthUint8List(Uint8List.fromList([13, 0, 25])));
+    c.setCredentials(SyncCredentials.sharedSecretUint8List(
+        Uint8List.fromList([13, 0, 25])));
+    c.setCredentials(SyncCredentials.none());
+    c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
+    c.start();
+    expect(c.requestUpdates(true), isFalse); // false because not connected
+    expect(c.requestUpdates(false), isFalse); // false because not connected
+    expect(c.outgoingMessageCount(), isZero);
+    c.stop();
+    expect(c.state(), equals(SyncState.stopped));
+  });
 }
