@@ -48,7 +48,7 @@ typedef obx_model_entity_native_t = Int32 Function(Pointer<Void> model,
     Pointer<Utf8> name, Uint32 entity_id, Uint64 entity_uid);
 typedef obx_model_property_native_t = Int32 Function(Pointer<Void> model,
     Pointer<Utf8> name, Uint32 type, Uint32 property_id, Uint64 property_uid);
-typedef obx_model_property_flags_native_t = Int32 Function(
+typedef obx_model_flags_native_t = Int32 Function(
     Pointer<Void> model, Uint32 flags);
 typedef obx_model_entity_last_property_id_native_t = Int32 Function(
     Pointer<Void> model, Uint32 property_id, Uint64 property_uid);

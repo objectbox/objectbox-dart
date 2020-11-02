@@ -43,6 +43,7 @@ class _ObjectBoxBindings {
   Pointer<Utf8> Function(Pointer<Void> model) obx_model_error_message;
   int Function(Pointer<Void> model, Pointer<Utf8> name, int entity_id,
       int entity_uid) obx_model_entity;
+  int Function(Pointer<Void> model, int flags) obx_model_entity_flags;
   int Function(Pointer<Void> model, Pointer<Utf8> name, int type,
       int property_id, int property_uid) obx_model_property;
   int Function(Pointer<Void> model, int flags) obx_model_property_flags;
@@ -310,11 +311,12 @@ class _ObjectBoxBindings {
             .asFunction();
     obx_model_entity =
         _fn<obx_model_entity_native_t>('obx_model_entity').asFunction();
+    obx_model_entity_flags =
+        _fn<obx_model_flags_native_t>('obx_model_entity_flags').asFunction();
     obx_model_property =
         _fn<obx_model_property_native_t>('obx_model_property').asFunction();
     obx_model_property_flags =
-        _fn<obx_model_property_flags_native_t>('obx_model_property_flags')
-            .asFunction();
+        _fn<obx_model_flags_native_t>('obx_model_property_flags').asFunction();
     obx_model_entity_last_property_id =
         _fn<obx_model_entity_last_property_id_native_t>(
                 'obx_model_entity_last_property_id')
