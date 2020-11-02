@@ -183,7 +183,7 @@ class ModelInfo {
     }
     final uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = ModelEntity(IdUid(id, uniqueUid), null, name, [], this);
+    var entity = ModelEntity(IdUid(id, uniqueUid), null, name, 0, [], this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;

@@ -22,7 +22,7 @@ class IntegrationTest {
     final property = ModelProperty(
         IdUid(1, int64_max - 1), 'id', OBXPropertyType.Long, 0, null);
     final entity =
-        ModelEntity(IdUid(1, int64_max), null, 'entity', [], modelInfo);
+        ModelEntity(IdUid(1, int64_max), null, 'entity', 0, [], modelInfo);
     property.entity = entity;
     entity.properties.add(property);
     entity.lastPropertyId = property.id;

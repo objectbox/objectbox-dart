@@ -15,6 +15,11 @@ class OBXPropertyType {
 }
 
 // see objectbox.h for more info
+class OBXEntityFlag {
+  static const int SYNC_ENABLED = 2;
+}
+
+// see objectbox.h for more info
 class OBXPropertyFlag {
   static const int ID = 1;
   static const int NON_PRIMITIVE_TYPE = 2;

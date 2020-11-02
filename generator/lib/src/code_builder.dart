@@ -153,9 +153,10 @@ class CodeBuilder extends Builder {
       // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged
       final createdEntity = modelInfo.addEntity(entity);
       return createdEntity.id;
+    } else {
+      entityInModel.name = entity.name;
+      entityInModel.flags = entity.flags;
     }
-
-    entityInModel.name = entity.name;
 
     // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));

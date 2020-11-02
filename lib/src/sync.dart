@@ -210,6 +210,9 @@ class SyncClient {
 class Sync {
   static final Map<Store, SyncClient> _clients = {};
 
+  /// Sync() annotation enables synchronization for an entity.
+  const Sync();
+
   static bool isAvailable() {
     return bindings.obx_sync_available() != 0;
   }

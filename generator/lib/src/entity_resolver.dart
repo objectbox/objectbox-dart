@@ -21,6 +21,7 @@ class EntityResolver extends Builder {
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
   final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
+  final _syncChecker = const TypeChecker.fromRuntime(obx.Sync);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -49,16 +50,22 @@ class EntityResolver extends Builder {
       throw InvalidGenerationSourceError(
           "in target ${elementBare.name}: annotated element isn't a class");
     }
+
     var element = elementBare as ClassElement;
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    final readEntity = ModelEntity(IdUid.empty(), null, element.name, [], null);
+    final entity = ModelEntity(IdUid.empty(), null, element.name, 0, [], null);
     var entityUid = annotation.read('uid');
     if (entityUid != null && !entityUid.isNull) {
-      readEntity.id.uid = entityUid.intValue;
+      entity.id.uid = entityUid.intValue;
     }
 
-    log.info('entity ${readEntity.name}(${readEntity.id})');
+    if (_syncChecker.hasAnnotationOfExact(element)) {
+      entity.flags |= OBXEntityFlag.SYNC_ENABLED;
+    }
+
+    log.info('entity ${entity.name}(${entity.id}), sync=' +
+        (entity.hasFlag(OBXEntityFlag.SYNC_ENABLED) ? 'ON' : 'OFF'));
 
     // getters, ... (anything else?)
     final readOnlyFields = <String, bool>{};
@@ -134,9 +141,9 @@ class EntityResolver extends Builder {
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
       final prop =
-          ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+          ModelProperty(IdUid.empty(), f.name, fieldType, flags, entity);
       if (propUid != null) prop.id.uid = propUid;
-      readEntity.properties.add(prop);
+      entity.properties.add(prop);
 
       log.info(
           '  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
@@ -148,6 +155,6 @@ class EntityResolver extends Builder {
           'in target ${elementBare.name}: has no properties annotated with @Id');
     }
 
-    return readEntity;
+    return entity;
   }
 }
