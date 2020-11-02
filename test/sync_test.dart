@@ -1,7 +1,9 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
+import 'entity.dart';
 import 'test_env.dart';
 
 // We want to have types explicit - verifying the return types of functions.
@@ -23,6 +25,14 @@ void main() {
   // lambda to easily create clients in the test below
   SyncClient createClient(Store s) =>
       Sync.client(s, 'ws://127.0.0.1:9999', SyncCredentials.none());
+
+  // lambda to easily create clients in the test below
+  SyncClient loggedInClient(Store s) {
+    final client = createClient(s);
+    client.start();
+    expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+    return client;
+  }
 
   if (Sync.isAvailable()) {
     // TESTS to run when SYNC is available
@@ -123,6 +133,26 @@ void main() {
       c.stop();
       expect(c.state(), equals(SyncState.stopped));
     });
+
+    test('SyncClient - data test (requires manual server setup)', () {
+      final env2 = TestEnv('sync2');
+
+      loggedInClient(env.store);
+      loggedInClient(env2.store);
+
+      int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
+      expect(waitUntil(() => env2.box.get(id) != null), isTrue);
+
+      final read1 = env.box.get(id);
+      final read2 = env2.box.get(id);
+      expect(read1.id, equals(read2.id));
+      expect(read1.tLong, equals(read2.tLong));
+    },
+        // Note: only available when you start a sync server manually.
+        // Comment out the `skip: ` argument in tthe test-case definition.
+        // run sync-server --unsecured-no-authentication --model=/path/objectbox-dart/test/objectbox-model.json
+        // skip: 'Data sync test is disabled, Enable after running sync-server.' //
+        );
   } else {
     // TESTS to run when SYNC isn't available
 

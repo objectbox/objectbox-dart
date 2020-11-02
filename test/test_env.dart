@@ -19,3 +19,15 @@ class TestEnv {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   }
 }
+
+/// "Busy-waits" until the predicate returns true.
+bool waitUntil(bool Function() predicate, {int timeoutMs = 1000}) {
+  var success = false;
+  final until = DateTime.now().millisecondsSinceEpoch + timeoutMs;
+
+  while (!(success = predicate()) &&
+      until > DateTime.now().millisecondsSinceEpoch) {
+    sleep(Duration(milliseconds: 1));
+  }
+  return success;
+}
