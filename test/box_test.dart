@@ -38,6 +38,10 @@ void main() {
     expect(item.tString, equals('Hello'));
   });
 
+  test('.get() returns null on non-existent item', () {
+    expect(box.get(1), isNull);
+  });
+
   test('.put() and box.get() keep Unicode characters', () {
     final String text = '😄你好';
     final TestEntity inst = box.get(box.put(TestEntity(tString: text)));
@@ -304,6 +308,11 @@ void main() {
     bool success = box.remove(ids[1]);
     expect(box.count(), equals(5));
     expect(success, equals(false));
+  });
+
+  test('.remove() returns false on non-existent item', () {
+    box.removeAll();
+    expect(box.remove(1), isFalse);
   });
 
   test('.removeMany(ids) works', () {

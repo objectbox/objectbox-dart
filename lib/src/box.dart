@@ -149,7 +149,8 @@ class Box<T> {
         .toList();
   }
 
-  /// Retrieves the stored object with the ID [id] from this box's database. Returns null if not found.
+  /// Retrieves the stored object with the ID [id] from this box's database.
+  /// Returns null if an object with the given ID doesn't exist.
   T get(int id) {
     final dataPtrPtr = allocate<Pointer<Uint8>>();
     final sizePtr = allocate<IntPtr>();
@@ -157,7 +158,11 @@ class Box<T> {
     try {
       // get element with specified id from database
       return _store.runInTransaction(TxMode.Read, () {
-        checkObx(bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr));
+        final err = bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr);
+        if (err == OBXError.OBX_NOT_FOUND) {
+          return null;
+        }
+        checkObx(err);
 
         // ignore: omit_local_variable_types
         Pointer<Uint8> dataPtr = dataPtrPtr.value;
