@@ -146,29 +146,30 @@ class CodeBuilder extends Builder {
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
     // 'readEntity' only contains the entity info directly read from the annotations and Dart source (i.e. with missing ID, lastPropertyId etc.)
     // 'entityInModel' is the entity from the model with all correct id/uid, lastPropertyId etc.
-    final entityInModel = modelInfo.findSameEntity(entity);
+    var entityInModel = modelInfo.findSameEntity(entity);
 
     if (entityInModel == null) {
       log.info('Found new entity ${entity.name}');
       // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged
-      final createdEntity = modelInfo.addEntity(entity);
-      return createdEntity.id;
+      entityInModel = modelInfo.addEntity(entity);
+
     } else {
       entityInModel.name = entity.name;
       entityInModel.flags = entity.flags;
+
+      // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
+      entity.properties.forEach((p) => mergeProperty(entityInModel, p));
+
+      // then remove all properties not present anymore in readEntity
+      entityInModel.properties
+          .where((p) => entity.findSameProperty(p) == null)
+          .forEach((p) {
+        log.warning(
+            'Property ${entity.name}.${p.name}(${p.id
+                .toString()}) not found in the code, removing from the model');
+        entityInModel.removeProperty(p);
+      });
     }
-
-    // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
-    entity.properties.forEach((p) => mergeProperty(entityInModel, p));
-
-    // then remove all properties not present anymore in readEntity
-    entityInModel.properties
-        .where((p) => entity.findSameProperty(p) == null)
-        .forEach((p) {
-      log.warning(
-          'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
-      entityInModel.removeProperty(p);
-    });
 
     return entityInModel.id;
   }

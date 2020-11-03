@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
+import 'dart:convert' show utf8;
 
 import 'package:ffi/ffi.dart';
 
@@ -15,7 +16,12 @@ class SyncCredentials {
   final int _type;
   final Uint8List _data;
 
+  Uint8List get data => _data;
+
   SyncCredentials(this._type, this._data);
+
+  SyncCredentials._(this._type, String data)
+      : _data = Uint8List.fromList(utf8.encode(data));
 
   SyncCredentials.none()
       : _type = OBXSyncCredentialsType.NONE,
@@ -25,19 +31,17 @@ class SyncCredentials {
       : _type = OBXSyncCredentialsType.SHARED_SECRET;
 
   SyncCredentials.sharedSecretString(String data)
-      : _type = OBXSyncCredentialsType.SHARED_SECRET,
-        _data = Uint8List.fromList(data.codeUnits);
+      : this._(OBXSyncCredentialsType.SHARED_SECRET, data);
 
   SyncCredentials.googleAuthUint8List(this._data)
       : _type = OBXSyncCredentialsType.GOOGLE_AUTH;
 
   SyncCredentials.googleAuthString(String data)
-      : _type = OBXSyncCredentialsType.GOOGLE_AUTH,
-        _data = Uint8List.fromList(data.codeUnits);
+      : this._(OBXSyncCredentialsType.GOOGLE_AUTH, data);
 }
 
-// TODO check enum name/align with other bindings - maybe SyncClientState?
 enum SyncState {
+  unknown,
   created,
   started,
   connected,
@@ -122,7 +126,7 @@ class SyncClient {
       case OBXSyncState.DEAD:
         return SyncState.dead;
       default:
-        throw Exception('Unknown sync state: ' + state.toString());
+        return SyncState.unknown;
     }
   }
 
@@ -220,7 +224,7 @@ class Sync {
   /// Creates a sync client associated with the given store and configures it with the given options.
   /// This does not initiate any connection attempts yet: call SyncClient::start() to do so.
   /// Before start(), you can still configure some aspects of the sync client, e.g. its "request update" mode.
-  /// @note While you may not interact with SyncClient directly after start(), you need to hold on to the object.
+  /// Note: While you may not interact with SyncClient directly after start(), you need to hold on to the object.
   ///       Make sure the SyncClient is not destroyed and thus synchronization can keep running in the background.
   static SyncClient client(
       Store store, String serverUri, SyncCredentials creds) {

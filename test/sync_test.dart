@@ -34,6 +34,15 @@ void main() {
     return client;
   }
 
+  test('SyncCredentials string encoding', () {
+    // Let's check some special characters and verify the data is how it would
+    // look like if the same shared secret was provided to the sync-server via
+    // an utf-8 encoded json file (i.e. the usual way).
+    final str = 'uũú';
+    expect(SyncCredentials.sharedSecretString(str).data,
+        equals(Uint8List.fromList([117, 197, 169, 195, 186])));
+  });
+
   if (Sync.isAvailable()) {
     // TESTS to run when SYNC is available
 
@@ -56,27 +65,30 @@ void main() {
       c1.close();
       expect(c1.isClosed(), isTrue);
       expect(store.syncClient(), isNull);
+    });
 
+    test('SyncClient instance caching', () {
       {
         // Just losing the variable scope doesn't close the client automatically.
         // Store holds onto the same instance.
-        final c2 = createClient(store);
-        expect(c2.isClosed(), isFalse);
+        final client = createClient(store);
+        expect(client.isClosed(), isFalse);
       }
 
       // But we can still get a handle of the client in the store - we're never
       // completely without an option to close it.
-      final c2 = store.syncClient();
-      expect(c2, isNotNull);
-      expect(c2.isClosed(), isFalse);
-      c2.close();
+      final client = store.syncClient();
+      expect(client, isNotNull);
+      expect(client.isClosed(), isFalse);
+      client.close();
       expect(store.syncClient(), isNull);
+    });
 
-      // closing a store closes a client
+    test('SyncClient is closed when a store is closed', () {
       final env2 = TestEnv('sync2');
-      final c3 = createClient(env2.store);
+      final client = createClient(env2.store);
       env2.close();
-      expect(c3.isClosed(), isTrue);
+      expect(client.isClosed(), isTrue);
     });
 
     test('different Store => different SyncClient', () {

@@ -29,7 +29,7 @@ class Transient {
 }
 
 /// See Sync() in sync.dart.
-/// Defining a class with the same name here would couse a duplicate export.
+/// Defining a class with the same name here would cause a duplicate export.
 // class Sync {
 //   const Sync();
 // }
