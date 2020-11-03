@@ -52,14 +52,14 @@ enum SyncState {
 }
 
 enum SyncRequestUpdatesMode {
-  /// no updates by default, SyncClient::requestUpdates() must be called manually
+  /// no updates by default, [SyncClient.requestUpdates()] must be called manually
   manual,
 
-  /// same as calling SyncClient::requestUpdates(true)
-  /// default mode unless overridden by SyncClient::setRequestUpdatesMode()
+  /// same as calling [SyncClient.requestUpdates(true)]
+  /// default mode unless overridden by [SyncClient.setRequestUpdatesMode()]
   auto,
 
-  /// same as calling SyncClient::requestUpdates(false)
+  /// same as calling [SyncClient.requestUpdates(false)]
   autoNoPushes
 }
 
@@ -77,7 +77,9 @@ class SyncClient {
   /// This does not initiate any connection attempts yet: call start() to do so.
   SyncClient(this._store, String serverUri, SyncCredentials creds) {
     if (!Sync.isAvailable()) {
-      throw Exception('Sync is not available in the given runtime library');
+      throw Exception(
+          'Sync is not available in the loaded ObjectBox runtime library. '
+          'Please visit https://objectbox.io/sync/ for options.');
     }
 
     final cServerUri = Utf8.toUtf8(serverUri);
@@ -131,7 +133,7 @@ class SyncClient {
   }
 
   /// Configure authentication credentials.
-  /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
+  /// The accepted [SyncCredentials] type depends on your sync-server configuration.
   void setCredentials(SyncCredentials creds) {
     final cCreds = OBX_bytes.managedCopyOf(creds._data);
     try {
@@ -171,7 +173,7 @@ class SyncClient {
   /// log in (authenticate) and, depending on "update request mode", start syncing data.
   /// If the device, network or server is currently offline, connection attempts will be retried later using
   /// increasing backoff intervals.
-  /// If you haven't set the credentials in the options during construction, call setCredentials() before start().
+  /// If you haven't set the credentials in the options during construction, call [setCredentials()] before start().
   void start() {
     checkObx(bindings.obx_sync_start(ptr));
   }
@@ -182,15 +184,16 @@ class SyncClient {
   }
 
   /// Request updates since we last synchronized our database.
-  /// @param subscribeForFuturePushes to keep sending us future updates as they come in.
-  /// @see updatesCancel() to stop the updates
+  /// Additionally, you can subscribe for future pushes from the server, to let
+  /// it send us future updates as they come in.
+  /// Call [cancelUpdates()] to stop the updates.
   bool requestUpdates(bool subscribeForFuturePushes) {
     return checkObxSuccess(bindings.obx_sync_updates_request(
         ptr, subscribeForFuturePushes ? 1 : 0));
   }
 
   /// Cancel updates from the server so that it will stop sending updates.
-  /// @see updatesRequest()
+  /// See also [requestUpdates()].
   bool cancelUpdates() {
     return checkObxSuccess(bindings.obx_sync_updates_cancel(ptr));
   }
@@ -199,7 +202,6 @@ class SyncClient {
   /// Note: This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
   ///       While this will still be fast, avoid calling this function excessively.
   ///       2) the result follows transaction view semantics, thus it may not always match the actual value.
-  /// @return the number of messages in the outgoing queue
   int outgoingMessageCount({int limit = 0}) {
     final count = allocate<Uint64>();
     try {
@@ -211,18 +213,22 @@ class SyncClient {
   }
 }
 
+/// [ObjectBox Sync](https://objectbox.io/sync/) makes data available on other devices.
+///
+/// Start building a sync client using [Sync.client()] and connect to a remote server.
 class Sync {
   static final Map<Store, SyncClient> _clients = {};
 
   /// Sync() annotation enables synchronization for an entity.
   const Sync();
 
+  /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() {
     return bindings.obx_sync_available() != 0;
   }
 
   /// Creates a sync client associated with the given store and configures it with the given options.
-  /// This does not initiate any connection attempts yet: call SyncClient::start() to do so.
+  /// This does not initiate any connection attempts yet: call [SyncClient.start()] to do so.
   /// Before start(), you can still configure some aspects of the sync client, e.g. its "request update" mode.
   /// Note: While you may not interact with SyncClient directly after start(), you need to hold on to the object.
   ///       Make sure the SyncClient is not destroyed and thus synchronization can keep running in the background.
@@ -240,6 +246,6 @@ class Sync {
 
 extension SyncedStore on Store {
   /// Return an existing SyncClient associated with the store or null if not available.
-  /// See Sync::client() to create one first.
+  /// See [Sync.client()] to create one first.
   SyncClient syncClient() => Sync._clients[this];
 }

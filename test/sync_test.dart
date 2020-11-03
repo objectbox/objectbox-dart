@@ -172,7 +172,7 @@ void main() {
       expect(
           () => createClient(store),
           throwsA(predicate((Exception e) => e.toString().contains(
-              'Sync is not available in the given runtime library'))));
+              'Sync is not available in the loaded ObjectBox runtime library'))));
     });
   }
 }
