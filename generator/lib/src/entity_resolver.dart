@@ -60,11 +60,24 @@ class EntityResolver extends Builder {
 
     log.info('entity ${readEntity.name}(${readEntity.id})');
 
+    // getters, ... (anything else?)
+    final readOnlyFields = <String, bool>{};
+    for (var f in element.accessors) {
+      if (f.isGetter && f.correspondingSetter == null) {
+        readOnlyFields[f.name] = true;
+      }
+    }
+
     // read all suitable annotated properties
     var hasIdProperty = false;
     for (var f in element.fields) {
       if (_transientChecker.hasAnnotationOfExact(f)) {
         log.info('  skipping property ${f.name} (annotated with @Transient)');
+        continue;
+      }
+
+      if (readOnlyFields.containsKey(f.name)) {
+        log.info('  skipping read-only/getter ${f.name}');
         continue;
       }
 
