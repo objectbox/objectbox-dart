@@ -311,8 +311,14 @@ class _ObjectBoxBindings {
             .asFunction();
     obx_model_entity =
         _fn<obx_model_entity_native_t>('obx_model_entity').asFunction();
-    obx_model_entity_flags =
-        _fn<obx_model_flags_native_t>('obx_model_entity_flags').asFunction();
+
+    // TODO remove try-catch after an update to objectbox-c v0.11.0
+    try {
+      obx_model_entity_flags =
+          _fn<obx_model_flags_native_t>('obx_model_entity_flags').asFunction();
+    } catch (e) {
+      obx_model_entity_flags = (_, __) => 0;
+    }
     obx_model_property =
         _fn<obx_model_property_native_t>('obx_model_property').asFunction();
     obx_model_property_flags =
@@ -613,8 +619,13 @@ class _ObjectBoxBindings {
             .asFunction();
 
     // Sync
-    obx_sync_available =
-        _fn<obx_sync_available_native_t>('obx_sync_available').asFunction();
+    // TODO remove try-catch after an update to objectbox-c v0.11.0
+    try {
+      obx_sync_available =
+          _fn<obx_sync_available_native_t>('obx_sync_available').asFunction();
+    } catch (e) {
+      obx_sync_available = () => 0;
+    }
     try {
       obx_sync = _fn<obx_sync_native_t>('obx_sync').asFunction();
       obx_sync_close =
