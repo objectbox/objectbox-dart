@@ -63,6 +63,13 @@ class ViewModel {
     final dateProp = Note_.date;
 
     _query = _box.query().order(dateProp, flags: Order.descending).build();
+
+    // TODO configure actual sync server address and authentication
+    // 10.0.2.2 is your host PC if an app is run in an emulator.
+    // For other options, see objectbox/lib/src/sync.dart
+    final syncClient =
+        Sync.client(_store, 'ws://10.0.2.2:9999', SyncCredentials.none());
+    syncClient.start();
   }
 
   void addNote(Note note) => _box.put(note);
@@ -81,7 +88,7 @@ class ViewModel {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
-  final _listController = StreamController<List<Note>>(sync:true);
+  final _listController = StreamController<List<Note>>(sync: true);
   Stream<List<Note>> _stream;
   ViewModel _vm;
 
