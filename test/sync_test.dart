@@ -3,8 +3,10 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/src/bindings/constants.dart';
 
 import 'entity.dart';
+import 'objectbox.g.dart';
 import 'test_env.dart';
 
 // We want to have types explicit - verifying the return types of functions.
@@ -34,6 +36,13 @@ void main() {
     expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
     return client;
   }
+
+  test('Model Entity has sync enabled', () {
+    final model = getObjectBoxModel().model;
+    final entity =
+        model.entities.firstWhere((ModelEntity e) => e.name == "TestEntity");
+    expect(entity.hasFlag(OBXEntityFlag.SYNC_ENABLED), isTrue);
+  });
 
   test('SyncCredentials string encoding', () {
     // Let's check some special characters and verify the data is how it would
@@ -164,7 +173,7 @@ void main() {
         // Note: only available when you start a sync server manually.
         // Comment out the `skip: ` argument in tthe test-case definition.
         // run sync-server --unsecured-no-authentication --model=/path/objectbox-dart/test/objectbox-model.json
-        // skip: 'Data sync test is disabled, Enable after running sync-server.' //
+        skip: 'Data sync test is disabled, Enable after running sync-server.' //
         );
   } else {
     // TESTS to run when SYNC isn't available
