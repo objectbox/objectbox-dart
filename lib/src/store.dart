@@ -5,6 +5,7 @@ import 'bindings/helpers.dart';
 import 'modelinfo/index.dart';
 import 'model.dart';
 import 'common.dart';
+import 'util.dart';
 
 enum TxMode {
   Read,
@@ -88,9 +89,13 @@ class Store {
 
   /// Closes this store.
   ///
-  /// This method is useful for unit tests; most real applications should open a Store once and keep it open until
-  /// the app dies.
+  /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
+    // Call each "onBeforeClose()" event listener.
+    // Move the list to prevent "Concurrent modification during iteration".
+    final listeners = StoreCloseObserver.removeAllListeners(this);
+    listeners.forEach((listener) => listener());
+
     checkObx(bindings.obx_store_close(_cStore));
   }
 
