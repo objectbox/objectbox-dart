@@ -1,3 +1,10 @@
+## 0.8.1 (2020-11-05)
+
+* Change `box.get(id)` to return null instead of throwing when trying to read a non-existent object.
+* Add "empty" query support using `box.query()`.
+    (thanks [@Buggaboo](https://github.com/Buggaboo) for [#132](https://github.com/objectbox/objectbox-dart/pull/132))     
+* Documentation and examples updates & improvements.
+
 ## 0.8.0 (2020-10-13)
 
 * Update to objectbox-c 0.10.0.
