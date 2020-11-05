@@ -73,7 +73,6 @@ class ViewModel {
 
   void dispose() {
     _query.close();
-    _store.unsubscribe();
     _store.close();
   }
 }

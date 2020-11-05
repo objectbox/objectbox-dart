@@ -184,7 +184,6 @@ Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rx
 
     // clean up
     sub2.cancel();
-    store.unsubscribe();
 
     store.close();
 ```

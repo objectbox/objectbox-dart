@@ -74,7 +74,6 @@ void main() {
   });
 
   tearDown(() {
-    env.store.unsubscribe();
     env.close();
   });
 }

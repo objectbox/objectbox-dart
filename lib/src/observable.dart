@@ -5,13 +5,14 @@ import 'bindings/bindings.dart';
 import 'bindings/signatures.dart';
 import 'query/query.dart';
 import 'store.dart';
+import 'util.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
 // dart callback signature
 typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
-class Observable {
+class _Observable {
   static final _anyObserver = <int, Pointer<Void>>{};
   static final _any = <int, Map<int, Any>>{};
 
@@ -38,6 +39,9 @@ class Observable {
     final storePtr = store.ptr;
     _anyObserver[storePtr.address] =
         bindings.obx_observe(storePtr, callback, storePtr);
+    StoreCloseObserver.addListener(store, _anyObserver[storePtr.address], () {
+      unsubscribe(store);
+    });
   }
 
   // #53 ffi:Pointer finalizer
@@ -46,18 +50,9 @@ class Observable {
     if (!_anyObserver.containsKey(storeAddress)) {
       return;
     }
+    StoreCloseObserver.removeListener(store, _anyObserver[storeAddress]);
     bindings.obx_observer_close(_anyObserver[storeAddress]);
     _anyObserver.remove(storeAddress);
-  }
-}
-
-extension ObservableStore on Store {
-  void subscribe() {
-    Observable.subscribe(this);
-  }
-
-  void unsubscribe() {
-    Observable.unsubscribe(this);
   }
 }
 
@@ -65,28 +60,28 @@ extension Streamable<T> on Query<T> {
   void _setup() {
     final storePtr = store.ptr;
 
-    if (!Observable._anyObserver.containsKey(storePtr)) {
-      store.subscribe();
+    if (!_Observable._anyObserver.containsKey(storePtr)) {
+      _Observable.subscribe(store);
     }
 
     final storeAddress = storePtr.address;
 
-    Observable._any[storeAddress] ??= <int, Any>{};
-    Observable._any[storeAddress][entityId] ??= (u, _, __) {
+    _Observable._any[storeAddress] ??= <int, Any>{};
+    _Observable._any[storeAddress][entityId] ??= (u, _, __) {
       // dummy value to trigger an event
-      Observable.controller.add(u.address);
+      _Observable.controller.add(u.address);
     };
   }
 
   Stream<List<T>> findStream({int offset = 0, int limit = 0}) {
     _setup();
-    return Observable.controller.stream
+    return _Observable.controller.stream
         .map((_) => find(offset: offset, limit: limit));
   }
 
   /// Use this for Query Property
   Stream<Query<T>> get stream {
     _setup();
-    return Observable.controller.stream.map((_) => this);
+    return _Observable.controller.stream.map((_) => this);
   }
 }
