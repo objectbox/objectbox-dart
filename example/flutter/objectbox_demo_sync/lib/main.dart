@@ -10,6 +10,7 @@ import 'package:objectbox/observable.dart';
 import 'objectbox.g.dart';
 
 @Entity()
+@Sync()
 class Note {
   @Id()
   int id;
