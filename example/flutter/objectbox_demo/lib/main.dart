@@ -3,7 +3,7 @@ import 'package:objectbox/objectbox.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'objectbox.g.dart';
-import 'package:objectbox/src/observable.dart';
+import 'package:objectbox/observable.dart';
 import 'dart:async';
 import 'dart:io';
 

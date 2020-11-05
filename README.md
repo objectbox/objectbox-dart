@@ -164,7 +164,7 @@ Streams can be created from queries.
 Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart).
 
 ```dart
-    import "package:objectbox/src/observable.dart";
+    import "package:objectbox/observable.dart";
 
     // final store = ...
     final query = box.query(condition).build();

@@ -2,7 +2,9 @@
 
 * Change `box.get(id)` to return null instead of throwing when trying to read a non-existent object.
 * Add "empty" query support using `box.query()`.
-    (thanks [@Buggaboo](https://github.com/Buggaboo) for [#132](https://github.com/objectbox/objectbox-dart/pull/132))     
+    (thanks [@Buggaboo](https://github.com/Buggaboo) for [#132](https://github.com/objectbox/objectbox-dart/pull/132))
+* Expose `lib/observable.dart` to avoid linter isues in apps using objectbox.
+    (thanks [@cmengler](https://github.com/cmengler) for bringing this up in [#141](https://github.com/objectbox/objectbox-dart/pull/141))    
 * Documentation and examples updates & improvements.
 
 ## 0.8.0 (2020-10-13)
