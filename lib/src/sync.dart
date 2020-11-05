@@ -99,7 +99,7 @@ class SyncClient {
   void close() {
     final err = bindings.obx_sync_close(_cSync);
     _cSync = nullptr;
-    Sync._clients.remove(_store);
+    SyncClientsStorage.remove(_store);
     StoreCloseObserver.removeListener(_store, this);
     checkObx(err);
   }
@@ -217,8 +217,6 @@ class SyncClient {
 ///
 /// Start building a sync client using [Sync.client()] and connect to a remote server.
 class Sync {
-  static final Map<Store, SyncClient> _clients = {};
-
   /// Sync() annotation enables synchronization for an entity.
   const Sync();
 
@@ -234,18 +232,12 @@ class Sync {
   ///       Make sure the SyncClient is not destroyed and thus synchronization can keep running in the background.
   static SyncClient client(
       Store store, String serverUri, SyncCredentials creds) {
-    if (_clients.containsKey(store)) {
+    if (SyncClientsStorage.containsKey(store)) {
       throw Exception('Only one sync client can be active for a store');
     }
     final client = SyncClient(store, serverUri, creds);
-    _clients[store] = client;
+    SyncClientsStorage[store] = client;
     StoreCloseObserver.addListener(store, client, client.close);
     return client;
   }
-}
-
-extension SyncedStore on Store {
-  /// Return an existing SyncClient associated with the store or null if not available.
-  /// See [Sync.client()] to create one first.
-  SyncClient syncClient() => Sync._clients[this];
 }

@@ -6,6 +6,7 @@ import 'modelinfo/index.dart';
 import 'model.dart';
 import 'common.dart';
 import 'util.dart';
+import 'sync.dart';
 
 enum TxMode {
   Read,
@@ -126,6 +127,10 @@ class Store {
       checkObx(bindings.obx_txn_close(txn));
     }
   }
+
+  /// Return an existing SyncClient associated with the store or null if not available.
+  /// See [Sync.client()] to create one first.
+  SyncClient syncClient() => SyncClientsStorage[this];
 
   /// The low-level pointer to this store.
   Pointer<Void> get ptr => _cStore;

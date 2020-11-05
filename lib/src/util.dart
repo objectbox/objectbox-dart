@@ -1,4 +1,5 @@
 import 'store.dart';
+import 'sync.dart';
 
 bool listContains<T>(List<T> list, T item) =>
     list.indexWhere((x) => x == item) != -1;
@@ -38,3 +39,6 @@ class StoreCloseObserver {
     return listeners;
   }
 }
+
+/// Global internal storage of sync clients - one client per store.
+final Map<Store, SyncClient> SyncClientsStorage = {};
