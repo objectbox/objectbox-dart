@@ -1,6 +1,41 @@
 ObjectBox Examples
 ==========================
 
+Flutter
+--------
+* See a [Flutter example app](flutter/objectbox_demo) for code examples - requires Flutter 1.12
+
+As opposed to a plain Dart app which runs directly on your PC, there are more restrictions where your Flutter app can 
+write data. Therefore, you should give ObjectBox a full path to a per-app documents directory, where to store the data 
+even when a user closes your app. 
+
+If you didn't specify this path to ObjectBox, it would try to use a default "objectbox" directory where the app is 
+currently running, but it doesn't have permissions to write there: `failed to create store: 10199 Dir does not exist: objectbox (30)`.
+
+To configure ObjectBox properly, you can use `getApplicationDocumentsDirectory()` from the `path_provider` package. 
+See [Flutter: read & write files](https://flutter.dev/docs/cookbook/persistence/reading-writing-files) for more info. 
+Have a look how it's done in the Flutter example app:
+```dart
+import 'package:path_provider/path_provider.dart';
+
+class _MyHomePageState extends State<MyHomePage> {
+  Store _store;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    getApplicationDocumentsDirectory().then((dir) {
+      _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
+
+      // See below as well as examples/flutter/objectbox_demo for examples how to use objectbox
+    });
+  }
+}
+```
+
+Dart native
+-----------
 In the following file, e.g. `models.dart`, we import objectbox.dart to get definitions for `@Entity`, 
 `@Id` and other annotations and define a single entity that should be persisted by ObjectBox. You could have multiple 
 entities in the same file or you can have them spread across multiple files in the `lib` directory tree. 
@@ -49,36 +84,5 @@ void main() {
   print("refetched note: ${box.get(note.id)}");
   
   store.close();
-}
-```
-
-Flutter
---------
-* See a [Flutter example app](flutter/objectbox_demo) - requires Flutter 1.12
-
-As opposed to a plain Dart app which runs directly on your PC, there are more restrictions where your Flutter app can 
-write data. Therefore, you should give ObjectBox a full path to a per-app documents directory, where to store the data 
-even when a user closes your app. 
-
-If you didn't specify this path to ObjectBox, it would try to use a default "objectbox" directory where the app is 
-currently running, but it doesn't have permissions to write there: `failed to create store: 10199 Dir does not exist: objectbox (30)`.
-
-To configure ObjectBox properly, you can use `getApplicationDocumentsDirectory()` from the `path_provider` package. 
-See [Flutter: read & write files](https://flutter.dev/docs/cookbook/persistence/reading-writing-files) for more info. 
-Have a look how it's done in the Flutter example app:
-```dart
-import 'package:path_provider/path_provider.dart';
-
-class _MyHomePageState extends State<MyHomePage> {
-  Store _store;
-
-  @override
-  void initState() {
-    super.initState();
-    
-    getApplicationDocumentsDirectory().then((dir) {
-      _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
-    });
-  }
 }
 ```

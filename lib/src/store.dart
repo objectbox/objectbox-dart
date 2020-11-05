@@ -20,16 +20,16 @@ class Store {
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file.
   ///
-  /// For example in a Dart app:
-  /// ```
-  /// var store = Store(getObjectBoxModel());
-  /// ```
-  ///
   /// Or for a Flutter app:
-  /// ```
+  /// ```dart
   /// getApplicationDocumentsDirectory().then((dir) {
   ///   _store = Store(getObjectBoxModel(), directory: dir.path + "/objectbox");
   /// });
+  /// ```
+  ///
+  /// For example in a Dart app:
+  /// ```dart
+  /// var store = Store(getObjectBoxModel());
   /// ```
   ///
   /// See our examples for more details.
