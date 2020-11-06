@@ -97,6 +97,8 @@ class Store {
     }
   }
 
+  Store.fromPtr(this.defs, this._cStore);
+
   /// Closes this store.
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.

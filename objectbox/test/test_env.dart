@@ -1,6 +1,8 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
 
 import 'entity.dart';
 import 'objectbox.g.dart';
@@ -15,13 +17,17 @@ class TestEnv {
     return TestEnv._(dir, Store(getObjectBoxModel(), directory: dir.path));
   }
 
+  TestEnv.fromPtr(Pointer<OBX_store> cStore)
+      : dir = null,
+        store = Store.fromPtr(getObjectBoxModel(), cStore);
+
   TestEnv._(this.dir, this.store);
 
   Box<TestEntity> get box => store.box();
 
   void close() {
     store.close();
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
+    if (dir != null && dir.existsSync()) dir.deleteSync(recursive: true);
   }
 }
 
