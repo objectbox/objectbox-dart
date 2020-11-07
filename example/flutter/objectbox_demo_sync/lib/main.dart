@@ -77,7 +77,11 @@ class ViewModel {
 
   void removeNote(Note note) => _box.remove(note.id);
 
-  Stream<List<Note>> get queryStream => _query.findStream();
+  // Note: using query.findStream() and sync.client() in the same app is
+  // currently not supported so this app is currently not working and only
+  // servers as an example on how and when to start a sync client.
+  // Stream<List<Note>> get queryStream => _query.findStream();
+  Stream<List<Note>> get queryStream => Stream<List<Note>>.empty();
 
   List<Note> get allNotes => _query.find();
 

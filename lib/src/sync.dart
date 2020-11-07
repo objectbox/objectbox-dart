@@ -101,6 +101,7 @@ class SyncClient {
     _cSync = nullptr;
     SyncClientsStorage.remove(_store);
     StoreCloseObserver.removeListener(_store, this);
+    syncOrObserversExclusive.unmark(_store);
     checkObx(err);
   }
 
@@ -235,6 +236,7 @@ class Sync {
     if (SyncClientsStorage.containsKey(store)) {
       throw Exception('Only one sync client can be active for a store');
     }
+    syncOrObserversExclusive.mark(store);
     final client = SyncClient(store, serverUri, creds);
     SyncClientsStorage[store] = client;
     StoreCloseObserver.addListener(store, client, client.close);

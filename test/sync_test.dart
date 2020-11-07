@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/observable.dart';
 import 'package:objectbox/src/bindings/constants.dart';
 
 import 'entity.dart';
@@ -56,6 +57,24 @@ void main() {
   if (Sync.isAvailable()) {
     // TESTS to run when SYNC is available
 
+    group('Circumvent issue #142 - async callbacks error', () {
+      final error = throwsA(predicate((Exception e) => e.toString().contains(
+          'Using observers/query streams in combination with SyncClient is currently not supported')));
+
+      test('Must not start an Observer when SyncClient is active', () {
+        createClient(store);
+        expect(() => env.box.query().build().findStream(), error);
+      });
+
+      test('Must not start SyncClient when an Observer is active', () {
+        final error = throwsA(predicate((Exception e) => e.toString().contains(
+            'Using observers/query streams in combination with SyncClient is currently not supported')));
+
+        SyncClient c = createClient(store);
+        expect(() => env.box.query().build().findStream(), error);
+      });
+    });
+    
     test('SyncClient lifecycle', () {
       expect(store.syncClient(), isNull);
 
