@@ -41,7 +41,7 @@ class StoreCloseObserver {
 }
 
 /// Global internal storage of sync clients - one client per store.
-final Map<Store, SyncClient> SyncClientsStorage = {};
+final Map<Store, SyncClient> syncClientsStorage = {};
 
 // Currently, either SyncClient or Observers can be used at the same time.
 // TODO: lift this condition after #142 is fixed.

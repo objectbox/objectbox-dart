@@ -130,7 +130,7 @@ class Store {
 
   /// Return an existing SyncClient associated with the store or null if not available.
   /// See [Sync.client()] to create one first.
-  SyncClient syncClient() => SyncClientsStorage[this];
+  SyncClient syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.
   Pointer<Void> get ptr => _cStore;

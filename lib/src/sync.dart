@@ -99,7 +99,7 @@ class SyncClient {
   void close() {
     final err = bindings.obx_sync_close(_cSync);
     _cSync = nullptr;
-    SyncClientsStorage.remove(_store);
+    syncClientsStorage.remove(_store);
     StoreCloseObserver.removeListener(_store, this);
     syncOrObserversExclusive.unmark(_store);
     checkObx(err);
@@ -233,12 +233,12 @@ class Sync {
   ///       Make sure the SyncClient is not destroyed and thus synchronization can keep running in the background.
   static SyncClient client(
       Store store, String serverUri, SyncCredentials creds) {
-    if (SyncClientsStorage.containsKey(store)) {
+    if (syncClientsStorage.containsKey(store)) {
       throw Exception('Only one sync client can be active for a store');
     }
     syncOrObserversExclusive.mark(store);
     final client = SyncClient(store, serverUri, creds);
-    SyncClientsStorage[store] = client;
+    syncClientsStorage[store] = client;
     StoreCloseObserver.addListener(store, client, client.close);
     return client;
   }

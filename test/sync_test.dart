@@ -41,7 +41,7 @@ void main() {
   test('Model Entity has sync enabled', () {
     final model = getObjectBoxModel().model;
     final entity =
-        model.entities.firstWhere((ModelEntity e) => e.name == "TestEntity");
+        model.entities.firstWhere((ModelEntity e) => e.name == 'TestEntity');
     expect(entity.hasFlag(OBXEntityFlag.SYNC_ENABLED), isTrue);
   });
 
@@ -70,11 +70,11 @@ void main() {
         final error = throwsA(predicate((Exception e) => e.toString().contains(
             'Using observers/query streams in combination with SyncClient is currently not supported')));
 
-        SyncClient c = createClient(store);
+        createClient(store);
         expect(() => env.box.query().build().findStream(), error);
       });
     });
-    
+
     test('SyncClient lifecycle', () {
       expect(store.syncClient(), isNull);
 
