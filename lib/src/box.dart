@@ -3,7 +3,6 @@ import 'package:ffi/ffi.dart' show allocate, free;
 
 import 'store.dart';
 import 'bindings/bindings.dart';
-import 'bindings/constants.dart';
 import 'bindings/data_visitor.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
@@ -20,7 +19,7 @@ enum _PutMode {
 /// A box to store objects of a particular class.
 class Box<T> {
   final Store _store;
-  Pointer<Void> _cBox;
+  Pointer<OBX_box> _cBox;
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;
   OBXFlatbuffersManager<T> _fbManager;
@@ -152,14 +151,14 @@ class Box<T> {
   /// Retrieves the stored object with the ID [id] from this box's database.
   /// Returns null if an object with the given ID doesn't exist.
   T get(int id) {
-    final dataPtrPtr = allocate<Pointer<Uint8>>();
-    final sizePtr = allocate<IntPtr>();
+    final dataPtrPtr = allocate<Pointer<Void>>();
+    final sizePtr = allocate<Int32>();
 
     try {
       // get element with specified id from database
       return _store.runInTransaction(TxMode.Read, () {
         final err = bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr);
-        if (err == OBXError.OBX_NOT_FOUND) {
+        if (err == OBX_NOT_FOUND) {
           return null;
         }
         checkObx(err);
@@ -264,7 +263,7 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = allocate<Uint8>();
+    final isEmpty = allocate<Int32>();
     try {
       checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
       return isEmpty.value > 0 ? true : false;
@@ -275,7 +274,7 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = allocate<Uint8>();
+    final contains = allocate<Int32>();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
       return contains.value > 0 ? true : false;
@@ -286,7 +285,7 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
   bool containsMany(List<int> ids) {
-    final contains = allocate<Uint8>();
+    final contains = allocate<Int32>();
     try {
       return OBX_id_array.executeWith(ids, (ptr) {
         checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
@@ -301,7 +300,7 @@ class Box<T> {
   /// entity exists with the given ID.
   bool remove(int id) {
     final err = bindings.obx_box_remove(_cBox, id);
-    if (err == OBXError.OBX_NOT_FOUND) return false;
+    if (err == OBX_NOT_FOUND) return false;
     checkObx(err); // throws on other errors
     return true;
   }
@@ -331,5 +330,5 @@ class Box<T> {
   }
 
   /// The low-level pointer to this box.
-  Pointer<Void> get ptr => _cBox;
+  Pointer<OBX_box> get ptr => _cBox;
 }

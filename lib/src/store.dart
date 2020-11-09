@@ -16,7 +16,7 @@ enum TxMode {
 /// Represents an ObjectBox database and works together with [Box] to allow getting and putting Objects of
 /// specific type.
 class Store {
-  Pointer<Void> _cStore;
+  Pointer<OBX_store> _cStore;
   final ModelDefinition defs;
 
   /// Creates a BoxStore using the model definition from your
@@ -45,7 +45,7 @@ class Store {
     try {
       checkObx(bindings.obx_opt_model(opt, model.ptr));
       if (directory != null && directory.isNotEmpty) {
-        var cStr = Utf8.toUtf8(directory);
+        var cStr = Utf8.toUtf8(directory).cast<Int8>();
         try {
           checkObx(bindings.obx_opt_directory(opt, cStr));
         } finally {
@@ -133,5 +133,5 @@ class Store {
   SyncClient syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.
-  Pointer<Void> get ptr => _cStore;
+  Pointer<OBX_store> get ptr => _cStore;
 }

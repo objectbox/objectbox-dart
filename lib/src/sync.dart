@@ -7,7 +7,6 @@ import 'package:ffi/ffi.dart';
 import 'store.dart';
 import 'util.dart';
 import 'bindings/bindings.dart';
-import 'bindings/constants.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
 
@@ -66,10 +65,10 @@ enum SyncRequestUpdatesMode {
 /// Sync client is used to provide ObjectBox Sync client capabilities to your application.
 class SyncClient {
   final Store _store;
-  Pointer<Void> _cSync;
+  Pointer<OBX_sync> _cSync;
 
   /// The low-level pointer to this box.
-  Pointer<Void> get ptr => (_cSync.address != 0)
+  Pointer<OBX_sync> get ptr => (_cSync.address != 0)
       ? _cSync
       : throw Exception('SyncClient already closed');
 
@@ -82,7 +81,7 @@ class SyncClient {
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    final cServerUri = Utf8.toUtf8(serverUri);
+    final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
     try {
       _cSync = checkObxPtr(bindings.obx_sync(_store.ptr, cServerUri),
           'failed to create sync client');

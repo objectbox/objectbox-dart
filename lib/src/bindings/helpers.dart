@@ -2,17 +2,16 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 import 'bindings.dart';
-import 'constants.dart';
 import '../common.dart';
 
 void checkObx(int code) {
-  if (code != OBXError.OBX_SUCCESS) {
+  if (code != OBX_SUCCESS) {
     throw latestNativeError(codeIfMissing: code);
   }
 }
 
 bool checkObxSuccess(int code) {
-  if (code == OBXError.OBX_NO_SUCCESS) return false;
+  if (code == OBX_NO_SUCCESS) return false;
   checkObx(code);
   return true;
 }
@@ -39,11 +38,11 @@ ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
       dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
 }
 
-String cString(Pointer<Utf8> charPtr) {
+String cString(Pointer<Int8> charPtr) {
   // Utf8.fromUtf8 segfaults when called on nullptr
   if (charPtr.address == 0) {
     return '';
   }
 
-  return Utf8.fromUtf8(charPtr);
+  return Utf8.fromUtf8(charPtr.cast<Utf8>());
 }

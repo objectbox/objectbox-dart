@@ -6,12 +6,10 @@ import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 import '../store.dart';
 import '../common.dart';
 import '../bindings/bindings.dart';
-import '../bindings/constants.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/flatbuffers.dart';
 import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
-import '../bindings/signatures.dart';
 
 part 'builder.dart';
 part 'property.dart';
@@ -570,14 +568,14 @@ class ConditionGroupAll extends ConditionGroup {
 ///
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
-  Pointer<Void> _cQuery;
+  Pointer<OBX_query> _cQuery;
   Store store;
   final OBXFlatbuffersManager _fbManager;
   int entityId;
 
   // package private ctor
-  Query._(this.store, this._fbManager, Pointer<Void> cBuilder, this.entityId) {
-    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), 'create query');
+  Query._(this.store, this._fbManager, Pointer<OBX_query_builder> cBuilder, this.entityId) {
+    _cQuery = checkObxPtr(bindings.obx_query(cBuilder), 'create query');
   }
 
   /// Configure an [offset] for this query.

@@ -18,3 +18,19 @@ dev_dependencies:
     path: generator
   pedantic: ^1.9.0
   test: ^1.0.0
+  ffigen: ^1.0.6
+
+ffigen:
+  name: 'ObjectBoxC'
+  description: 'Bindings to ObjectBox C-API'
+  output: 'lib/src/bindings/objectbox-c.dart'
+  headers:
+    entry-points:
+      - 'lib/src/bindings/objectbox.h'
+    include-directives:
+      - '**objectbox.h'
+  enums:
+    member-rename:
+      '(.*)': # Matches any enum.
+        # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
+        '[^_]+_(.*)': '$1'

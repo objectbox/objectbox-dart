@@ -1,8 +1,9 @@
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import 'constants.dart';
+import 'bindings.dart';
 import 'structs.dart';
 import '../modelinfo/index.dart';
 

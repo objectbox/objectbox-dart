@@ -1,11 +1,11 @@
 part of query;
 
 abstract class PropertyQuery<T> {
-  Pointer<Void> _cProp;
+  Pointer<OBX_query_prop> _cProp;
   int _type;
   bool _distinct;
 
-  PropertyQuery(Pointer<Void> cQuery, int propertyId, int obxType) {
+  PropertyQuery(Pointer<OBX_query> cQuery, int propertyId, int obxType) {
     _type = obxType;
     _cProp = checkObxPtr(
         bindings.obx_query_prop(cQuery, propertyId), 'property query');
@@ -35,7 +35,7 @@ abstract class PropertyQuery<T> {
   int count() {
     final ptr = allocate<Uint64>(count: 1);
     try {
-      checkObx(bindings.obx_query_prop_count(_cProp, ptr, nullptr));
+      checkObx(bindings.obx_query_prop_count(_cProp, ptr));
       return ptr.value;
     } finally {
       free(ptr);
@@ -71,7 +71,7 @@ mixin _CommonNumeric<T> on PropertyQuery<T> {
 }
 
 class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
-  IntegerPropertyQuery(Pointer<Void> query, int propertyId, int obxType)
+  IntegerPropertyQuery(Pointer<OBX_query> query, int propertyId, int obxType)
       : super(query, propertyId, obxType);
 
   int _op(obx_query_prop_op_t<int, Int64> fn) {
@@ -162,7 +162,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
 }
 
 class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
-  DoublePropertyQuery(Pointer<Void> query, int propertyId, int obxType)
+  DoublePropertyQuery(Pointer<OBX_query> query, int propertyId, int obxType)
       : super(query, propertyId, obxType);
 
   double _op(obx_query_prop_op_t<int, Double> fn) {
@@ -228,7 +228,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
 class StringPropertyQuery extends PropertyQuery<String> {
   bool _caseSensitive = false;
 
-  StringPropertyQuery(Pointer<Void> query, int propertyId, int obxType)
+  StringPropertyQuery(Pointer<OBX_query> query, int propertyId, int obxType)
       : super(query, propertyId, obxType);
 
   /// Set to return case sensitive distinct values.

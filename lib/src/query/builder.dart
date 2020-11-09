@@ -5,21 +5,21 @@ class QueryBuilder<T> {
   final Store _store;
   final int _entityId; // aka model id, entity id
   final Condition _queryCondition;
-  Pointer<Void> _cBuilder;
+  Pointer<OBX_query_builder> _cBuilder;
   final OBXFlatbuffersManager _fbManager;
 
   QueryBuilder(this._store, this._fbManager, this._entityId,
       [this._queryCondition]);
 
   void _throwExceptionIfNecessary() {
-    if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
+    if (bindings.obx_qb_error_code(_cBuilder) != OBX_SUCCESS) {
       final msg = cString(bindings.obx_qb_error_message(_cBuilder));
       throw ObjectBoxException(nativeMsg: msg);
     }
   }
 
-  Pointer<Void> _createBuilder() =>
-      _cBuilder ??= bindings.obx_qb_create(_store.ptr, _entityId);
+  Pointer<OBX_query_builder> _createBuilder() =>
+      _cBuilder ??= bindings.obx_query_builder(_store.ptr, _entityId);
 
   Query build() {
     _createBuilder();
