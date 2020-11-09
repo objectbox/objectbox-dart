@@ -249,20 +249,14 @@ class StringPropertyQuery extends PropertyQuery<String> {
         _cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
   }
 
-  List<String> _unpack(Pointer<OBX_string_array> ptr) {
-    try {
-      return ptr.ref.items();
-    } finally {
-      bindings.obx_string_array_free(ptr);
-    }
-  }
-
   @override
   List<String> find({String replaceNullWith}) {
     final ptr = replaceNullWith != null
         ? Utf8.toUtf8(replaceNullWith).cast<Int8>()
         : Pointer<Int8>.fromAddress(0);
-    return _unpack(_curryWithDefault<OBX_string_array, Int8>(
-        bindings.obx_query_prop_find_strings, ptr, 'find utf8'));
+    final stringArray = OBX_string_array_wrapper(
+        _curryWithDefault<OBX_string_array, Int8>(
+            bindings.obx_query_prop_find_strings, ptr, 'find utf8'));
+    return stringArray.items();
   }
 }

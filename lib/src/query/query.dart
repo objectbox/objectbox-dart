@@ -12,6 +12,7 @@ import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
 
 part 'builder.dart';
+
 part 'property.dart';
 
 class Order {
@@ -574,7 +575,8 @@ class Query<T> {
   int entityId;
 
   // package private ctor
-  Query._(this.store, this._fbManager, Pointer<OBX_query_builder> cBuilder, this.entityId) {
+  Query._(this.store, this._fbManager, Pointer<OBX_query_builder> cBuilder,
+      this.entityId) {
     _cQuery = checkObxPtr(bindings.obx_query(cBuilder), 'create query');
   }
 
@@ -643,7 +645,9 @@ class Query<T> {
         checkObxPtr(bindings.obx_query_find_ids(_cQuery), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
-      return idArray.length == 0 ? <int>[] : idArray.items();
+      return idArray.count == 0
+          ? <int>[]
+          : idArray.ids.asTypedList(idArray.count);
     } finally {
       bindings.obx_id_array_free(idArrayPtr);
     }
