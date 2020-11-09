@@ -46,6 +46,10 @@ class Model {
       free(name);
     }
 
+    if (entity.flags != 0) {
+      _check(bindings.obx_model_entity_flags(_cModel, entity.flags));
+    }
+
     // add all properties
     entity.properties.forEach(addProperty);
 

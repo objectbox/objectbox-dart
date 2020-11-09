@@ -12,5 +12,5 @@ android {
 
 dependencies {
     // https://github.com/objectbox/objectbox-java/releases
-    implementation "io.objectbox:objectbox-android:2.7.1"
+    implementation "io.objectbox:objectbox-android:2.8.0"
 }

@@ -35,6 +35,8 @@ class _Observable {
   }
 
   static void subscribe(Store store) {
+    syncOrObserversExclusive.mark(store);
+
     final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
     final storePtr = store.ptr;
     _anyObserver[storePtr.address] =
@@ -53,18 +55,19 @@ class _Observable {
     StoreCloseObserver.removeListener(store, _anyObserver[storeAddress]);
     bindings.obx_observer_close(_anyObserver[storeAddress]);
     _anyObserver.remove(storeAddress);
+    syncOrObserversExclusive.unmark(store);
   }
+
+  static bool isSubscribed(Store store) =>
+      _Observable._anyObserver.containsKey(store.ptr.address);
 }
 
 extension Streamable<T> on Query<T> {
   void _setup() {
-    final storePtr = store.ptr;
-
-    if (!_Observable._anyObserver.containsKey(storePtr)) {
+    if (!_Observable.isSubscribed(store)) {
       _Observable.subscribe(store);
     }
-
-    final storeAddress = storePtr.address;
+    final storeAddress = store.ptr.address;
 
     _Observable._any[storeAddress] ??= <int, Any>{};
     _Observable._any[storeAddress][entityId] ??= (u, _, __) {

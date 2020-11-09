@@ -6,6 +6,19 @@ import 'structs.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
+// typedefs for common signatures for different "classes", like store, box, ...
+// obx_err fn(objectPtr)
+typedef obx_fn_nullary_native = Int32 Function(Pointer<Void> obj);
+typedef obx_fn_nullary_dart = int Function(Pointer<Void> obj);
+// obx_err fn(void* objectPtr, Arg1 arg)
+typedef obx_fn_unary_native<Arg1> = Int32 Function(Pointer<Void> obj, Arg1 arg);
+typedef obx_fn_unary_dart<Arg1> = int Function(Pointer<Void> obj, Arg1 arg);
+// obx_err fn(void* objectPtr, Arg1 arg1, Arg2 arg2)
+typedef obx_fn_binary_native<Arg1, Arg2> = Int32 Function(
+    Pointer<Void> obj, Arg1 arg1, Arg2 arg2);
+typedef obx_fn_binary_dart<Arg1, Arg2> = int Function(
+    Pointer<Void> obj, Arg1 arg1, Arg2 arg2);
+
 // common functions
 typedef obx_version_native_t = Void Function(
     Pointer<Int32> major, Pointer<Int32> minor, Pointer<Int32> patch);
@@ -35,7 +48,7 @@ typedef obx_model_entity_native_t = Int32 Function(Pointer<Void> model,
     Pointer<Utf8> name, Uint32 entity_id, Uint64 entity_uid);
 typedef obx_model_property_native_t = Int32 Function(Pointer<Void> model,
     Pointer<Utf8> name, Uint32 type, Uint32 property_id, Uint64 property_uid);
-typedef obx_model_property_flags_native_t = Int32 Function(
+typedef obx_model_flags_native_t = Int32 Function(
     Pointer<Void> model, Uint32 flags);
 typedef obx_model_entity_last_property_id_native_t = Int32 Function(
     Pointer<Void> model, Uint32 property_id, Uint64 property_uid);
@@ -266,3 +279,12 @@ typedef obx_bytes_array_set_t<Ret, SizeT> = Ret Function(
 
     obx_qb_param_alias_dart_t obx_qb_param_alias;
 */
+
+// Sync
+typedef obx_sync_available_native_t = Uint8 Function();
+typedef obx_sync_native_t = Pointer<Void> Function(
+    Pointer<Void> store, Pointer<Utf8> serverUri);
+typedef obx_sync_credentials_native_t = Int32 Function(
+    Pointer<Void> sync, Int32 type, Pointer<Uint8> data, IntPtr size);
+typedef obx_sync_credentials_dart_t = int Function(
+    Pointer<Void> sync, int type, Pointer<Uint8> data, int size);

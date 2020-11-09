@@ -69,3 +69,7 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
 //    testLastId(defs.model.lastRelationId, defs.model.entities.map((el) => ...), jsonModel.retiredRelationUids);
 //  });
 }
+
+ModelEntity entity(ModelInfo model, String name) {
+  return model.entities.firstWhere((ModelEntity e) => e.name == name);
+}

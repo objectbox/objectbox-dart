@@ -7,6 +7,7 @@ class TestingUnknownAnnotation {
 
 @Entity()
 @TestingUnknownAnnotation()
+@Sync()
 class TestEntity {
   @Id()
   @TestingUnknownAnnotation()

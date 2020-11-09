@@ -43,6 +43,7 @@ class _ObjectBoxBindings {
   Pointer<Utf8> Function(Pointer<Void> model) obx_model_error_message;
   int Function(Pointer<Void> model, Pointer<Utf8> name, int entity_id,
       int entity_uid) obx_model_entity;
+  int Function(Pointer<Void> model, int flags) obx_model_entity_flags;
   int Function(Pointer<Void> model, Pointer<Utf8> name, int type,
       int property_id, int property_uid) obx_model_property;
   int Function(Pointer<Void> model, int flags) obx_model_property_flags;
@@ -213,6 +214,19 @@ class _ObjectBoxBindings {
   obx_bytes_array_t<int> obx_bytes_array;
   obx_bytes_array_set_t<int, int> obx_bytes_array_set;
 
+  // Sync
+  int Function() obx_sync_available;
+  obx_sync_native_t obx_sync;
+  obx_fn_nullary_dart obx_sync_close;
+  obx_sync_credentials_dart_t obx_sync_credentials;
+  obx_fn_nullary_dart obx_sync_state;
+  obx_fn_unary_dart<int> obx_sync_request_updates_mode;
+  obx_fn_nullary_dart obx_sync_start;
+  obx_fn_nullary_dart obx_sync_stop;
+  obx_fn_unary_dart<int> obx_sync_updates_request;
+  obx_fn_nullary_dart obx_sync_updates_cancel;
+  obx_fn_binary_dart<int, Pointer<Uint64>> obx_sync_outgoing_message_count;
+
   // TODO return .asFunction() -> requires properly determined static return type
   Pointer<NativeFunction<T>> _fn<T extends Function>(String name) {
     return lib.lookup<NativeFunction<T>>(name);
@@ -297,11 +311,18 @@ class _ObjectBoxBindings {
             .asFunction();
     obx_model_entity =
         _fn<obx_model_entity_native_t>('obx_model_entity').asFunction();
+
+    // TODO remove try-catch after an update to objectbox-c v0.11.0
+    try {
+      obx_model_entity_flags =
+          _fn<obx_model_flags_native_t>('obx_model_entity_flags').asFunction();
+    } catch (e) {
+      obx_model_entity_flags = (_, __) => 0;
+    }
     obx_model_property =
         _fn<obx_model_property_native_t>('obx_model_property').asFunction();
     obx_model_property_flags =
-        _fn<obx_model_property_flags_native_t>('obx_model_property_flags')
-            .asFunction();
+        _fn<obx_model_flags_native_t>('obx_model_property_flags').asFunction();
     obx_model_entity_last_property_id =
         _fn<obx_model_entity_last_property_id_native_t>(
                 'obx_model_entity_last_property_id')
@@ -596,6 +617,42 @@ class _ObjectBoxBindings {
     obx_bytes_array_set =
         _fn<obx_bytes_array_set_t<Int32, IntPtr>>('obx_bytes_array_set')
             .asFunction();
+
+    // Sync
+    // TODO remove try-catch after an update to objectbox-c v0.11.0
+    try {
+      obx_sync_available =
+          _fn<obx_sync_available_native_t>('obx_sync_available').asFunction();
+    } catch (e) {
+      obx_sync_available = () => 0;
+    }
+    try {
+      obx_sync = _fn<obx_sync_native_t>('obx_sync').asFunction();
+      obx_sync_close =
+          _fn<obx_fn_nullary_native>('obx_sync_close').asFunction();
+      obx_sync_credentials =
+          _fn<obx_sync_credentials_native_t>('obx_sync_credentials')
+              .asFunction();
+      obx_sync_state =
+          _fn<obx_fn_nullary_native>('obx_sync_state').asFunction();
+      obx_sync_request_updates_mode =
+          _fn<obx_fn_unary_native<Int32>>('obx_sync_request_updates_mode')
+              .asFunction();
+      obx_sync_start =
+          _fn<obx_fn_nullary_native>('obx_sync_start').asFunction();
+      obx_sync_stop = _fn<obx_fn_nullary_native>('obx_sync_stop').asFunction();
+      obx_sync_updates_request =
+          _fn<obx_fn_unary_native<Uint8>>('obx_sync_updates_request')
+              .asFunction();
+      obx_sync_updates_cancel =
+          _fn<obx_fn_nullary_native>('obx_sync_updates_cancel').asFunction();
+      obx_sync_outgoing_message_count =
+          _fn<obx_fn_binary_native<Uint64, Pointer<Uint64>>>(
+                  'obx_sync_outgoing_message_count')
+              .asFunction();
+    } catch (e) {
+      // sync functions may be undefined when in non-sync lib
+    }
   }
 }
 

@@ -9,6 +9,7 @@ import 'package:objectbox/src/bindings/constants.dart';
 class ModelEntity {
   IdUid id, lastPropertyId;
   String name;
+  int flags;
   List<ModelProperty> properties;
   ModelProperty idProperty;
   ModelInfo _model;
@@ -16,8 +17,8 @@ class ModelEntity {
   ModelInfo get model =>
       (_model == null) ? throw Exception('model is null') : _model;
 
-  ModelEntity(
-      this.id, this.lastPropertyId, this.name, this.properties, this._model) {
+  ModelEntity(this.id, this.lastPropertyId, this.name, this.flags,
+      this.properties, this._model) {
     validate();
   }
 
@@ -27,6 +28,7 @@ class ModelEntity {
     id = IdUid.fromString(data['id']);
     lastPropertyId = IdUid.fromString(data['lastPropertyId']);
     name = data['name'];
+    flags = data['flags'] ?? 0;
     properties = data['properties']
         .map<ModelProperty>((p) => ModelProperty.fromMap(p, this, check: check))
         .toList();
@@ -83,6 +85,7 @@ class ModelEntity {
     ret['lastPropertyId'] =
         lastPropertyId == null ? null : lastPropertyId.toString();
     ret['name'] = name;
+    if (flags != 0) ret['flags'] = flags;
     ret['properties'] = properties.map((p) => p.toMap()).toList();
     return ret;
   }
@@ -149,5 +152,9 @@ class ModelEntity {
       return true;
     }
     return false;
+  }
+
+  bool hasFlag(int flag) {
+    return (flags & flag) == flag;
   }
 }
