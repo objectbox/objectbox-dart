@@ -66,7 +66,8 @@ class ViewModel {
     _query = _box.query().order(dateProp, flags: Order.descending).build();
 
     // TODO configure actual sync server address and authentication
-    // 10.0.2.2 is your host PC if an app is run in an emulator.
+    // 10.0.2.2 is your host PC if an app is run in an Android emulator.
+    // 127.0.0.1 is your host PC if an app is run in an iOS simulator.
     // For other options, see objectbox/lib/src/sync.dart
     final syncClient =
         Sync.client(_store, 'ws://10.0.2.2:9999', SyncCredentials.none());
