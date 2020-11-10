@@ -81,7 +81,7 @@ class OBX_bytes_wrapper {
 }
 
 class OBX_string_array_wrapper {
-  Pointer<OBX_string_array> _cPtr;
+  final Pointer<OBX_string_array> _cPtr;
 
   OBX_string_array_wrapper(this._cPtr);
 

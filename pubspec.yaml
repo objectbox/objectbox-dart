@@ -34,3 +34,5 @@ ffigen:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
+  preamble: |
+    // ignore_for_file: non_constant_identifier_names
