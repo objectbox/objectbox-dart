@@ -34,5 +34,8 @@ ffigen:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
+  functions:
+    exclude:
+      - 'obx_(query_)?cursor.*' # We don't use 'cursor' functions
   preamble: |
     // ignore_for_file: non_constant_identifier_names

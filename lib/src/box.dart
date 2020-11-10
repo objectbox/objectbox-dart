@@ -259,10 +259,10 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = allocate<Int32>();
+    final isEmpty = cBool();
     try {
       checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
-      return isEmpty.value > 0 ? true : false;
+      return isEmpty.value == 1;
     } finally {
       free(isEmpty);
     }
@@ -270,10 +270,11 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = allocate<Int32>();
+    final contains = cBool();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
-      return contains.value > 0 ? true : false;
+      final value = contains.value;
+      return contains.value == 1;
     } finally {
       free(contains);
     }
@@ -281,11 +282,11 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
   bool containsMany(List<int> ids) {
-    final contains = allocate<Int32>();
+    final contains = cBool();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
-        return contains.value > 0 ? true : false;
+        return contains.value == 1;
       });
     } finally {
       free(contains);
@@ -303,14 +304,14 @@ class Box<T> {
 
   /// Removes (deletes) Objects by their ID in a single transaction. Returns a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
-    final removedIds = allocate<Uint64>();
+    final countRemoved = allocate<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(bindings.obx_box_remove_many(_cBox, ptr, removedIds));
-        return removedIds.value;
+        checkObx(bindings.obx_box_remove_many(_cBox, ptr, countRemoved));
+        return countRemoved.value;
       });
     } finally {
-      free(removedIds);
+      free(countRemoved);
     }
   }
 
