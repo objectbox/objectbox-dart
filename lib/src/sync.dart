@@ -220,9 +220,17 @@ class Sync {
   /// Sync() annotation enables synchronization for an entity.
   const Sync();
 
+  static bool _syncAvailable;
+
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() {
-    return bindings.obx_sync_available() != 0;
+    // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_sync_available() exists.
+    try {
+      _syncAvailable ??= bindings.obx_sync_available() != 0;
+    } on ArgumentError {
+      _syncAvailable = false;
+    }
+    return _syncAvailable;
   }
 
   /// Creates a sync client associated with the given store and configures it with the given options.

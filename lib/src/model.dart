@@ -46,7 +46,13 @@ class Model {
     }
 
     if (entity.flags != 0) {
-      _check(bindings.obx_model_entity_flags(_cModel, entity.flags));
+      // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_model_entity_flags() exists.
+      try {
+        _check(bindings.obx_model_entity_flags(_cModel, entity.flags));
+      } on ArgumentError {
+        // flags not supported; don't do anything until objectbox-c v0.11
+        // this should only be used from our test code
+      }
     }
 
     // add all properties
