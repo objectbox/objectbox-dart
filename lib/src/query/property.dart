@@ -50,16 +50,10 @@ abstract class PropertyQuery<T> {
     Pointer<StructT> cItems;
     try {
       cItems = checkObxPtr(findFn(_cProp, cDefault), 'Property query failed');
-    } finally {
-      if (cDefault.address != 0) {
-        free(cDefault);
-      }
-    }
-
-    try {
       return listReadFn(cItems);
     } finally {
-      listFreeFn(cItems);
+      if (cDefault != nullptr) free(cDefault);
+      if (cItems != nullptr) listFreeFn(cItems);
     }
   }
 
@@ -120,7 +114,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
             bindings.obx_query_prop_find_int8s,
             cDefault,
             (Pointer<OBX_int8_array> cItems) =>
-                cItems.ref.items.asTypedList(cItems.ref.count),
+                cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             bindings.obx_int8_array_free);
       case OBXPropertyType.Short: // Int16
         final cDefault = _cDefault<Int16>(replaceNullWith);
@@ -129,7 +123,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
             bindings.obx_query_prop_find_int16s,
             cDefault,
             (Pointer<OBX_int16_array> cItems) =>
-                cItems.ref.items.asTypedList(cItems.ref.count),
+                cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             bindings.obx_int16_array_free);
       case OBXPropertyType.Int: // Int32
         final cDefault = _cDefault<Int32>(replaceNullWith);
@@ -138,7 +132,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
             bindings.obx_query_prop_find_int32s,
             cDefault,
             (Pointer<OBX_int32_array> cItems) =>
-                cItems.ref.items.asTypedList(cItems.ref.count),
+                cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             bindings.obx_int32_array_free);
       case OBXPropertyType.Long: // Int64
         final cDefault = _cDefault<Int64>(replaceNullWith);
@@ -147,7 +141,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
             bindings.obx_query_prop_find_int64s,
             cDefault,
             (Pointer<OBX_int64_array> cItems) =>
-                cItems.ref.items.asTypedList(cItems.ref.count),
+                cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             bindings.obx_int64_array_free);
       default:
         throw Exception(
@@ -194,7 +188,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
             bindings.obx_query_prop_find_floats,
             cDefault,
             (Pointer<OBX_float_array> cItems) =>
-                cItems.ref.items.asTypedList(cItems.ref.count),
+                cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             bindings.obx_float_array_free);
       case OBXPropertyType.Double:
         final cDefault = _cDefault<Double>(replaceNullWith);
@@ -203,7 +197,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
             bindings.obx_query_prop_find_doubles,
             cDefault,
             (Pointer<OBX_double_array> cItems) =>
-                cItems.ref.items.asTypedList(cItems.ref.count),
+                cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             bindings.obx_double_array_free);
       default:
         throw Exception(
@@ -242,15 +236,11 @@ class StringPropertyQuery extends PropertyQuery<String> {
         ? nullptr
         : Utf8.toUtf8(replaceNullWith).cast<Int8>();
 
-    try {
-      return _find(
-          bindings.obx_query_prop_find_strings,
-          cDefault,
-          (Pointer<OBX_string_array> cItems) =>
-              OBX_string_array_wrapper(cItems).items(),
-          bindings.obx_string_array_free);
-    } finally {
-      if (cDefault != nullptr) free(cDefault);
-    }
+    return _find(
+        bindings.obx_query_prop_find_strings,
+        cDefault,
+        (Pointer<OBX_string_array> cItems) =>
+            OBX_string_array_wrapper(cItems).items(),
+        bindings.obx_string_array_free);
   }
 }

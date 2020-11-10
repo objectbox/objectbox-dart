@@ -1,0 +1,347 @@
+Index: lib/src/bindings/objectbox-c.dart
+See https://github.com/dart-lang/ffigen/issues/7#issuecomment-724627790
+<+>UTF-8
+===================================================================
+--- lib/src/bindings/objectbox-c.dart	(revision 5307ea1298376bee9942870d37abd241aea1121e)
++++ lib/src/bindings/objectbox-c.dart	(date 1605013272035)
+@@ -1310,7 +1310,7 @@
+     ffi.Pointer<OBX_box> box,
+     int id,
+     ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+-    ffi.Pointer<ffi.Int32> size,
++    ffi.Pointer<ffi.IntPtr> size,
+   ) {
+     _obx_box_get ??=
+         _dylib.lookupFunction<_c_obx_box_get, _dart_obx_box_get>('obx_box_get');
+@@ -4590,7 +4590,7 @@
+ class OBX_bytes extends ffi.Struct {
+   ffi.Pointer<ffi.Void> data;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int size;
+ }
+
+@@ -4598,7 +4598,7 @@
+ class OBX_bytes_array extends ffi.Struct {
+   ffi.Pointer<OBX_bytes> bytes;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4606,7 +4606,7 @@
+ class OBX_id_array extends ffi.Struct {
+   ffi.Pointer<ffi.Uint64> ids;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4614,7 +4614,7 @@
+ class OBX_string_array extends ffi.Struct {
+   ffi.Pointer<ffi.Pointer<ffi.Int8>> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4622,7 +4622,7 @@
+ class OBX_int64_array extends ffi.Struct {
+   ffi.Pointer<ffi.Int64> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4630,7 +4630,7 @@
+ class OBX_int32_array extends ffi.Struct {
+   ffi.Pointer<ffi.Int32> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4638,7 +4638,7 @@
+ class OBX_int16_array extends ffi.Struct {
+   ffi.Pointer<ffi.Int16> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4646,7 +4646,7 @@
+ class OBX_int8_array extends ffi.Struct {
+   ffi.Pointer<ffi.Int8> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4654,7 +4654,7 @@
+ class OBX_double_array extends ffi.Struct {
+   ffi.Pointer<ffi.Double> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4662,7 +4662,7 @@
+ class OBX_float_array extends ffi.Struct {
+   ffi.Pointer<ffi.Float> items;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -4792,7 +4792,7 @@
+ class OBX_sync_change_array extends ffi.Struct {
+   ffi.Pointer<OBX_sync_change> list;
+
+-  @ffi.Int32()
++  @ffi.IntPtr()
+   int count;
+ }
+
+@@ -5140,7 +5140,7 @@
+
+ typedef _c_obx_opt_max_db_size_in_kb = ffi.Void Function(
+   ffi.Pointer<OBX_store_options> opt,
+-  ffi.Int32 size_in_kb,
++  ffi.IntPtr size_in_kb,
+ );
+
+ typedef _dart_obx_opt_max_db_size_in_kb = void Function(
+@@ -5181,7 +5181,7 @@
+ typedef _c_obx_opt_model_bytes = ffi.Int32 Function(
+   ffi.Pointer<OBX_store_options> opt,
+   ffi.Pointer<ffi.Void> bytes,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_opt_model_bytes = int Function(
+@@ -5193,7 +5193,7 @@
+ typedef _c_obx_opt_model_bytes_direct = ffi.Int32 Function(
+   ffi.Pointer<OBX_store_options> opt,
+   ffi.Pointer<ffi.Void> bytes,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_opt_model_bytes_direct = int Function(
+@@ -5596,14 +5596,14 @@
+   ffi.Pointer<OBX_box> box,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+-  ffi.Pointer<ffi.Int32> size,
++  ffi.Pointer<ffi.IntPtr> size,
+ );
+
+ typedef _dart_obx_box_get = int Function(
+   ffi.Pointer<OBX_box> box,
+   int id,
+   ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+-  ffi.Pointer<ffi.Int32> size,
++  ffi.Pointer<ffi.IntPtr> size,
+ );
+
+ typedef _c_obx_box_get_many = ffi.Pointer<OBX_bytes_array> Function(
+@@ -5682,7 +5682,7 @@
+   ffi.Pointer<OBX_box> box,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_box_put = int Function(
+@@ -5696,7 +5696,7 @@
+   ffi.Pointer<OBX_box> box,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_box_insert = int Function(
+@@ -5710,7 +5710,7 @@
+   ffi.Pointer<OBX_box> box,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_box_update = int Function(
+@@ -5724,7 +5724,7 @@
+   ffi.Pointer<OBX_box> box,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+   ffi.Int32 mode,
+ );
+
+@@ -5739,7 +5739,7 @@
+ typedef _c_obx_box_put_object = ffi.Uint64 Function(
+   ffi.Pointer<OBX_box> box,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_box_put_object = int Function(
+@@ -5751,7 +5751,7 @@
+ typedef _c_obx_box_put_object4 = ffi.Uint64 Function(
+   ffi.Pointer<OBX_box> box,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+   ffi.Int32 mode,
+ );
+
+@@ -5958,7 +5958,7 @@
+   ffi.Pointer<OBX_async> async_1,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_async_put = int Function(
+@@ -5972,7 +5972,7 @@
+   ffi.Pointer<OBX_async> async_1,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+   ffi.Int32 mode,
+ );
+
+@@ -5988,7 +5988,7 @@
+   ffi.Pointer<OBX_async> async_1,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_async_insert = int Function(
+@@ -6002,7 +6002,7 @@
+   ffi.Pointer<OBX_async> async_1,
+   ffi.Uint64 id,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_async_update = int Function(
+@@ -6015,7 +6015,7 @@
+ typedef _c_obx_async_put_object = ffi.Uint64 Function(
+   ffi.Pointer<OBX_async> async_1,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_async_put_object = int Function(
+@@ -6027,7 +6027,7 @@
+ typedef _c_obx_async_insert_object = ffi.Uint64 Function(
+   ffi.Pointer<OBX_async> async_1,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_async_insert_object = int Function(
+@@ -6434,7 +6434,7 @@
+   ffi.Pointer<OBX_query_builder> builder,
+   ffi.Uint32 property_id,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_qb_equals_bytes = int Function(
+@@ -6448,7 +6448,7 @@
+   ffi.Pointer<OBX_query_builder> builder,
+   ffi.Uint32 property_id,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_qb_greater_than_bytes = int Function(
+@@ -6462,7 +6462,7 @@
+   ffi.Pointer<OBX_query_builder> builder,
+   ffi.Uint32 property_id,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_qb_greater_or_equal_bytes = int Function(
+@@ -6476,7 +6476,7 @@
+   ffi.Pointer<OBX_query_builder> builder,
+   ffi.Uint32 property_id,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_qb_less_than_bytes = int Function(
+@@ -6490,7 +6490,7 @@
+   ffi.Pointer<OBX_query_builder> builder,
+   ffi.Uint32 property_id,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_qb_less_or_equal_bytes = int Function(
+@@ -6851,7 +6851,7 @@
+   ffi.Uint32 entity_id,
+   ffi.Uint32 property_id,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_query_param_bytes = int Function(
+@@ -6972,7 +6972,7 @@
+   ffi.Pointer<OBX_query> query,
+   ffi.Pointer<ffi.Int8> alias,
+   ffi.Pointer<ffi.Void> value,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_query_param_alias_bytes = int Function(
+@@ -7268,7 +7268,7 @@
+   ffi.Pointer<OBX_bytes_array> array,
+   ffi.Int32 index,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_bytes_array_set = int Function(
+@@ -7394,7 +7394,7 @@
+   ffi.Pointer<OBX_sync> sync_1,
+   ffi.Int32 type,
+   ffi.Pointer<ffi.Void> data,
+-  ffi.Int32 size,
++  ffi.IntPtr size,
+ );
+
+ typedef _dart_obx_sync_credentials = int Function(

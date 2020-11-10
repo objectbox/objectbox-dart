@@ -148,7 +148,7 @@ class Box<T> {
   /// Returns null if an object with the given ID doesn't exist.
   T get(int id) {
     final dataPtrPtr = allocate<Pointer<Void>>();
-    final sizePtr = allocate<Int32>();
+    final sizePtr = allocate<IntPtr>();
 
     try {
       // get element with specified id from database
@@ -273,7 +273,6 @@ class Box<T> {
     final contains = cBool();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
-      final value = contains.value;
       return contains.value == 1;
     } finally {
       free(contains);
