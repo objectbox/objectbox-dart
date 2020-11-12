@@ -11,7 +11,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_generator: ^0.9.0
+  objectbox_generator: any
 ```
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
@@ -20,7 +20,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
       ```yaml
       dependencies:
         objectbox: ^0.9.0
-        objectbox_flutter_libs: ^0.9.0
+        objectbox_flutter_libs: any
       ```
     * Install the packages `flutter pub get`
     * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
@@ -217,7 +217,7 @@ We aim to make ObjectBox compatible with the following Dart/Flutter versions (lo
 * Dart 2.6.0+ up to the latest stable release
 
 Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
-To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: ^0.9.0` 
+To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: any` 
 as an additional dependency, in addition to `objectbox`.
 
 This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
