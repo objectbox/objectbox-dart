@@ -4,7 +4,7 @@ import 'lib/objectbox.g.dart';
 import 'package:test/test.dart';
 import '../test_env.dart';
 import '../common.dart';
-import 'package:objectbox/src/bindings/constants.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
 
 void main() {
   TestEnv<A> env;
@@ -32,7 +32,7 @@ void main() {
     expect(entity(model, 'A').flags, equals(0));
     expect(entity(jsonModel, 'A').flags, equals(0));
 
-    expect(entity(model, 'D').flags, equals(OBXEntityFlag.SYNC_ENABLED));
-    expect(entity(jsonModel, 'D').flags, equals(OBXEntityFlag.SYNC_ENABLED));
+    expect(entity(model, 'D').flags, equals(OBXEntityFlags.SYNC_ENABLED));
+    expect(entity(jsonModel, 'D').flags, equals(OBXEntityFlags.SYNC_ENABLED));
   });
 }

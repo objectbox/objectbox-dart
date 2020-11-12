@@ -3,7 +3,6 @@ import 'package:ffi/ffi.dart' show allocate, free;
 
 import 'store.dart';
 import 'bindings/bindings.dart';
-import 'bindings/constants.dart';
 import 'bindings/data_visitor.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
@@ -20,7 +19,7 @@ enum _PutMode {
 /// A box to store objects of a particular class.
 class Box<T> {
   final Store _store;
-  Pointer<Void> _cBox;
+  Pointer<OBX_box> _cBox;
   ModelEntity _modelEntity;
   ObjectReader<T> _entityReader;
   OBXFlatbuffersManager<T> _fbManager;
@@ -65,15 +64,13 @@ class Box<T> {
     }
 
     // put object into box and free the buffer
-    // ignore: omit_local_variable_types
-    final Pointer<OBX_bytes> bytesPtr = _fbManager.marshal(propVals);
+    final bytes = _fbManager.marshal(propVals);
     try {
-      final bytes = bytesPtr.ref;
       checkObx(bindings.obx_box_put5(
-          _cBox, id, bytes.ptr, bytes.length, _getOBXPutMode(mode)));
+          _cBox, id, bytes.ptr, bytes.size, _getOBXPutMode(mode)));
     } finally {
       // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
-      OBX_bytes.freeManaged(bytesPtr);
+      bytes.freeManaged();
     }
     return id;
   }
@@ -124,21 +121,19 @@ class Box<T> {
       final bytesArrayPtr = checkObxPtr(
           bindings.obx_bytes_array(allPropVals.length),
           'could not create OBX_bytes_array');
-      final listToFree = <Pointer<OBX_bytes>>[];
+      final listToFree = <OBX_bytes_wrapper>[];
       try {
         for (var i = 0; i < allPropVals.length; i++) {
-          final bytesPtr = _fbManager.marshal(allPropVals[i]);
-          listToFree.add(bytesPtr);
-          final bytes = bytesPtr.ref;
-          bindings.obx_bytes_array_set(
-              bytesArrayPtr, i, bytes.ptr, bytes.length);
+          final bytes = _fbManager.marshal(allPropVals[i]);
+          listToFree.add(bytes);
+          bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.size);
         }
 
         checkObx(bindings.obx_box_put_many(
             _cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
         bindings.obx_bytes_array_free(bytesArrayPtr);
-        listToFree.forEach(OBX_bytes.freeManaged);
+        listToFree.forEach((OBX_bytes_wrapper bytes) => bytes.freeManaged());
       }
     } finally {
       free(allIdsMemory);
@@ -152,20 +147,20 @@ class Box<T> {
   /// Retrieves the stored object with the ID [id] from this box's database.
   /// Returns null if an object with the given ID doesn't exist.
   T get(int id) {
-    final dataPtrPtr = allocate<Pointer<Uint8>>();
+    final dataPtrPtr = allocate<Pointer<Void>>();
     final sizePtr = allocate<IntPtr>();
 
     try {
       // get element with specified id from database
       return _store.runInTransaction(TxMode.Read, () {
         final err = bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr);
-        if (err == OBXError.OBX_NOT_FOUND) {
+        if (err == OBX_NOT_FOUND) {
           return null;
         }
         checkObx(err);
 
         // ignore: omit_local_variable_types
-        Pointer<Uint8> dataPtr = dataPtrPtr.value;
+        Pointer<Uint8> dataPtr = dataPtrPtr.value.cast<Uint8>();
         final size = sizePtr.value;
 
         // create a no-copy view
@@ -224,7 +219,7 @@ class Box<T> {
     if (ids.isEmpty) return [];
 
     const allowMissing = true; // result includes null if an object is missing
-    return OBX_id_array.executeWith(
+    return executeWithIdArray(
         ids,
         (ptr) => _getMany(
             allowMissing,
@@ -264,10 +259,10 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = allocate<Uint8>();
+    final isEmpty = cBool();
     try {
       checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
-      return isEmpty.value > 0 ? true : false;
+      return isEmpty.value == 1;
     } finally {
       free(isEmpty);
     }
@@ -275,10 +270,10 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = allocate<Uint8>();
+    final contains = cBool();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
-      return contains.value > 0 ? true : false;
+      return contains.value == 1;
     } finally {
       free(contains);
     }
@@ -286,11 +281,11 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
   bool containsMany(List<int> ids) {
-    final contains = allocate<Uint8>();
+    final contains = cBool();
     try {
-      return OBX_id_array.executeWith(ids, (ptr) {
+      return executeWithIdArray(ids, (ptr) {
         checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
-        return contains.value > 0 ? true : false;
+        return contains.value == 1;
       });
     } finally {
       free(contains);
@@ -301,21 +296,21 @@ class Box<T> {
   /// entity exists with the given ID.
   bool remove(int id) {
     final err = bindings.obx_box_remove(_cBox, id);
-    if (err == OBXError.OBX_NOT_FOUND) return false;
+    if (err == OBX_NOT_FOUND) return false;
     checkObx(err); // throws on other errors
     return true;
   }
 
   /// Removes (deletes) Objects by their ID in a single transaction. Returns a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
-    final removedIds = allocate<Uint64>();
+    final countRemoved = allocate<Uint64>();
     try {
-      return OBX_id_array.executeWith(ids, (ptr) {
-        checkObx(bindings.obx_box_remove_many(_cBox, ptr, removedIds));
-        return removedIds.value;
+      return executeWithIdArray(ids, (ptr) {
+        checkObx(bindings.obx_box_remove_many(_cBox, ptr, countRemoved));
+        return countRemoved.value;
       });
     } finally {
-      free(removedIds);
+      free(countRemoved);
     }
   }
 
@@ -331,5 +326,5 @@ class Box<T> {
   }
 
   /// The low-level pointer to this box.
-  Pointer<Void> get ptr => _cBox;
+  Pointer<OBX_box> get ptr => _cBox;
 }

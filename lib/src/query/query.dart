@@ -6,14 +6,13 @@ import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 import '../store.dart';
 import '../common.dart';
 import '../bindings/bindings.dart';
-import '../bindings/constants.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/flatbuffers.dart';
 import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
-import '../bindings/signatures.dart';
 
 part 'builder.dart';
+
 part 'property.dart';
 
 class Order {
@@ -317,8 +316,9 @@ class StringCondition extends PropertyCondition<String> {
     _caseSensitive = caseSensitive;
   }
 
-  int _op1(QueryBuilder builder, obx_qb_cond_string_op_1_dart_t func) {
-    final cStr = Utf8.toUtf8(_value);
+  int _op1(QueryBuilder builder,
+      int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, int) func) {
+    final cStr = Utf8.toUtf8(_value).cast<Int8>();
     try {
       return func(builder._cBuilder, _property._propertyId, cStr,
           _caseSensitive ? 1 : 0);
@@ -330,10 +330,10 @@ class StringCondition extends PropertyCondition<String> {
   int _inside(QueryBuilder builder) {
     final func = bindings.obx_qb_in_strings;
     final listLength = _list.length;
-    final arrayOfCStrings = allocate<Pointer<Utf8>>(count: listLength);
+    final arrayOfCStrings = allocate<Pointer<Int8>>(count: listLength);
     try {
       for (var i = 0; i < _list.length; i++) {
-        arrayOfCStrings[i] = Utf8.toUtf8(_list[i]);
+        arrayOfCStrings[i] = Utf8.toUtf8(_list[i]).cast<Int8>();
       }
       return func(builder._cBuilder, _property._propertyId, arrayOfCStrings,
           listLength, _caseSensitive ? 1 : 0);
@@ -386,35 +386,22 @@ class IntegerCondition extends PropertyCondition<int> {
   IntegerCondition.fromList(ConditionOp op, QueryProperty prop, List<int> list)
       : super.fromList(op, prop, list);
 
-  int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<int> func) {
+  int _op1(QueryBuilder builder,
+      int Function(Pointer<OBX_query_builder>, int, int) func) {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
 
-  // ideally it should be implemented like this, but this doesn't work, TODO report to google, doesn't work with 2.6 yet
-  /*
-  int _opList<P extends NativeType>(QueryBuilder builder, obx_qb_cond_operator_in_dart_t<P> func) {
-
-    int length = _list.length;
-    final listPtr = allocate<P>(count: length);
-    try {
-      for (var i=0; i<length; i++) {
-        listPtr[i] = _list[i] as int; // Error: Expected type 'P' to be a valid and instantiated subtype of 'NativeType'. // wtf? Compiler bug?
-      }
-      return func(builder._cBuilder, _property.propertyId, listPtr, length);
-    }finally {
-      free(listPtr);
-    }
-  }
-  */
-
-  // TODO replace nasty duplication with implementation above, when fix is in
-  int _opList32(
-      QueryBuilder builder, obx_qb_cond_operator_in_dart_t<Int32> func) {
+  int _opList<T extends NativeType>(
+      QueryBuilder builder,
+      int Function(Pointer<OBX_query_builder>, int, Pointer<T>, int) func,
+      void Function(Pointer<T>, int, int) setIndex) {
     final length = _list.length;
-    final listPtr = allocate<Int32>(count: length);
+    final listPtr = allocate<T>(count: length);
     try {
       for (var i = 0; i < length; i++) {
-        listPtr[i] = _list[i];
+        // Error: The operator '[]=' isn't defined for the type 'Pointer<T>
+        // listPtr[i] = _list[i];
+        setIndex(listPtr, i, _list[i]);
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
@@ -422,20 +409,9 @@ class IntegerCondition extends PropertyCondition<int> {
     }
   }
 
-  // TODO replace duplication with implementation above, when fix is in
-  int _opList64(
-      QueryBuilder builder, obx_qb_cond_operator_in_dart_t<Int64> func) {
-    final length = _list.length;
-    final listPtr = allocate<Int64>(count: length);
-    try {
-      for (var i = 0; i < length; i++) {
-        listPtr[i] = _list[i];
-      }
-      return func(builder._cBuilder, _property._propertyId, listPtr, length);
-    } finally {
-      free(listPtr);
-    }
-  }
+  static void opListSetIndexInt32(Pointer<Int32> list, i, val) => list[i] = val;
+
+  static void opListSetIndexInt64(Pointer<Int64> list, i, val) => list[i] = val;
 
   @override
   int apply(QueryBuilder builder, bool isRoot) {
@@ -459,9 +435,11 @@ class IntegerCondition extends PropertyCondition<int> {
       case ConditionOp.inside:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList32(builder, bindings.obx_qb_in_int32s);
+            return _opList(
+                builder, bindings.obx_qb_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList64(builder, bindings.obx_qb_in_int64s);
+            return _opList(
+                builder, bindings.obx_qb_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -469,9 +447,11 @@ class IntegerCondition extends PropertyCondition<int> {
       case ConditionOp.notIn:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList32(builder, bindings.obx_qb_not_in_int32s);
+            return _opList(
+                builder, bindings.obx_qb_not_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList64(builder, bindings.obx_qb_not_in_int64s);
+            return _opList(
+                builder, bindings.obx_qb_not_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -490,10 +470,6 @@ class DoubleCondition extends PropertyCondition<double> {
         'Equality operator is not supported on floating point numbers - use between() instead.');
   }
 
-  int _op1(QueryBuilder builder, obx_qb_cond_operator_1_dart_t<double> func) {
-    return func(builder._cBuilder, _property._propertyId, _value);
-  }
-
   @override
   int apply(QueryBuilder builder, bool isRoot) {
     final c = tryApply(builder);
@@ -503,9 +479,11 @@ class DoubleCondition extends PropertyCondition<double> {
 
     switch (_op) {
       case ConditionOp.gt:
-        return _op1(builder, bindings.obx_qb_greater_than_double);
+        return bindings.obx_qb_greater_than_double(
+            builder._cBuilder, _property._propertyId, _value);
       case ConditionOp.lt:
-        return _op1(builder, bindings.obx_qb_less_than_double);
+        return bindings.obx_qb_less_than_double(
+            builder._cBuilder, _property._propertyId, _value);
       case ConditionOp.between:
         return bindings.obx_qb_between_2doubles(
             builder._cBuilder, _property._propertyId, _value, _value2);
@@ -517,7 +495,7 @@ class DoubleCondition extends PropertyCondition<double> {
 
 class ConditionGroup extends Condition {
   final List<Condition> _conditions;
-  final obx_qb_join_op_dart_t _func;
+  final int Function(Pointer<OBX_query_builder>, Pointer<Int32>, int) _func;
 
   ConditionGroup(this._conditions, this._func);
 
@@ -570,14 +548,15 @@ class ConditionGroupAll extends ConditionGroup {
 ///
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
-  Pointer<Void> _cQuery;
+  Pointer<OBX_query> _cQuery;
   Store store;
   final OBXFlatbuffersManager _fbManager;
   int entityId;
 
   // package private ctor
-  Query._(this.store, this._fbManager, Pointer<Void> cBuilder, this.entityId) {
-    _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), 'create query');
+  Query._(this.store, this._fbManager, Pointer<OBX_query_builder> cBuilder,
+      this.entityId) {
+    _cQuery = checkObxPtr(bindings.obx_query(cBuilder), 'create query');
   }
 
   /// Configure an [offset] for this query.
@@ -645,7 +624,9 @@ class Query<T> {
         checkObxPtr(bindings.obx_query_find_ids(_cQuery), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
-      return idArray.length == 0 ? <int>[] : idArray.items();
+      return idArray.count == 0
+          ? <int>[]
+          : idArray.ids.asTypedList(idArray.count);
     } finally {
       bindings.obx_id_array_free(idArrayPtr);
     }

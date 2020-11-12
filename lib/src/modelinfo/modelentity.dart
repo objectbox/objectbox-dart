@@ -1,8 +1,8 @@
+import '../bindings/bindings.dart';
 import '../util.dart';
 import 'iduid.dart';
 import 'modelinfo.dart';
 import 'modelproperty.dart';
-import 'package:objectbox/src/bindings/constants.dart';
 
 /// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
 /// information: id, name and last property id.
@@ -35,7 +35,7 @@ class ModelEntity {
     if (check) validate();
 
     idProperty =
-        properties.firstWhere((p) => (p.flags & OBXPropertyFlag.ID) != 0);
+        properties.firstWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
     if (check && idProperty == null) throw Exception('idProperty is null');
   }
 

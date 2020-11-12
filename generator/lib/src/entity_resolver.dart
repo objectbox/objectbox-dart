@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart' as obx;
-import 'package:objectbox/src/bindings/constants.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -61,11 +61,11 @@ class EntityResolver extends Builder {
     }
 
     if (_syncChecker.hasAnnotationOfExact(element)) {
-      entity.flags |= OBXEntityFlag.SYNC_ENABLED;
+      entity.flags |= OBXEntityFlags.SYNC_ENABLED;
     }
 
     log.info('entity ${entity.name}(${entity.id}), sync=' +
-        (entity.hasFlag(OBXEntityFlag.SYNC_ENABLED) ? 'ON' : 'OFF'));
+        (entity.hasFlag(OBXEntityFlags.SYNC_ENABLED) ? 'ON' : 'OFF'));
 
     // getters, ... (anything else?)
     final readOnlyFields = <String, bool>{};
@@ -104,7 +104,7 @@ class EntityResolver extends Builder {
         hasIdProperty = true;
 
         fieldType = OBXPropertyType.Long;
-        flags |= OBXPropertyFlag.ID;
+        flags |= OBXPropertyFlags.ID;
 
         final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
         propUid = _idAnnotation.getField('uid').toIntValue();

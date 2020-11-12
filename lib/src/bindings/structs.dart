@@ -2,80 +2,62 @@ import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
 import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 import '../common.dart';
+import 'bindings.dart';
 
 // Disable some linter rules for this file
 // ignore_for_file: camel_case_types
 
-// Note: IntPtr seems to be the the correct representation for size_t: "Represents a native pointer-sized integer in C."
+/// Execute the given function, managing the resources consistently
+R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
+  // allocate a temporary structure
+  final ptr = allocate<OBX_id_array>();
 
-/// Represents the following C struct:
-///   struct OBX_id_array {
-///     obx_id* ids;
-///     size_t count;
-///   };
-class OBX_id_array extends Struct {
-  Pointer<Uint64> _itemsPtr;
+  // fill it with data
+  final array = ptr.ref;
+  array.count = items.length;
+  array.ids = allocate<Uint64>(count: items.length);
+  for (var i = 0; i < items.length; ++i) {
+    array.ids[i] = items[i];
+  }
 
-  @IntPtr() // size_t
-  int length;
-
-  /// Get a copy of the list
-  List<int> items() => _itemsPtr.asTypedList(length).toList();
-
-  /// Execute the given function, managing the resources consistently
-  static R executeWith<R>(
-      List<int> items, R Function(Pointer<OBX_id_array>) fn) {
-    // allocate a temporary structure
-    final ptr = allocate<OBX_id_array>();
-
-    // fill it with data
-    final array = ptr.ref;
-    array.length = items.length;
-    array._itemsPtr = allocate<Uint64>(count: array.length);
-    for (var i = 0; i < items.length; ++i) {
-      array._itemsPtr[i] = items[i];
-    }
-
-    // call the function with the structure and free afterwards
-    try {
-      return fn(ptr);
-    } finally {
-      free(array._itemsPtr);
-      free(ptr);
-    }
+  // call the function with the structure and free afterwards
+  try {
+    return fn(ptr);
+  } finally {
+    free(array.ids);
+    free(ptr);
   }
 }
 
-/// Represents the following C struct:
-///   struct OBX_bytes {
-///     const void* data;
-///     size_t size;
-///   };
-class OBX_bytes extends Struct {
-  Pointer<Uint8> _dataPtr;
+class OBX_bytes_wrapper {
+  Pointer<OBX_bytes> _cBytes;
 
-  @IntPtr() // size_t
-  int length;
+  OBX_bytes_wrapper(this._cBytes);
+
+  int get size => _cBytes == nullptr ? 0 : _cBytes.ref.size;
+
+  Uint8List get data => safeDataAccess(_cBytes);
 
   /// Get access to the data (no-copy)
-  Uint8List get data => isEmpty
-      ? throw ObjectBoxException(
-          dartMsg: "can't access data of empty OBX_bytes")
-      : _dataPtr.asTypedList(length);
+  static Uint8List safeDataAccess(Pointer<OBX_bytes> cBytes) =>
+      cBytes.address == 0 || cBytes.ref.size == 0
+          ? throw ObjectBoxException(
+              dartMsg: "can't access data of empty OBX_bytes")
+          : cBytes.ref.data.cast<Uint8>().asTypedList(cBytes.ref.size);
 
-  bool get isEmpty => length == 0 || _dataPtr.address == 0;
+  bool get isEmpty => size == 0;
 
-  Pointer<Uint8> get ptr => _dataPtr;
+  Pointer<Void> get ptr => _cBytes.ref.data;
 
   /// Returns a pointer to OBX_bytes with copy of the passed data.
   /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
-  static Pointer<OBX_bytes> managedCopyOf(Uint8List data) {
-    final ptr = allocate<OBX_bytes>();
-    final bytes = ptr.ref;
+  OBX_bytes_wrapper.managedCopyOf(Uint8List data) {
+    _cBytes = allocate<OBX_bytes>();
+    final bytes = _cBytes.ref;
 
-    const align =
-        true; // ObjectBox requires data to be aligned to the length of 4
-    bytes.length = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
+    // ObjectBox requires data to be aligned to the length of 4
+    const align = true;
+    bytes.size = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
 
     // NOTE: currently there's no way to get access to the underlying memory of Uint8List to avoid a copy.
     // See https://github.com/dart-lang/ffi/issues/27
@@ -85,107 +67,29 @@ class OBX_bytes extends Struct {
     // }
 
     // create a copy of the data
-    bytes._dataPtr = allocate<Uint8>(count: bytes.length);
+    bytes.data = allocate<Uint8>(count: bytes.size).cast<Void>();
     for (var i = 0; i < data.length; ++i) {
-      bytes._dataPtr[i] = data[i];
+      bytes.data.cast<Uint8>()[i] = data[i];
     }
-
-    return ptr;
   }
 
   /// Free a dart-created OBX_bytes pointer.
-  static void freeManaged(Pointer<OBX_bytes> ptr) {
-    free(ptr.ref._dataPtr);
-    free(ptr);
+  void freeManaged() {
+    free(_cBytes.ref.data);
+    free(_cBytes);
   }
 }
 
-/// Represents the following C struct:
-///   struct OBX_bytes_array {
-///     OBX_bytes* bytes;
-///     size_t count;
-///   };
-class OBX_bytes_array extends Struct {
-  Pointer<OBX_bytes> _items;
+class OBX_string_array_wrapper {
+  final Pointer<OBX_string_array> _cPtr;
 
-  @IntPtr() // size_t
-  int length;
-
-  /// Get a list of the underlying OBX_bytes (a shallow copy).
-  List<OBX_bytes> items() {
-    final result = <OBX_bytes>[];
-    for (var i = 0; i < length; i++) {
-      result.add(_items.elementAt(i).ref);
-    }
-    return result;
-  }
-}
-
-class OBX_int8_array extends Struct {
-  Pointer<Int8> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
-
-  List<int> items() => _itemsPtr.asTypedList(count).toList();
-}
-
-class OBX_int16_array extends Struct {
-  Pointer<Int16> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
-
-  List<int> items() => _itemsPtr.asTypedList(count).toList();
-}
-
-class OBX_int32_array extends Struct {
-  Pointer<Int32> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
-
-  List<int> items() => _itemsPtr.asTypedList(count).toList();
-}
-
-class OBX_int64_array extends Struct {
-  Pointer<Int64> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
-
-  List<int> items() => _itemsPtr.asTypedList(count).toList();
-}
-
-class OBX_string_array extends Struct {
-  Pointer<Pointer<Uint8>> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
+  OBX_string_array_wrapper(this._cPtr);
 
   List<String> items() {
     final list = <String>[];
-    for (var i = 0; i < count; i++) {
-      list.add(Utf8.fromUtf8(_itemsPtr.elementAt(i).value.cast<Utf8>()));
+    for (var i = 0; i < _cPtr.ref.count; i++) {
+      list.add(Utf8.fromUtf8(_cPtr.ref.items.elementAt(i).value.cast<Utf8>()));
     }
     return list;
   }
-}
-
-class OBX_float_array extends Struct {
-  Pointer<Float> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
-
-  List<double> items() => _itemsPtr.asTypedList(count).toList();
-}
-
-class OBX_double_array extends Struct {
-  Pointer<Double> _itemsPtr;
-
-  @IntPtr() // size_t
-  int count;
-
-  List<double> items() => _itemsPtr.asTypedList(count).toList();
 }

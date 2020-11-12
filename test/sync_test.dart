@@ -1,10 +1,10 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/observable.dart';
-import 'package:objectbox/src/bindings/constants.dart';
+import 'package:test/test.dart';
 
 import 'entity.dart';
 import 'objectbox.g.dart';
@@ -42,7 +42,7 @@ void main() {
     final model = getObjectBoxModel().model;
     final entity =
         model.entities.firstWhere((ModelEntity e) => e.name == 'TestEntity');
-    expect(entity.hasFlag(OBXEntityFlag.SYNC_ENABLED), isTrue);
+    expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
   test('SyncCredentials string encoding', () {

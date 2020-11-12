@@ -2,17 +2,16 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 import 'bindings.dart';
-import 'constants.dart';
 import '../common.dart';
 
 void checkObx(int code) {
-  if (code != OBXError.OBX_SUCCESS) {
+  if (code != OBX_SUCCESS) {
     throw latestNativeError(codeIfMissing: code);
   }
 }
 
 bool checkObxSuccess(int code) {
-  if (code == OBXError.OBX_NO_SUCCESS) return false;
+  if (code == OBX_NO_SUCCESS) return false;
   checkObx(code);
   return true;
 }
@@ -39,11 +38,15 @@ ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
       dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
 }
 
-String cString(Pointer<Utf8> charPtr) {
+String cString(Pointer<Int8> charPtr) {
   // Utf8.fromUtf8 segfaults when called on nullptr
   if (charPtr.address == 0) {
     return '';
   }
 
-  return Utf8.fromUtf8(charPtr);
+  return Utf8.fromUtf8(charPtr.cast<Utf8>());
 }
+
+// ffigen currently uses Pointer<Int32> for bool* so we need to clear the whole
+// allocated memory before C call, to make sure the result looks is as expected.
+Pointer<Int32> cBool() => allocate<Int32>()..value = 0;

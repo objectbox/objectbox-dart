@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'bindings/bindings.dart';
-import 'bindings/signatures.dart';
 import 'query/query.dart';
 import 'store.dart';
 import 'util.dart';
@@ -13,7 +12,7 @@ import 'util.dart';
 typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
 class _Observable {
-  static final _anyObserver = <int, Pointer<Void>>{};
+  static final _anyObserver = <int, Pointer<OBX_observer>>{};
   static final _any = <int, Map<int, Any>>{};
 
   // sync:true -> ObjectBoxException: 10001 TX is not active anymore: #101
@@ -37,10 +36,10 @@ class _Observable {
   static void subscribe(Store store) {
     syncOrObserversExclusive.mark(store);
 
-    final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
+    final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
     final storePtr = store.ptr;
     _anyObserver[storePtr.address] =
-        bindings.obx_observe(storePtr, callback, storePtr);
+        bindings.obx_observe(storePtr, callback, storePtr.cast<Void>());
     StoreCloseObserver.addListener(store, _anyObserver[storePtr.address], () {
       unsubscribe(store);
     });

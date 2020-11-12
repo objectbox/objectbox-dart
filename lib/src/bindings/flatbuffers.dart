@@ -1,8 +1,9 @@
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import 'constants.dart';
+import 'bindings.dart';
 import 'structs.dart';
 import '../modelinfo/index.dart';
 
@@ -37,7 +38,7 @@ class OBXFlatbuffersManager<T> {
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
-  Pointer<OBX_bytes> marshal(Map<String, dynamic> propVals) {
+  OBX_bytes_wrapper marshal(Map<String, dynamic> propVals) {
     var builder = fb.Builder(initialSize: 1024);
 
     // write all strings
@@ -90,7 +91,7 @@ class OBXFlatbuffersManager<T> {
     });
 
     var endOffset = builder.endTable();
-    return OBX_bytes.managedCopyOf(builder.finish(endOffset));
+    return OBX_bytes_wrapper.managedCopyOf(builder.finish(endOffset));
   }
 
   T unmarshal(final Uint8List bytes) {
@@ -141,10 +142,18 @@ class OBXFlatbuffersManager<T> {
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
   List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray,
       {bool allowMissing = false}) {
-    var fn = (OBX_bytes b) => unmarshal(b.data);
-    if (allowMissing) {
-      fn = (OBX_bytes b) => b.isEmpty ? null : unmarshal(b.data);
+    final result = <T>[];
+    result.length = bytesArray.ref.count;
+
+    for (var i = 0; i < bytesArray.ref.count; i++) {
+      final bytesPtr = bytesArray.ref.bytes.elementAt(i);
+      if (allowMissing && (bytesPtr == nullptr || bytesPtr.ref.size == 0)) {
+        result[i] = null;
+      } else {
+        result[i] = unmarshal(OBX_bytes_wrapper.safeDataAccess(bytesPtr));
+      }
     }
-    return bytesArray.ref.items().map<T>(fn).toList();
+
+    return result;
   }
 }

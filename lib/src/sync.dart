@@ -7,7 +7,6 @@ import 'package:ffi/ffi.dart';
 import 'store.dart';
 import 'util.dart';
 import 'bindings/bindings.dart';
-import 'bindings/constants.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
 
@@ -66,10 +65,10 @@ enum SyncRequestUpdatesMode {
 /// Sync client is used to provide ObjectBox Sync client capabilities to your application.
 class SyncClient {
   final Store _store;
-  Pointer<Void> _cSync;
+  Pointer<OBX_sync> _cSync;
 
   /// The low-level pointer to this box.
-  Pointer<Void> get ptr => (_cSync.address != 0)
+  Pointer<OBX_sync> get ptr => (_cSync.address != 0)
       ? _cSync
       : throw Exception('SyncClient already closed');
 
@@ -82,7 +81,7 @@ class SyncClient {
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    final cServerUri = Utf8.toUtf8(serverUri);
+    final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
     try {
       _cSync = checkObxPtr(bindings.obx_sync(_store.ptr, cServerUri),
           'failed to create sync client');
@@ -136,15 +135,15 @@ class SyncClient {
   /// Configure authentication credentials.
   /// The accepted [SyncCredentials] type depends on your sync-server configuration.
   void setCredentials(SyncCredentials creds) {
-    final cCreds = OBX_bytes.managedCopyOf(creds._data);
+    final cCreds = OBX_bytes_wrapper.managedCopyOf(creds._data);
     try {
       checkObx(bindings.obx_sync_credentials(
           ptr,
           creds._type,
-          creds._type == OBXSyncCredentialsType.NONE ? nullptr : cCreds.ref.ptr,
-          cCreds.ref.length));
+          creds._type == OBXSyncCredentialsType.NONE ? nullptr : cCreds.ptr,
+          cCreds.size));
     } finally {
-      OBX_bytes.freeManaged(cCreds);
+      cCreds.freeManaged();
     }
   }
 
@@ -221,9 +220,17 @@ class Sync {
   /// Sync() annotation enables synchronization for an entity.
   const Sync();
 
+  static bool _syncAvailable;
+
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() {
-    return bindings.obx_sync_available() != 0;
+    // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_sync_available() exists.
+    try {
+      _syncAvailable ??= bindings.obx_sync_available() != 0;
+    } on ArgumentError {
+      _syncAvailable = false;
+    }
+    return _syncAvailable;
   }
 
   /// Creates a sync client associated with the given store and configures it with the given options.

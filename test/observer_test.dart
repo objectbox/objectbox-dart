@@ -1,7 +1,6 @@
 import 'dart:ffi';
 
 import 'package:objectbox/src/bindings/bindings.dart';
-import 'package:objectbox/src/bindings/signatures.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -34,7 +33,7 @@ typedef Single = void Function(Pointer<Void>);
 typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
 class Observable {
-  static Pointer<Void> singleObserver, anyObserver;
+  static Pointer<OBX_observer> singleObserver, anyObserver;
 
   static Single single;
   static Any any;
@@ -54,15 +53,15 @@ class Observable {
 
   void observeSingleType(int entityId, Single fn, Pointer<Void> identifier) {
     single = fn;
-    final callback = Pointer.fromFunction<obx_observer_single_type_native_t>(
-        _singleCallback);
+    final callback =
+        Pointer.fromFunction<obx_observer_single_type>(_singleCallback);
     singleObserver = bindings.obx_observe_single_type(
         store.ptr, entityId, callback, identifier);
   }
 
   void observe(Any fn, Pointer<Void> identifier) {
     any = fn;
-    final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
+    final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
     anyObserver = bindings.obx_observe(store.ptr, callback, identifier);
   }
 }
@@ -135,7 +134,7 @@ void main() async {
   });
 
   test('Observe any entity with static callback', () async {
-    final callback = Pointer.fromFunction<obx_observer_t>(callbackAnyType);
+    final callback = Pointer.fromFunction<obx_observer>(callbackAnyType);
     final observer =
         bindings.obx_observe(store.ptr, callback, Pointer.fromAddress(1337));
 
@@ -158,8 +157,8 @@ void main() async {
   });
 
   test('Observe single entity', () async {
-    final callback = Pointer.fromFunction<obx_observer_single_type_native_t>(
-        callbackSingleType);
+    final callback =
+        Pointer.fromFunction<obx_observer_single_type>(callbackSingleType);
     final observer = bindings.obx_observe_single_type(
         store.ptr, testEntityId, callback, randomPtr);
 

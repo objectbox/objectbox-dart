@@ -1,16 +1,15 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
-import 'bindings/constants.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'common.dart';
 import 'modelinfo/index.dart';
 
 class Model {
-  Pointer<Void> _cModel;
+  Pointer<OBX_model> _cModel;
 
-  Pointer<Void> get ptr => _cModel;
+  Pointer<OBX_model> get ptr => _cModel;
 
   Model(ModelInfo model) {
     _cModel = checkObxPtr(bindings.obx_model(), 'failed to create model');
@@ -29,7 +28,7 @@ class Model {
   }
 
   void _check(int errorCode) {
-    if (errorCode == OBXError.OBX_SUCCESS) return;
+    if (errorCode == OBX_SUCCESS) return;
 
     throw ObjectBoxException(
         nativeCode: bindings.obx_model_error_code(_cModel),
@@ -38,7 +37,7 @@ class Model {
 
   void addEntity(ModelEntity entity) {
     // start entity
-    var name = Utf8.toUtf8(entity.name);
+    var name = Utf8.toUtf8(entity.name).cast<Int8>();
     try {
       _check(bindings.obx_model_entity(
           _cModel, name, entity.id.id, entity.id.uid));
@@ -47,7 +46,13 @@ class Model {
     }
 
     if (entity.flags != 0) {
-      _check(bindings.obx_model_entity_flags(_cModel, entity.flags));
+      // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_model_entity_flags() exists.
+      try {
+        _check(bindings.obx_model_entity_flags(_cModel, entity.flags));
+      } on ArgumentError {
+        // flags not supported; don't do anything until objectbox-c v0.11
+        // this should only be used from our test code
+      }
     }
 
     // add all properties
@@ -59,7 +64,7 @@ class Model {
   }
 
   void addProperty(ModelProperty prop) {
-    var name = Utf8.toUtf8(prop.name);
+    var name = Utf8.toUtf8(prop.name).cast<Int8>();
     try {
       _check(bindings.obx_model_property(
           _cModel, name, prop.type, prop.id.id, prop.id.uid));
