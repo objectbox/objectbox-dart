@@ -2,19 +2,6 @@ ObjectBox for Dart/Flutter
 ==========================
 ObjectBox for Dart is a standalone database storing Dart objects locally, with strong ACID semantics.
 
-Flutter/Dart compatibility
---------------------------
-Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
-To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: ^0.9.0` 
-as an additional dependency, in addition to `objectbox`.
-
-This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
-However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
-Versions between ObjectBox v0.5 up to v0.6.x support Dart 2.6+ as well as Flutter 1.12+ and Flutter 1.17+.  
-
-The last supported version for Flutter 1.9/Dart 2.5 is ObjectBox 0.4.*, so if you can't upgrade yet, please use the 
-latest 0.4.x version instead.
-
 Installation
 ------------
 Add the following dependencies to your `pubspec.yaml`:
@@ -222,6 +209,23 @@ See also
 ---------
 * [Changelog](CHANGELOG.md)
 * [Contribution guidelines](CONTRIBUTING.md)
+
+Flutter/Dart compatibility
+--------------------------
+We aim to make ObjectBox compatible with the following Dart/Flutter versions (lower bounds may change in the future):
+* Flutter 1.12+ up to the latest stable release
+* Dart 2.6.0+ up to the latest stable release
+
+Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
+To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: ^0.9.0` 
+as an additional dependency, in addition to `objectbox`.
+
+This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
+However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
+Versions between ObjectBox v0.5 up to v0.6.x support Dart 2.6+ as well as Flutter 1.12+ and Flutter 1.17+.  
+
+The last supported version for Flutter 1.9/Dart 2.5 is ObjectBox 0.4.*, so if you can't upgrade yet, please use the 
+latest 0.4.x version instead.
 
 License
 -------
