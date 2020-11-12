@@ -115,12 +115,12 @@ class Store {
     checkObxPtr(txn, 'failed to create transaction');
     try {
       if (write) {
-        checkObx(bindings.obx_txn_mark_success(txn, 1));
+        checkObx(bindings.obx_txn_mark_success(txn, true));
       }
       return fn();
     } catch (ex) {
       if (write) {
-        checkObx(bindings.obx_txn_mark_success(txn, 0));
+        checkObx(bindings.obx_txn_mark_success(txn, false));
       }
       rethrow;
     } finally {

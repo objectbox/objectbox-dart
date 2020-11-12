@@ -26,7 +26,7 @@ class Box<T> {
   final bool _supportsBytesArrays;
 
   Box(this._store)
-      : _supportsBytesArrays = bindings.obx_supports_bytes_array() == 1 {
+      : _supportsBytesArrays = bindings.obx_supports_bytes_array() {
     final entityDefs = _store.entityDef<T>();
     _modelEntity = entityDefs.model;
     _entityReader = entityDefs.reader;
@@ -259,7 +259,7 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = cBool();
+    final isEmpty = allocate<Uint8>();
     try {
       checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
       return isEmpty.value == 1;
@@ -270,7 +270,7 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = cBool();
+    final contains = allocate<Uint8>();
     try {
       checkObx(bindings.obx_box_contains(_cBox, id, contains));
       return contains.value == 1;
@@ -281,7 +281,7 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
   bool containsMany(List<int> ids) {
-    final contains = cBool();
+    final contains = allocate<Uint8>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));

@@ -18,7 +18,7 @@ dev_dependencies:
     path: generator
   pedantic: ^1.9.0
   test: ^1.0.0
-  ffigen: ^1.0.6
+  ffigen: ^1.1.0
 
 ffigen:
   name: 'ObjectBoxC'
@@ -37,5 +37,9 @@ ffigen:
   functions:
     exclude:
       - 'obx_(query_)?cursor.*' # We don't use 'cursor' functions
+  # add location to standard library imports, e.g. stddef.h
+  compiler-opts: '-I/usr/lib/clang/10.0.1/include'
+  typedef-map:
+    'size_t': 'IntPtr'
   preamble: |
     // ignore_for_file: non_constant_identifier_names

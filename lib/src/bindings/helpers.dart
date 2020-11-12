@@ -46,7 +46,3 @@ String cString(Pointer<Int8> charPtr) {
 
   return Utf8.fromUtf8(charPtr.cast<Utf8>());
 }
-
-// ffigen currently uses Pointer<Int32> for bool* so we need to clear the whole
-// allocated memory before C call, to make sure the result looks is as expected.
-Pointer<Int32> cBool() => allocate<Int32>()..value = 0;

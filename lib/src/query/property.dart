@@ -28,7 +28,7 @@ abstract class PropertyQuery<T> {
   /// E.g. 1,2,3 instead of 1,1,2,3,3,3. Strings default to case-insensitive comparision.
   set distinct(bool d) {
     _distinct = d;
-    checkObx(bindings.obx_query_prop_distinct(_cProp, d ? 1 : 0));
+    checkObx(bindings.obx_query_prop_distinct(_cProp, d));
   }
 
   /// Returns the count of non-null values.
@@ -218,7 +218,7 @@ class StringPropertyQuery extends PropertyQuery<String> {
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
     checkObx(bindings.obx_query_prop_distinct_case(
-        _cProp, _distinct ? 1 : 0, _caseSensitive ? 1 : 0));
+        _cProp, _distinct, _caseSensitive));
   }
 
   bool get caseSensitive => _caseSensitive;
@@ -226,8 +226,7 @@ class StringPropertyQuery extends PropertyQuery<String> {
   @override
   set distinct(bool d) {
     _distinct = d;
-    checkObx(bindings.obx_query_prop_distinct_case(
-        _cProp, d ? 1 : 0, _caseSensitive ? 1 : 0));
+    checkObx(bindings.obx_query_prop_distinct_case(_cProp, d, _caseSensitive));
   }
 
   @override

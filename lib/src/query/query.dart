@@ -317,11 +317,11 @@ class StringCondition extends PropertyCondition<String> {
   }
 
   int _op1(QueryBuilder builder,
-      int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, int) func) {
+      int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
     final cStr = Utf8.toUtf8(_value).cast<Int8>();
     try {
-      return func(builder._cBuilder, _property._propertyId, cStr,
-          _caseSensitive ? 1 : 0);
+      return func(
+          builder._cBuilder, _property._propertyId, cStr, _caseSensitive);
     } finally {
       free(cStr);
     }
@@ -336,7 +336,7 @@ class StringCondition extends PropertyCondition<String> {
         arrayOfCStrings[i] = Utf8.toUtf8(_list[i]).cast<Int8>();
       }
       return func(builder._cBuilder, _property._propertyId, arrayOfCStrings,
-          listLength, _caseSensitive ? 1 : 0);
+          listLength, _caseSensitive);
     } finally {
       for (var i = 0; i < _list.length; i++) {
         free(arrayOfCStrings.elementAt(i).value);
@@ -644,7 +644,7 @@ class Query<T> {
       this.limit(limit);
     }
     return store.runInTransaction(TxMode.Read, () {
-      if (bindings.obx_supports_bytes_array() == 1) {
+      if (bindings.obx_supports_bytes_array()) {
         final bytesArray =
             checkObxPtr(bindings.obx_query_find(_cQuery), 'find');
         try {

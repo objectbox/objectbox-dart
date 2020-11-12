@@ -30,7 +30,7 @@ class ObjectBoxC {
   _dart_obx_version _obx_version;
 
   /// /// Check if the version of the library is equal to or higher than the given version ints.
-  int obx_version_is_at_least(
+  bool obx_version_is_at_least(
     int major,
     int minor,
     int patch,
@@ -39,10 +39,11 @@ class ObjectBoxC {
         _c_obx_version_is_at_least,
         _dart_obx_version_is_at_least>('obx_version_is_at_least');
     return _obx_version_is_at_least(
-      major,
-      minor,
-      patch,
-    );
+          major,
+          minor,
+          patch,
+        ) !=
+        0;
   }
 
   _dart_obx_version_is_at_least _obx_version_is_at_least;
@@ -83,21 +84,21 @@ class ObjectBoxC {
   _dart_obx_remove_db_files _obx_remove_db_files;
 
   /// /// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
-  int obx_supports_bytes_array() {
+  bool obx_supports_bytes_array() {
     _obx_supports_bytes_array ??= _dylib.lookupFunction<
         _c_obx_supports_bytes_array,
         _dart_obx_supports_bytes_array>('obx_supports_bytes_array');
-    return _obx_supports_bytes_array();
+    return _obx_supports_bytes_array() != 0;
   }
 
   _dart_obx_supports_bytes_array _obx_supports_bytes_array;
 
   /// /// Check whether time series functions are available in the version of this library
-  int obx_supports_time_series() {
+  bool obx_supports_time_series() {
     _obx_supports_time_series ??= _dylib.lookupFunction<
         _c_obx_supports_time_series,
         _dart_obx_supports_time_series>('obx_supports_time_series');
-    return _obx_supports_time_series();
+    return _obx_supports_time_series() != 0;
   }
 
   _dart_obx_supports_time_series _obx_supports_time_series;
@@ -107,7 +108,7 @@ class ObjectBoxC {
   /// /// @param out_error receives the error code; optional: may be NULL
   /// /// @param out_message receives the pointer to the error messages; optional: may be NULL
   /// /// @returns true if an error was pending
-  int obx_last_error_pop(
+  bool obx_last_error_pop(
     ffi.Pointer<ffi.Int32> out_error,
     ffi.Pointer<ffi.Pointer<ffi.Int8>> out_message,
   ) {
@@ -115,9 +116,10 @@ class ObjectBoxC {
         _dylib.lookupFunction<_c_obx_last_error_pop, _dart_obx_last_error_pop>(
             'obx_last_error_pop');
     return _obx_last_error_pop(
-      out_error,
-      out_message,
-    );
+          out_error,
+          out_message,
+        ) !=
+        0;
   }
 
   _dart_obx_last_error_pop _obx_last_error_pop;
@@ -169,7 +171,7 @@ class ObjectBoxC {
   _dart_obx_last_error_clear _obx_last_error_clear;
 
   /// /// Set the last error code and test - reserved for internal use from generated code.
-  int obx_last_error_set(
+  bool obx_last_error_set(
     int code,
     int secondary,
     ffi.Pointer<ffi.Int8> message,
@@ -178,10 +180,11 @@ class ObjectBoxC {
         _dylib.lookupFunction<_c_obx_last_error_set, _dart_obx_last_error_set>(
             'obx_last_error_set');
     return _obx_last_error_set(
-      code,
-      secondary,
-      message,
-    );
+          code,
+          secondary,
+          message,
+        ) !=
+        0;
   }
 
   _dart_obx_last_error_set _obx_last_error_set;
@@ -615,7 +618,7 @@ class ObjectBoxC {
   void obx_opt_validate_on_open(
     ffi.Pointer<OBX_store_options> opt,
     int page_limit,
-    int leaf_level,
+    bool leaf_level,
   ) {
     _obx_opt_validate_on_open ??= _dylib.lookupFunction<
         _c_obx_opt_validate_on_open,
@@ -623,7 +626,7 @@ class ObjectBoxC {
     return _obx_opt_validate_on_open(
       opt,
       page_limit,
-      leaf_level,
+      leaf_level ? 1 : 0,
     );
   }
 
@@ -650,13 +653,13 @@ class ObjectBoxC {
   /// /// schema-less mode. If you don't know what this means exactly: ignore this flag. Defaults to true.
   void obx_opt_read_schema(
     ffi.Pointer<OBX_store_options> opt,
-    int value,
+    bool value,
   ) {
     _obx_opt_read_schema ??= _dylib.lookupFunction<_c_obx_opt_read_schema,
         _dart_obx_opt_read_schema>('obx_opt_read_schema');
     return _obx_opt_read_schema(
       opt,
-      value,
+      value ? 1 : 0,
     );
   }
 
@@ -668,14 +671,14 @@ class ObjectBoxC {
   /// /// transaction. Defaults to false.
   void obx_opt_use_previous_commit(
     ffi.Pointer<OBX_store_options> opt,
-    int value,
+    bool value,
   ) {
     _obx_opt_use_previous_commit ??= _dylib.lookupFunction<
         _c_obx_opt_use_previous_commit,
         _dart_obx_opt_use_previous_commit>('obx_opt_use_previous_commit');
     return _obx_opt_use_previous_commit(
       opt,
-      value,
+      value ? 1 : 0,
     );
   }
 
@@ -684,14 +687,14 @@ class ObjectBoxC {
   /// /// Open store in read-only mode: no schema update, no write transactions. Defaults to false.
   void obx_opt_read_only(
     ffi.Pointer<OBX_store_options> opt,
-    int value,
+    bool value,
   ) {
     _obx_opt_read_only ??=
         _dylib.lookupFunction<_c_obx_opt_read_only, _dart_obx_opt_read_only>(
             'obx_opt_read_only');
     return _obx_opt_read_only(
       opt,
-      value,
+      value ? 1 : 0,
     );
   }
 
@@ -1058,7 +1061,7 @@ class ObjectBoxC {
   /// /// Await for all (including future) async submissions to be completed (the async queue becomes idle for a moment).
   /// /// @returns true if all submissions were completed or async processing was not started; false if shutting down
   /// /// @returns false if shutting down or an error occurred
-  int obx_store_await_async_completion(
+  bool obx_store_await_async_completion(
     ffi.Pointer<OBX_store> store,
   ) {
     _obx_store_await_async_completion ??= _dylib.lookupFunction<
@@ -1066,8 +1069,9 @@ class ObjectBoxC {
             _dart_obx_store_await_async_completion>(
         'obx_store_await_async_completion');
     return _obx_store_await_async_completion(
-      store,
-    );
+          store,
+        ) !=
+        0;
   }
 
   _dart_obx_store_await_async_completion _obx_store_await_async_completion;
@@ -1075,7 +1079,7 @@ class ObjectBoxC {
   /// /// Await for previously submitted async operations to be completed (the async queue does not have to become idle).
   /// /// @returns true if all submissions were completed or async processing was not started
   /// /// @returns false if shutting down or an error occurred
-  int obx_store_await_async_submitted(
+  bool obx_store_await_async_submitted(
     ffi.Pointer<OBX_store> store,
   ) {
     _obx_store_await_async_submitted ??= _dylib.lookupFunction<
@@ -1083,8 +1087,9 @@ class ObjectBoxC {
             _dart_obx_store_await_async_submitted>(
         'obx_store_await_async_submitted');
     return _obx_store_await_async_submitted(
-      store,
-    );
+          store,
+        ) !=
+        0;
   }
 
   _dart_obx_store_await_async_submitted _obx_store_await_async_submitted;
@@ -1106,7 +1111,7 @@ class ObjectBoxC {
 
   /// /// @returns true if the store was opened with a previous commit
   /// /// @see obx_opt_use_previous_commit()
-  int obx_store_opened_with_previous_commit(
+  bool obx_store_opened_with_previous_commit(
     ffi.Pointer<OBX_store> store,
   ) {
     _obx_store_opened_with_previous_commit ??= _dylib.lookupFunction<
@@ -1114,8 +1119,9 @@ class ObjectBoxC {
             _dart_obx_store_opened_with_previous_commit>(
         'obx_store_opened_with_previous_commit');
     return _obx_store_opened_with_previous_commit(
-      store,
-    );
+          store,
+        ) !=
+        0;
   }
 
   _dart_obx_store_opened_with_previous_commit
@@ -1222,13 +1228,13 @@ class ObjectBoxC {
   /// /// @return OBX_ERROR_ILLEGAL_STATE if the given transaction is not a write transaction.
   int obx_txn_mark_success(
     ffi.Pointer<OBX_txn> txn,
-    int wasSuccessful,
+    bool wasSuccessful,
   ) {
     _obx_txn_mark_success ??= _dylib.lookupFunction<_c_obx_txn_mark_success,
         _dart_obx_txn_mark_success>('obx_txn_mark_success');
     return _obx_txn_mark_success(
       txn,
-      wasSuccessful,
+      wasSuccessful ? 1 : 0,
     );
   }
 
@@ -1269,7 +1275,7 @@ class ObjectBoxC {
   int obx_box_contains(
     ffi.Pointer<OBX_box> box,
     int id,
-    ffi.Pointer<ffi.Int32> out_contains,
+    ffi.Pointer<ffi.Uint8> out_contains,
   ) {
     _obx_box_contains ??=
         _dylib.lookupFunction<_c_obx_box_contains, _dart_obx_box_contains>(
@@ -1288,7 +1294,7 @@ class ObjectBoxC {
   int obx_box_contains_many(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_id_array> ids,
-    ffi.Pointer<ffi.Int32> out_contains,
+    ffi.Pointer<ffi.Uint8> out_contains,
   ) {
     _obx_box_contains_many ??= _dylib.lookupFunction<_c_obx_box_contains_many,
         _dart_obx_box_contains_many>('obx_box_contains_many');
@@ -1609,7 +1615,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_bytes_array> objects,
     ffi.Pointer<ffi.Uint64> ids,
     int mode,
-    int fail_on_id_failure,
+    bool fail_on_id_failure,
   ) {
     _obx_box_put_many5 ??=
         _dylib.lookupFunction<_c_obx_box_put_many5, _dart_obx_box_put_many5>(
@@ -1619,7 +1625,7 @@ class ObjectBoxC {
       objects,
       ids,
       mode,
-      fail_on_id_failure,
+      fail_on_id_failure ? 1 : 0,
     );
   }
 
@@ -1683,7 +1689,7 @@ class ObjectBoxC {
   /// /// Check whether there are any objects for this entity and updates the out_is_empty accordingly
   int obx_box_is_empty(
     ffi.Pointer<OBX_box> box,
-    ffi.Pointer<ffi.Int32> out_is_empty,
+    ffi.Pointer<ffi.Uint8> out_is_empty,
   ) {
     _obx_box_is_empty ??=
         _dylib.lookupFunction<_c_obx_box_is_empty, _dart_obx_box_is_empty>(
@@ -2159,7 +2165,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_equals_string ??= _dylib.lookupFunction<_c_obx_qb_equals_string,
         _dart_obx_qb_equals_string>('obx_qb_equals_string');
@@ -2167,7 +2173,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2177,7 +2183,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_not_equals_string ??= _dylib.lookupFunction<
         _c_obx_qb_not_equals_string,
@@ -2186,7 +2192,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2196,7 +2202,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_contains_string ??= _dylib.lookupFunction<_c_obx_qb_contains_string,
         _dart_obx_qb_contains_string>('obx_qb_contains_string');
@@ -2204,7 +2210,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2214,7 +2220,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_starts_with_string ??= _dylib.lookupFunction<
         _c_obx_qb_starts_with_string,
@@ -2223,7 +2229,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2233,7 +2239,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_ends_with_string ??= _dylib.lookupFunction<
         _c_obx_qb_ends_with_string,
@@ -2242,7 +2248,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2252,7 +2258,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_greater_than_string ??= _dylib.lookupFunction<
         _c_obx_qb_greater_than_string,
@@ -2261,7 +2267,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2271,7 +2277,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_greater_or_equal_string ??= _dylib.lookupFunction<
         _c_obx_qb_greater_or_equal_string,
@@ -2280,7 +2286,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2290,7 +2296,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_less_than_string ??= _dylib.lookupFunction<
         _c_obx_qb_less_than_string,
@@ -2299,7 +2305,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2309,7 +2315,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_less_or_equal_string ??= _dylib.lookupFunction<
         _c_obx_qb_less_or_equal_string,
@@ -2318,7 +2324,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2330,7 +2336,7 @@ class ObjectBoxC {
     int property_id,
     ffi.Pointer<ffi.Pointer<ffi.Int8>> values,
     int count,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_in_strings ??=
         _dylib.lookupFunction<_c_obx_qb_in_strings, _dart_obx_qb_in_strings>(
@@ -2340,7 +2346,7 @@ class ObjectBoxC {
       property_id,
       values,
       count,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -2351,7 +2357,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
     ffi.Pointer<ffi.Int8> value,
-    int case_sensitive,
+    bool case_sensitive,
   ) {
     _obx_qb_any_equals_string ??= _dylib.lookupFunction<
         _c_obx_qb_any_equals_string,
@@ -2360,7 +2366,7 @@ class ObjectBoxC {
       builder,
       property_id,
       value,
-      case_sensitive,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -3496,14 +3502,14 @@ class ObjectBoxC {
   /// /// @note not all methods support distinct, those that don't will return an error
   int obx_query_prop_distinct(
     ffi.Pointer<OBX_query_prop> query,
-    int distinct,
+    bool distinct,
   ) {
     _obx_query_prop_distinct ??= _dylib.lookupFunction<
         _c_obx_query_prop_distinct,
         _dart_obx_query_prop_distinct>('obx_query_prop_distinct');
     return _obx_query_prop_distinct(
       query,
-      distinct,
+      distinct ? 1 : 0,
     );
   }
 
@@ -3514,16 +3520,16 @@ class ObjectBoxC {
   /// /// @note not all methods support distinct, those that don't will return an error
   int obx_query_prop_distinct_case(
     ffi.Pointer<OBX_query_prop> query,
-    int distinct,
-    int case_sensitive,
+    bool distinct,
+    bool case_sensitive,
   ) {
     _obx_query_prop_distinct_case ??= _dylib.lookupFunction<
         _c_obx_query_prop_distinct_case,
         _dart_obx_query_prop_distinct_case>('obx_query_prop_distinct_case');
     return _obx_query_prop_distinct_case(
       query,
-      distinct,
-      case_sensitive,
+      distinct ? 1 : 0,
+      case_sensitive ? 1 : 0,
     );
   }
 
@@ -4136,11 +4142,11 @@ class ObjectBoxC {
   /// /// Before calling any of the other sync APIs, ensure that those are actually available.
   /// /// If the application is linked a non-sync ObjectBox library, this allows you to fail gracefully.
   /// /// @return true if this library comes with the sync API
-  int obx_sync_available() {
+  bool obx_sync_available() {
     _obx_sync_available ??=
         _dylib.lookupFunction<_c_obx_sync_available, _dart_obx_sync_available>(
             'obx_sync_available');
-    return _obx_sync_available();
+    return _obx_sync_available() != 0;
   }
 
   _dart_obx_sync_available _obx_sync_available;
@@ -4313,14 +4319,14 @@ class ObjectBoxC {
   /// ///          Note: obx_last_error_code() is not set.
   int obx_sync_updates_request(
     ffi.Pointer<OBX_sync> sync_1,
-    int subscribe_for_pushes,
+    bool subscribe_for_pushes,
   ) {
     _obx_sync_updates_request ??= _dylib.lookupFunction<
         _c_obx_sync_updates_request,
         _dart_obx_sync_updates_request>('obx_sync_updates_request');
     return _obx_sync_updates_request(
       sync_1,
-      subscribe_for_pushes,
+      subscribe_for_pushes ? 1 : 0,
     );
   }
 
@@ -4950,7 +4956,7 @@ typedef _dart_obx_version = void Function(
   ffi.Pointer<ffi.Int32> patch,
 );
 
-typedef _c_obx_version_is_at_least = ffi.Int32 Function(
+typedef _c_obx_version_is_at_least = ffi.Uint8 Function(
   ffi.Int32 major,
   ffi.Int32 minor,
   ffi.Int32 patch,
@@ -4978,15 +4984,15 @@ typedef _dart_obx_remove_db_files = int Function(
   ffi.Pointer<ffi.Int8> directory,
 );
 
-typedef _c_obx_supports_bytes_array = ffi.Int32 Function();
+typedef _c_obx_supports_bytes_array = ffi.Uint8 Function();
 
 typedef _dart_obx_supports_bytes_array = int Function();
 
-typedef _c_obx_supports_time_series = ffi.Int32 Function();
+typedef _c_obx_supports_time_series = ffi.Uint8 Function();
 
 typedef _dart_obx_supports_time_series = int Function();
 
-typedef _c_obx_last_error_pop = ffi.Int32 Function(
+typedef _c_obx_last_error_pop = ffi.Uint8 Function(
   ffi.Pointer<ffi.Int32> out_error,
   ffi.Pointer<ffi.Pointer<ffi.Int8>> out_message,
 );
@@ -5012,7 +5018,7 @@ typedef _c_obx_last_error_clear = ffi.Void Function();
 
 typedef _dart_obx_last_error_clear = void Function();
 
-typedef _c_obx_last_error_set = ffi.Int32 Function(
+typedef _c_obx_last_error_set = ffi.Uint8 Function(
   ffi.Int32 code,
   ffi.Int32 secondary,
   ffi.Pointer<ffi.Int8> message,
@@ -5272,8 +5278,8 @@ typedef _dart_obx_opt_model_bytes_direct = int Function(
 
 typedef _c_obx_opt_validate_on_open = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 page_limit,
-  ffi.Int32 leaf_level,
+  ffi.IntPtr page_limit,
+  ffi.Uint8 leaf_level,
 );
 
 typedef _dart_obx_opt_validate_on_open = void Function(
@@ -5294,7 +5300,7 @@ typedef _dart_obx_opt_put_padding_mode = void Function(
 
 typedef _c_obx_opt_read_schema = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 value,
+  ffi.Uint8 value,
 );
 
 typedef _dart_obx_opt_read_schema = void Function(
@@ -5304,7 +5310,7 @@ typedef _dart_obx_opt_read_schema = void Function(
 
 typedef _c_obx_opt_use_previous_commit = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 value,
+  ffi.Uint8 value,
 );
 
 typedef _dart_obx_opt_use_previous_commit = void Function(
@@ -5314,7 +5320,7 @@ typedef _dart_obx_opt_use_previous_commit = void Function(
 
 typedef _c_obx_opt_read_only = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 value,
+  ffi.Uint8 value,
 );
 
 typedef _dart_obx_opt_read_only = void Function(
@@ -5334,7 +5340,7 @@ typedef _dart_obx_opt_debug_flags = void Function(
 
 typedef _c_obx_opt_async_max_queue_length = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 value,
+  ffi.IntPtr value,
 );
 
 typedef _dart_obx_opt_async_max_queue_length = void Function(
@@ -5344,7 +5350,7 @@ typedef _dart_obx_opt_async_max_queue_length = void Function(
 
 typedef _c_obx_opt_async_throttle_at_queue_length = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 value,
+  ffi.IntPtr value,
 );
 
 typedef _dart_obx_opt_async_throttle_at_queue_length = void Function(
@@ -5396,7 +5402,7 @@ typedef _c_obx_opt_async_pre_txn_delay4 = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
   ffi.Uint32 delay_micros,
   ffi.Uint32 delay2_micros,
-  ffi.Int32 min_queue_length_for_delay2,
+  ffi.IntPtr min_queue_length_for_delay2,
 );
 
 typedef _dart_obx_opt_async_pre_txn_delay4 = void Function(
@@ -5420,7 +5426,7 @@ typedef _c_obx_opt_async_post_txn_delay4 = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
   ffi.Uint32 delay_micros,
   ffi.Uint32 delay2_micros,
-  ffi.Int32 min_queue_length_for_delay2,
+  ffi.IntPtr min_queue_length_for_delay2,
 );
 
 typedef _dart_obx_opt_async_post_txn_delay4 = void Function(
@@ -5432,7 +5438,7 @@ typedef _dart_obx_opt_async_post_txn_delay4 = void Function(
 
 typedef _c_obx_opt_async_minor_refill_threshold = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 queue_length,
+  ffi.IntPtr queue_length,
 );
 
 typedef _dart_obx_opt_async_minor_refill_threshold = void Function(
@@ -5452,7 +5458,7 @@ typedef _dart_obx_opt_async_minor_refill_max_count = void Function(
 
 typedef _c_obx_opt_async_max_tx_pool_size = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
-  ffi.Int32 value,
+  ffi.IntPtr value,
 );
 
 typedef _dart_obx_opt_async_max_tx_pool_size = void Function(
@@ -5526,7 +5532,7 @@ typedef _dart_obx_store_entity_property_id = int Function(
   ffi.Pointer<ffi.Int8> property_name,
 );
 
-typedef _c_obx_store_await_async_completion = ffi.Int32 Function(
+typedef _c_obx_store_await_async_completion = ffi.Uint8 Function(
   ffi.Pointer<OBX_store> store,
 );
 
@@ -5534,7 +5540,7 @@ typedef _dart_obx_store_await_async_completion = int Function(
   ffi.Pointer<OBX_store> store,
 );
 
-typedef _c_obx_store_await_async_submitted = ffi.Int32 Function(
+typedef _c_obx_store_await_async_submitted = ffi.Uint8 Function(
   ffi.Pointer<OBX_store> store,
 );
 
@@ -5552,7 +5558,7 @@ typedef _dart_obx_store_debug_flags = int Function(
   int flags,
 );
 
-typedef _c_obx_store_opened_with_previous_commit = ffi.Int32 Function(
+typedef _c_obx_store_opened_with_previous_commit = ffi.Uint8 Function(
   ffi.Pointer<OBX_store> store,
 );
 
@@ -5610,7 +5616,7 @@ typedef _dart_obx_txn_abort = int Function(
 
 typedef _c_obx_txn_mark_success = ffi.Int32 Function(
   ffi.Pointer<OBX_txn> txn,
-  ffi.Int32 wasSuccessful,
+  ffi.Uint8 wasSuccessful,
 );
 
 typedef _dart_obx_txn_mark_success = int Function(
@@ -5639,25 +5645,25 @@ typedef _dart_obx_box_store = ffi.Pointer<OBX_store> Function(
 typedef _c_obx_box_contains = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Int32> out_contains,
+  ffi.Pointer<ffi.Uint8> out_contains,
 );
 
 typedef _dart_obx_box_contains = int Function(
   ffi.Pointer<OBX_box> box,
   int id,
-  ffi.Pointer<ffi.Int32> out_contains,
+  ffi.Pointer<ffi.Uint8> out_contains,
 );
 
 typedef _c_obx_box_contains_many = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Pointer<OBX_id_array> ids,
-  ffi.Pointer<ffi.Int32> out_contains,
+  ffi.Pointer<ffi.Uint8> out_contains,
 );
 
 typedef _dart_obx_box_contains_many = int Function(
   ffi.Pointer<OBX_box> box,
   ffi.Pointer<OBX_id_array> ids,
-  ffi.Pointer<ffi.Int32> out_contains,
+  ffi.Pointer<ffi.Uint8> out_contains,
 );
 
 typedef _c_obx_box_get = ffi.Int32 Function(
@@ -5692,10 +5698,10 @@ typedef _dart_obx_box_get_all = ffi.Pointer<OBX_bytes_array> Function(
   ffi.Pointer<OBX_box> box,
 );
 
-typedef obx_data_visitor = ffi.Int32 Function(
+typedef obx_data_visitor = ffi.Uint8 Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<ffi.Void>,
-  ffi.Int32,
+  ffi.IntPtr,
 );
 
 typedef _c_obx_box_visit_many = ffi.Int32 Function(
@@ -5849,7 +5855,7 @@ typedef _c_obx_box_put_many5 = ffi.Int32 Function(
   ffi.Pointer<OBX_bytes_array> objects,
   ffi.Pointer<ffi.Uint64> ids,
   ffi.Int32 mode,
-  ffi.Int32 fail_on_id_failure,
+  ffi.Uint8 fail_on_id_failure,
 );
 
 typedef _dart_obx_box_put_many5 = int Function(
@@ -5894,12 +5900,12 @@ typedef _dart_obx_box_remove_all = int Function(
 
 typedef _c_obx_box_is_empty = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
-  ffi.Pointer<ffi.Int32> out_is_empty,
+  ffi.Pointer<ffi.Uint8> out_is_empty,
 );
 
 typedef _dart_obx_box_is_empty = int Function(
   ffi.Pointer<OBX_box> box,
-  ffi.Pointer<ffi.Int32> out_is_empty,
+  ffi.Pointer<ffi.Uint8> out_is_empty,
 );
 
 typedef _c_obx_box_count = ffi.Int32 Function(
@@ -6190,7 +6196,7 @@ typedef _c_obx_qb_equals_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_equals_string = int Function(
@@ -6204,7 +6210,7 @@ typedef _c_obx_qb_not_equals_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_not_equals_string = int Function(
@@ -6218,7 +6224,7 @@ typedef _c_obx_qb_contains_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_contains_string = int Function(
@@ -6232,7 +6238,7 @@ typedef _c_obx_qb_starts_with_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_starts_with_string = int Function(
@@ -6246,7 +6252,7 @@ typedef _c_obx_qb_ends_with_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_ends_with_string = int Function(
@@ -6260,7 +6266,7 @@ typedef _c_obx_qb_greater_than_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_greater_than_string = int Function(
@@ -6274,7 +6280,7 @@ typedef _c_obx_qb_greater_or_equal_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_greater_or_equal_string = int Function(
@@ -6288,7 +6294,7 @@ typedef _c_obx_qb_less_than_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_less_than_string = int Function(
@@ -6302,7 +6308,7 @@ typedef _c_obx_qb_less_or_equal_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_less_or_equal_string = int Function(
@@ -6316,8 +6322,8 @@ typedef _c_obx_qb_in_strings = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Pointer<ffi.Int8>> values,
-  ffi.Int32 count,
-  ffi.Int32 case_sensitive,
+  ffi.IntPtr count,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_in_strings = int Function(
@@ -6332,7 +6338,7 @@ typedef _c_obx_qb_any_equals_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int8> value,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_qb_any_equals_string = int Function(
@@ -6432,7 +6438,7 @@ typedef _c_obx_qb_in_int64s = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int64> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_qb_in_int64s = int Function(
@@ -6446,7 +6452,7 @@ typedef _c_obx_qb_not_in_int64s = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int64> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_qb_not_in_int64s = int Function(
@@ -6460,7 +6466,7 @@ typedef _c_obx_qb_in_int32s = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int32> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_qb_in_int32s = int Function(
@@ -6474,7 +6480,7 @@ typedef _c_obx_qb_not_in_int32s = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int32> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_qb_not_in_int32s = int Function(
@@ -6619,7 +6625,7 @@ typedef _dart_obx_qb_less_or_equal_bytes = int Function(
 typedef _c_obx_qb_all = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Pointer<ffi.Int32> conditions,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_qb_all = int Function(
@@ -6631,7 +6637,7 @@ typedef _dart_obx_qb_all = int Function(
 typedef _c_obx_qb_any = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Pointer<ffi.Int32> conditions,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_qb_any = int Function(
@@ -6859,7 +6865,7 @@ typedef _c_obx_query_param_strings = ffi.Int32 Function(
   ffi.Uint32 entity_id,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Pointer<ffi.Int8>> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_query_param_strings = int Function(
@@ -6905,7 +6911,7 @@ typedef _c_obx_query_param_int64s = ffi.Int32 Function(
   ffi.Uint32 entity_id,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int64> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_query_param_int64s = int Function(
@@ -6921,7 +6927,7 @@ typedef _c_obx_query_param_int32s = ffi.Int32 Function(
   ffi.Uint32 entity_id,
   ffi.Uint32 property_id,
   ffi.Pointer<ffi.Int32> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_query_param_int32s = int Function(
@@ -6994,7 +7000,7 @@ typedef _c_obx_query_param_alias_strings = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
   ffi.Pointer<ffi.Int8> alias,
   ffi.Pointer<ffi.Pointer<ffi.Int8>> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_query_param_alias_strings = int Function(
@@ -7034,7 +7040,7 @@ typedef _c_obx_query_param_alias_int64s = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
   ffi.Pointer<ffi.Int8> alias,
   ffi.Pointer<ffi.Int64> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_query_param_alias_int64s = int Function(
@@ -7048,7 +7054,7 @@ typedef _c_obx_query_param_alias_int32s = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
   ffi.Pointer<ffi.Int8> alias,
   ffi.Pointer<ffi.Int32> values,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_query_param_alias_int32s = int Function(
@@ -7118,7 +7124,7 @@ typedef _dart_obx_query_prop_close = int Function(
 
 typedef _c_obx_query_prop_distinct = ffi.Int32 Function(
   ffi.Pointer<OBX_query_prop> query,
-  ffi.Int32 distinct,
+  ffi.Uint8 distinct,
 );
 
 typedef _dart_obx_query_prop_distinct = int Function(
@@ -7128,8 +7134,8 @@ typedef _dart_obx_query_prop_distinct = int Function(
 
 typedef _c_obx_query_prop_distinct_case = ffi.Int32 Function(
   ffi.Pointer<OBX_query_prop> query,
-  ffi.Int32 distinct,
-  ffi.Int32 case_sensitive,
+  ffi.Uint8 distinct,
+  ffi.Uint8 case_sensitive,
 );
 
 typedef _dart_obx_query_prop_distinct_case = int Function(
@@ -7323,7 +7329,7 @@ typedef _dart_obx_query_prop_find_floats = ffi.Pointer<OBX_float_array>
 typedef obx_observer = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<ffi.Uint32>,
-  ffi.Int32,
+  ffi.IntPtr,
 );
 
 typedef _c_obx_observe = ffi.Pointer<OBX_observer> Function(
@@ -7373,7 +7379,7 @@ typedef _dart_obx_bytes_free = void Function(
 );
 
 typedef _c_obx_bytes_array = ffi.Pointer<OBX_bytes_array> Function(
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_bytes_array = ffi.Pointer<OBX_bytes_array> Function(
@@ -7382,7 +7388,7 @@ typedef _dart_obx_bytes_array = ffi.Pointer<OBX_bytes_array> Function(
 
 typedef _c_obx_bytes_array_set = ffi.Int32 Function(
   ffi.Pointer<OBX_bytes_array> array,
-  ffi.Int32 index,
+  ffi.IntPtr index,
   ffi.Pointer<ffi.Void> data,
   ffi.IntPtr size,
 );
@@ -7404,7 +7410,7 @@ typedef _dart_obx_bytes_array_free = void Function(
 
 typedef _c_obx_id_array = ffi.Pointer<OBX_id_array> Function(
   ffi.Pointer<ffi.Uint64> ids,
-  ffi.Int32 count,
+  ffi.IntPtr count,
 );
 
 typedef _dart_obx_id_array = ffi.Pointer<OBX_id_array> Function(
@@ -7484,7 +7490,7 @@ typedef _dart_obx_posix_sem_prefix_set = void Function(
   ffi.Pointer<ffi.Int8> prefix,
 );
 
-typedef _c_obx_sync_available = ffi.Int32 Function();
+typedef _c_obx_sync_available = ffi.Uint8 Function();
 
 typedef _dart_obx_sync_available = int Function();
 
@@ -7576,7 +7582,7 @@ typedef _dart_obx_sync_wait_for_logged_in_state = int Function(
 
 typedef _c_obx_sync_updates_request = ffi.Int32 Function(
   ffi.Pointer<OBX_sync> sync_1,
-  ffi.Int32 subscribe_for_pushes,
+  ffi.Uint8 subscribe_for_pushes,
 );
 
 typedef _dart_obx_sync_updates_request = int Function(

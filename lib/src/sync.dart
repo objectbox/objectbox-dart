@@ -188,8 +188,8 @@ class SyncClient {
   /// it send us future updates as they come in.
   /// Call [cancelUpdates()] to stop the updates.
   bool requestUpdates(bool subscribeForFuturePushes) {
-    return checkObxSuccess(bindings.obx_sync_updates_request(
-        ptr, subscribeForFuturePushes ? 1 : 0));
+    return checkObxSuccess(
+        bindings.obx_sync_updates_request(ptr, subscribeForFuturePushes));
   }
 
   /// Cancel updates from the server so that it will stop sending updates.
@@ -226,7 +226,7 @@ class Sync {
   static bool isAvailable() {
     // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_sync_available() exists.
     try {
-      _syncAvailable ??= bindings.obx_sync_available() != 0;
+      _syncAvailable ??= bindings.obx_sync_available();
     } on ArgumentError {
       _syncAvailable = false;
     }
