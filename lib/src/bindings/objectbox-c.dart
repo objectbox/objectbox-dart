@@ -2416,6 +2416,23 @@ class ObjectBoxC {
 
   _dart_obx_qb_greater_than_int _obx_qb_greater_than_int;
 
+  int obx_qb_greater_or_equal_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    int value,
+  ) {
+    _obx_qb_greater_or_equal_int ??= _dylib.lookupFunction<
+        _c_obx_qb_greater_or_equal_int,
+        _dart_obx_qb_greater_or_equal_int>('obx_qb_greater_or_equal_int');
+    return _obx_qb_greater_or_equal_int(
+      builder,
+      property_id,
+      value,
+    );
+  }
+
+  _dart_obx_qb_greater_or_equal_int _obx_qb_greater_or_equal_int;
+
   int obx_qb_less_than_int(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -2431,6 +2448,23 @@ class ObjectBoxC {
   }
 
   _dart_obx_qb_less_than_int _obx_qb_less_than_int;
+
+  int obx_qb_less_or_equal_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    int value,
+  ) {
+    _obx_qb_less_or_equal_int ??= _dylib.lookupFunction<
+        _c_obx_qb_less_or_equal_int,
+        _dart_obx_qb_less_or_equal_int>('obx_qb_less_or_equal_int');
+    return _obx_qb_less_or_equal_int(
+      builder,
+      property_id,
+      value,
+    );
+  }
+
+  _dart_obx_qb_less_or_equal_int _obx_qb_less_or_equal_int;
 
   int obx_qb_between_2ints(
     ffi.Pointer<OBX_query_builder> builder,
@@ -2545,6 +2579,23 @@ class ObjectBoxC {
 
   _dart_obx_qb_greater_than_double _obx_qb_greater_than_double;
 
+  int obx_qb_greater_or_equal_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    double value,
+  ) {
+    _obx_qb_greater_or_equal_double ??= _dylib.lookupFunction<
+        _c_obx_qb_greater_or_equal_double,
+        _dart_obx_qb_greater_or_equal_double>('obx_qb_greater_or_equal_double');
+    return _obx_qb_greater_or_equal_double(
+      builder,
+      property_id,
+      value,
+    );
+  }
+
+  _dart_obx_qb_greater_or_equal_double _obx_qb_greater_or_equal_double;
+
   int obx_qb_less_than_double(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -2561,6 +2612,23 @@ class ObjectBoxC {
   }
 
   _dart_obx_qb_less_than_double _obx_qb_less_than_double;
+
+  int obx_qb_less_or_equal_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    double value,
+  ) {
+    _obx_qb_less_or_equal_double ??= _dylib.lookupFunction<
+        _c_obx_qb_less_or_equal_double,
+        _dart_obx_qb_less_or_equal_double>('obx_qb_less_or_equal_double');
+    return _obx_qb_less_or_equal_double(
+      builder,
+      property_id,
+      value,
+    );
+  }
+
+  _dart_obx_qb_less_or_equal_double _obx_qb_less_or_equal_double;
 
   int obx_qb_between_2doubles(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4798,9 +4866,9 @@ class OBX_sync_change_array extends ffi.Struct {
 
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 10;
+const int OBX_VERSION_MINOR = 11;
 
-const int OBX_VERSION_PATCH = 100;
+const int OBX_VERSION_PATCH = 0;
 
 const int OBX_ID_NEW = -1;
 
@@ -6310,6 +6378,18 @@ typedef _dart_obx_qb_greater_than_int = int Function(
   int value,
 );
 
+typedef _c_obx_qb_greater_or_equal_int = ffi.Int32 Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  ffi.Uint32 property_id,
+  ffi.Int64 value,
+);
+
+typedef _dart_obx_qb_greater_or_equal_int = int Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  int property_id,
+  int value,
+);
+
 typedef _c_obx_qb_less_than_int = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
@@ -6317,6 +6397,18 @@ typedef _c_obx_qb_less_than_int = ffi.Int32 Function(
 );
 
 typedef _dart_obx_qb_less_than_int = int Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  int property_id,
+  int value,
+);
+
+typedef _c_obx_qb_less_or_equal_int = ffi.Int32 Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  ffi.Uint32 property_id,
+  ffi.Int64 value,
+);
+
+typedef _dart_obx_qb_less_or_equal_int = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
   int value,
@@ -6404,6 +6496,18 @@ typedef _dart_obx_qb_greater_than_double = int Function(
   double value,
 );
 
+typedef _c_obx_qb_greater_or_equal_double = ffi.Int32 Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  ffi.Uint32 property_id,
+  ffi.Double value,
+);
+
+typedef _dart_obx_qb_greater_or_equal_double = int Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  int property_id,
+  double value,
+);
+
 typedef _c_obx_qb_less_than_double = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
@@ -6411,6 +6515,18 @@ typedef _c_obx_qb_less_than_double = ffi.Int32 Function(
 );
 
 typedef _dart_obx_qb_less_than_double = int Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  int property_id,
+  double value,
+);
+
+typedef _c_obx_qb_less_or_equal_double = ffi.Int32 Function(
+  ffi.Pointer<OBX_query_builder> builder,
+  ffi.Uint32 property_id,
+  ffi.Double value,
+);
+
+typedef _dart_obx_qb_less_or_equal_double = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
   double value,

@@ -8,7 +8,7 @@ set -eu
 #   * update lib/src/bindings/objectbox.h
 #   * execute pub run ffigen
 #   * have a look at the changed files to see if some call sites need to be updated
-cLibVersion=0.10.0
+cLibVersion=0.11.0
 os=$(uname)
 
 # if there's no tty this is probably part of a docker build - therefore we install the c-api explicitly
