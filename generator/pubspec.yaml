@@ -1,5 +1,5 @@
 name: objectbox_generator
-version: 0.8.1
+version: 0.9.0
 repository: https://github.com/objectbox/objectbox-dart
 homepage: https://objectbox.io
 description: ObjectBox binding code generator - finds annotated entities and adds them to the ObjectBox DB model.
@@ -8,7 +8,7 @@ environment:
   sdk: ">=2.5.0 <3.0.0"
 
 dependencies:
-  objectbox: 0.8.1
+  objectbox: 0.9.0
   build: ^1.0.0
   source_gen: ^0.9.0
   analyzer: ">=0.35.0 <0.100.0"
