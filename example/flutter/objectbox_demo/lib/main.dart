@@ -81,7 +81,7 @@ class ViewModel {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
-  final _listController = StreamController<List<Note>>(sync:true);
+  final _listController = StreamController<List<Note>>(sync: true);
   Stream<List<Note>> _stream;
   ViewModel _vm;
 
@@ -133,6 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         style: TextStyle(
                           fontSize: 15.0,
                         ),
+                        // Provide a Key for the integration test
+                        key: Key('list_item_${index}'),
                       ),
                       Padding(
                         padding: EdgeInsets.only(top: 5.0),
@@ -177,6 +179,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             InputDecoration(hintText: 'Enter a new note'),
                         controller: _noteInputController,
                         onSubmitted: (value) => _addNote(),
+                        // Provide a Key for the integration test
+                        key: Key('input'),
                       ),
                     ),
                     Padding(
@@ -209,6 +213,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemBuilder: _itemBuilder(snapshot.data));
                 }))
       ]),
+      // We need a separate submit button because flutter_driver integration
+      // test doesn't support submitting a TextField using "enter" key.
+      // See https://github.com/flutter/flutter/issues/9383
+      floatingActionButton: FloatingActionButton(
+        key: Key('submit'),
+        onPressed: _addNote,
+        child: Icon(Icons.add),
+      ),
     );
   }
 }
