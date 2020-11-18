@@ -3,6 +3,9 @@ set -euo pipefail
 
 # NOTE: run this script before publishing
 
+echo "Sync-enabled objectbox-swift isn't released yet"
+exit 1
+
 # https://github.com/objectbox/objectbox-swift/releases/
 obxSwiftVersion="1.4.0"
 
