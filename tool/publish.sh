@@ -32,7 +32,7 @@ function publish() {
   read -p " Are you sure you want to publish to pub.dev? " yn
   case $yn in
   [Yy]*)
-    cd "${pkg_dir}" || exit
+    cd "${pkg_dir}" || exit 1
     pub publish --force
     ;;
   [Nn]*) ;;
