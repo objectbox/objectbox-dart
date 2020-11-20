@@ -71,19 +71,22 @@ extension Streamable<T> on Query<T> {
     _Observable._any[storeAddress] ??= <int, Any>{};
     _Observable._any[storeAddress] /*!*/ [entityId] ??= (u, _, __) {
       // dummy value to trigger an event
-      _Observable.controller.add(u.address);
+      _Observable.controller.add(entityId);
     };
   }
 
   Stream<List<T>> findStream({int offset = 0, int limit = 0}) {
     _setup();
     return _Observable.controller.stream
+        .where((e) => e == entityId)
         .map((_) => find(offset: offset, limit: limit));
   }
 
   /// Use this for Query Property
   Stream<Query<T>> get stream {
     _setup();
-    return _Observable.controller.stream.map((_) => this);
+    return _Observable.controller.stream
+        .where((e) => e == entityId)
+        .map((_) => this);
   }
 }
