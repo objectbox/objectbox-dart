@@ -26,21 +26,7 @@ class ModelInfo {
       retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
 
-  ModelInfo(
-      {this.entities,
-      this.lastEntityId,
-      this.lastIndexId,
-      this.lastRelationId,
-      this.lastSequenceId,
-      this.retiredEntityUids,
-      this.retiredIndexUids,
-      this.retiredPropertyUids,
-      this.retiredRelationUids,
-      this.modelVersion,
-      this.modelVersionParserMinimum,
-      this.version});
-
-  ModelInfo.createDefault()
+  ModelInfo()
       : entities = [],
         lastEntityId = IdUid.empty(),
         lastIndexId = IdUid.empty(),
@@ -54,22 +40,23 @@ class ModelInfo {
         modelVersionParserMinimum = _maxModelVersion,
         version = 1;
 
-  ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true}) {
-    lastEntityId = IdUid.fromString(data['lastEntityId']);
-    lastIndexId = IdUid.fromString(data['lastIndexId']);
-    lastRelationId = IdUid.fromString(data['lastRelationId']);
-    lastSequenceId = IdUid.fromString(data['lastSequenceId']);
-    modelVersion = data['modelVersion'];
-    modelVersionParserMinimum = data['modelVersionParserMinimum'];
-    retiredEntityUids = List<int>.from(data['retiredEntityUids'] ?? []);
-    retiredIndexUids = List<int>.from(data['retiredIndexUids'] ?? []);
-    retiredPropertyUids = List<int>.from(data['retiredPropertyUids'] ?? []);
-    retiredRelationUids = List<int>.from(data['retiredRelationUids'] ?? []);
-    version = data['version'];
-    entities = data['entities']
-        .map<ModelEntity>(
-            (e) => ModelEntity.fromMap(e, model: this, check: check))
-        .toList();
+  ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true})
+      : entities = [],
+        lastEntityId = IdUid.fromString(data['lastEntityId']),
+        lastIndexId = IdUid.fromString(data['lastIndexId']),
+        lastRelationId = IdUid.fromString(data['lastRelationId']),
+        lastSequenceId = IdUid.fromString(data['lastSequenceId']),
+        retiredEntityUids = List<int>.from(data['retiredEntityUids'] ?? []),
+        retiredIndexUids = List<int>.from(data['retiredIndexUids'] ?? []),
+        retiredPropertyUids = List<int>.from(data['retiredPropertyUids'] ?? []),
+        retiredRelationUids = List<int>.from(data['retiredRelationUids'] ?? []),
+        modelVersion = data['modelVersion'] ?? 0,
+        modelVersionParserMinimum = data['modelVersionParserMinimum'] ?? _maxModelVersion,
+        version = data['version'] ?? 1 {
+    if (data['entities'] == null) throw Exception('entities is null');
+    for (final e in data['entities']) {
+      entities.add(ModelEntity.fromMap(e, model: this, check: check));
+    }
     if (check) validate();
   }
 
@@ -82,17 +69,6 @@ class ModelInfo {
       throw Exception(
           'the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
     }
-
-    if (entities == null) throw Exception('entities is null');
-    if (retiredEntityUids == null) throw Exception('retiredEntityUids is null');
-    if (retiredIndexUids == null) throw Exception('retiredIndexUids is null');
-    if (retiredPropertyUids == null) {
-      throw Exception('retiredPropertyUids is null');
-    }
-    if (retiredRelationUids == null) {
-      throw Exception('retiredRelationUids is null');
-    }
-    if (lastEntityId == null) throw Exception('lastEntityId is null');
 
     var lastEntityIdFound = false;
     for (final e in entities) {
@@ -145,14 +121,18 @@ class ModelInfo {
     return ret;
   }
 
-  ModelEntity findEntityByUid(int uid, {bool required = false}) {
-    final idx = entities.indexWhere((e) => e.id.uid == uid);
-    if (idx >= 0) return entities[idx];
-    if (required) throw ArgumentError.value(uid, 'uid');
-    return null;
+  ModelEntity getEntityByUid(int uid) {
+    final entity = findEntityByUid(uid);
+    if (entity == null) throw Exception('entity uid=$uid not found');
+    return entity;
   }
 
-  ModelEntity findEntityByName(String name) {
+  ModelEntity/*?*/ findEntityByUid(int uid) {
+    final idx = entities.indexWhere((e) => e.id.uid == uid);
+    return idx < 0 ? null : entities[idx];
+  }
+
+  ModelEntity/*?*/ findEntityByName(String name) {
     final found = entities
         .where((e) => e.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -164,7 +144,7 @@ class ModelInfo {
     return found[0];
   }
 
-  ModelEntity findSameEntity(ModelEntity other) {
+  ModelEntity/*?*/ findSameEntity(ModelEntity other) {
     ModelEntity ret;
     if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
     ret ??= findEntityByName(other.name);
@@ -185,15 +165,13 @@ class ModelInfo {
     }
     final uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = ModelEntity(IdUid(id, uniqueUid), null, name, 0, [], this);
+    var entity = ModelEntity(IdUid(id, uniqueUid), name, this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
   }
 
   void removeEntity(ModelEntity entity) {
-    if (entity == null) throw Exception('entity == null');
-
     final foundEntity = findSameEntity(entity);
     if (foundEntity == null) {
       throw Exception(

@@ -16,7 +16,7 @@ enum TxMode {
 /// Represents an ObjectBox database and works together with [Box] to allow getting and putting Objects of
 /// specific type.
 class Store {
-  Pointer<OBX_store> _cStore;
+  /*late final*/ Pointer<OBX_store> _cStore;
   final ModelDefinition defs;
 
   /// Creates a BoxStore using the model definition from your
@@ -36,7 +36,10 @@ class Store {
   ///
   /// See our examples for more details.
   Store(this.defs,
-      {String directory, int maxDBSizeInKB, int fileMode, int maxReaders}) {
+      {String /*?*/ directory,
+      int /*?*/ maxDBSizeInKB,
+      int /*?*/ fileMode,
+      int /*?*/ maxReaders}) {
     var model = Model(defs.model);
 
     var opt = bindings.obx_opt();
@@ -74,10 +77,10 @@ class Store {
       // 10199 = OBX_ERROR_STORAGE_GENERAL
       if (e.nativeCode == 10199 &&
           e.nativeMsg != null &&
-          e.nativeMsg.contains('Dir does not exist')) {
+          e.nativeMsg/*!*/.contains('Dir does not exist')) {
         // 13 = permissions denied, 30 = read-only filesystem
-        if (e.nativeMsg.endsWith(' (13)') || e.nativeMsg.endsWith(' (30)')) {
-          final msg = e.nativeMsg +
+        if (e.nativeMsg/*!*/.endsWith(' (13)') || e.nativeMsg/*!*/.endsWith(' (30)')) {
+          final msg = e.nativeMsg/*!*/ +
               " - this usually indicates a problem with permissions; if you're using Flutter you may need to use " +
               'getApplicationDocumentsDirectory() from the path_provider package, see example/README.md';
           throw ObjectBoxException(
@@ -101,7 +104,10 @@ class Store {
   }
 
   EntityDefinition<T> entityDef<T>() {
-    return defs.bindings[T];
+    if (defs.bindings[T] == null) {
+      throw ArgumentError('Unknown entity type ' + T.toString());
+    }
+    return defs.bindings[T]/*!*/;
   }
 
   /// Executes a given function inside a transaction.
@@ -130,7 +136,7 @@ class Store {
 
   /// Return an existing SyncClient associated with the store or null if not available.
   /// See [Sync.client()] to create one first.
-  SyncClient syncClient() => syncClientsStorage[this];
+  SyncClient /*?*/ syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.
   Pointer<OBX_store> get ptr => _cStore;

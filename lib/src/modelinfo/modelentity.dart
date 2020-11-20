@@ -8,10 +8,10 @@ import 'modelproperty.dart';
 /// information: id, name and last property id.
 class ModelEntity {
   IdUid id;
-  IdUid/*?*/ lastPropertyId;
+  IdUid lastPropertyId = IdUid.empty();
   /*late*/ String _name;
-  /*late*/ int _flags;
-  /*late*/ List<ModelProperty> properties;
+  int _flags = 0;
+  final _properties = <ModelProperty>[];
   ModelProperty/*?*/ _idProperty;
   final ModelInfo/*?*/ _model;
 
@@ -40,10 +40,10 @@ class ModelEntity {
   ModelInfo get model =>
       (_model == null) ? throw Exception('model is null') : _model/*!*/;
 
-  ModelEntity(this.id, this.lastPropertyId, String/*?*/ name, int/*?*/ flags,
-      this.properties, this._model) {
+  List<ModelProperty> get properties => _properties;
+
+  ModelEntity(this.id, String/*?*/ name, this._model) {
     this.name = name;
-    this.flags = flags;
     validate();
   }
 
@@ -54,10 +54,12 @@ class ModelEntity {
     lastPropertyId = IdUid.fromString(data['lastPropertyId']) {
     name = data['name'];
     flags = data['flags'] ?? 0;
+
     if (data['properties'] == null) throw Exception('properties is null');
-    properties = data['properties']/*!*/
-        .map<ModelProperty>((p) => ModelProperty.fromMap(p, this))
-        .toList();
+    for (final p in data['properties']) {
+      _properties.add(ModelProperty.fromMap(p, this));
+    }
+
     if (check) validate();
 
     _idProperty =
@@ -66,28 +68,24 @@ class ModelEntity {
   }
 
   void validate() {
-    if (properties == null) throw Exception('properties is null');
-
     if (properties.isEmpty) {
-      if (lastPropertyId != null) {
+      if (!lastPropertyId.isEmpty) {
         throw Exception(
-            'lastPropertyId is not null although there are no properties');
+            'lastPropertyId is not empty although there are no properties');
       }
     } else {
-      if (lastPropertyId == null) throw Exception('lastPropertyId is null');
-
       var lastPropertyIdFound = false;
       for (final p in properties) {
         if (p.entity != this) {
           throw Exception(
               "property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
         }
-        if (lastPropertyId.id < p.id.id) {
+        if (lastPropertyId/*!*/.id < p.id.id) {
           throw Exception(
               "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
         }
-        if (lastPropertyId.id == p.id.id) {
-          if (lastPropertyId.uid != p.id.uid) {
+        if (lastPropertyId/*!*/.id == p.id.id) {
+          if (lastPropertyId/*!*/.uid != p.id.uid) {
             throw Exception(
                 "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id.toString()}");
           }
@@ -96,7 +94,7 @@ class ModelEntity {
       }
 
       if (!lastPropertyIdFound &&
-          !listContains(model.retiredPropertyUids, lastPropertyId.uid)) {
+          !listContains(model.retiredPropertyUids, lastPropertyId/*!*/.uid)) {
         throw Exception(
             'lastPropertyId ${lastPropertyId.toString()} does not match any property');
       }
@@ -106,20 +104,19 @@ class ModelEntity {
   Map<String, dynamic> toMap() {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
-    ret['lastPropertyId'] =
-        lastPropertyId == null ? null : lastPropertyId.toString();
+    ret['lastPropertyId'] = lastPropertyId.toString();
     ret['name'] = name;
     if (flags != 0) ret['flags'] = flags;
     ret['properties'] = properties.map((p) => p.toMap()).toList();
     return ret;
   }
 
-  ModelProperty findPropertyByUid(int uid) {
+  ModelProperty/*?*/ _findPropertyByUid(int uid) {
     final idx = properties.indexWhere((p) => p.id.uid == uid);
     return idx == -1 ? null : properties[idx];
   }
 
-  ModelProperty findPropertyByName(String name) {
+  ModelProperty/*?*/ _findPropertyByName(String name) {
     final found = properties
         .where((p) => p.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -131,10 +128,10 @@ class ModelEntity {
     return found[0];
   }
 
-  ModelProperty findSameProperty(ModelProperty other) {
-    ModelProperty ret;
-    if (other.id.uid != 0) ret = findPropertyByUid(other.id.uid);
-    return ret ??= findPropertyByName(other.name);
+  ModelProperty/*?*/ findSameProperty(ModelProperty other) {
+    ModelProperty/*?*/ ret;
+    if (other.id.uid != 0) ret = _findPropertyByUid(other.id.uid);
+    return ret ??= _findPropertyByName(other.name);
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {
@@ -159,19 +156,18 @@ class ModelEntity {
   }
 
   void removeProperty(ModelProperty prop) {
-    if (prop == null) throw Exception('prop == null');
     final foundProp = findSameProperty(prop);
     if (foundProp == null) {
       throw Exception(
           "cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
     }
-    properties = properties.where((p) => p != foundProp).toList();
+    _properties.remove(foundProp);
     model.retiredPropertyUids.add(prop.id.uid);
   }
 
   bool containsUid(int searched) {
     if (id.uid == searched) return true;
-    if (lastPropertyId != null && lastPropertyId.uid == searched) return true;
+    if (lastPropertyId.uid == searched) return true;
     if (properties.indexWhere((p) => p.containsUid(searched)) != -1) {
       return true;
     }
