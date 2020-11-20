@@ -6,11 +6,11 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() {
-  TestEnv env;
+  /*late final*/ TestEnv env;
 
   // TODO change to Box<TestEntity> box;
   //  breaks min/max functions below - can't be dynamic anymore
-  Box box;
+  /*late final*/ Box box;
 
   setUp(() {
     env = TestEnv('query_property');

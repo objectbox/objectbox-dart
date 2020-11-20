@@ -7,8 +7,8 @@ import 'objectbox.g.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  TestEnv env;
-  Box<TestEntity> box;
+  /*late final*/ TestEnv env;
+  /*late final*/ Box box;
 
   setUp(() {
     env = TestEnv('query');

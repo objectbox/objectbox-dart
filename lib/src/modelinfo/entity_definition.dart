@@ -9,7 +9,7 @@ class EntityDefinition<T> {
   final ObjectReader<T> reader;
   final ObjectWriter<T> writer;
 
-  const EntityDefinition({this.model, this.reader, this.writer});
+  const EntityDefinition({/*required*/ this.model, /*required*/ this.reader, /*required*/ this.writer});
 
   Type type() {
     return T;

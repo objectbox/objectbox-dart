@@ -4,31 +4,47 @@ import 'iduid.dart';
 /// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
   IdUid id;
-  String name;
-  int type, flags;
-  ModelEntity entity;
+  /*late*/ String _name;
+  /*late*/ int _type, _flags;
+  ModelEntity/*?*/ entity;
 
-  ModelProperty(this.id, this.name, this.type, this.flags, this.entity) {
-    validate();
+  String get name => _name;
+
+  set name(String/*?*/ value) {
+    if (value == null || value.isEmpty) {
+      throw Exception('name must not be null or an empty string');
+    }
+    _name = value/*!*/;
   }
 
-  ModelProperty.fromMap(Map<String, dynamic> data, this.entity,
-      {bool check = true}) {
-    id = IdUid.fromString(data['id']);
-    name = data['name'];
-    type = data['type'];
-    flags = data.containsKey('flags') ? data['flags'] : 0;
-    if (check) validate();
-  }
+  int get type => _type;
 
-  void validate() {
-    if (type == null || type < 0) {
+  set type(int/*?*/ value) {
+    if (value == null || value < 0) {
       throw Exception('type must be defined and may not be < 0');
     }
-    if (flags == null || flags < 0) {
+    _type = value/*!*/;
+  }
+
+  int get flags => _flags;
+
+  set flags(int/*?*/ value) {
+    if (value == null || value < 0) {
       throw Exception('flags must be defined and may not be < 0');
     }
+    _flags = value/*!*/;
   }
+
+  ModelProperty(this.id, String/*?*/ name, int/*?*/ type, int/*?*/ flags,
+      this.entity) {
+    this.name = name;
+    this.type = type;
+    this.flags = flags;
+  }
+
+  ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity/*?*/ entity)
+      : this(IdUid.fromString(data['id']), data['name'], data['type'],
+            data['flags'] ?? 0, entity);
 
   Map<String, dynamic> toMap() {
     final ret = <String, dynamic>{};

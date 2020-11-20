@@ -7,40 +7,65 @@ import 'modelproperty.dart';
 /// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
 /// information: id, name and last property id.
 class ModelEntity {
-  IdUid id, lastPropertyId;
-  String name;
-  int flags;
-  List<ModelProperty> properties;
-  ModelProperty idProperty;
-  ModelInfo _model;
+  IdUid id;
+  IdUid/*?*/ lastPropertyId;
+  /*late*/ String _name;
+  /*late*/ int _flags;
+  /*late*/ List<ModelProperty> properties;
+  ModelProperty/*?*/ _idProperty;
+  final ModelInfo/*?*/ _model;
+
+  String get name => _name;
+
+  set name(String/*?*/ value) {
+    if (value == null || value.isEmpty) {
+      throw Exception('name must not be null or an empty string');
+    }
+    _name = value/*!*/;
+  }
+
+  int get flags => _flags;
+
+  set flags(int/*?*/ value) {
+    if (value == null || value < 0) {
+      throw Exception('flags must be defined and may not be < 0');
+    }
+    _flags = value/*!*/;
+  }
+
+  ModelProperty get idProperty => (_idProperty == null)
+      ? throw Exception('idProperty is null')
+      : _idProperty/*!*/;
 
   ModelInfo get model =>
-      (_model == null) ? throw Exception('model is null') : _model;
+      (_model == null) ? throw Exception('model is null') : _model/*!*/;
 
-  ModelEntity(this.id, this.lastPropertyId, this.name, this.flags,
+  ModelEntity(this.id, this.lastPropertyId, String/*?*/ name, int/*?*/ flags,
       this.properties, this._model) {
+    this.name = name;
+    this.flags = flags;
     validate();
   }
 
   ModelEntity.fromMap(Map<String, dynamic> data,
-      {ModelInfo model, bool check = true}) {
-    _model = model;
-    id = IdUid.fromString(data['id']);
-    lastPropertyId = IdUid.fromString(data['lastPropertyId']);
+      {ModelInfo/*?*/ model, bool check = true})
+    :_model = model,
+    id = IdUid.fromString(data['id']),
+    lastPropertyId = IdUid.fromString(data['lastPropertyId']) {
     name = data['name'];
     flags = data['flags'] ?? 0;
-    properties = data['properties']
-        .map<ModelProperty>((p) => ModelProperty.fromMap(p, this, check: check))
+    if (data['properties'] == null) throw Exception('properties is null');
+    properties = data['properties']/*!*/
+        .map<ModelProperty>((p) => ModelProperty.fromMap(p, this))
         .toList();
     if (check) validate();
 
-    idProperty =
+    _idProperty =
         properties.firstWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
     if (check && idProperty == null) throw Exception('idProperty is null');
   }
 
   void validate() {
-    if (name == null || name.isEmpty) throw Exception('name is not defined');
     if (properties == null) throw Exception('properties is null');
 
     if (properties.isEmpty) {
@@ -57,7 +82,6 @@ class ModelEntity {
           throw Exception(
               "property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
         }
-        p.validate();
         if (lastPropertyId.id < p.id.id) {
           throw Exception(
               "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");

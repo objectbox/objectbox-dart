@@ -16,14 +16,14 @@ bool checkObxSuccess(int code) {
   return true;
 }
 
-Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String dartMsg) {
+Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>/*?*/ ptr, String dartMsg) {
   if (ptr == null || ptr.address == 0) {
     throw latestNativeError(dartMsg: dartMsg);
   }
   return ptr;
 }
 
-ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
+ObjectBoxException latestNativeError({String/*?*/ dartMsg, int/*?*/ codeIfMissing}) {
   final code = bindings.obx_last_error_code();
   final text = cString(bindings.obx_last_error_message());
 

@@ -11,7 +11,7 @@ class IdUid {
     uid = newUid;
   }
 
-  IdUid.fromString(String str) {
+  IdUid.fromString(String/*?*/ str) {
     if (str == null || str == '' || str == '0:0') {
       _id = 0;
       _uid = 0;

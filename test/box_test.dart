@@ -7,9 +7,9 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  TestEnv env;
-  Store store;
-  Box<TestEntity> box;
+  /*late final*/ TestEnv env;
+  /*late final*/ Store store;
+  /*late final*/ Box<TestEntity> box;
 
   final List<TestEntity> simpleItems = [
     'One',

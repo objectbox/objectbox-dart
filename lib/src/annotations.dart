@@ -1,5 +1,5 @@
 class Entity {
-  final int uid;
+  final int/*?*/ uid;
 
   const Entity({this.uid});
 }
@@ -13,13 +13,13 @@ class Entity {
 ///
 /// Use OBXPropertyType and OBXPropertyFlag values, resp. for type and flag.
 class Property {
-  final int uid, type, flag;
+  final int/*?*/ uid, type, flag;
 
   const Property({this.type, this.flag, this.uid});
 }
 
 class Id {
-  final int uid;
+  final int/*?*/ uid;
 
   const Id({this.uid});
 }

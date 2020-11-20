@@ -67,9 +67,9 @@ class Observable {
 }
 
 void main() async {
-  TestEnv env;
-  Box box;
-  Store store;
+  /*late final*/ TestEnv env;
+  /*late final*/ Box box;
+  /*late final*/ Store store;
 
   final testEntityId =
       getObjectBoxModel().model.findEntityByName('TestEntity').id.id;

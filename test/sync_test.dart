@@ -14,8 +14,8 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  TestEnv env;
-  Store store;
+  /*late final*/ TestEnv env;
+  /*late final*/ Store store;
 
   setUp(() {
     env = TestEnv('sync');

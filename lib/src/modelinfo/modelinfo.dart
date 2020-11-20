@@ -145,9 +145,11 @@ class ModelInfo {
     return ret;
   }
 
-  ModelEntity findEntityByUid(int uid) {
+  ModelEntity findEntityByUid(int uid, {bool required = false}) {
     final idx = entities.indexWhere((e) => e.id.uid == uid);
-    return idx == -1 ? null : entities[idx];
+    if (idx >= 0) return entities[idx];
+    if (required) throw ArgumentError.value(uid, 'uid');
+    return null;
   }
 
   ModelEntity findEntityByName(String name) {

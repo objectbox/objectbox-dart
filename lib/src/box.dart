@@ -19,10 +19,10 @@ enum _PutMode {
 /// A box to store objects of a particular class.
 class Box<T> {
   final Store _store;
-  Pointer<OBX_box> _cBox;
-  ModelEntity _modelEntity;
-  ObjectReader<T> _entityReader;
-  OBXFlatbuffersManager<T> _fbManager;
+  /*late final*/ Pointer<OBX_box> _cBox;
+  /*late final*/ ModelEntity _modelEntity;
+  /*late final*/ ObjectReader<T> _entityReader;
+  /*late final*/ OBXFlatbuffersManager<T> _fbManager;
   final bool _supportsBytesArrays;
 
   Box(this._store)

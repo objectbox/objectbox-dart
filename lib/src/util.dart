@@ -15,7 +15,7 @@ class StoreCloseObserver {
     if (!maps.containsKey(store)) {
       maps[store] = <dynamic, void Function()>{};
     }
-    maps[store][key] = listener;
+    maps[store]/*!*/[key] = listener;
   }
 
   /// Removes a [store.close()] event listener.
@@ -23,8 +23,8 @@ class StoreCloseObserver {
     if (!maps.containsKey(store)) {
       return;
     }
-    maps[store].remove(key);
-    if (maps[store].isEmpty) {
+    maps[store]/*!*/.remove(key);
+    if (maps[store]/*!*/.isEmpty) {
       maps.remove(store);
     }
   }
@@ -34,7 +34,7 @@ class StoreCloseObserver {
     if (!maps.containsKey(store)) {
       return [];
     }
-    final listeners = maps[store].values.toList(growable: false);
+    final listeners = maps[store]/*!*/.values.toList(growable: false);
     maps.remove(store);
     return listeners;
   }

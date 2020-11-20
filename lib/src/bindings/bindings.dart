@@ -7,7 +7,7 @@ import 'objectbox-c.dart';
 export 'objectbox-c.dart';
 
 ObjectBoxC loadObjectBoxLib() {
-  DynamicLibrary lib;
+  DynamicLibrary/*?*/ lib;
   var libName = 'objectbox';
   if (Platform.isWindows) {
     libName += '.dll';
@@ -30,6 +30,6 @@ ObjectBoxC loadObjectBoxLib() {
   return ObjectBoxC(lib);
 }
 
-ObjectBoxC _cachedBindings;
+ObjectBoxC/*?*/ _cachedBindings;
 
 ObjectBoxC get bindings => _cachedBindings ??= loadObjectBoxLib();
