@@ -23,12 +23,12 @@ class _Observable {
   static void _anyCallback(
       Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
     final storeAddress = user_data.address;
-    for (var i = 0; i < mutated_count; i++) {
-      // call schema's callback
-      if (_any.containsKey(storeAddress) &&
-          _any[storeAddress] /*!*/ .containsKey(mutated_ids[i])) {
-        _any[storeAddress] /*!*/
-            [mutated_ids[i]] /*!*/ (user_data, mutated_ids, mutated_count);
+    // call schema's callback
+    final storeCallbacks = _any[storeAddress];
+    if (storeCallbacks != null) {
+      for (var i = 0; i < mutated_count; i++) {
+        storeCallbacks[mutated_ids[i]]
+            ?.call(user_data, mutated_ids, mutated_count);
       }
     }
   }
