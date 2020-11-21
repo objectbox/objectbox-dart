@@ -210,7 +210,7 @@ class Box<T> {
 
   /// Returns a list of [ids.length] Objects of type T, each corresponding to the location of its ID in [ids].
   /// Non-existent IDs become null.
-  List<T/*?*/> getMany(List<int> ids) {
+  List<T /*?*/ > getMany(List<int> ids) {
     if (ids.isEmpty) return [];
 
     return executeWithIdArray(
@@ -236,7 +236,7 @@ class Box<T> {
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
-  QueryBuilder query([Condition /*?*/ qc]) =>
+  QueryBuilder<T> query([Condition /*?*/ qc]) =>
       QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
 
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever

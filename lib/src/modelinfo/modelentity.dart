@@ -12,46 +12,46 @@ class ModelEntity {
   /*late*/ String _name;
   int _flags = 0;
   final _properties = <ModelProperty>[];
-  ModelProperty/*?*/ _idProperty;
-  final ModelInfo/*?*/ _model;
+  ModelProperty /*?*/ _idProperty;
+  final ModelInfo /*?*/ _model;
 
   String get name => _name;
 
-  set name(String/*?*/ value) {
+  set name(String /*?*/ value) {
     if (value == null || value.isEmpty) {
       throw Exception('name must not be null or an empty string');
     }
-    _name = value/*!*/;
+    _name = value /*!*/;
   }
 
   int get flags => _flags;
 
-  set flags(int/*?*/ value) {
+  set flags(int /*?*/ value) {
     if (value == null || value < 0) {
       throw Exception('flags must be defined and may not be < 0');
     }
-    _flags = value/*!*/;
+    _flags = value /*!*/;
   }
 
   ModelProperty get idProperty => (_idProperty == null)
       ? throw Exception('idProperty is null')
-      : _idProperty/*!*/;
+      : _idProperty /*!*/;
 
   ModelInfo get model =>
-      (_model == null) ? throw Exception('model is null') : _model/*!*/;
+      (_model == null) ? throw Exception('model is null') : _model /*!*/;
 
   List<ModelProperty> get properties => _properties;
 
-  ModelEntity(this.id, String/*?*/ name, this._model) {
+  ModelEntity(this.id, String /*?*/ name, this._model) {
     this.name = name;
     validate();
   }
 
   ModelEntity.fromMap(Map<String, dynamic> data,
-      {ModelInfo/*?*/ model, bool check = true})
-    :_model = model,
-    id = IdUid.fromString(data['id']),
-    lastPropertyId = IdUid.fromString(data['lastPropertyId']) {
+      {ModelInfo /*?*/ model, bool check = true})
+      : _model = model,
+        id = IdUid.fromString(data['id']),
+        lastPropertyId = IdUid.fromString(data['lastPropertyId']) {
     name = data['name'];
     flags = data['flags'] ?? 0;
 
@@ -80,12 +80,12 @@ class ModelEntity {
           throw Exception(
               "property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
         }
-        if (lastPropertyId/*!*/.id < p.id.id) {
+        if (lastPropertyId /*!*/ .id < p.id.id) {
           throw Exception(
               "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
         }
-        if (lastPropertyId/*!*/.id == p.id.id) {
-          if (lastPropertyId/*!*/.uid != p.id.uid) {
+        if (lastPropertyId /*!*/ .id == p.id.id) {
+          if (lastPropertyId /*!*/ .uid != p.id.uid) {
             throw Exception(
                 "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id.toString()}");
           }
@@ -94,7 +94,7 @@ class ModelEntity {
       }
 
       if (!lastPropertyIdFound &&
-          !listContains(model.retiredPropertyUids, lastPropertyId/*!*/.uid)) {
+          !listContains(model.retiredPropertyUids, lastPropertyId /*!*/ .uid)) {
         throw Exception(
             'lastPropertyId ${lastPropertyId.toString()} does not match any property');
       }
@@ -111,12 +111,12 @@ class ModelEntity {
     return ret;
   }
 
-  ModelProperty/*?*/ _findPropertyByUid(int uid) {
+  ModelProperty /*?*/ _findPropertyByUid(int uid) {
     final idx = properties.indexWhere((p) => p.id.uid == uid);
     return idx == -1 ? null : properties[idx];
   }
 
-  ModelProperty/*?*/ _findPropertyByName(String name) {
+  ModelProperty /*?*/ _findPropertyByName(String name) {
     final found = properties
         .where((p) => p.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -128,8 +128,8 @@ class ModelEntity {
     return found[0];
   }
 
-  ModelProperty/*?*/ findSameProperty(ModelProperty other) {
-    ModelProperty/*?*/ ret;
+  ModelProperty /*?*/ findSameProperty(ModelProperty other) {
+    ModelProperty /*?*/ ret;
     if (other.id.uid != 0) ret = _findPropertyByUid(other.id.uid);
     return ret ??= _findPropertyByName(other.name);
   }

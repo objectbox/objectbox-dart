@@ -4,5 +4,5 @@ import 'package:objectbox/objectbox.dart';
 @Entity()
 class TestEntity2 {
   @Id()
-  int/*?*/ id;
+  int /*?*/ id;
 }

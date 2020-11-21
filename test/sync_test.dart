@@ -106,9 +106,9 @@ void main() {
 
       // But we can still get a handle of the client in the store - we're never
       // completely without an option to close it.
-      final client = store.syncClient();
+      SyncClient /*?*/ client = store.syncClient();
       expect(client, isNotNull);
-      expect(client.isClosed(), isFalse);
+      expect(client /*!*/ .isClosed(), isFalse);
       client.close();
       expect(store.syncClient(), isNull);
     });
@@ -184,10 +184,12 @@ void main() {
       int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
       expect(waitUntil(() => env2.box.get(id) != null), isTrue);
 
-      final read1 = env.box.get(id);
-      final read2 = env2.box.get(id);
-      expect(read1.id, equals(read2.id));
-      expect(read1.tLong, equals(read2.tLong));
+      TestEntity /*?*/ read1 = env.box.get(id);
+      TestEntity /*?*/ read2 = env2.box.get(id);
+      expect(read1, isNotNull);
+      expect(read2, isNotNull);
+      expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
+      expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
     },
         // Note: only available when you start a sync server manually.
         // Comment out the `skip: ` argument in tthe test-case definition.

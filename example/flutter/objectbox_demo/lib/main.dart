@@ -81,7 +81,7 @@ class ViewModel {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
-  final _listController = StreamController<List<Note>>(sync:true);
+  final _listController = StreamController<List<Note>>(sync: true);
   Stream<List<Note>> _stream;
   ViewModel _vm;
 

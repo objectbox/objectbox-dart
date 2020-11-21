@@ -3,7 +3,7 @@ part of query;
 abstract class PropertyQuery<T> {
   final Pointer<OBX_query_prop> _cProp;
   final int _type;
-  bool _distinct;
+  bool _distinct = false;
 
   PropertyQuery(Pointer<OBX_query> cQuery, int propertyId, this._type)
       : _cProp = checkObxPtr(
@@ -13,7 +13,7 @@ abstract class PropertyQuery<T> {
   ///
   /// Results are in no particular order. Excludes null values.
   /// Set [replaceNullWith] to return null values as that value.
-  List<T> find({T/*?*/ replaceNullWith});
+  List<T> find({T /*?*/ replaceNullWith});
 
   void close() {
     checkObx(bindings.obx_query_prop_close(_cProp));
@@ -45,7 +45,7 @@ abstract class PropertyQuery<T> {
       Pointer<ValT> cDefault,
       List<R> Function(Pointer<StructT>) listReadFn,
       void Function(Pointer<StructT>) listFreeFn) {
-    Pointer<StructT> cItems;
+    Pointer<StructT> cItems = nullptr;
     try {
       cItems = checkObxPtr(findFn(_cProp, cDefault), 'Property query failed');
       return listReadFn(cItems);
@@ -101,7 +101,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
   }
 
   @override
-  List<int> find({int/*?*/ replaceNullWith}) {
+  List<int> find({int /*?*/ replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
@@ -177,7 +177,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
   }
 
   @override
-  List<double> find({double/*?*/ replaceNullWith}) {
+  List<double> find({double /*?*/ replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Float:
         final cDefault = _cDefault<Float>(replaceNullWith);
@@ -228,7 +228,7 @@ class StringPropertyQuery extends PropertyQuery<String> {
   }
 
   @override
-  List<String> find({String/*?*/ replaceNullWith}) {
+  List<String> find({String /*?*/ replaceNullWith}) {
     final cDefault = replaceNullWith == null
         ? nullptr
         : Utf8.toUtf8(replaceNullWith).cast<Int8>();

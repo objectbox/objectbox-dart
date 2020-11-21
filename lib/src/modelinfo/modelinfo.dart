@@ -51,7 +51,8 @@ class ModelInfo {
         retiredPropertyUids = List<int>.from(data['retiredPropertyUids'] ?? []),
         retiredRelationUids = List<int>.from(data['retiredRelationUids'] ?? []),
         modelVersion = data['modelVersion'] ?? 0,
-        modelVersionParserMinimum = data['modelVersionParserMinimum'] ?? _maxModelVersion,
+        modelVersionParserMinimum =
+            data['modelVersionParserMinimum'] ?? _maxModelVersion,
         version = data['version'] ?? 1 {
     if (data['entities'] == null) throw Exception('entities is null');
     for (final e in data['entities']) {
@@ -127,12 +128,12 @@ class ModelInfo {
     return entity;
   }
 
-  ModelEntity/*?*/ findEntityByUid(int uid) {
+  ModelEntity /*?*/ findEntityByUid(int uid) {
     final idx = entities.indexWhere((e) => e.id.uid == uid);
     return idx < 0 ? null : entities[idx];
   }
 
-  ModelEntity/*?*/ findEntityByName(String name) {
+  ModelEntity /*?*/ findEntityByName(String name) {
     final found = entities
         .where((e) => e.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -144,8 +145,8 @@ class ModelInfo {
     return found[0];
   }
 
-  ModelEntity/*?*/ findSameEntity(ModelEntity other) {
-    ModelEntity ret;
+  ModelEntity /*?*/ findSameEntity(ModelEntity other) {
+    ModelEntity /*?*/ ret;
     if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
     ret ??= findEntityByName(other.name);
     return ret;

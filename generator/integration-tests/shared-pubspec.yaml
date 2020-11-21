@@ -1,5 +1,8 @@
 name: objectbox_generator_test
 
+environment:
+  sdk: ">=2.5.0 <3.0.0"
+
 dependencies:
   objectbox: any
 

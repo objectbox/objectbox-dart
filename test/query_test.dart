@@ -8,7 +8,7 @@ import 'objectbox.g.dart';
 
 void main() {
   /*late final*/ TestEnv env;
-  /*late final*/ Box box;
+  /*late final*/ Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query');
@@ -16,7 +16,7 @@ void main() {
   });
 
   test('Query with no conditions, and order as desc ints', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tInt: 0),
       TestEntity(tInt: 10),
       TestEntity(tInt: 100),
@@ -63,7 +63,7 @@ void main() {
   });
 
   test('.null and .notNull', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),
       TestEntity(tDouble: 0.3, tBool: false),
       TestEntity(tString: 'one'),
@@ -87,7 +87,7 @@ void main() {
   });
 
   test('.count doubles and booleans', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),
       TestEntity(tDouble: 0.3, tBool: false),
       TestEntity(tDouble: 0.5, tBool: true),
@@ -135,7 +135,7 @@ void main() {
   });
 
   test('.count matches of `greater` and `less`', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tLong: 1336, tString: 'mord'),
       TestEntity(tLong: 1337, tString: 'more'),
       TestEntity(tLong: 1338, tString: 'morf'),

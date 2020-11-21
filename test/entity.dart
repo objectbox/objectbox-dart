@@ -11,41 +11,41 @@ class TestingUnknownAnnotation {
 class TestEntity {
   @Id()
   @TestingUnknownAnnotation()
-  int/*?*/ id;
+  int /*?*/ id;
 
   // implicitly determined types
-  String/*?*/ tString;
-  int/*?*/ tLong;
-  double/*?*/ tDouble;
-  bool/*?*/ tBool;
+  String /*?*/ tString;
+  int /*?*/ tLong;
+  double /*?*/ tDouble;
+  bool /*?*/ tBool;
 
   @Transient()
-  int/*?*/ ignore;
+  int /*?*/ ignore;
 
   @Transient()
-  int/*?*/ omit, disregard;
+  int /*?*/ omit, disregard;
 
   // explicitly declared types, see OB-C, objectbox.h
 
   // OBXPropertyType.Byte | 1 byte
   @Property(type: 2)
-  int/*?*/ tByte;
+  int /*?*/ tByte;
 
   // OBXPropertyType.Short | 2 bytes
   @Property(type: 3)
-  int/*?*/ tShort;
+  int /*?*/ tShort;
 
   // OBXPropertyType.Char | 1 byte
   @Property(type: 4)
-  int/*?*/ tChar;
+  int /*?*/ tChar;
 
   // OBXPropertyType.Int |  ob: 4 bytes, dart: 8 bytes
   @Property(type: 5)
-  int/*?*/ tInt;
+  int /*?*/ tInt;
 
   // OBXPropertyType.Float | 4 bytes
   @Property(type: 7)
-  double/*?*/ tFloat;
+  double /*?*/ tFloat;
 
   TestEntity(
       {this.id,

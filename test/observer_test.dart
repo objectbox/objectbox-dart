@@ -32,20 +32,12 @@ void callbackAnyType(
 typedef Single = void Function(Pointer<Void>);
 typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
-class Observable {
-  static Pointer<OBX_observer> singleObserver, anyObserver;
-
-  static Single single;
-  static Any any;
-
+class ObservableSingle {
+  static /*late*/ Pointer<OBX_observer> observer;
+  static /*late*/ Single single;
   Store store;
 
-  Observable.fromStore(this.store);
-
-  static void _anyCallback(
-      Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
-    any(user_data, mutated_ids, mutated_count);
-  }
+  ObservableSingle.fromStore(this.store);
 
   static void _singleCallback(Pointer<Void> user_data) {
     single(user_data);
@@ -55,20 +47,33 @@ class Observable {
     single = fn;
     final callback =
         Pointer.fromFunction<obx_observer_single_type>(_singleCallback);
-    singleObserver = bindings.obx_observe_single_type(
+    observer = bindings.obx_observe_single_type(
         store.ptr, entityId, callback, identifier);
+  }
+}
+
+class ObservableMany {
+  static /*late*/ Pointer<OBX_observer> observer;
+  static /*late*/ Any any;
+  Store store;
+
+  ObservableMany.fromStore(this.store);
+
+  static void _anyCallback(
+      Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
+    any(user_data, mutated_ids, mutated_count);
   }
 
   void observe(Any fn, Pointer<Void> identifier) {
     any = fn;
     final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
-    anyObserver = bindings.obx_observe(store.ptr, callback, identifier);
+    observer = bindings.obx_observe(store.ptr, callback, identifier);
   }
 }
 
 void main() async {
   /*late final*/ TestEnv env;
-  /*late final*/ Box box;
+  /*late final*/ Box<TestEntity> box;
   /*late final*/ Store store;
 
   final testEntityId =
@@ -102,7 +107,7 @@ void main() async {
   //  }
 
   test('Observe any entity with class member callback', () async {
-    final o = Observable.fromStore(store);
+    final o = ObservableMany.fromStore(store);
     var putCount = 0;
     o.observe((Pointer<Void> user_data, Pointer<Uint32> mutated_ids,
         int mutated_count) {
@@ -114,12 +119,12 @@ void main() async {
     simpleStringItems.forEach((i) => box.put(i));
     simpleNumberItems.forEach((i) => box.put(i));
 
-    bindings.obx_observer_close(Observable.anyObserver);
+    bindings.obx_observer_close(ObservableMany.observer);
     expect(putCount, 13);
   });
 
   test('Observe a single entity with class member callback', () async {
-    final o = Observable.fromStore(store);
+    final o = ObservableSingle.fromStore(store);
     var putCount = 0;
     o.observeSingleType(testEntityId, (Pointer<Void> user_data) {
       putCount++;
@@ -129,7 +134,7 @@ void main() async {
     simpleStringItems.forEach((i) => box.put(i));
     simpleNumberItems.forEach((i) => box.put(i));
 
-    bindings.obx_observer_close(Observable.singleObserver);
+    bindings.obx_observer_close(ObservableSingle.observer);
     expect(putCount, 13);
   });
 

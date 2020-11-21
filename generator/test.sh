@@ -15,10 +15,10 @@ function runTestFile() {
     # build before each step, except for "0.dart"
     if [ "${1}" != "0" ]; then
       echo "Running build_runner before ${file}"
-      pub run build_runner build
+      dart pub run build_runner build
     fi
     echo "Running ${file}"
-    pub run test "${file}"
+    dart test "${file}"
   fi
 }
 
@@ -31,7 +31,7 @@ function runTestCase() {
 
   cd "${testCase}"
 
-  pub get
+  dart pub get
   for i in {0..9}; do
     runTestFile $i
   done
