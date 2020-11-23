@@ -66,7 +66,7 @@ class QueryStringProperty extends QueryProperty {
 
   Condition _opList(List<String> list, ConditionOp cop,
       [bool caseSensitive = false]) {
-    return StringCondition._fromList(cop, this, list, caseSensitive);
+    return StringListCondition(cop, this, list, caseSensitive);
   }
 
   Condition equals(String p, {bool caseSensitive = false}) {
@@ -141,7 +141,7 @@ class QueryIntegerProperty extends QueryProperty {
   }
 
   Condition _opList(List<int> list, ConditionOp cop) {
-    return IntegerCondition.fromList(cop, this, list);
+    return IntegerListCondition(cop, this, list);
   }
 
   Condition equals(int p) {
@@ -310,15 +310,12 @@ class NullCondition extends Condition {
 
 abstract class PropertyCondition<DartType> extends Condition {
   final QueryProperty _property;
-  DartType _value;
-  DartType /*?*/ _value2;
-  List<DartType> /*?*/ _list;
+  final DartType _value;
+  final DartType /*?*/ _value2;
 
   final ConditionOp _op;
 
   PropertyCondition(this._op, this._property, this._value, [this._value2]);
-
-  PropertyCondition.fromList(this._op, this._property, this._list);
 }
 
 class StringCondition extends PropertyCondition<String> {
@@ -329,11 +326,6 @@ class StringCondition extends PropertyCondition<String> {
       : _caseSensitive = caseSensitive,
         super(op, prop, value, value2);
 
-  StringCondition._fromList(
-      ConditionOp op, QueryProperty prop, List<String> list, bool caseSensitive)
-      : _caseSensitive = caseSensitive,
-        super.fromList(op, prop, list);
-
   int _op1(QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
     final cStr = Utf8.toUtf8(_value).cast<Int8>();
@@ -342,24 +334,6 @@ class StringCondition extends PropertyCondition<String> {
           builder._cBuilder, _property._propertyId, cStr, _caseSensitive);
     } finally {
       free(cStr);
-    }
-  }
-
-  int _inside(QueryBuilder builder) {
-    final func = bindings.obx_qb_in_strings;
-    final listLength = _list /*!*/ .length;
-    final arrayOfCStrings = allocate<Pointer<Int8>>(count: listLength);
-    try {
-      for (var i = 0; i < _list /*!*/ .length; i++) {
-        arrayOfCStrings[i] = Utf8.toUtf8(_list /*!*/ [i]).cast<Int8>();
-      }
-      return func(builder._cBuilder, _property._propertyId, arrayOfCStrings,
-          listLength, _caseSensitive);
-    } finally {
-      for (var i = 0; i < _list /*!*/ .length; i++) {
-        free(arrayOfCStrings.elementAt(i).value);
-      }
-      free(arrayOfCStrings);
     }
   }
 
@@ -384,6 +358,41 @@ class StringCondition extends PropertyCondition<String> {
         return _op1(builder, bindings.obx_qb_greater_than_string);
       case ConditionOp.greaterOrEq:
         return _op1(builder, bindings.obx_qb_greater_or_equal_string);
+      default:
+        throw Exception('Unsupported operation ${_op.toString()}');
+    }
+  }
+}
+
+class StringListCondition extends PropertyCondition<List<String>> {
+  final bool _caseSensitive;
+
+  StringListCondition(
+      ConditionOp op, QueryProperty prop, List<String> value, bool caseSensitive)
+      : _caseSensitive = caseSensitive,
+        super(op, prop, value);
+
+  int _inside(QueryBuilder builder) {
+    final func = bindings.obx_qb_in_strings;
+    final listLength = _value.length;
+    final arrayOfCStrings = allocate<Pointer<Int8>>(count: listLength);
+    try {
+      for (var i = 0; i < _value.length; i++) {
+        arrayOfCStrings[i] = Utf8.toUtf8(_value[i]).cast<Int8>();
+      }
+      return func(builder._cBuilder, _property._propertyId, arrayOfCStrings,
+          listLength, _caseSensitive);
+    } finally {
+      for (var i = 0; i < _value.length; i++) {
+        free(arrayOfCStrings.elementAt(i).value);
+      }
+      free(arrayOfCStrings);
+    }
+  }
+
+  @override
+  int apply(QueryBuilder builder, bool isRoot) {
+    switch (_op) {
       case ConditionOp.inside:
         return _inside(builder); // bindings.obx_qb_string_in
       default:
@@ -397,35 +406,10 @@ class IntegerCondition extends PropertyCondition<int> {
       [int /*?*/ value2])
       : super(op, prop, value, value2);
 
-  IntegerCondition.fromList(ConditionOp op, QueryProperty prop, List<int> list)
-      : super.fromList(op, prop, list);
-
   int _op1(QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, int /*?*/) func) {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
-
-  int _opList<T extends NativeType>(
-      QueryBuilder builder,
-      int Function(Pointer<OBX_query_builder>, int, Pointer<T>, int) func,
-      void Function(Pointer<T>, int, int) setIndex) {
-    final length = _list /*!*/ .length;
-    final listPtr = allocate<T>(count: length);
-    try {
-      for (var i = 0; i < length; i++) {
-        // Error: The operator '[]=' isn't defined for the type 'Pointer<T>
-        // listPtr[i] = _list[i];
-        setIndex(listPtr, i, _list /*!*/ [i]);
-      }
-      return func(builder._cBuilder, _property._propertyId, listPtr, length);
-    } finally {
-      free(listPtr);
-    }
-  }
-
-  static void opListSetIndexInt32(Pointer<Int32> list, i, val) => list[i] = val;
-
-  static void opListSetIndexInt64(Pointer<Int64> list, i, val) => list[i] = val;
 
   @override
   int apply(QueryBuilder builder, bool isRoot) {
@@ -441,6 +425,41 @@ class IntegerCondition extends PropertyCondition<int> {
       case ConditionOp.between:
         return bindings.obx_qb_between_2ints(
             builder._cBuilder, _property._propertyId, _value, _value2);
+      default:
+        throw Exception('Unsupported operation ${_op.toString()}');
+    }
+  }
+}
+
+class IntegerListCondition extends PropertyCondition<List<int>> {
+  IntegerListCondition(ConditionOp op, QueryProperty prop, List<int> value)
+      : super(op, prop, value);
+
+  int _opList<T extends NativeType>(
+      QueryBuilder builder,
+      int Function(Pointer<OBX_query_builder>, int, Pointer<T>, int) func,
+      void Function(Pointer<T>, int, int) setIndex) {
+    final length = _value.length;
+    final listPtr = allocate<T>(count: length);
+    try {
+      for (var i = 0; i < length; i++) {
+        // Error: The operator '[]=' isn't defined for the type 'Pointer<T>
+        // listPtr[i] = _list[i];
+        setIndex(listPtr, i, _value[i]);
+      }
+      return func(builder._cBuilder, _property._propertyId, listPtr, length);
+    } finally {
+      free(listPtr);
+    }
+  }
+
+  static void opListSetIndexInt32(Pointer<Int32> list, i, val) => list[i] = val;
+
+  static void opListSetIndexInt64(Pointer<Int64> list, i, val) => list[i] = val;
+
+  @override
+  int apply(QueryBuilder builder, bool isRoot) {
+    switch (_op) {
       case ConditionOp.inside:
         switch (_property._type) {
           case OBXPropertyType.Int:
