@@ -8,8 +8,8 @@ import 'modelproperty.dart';
 /// information: id, name and last property id.
 class ModelEntity {
   IdUid id;
-  IdUid lastPropertyId = IdUid.empty();
   /*late*/ String _name;
+  IdUid lastPropertyId = IdUid.empty();
   int _flags = 0;
   final _properties = <ModelProperty>[];
   ModelProperty /*?*/ _idProperty;

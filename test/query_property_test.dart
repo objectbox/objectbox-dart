@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
@@ -147,11 +149,6 @@ void main() {
     query.close();
   });
 
-  final intLt = (int a, int b) => a < b ? a : b;
-  final intGt = (int a, int b) => a > b ? a : b;
-  final doubleLt = (double a, double b) => a < b ? a : b;
-  final doubleGt = (double a, double b) => a > b ? a : b;
-
   test('.min integers', () {
     box.putMany(integerList);
 
@@ -167,10 +164,10 @@ void main() {
 
     final all = box.getAll();
 
-    final minByte = all.map((s) => s.tByte).toList().reduce(intLt);
-    final minShort = all.map((s) => s.tShort).toList().reduce(intLt);
-    final minInt = all.map((s) => s.tInt).toList().reduce(intLt);
-    final minLong = all.map((s) => s.tLong).toList().reduce(intLt);
+    final minByte = all.map((s) => s.tByte).toList().reduce(min);
+    final minShort = all.map((s) => s.tShort).toList().reduce(min);
+    final minInt = all.map((s) => s.tInt).toList().reduce(min);
+    final minLong = all.map((s) => s.tLong).toList().reduce(min);
 
     expect(propMin(tByte), minByte);
     expect(propMin(tShort), minShort);
@@ -195,10 +192,10 @@ void main() {
 
     final all = box.getAll();
 
-    final maxByte = all.map((s) => s.tByte).toList().reduce(intGt);
-    final maxShort = all.map((s) => s.tShort).toList().reduce(intGt);
-    final maxInt = all.map((s) => s.tInt).toList().reduce(intGt);
-    final maxLong = all.map((s) => s.tLong).toList().reduce(intGt);
+    final maxByte = all.map((s) => s.tByte).toList().reduce(max);
+    final maxShort = all.map((s) => s.tShort).toList().reduce(max);
+    final maxInt = all.map((s) => s.tInt).toList().reduce(max);
+    final maxLong = all.map((s) => s.tLong).toList().reduce(max);
 
     expect(propMax(tByte), maxByte);
     expect(propMax(tShort), maxShort);
@@ -247,8 +244,8 @@ void main() {
 
     final all = box.getAll();
 
-    final minFloat = all.map((s) => s.tFloat).toList().reduce(doubleLt);
-    final minDouble = all.map((s) => s.tDouble).toList().reduce(doubleLt);
+    final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
+    final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
 
     expect(propMin(tFloat), minFloat);
     expect(propMin(tDouble), minDouble);
@@ -271,8 +268,8 @@ void main() {
 
     final all = box.getAll();
 
-    final maxFloat = all.map((s) => s.tFloat).toList().reduce(doubleGt);
-    final maxDouble = all.map((s) => s.tDouble).toList().reduce(doubleGt);
+    final maxFloat = all.map((s) => s.tFloat).toList().reduce(max);
+    final maxDouble = all.map((s) => s.tDouble).toList().reduce(max);
 
     expect(propMax(tFloat), maxFloat);
     expect(propMax(tDouble), maxDouble);
