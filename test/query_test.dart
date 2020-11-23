@@ -281,6 +281,23 @@ void main() {
     expect(items[1].tString, largeString);
   });
 
+  test('.remove deletes the right items', () {
+    box.put(TestEntity());
+    box.put(TestEntity(tString: 'test'));
+    box.put(TestEntity(tString: 'test3'));
+    box.put(TestEntity(tString: 'foo'));
+
+    final text = TestEntity_.tString;
+
+    final q = box.query(text.startsWith('test')).build();
+    expect(q.remove(), 2);
+    q.close();
+
+    final remaining = box.getAll();
+    expect(remaining.length, 2);
+    expect(remaining.map((e) => e.id), equals([1,4]));
+  });
+
   test('.count items after grouping with and/or', () {
     box.put(TestEntity(tString: 'Hello'));
     box.put(TestEntity(tString: 'Goodbye'));

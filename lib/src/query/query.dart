@@ -585,9 +585,20 @@ class Query<T> {
 
   /// Returns the number of matching Objects.
   int count() {
-    final ptr = allocate<Uint64>(count: 1);
+    final ptr = allocate<Uint64>();
     try {
       checkObx(bindings.obx_query_count(_cQuery, ptr));
+      return ptr.value;
+    } finally {
+      free(ptr);
+    }
+  }
+
+  /// Returns the number of removed Objects.
+  int remove() {
+    final ptr = allocate<Uint64>();
+    try {
+      checkObx(bindings.obx_query_remove(_cQuery, ptr));
       return ptr.value;
     } finally {
       free(ptr);
