@@ -45,12 +45,11 @@ class QueryProperty {
   QueryProperty(this._entityId, this._propertyId, this._type);
 
   Condition isNull() {
-    // the integer serves as a dummy type, to initialize the base type
-    return IntegerCondition(ConditionOp.isNull, this, null, null);
+    return NullCondition(ConditionOp.isNull, this);
   }
 
   Condition notNull() {
-    return IntegerCondition(ConditionOp.notNull, this, null, null);
+    return NullCondition(ConditionOp.notNull, this);
   }
 }
 
@@ -289,18 +288,14 @@ abstract class Condition {
   int apply(QueryBuilder builder, bool isRoot);
 }
 
-abstract class PropertyCondition<DartType> extends Condition {
+class NullCondition extends Condition {
   final QueryProperty _property;
-  DartType /*?*/ _value, _value2;
-  List<DartType> /*?*/ _list;
-
   final ConditionOp _op;
 
-  PropertyCondition(this._op, this._property, this._value, [this._value2]);
+  NullCondition(this._op, this._property);
 
-  PropertyCondition.fromList(this._op, this._property, this._list);
-
-  int tryApply(QueryBuilder builder) {
+  @override
+  int apply(QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.isNull:
         return bindings.obx_qb_null(builder._cBuilder, _property._propertyId);
@@ -308,9 +303,22 @@ abstract class PropertyCondition<DartType> extends Condition {
         return bindings.obx_qb_not_null(
             builder._cBuilder, _property._propertyId);
       default:
-        return 0;
+        throw Exception('Unsupported operation ${_op.toString()}');
     }
   }
+}
+
+abstract class PropertyCondition<DartType> extends Condition {
+  final QueryProperty _property;
+  DartType _value;
+  DartType /*?*/ _value2;
+  List<DartType> /*?*/ _list;
+
+  final ConditionOp _op;
+
+  PropertyCondition(this._op, this._property, this._value, [this._value2]);
+
+  PropertyCondition.fromList(this._op, this._property, this._list);
 }
 
 class StringCondition extends PropertyCondition<String> {
@@ -357,11 +365,6 @@ class StringCondition extends PropertyCondition<String> {
 
   @override
   int apply(QueryBuilder builder, bool isRoot) {
-    final c = tryApply(builder);
-    if (c != 0) {
-      return c;
-    }
-
     switch (_op) {
       case ConditionOp.eq:
         return _op1(builder, bindings.obx_qb_equals_string);
@@ -390,7 +393,7 @@ class StringCondition extends PropertyCondition<String> {
 }
 
 class IntegerCondition extends PropertyCondition<int> {
-  IntegerCondition(ConditionOp op, QueryProperty prop, int /*?*/ value,
+  IntegerCondition(ConditionOp op, QueryProperty prop, int value,
       [int /*?*/ value2])
       : super(op, prop, value, value2);
 
@@ -426,11 +429,6 @@ class IntegerCondition extends PropertyCondition<int> {
 
   @override
   int apply(QueryBuilder builder, bool isRoot) {
-    final c = tryApply(builder);
-    if (c != 0) {
-      return c;
-    }
-
     switch (_op) {
       case ConditionOp.eq:
         return _op1(builder, bindings.obx_qb_equals_int);
@@ -483,11 +481,6 @@ class DoubleCondition extends PropertyCondition<double> {
 
   @override
   int apply(QueryBuilder builder, bool isRoot) {
-    final c = tryApply(builder);
-    if (c != 0) {
-      return c;
-    }
-
     switch (_op) {
       case ConditionOp.gt:
         return bindings.obx_qb_greater_than_double(
