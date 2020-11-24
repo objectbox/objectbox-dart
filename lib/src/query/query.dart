@@ -1,5 +1,6 @@
 library query;
 
+import 'dart:async';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 
@@ -15,6 +16,7 @@ import '../bindings/signatures.dart';
 
 part 'builder.dart';
 part 'property.dart';
+part '../observable.dart';
 
 class Order {
   /// Reverts the order from ascending (default) to descending.
@@ -571,12 +573,12 @@ class ConditionGroupAll extends ConditionGroup {
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
   Pointer<Void> _cQuery;
-  Store store;
+  final Store _store;
   final OBXFlatbuffersManager _fbManager;
   int entityId;
 
   // package private ctor
-  Query._(this.store, this._fbManager, Pointer<Void> cBuilder, this.entityId) {
+  Query._(this._store, this._fbManager, Pointer<Void> cBuilder, this.entityId) {
     _cQuery = checkObxPtr(bindings.obx_query_create(cBuilder), 'create query');
   }
 
@@ -662,7 +664,7 @@ class Query<T> {
     if (limit > 0) {
       this.limit(limit);
     }
-    return store.runInTransaction(TxMode.Read, () {
+    return _store.runInTransaction(TxMode.Read, () {
       if (bindings.obx_supports_bytes_array() == 1) {
         final bytesArray =
             checkObxPtr(bindings.obx_query_find(_cQuery), 'find');

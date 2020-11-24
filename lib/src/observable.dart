@@ -1,10 +1,4 @@
-import 'dart:async';
-import 'dart:ffi';
-
-import 'bindings/bindings.dart';
-import 'bindings/signatures.dart';
-import 'query/query.dart';
-import 'store.dart';
+part of 'query/query.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -20,15 +14,17 @@ class Observable {
 
   // The user_data is used to pass the store ptr address
   // in case there is no consensus on the entity id between stores
-  static void _anyCallback(
-      Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
+  static void _anyCallback(Pointer<Void> user_data,
+      Pointer<Uint32> mutated_entity_ids, int mutated_count) {
     final storeAddress = user_data.address;
     for (var i = 0; i < mutated_count; i++) {
       // call schema's callback
       if (_any.containsKey(storeAddress) &&
-          _any[storeAddress].containsKey(mutated_ids[i])) {
-        _any[storeAddress]
-            [mutated_ids[i]](user_data, mutated_ids, mutated_count);
+          _any[storeAddress].containsKey(mutated_entity_ids[i])) {
+        _any[storeAddress][mutated_entity_ids[i]](
+            user_data, mutated_entity_ids, mutated_count);
+        print([user_data.address, mutated_entity_ids[i], mutated_count]
+            .join(','));
       }
     }
   }
@@ -63,10 +59,10 @@ extension ObservableStore on Store {
 
 extension Streamable<T> on Query<T> {
   void _setup() {
-    final storePtr = store.ptr;
+    final storePtr = _store.ptr;
 
     if (!Observable._anyObserver.containsKey(storePtr)) {
-      store.subscribe();
+      _store.subscribe();
     }
 
     final storeAddress = storePtr.address;
