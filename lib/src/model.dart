@@ -7,13 +7,12 @@ import 'common.dart';
 import 'modelinfo/index.dart';
 
 class Model {
-  Pointer<OBX_model> _cModel;
+  final Pointer<OBX_model> _cModel;
 
   Pointer<OBX_model> get ptr => _cModel;
 
-  Model(ModelInfo model) {
-    _cModel = checkObxPtr(bindings.obx_model(), 'failed to create model');
-
+  Model(ModelInfo model)
+      : _cModel = checkObxPtr(bindings.obx_model(), 'failed to create model') {
     try {
       model.entities.forEach(addEntity);
 
@@ -22,7 +21,6 @@ class Model {
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
     } catch (e) {
       bindings.obx_model_free(_cModel);
-      _cModel = null;
       rethrow;
     }
   }
@@ -31,6 +29,7 @@ class Model {
     if (errorCode == OBX_SUCCESS) return;
 
     throw ObjectBoxException(
+        dartMsg: 'Model building failed',
         nativeCode: bindings.obx_model_error_code(_cModel),
         nativeMsg: cString(bindings.obx_model_error_message(_cModel)));
   }

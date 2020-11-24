@@ -4,8 +4,8 @@ import 'objectbox.g.dart';
 
 class TestEnv {
   final Directory dir;
-  Store store;
-  Box<TestEntity> box;
+  /*late final*/ Store store;
+  /*late final*/ Box<TestEntity> box;
 
   TestEnv(String name) : dir = Directory('testdata-' + name) {
     if (dir.existsSync()) dir.deleteSync(recursive: true);

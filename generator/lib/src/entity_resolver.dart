@@ -54,7 +54,7 @@ class EntityResolver extends Builder {
     var element = elementBare as ClassElement;
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    final entity = ModelEntity(IdUid.empty(), null, element.name, 0, [], null);
+    final entity = ModelEntity(IdUid.empty(), element.name, null);
     var entityUid = annotation.read('uid');
     if (entityUid != null && !entityUid.isNull) {
       entity.id.uid = entityUid.intValue;

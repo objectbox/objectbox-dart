@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
@@ -6,11 +8,9 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() {
-  TestEnv env;
-
-  // TODO change to Box<TestEntity> box;
-  //  breaks min/max functions below - can't be dynamic anymore
-  Box box;
+  /*late final*/ TestEnv env;
+  /*late final*/
+  Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query_property');
@@ -149,7 +149,6 @@ void main() {
     query.close();
   });
 
-  final min = (a, b) => a < b ? a : b;
   test('.min integers', () {
     box.putMany(integerList);
 
@@ -178,7 +177,6 @@ void main() {
     query.close();
   });
 
-  final max = (a, b) => a > b ? a : b;
   test('.max integers', () {
     box.putMany(integerList);
 

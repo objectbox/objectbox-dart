@@ -4,14 +4,32 @@
 ///  * [IDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#ids)
 ///  * [UIDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#uids)
 class IdUid {
-  int _id, _uid;
+  /*late*/ int _id, _uid;
+
+  int get id => _id;
+
+  set id(int id) {
+    if (id < 0 || id > ((1 << 63) - 1)) {
+      throw Exception('id out of bounds: $id');
+    }
+    _id = id;
+  }
+
+  int get uid => _uid;
+
+  set uid(int uid) {
+    if (uid < 0 || uid > ((1 << 63) - 1)) {
+      throw Exception('uid out of bounds: $uid');
+    }
+    _uid = uid;
+  }
 
   IdUid(int newId, int newUid) {
     id = newId;
     uid = newUid;
   }
 
-  IdUid.fromString(String str) {
+  IdUid.fromString(String /*?*/ str) {
     if (str == null || str == '' || str == '0:0') {
       _id = 0;
       _uid = 0;
@@ -31,23 +49,7 @@ class IdUid {
       : _id = 0,
         _uid = 0;
 
-  set id(int id) {
-    if (id < 0 || id > ((1 << 63) - 1)) {
-      throw Exception('id out of bounds: $id');
-    }
-    _id = id;
-  }
-
-  set uid(int uid) {
-    if (uid < 0 || uid > ((1 << 63) - 1)) {
-      throw Exception('uid out of bounds: $uid');
-    }
-    _uid = uid;
-  }
-
-  int get id => _id;
-
-  int get uid => _uid;
+  bool get isEmpty => _id == 0 && _uid == 0;
 
   @override
   String toString() => '$_id:$_uid';

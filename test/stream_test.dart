@@ -10,8 +10,9 @@ import 'test_env.dart';
 // ignore_for_file: non_constant_identifier_names
 
 void main() {
-  TestEnv env;
-  Box box;
+  /*late final*/ TestEnv env;
+  /*late final*/
+  Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('streams');
@@ -31,10 +32,9 @@ void main() {
 
     box.put(TestEntity(tString: 'Hello world'));
 
-    // The delay is here to ensure that the
-    // callback execution is executed sequentially,
-    // otherwise the testing framework's execution
-    // will be prioritized (for some reason), before any callback.
+    // The delay is here to ensure that the callback execution is executed
+    // sequentially, otherwise the testing framework's execution  will be
+    // prioritized (for some reason), before any callback.
     await Future.delayed(Duration(seconds: 0));
 
     box.putMany(<TestEntity>[

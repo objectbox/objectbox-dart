@@ -36,13 +36,13 @@ int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
   }
 
   final callback = _callbacks[callbackId.cast<Int64>().value];
+  if (callback == null) return 0;
   return callback(dataPtr.cast<Uint8>(), size) ? 1 : 0;
 }
 
 /// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
 class DataVisitor {
-  int _id;
-  Pointer<Int64> _idPtr;
+  final Pointer<Int64> _idPtr = allocate<Int64>();
 
   Pointer<NativeFunction<obx_data_visitor>> get fn =>
       Pointer.fromFunction(_forwarder, 0);
@@ -62,16 +62,13 @@ class DataVisitor {
       }
     }
     // register the visitor
-    _id = _lastId;
-    _callbacks[_id] = callback;
-
-    _idPtr = allocate<Int64>();
-    _idPtr.value = _id;
+    _idPtr.value = _lastId;
+    _callbacks[_idPtr.value] = callback;
   }
 
   void close() {
     // unregister the visitor
-    _callbacks.remove(_id);
+    _callbacks.remove(_idPtr.value);
     free(_idPtr);
   }
 }

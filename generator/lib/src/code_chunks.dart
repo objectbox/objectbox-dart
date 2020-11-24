@@ -30,7 +30,7 @@ class CodeChunks {
     final name = entity.name;
     return """
       EntityDefinition<${name}>(
-        model: model.findEntityByUid(${entity.id.uid}),
+        model: model.getEntityByUid(${entity.id.uid}),
         reader: ($name inst) => {
           ${entity.properties.map((p) => "'${p.name}': inst.${p.name}").join(",\n")}
         },

@@ -30,17 +30,15 @@ R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
 }
 
 class OBX_bytes_wrapper {
-  Pointer<OBX_bytes> _cBytes;
-
-  OBX_bytes_wrapper(this._cBytes);
+  final Pointer<OBX_bytes> _cBytes;
 
   int get size => _cBytes == nullptr ? 0 : _cBytes.ref.size;
 
   Uint8List get data => safeDataAccess(_cBytes);
 
   /// Get access to the data (no-copy)
-  static Uint8List safeDataAccess(Pointer<OBX_bytes> cBytes) =>
-      cBytes.address == 0 || cBytes.ref.size == 0
+  static Uint8List safeDataAccess(Pointer<OBX_bytes> /*?*/ cBytes) =>
+      cBytes == null || cBytes.address == 0 || cBytes.ref.size == 0
           ? throw ObjectBoxException(
               dartMsg: "can't access data of empty OBX_bytes")
           : cBytes.ref.data.cast<Uint8>().asTypedList(cBytes.ref.size);
@@ -51,8 +49,8 @@ class OBX_bytes_wrapper {
 
   /// Returns a pointer to OBX_bytes with copy of the passed data.
   /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
-  OBX_bytes_wrapper.managedCopyOf(Uint8List data) {
-    _cBytes = allocate<OBX_bytes>();
+  OBX_bytes_wrapper.managedCopyOf(Uint8List data)
+      : _cBytes = allocate<OBX_bytes>() {
     final bytes = _cBytes.ref;
 
     // ObjectBox requires data to be aligned to the length of 4

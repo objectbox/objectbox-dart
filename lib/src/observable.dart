@@ -26,9 +26,9 @@ class _Observable {
     for (var i = 0; i < mutated_count; i++) {
       // call schema's callback
       if (_any.containsKey(storeAddress) &&
-          _any[storeAddress].containsKey(mutated_ids[i])) {
-        _any[storeAddress]
-            [mutated_ids[i]](user_data, mutated_ids, mutated_count);
+          _any[storeAddress] /*!*/ .containsKey(mutated_ids[i])) {
+        _any[storeAddress] /*!*/
+            [mutated_ids[i]] /*!*/ (user_data, mutated_ids, mutated_count);
       }
     }
   }
@@ -69,7 +69,7 @@ extension Streamable<T> on Query<T> {
     final storeAddress = store.ptr.address;
 
     _Observable._any[storeAddress] ??= <int, Any>{};
-    _Observable._any[storeAddress][entityId] ??= (u, _, __) {
+    _Observable._any[storeAddress] /*!*/ [entityId] ??= (u, _, __) {
       // dummy value to trigger an event
       _Observable.controller.add(u.address);
     };

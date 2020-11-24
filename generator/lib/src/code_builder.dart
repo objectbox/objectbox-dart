@@ -77,7 +77,7 @@ class CodeBuilder extends Builder {
           ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
     } else {
       log.warning('Creating model: ${jsonId.path}');
-      model = ModelInfo.createDefault();
+      model = ModelInfo();
     }
 
     // merge existing model and annotated model that was just read, then write new final model to file
@@ -152,7 +152,6 @@ class CodeBuilder extends Builder {
       log.info('Found new entity ${entity.name}');
       // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged
       entityInModel = modelInfo.addEntity(entity);
-
     } else {
       entityInModel.name = entity.name;
       entityInModel.flags = entity.flags;
@@ -161,12 +160,13 @@ class CodeBuilder extends Builder {
       entity.properties.forEach((p) => mergeProperty(entityInModel, p));
 
       // then remove all properties not present anymore in readEntity
-      entityInModel.properties
+      final missingProps = entityInModel.properties
           .where((p) => entity.findSameProperty(p) == null)
-          .forEach((p) {
+          .toList(growable: false);
+
+      missingProps.forEach((p) {
         log.warning(
-            'Property ${entity.name}.${p.name}(${p.id
-                .toString()}) not found in the code, removing from the model');
+            'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
         entityInModel.removeProperty(p);
       });
     }
