@@ -105,10 +105,11 @@ class Store {
   }
 
   EntityDefinition<T> entityDef<T>() {
-    if (defs.bindings[T] == null) {
+    final binding = defs.bindings[T];
+    if (binding == null) {
       throw ArgumentError('Unknown entity type ' + T.toString());
     }
-    return defs.bindings[T] /*!*/ as EntityDefinition<T>;
+    return binding /*!*/ as EntityDefinition<T>;
   }
 
   /// Executes a given function inside a transaction.

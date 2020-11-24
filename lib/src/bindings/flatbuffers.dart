@@ -158,7 +158,7 @@ class OBXFlatbuffersManager<T> {
 
     for (var i = 0; i < bytesArray.ref.count; i++) {
       final bytesPtr = bytesArray.ref.bytes.elementAt(i);
-      if (bytesPtr == null || bytesPtr.address == 0 || bytesPtr.ref.size == 0) {
+      if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
         throw ObjectBoxException(
             dartMsg: "can't access data of empty OBX_bytes");
       }
@@ -176,7 +176,7 @@ class OBXFlatbuffersManager<T> {
 
     for (var i = 0; i < bytesArray.ref.count; i++) {
       final bytesPtr = bytesArray.ref.bytes.elementAt(i);
-      if (bytesPtr == nullptr || bytesPtr.ref.size == 0) {
+      if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
         result[i] = null;
       } else {
         result[i] = unmarshalWithMissing(

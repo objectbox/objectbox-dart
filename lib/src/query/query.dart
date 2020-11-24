@@ -367,8 +367,8 @@ class StringCondition extends PropertyCondition<String> {
 class StringListCondition extends PropertyCondition<List<String>> {
   final bool _caseSensitive;
 
-  StringListCondition(
-      ConditionOp op, QueryProperty prop, List<String> value, bool caseSensitive)
+  StringListCondition(ConditionOp op, QueryProperty prop, List<String> value,
+      bool caseSensitive)
       : _caseSensitive = caseSensitive,
         super(op, prop, value);
 
