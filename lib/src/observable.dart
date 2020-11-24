@@ -23,13 +23,14 @@ class Observable {
           _any[storeAddress].containsKey(mutated_entity_ids[i])) {
         _any[storeAddress][mutated_entity_ids[i]](
             user_data, mutated_entity_ids, mutated_count);
-        print([user_data.address, mutated_entity_ids[i], mutated_count]
-            .join(','));
       }
     }
   }
 
   static void subscribe(Store store) {
+    if (_anyObserver.containsKey(store.ptr.address)) {
+      return;
+    }
     final callback = Pointer.fromFunction<obx_observer_t>(_anyCallback);
     final storePtr = store.ptr;
     _anyObserver[storePtr.address] =
@@ -68,21 +69,28 @@ extension Streamable<T> on Query<T> {
     final storeAddress = storePtr.address;
 
     Observable._any[storeAddress] ??= <int, Any>{};
-    Observable._any[storeAddress][entityId] ??= (u, _, __) {
+    Observable._any[storeAddress][entityId] ??= (u, entityIds, count) {
       // dummy value to trigger an event
-      Observable.controller.add(u.address);
+      for (var i = 0; i < count; i++) {
+        if (entityIds[i] == entityId) {
+          Observable.controller.add(entityIds[i]);
+        }
+      }
     };
   }
 
   Stream<List<T>> findStream({int offset = 0, int limit = 0}) {
     _setup();
     return Observable.controller.stream
+        .where((eId) => entityId == eId)
         .map((_) => find(offset: offset, limit: limit));
   }
 
   /// Use this for Query Property
   Stream<Query<T>> get stream {
     _setup();
-    return Observable.controller.stream.map((_) => this);
+    return Observable.controller.stream
+        .where((eId) => entityId == eId)
+        .map((_) => this);
   }
 }

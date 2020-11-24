@@ -98,6 +98,13 @@ void main() {
       counter1++;
     });
 
+    // bug found: the number of listeners increases
+    // the number of notifications
+    final queryStream3 = query1.findStream();
+    final subscription3 = queryStream3.listen((_) {
+      // dummy to trigger
+    });
+
     // counter2 test #1
     final t2 = TestEntity2();
     box2.put(t2);
