@@ -49,7 +49,8 @@ void main() {
   /// Work with a single store accross multiple isolates
   test('single store in multiple isolates', () async {
     final receivePort = ReceivePort();
-    final isolate = await Isolate.spawn(createDataIsolate, receivePort.sendPort);
+    final isolate =
+        await Isolate.spawn(createDataIsolate, receivePort.sendPort);
 
     final sendPortCompleter = Completer<SendPort>();
     Completer<dynamic> responseCompleter;
@@ -85,9 +86,9 @@ void main() {
     {
       // verify that query streams (using observers) work fine across isolates
       final queryStream = env.box.query().build().findStream();
+      final futureFirst = queryStream.first; // this starts a subscription
       expect(await call(['put', 'Bar']), equals(2));
-      List<TestEntity> found =
-          await queryStream.first.timeout(Duration(seconds: 1));
+      List<TestEntity> found = await futureFirst.timeout(Duration(seconds: 1));
       expect(found.length, equals(2));
       expect(found.last.tString, equals('Bar'));
     }

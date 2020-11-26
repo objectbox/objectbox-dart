@@ -165,6 +165,10 @@ bool obx_supports_time_series(void);
 /// A requested schema object (e.g., an entity or a property) was not found in the schema
 #define OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND 10504
 
+/// Feature specific errors
+#define OBX_ERROR_TIME_SERIES_NOT_AVAILABLE 10601
+#define OBX_ERROR_SYNC_NOT_AVAILABLE 10602
+
 //----------------------------------------------
 // Error info; obx_last_error_*
 //----------------------------------------------
@@ -1734,7 +1738,7 @@ obx_err obx_sync_close(OBX_sync* sync);
 /// Sets credentials to authenticate the client with the server.
 /// See OBXSyncCredentialsType for available options.
 /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
-/// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_UNCHECKED
+/// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_NONE
 obx_err obx_sync_credentials(OBX_sync* sync, OBXSyncCredentialsType type, const void* data, size_t size);
 
 /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.
@@ -1829,6 +1833,14 @@ void obx_sync_listener_complete(OBX_sync* sync, OBX_sync_listener_complete* list
 /// @param listener set NULL to reset
 /// @param listener_arg is a pass-through argument passed to the listener
 void obx_sync_listener_change(OBX_sync* sync, OBX_sync_listener_change* listener, void* listener_arg);
+
+obx_err obx_dart_init_api(void* data);
+
+/// @see obx_observe()
+/// Note: use obx_observer_close() to free unassign the observer and free resources after you're done with it
+OBX_observer* obx_dart_observe(OBX_store* store, int64_t dart_native_port);
+
+OBX_observer* obx_dart_observe_single_type(OBX_store* store, obx_schema_id type_id, int64_t dart_native_port);
 
 #ifdef __cplusplus
 }

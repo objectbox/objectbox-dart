@@ -1,6 +1,5 @@
-import 'dart:ffi';
-
-import 'package:objectbox/src/bindings/bindings.dart';
+import 'dart:async';
+import 'package:objectbox/observable.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -8,75 +7,12 @@ import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
-// ignore_for_file: non_constant_identifier_names
-
-/// Pointer.fromAddress(0) does not fire at all
-Pointer<Void> randomPtr = Pointer.fromAddress(1337);
-
-int callbackSingleTypeCounter = 0;
-
-void callbackSingleType(Pointer<Void> user_data) {
-  expect(user_data.address, randomPtr.address);
-  callbackSingleTypeCounter++;
-}
-
-int callbackAnyTypeCounter = 0;
-
-void callbackAnyType(
-    Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
-  expect(user_data.address, randomPtr.address);
-  callbackAnyTypeCounter++;
-}
-
-// dart callback signatures
-typedef Single = void Function(Pointer<Void>);
-typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
-
-class ObservableSingle {
-  static /*late*/ Pointer<OBX_observer> observer;
-  static /*late*/ Single single;
-  Store store;
-
-  ObservableSingle.fromStore(this.store);
-
-  static void _singleCallback(Pointer<Void> user_data) {
-    single(user_data);
-  }
-
-  void observeSingleType(int entityId, Single fn, Pointer<Void> identifier) {
-    single = fn;
-    final callback =
-        Pointer.fromFunction<obx_observer_single_type>(_singleCallback);
-    observer = C.observe_single_type(store.ptr, entityId, callback, identifier);
-  }
-}
-
-class ObservableMany {
-  static /*late*/ Pointer<OBX_observer> observer;
-  static /*late*/ Any any;
-  Store store;
-
-  ObservableMany.fromStore(this.store);
-
-  static void _anyCallback(
-      Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
-    any(user_data, mutated_ids, mutated_count);
-  }
-
-  void observe(Any fn, Pointer<Void> identifier) {
-    any = fn;
-    final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
-    observer = C.observe(store.ptr, callback, identifier);
-  }
-}
-
 void main() async {
   /*late final*/ TestEnv env;
-  /*late final*/ Box<TestEntity> box;
-  /*late final*/ Store store;
+  /*late final*/
+  Box<TestEntity> box;
 
-  final testEntityId =
-      getObjectBoxModel().model.findEntityByName('TestEntity').id.id;
+  final defaultTimeout = Duration(milliseconds: 100);
 
   final simpleStringItems = () => <String>[
         'One',
@@ -95,82 +31,85 @@ void main() async {
   setUp(() {
     env = TestEnv('observers');
     box = env.box;
-    store = env.store;
-  });
-
-  /// Non static function can't be used for ffi, but you can call a dynamic function
-  /// aka closure inside a static function
-  //  void callbackAnyTypeNonStatic(Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
-  //    expect(user_data.address, 0);
-  //    expect(mutated_count, 1);
-  //  }
-
-  test('Observe any entity with class member callback', () async {
-    final o = ObservableMany.fromStore(store);
-    var putCount = 0;
-    o.observe((Pointer<Void> user_data, Pointer<Uint32> mutated_ids,
-        int mutated_count) {
-      expect(user_data.address, randomPtr.address);
-      putCount++;
-    }, randomPtr);
-
-    box.putMany(simpleStringItems());
-    simpleStringItems().forEach((i) => box.put(i));
-    simpleNumberItems().forEach((i) => box.put(i));
-
-    C.observer_close(ObservableMany.observer);
-    expect(putCount, 13);
-  });
-
-  test('Observe a single entity with class member callback', () async {
-    final o = ObservableSingle.fromStore(store);
-    var putCount = 0;
-    o.observeSingleType(testEntityId, (Pointer<Void> user_data) {
-      putCount++;
-    }, randomPtr);
-
-    box.putMany(simpleStringItems());
-    simpleStringItems().forEach((i) => box.put(i));
-    simpleNumberItems().forEach((i) => box.put(i));
-
-    C.observer_close(ObservableSingle.observer);
-    expect(putCount, 13);
-  });
-
-  test('Observe any entity with static callback', () async {
-    final callback = Pointer.fromFunction<obx_observer>(callbackAnyType);
-    final observer = C.observe(store.ptr, callback, Pointer.fromAddress(1337));
-
-    box.putMany(simpleStringItems());
-
-    box.remove(1);
-
-    // update value
-    final entity2 = box.get(2);
-    entity2.tString = 'Dva';
-    box.put(entity2);
-
-    final box2 = Box<TestEntity2>(store);
-    box2.put(TestEntity2());
-    box2.remove(1);
-    box2.put(TestEntity2());
-
-    expect(callbackAnyTypeCounter, 6);
-    C.observer_close(observer);
   });
 
   test('Observe single entity', () async {
-    final callback =
-        Pointer.fromFunction<obx_observer_single_type>(callbackSingleType);
-    final observer =
-        C.observe_single_type(store.ptr, testEntityId, callback, randomPtr);
+    Completer completer;
+    var expectedEvents = 0;
 
+    final stream = env.store.subscribe<TestEntity>();
+    final subscription = stream.listen((_) {
+      print('TestEntity updated');
+      expectedEvents--;
+      if (expectedEvents == 0) {
+        completer.complete();
+      }
+    });
+
+    // expect two events after one put() and one putMany()
+    expectedEvents = 2;
+    completer = Completer();
+    box.put(simpleStringItems().first);
+    Box<TestEntity2>(env.store).put(TestEntity2());
     box.putMany(simpleStringItems());
-    simpleStringItems().forEach((i) => box.put(i));
-    simpleNumberItems().forEach((i) => box.put(i));
+    await completer.future.timeout(defaultTimeout);
+    expect(expectedEvents, 0);
 
-    expect(callbackSingleTypeCounter, 13);
-    C.observer_close(observer);
+    // cancel the subscription
+    await subscription.cancel();
+
+    // make sure there are no more events after cancelling
+    expectedEvents = 1;
+    completer = Completer();
+    box.put(simpleStringItems().first);
+    expect(completer.future.timeout(defaultTimeout),
+        throwsA(isA<TimeoutException>()));
+    expect(expectedEvents, 1); // note: unchanged, no events received anymore
+  });
+
+  test('Observe multiple entities', () async {
+    Completer completer;
+    var expectedEvents = 0;
+    var typesUpdates = <Type, int>{}; // number of events per entity type
+
+    final stream = env.store.subscribeAll();
+
+    final subscription = stream.listen((entityType) {
+      print('Entity updated: $entityType');
+      expectedEvents--;
+
+      if (typesUpdates[entityType] == null) {
+        typesUpdates[entityType] = 0;
+      }
+      typesUpdates[entityType]++;
+
+      if (expectedEvents == 0) {
+        completer.complete();
+      }
+    });
+
+    // expect two events after one put() and one putMany()
+    expectedEvents = 3;
+    completer = Completer();
+    box.put(simpleStringItems().first);
+    Box<TestEntity2>(env.store).put(TestEntity2());
+    box.putMany(simpleStringItems());
+    await completer.future.timeout(defaultTimeout);
+    expect(expectedEvents, 0);
+    expect(typesUpdates.keys, unorderedEquals([TestEntity, TestEntity2]));
+    expect(typesUpdates[TestEntity], 2);
+    expect(typesUpdates[TestEntity2], 1);
+
+    // cancel the subscription
+    await subscription.cancel();
+
+    // make sure there are no more events after cancelling
+    expectedEvents = 1;
+    completer = Completer();
+    box.put(simpleStringItems().first);
+    expect(completer.future.timeout(defaultTimeout),
+        throwsA(isA<TimeoutException>()));
+    expect(expectedEvents, 1); // note: unchanged, no events received anymore
   });
 
   tearDown(() {

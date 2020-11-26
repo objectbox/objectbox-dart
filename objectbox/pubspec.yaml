@@ -37,8 +37,9 @@ ffigen:
   headers:
     entry-points:
       - 'lib/src/bindings/objectbox.h'
+      - 'lib/src/bindings/objectbox-dart.h'
     include-directives:
-      - '**objectbox.h'
+      - '**objectbox*.h'
   functions:
     rename:
       'obx_(.*)': '$1'
