@@ -1,3 +1,31 @@
+## latest
+
+
+## 0.9.0 (2020-11-12)
+
+* Update to objectbox-c 0.11.0
+* Update to objectbox-android 2.8.0
+* Change `box.get(id)` to return null instead of throwing when trying to read a non-existent object.
+* Change the generator to skip read-only fields (getters)
+* Add SyncClient to enable the new [ObjectBox Sync](https://objectbox.io/sync)
+* Add "empty" query support using `box.query()`.
+    (thanks [@Buggaboo](https://github.com/Buggaboo) for [#132](https://github.com/objectbox/objectbox-dart/pull/132))
+* Expose `lib/observable.dart` to avoid linter isues in apps using objectbox.
+    (thanks [@cmengler](https://github.com/cmengler) for bringing this up in [#141](https://github.com/objectbox/objectbox-dart/pull/141))    
+* Documentation and examples updates & improvements.
+* Switch C-API binding code generation to package `ffigen`.
+
+## 0.8.0 (2020-10-13)
+
+* Update to objectbox-c 0.10.0.
+* Update to objectbox-android 2.7.1.
+* Update to objectbox-swift 1.4.0.
+* String startsWith and endsWith condition: removed unused `descending` parameter, add `caseSensitive` parameter.
+* String greaterThan/lessThan condition: `withEqual` is deprecated, use the greaterOrEqual/lessOrEqual condition instead.
+* Query find/findIds `offset` and `limit` parameters are deprecated, set them using the equally named methods instead.
+* New support to create a Dart Stream from a Query 
+    (thanks [@Buggaboo](https://github.com/Buggaboo) for [#88](https://github.com/objectbox/objectbox-dart/pull/88))
+
 0.7.0 (2020-08-14)
 ------------------
 * Flutter v1.20 support 

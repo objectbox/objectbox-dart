@@ -2,29 +2,16 @@ ObjectBox for Dart/Flutter
 ==========================
 ObjectBox for Dart is a standalone database storing Dart objects locally, with strong ACID semantics.
 
-Flutter/Dart compatibility
---------------------------
-Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
-To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: ^0.7.0` 
-as an additional dependency, in addition to `objectbox`.
-
-This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
-However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
-Versions between ObjectBox v0.5 up to v0.6.x support Dart 2.6+ as well as Flutter 1.12+ and Flutter 1.17+.  
-
-The last supported version for Flutter 1.9/Dart 2.5 is ObjectBox 0.4.*, so if you can't upgrade yet, please use the 
-latest 0.4.x version instead.
-
 Installation
 ------------
 Add the following dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^0.7.0
+  objectbox: ^0.9.0
 
 dev_dependencies:
   build_runner: ^1.0.0
-  objectbox_generator: ^0.7.0
+  objectbox_generator: any
 ```
 
 Proceed based on whether you're developing a Flutter app or a standalone dart program:
@@ -32,8 +19,8 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
     * Add additional dependency to include native libraries (required in Flutter):
       ```yaml
       dependencies:
-        objectbox: ^0.7.0
-        objectbox_flutter_libs: ^0.7.0
+        objectbox: ^0.9.0
+        objectbox_flutter_libs: any
       ```
     * Install the packages `flutter pub get`
     * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
@@ -158,6 +145,36 @@ scoreQuery.close();
 query.close();
 ```
 
+### Streams
+
+Streams can be created from queries.
+Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart).
+
+```dart
+    import "package:objectbox/observable.dart";
+
+    // final store = ...
+    final query = box.query(condition).build();
+    final queryStream = query.stream;
+    final sub1 = queryStream.listen((query) {
+      print(query.count());
+    });
+
+    // box.put ...
+
+    sub1.cancel();
+
+    final stream = query.findStream(limit:5);
+    final sub2 = stream.listen((list) {
+      // ...
+    });
+
+    // clean up
+    sub2.cancel();
+
+    store.close();
+```
+
 Help wanted
 -----------
 ObjectBox for Dart is still in an early stage with limited feature set (compared to other languages).
@@ -192,6 +209,23 @@ See also
 ---------
 * [Changelog](CHANGELOG.md)
 * [Contribution guidelines](CONTRIBUTING.md)
+
+Flutter/Dart compatibility
+--------------------------
+We aim to make ObjectBox compatible with the following Dart/Flutter versions (lower bounds may change in the future):
+* Flutter 1.12+ up to the latest stable release
+* Dart 2.6.0+ up to the latest stable release
+
+Starting with Flutter 1.20, additional changes were required, starting from objectbox-dart v0.7.0. 
+To make sure your Flutter application works after update to Flutter 1.20, add `objectbox_flutter_libs: any` 
+as an additional dependency, in addition to `objectbox`.
+
+This library depends on a new Dart feature, FFI, introduced in Dart 2.5 (Flutter 1.9) as a feature preview. 
+However, it has changed significantly in Dart 2.6/Flutter 1.12, i.e. introduced breaking changes we had to reflect.
+Versions between ObjectBox v0.5 up to v0.6.x support Dart 2.6+ as well as Flutter 1.12+ and Flutter 1.17+.  
+
+The last supported version for Flutter 1.9/Dart 2.5 is ObjectBox 0.4.*, so if you can't upgrade yet, please use the 
+latest 0.4.x version instead.
 
 License
 -------

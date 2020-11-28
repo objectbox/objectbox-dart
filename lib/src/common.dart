@@ -31,11 +31,12 @@ Version versionLib() {
 }
 
 class ObjectBoxException implements Exception {
-  final String dartMsg;
+  final String /*?*/ dartMsg;
   final int nativeCode;
-  final String nativeMsg;
+  final String /*?*/ nativeMsg;
 
-  ObjectBoxException({String dartMsg, int nativeCode, String nativeMsg})
+  ObjectBoxException(
+      {String /*?*/ dartMsg, int nativeCode = 0, String /*?*/ nativeMsg})
       : dartMsg = dartMsg,
         nativeCode = nativeCode,
         nativeMsg = nativeMsg;
@@ -43,8 +44,12 @@ class ObjectBoxException implements Exception {
   @override
   String toString() {
     var result = 'ObjectBoxException: ';
-    if (dartMsg != null) result += dartMsg + ': ';
+    if (dartMsg != null) {
+      result += dartMsg /*!*/;
+      if (nativeCode != 0 || nativeMsg != null) result += ': ';
+    }
     if (nativeCode != 0) result += '$nativeCode ';
-    return result + nativeMsg;
+    if (nativeMsg != null) result += nativeMsg;
+    return result.trimRight();
   }
 }

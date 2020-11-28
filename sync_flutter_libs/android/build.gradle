@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 16
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
+
+dependencies {
+    // https://bintray.com/objectbox/objectbox/io.objectbox%3Aobjectbox-android
+    implementation "io.objectbox:objectbox-android:2.8.0-sync"
+}

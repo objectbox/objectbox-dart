@@ -1,6 +1,6 @@
 import "dart:convert";
 import "package:objectbox/src/modelinfo/index.dart";
-import "package:objectbox/src/bindings/constants.dart" show OBXPropertyType;
+import "package:objectbox/src/bindings/bindings.dart" show OBXPropertyType;
 import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
 
 class CodeChunks {
@@ -30,7 +30,7 @@ class CodeChunks {
     final name = entity.name;
     return """
       EntityDefinition<${name}>(
-        model: model.findEntityByUid(${entity.id.uid}),
+        model: model.getEntityByUid(${entity.id.uid}),
         reader: ($name inst) => {
           ${entity.properties.map((p) => "'${p.name}': inst.${p.name}").join(",\n")}
         },

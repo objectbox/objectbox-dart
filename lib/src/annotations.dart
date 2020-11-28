@@ -1,5 +1,6 @@
 class Entity {
-  final int uid;
+  final int /*?*/ uid;
+
   const Entity({this.uid});
 }
 
@@ -12,18 +13,26 @@ class Entity {
 ///
 /// Use OBXPropertyType and OBXPropertyFlag values, resp. for type and flag.
 class Property {
-  final int uid, type, flag;
+  final int /*?*/ uid, type, flag;
+
   const Property({this.type, this.flag, this.uid});
 }
 
 class Id {
-  final int uid;
+  final int /*?*/ uid;
+
   const Id({this.uid});
 }
 
 class Transient {
   const Transient();
 }
+
+/// See Sync() in sync.dart.
+/// Defining a class with the same name here would cause a duplicate export.
+// class Sync {
+//   const Sync();
+// }
 
 // TODO It's possible to pass the unique and index flags directly through Property,
 // was it even intended to have a separate annotation for these?

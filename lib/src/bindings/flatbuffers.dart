@@ -1,8 +1,10 @@
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import 'constants.dart';
+import '../common.dart';
+import 'bindings.dart';
 import 'structs.dart';
 import '../modelinfo/index.dart';
 
@@ -37,15 +39,15 @@ class OBXFlatbuffersManager<T> {
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
-  Pointer<OBX_bytes> marshal(Map<String, dynamic> propVals) {
+  OBX_bytes_wrapper marshal(Map<String, dynamic> propVals) {
     var builder = fb.Builder(initialSize: 1024);
 
     // write all strings
-    final offsets = <String, int>{};
-    _modelEntity.properties.forEach((p) {
+    final offsets = <int, int>{};
+    _modelEntity.properties.forEach((ModelProperty p) {
       switch (p.type) {
         case OBXPropertyType.String:
-          offsets[p.name] = builder.writeString(propVals[p.name]);
+          offsets[p.id.id] = builder.writeString(propVals[p.name]);
           break;
       }
     });
@@ -53,8 +55,9 @@ class OBXFlatbuffersManager<T> {
     // create table and write actual properties
     // TODO: make sure that Id property has a value >= 1
     builder.startTable();
-    _modelEntity.properties.forEach((p) {
-      var field = p.id.id - 1, value = propVals[p.name];
+    _modelEntity.properties.forEach((ModelProperty p) {
+      final field = p.id.id - 1;
+      final value = propVals[p.name];
       switch (p.type) {
         case OBXPropertyType.Bool:
           builder.addBool(field, value);
@@ -75,7 +78,7 @@ class OBXFlatbuffersManager<T> {
           builder.addInt64(field, value);
           break;
         case OBXPropertyType.String:
-          builder.addOffset(field, offsets[p.name]);
+          builder.addOffset(field, offsets[p.id.id] /*!*/);
           break;
         case OBXPropertyType.Float:
           builder.addFloat32(field, value);
@@ -90,10 +93,13 @@ class OBXFlatbuffersManager<T> {
     });
 
     var endOffset = builder.endTable();
-    return OBX_bytes.managedCopyOf(builder.finish(endOffset));
+    return OBX_bytes_wrapper.managedCopyOf(builder.finish(endOffset));
   }
 
-  T unmarshal(final Uint8List bytes) {
+  T unmarshal(Pointer<Uint8> dataPtr, int length) {
+    // create a no-copy view
+    final bytes = dataPtr.asTypedList(length);
+
     final entity = _OBXFBEntity(bytes);
     final propVals = <String, dynamic>{};
 
@@ -138,13 +144,46 @@ class OBXFlatbuffersManager<T> {
     return _entityBuilder(propVals);
   }
 
-  // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray,
-      {bool allowMissing = false}) {
-    var fn = (OBX_bytes b) => unmarshal(b.data);
-    if (allowMissing) {
-      fn = (OBX_bytes b) => b.isEmpty ? null : unmarshal(b.data);
+  T /*?*/ unmarshalWithMissing(Pointer<Uint8> dataPtr, int length) {
+    if (dataPtr == null || dataPtr.address == 0 || length == 0) {
+      return null;
     }
-    return bytesArray.ref.items().map<T>(fn).toList();
+    return unmarshal(dataPtr, length);
+  }
+
+  // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
+  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray) {
+    final result = <T>[];
+    result.length = bytesArray.ref.count;
+
+    for (var i = 0; i < bytesArray.ref.count; i++) {
+      final bytesPtr = bytesArray.ref.bytes.elementAt(i);
+      if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
+        throw ObjectBoxException(
+            dartMsg: "can't access data of empty OBX_bytes");
+      }
+      result[i] = unmarshal(bytesPtr.ref.data.cast<Uint8>(), bytesPtr.ref.size);
+    }
+
+    return result;
+  }
+
+  // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
+  List<T /*?*/ > unmarshalArrayWithMissing(
+      final Pointer<OBX_bytes_array> bytesArray) {
+    final result = <T /*?*/ >[];
+    result.length = bytesArray.ref.count;
+
+    for (var i = 0; i < bytesArray.ref.count; i++) {
+      final bytesPtr = bytesArray.ref.bytes.elementAt(i);
+      if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
+        result[i] = null;
+      } else {
+        result[i] = unmarshalWithMissing(
+            bytesPtr.ref.data.cast<Uint8>(), bytesPtr.ref.size);
+      }
+    }
+
+    return result;
   }
 }

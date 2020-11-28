@@ -7,12 +7,29 @@ import 'objectbox.g.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  TestEnv env;
-  Box<TestEntity> box;
+  /*late final*/ TestEnv env;
+  /*late final*/ Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query');
     box = env.box;
+  });
+
+  test('Query with no conditions, and order as desc ints', () {
+    box.putMany(<TestEntity>[
+      TestEntity(tInt: 0),
+      TestEntity(tInt: 10),
+      TestEntity(tInt: 100),
+      TestEntity(tInt: 10),
+      TestEntity(tInt: 0),
+    ]);
+
+    var query =
+        box.query().order(TestEntity_.tInt, flags: Order.descending).build();
+    final listDesc = query.find();
+    query.close();
+
+    expect(listDesc.map((t) => t.tInt).toList(), [100, 10, 10, 0, 0]);
   });
 
   test('ignore transient field', () {
@@ -46,7 +63,7 @@ void main() {
   });
 
   test('.null and .notNull', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),
       TestEntity(tDouble: 0.3, tBool: false),
       TestEntity(tString: 'one'),
@@ -70,7 +87,7 @@ void main() {
   });
 
   test('.count doubles and booleans', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),
       TestEntity(tDouble: 0.3, tBool: false),
       TestEntity(tDouble: 0.5, tBool: true),
@@ -118,7 +135,7 @@ void main() {
   });
 
   test('.count matches of `greater` and `less`', () {
-    box.putMany([
+    box.putMany(<TestEntity>[
       TestEntity(tLong: 1336, tString: 'mord'),
       TestEntity(tLong: 1337, tString: 'more'),
       TestEntity(tLong: 1338, tString: 'morf'),
@@ -222,7 +239,8 @@ void main() {
     q.close();
 
     q = box.query(text.isNull()).build();
-    expect(q.find(offset: 0, limit: 1).length, 1);
+    q.limit(1);
+    expect(q.find().length, 1);
     q.close();
   });
 
@@ -261,6 +279,23 @@ void main() {
     expect(items.length, 2);
     expect(items[0].tString, largeString);
     expect(items[1].tString, largeString);
+  });
+
+  test('.remove deletes the right items', () {
+    box.put(TestEntity());
+    box.put(TestEntity(tString: 'test'));
+    box.put(TestEntity(tString: 'test3'));
+    box.put(TestEntity(tString: 'foo'));
+
+    final text = TestEntity_.tString;
+
+    final q = box.query(text.startsWith('test')).build();
+    expect(q.remove(), 2);
+    q.close();
+
+    final remaining = box.getAll();
+    expect(remaining.length, 2);
+    expect(remaining.map((e) => e.id), equals([1,4]));
   });
 
   test('.count items after grouping with and/or', () {

@@ -1,5 +1,5 @@
 import 'package:objectbox/objectbox.dart';
-import 'package:objectbox/src/bindings/constants.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
 
 /// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
 class TestingUnknownAnnotation {
@@ -8,44 +8,45 @@ class TestingUnknownAnnotation {
 
 @Entity()
 @TestingUnknownAnnotation()
+@Sync()
 class TestEntity {
   @Id()
   @TestingUnknownAnnotation()
-  int id;
+  int /*?*/ id;
 
   // implicitly determined types
-  String tString;
-  int tLong;
-  double tDouble;
-  bool tBool;
+  String /*?*/ tString;
+  int /*?*/ tLong;
+  double /*?*/ tDouble;
+  bool /*?*/ tBool;
 
   @Transient()
-  int ignore;
+  int /*?*/ ignore;
 
   @Transient()
-  int omit, disregard;
+  int /*?*/ omit, disregard;
 
   // explicitly declared types, see OB-C, objectbox.h
 
   // OBXPropertyType.Byte | 1 byte
   @Property(type: OBXPropertyType.Byte)
-  int tByte;
+  int /*?*/ tByte;
 
   // OBXPropertyType.Short | 2 bytes
   @Property(type: OBXPropertyType.Short)
-  int tShort;
+  int /*?*/ tShort;
 
   // OBXPropertyType.Char | 1 byte
   @Property(type: OBXPropertyType.Char)
-  int tChar;
+  int /*?*/ tChar;
 
   // OBXPropertyType.Int |  ob: 4 bytes, dart: 8 bytes
   @Property(type: OBXPropertyType.Int)
-  int tInt;
+  int /*?*/ tInt;
 
   // OBXPropertyType.Float | 4 bytes
   @Property(type: OBXPropertyType.Float)
-  double tFloat;
+  double /*?*/ tFloat;
 
   TestEntity(
       {this.id,

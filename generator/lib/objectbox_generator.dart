@@ -1,3 +1,4 @@
+/// This package provides code generation for ObjectBox in Dart/Flutter.
 import 'package:build/build.dart';
 import 'src/entity_resolver.dart';
 import 'src/code_builder.dart';

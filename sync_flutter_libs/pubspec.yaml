@@ -1,0 +1,23 @@
+name: objectbox_sync_flutter_libs
+version: 0.9.0
+repository: https://github.com/objectbox/objectbox-dart
+homepage: https://objectbox.io
+description: ObjectBox is a super-fast NoSQL ACID compliant object database. This package contains flutter runtime libraries for ObjectBox, including ObjectBox Sync.
+
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+  flutter: ">=1.12.0 <2.0.0"
+
+dependencies:
+  # This is here just to ensure compatibility between objectbox-dart code and the libraries used
+  # You should still depend on objectbox directly in your Flutter application.
+  objectbox: 0.9.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.objectbox.flutter
+        pluginClass: ObjectBoxFlutterPlugin
+      ios:
+        pluginClass: ObjectBoxFlutterPlugin

@@ -1,0 +1,3 @@
+# NOTE: comment out before publishing - the binaries need to be uploaded
+Carthage
+*.zip

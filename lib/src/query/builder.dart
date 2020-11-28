@@ -4,32 +4,32 @@ part of query;
 class QueryBuilder<T> {
   final Store _store;
   final int _entityId; // aka model id, entity id
-  final Condition _queryCondition;
-  Pointer<Void> _cBuilder;
-  final OBXFlatbuffersManager _fbManager;
+  final Condition /*?*/ _queryCondition;
+  final Pointer<OBX_query_builder> _cBuilder;
+  final OBXFlatbuffersManager<T> _fbManager;
 
   QueryBuilder(
-      this._store, this._fbManager, this._entityId, this._queryCondition);
+      this._store, this._fbManager, this._entityId, this._queryCondition)
+      : _cBuilder = checkObxPtr(
+            bindings.obx_query_builder(_store.ptr, _entityId),
+            'failed to create QueryBuilder');
 
   void _throwExceptionIfNecessary() {
-    if (bindings.obx_qb_error_code(_cBuilder) != OBXError.OBX_SUCCESS) {
+    if (bindings.obx_qb_error_code(_cBuilder) != OBX_SUCCESS) {
       final msg = cString(bindings.obx_qb_error_message(_cBuilder));
-      throw ObjectBoxException(nativeMsg: msg);
+      throw ObjectBoxException(
+          dartMsg: 'Query building failed', nativeMsg: msg);
     }
   }
 
-  Pointer<Void> _createBuilder() =>
-      _cBuilder ??= bindings.obx_qb_create(_store.ptr, _entityId);
-
-  Query build() {
-    _createBuilder();
-
-    if (0 == _queryCondition.apply(this, true)) {
+  Query<T> build() {
+    if (_queryCondition != null &&
+        0 == _queryCondition /*!*/ .apply(this, true)) {
       _throwExceptionIfNecessary();
     }
 
     try {
-      return Query<T>._(_store, _fbManager, _cBuilder);
+      return Query<T>._(_store, _fbManager, _cBuilder, _entityId);
     } finally {
       checkObx(bindings.obx_qb_close(_cBuilder));
     }
@@ -40,42 +40,7 @@ class QueryBuilder<T> {
       throw Exception(
           'Passed a property of another entity: ${p._entityId} instead of $_entityId');
     }
-    _createBuilder();
     checkObx(bindings.obx_qb_order(_cBuilder, p._propertyId, flags));
     return this;
   }
 }
-
-/*  // Not done yet
-    obx_qb_bytes_eq_dart_t obx_qb_bytes_equal;
-    obx_qb_bytes_lt_gt_dart_t obx_qb_bytes_greater, obx_qb_bytes_less;
-
-    obx_qb_param_alias_dart_t obx_qb_param_alias;
-*/
-
-//////
-//////
-
-/** Inspiration
-    Modifier and Type	Method	Description
-    <TARGET> QueryBuilder<TARGET>	backlink​(RelationInfo<TARGET,?> relationInfo)
-    Creates a backlink (reversed link) to another entity, for which you also can describe conditions using the returned builder.
-    void	close()
- ** QueryBuilder<T>	eager​(int limit, RelationInfo relationInfo, RelationInfo... more)
-    Like eager(RelationInfo, RelationInfo[]), but limits eager loading to the given count.
- ** QueryBuilder<T>	eager​(RelationInfo relationInfo, RelationInfo... more)
-    Specifies relations that should be resolved eagerly.
- ** QueryBuilder<T>	filter​(QueryFilter<T> filter) // dart has built-in higher order functions
-    Sets a filter that executes on primary query results (returned from the db core) on a Java level.
-    <TARGET> QueryBuilder<TARGET>	link​(RelationInfo<?,TARGET> relationInfo)
-    Creates a link to another entity, for which you also can describe conditions using the returned builder.
- ** QueryBuilder<T>	order​(Property<T> property)
-    Specifies given property to be used for sorting.
- ** QueryBuilder<T>	order​(Property<T> property, int flags)
-    Defines the order with which the results are ordered (default: none).
- ** QueryBuilder<T>	orderDesc​(Property<T> property)
-    Specifies given property in descending order to be used for sorting.
- ** QueryBuilder<T>	parameterAlias​(java.lang.String alias)
-    Assigns the given alias to the previous condition.
- ** QueryBuilder<T>	sort​(java.util.Comparator<T> comparator)
- */

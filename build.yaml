@@ -1,0 +1,6 @@
+# Workaround for https://github.com/dart-lang/build/issues/2916#issuecomment-730555138
+targets:
+  $default:
+    sources:
+      exclude:
+        - example/**

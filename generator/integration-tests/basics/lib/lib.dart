@@ -18,3 +18,12 @@ class B {
 
   B();
 }
+
+@Entity()
+@Sync()
+class D {
+  @Id()
+  int id;
+
+  D();
+}

@@ -7,8 +7,10 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  TestEnv env;
+  /*late final*/ TestEnv env;
+  /*late final*/
   Store store;
+  /*late final*/
   Box<TestEntity> box;
 
   final List<TestEntity> simpleItems = [
@@ -33,14 +35,18 @@ void main() {
 
   test('.get() returns the correct item', () {
     final int putId = box.put(TestEntity(tString: 'Hello'));
-    final TestEntity item = box.get(putId);
+    final TestEntity item = box.get(putId) /*!*/;
     expect(item.id, equals(putId));
     expect(item.tString, equals('Hello'));
   });
 
+  test('.get() returns null on non-existent item', () {
+    expect(box.get(1), isNull);
+  });
+
   test('.put() and box.get() keep Unicode characters', () {
     final String text = '😄你好';
-    final TestEntity inst = box.get(box.put(TestEntity(tString: text)));
+    final TestEntity inst = box.get(box.put(TestEntity(tString: text))) /*!*/;
     expect(inst.tString, equals(text));
   });
 
@@ -48,7 +54,7 @@ void main() {
     final int putId1 = box.put(TestEntity(tString: 'One'));
     final int putId2 = box.put(TestEntity(tString: 'Two')..id = putId1);
     expect(putId2, equals(putId1));
-    final TestEntity item = box.get(putId2);
+    final TestEntity item = box.get(putId2) /*!*/;
     expect(item.tString, equals('Two'));
   });
 
@@ -99,7 +105,7 @@ void main() {
     final List<int> ids = box.putMany(items);
     expect(ids.length, equals(items.length));
     for (var i = 0; i < items.length; ++i) {
-      expect(box.get(ids[i]).tString, equals(items[i].tString));
+      expect(box.get(ids[i]) /*!*/ .tString, equals(items[i].tString));
     }
   });
 
@@ -119,7 +125,7 @@ void main() {
 
     box.put(TestEntity(tString: largeString));
 
-    items = box.getMany([1, 2]);
+    items = box.getMany([1, 2]) as List<TestEntity /*!*/ >;
     expect(items.length, 2);
     expect(items[0].tString, largeString);
     expect(items[1].tString, largeString);
@@ -133,12 +139,12 @@ void main() {
     while (ids.indexWhere((id) => id == otherId) != -1) {
       ++otherId;
     }
-    final List<TestEntity> fetchedItems =
+    final List<TestEntity /*?*/ > fetchedItems =
         box.getMany([ids[0], otherId, ids[1]]);
     expect(fetchedItems.length, equals(3));
-    expect(fetchedItems[0].tString, equals('One'));
+    expect(fetchedItems[0] /*!*/ .tString, equals('One'));
     expect(fetchedItems[1], equals(null));
-    expect(fetchedItems[2].tString, equals('Two'));
+    expect(fetchedItems[2] /*!*/ .tString, equals('Two'));
   });
 
   test('all limit integers are stored correctly', () {
@@ -159,7 +165,8 @@ void main() {
     ];
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
-    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    final List<TestEntity> fetchedItems =
+        box.getMany(box.putMany(items)) as List<TestEntity /*!*/ >;
     expect(fetchedItems[0].tChar, equals(int8Min));
     expect(fetchedItems[1].tChar, equals(int8Max));
     expect(fetchedItems[2].tByte, equals(int8Min));
@@ -193,12 +200,13 @@ void main() {
       ...valsFloat.map((n) => TestEntity(tFloat: n)).toList(),
       ...valsDouble.map((n) => TestEntity(tDouble: n)).toList()
     ];
-    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    final List<TestEntity> fetchedItems =
+        box.getMany(box.putMany(items)) as List<TestEntity /*!*/ >;
     List<double> fetchedVals = [];
     for (var i = 0; i < fetchedItems.length; i++) {
       fetchedVals.add(i < valsFloat.length
-          ? fetchedItems[i].tFloat
-          : fetchedItems[i].tDouble);
+          ? fetchedItems[i].tFloat /*!*/
+          : fetchedItems[i].tDouble /*!*/);
     }
 
     for (var i = 0; i < fetchedVals.length; i++) {
@@ -219,7 +227,8 @@ void main() {
       TestEntity(tLong: 10),
       TestEntity(tString: 'Hello')
     ];
-    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    final List<TestEntity> fetchedItems =
+        box.getMany(box.putMany(items)) as List<TestEntity /*!*/ >;
     expect(fetchedItems[0].id, isNot(equals(null)));
     expect(fetchedItems[0].tLong, equals(null));
     expect(fetchedItems[0].tString, equals(null));
@@ -248,16 +257,17 @@ void main() {
         tChar: 'x'.codeUnitAt(0),
         tInt: 789012,
         tFloat: -2.71);
-    final fetchedItem = box.get(box.put(item));
+    final fetchedItem = box.get(box.put(item)) /*!*/;
     expect(fetchedItem.tString, equals('Hello'));
     expect(fetchedItem.tLong, equals(1234));
-    expect((fetchedItem.tDouble - 3.14159).abs(), lessThan(0.000000000001));
+    expect(
+        (fetchedItem.tDouble /*!*/ - 3.14159).abs(), lessThan(0.000000000001));
     expect(fetchedItem.tBool, equals(true));
     expect(fetchedItem.tByte, equals(123));
     expect(fetchedItem.tShort, equals(-4567));
     expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
     expect(fetchedItem.tInt, equals(789012));
-    expect((fetchedItem.tFloat - (-2.71)).abs(), lessThan(0.0000001));
+    expect((fetchedItem.tFloat /*!*/ - (-2.71)).abs(), lessThan(0.0000001));
   });
 
   test('.count() works', () {
@@ -315,6 +325,11 @@ void main() {
     expect(success, equals(false));
   });
 
+  test('.remove() returns false on non-existent item', () {
+    box.removeAll();
+    expect(box.remove(1), isFalse);
+  });
+
   test('.removeMany(ids) works', () {
     final List<int> ids = box.putMany(simpleItems);
     expect(box.count(), equals(6));
@@ -325,7 +340,8 @@ void main() {
     expect(box.count(), equals(4));
 
     // verify the right items were removed
-    final List<int> remainingIds = box.getAll().map((o) => o.id).toList();
+    final List<int /*?*/ > remainingIds =
+        box.getAll().map((o) => o.id).toList();
     expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
   });
 

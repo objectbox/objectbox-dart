@@ -2,23 +2,30 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 import 'bindings.dart';
-import 'constants.dart';
 import '../common.dart';
 
 void checkObx(int code) {
-  if (code != OBXError.OBX_SUCCESS) {
+  if (code != OBX_SUCCESS) {
     throw latestNativeError(codeIfMissing: code);
   }
 }
 
-Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> ptr, String dartMsg) {
+bool checkObxSuccess(int code) {
+  if (code == OBX_NO_SUCCESS) return false;
+  checkObx(code);
+  return true;
+}
+
+Pointer<T> checkObxPtr<T extends NativeType>(
+    Pointer<T> /*?*/ ptr, String dartMsg) {
   if (ptr == null || ptr.address == 0) {
     throw latestNativeError(dartMsg: dartMsg);
   }
   return ptr;
 }
 
-ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
+ObjectBoxException latestNativeError(
+    {String /*?*/ dartMsg, int codeIfMissing = OBX_ERROR_UNKNOWN}) {
   final code = bindings.obx_last_error_code();
   final text = cString(bindings.obx_last_error_message());
 
@@ -33,11 +40,11 @@ ObjectBoxException latestNativeError({String dartMsg, int codeIfMissing}) {
       dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
 }
 
-String cString(Pointer<Utf8> charPtr) {
+String cString(Pointer<Int8> charPtr) {
   // Utf8.fromUtf8 segfaults when called on nullptr
   if (charPtr.address == 0) {
     return '';
   }
 
-  return Utf8.fromUtf8(charPtr);
+  return Utf8.fromUtf8(charPtr.cast<Utf8>());
 }

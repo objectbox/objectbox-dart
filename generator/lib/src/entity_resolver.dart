@@ -4,9 +4,8 @@ import 'dart:convert';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart' as obx;
-import 'package:objectbox/src/bindings/constants.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
-import 'package:objectbox/src/util.dart';
 import 'package:source_gen/source_gen.dart';
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
@@ -22,6 +21,7 @@ class EntityResolver extends Builder {
   final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
   final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
+  final _syncChecker = const TypeChecker.fromRuntime(obx.Sync);
   final _uniqueChecker = const TypeChecker.fromRuntime(obx.Unique);
   final _indexChecker = const TypeChecker.fromRuntime(obx.Index);
 
@@ -52,22 +52,41 @@ class EntityResolver extends Builder {
       throw InvalidGenerationSourceError(
           "in target ${elementBare.name}: annotated element isn't a class");
     }
+
     var element = elementBare as ClassElement;
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    final readEntity = ModelEntity(IdUid.empty(), null, element.name, [], null);
+    final entity = ModelEntity(IdUid.empty(), element.name, null);
     var entityUid = annotation.read('uid');
     if (entityUid != null && !entityUid.isNull) {
-      readEntity.id.uid = entityUid.intValue;
+      entity.id.uid = entityUid.intValue;
     }
 
-    log.info('entity ${readEntity.name}(${readEntity.id})');
+    if (_syncChecker.hasAnnotationOfExact(element)) {
+      entity.flags |= OBXEntityFlags.SYNC_ENABLED;
+    }
+
+    log.info('entity ${entity.name}(${entity.id}), sync=' +
+        (entity.hasFlag(OBXEntityFlags.SYNC_ENABLED) ? 'ON' : 'OFF'));
+
+    // getters, ... (anything else?)
+    final readOnlyFields = <String, bool>{};
+    for (var f in element.accessors) {
+      if (f.isGetter && f.correspondingSetter == null) {
+        readOnlyFields[f.name] = true;
+      }
+    }
 
     // read all suitable annotated properties
     var hasIdProperty = false;
     for (var f in element.fields) {
       if (_transientChecker.hasAnnotationOfExact(f)) {
         log.info('  skipping property ${f.name} (annotated with @Transient)');
+        continue;
+      }
+
+      if (readOnlyFields.containsKey(f.name)) {
+        log.info('  skipping read-only/getter ${f.name}');
         continue;
       }
 
@@ -79,7 +98,7 @@ class EntityResolver extends Builder {
           throw InvalidGenerationSourceError(
               'in target ${elementBare.name}: has more than one properties annotated with @Id');
         }
-        if (f.type.toString() != 'int') {
+        if (!f.type.isDartCoreInt) {
           throw InvalidGenerationSourceError(
               "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
         }
@@ -87,7 +106,7 @@ class EntityResolver extends Builder {
         hasIdProperty = true;
 
         fieldType = OBXPropertyType.Long;
-        flags |= OBXPropertyFlag.ID;
+        flags |= OBXPropertyFlags.ID;
 
         final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
         propUid = _idAnnotation.getField('uid').toIntValue();
@@ -99,25 +118,25 @@ class EntityResolver extends Builder {
       }
 
       if (fieldType == null) {
-        var fieldTypeStr = f.type.toString();
+        var fieldTypeDart = f.type;
 
-        if (fieldTypeStr == 'int') {
+        if (fieldTypeDart.isDartCoreInt) {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Long;
-        } else if (fieldTypeStr == 'String') {
+        } else if (fieldTypeDart.isDartCoreString) {
           fieldType = OBXPropertyType.String;
-        } else if (fieldTypeStr == 'bool') {
+        } else if (fieldTypeDart.isDartCoreBool) {
           // dart: 1 byte
           // ob: 1 byte
           fieldType = OBXPropertyType.Bool;
-        } else if (fieldTypeStr == 'double') {
+        } else if (fieldTypeDart.isDartCoreDouble) {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '$fieldTypeStr'");
+              "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '${fieldTypeDart.toString()}'");
           continue;
         }
       }
@@ -174,7 +193,7 @@ class EntityResolver extends Builder {
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
       final prop =
-          ModelProperty(IdUid.empty(), f.name, fieldType, flags, readEntity);
+          ModelProperty(IdUid.empty(), f.name, fieldType, flags, entity);
 
       // TODO test on @Property(...) that uses the proper flags for index
       final isIndexer = flags.isIndexer;
@@ -184,7 +203,7 @@ class EntityResolver extends Builder {
       }
 
       if (propUid != null) prop.id.uid = propUid;
-      readEntity.properties.add(prop);
+      entity.properties.add(prop);
 
       log.info(
           '  ${isIndexer ? "index " : ""}property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
@@ -196,6 +215,6 @@ class EntityResolver extends Builder {
           'in target ${elementBare.name}: has no properties annotated with @Id');
     }
 
-    return readEntity;
+    return entity;
   }
 }

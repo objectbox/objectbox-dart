@@ -11,6 +11,6 @@ android {
 }
 
 dependencies {
-    // https://github.com/objectbox/objectbox-java/releases
-    implementation "io.objectbox:objectbox-android:2.5.1"
+    // https://bintray.com/objectbox/objectbox/io.objectbox%3Aobjectbox-android
+    implementation "io.objectbox:objectbox-android:2.8.0"
 }

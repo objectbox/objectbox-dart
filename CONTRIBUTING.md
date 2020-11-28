@@ -12,6 +12,8 @@ When creating a Pull Request for code changes, please check that you cover the f
 * Include tests for the changes you introduce. See the [test folder](test) for examples.
 * Formatted the code using `dartfmt -l 120`. You can configure your IDE to do this automatically, 
   e.g. VS Code needs the project-specific settings `"editor.defaultFormatter": "Dart-Code.dart-code"` and `"dart.lineLength": 120`.
+* Update the `## latest` section in the `CHANGELOG.md` - add a single-line comment what changes.
+  This only applies if the change is "external", i.e. it affects objectbox-dart library users.
 
 ### Project workflow
 Issues on the [project board](https://github.com/objectbox/objectbox-dart/projects/3) are referred to as "cards" which move from left to right:
