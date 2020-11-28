@@ -142,30 +142,11 @@ class ModelEntity {
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    final property = ModelProperty(IdUid(id, uniqueUid), name, 0, 0, this);
+    final property = ModelProperty(IdUid(id, uniqueUid), name, 0, entity: this);
     properties.add(property);
     lastPropertyId = property.id;
 
     return property;
-  }
-
-  ModelProperty addProperty(ModelProperty prop) {
-    final modelProp = createProperty(prop.name, prop.id.uid);
-    modelProp.type = prop.type;
-    modelProp.flags = prop.flags;
-
-    if (flags.isIndexer) {
-      final indexUid = prop.indexId.uid;
-      if (indexUid != 0 && model.containsUid(indexUid)) {
-        throw Exception('index uid already exists: $uid');
-      }
-      modelProp.indexId = IdUid(_model.lastIndexId.id + 1,
-          indexUid == 0 ? model.generateUid() : indexUid);
-
-      _model.lastIndexId = modelProp.indexId;
-    }
-
-    return modelProp;
   }
 
   void removeProperty(ModelProperty prop) {
@@ -177,7 +158,7 @@ class ModelEntity {
     _properties.remove(foundProp);
     model.retiredPropertyUids.add(prop.id.uid);
 
-    if (prop.flags.isIndexer) {
+    if (prop.indexId != null) {
       model.retiredIndexUids.add(prop.indexId.uid);
     }
   }

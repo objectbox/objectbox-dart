@@ -152,12 +152,6 @@ class ModelInfo {
     return ret;
   }
 
-  ModelEntity addEntity(ModelEntity other) {
-    final modelEntity = createEntity(other.name, other.id.uid);
-    other.properties.forEach((p) => modelEntity.addProperty(p));
-    return modelEntity;
-  }
-
   ModelEntity createEntity(String name, [int uid = 0]) {
     var id = 1;
     if (entities.isNotEmpty) id = lastEntityId.id + 1;
@@ -207,5 +201,11 @@ class ModelInfo {
     if (listContains(retiredPropertyUids, uid)) return true;
     if (listContains(retiredRelationUids, uid)) return true;
     return false;
+  }
+
+  IdUid createIndexId() {
+    var id = lastIndexId.isEmpty ? 1 : lastIndexId.id + 1;
+    lastIndexId = IdUid(id, generateUid());
+    return lastIndexId;
   }
 }

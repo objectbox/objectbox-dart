@@ -1,15 +1,13 @@
+import 'package:objectbox/src/bindings/bindings.dart';
+
 import 'modelentity.dart';
 import 'iduid.dart';
 
 /// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
   IdUid id;
-
-  /*late*/
-  String _name;
-
-  /*late*/
-  int _type, _flags;
+  /*late*/ String _name;
+  /*late*/ int _type, _flags;
   IdUid /*?*/ _indexId;
   ModelEntity /*?*/ entity;
 
@@ -40,17 +38,30 @@ class ModelProperty {
     _flags = value /*!*/;
   }
 
-  ModelProperty(this.id, String /*?*/ name, int /*?*/ type, int /*?*/ flags,
-      String indexId, this.entity) {
+  IdUid /*?*/ get indexId => _indexId;
+
+  set indexId(IdUid /*?*/ value) {
+    if (value != null) {
+      if (value.id == 0 || value.uid == 0) {
+        throw Exception('indexId must contain valid ID & UID');
+      }
+    }
+    _indexId = value /*!*/;
+  }
+
+  ModelProperty(this.id, String /*?*/ name, int /*?*/ type,
+      {int flags = 0, String /*?*/ indexId, this.entity}) {
     this.name = name;
     this.type = type;
     this.flags = flags;
-    if (indexId != null) this._indexId = IdUid.fromString(indexId);
+    this.indexId = indexId == null ? null : IdUid.fromString(indexId);
   }
 
   ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity /*?*/ entity)
       : this(IdUid.fromString(data['id']), data['name'], data['type'],
-            data['flags'] ?? 0, data['indexId'], entity);
+            flags: data['flags'] ?? 0,
+            indexId: data['indexId'],
+            entity: entity);
 
   Map<String, dynamic> toMap() {
     final ret = <String, dynamic>{};
@@ -58,7 +69,7 @@ class ModelProperty {
     ret['name'] = name;
     ret['type'] = type;
     if (flags != 0) ret['flags'] = flags;
-    if (_indexId != null) ret['indexId'] = _indexId /*!*/ .toString();
+    if (indexId != null) ret['indexId'] = indexId /*!*/ .toString();
     return ret;
   }
 
@@ -68,5 +79,18 @@ class ModelProperty {
 
   bool hasFlag(int flag) {
     return (flags & flag) == flag;
+  }
+
+  bool hasIndexFlag() {
+    return hasFlag(OBXPropertyFlags.INDEXED) ||
+        hasFlag(OBXPropertyFlags.INDEX_HASH) ||
+        hasFlag(OBXPropertyFlags.INDEX_HASH64);
+  }
+
+  void removeIndex() {
+    if (_indexId != null) {
+      entity.model.retiredIndexUids.add(_indexId.uid);
+      indexId = null;
+    }
   }
 }

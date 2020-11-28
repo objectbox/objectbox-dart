@@ -62,9 +62,3 @@ class SyncOrObserversExclusive {
 }
 
 final syncOrObserversExclusive = SyncOrObserversExclusive();
-
-extension Indexer on int {
-  bool get isIndexer =>
-      this & OBXPropertyFlag.INDEXED == 8 ||
-      this & OBXPropertyFlag.UNIQUE == 32;
-}

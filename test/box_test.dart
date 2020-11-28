@@ -59,12 +59,15 @@ void main() {
   });
 
   test('.put() cannot add duplicate values on a unique field', () {
-    final u1    = TestEntity.unique(uString: 'a', uLong: 1, uInt: 1,
-        uShort: 1, uByte: 1, uChar: 1);
-    final again = TestEntity.unique(uString: 'a', uLong: 1, uInt: 1,
-        uShort: 1, uByte: 1, uChar: 1);
+    final u1 = TestEntity.unique(
+        uString: 'a', uLong: 1, uInt: 1, uShort: 1, uByte: 1, uChar: 1);
+    final again = TestEntity.unique(
+        uString: 'a', uLong: 1, uInt: 1, uShort: 1, uByte: 1, uChar: 1);
 
-    expect(box.putMany([u1, again]), throwsException);
+    expect(
+        () => box.putMany([u1, again]),
+        throwsA(predicate((ObjectBoxException e) =>
+            e.toString().contains('same property value already exists'))));
   });
 
   test('.getAll retrieves all items', () {

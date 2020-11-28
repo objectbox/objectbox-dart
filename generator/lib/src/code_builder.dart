@@ -130,20 +130,21 @@ class CodeBuilder extends Builder {
   }
 
   void mergeProperty(ModelEntity entity, ModelProperty prop) {
-    final propInModel = entity.findSameProperty(prop);
+    var propInModel = entity.findSameProperty(prop);
+
     if (propInModel == null) {
       log.info('Found new property ${entity.name}.${prop.name}');
-      entity.addProperty(prop);
+      propInModel = entity.createProperty(prop.name, prop.id.uid);
+    }
+
+    propInModel.name = prop.name;
+    propInModel.type = prop.type;
+    propInModel.flags = prop.flags;
+
+    if (!prop.hasIndexFlag()) {
+      propInModel.removeIndex();
     } else {
-      if (propInModel.name != prop.name) {
-        log.warning('The name of the property(${prop.name}) changed.');
-      }
-      if (propInModel.flags != prop.flags) {
-        log.warning('The flags of the property(${prop.name}) changed.');
-      }
-      if (propInModel.type != prop.type) {
-        log.warning('The type of the property(${prop.name}) changed.');
-      }
+      propInModel.indexId ??= entity.model.createIndexId();
     }
   }
 
@@ -155,25 +156,25 @@ class CodeBuilder extends Builder {
     if (entityInModel == null) {
       log.info('Found new entity ${entity.name}');
       // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged
-      entityInModel = modelInfo.addEntity(entity);
-    } else {
-      entityInModel.name = entity.name;
-      entityInModel.flags = entity.flags;
-
-      // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
-      entity.properties.forEach((p) => mergeProperty(entityInModel, p));
-
-      // then remove all properties not present anymore in readEntity
-      final missingProps = entityInModel.properties
-          .where((p) => entity.findSameProperty(p) == null)
-          .toList(growable: false);
-
-      missingProps.forEach((p) {
-        log.warning(
-            'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
-        entityInModel.removeProperty(p);
-      });
+      entityInModel = modelInfo.createEntity(entity.name, entity.id.uid);
     }
+
+    entityInModel.name = entity.name;
+    entityInModel.flags = entity.flags;
+
+    // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
+    entity.properties.forEach((p) => mergeProperty(entityInModel, p));
+
+    // then remove all properties not present anymore in readEntity
+    final missingProps = entityInModel.properties
+        .where((p) => entity.findSameProperty(p) == null)
+        .toList(growable: false);
+
+    missingProps.forEach((p) {
+      log.warning(
+          'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
+      entityInModel.removeProperty(p);
+    });
 
     return entityInModel.id;
   }

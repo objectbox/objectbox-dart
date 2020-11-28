@@ -34,9 +34,6 @@ class Transient {
 //   const Sync();
 // }
 
-// TODO It's possible to pass the unique and index flags directly through Property,
-// was it even intended to have a separate annotation for these?
-
 /// Specifies that the property should be indexed.
 ///
 /// It is highly recommended to index properties that are used in a Query to
@@ -46,8 +43,14 @@ class Transient {
 /// Note: indexes are currently not supported for ByteVector, Float or Double
 /// properties.
 class Index {
-  final int flag;
-  const Index({this.flag});
+  final IndexType /*?*/ type;
+  const Index({this.type});
+}
+
+enum IndexType {
+  value,
+  hash,
+  hash64,
 }
 
 /// Enforces that the value of a property is unique among all Objects in a Box
@@ -57,7 +60,7 @@ class Index {
 ///
 /// Unique properties are based on an [Index], so the same restrictions apply.
 /// It is supported to explicitly add the [Index] annotation to configure the
-/// index.
+/// index type.
 class Unique {
   const Unique();
 }

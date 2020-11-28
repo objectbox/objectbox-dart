@@ -66,15 +66,15 @@ class TestEntity {
     disregard = 1;
   }
 
-  @Property(type:OBXPropertyType.Byte)
+  @Property(type: OBXPropertyType.Byte)
   @Unique()
   int uByte;
 
-  @Property(type:OBXPropertyType.Short)
+  @Property(type: OBXPropertyType.Short)
   @Unique()
   int uShort;
 
-  @Property(type:OBXPropertyType.Char)
+  @Property(type: OBXPropertyType.Char)
   @Unique()
   int uChar;
 
@@ -98,19 +98,19 @@ class TestEntity {
     this.uChar,
   });
 
-  @Property(type:OBXPropertyType.Byte)
+  @Property(type: OBXPropertyType.Byte)
   @Index()
   int iByte;
 
-  @Property(type:OBXPropertyType.Short)
+  @Property(type: OBXPropertyType.Short)
   @Index()
   int iShort;
 
-  @Property(type:OBXPropertyType.Char)
+  @Property(type: OBXPropertyType.Char)
   @Index()
   int iChar;
 
-  @Property(type:OBXPropertyType.Int)
+  @Property(type: OBXPropertyType.Int)
   @Index()
   int iInt;
 

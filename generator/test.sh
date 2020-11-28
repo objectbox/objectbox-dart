@@ -15,7 +15,7 @@ function runTestFile() {
     # build before each step, except for "0.dart"
     if [ "${1}" != "0" ]; then
       echo "Running build_runner before ${file}"
-      dart pub run build_runner build
+      dart pub run build_runner build --verbose
     fi
     echo "Running ${file}"
     dart test "${file}"
