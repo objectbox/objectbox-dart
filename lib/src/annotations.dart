@@ -33,3 +33,34 @@ class Transient {
 // class Sync {
 //   const Sync();
 // }
+
+/// Specifies that the property should be indexed.
+///
+/// It is highly recommended to index properties that are used in a Query to
+/// improve query performance. To fine tune indexing of a property you can
+/// override the default index type.
+///
+/// Note: indexes are currently not supported for ByteVector, Float or Double
+/// properties.
+class Index {
+  final IndexType /*?*/ type;
+  const Index({this.type});
+}
+
+enum IndexType {
+  value,
+  hash,
+  hash64,
+}
+
+/// Enforces that the value of a property is unique among all Objects in a Box
+/// before an Object can be put.
+///
+/// Trying to put an Object with offending values will result in an exception.
+///
+/// Unique properties are based on an [Index], so the same restrictions apply.
+/// It is supported to explicitly add the [Index] annotation to configure the
+/// index type.
+class Unique {
+  const Unique();
+}

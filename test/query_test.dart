@@ -295,7 +295,7 @@ void main() {
 
     final remaining = box.getAll();
     expect(remaining.length, 2);
-    expect(remaining.map((e) => e.id), equals([1,4]));
+    expect(remaining.map((e) => e.id), equals([1, 4]));
   });
 
   test('.count items after grouping with and/or', () {

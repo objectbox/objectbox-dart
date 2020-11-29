@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox/src/bindings/bindings.dart';
@@ -22,6 +23,8 @@ class EntityResolver extends Builder {
   final _idChecker = const TypeChecker.fromRuntime(obx.Id);
   final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
   final _syncChecker = const TypeChecker.fromRuntime(obx.Sync);
+  final _uniqueChecker = const TypeChecker.fromRuntime(obx.Unique);
+  final _indexChecker = const TypeChecker.fromRuntime(obx.Index);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -140,13 +143,18 @@ class EntityResolver extends Builder {
       }
 
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-      final prop =
-          ModelProperty(IdUid.empty(), f.name, fieldType, flags, entity);
+      final prop = ModelProperty(IdUid.empty(), f.name, fieldType,
+          flags: flags, entity: entity);
+
+      // Index and unique annotation.
+      final indexTypeStr =
+          processAnnotationIndexUnique(f, fieldType, elementBare, prop);
+
       if (propUid != null) prop.id.uid = propUid;
       entity.properties.add(prop);
 
       log.info(
-          '  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags}');
+          '  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags} ${prop.hasIndexFlag() ? "index:${indexTypeStr}" : ""}');
     }
 
     // some checks on the entity's integrity
@@ -156,5 +164,85 @@ class EntityResolver extends Builder {
     }
 
     return entity;
+  }
+
+  String processAnnotationIndexUnique(FieldElement f, int fieldType,
+      Element elementBare, obx.ModelProperty prop) {
+    obx.IndexType indexType;
+
+    final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
+    final hasUniqueAnnotation = _uniqueChecker.hasAnnotationOfExact(f);
+    if (indexAnnotation == null && !hasUniqueAnnotation) return null;
+
+    // Throw if property type does not support any index.
+    if (fieldType == OBXPropertyType.Float ||
+        fieldType == OBXPropertyType.Double ||
+        fieldType == OBXPropertyType.ByteVector) {
+      throw InvalidGenerationSourceError(
+          "in target ${elementBare.name}: @Index/@Unique is not supported for type '${f.type.toString()}' of field '${f.name}'");
+    }
+
+    if (prop.hasFlag(OBXPropertyFlags.ID)) {
+      throw InvalidGenerationSourceError(
+          'in target ${elementBare.name}: @Index/@Unique is not supported for ID field ${f.name}. IDs are unique by definition and automatically indexed');
+    }
+
+    // If available use index type from annotation.
+    if (indexAnnotation != null && !indexAnnotation.isNull) {
+      // find out @Index(type:) value - its an enum IndexType
+      final indexTypeField = indexAnnotation.getField('type');
+      if (!indexTypeField.isNull) {
+        final indexTypeEnumValues = (indexTypeField.type as InterfaceType)
+            .element
+            .fields
+            .where((f) => f.isEnumConstant)
+            .toList();
+
+        // Find the index of the matching enum constant.
+        for (var i = 0; i < indexTypeEnumValues.length; i++) {
+          if (indexTypeEnumValues[i].computeConstantValue() == indexTypeField) {
+            indexType = obx.IndexType.values[i];
+            break;
+          }
+        }
+      }
+    }
+
+    // Fall back to index type based on property type.
+    final supportsHashIndex = fieldType == OBXPropertyType.String;
+    if (indexType == null) {
+      if (supportsHashIndex) {
+        indexType = obx.IndexType.hash;
+      } else {
+        indexType = obx.IndexType.value;
+      }
+    }
+
+    // Throw if HASH or HASH64 is not supported by property type.
+    if (!supportsHashIndex &&
+        (indexType == obx.IndexType.hash ||
+            indexType == obx.IndexType.hash64)) {
+      throw InvalidGenerationSourceError(
+          "in target ${elementBare.name}: a hash index is not supported for type '${f.type.toString()}' of field '${f.name}'");
+    }
+
+    if (hasUniqueAnnotation) {
+      prop.flags |= OBXPropertyFlags.UNIQUE;
+    }
+
+    switch (indexType) {
+      case obx.IndexType.value:
+        prop.flags |= OBXPropertyFlags.INDEXED;
+        return 'value';
+      case obx.IndexType.hash:
+        prop.flags |= OBXPropertyFlags.INDEX_HASH;
+        return 'hash';
+      case obx.IndexType.hash64:
+        prop.flags |= OBXPropertyFlags.INDEX_HASH64;
+        return 'hash64';
+      default:
+        throw InvalidGenerationSourceError(
+            'in target ${elementBare.name}: invalid index type: $indexType');
+    }
   }
 }

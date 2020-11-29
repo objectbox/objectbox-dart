@@ -73,3 +73,10 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
 ModelEntity entity(ModelInfo model, String name) {
   return model.entities.firstWhere((ModelEntity e) => e.name == name);
 }
+
+ModelProperty property(ModelInfo model, String path) {
+  final components = path.split('.');
+  return entity(model, components[0])
+      .properties
+      .firstWhere((ModelProperty p) => p.name == components[1]);
+}
