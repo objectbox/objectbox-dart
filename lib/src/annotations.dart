@@ -63,8 +63,11 @@ enum PropertyType {
   /// Unix timestamp (nanoseconds since 1970), size: 8-bytes/64-bits
   dateNano,
 
-  /// dart type=Uint8List, currently not supported
-  // byteVector,
+  /// dart type=Uint8List - automatic, no need to specify explicitly
+  /// dart type=Int8List  - automatic, no need to specify explicitly
+  /// dart type=List<int> - specify the type explicitly using @Property(type:)
+  ///                     - values are truncated to 8-bit int (0..255)
+  byteVector,
 
   /// dart type=List<String>
   /// no need to specify explicitly, just use `List<String> `

@@ -95,6 +95,7 @@ class EntityResolver extends Builder {
       int fieldType;
       var flags = 0;
       int propUid;
+      String dartFieldType; // to be passed to ModelProperty.dartFieldType
 
       if (_idChecker.hasAnnotationOfExact(f)) {
         if (hasIdProperty) {
@@ -139,8 +140,19 @@ class EntityResolver extends Builder {
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
         } else if (fieldTypeDart.isDartCoreList &&
-            listItemType(fieldTypeDart).isDartCoreString) { // List<String>
+            listItemType(fieldTypeDart).isDartCoreString) {
+          // List<String>
           fieldType = OBXPropertyType.StringVector;
+        } else if (fieldTypeDart.element.name == 'Int8List') {
+          fieldType = OBXPropertyType.ByteVector;
+          dartFieldType =
+              fieldTypeDart.element.name; // needed for code generation
+        } else if (fieldTypeDart.element.name == 'Uint8List') {
+          fieldType = OBXPropertyType.ByteVector;
+          // TODO check if UNSIGNED also applies to byte-vector in the core
+          flags |= OBXPropertyFlags.UNSIGNED;
+          dartFieldType =
+              fieldTypeDart.element.name; // needed for code generation
         } else {
           log.warning(
               "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${fieldTypeDart}'");
@@ -156,6 +168,7 @@ class EntityResolver extends Builder {
       processAnnotationIndexUnique(f, fieldType, elementBare, prop);
 
       if (propUid != null) prop.id.uid = propUid;
+      prop.dartFieldType = dartFieldType;
       entity.properties.add(prop);
 
       log.info('  ${prop}');

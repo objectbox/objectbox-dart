@@ -48,9 +48,12 @@ void main() {
     expect(property(model, 'T.tString').type, OBXPropertyType.String);
     expect(property(model, 'T.tDate').type, OBXPropertyType.Date);
     expect(property(model, 'T.tDateNano').type, OBXPropertyType.DateNano);
-    // expect(property(model, 'T.tByteVector1').type, OBXPropertyType.ByteVector);
-    // expect(property(model, 'T.tByteVector2').type, OBXPropertyType.ByteVector);
-    // expect(property(model, 'T.tByteVector3').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tListInt').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tListInt').flags, 0);
+    expect(property(model, 'T.tInt8List').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tInt8List').flags, 0);
+    expect(property(model, 'T.tUint8List').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tUint8List').flags, OBXPropertyFlags.UNSIGNED);
     expect(property(model, 'T.tListString').type, OBXPropertyType.StringVector);
   });
 }

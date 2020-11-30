@@ -101,6 +101,8 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.Date;
     case PropertyType.dateNano:
       return OBXPropertyType.DateNano;
+    case PropertyType.byteVector:
+      return OBXPropertyType.ByteVector;
   }
   throw Exception('Invalid PropertyType: ${type}');
 }

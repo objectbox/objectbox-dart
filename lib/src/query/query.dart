@@ -129,6 +129,16 @@ class QueryStringProperty extends QueryProperty {
 //  Condition operator != (String p) => notEqual(p); // not overloadable
 }
 
+class QueryByteVectorProperty extends QueryProperty {
+  QueryByteVectorProperty(
+      {/*required*/ int entityId,
+      /*required*/ int propertyId,
+      /*required*/ int obxType})
+      : super(entityId, propertyId, obxType);
+
+  // TODO conditions
+}
+
 class QueryIntegerProperty extends QueryProperty {
   QueryIntegerProperty(
       {/*required*/ int entityId,

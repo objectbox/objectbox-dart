@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:4630700155272683157",
-      "lastPropertyId": "27:3303202230649375862",
+      "lastPropertyId": "30:9172821003206716871",
       "name": "TestEntity",
       "flags": 2,
       "properties": [
@@ -148,6 +148,24 @@
           "id": "27:3303202230649375862",
           "name": "tStrings",
           "type": 30
+        },
+        {
+          "id": "28:7286551998282235109",
+          "name": "tListInt",
+          "type": 23
+        },
+        {
+          "id": "29:5913356482905885282",
+          "name": "tInt8List",
+          "type": 23,
+          "dartFieldType": "Int8List"
+        },
+        {
+          "id": "30:9172821003206716871",
+          "name": "tUint8List",
+          "type": 23,
+          "flags": 8192,
+          "dartFieldType": "Uint8List"
         }
       ]
     },

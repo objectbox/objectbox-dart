@@ -68,17 +68,12 @@ class T {
   @Property(type: PropertyType.dateNano)
   int tDateNano;
 
-// TODO
-// @Property(type: PropertyType.byteVector)
-// List<int> tByteVector1;
+  @Property(type: PropertyType.byteVector)
+  List<int> tListInt; // truncates int to 8-bits
 
-// TODO
-// @Property(type: PropertyType.byteVector)
-// Int8List tByteVector2;
+  Int8List tInt8List;
 
-// TODO
-// @Property(type: PropertyType.byteVector)
-// Uint8List tByteVector3;
+  Uint8List tUint8List;
 
   List<String> tListString;
 }

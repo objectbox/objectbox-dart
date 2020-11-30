@@ -56,6 +56,11 @@ class OBXFlatbuffersManager<T> {
               : builder.writeList(
                   stringVector.map((str) => builder.writeString(str)).toList());
           break;
+        case OBXPropertyType.ByteVector:
+          final byteVector = propVals[p.name];
+          offsets[p.id.id] =
+              byteVector == null ? null : builder.writeListInt8(byteVector);
+          break;
       }
     });
 
@@ -93,6 +98,7 @@ class OBXFlatbuffersManager<T> {
         // offset-based fields
         case OBXPropertyType.String:
         case OBXPropertyType.StringVector:
+        case OBXPropertyType.ByteVector:
           builder.addOffset(field, offsets[p.id.id] /*!*/);
           break;
         default:
@@ -143,6 +149,9 @@ class OBXFlatbuffersManager<T> {
           break;
         case OBXPropertyType.StringVector:
           propReader = const fb.ListReader<String>(fb.StringReader());
+          break;
+        case OBXPropertyType.ByteVector:
+          propReader = const fb.ListReader<int>(fb.Int8Reader());
           break;
         default:
           throw Exception('unsupported type: ${p.type}');

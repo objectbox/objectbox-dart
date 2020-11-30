@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:objectbox/objectbox.dart';
 
 /// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
@@ -50,6 +52,16 @@ class TestEntity {
   // OBXPropertyType.StringVector
   List<String> /*?*/ tStrings;
 
+  // OBXPropertyType.ByteVector
+  @Property(type: PropertyType.byteVector)
+  List<int> /*?*/ tListInt;
+
+  // OBXPropertyType.ByteVector
+  Int8List /*?*/ tInt8List;
+
+  // OBXPropertyType.ByteVector
+  Uint8List /*?*/ tUint8List;
+
   TestEntity(
       {this.id,
       this.tString,
@@ -62,6 +74,9 @@ class TestEntity {
       this.tInt,
       this.tFloat,
       this.tStrings,
+      this.tListInt,
+      this.tInt8List,
+      this.tUint8List,
       this.ignore});
 
   TestEntity.ignoredExcept(this.tInt) {
