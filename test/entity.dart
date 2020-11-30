@@ -1,5 +1,4 @@
 import 'package:objectbox/objectbox.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
 
 /// A dummy annotation to verify the code is generated properly even with annotations unknown to ObjectBox generator.
 class TestingUnknownAnnotation {
@@ -26,26 +25,26 @@ class TestEntity {
   @Transient()
   int /*?*/ omit, disregard;
 
-  // explicitly declared types, see OB-C, objectbox.h
+  // explicitly declared types
 
   // OBXPropertyType.Byte | 1 byte
-  @Property(type: OBXPropertyType.Byte)
+  @Property(type: PropertyType.byte)
   int /*?*/ tByte;
 
   // OBXPropertyType.Short | 2 bytes
-  @Property(type: OBXPropertyType.Short)
+  @Property(type: PropertyType.short)
   int /*?*/ tShort;
 
   // OBXPropertyType.Char | 1 byte
-  @Property(type: OBXPropertyType.Char)
+  @Property(type: PropertyType.char)
   int /*?*/ tChar;
 
   // OBXPropertyType.Int |  ob: 4 bytes, dart: 8 bytes
-  @Property(type: OBXPropertyType.Int)
+  @Property(type: PropertyType.int)
   int /*?*/ tInt;
 
   // OBXPropertyType.Float | 4 bytes
-  @Property(type: OBXPropertyType.Float)
+  @Property(type: PropertyType.float)
   double /*?*/ tFloat;
 
   TestEntity(
@@ -66,19 +65,19 @@ class TestEntity {
     disregard = 1;
   }
 
-  @Property(type: OBXPropertyType.Byte)
+  @Property(type: PropertyType.byte)
   @Unique()
   int uByte;
 
-  @Property(type: OBXPropertyType.Short)
+  @Property(type: PropertyType.short)
   @Unique()
   int uShort;
 
-  @Property(type: OBXPropertyType.Char)
+  @Property(type: PropertyType.char)
   @Unique()
   int uChar;
 
-  @Property(type: OBXPropertyType.Int)
+  @Property(type: PropertyType.int)
   @Unique()
   int uInt;
 
@@ -98,19 +97,19 @@ class TestEntity {
     this.uChar,
   });
 
-  @Property(type: OBXPropertyType.Byte)
+  @Property(type: PropertyType.byte)
   @Index()
   int iByte;
 
-  @Property(type: OBXPropertyType.Short)
+  @Property(type: PropertyType.short)
   @Index()
   int iShort;
 
-  @Property(type: OBXPropertyType.Char)
+  @Property(type: PropertyType.char)
   @Index()
   int iChar;
 
-  @Property(type: OBXPropertyType.Int)
+  @Property(type: PropertyType.int)
   @Index()
   int iInt;
 

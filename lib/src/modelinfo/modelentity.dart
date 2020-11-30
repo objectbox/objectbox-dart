@@ -175,4 +175,11 @@ class ModelEntity {
   bool hasFlag(int flag) {
     return (flags & flag) == flag;
   }
+
+  @override
+  String toString() {
+    var result = 'entity ${name}(${id})';
+    result += ' sync:${hasFlag(OBXEntityFlags.SYNC_ENABLED) ? 'ON' : 'OFF'}';
+    return result;
+  }
 }

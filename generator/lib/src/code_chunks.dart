@@ -1,7 +1,7 @@
-import "dart:convert";
-import "package:objectbox/src/modelinfo/index.dart";
-import "package:objectbox/src/bindings/bindings.dart" show OBXPropertyType;
-import "package:source_gen/source_gen.dart" show InvalidGenerationSourceError;
+import 'dart:convert';
+import 'package:objectbox/src/modelinfo/index.dart';
+import 'package:objectbox/src/bindings/bindings.dart';
+import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
 class CodeChunks {
   static String objectboxDart(ModelInfo model, List<String> imports) => """
@@ -52,46 +52,42 @@ class CodeChunks {
       String fieldType;
       switch (prop.type) {
         case OBXPropertyType.Bool:
-          fieldType = "Boolean";
+          fieldType = 'Boolean';
           break;
         case OBXPropertyType.String:
-          fieldType = "String";
-          break;
-        float:
-        case OBXPropertyType.Double:
-          fieldType = "Double";
+          fieldType = 'String';
           break;
         case OBXPropertyType.Float:
-          continue float;
-        integer:
-        case OBXPropertyType.Int:
-          fieldType = "Integer";
+        case OBXPropertyType.Double:
+          fieldType = 'Double';
           break;
         case OBXPropertyType.Byte:
-          continue integer;
         case OBXPropertyType.Short:
-          continue integer;
         case OBXPropertyType.Char:
-          continue integer;
+        case OBXPropertyType.Int:
         case OBXPropertyType.Long:
-          continue integer;
+        case OBXPropertyType.Date:
+        case OBXPropertyType.DateNano:
+        case OBXPropertyType.Relation:
+          fieldType = 'Integer';
+          break;
         default:
           throw InvalidGenerationSourceError(
-              "Unsupported property type (${prop.type}): ${entity.name}.${name}");
+              'Unsupported property type (${prop.type}): ${entity.name}.${name}');
       }
 
-      ret.add("""
-        static final ${name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
-        """);
+      ret.add('''
+        static final ${prop.name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+        ''');
     }
     return ret.join();
   }
 
   static String queryConditionClasses(ModelEntity entity) {
     // TODO add entity.id check to throw an error Box if the wrong entity.property is used
-    return """
+    return '''
     class ${entity.name}_ {
       ${_queryConditionBuilder(entity)}
-    }""";
+    }''';
   }
 }

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox/src/bindings/bindings.dart';
+import 'package:objectbox/src/bindings/helpers.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -67,8 +69,7 @@ class EntityResolver extends Builder {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;
     }
 
-    log.info('entity ${entity.name}(${entity.id}), sync=' +
-        (entity.hasFlag(OBXEntityFlags.SYNC_ENABLED) ? 'ON' : 'OFF'));
+    log.info(entity);
 
     // getters, ... (anything else?)
     final readOnlyFields = <String, bool>{};
@@ -91,7 +92,8 @@ class EntityResolver extends Builder {
         continue;
       }
 
-      int fieldType, flags = 0;
+      int fieldType;
+      var flags = 0;
       int propUid;
 
       if (_idChecker.hasAnnotationOfExact(f)) {
@@ -114,7 +116,8 @@ class EntityResolver extends Builder {
       } else if (_propertyChecker.hasAnnotationOfExact(f)) {
         final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
         propUid = _propertyAnnotation.getField('uid').toIntValue();
-        fieldType = _propertyAnnotation.getField('type').toIntValue();
+        fieldType =
+            propertyTypeFromAnnotation(_propertyAnnotation.getField('type'));
         flags = _propertyAnnotation.getField('flag').toIntValue() ?? 0;
       }
 
@@ -147,14 +150,12 @@ class EntityResolver extends Builder {
           flags: flags, entity: entity);
 
       // Index and unique annotation.
-      final indexTypeStr =
-          processAnnotationIndexUnique(f, fieldType, elementBare, prop);
+      processAnnotationIndexUnique(f, fieldType, elementBare, prop);
 
       if (propUid != null) prop.id.uid = propUid;
       entity.properties.add(prop);
 
-      log.info(
-          '  property ${prop.name}(${prop.id}) type:${prop.type} flags:${prop.flags} ${prop.hasIndexFlag() ? "index:${indexTypeStr}" : ""}');
+      log.info('  ${prop}');
     }
 
     // some checks on the entity's integrity
@@ -166,7 +167,7 @@ class EntityResolver extends Builder {
     return entity;
   }
 
-  String processAnnotationIndexUnique(FieldElement f, int fieldType,
+  void processAnnotationIndexUnique(FieldElement f, int fieldType,
       Element elementBare, obx.ModelProperty prop) {
     obx.IndexType indexType;
 
@@ -233,16 +234,35 @@ class EntityResolver extends Builder {
     switch (indexType) {
       case obx.IndexType.value:
         prop.flags |= OBXPropertyFlags.INDEXED;
-        return 'value';
+        break;
       case obx.IndexType.hash:
         prop.flags |= OBXPropertyFlags.INDEX_HASH;
-        return 'hash';
+        break;
       case obx.IndexType.hash64:
         prop.flags |= OBXPropertyFlags.INDEX_HASH64;
-        return 'hash64';
+        break;
       default:
         throw InvalidGenerationSourceError(
             'in target ${elementBare.name}: invalid index type: $indexType');
     }
+  }
+
+  // find out @Property(type:) field value - its an enum PropertyType
+  int /*?*/ propertyTypeFromAnnotation(DartObject typeField) {
+    if (typeField.isNull) return null;
+    final enumValues = (typeField.type as InterfaceType)
+        .element
+        .fields
+        .where((f) => f.isEnumConstant)
+        .toList();
+
+    // Find the index of the matching enum constant.
+    for (var i = 0; i < enumValues.length; i++) {
+      if (enumValues[i].computeConstantValue() == typeField) {
+        return propertyTypeToOBXPropertyType(obx.PropertyType.values[i]);
+      }
+    }
+
+    return null;
   }
 }

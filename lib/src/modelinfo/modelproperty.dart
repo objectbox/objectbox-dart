@@ -1,5 +1,5 @@
-import 'package:objectbox/src/bindings/bindings.dart';
-
+import '../bindings/bindings.dart';
+import '../bindings/helpers.dart';
 import 'modelentity.dart';
 import 'iduid.dart';
 
@@ -92,5 +92,25 @@ class ModelProperty {
       entity.model.retiredIndexUids.add(_indexId.uid);
       indexId = null;
     }
+  }
+
+  @override
+  String toString() {
+    var result = 'property ${name}(${id})';
+    result += ' type:${obxPropertyTypeToString(type)}';
+    result += ' flags:${flags}';
+
+    if (hasIndexFlag()) {
+      result += ' index:' +
+          (hasFlag(OBXPropertyFlags.INDEXED)
+              ? 'value'
+              : hasFlag(OBXPropertyFlags.INDEX_HASH)
+                  ? 'hash'
+                  : hasFlag(OBXPropertyFlags.INDEX_HASH64)
+                      ? 'hash64'
+                      : 'unknown');
+    }
+
+    return result;
   }
 }
