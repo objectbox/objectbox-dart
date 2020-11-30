@@ -66,7 +66,8 @@ enum PropertyType {
   /// dart type=Uint8List, currently not supported
   // byteVector,
 
-  /// dart type=List<String>, currently not supported
+  /// dart type=List<String>
+  /// no need to specify explicitly, just use `List<String> `
   // stringVector
 }
 

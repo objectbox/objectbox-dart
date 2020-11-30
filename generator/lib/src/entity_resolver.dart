@@ -103,7 +103,7 @@ class EntityResolver extends Builder {
         }
         if (!f.type.isDartCoreInt) {
           throw InvalidGenerationSourceError(
-              "in target ${elementBare.name}: field with @Id property has type '${f.type.toString()}', but it must be 'int'");
+              "in target ${elementBare.name}: field with @Id property has type '${f.type}', but it must be 'int'");
         }
 
         hasIdProperty = true;
@@ -138,9 +138,12 @@ class EntityResolver extends Builder {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
+        } else if (fieldTypeDart.isDartCoreList &&
+            listItemType(fieldTypeDart).isDartCoreString) { // List<String>
+          fieldType = OBXPropertyType.StringVector;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has the unsupported type '${fieldTypeDart.toString()}'");
+              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${fieldTypeDart}'");
           continue;
         }
       }
@@ -180,7 +183,7 @@ class EntityResolver extends Builder {
         fieldType == OBXPropertyType.Double ||
         fieldType == OBXPropertyType.ByteVector) {
       throw InvalidGenerationSourceError(
-          "in target ${elementBare.name}: @Index/@Unique is not supported for type '${f.type.toString()}' of field '${f.name}'");
+          "in target ${elementBare.name}: @Index/@Unique is not supported for type '${f.type}' of field '${f.name}'");
     }
 
     if (prop.hasFlag(OBXPropertyFlags.ID)) {
@@ -224,7 +227,7 @@ class EntityResolver extends Builder {
         (indexType == obx.IndexType.hash ||
             indexType == obx.IndexType.hash64)) {
       throw InvalidGenerationSourceError(
-          "in target ${elementBare.name}: a hash index is not supported for type '${f.type.toString()}' of field '${f.name}'");
+          "in target ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
     }
 
     if (hasUniqueAnnotation) {
@@ -264,5 +267,11 @@ class EntityResolver extends Builder {
     }
 
     return null;
+  }
+
+  DartType /*?*/ listItemType(DartType listType) {
+    final typeArgs =
+        listType is ParameterizedType ? listType.typeArguments : [];
+    return typeArgs.length == 1 ? typeArgs[0] : null;
   }
 }

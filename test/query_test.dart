@@ -198,6 +198,24 @@ void main() {
     [qs0, qs1, qs2, qs3, qn0, qn1, qn2].forEach((q) => q.close());
   });
 
+  test('.count matches of List<String> `contains`', () {
+    box.put(TestEntity(tStrings: ['foo', 'bar']));
+    box.put(TestEntity(tStrings: ['barbar']));
+    box.put(TestEntity(tStrings: ['foo']));
+
+    final prop = TestEntity_.tStrings;
+
+    final qs0 = box.query(prop.contains('bar')).build();
+    final qs1 = box.query(prop.contains('ar')).build();
+    final qs2 = box.query(prop.contains('foo')).build();
+
+    expect(qs0.count(), 1);
+    expect(qs1.count(), 0);
+    expect(qs2.count(), 2);
+
+    [qs0, qs1, qs2].forEach((q) => q.close());
+  });
+
   test('.findIds returns List<int>', () {
     box.put(TestEntity(tString: 'meh'));
     box.put(TestEntity(tString: 'bleh'));

@@ -80,7 +80,5 @@ class T {
 // @Property(type: PropertyType.byteVector)
 // Uint8List tByteVector3;
 
-// TODO
-// @Property(type: PropertyType.stringVector)
-// List<String> tStringVector;
+  List<String> tListString;
 }

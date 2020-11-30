@@ -78,15 +78,15 @@ class QueryStringProperty extends QueryProperty {
   }
 
   Condition endsWith(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringEnds, caseSensitive);
+    return _op(p, ConditionOp.endsWith, caseSensitive);
   }
 
   Condition startsWith(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringStarts, caseSensitive);
+    return _op(p, ConditionOp.startsWith, caseSensitive);
   }
 
   Condition contains(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringContains, caseSensitive);
+    return _op(p, ConditionOp.contains, caseSensitive);
   }
 
   Condition inside(List<String> list, {bool caseSensitive = false}) {
@@ -235,14 +235,26 @@ class QueryBooleanProperty extends QueryProperty {
 // Condition operator ==(bool p) => equals(p); // see issue #43
 }
 
+class QueryStringVectorProperty extends QueryProperty {
+  QueryStringVectorProperty(
+      {/*required*/ int entityId,
+      /*required*/ int propertyId,
+      /*required*/ int obxType})
+      : super(entityId, propertyId, obxType);
+
+  Condition contains(String p, {bool caseSensitive = false}) {
+    return StringCondition(ConditionOp.contains, this, p, null, caseSensitive);
+  }
+}
+
 enum ConditionOp {
   isNull,
   notNull,
   eq,
   notEq,
-  stringContains,
-  stringStarts,
-  stringEnds,
+  contains,
+  startsWith,
+  endsWith,
   gt,
   greaterOrEq,
   lt,
@@ -344,11 +356,14 @@ class StringCondition extends PropertyCondition<String> {
         return _op1(builder, bindings.obx_qb_equals_string);
       case ConditionOp.notEq:
         return _op1(builder, bindings.obx_qb_not_equals_string);
-      case ConditionOp.stringContains:
-        return _op1(builder, bindings.obx_qb_contains_string);
-      case ConditionOp.stringStarts:
+      case ConditionOp.contains:
+        final cFn = (_property._type == OBXPropertyType.String)
+            ? bindings.obx_qb_contains_string
+            : bindings.obx_qb_any_equals_string;
+        return _op1(builder, cFn);
+      case ConditionOp.startsWith:
         return _op1(builder, bindings.obx_qb_starts_with_string);
-      case ConditionOp.stringEnds:
+      case ConditionOp.endsWith:
         return _op1(builder, bindings.obx_qb_ends_with_string);
       case ConditionOp.lt:
         return _op1(builder, bindings.obx_qb_less_than_string);

@@ -34,10 +34,12 @@ void main() {
   });
 
   test('.get() returns the correct item', () {
-    final int putId = box.put(TestEntity(tString: 'Hello'));
+    final int putId =
+        box.put(TestEntity(tString: 'Hello', tStrings: ['foo', 'bar']));
     final TestEntity item = box.get(putId) /*!*/;
     expect(item.id, equals(putId));
     expect(item.tString, equals('Hello'));
+    expect(item.tStrings, equals(['foo', 'bar']));
   });
 
   test('.get() returns null on non-existent item', () {
@@ -146,7 +148,7 @@ void main() {
         box.getMany([ids[0], otherId, ids[1]]);
     expect(fetchedItems.length, equals(3));
     expect(fetchedItems[0] /*!*/ .tString, equals('One'));
-    expect(fetchedItems[1], equals(null));
+    expect(fetchedItems[1], isNull);
     expect(fetchedItems[2] /*!*/ .tString, equals('Two'));
   });
 
@@ -232,21 +234,21 @@ void main() {
     ];
     final List<TestEntity> fetchedItems =
         box.getMany(box.putMany(items)) as List<TestEntity /*!*/ >;
-    expect(fetchedItems[0].id, isNot(equals(null)));
-    expect(fetchedItems[0].tLong, equals(null));
-    expect(fetchedItems[0].tString, equals(null));
-    expect(fetchedItems[0].tBool, equals(null));
-    expect(fetchedItems[0].tDouble, equals(null));
-    expect(fetchedItems[1].id, isNot(equals(null)));
-    expect(fetchedItems[1].tLong, isNot(equals(null)));
-    expect(fetchedItems[1].tString, equals(null));
-    expect(fetchedItems[1].tBool, equals(null));
-    expect(fetchedItems[1].tDouble, equals(null));
-    expect(fetchedItems[2].id, isNot(equals(null)));
-    expect(fetchedItems[2].tLong, equals(null));
-    expect(fetchedItems[2].tString, isNot(equals(null)));
-    expect(fetchedItems[2].tBool, equals(null));
-    expect(fetchedItems[2].tDouble, equals(null));
+    expect(fetchedItems[0].id, isNotNull);
+    expect(fetchedItems[0].tLong, isNull);
+    expect(fetchedItems[0].tString, isNull);
+    expect(fetchedItems[0].tBool, isNull);
+    expect(fetchedItems[0].tDouble, isNull);
+    expect(fetchedItems[1].id, isNotNull);
+    expect(fetchedItems[1].tLong, isNotNull);
+    expect(fetchedItems[1].tString, isNull);
+    expect(fetchedItems[1].tBool, isNull);
+    expect(fetchedItems[1].tDouble, isNull);
+    expect(fetchedItems[2].id, isNotNull);
+    expect(fetchedItems[2].tLong, isNull);
+    expect(fetchedItems[2].tString, isNotNull);
+    expect(fetchedItems[2].tBool, isNull);
+    expect(fetchedItems[2].tDouble, isNull);
   });
 
   test('all types are handled correctly', () {

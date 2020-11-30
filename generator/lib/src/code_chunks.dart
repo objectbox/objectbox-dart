@@ -71,6 +71,9 @@ class CodeChunks {
         case OBXPropertyType.Relation:
           fieldType = 'Integer';
           break;
+        case OBXPropertyType.StringVector:
+          fieldType = 'StringVector';
+          break;
         default:
           throw InvalidGenerationSourceError(
               'Unsupported property type (${prop.type}): ${entity.name}.${name}');

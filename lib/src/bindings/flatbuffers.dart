@@ -49,6 +49,13 @@ class OBXFlatbuffersManager<T> {
         case OBXPropertyType.String:
           offsets[p.id.id] = builder.writeString(propVals[p.name]);
           break;
+        case OBXPropertyType.StringVector:
+          final stringVector = propVals[p.name] as List<String>;
+          offsets[p.id.id] = stringVector == null
+              ? null
+              : builder.writeList(
+                  stringVector.map((str) => builder.writeString(str)).toList());
+          break;
       }
     });
 
@@ -77,18 +84,19 @@ class OBXFlatbuffersManager<T> {
         case OBXPropertyType.Long:
           builder.addInt64(field, value);
           break;
-        case OBXPropertyType.String:
-          builder.addOffset(field, offsets[p.id.id] /*!*/);
-          break;
         case OBXPropertyType.Float:
           builder.addFloat32(field, value);
           break;
         case OBXPropertyType.Double:
           builder.addFloat64(field, value);
           break;
+        // offset-based fields
+        case OBXPropertyType.String:
+        case OBXPropertyType.StringVector:
+          builder.addOffset(field, offsets[p.id.id] /*!*/);
+          break;
         default:
-          throw Exception(
-              'unsupported type: ${p.type}'); // TODO: support more types
+          throw Exception('unsupported type: ${p.type}');
       }
     });
 
@@ -133,9 +141,11 @@ class OBXFlatbuffersManager<T> {
         case OBXPropertyType.Double:
           propReader = fb.Float64Reader();
           break;
+        case OBXPropertyType.StringVector:
+          propReader = const fb.ListReader<String>(fb.StringReader());
+          break;
         default:
-          throw Exception(
-              'unsupported type: ${p.type}'); // TODO: support more types
+          throw Exception('unsupported type: ${p.type}');
       }
 
       propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);

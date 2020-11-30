@@ -47,6 +47,9 @@ class TestEntity {
   @Property(type: PropertyType.float)
   double /*?*/ tFloat;
 
+  // OBXPropertyType.StringVector
+  List<String> /*?*/ tStrings;
+
   TestEntity(
       {this.id,
       this.tString,
@@ -58,6 +61,7 @@ class TestEntity {
       this.tChar,
       this.tInt,
       this.tFloat,
+      this.tStrings,
       this.ignore});
 
   TestEntity.ignoredExcept(this.tInt) {

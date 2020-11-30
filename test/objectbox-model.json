@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:4630700155272683157",
-      "lastPropertyId": "26:3059114515142777989",
+      "lastPropertyId": "27:3303202230649375862",
       "name": "TestEntity",
       "flags": 2,
       "properties": [
@@ -143,6 +143,11 @@
           "type": 6,
           "flags": 8,
           "indexId": "12:5335419474465474748"
+        },
+        {
+          "id": "27:3303202230649375862",
+          "name": "tStrings",
+          "type": 30
         }
       ]
     },

@@ -51,6 +51,6 @@ void main() {
     // expect(property(model, 'T.tByteVector1').type, OBXPropertyType.ByteVector);
     // expect(property(model, 'T.tByteVector2').type, OBXPropertyType.ByteVector);
     // expect(property(model, 'T.tByteVector3').type, OBXPropertyType.ByteVector);
-    // expect(property(model, 'T.tStringVector').type, OBXPropertyType.StringVector);
+    expect(property(model, 'T.tListString').type, OBXPropertyType.StringVector);
   });
 }
