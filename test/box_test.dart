@@ -39,14 +39,14 @@ void main() {
     final int putId = box.put(TestEntity(
         tString: 'Hello',
         tStrings: ['foo', 'bar'],
-        tListInt: [1, 99, -54],
+        tByteList: [1, 99, -54],
         tUint8List: Uint8List.fromList([2, 50, 78]),
         tInt8List: Int8List.fromList([-16, 20, 43])));
     final TestEntity item = box.get(putId) /*!*/;
     expect(item.id, equals(putId));
     expect(item.tString, equals('Hello'));
     expect(item.tStrings, equals(['foo', 'bar']));
-    expect(item.tListInt, equals([1, 99, -54]));
+    expect(item.tByteList, equals([1, 99, -54]));
     expect(item.tUint8List, equals([2, 50, 78]));
     expect(item.tInt8List, equals([-16, 20, 43]));
   });

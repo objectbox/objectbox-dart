@@ -54,7 +54,7 @@ class TestEntity {
 
   // OBXPropertyType.ByteVector
   @Property(type: PropertyType.byteVector)
-  List<int> /*?*/ tListInt;
+  List<int> /*?*/ tByteList;
 
   // OBXPropertyType.ByteVector
   Int8List /*?*/ tInt8List;
@@ -74,7 +74,7 @@ class TestEntity {
       this.tInt,
       this.tFloat,
       this.tStrings,
-      this.tListInt,
+      this.tByteList,
       this.tInt8List,
       this.tUint8List,
       this.ignore});

@@ -513,6 +513,24 @@ void main() {
     queryReverseOrder.close();
   });
 
+  test('.describeParameters BytesVector', () {
+    final q = box
+        .query(TestEntity_.tUint8List.equals([1, 2]) &
+            TestEntity_.tInt8List.greaterThan([3, 4]) &
+            TestEntity_.tByteList.greaterOrEqual([5, 6, 7]) &
+            TestEntity_.tUint8List.lessThan([8]) &
+            TestEntity_.tUint8List.lessOrEqual([9, 10, 11, 12]))
+        .build();
+    expect(
+        q.describeParameters(),
+        equals('(tUint8List == byte[2]{0x0102}\n'
+            ' AND tInt8List > byte[2]{0x0304}\n'
+            ' AND tByteList >= byte[3]{0x050607}\n'
+            ' AND tUint8List < byte[1]{0x08}\n'
+            ' AND tUint8List <= byte[4]{0x090A0B0C})'));
+    q.close();
+  });
+
   tearDown(() {
     env.close();
   });
