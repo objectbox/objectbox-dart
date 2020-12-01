@@ -227,20 +227,19 @@ void main() {
     q3.close();
   });
 
-  test('.find returns List<TestEntity>', () {
+  test('.find offset and limit', () {
     box.put(TestEntity());
-    box.put(TestEntity(tString: 'test'));
-    box.put(TestEntity(tString: 'test'));
+    box.put(TestEntity(tString: 'a'));
+    box.put(TestEntity(tString: 'b'));
+    box.put(TestEntity(tString: 'c'));
 
-    final text = TestEntity_.tString;
+    var q = box.query().build();
+    expect(q.find().length, 4);
 
-    var q = box.query(text.notNull()).build();
-    expect(q.find().length, 2);
-    q.close();
+    expect(q.offset(2).find().map((e) => e.tString), equals(['b', 'c']));
+    expect(q.limit(1).find().map((e) => e.tString), equals(['b']));
+    expect(q.offset(0).find().map((e) => e.tString), equals([null]));
 
-    q = box.query(text.isNull()).build();
-    q.limit(1);
-    expect(q.find().length, 1);
     q.close();
   });
 

@@ -97,9 +97,9 @@ class QueryStringProperty extends QueryProperty {
     return _opList(list, ConditionOp.notIn, caseSensitive);
   }
 
-  /// Using [withEqual] is deprecated, use [greaterOrEqual] instead.
   Condition greaterThan(String p,
-      {bool caseSensitive = false, bool withEqual = false}) {
+      {bool caseSensitive = false,
+      @Deprecated('Use greaterOrEqual() instead') bool withEqual = false}) {
     if (withEqual) {
       return greaterOrEqual(p, caseSensitive: caseSensitive);
     } else {
@@ -111,9 +111,9 @@ class QueryStringProperty extends QueryProperty {
     return _op(p, ConditionOp.greaterOrEq, caseSensitive);
   }
 
-  /// Using [withEqual] is deprecated, use [lessOrEqual] instead.
   Condition lessThan(String p,
-      {bool caseSensitive = false, bool withEqual = false}) {
+      {bool caseSensitive = false,
+      @Deprecated('Use lessOrEqual() instead') bool withEqual = false}) {
     if (withEqual) {
       return lessOrEqual(p, caseSensitive: caseSensitive);
     } else {
@@ -589,8 +589,9 @@ class Query<T> {
   ///
   /// Call with offset=0 to reset to the default behavior,
   /// i.e. starting from the first element.
-  void offset(int offset) {
+  Query<T> offset(int offset) {
     checkObx(bindings.obx_query_offset(_cQuery, offset));
+    return this;
   }
 
   /// Configure a [limit] for this query.
@@ -601,8 +602,9 @@ class Query<T> {
   ///
   /// Call with limit=0 to reset to the default behavior -
   /// zero limit means no limit applied.
-  void limit(int limit) {
+  Query<T> limit(int limit) {
     checkObx(bindings.obx_query_limit(_cQuery, limit));
+    return this;
   }
 
   /// Returns the number of matching Objects.
@@ -643,10 +645,9 @@ class Query<T> {
   }
 
   /// Finds Objects matching the query and returns their IDs.
-  ///
-  /// [offset] and [limit] are deprecated, explicitly call
-  /// the equally named methods.
-  List<int> findIds({int offset = 0, int limit = 0}) {
+  List<int> findIds(
+      {@Deprecated('Use offset() instead') int offset = 0,
+      @Deprecated('Use limit() instead') int limit = 0}) {
     if (offset > 0) {
       this.offset(offset);
     }
@@ -666,10 +667,9 @@ class Query<T> {
   }
 
   /// Finds Objects matching the query.
-  ///
-  /// [offset] and [limit] are deprecated, explicitly call
-  /// the equally named methods.
-  List<T> find({int offset = 0, int limit = 0}) {
+  List<T> find(
+      {@Deprecated('Use offset() instead') int offset = 0,
+      @Deprecated('Use limit() instead') int limit = 0}) {
     if (offset > 0) {
       this.offset(offset);
     }
