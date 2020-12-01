@@ -49,12 +49,11 @@ class OBX_bytes_wrapper {
 
   /// Returns a pointer to OBX_bytes with copy of the passed data.
   /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
-  OBX_bytes_wrapper.managedCopyOf(Uint8List data)
+  /// ObjectBox requires object data to be aligned to the length of 4.
+  OBX_bytes_wrapper.managedCopyOf(Uint8List data, {/*required*/ bool align})
       : _cBytes = allocate<OBX_bytes>() {
     final bytes = _cBytes.ref;
 
-    // ObjectBox requires data to be aligned to the length of 4
-    const align = true;
     bytes.size = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
 
     // NOTE: currently there's no way to get access to the underlying memory of Uint8List to avoid a copy.

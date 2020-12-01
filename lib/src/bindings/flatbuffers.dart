@@ -107,7 +107,8 @@ class OBXFlatbuffersManager<T> {
     });
 
     var endOffset = builder.endTable();
-    return OBX_bytes_wrapper.managedCopyOf(builder.finish(endOffset));
+    return OBX_bytes_wrapper.managedCopyOf(builder.finish(endOffset),
+        align: true);
   }
 
   T unmarshal(Pointer<Uint8> dataPtr, int length) {

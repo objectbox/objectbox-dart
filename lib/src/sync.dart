@@ -135,7 +135,7 @@ class SyncClient {
   /// Configure authentication credentials.
   /// The accepted [SyncCredentials] type depends on your sync-server configuration.
   void setCredentials(SyncCredentials creds) {
-    final cCreds = OBX_bytes_wrapper.managedCopyOf(creds._data);
+    final cCreds = OBX_bytes_wrapper.managedCopyOf(creds._data, align: false);
     try {
       checkObx(bindings.obx_sync_credentials(
           ptr,
