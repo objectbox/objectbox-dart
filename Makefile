@@ -18,12 +18,11 @@ test: 			## Test all targets
 	pub run build_runner build
 	pub run test
 
-.ONESHELL: # run all lines of the following target in a single shell instance
 integration-test:	## Execute integration tests
-	cd example/flutter/objectbox_demo/
-	flutter pub get
-	flutter pub run build_runner build
-	flutter drive --verbose --target=test_driver/app.dart
+	cd example/flutter/objectbox_demo/						; \
+	flutter pub get											; \
+	flutter pub run build_runner build						; \
+	flutter drive --verbose --target=test_driver/app.dart	; \
 
 publish: 		## Publish all packages to pub.dev
 	echo "TODO implement publishing"

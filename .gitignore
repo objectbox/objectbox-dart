@@ -17,3 +17,6 @@ lib/*.so
 lib/*.a
 
 **/*.g.dart
+
+# backup created by publish.sh - ignore to avoid publishing
+**/pubspec.yaml.original

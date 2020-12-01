@@ -7,7 +7,7 @@ Installation
 Add the following dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^0.9.0
+  objectbox: ^0.10.0
 
 dev_dependencies:
   build_runner: ^1.0.0
@@ -19,7 +19,7 @@ Proceed based on whether you're developing a Flutter app or a standalone dart pr
     * Add additional dependency to include native libraries (required in Flutter):
       ```yaml
       dependencies:
-        objectbox: ^0.9.0
+        objectbox: ^0.10.0
         objectbox_flutter_libs: any
       ```
     * Install the packages `flutter pub get`

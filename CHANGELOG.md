@@ -1,5 +1,15 @@
-## latest
-
+## 0.10.0 (2020-12-01)
+* Add support for string array properties: `List<String>`.
+* Add support for byte array properties: `List<Int>`, `Uint8List`, `Int8List`. 
+* Add `@Index()` and `@Unique()` property annotations
+  (thanks [@Buggaboo](https://github.com/Buggaboo) for [#123](https://github.com/objectbox/objectbox-dart/pull/123)).
+* Add `Query.remove()` to remove all objects matching the query.
+* Fix `Query.findStream()` to only rerun on changes to the queried type
+  (thanks [@RTrackerDev](https://github.com/RTrackerDev) and [@Buggaboo](https://github.com/Buggaboo) for [#152](https://github.com/objectbox/objectbox-dart/pull/152)).
+* Change `type` field on `@Property()` annotation to PropertyType.
+* Mark `offset` and `limit` query parameters deprecated, use `offset()` and `limit()` instead.
+* Update to objectbox-swift 1.4.1
+* Internal changes in preparation for null-safety (still waiting for our dependencies to migrate).
 
 ## 0.9.0 (2020-11-12)
 

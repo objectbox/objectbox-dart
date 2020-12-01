@@ -7,7 +7,7 @@ echo "Sync-enabled objectbox-swift isn't released yet"
 exit 1
 
 # https://github.com/objectbox/objectbox-swift/releases/
-obxSwiftVersion="1.4.0"
+obxSwiftVersion="1.4.1"
 
 dir=$(dirname "$0")
 
