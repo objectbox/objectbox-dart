@@ -75,11 +75,15 @@ extension Streamable<T> on Query<T> {
     };
   }
 
-  Stream<List<T>> findStream({int offset = 0, int limit = 0}) {
+  Stream<List<T>> findStream(
+      {@Deprecated('Use offset() instead') int offset = 0,
+      @Deprecated('Use limit() instead') int limit = 0}) {
     _setup();
-    return _Observable.controller.stream
-        .where((e) => e == entityId)
-        .map((_) => find(offset: offset, limit: limit));
+    return _Observable.controller.stream.where((e) => e == entityId).map((_) {
+      if (offset != 0) this.offset(offset);
+      if (limit != 0) this.limit(limit);
+      return find();
+    });
   }
 
   /// Use this for Query Property
