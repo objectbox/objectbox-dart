@@ -1,6 +1,8 @@
 library query;
 
 import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 
 import '../store.dart';
@@ -78,15 +80,15 @@ class QueryStringProperty extends QueryProperty {
   }
 
   Condition endsWith(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringEnds, caseSensitive);
+    return _op(p, ConditionOp.endsWith, caseSensitive);
   }
 
   Condition startsWith(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringStarts, caseSensitive);
+    return _op(p, ConditionOp.startsWith, caseSensitive);
   }
 
   Condition contains(String p, {bool caseSensitive = false}) {
-    return _op(p, ConditionOp.stringContains, caseSensitive);
+    return _op(p, ConditionOp.contains, caseSensitive);
   }
 
   Condition inside(List<String> list, {bool caseSensitive = false}) {
@@ -127,6 +129,38 @@ class QueryStringProperty extends QueryProperty {
 
 //  Condition operator ==(String p) => equals(p); // see issue #43
 //  Condition operator != (String p) => notEqual(p); // not overloadable
+}
+
+class QueryByteVectorProperty extends QueryProperty {
+  QueryByteVectorProperty(
+      {/*required*/ int entityId,
+      /*required*/ int propertyId,
+      /*required*/ int obxType})
+      : super(entityId, propertyId, obxType);
+
+  Condition _op(List<int> val, ConditionOp cop) {
+    return ByteVectorCondition(cop, this, Uint8List.fromList(val));
+  }
+
+  Condition equals(List<int> val) {
+    return _op(val, ConditionOp.eq);
+  }
+
+  Condition greaterThan(List<int> val) {
+    return _op(val, ConditionOp.gt);
+  }
+
+  Condition greaterOrEqual(List<int> val) {
+    return _op(val, ConditionOp.greaterOrEq);
+  }
+
+  Condition lessThan(List<int> val) {
+    return _op(val, ConditionOp.lt);
+  }
+
+  Condition lessOrEqual(List<int> val) {
+    return _op(val, ConditionOp.lessOrEq);
+  }
 }
 
 class QueryIntegerProperty extends QueryProperty {
@@ -235,14 +269,26 @@ class QueryBooleanProperty extends QueryProperty {
 // Condition operator ==(bool p) => equals(p); // see issue #43
 }
 
+class QueryStringVectorProperty extends QueryProperty {
+  QueryStringVectorProperty(
+      {/*required*/ int entityId,
+      /*required*/ int propertyId,
+      /*required*/ int obxType})
+      : super(entityId, propertyId, obxType);
+
+  Condition contains(String p, {bool caseSensitive = false}) {
+    return StringCondition(ConditionOp.contains, this, p, null, caseSensitive);
+  }
+}
+
 enum ConditionOp {
   isNull,
   notNull,
   eq,
   notEq,
-  stringContains,
-  stringStarts,
-  stringEnds,
+  contains,
+  startsWith,
+  endsWith,
   gt,
   greaterOrEq,
   lt,
@@ -344,11 +390,14 @@ class StringCondition extends PropertyCondition<String> {
         return _op1(builder, bindings.obx_qb_equals_string);
       case ConditionOp.notEq:
         return _op1(builder, bindings.obx_qb_not_equals_string);
-      case ConditionOp.stringContains:
-        return _op1(builder, bindings.obx_qb_contains_string);
-      case ConditionOp.stringStarts:
+      case ConditionOp.contains:
+        final cFn = (_property._type == OBXPropertyType.String)
+            ? bindings.obx_qb_contains_string
+            : bindings.obx_qb_any_equals_string;
+        return _op1(builder, cFn);
+      case ConditionOp.startsWith:
         return _op1(builder, bindings.obx_qb_starts_with_string);
-      case ConditionOp.stringEnds:
+      case ConditionOp.endsWith:
         return _op1(builder, bindings.obx_qb_ends_with_string);
       case ConditionOp.lt:
         return _op1(builder, bindings.obx_qb_less_than_string);
@@ -510,6 +559,40 @@ class DoubleCondition extends PropertyCondition<double> {
       case ConditionOp.between:
         return bindings.obx_qb_between_2doubles(
             builder._cBuilder, _property._propertyId, _value, _value2);
+      default:
+        throw Exception('Unsupported operation ${_op.toString()}');
+    }
+  }
+}
+
+class ByteVectorCondition extends PropertyCondition<Uint8List> {
+  ByteVectorCondition(ConditionOp op, QueryProperty prop, Uint8List value)
+      : super(op, prop, value);
+
+  int _op1(QueryBuilder builder,
+      int Function(Pointer<OBX_query_builder>, int, Pointer<Void>, int) func) {
+    final cBytes = OBX_bytes_wrapper.managedCopyOf(_value, align: false);
+    try {
+      return func(
+          builder._cBuilder, _property._propertyId, cBytes.ptr, cBytes.size);
+    } finally {
+      cBytes.freeManaged();
+    }
+  }
+
+  @override
+  int apply(QueryBuilder builder, bool isRoot) {
+    switch (_op) {
+      case ConditionOp.eq:
+        return _op1(builder, bindings.obx_qb_equals_bytes);
+      case ConditionOp.lt:
+        return _op1(builder, bindings.obx_qb_less_than_bytes);
+      case ConditionOp.lessOrEq:
+        return _op1(builder, bindings.obx_qb_less_or_equal_bytes);
+      case ConditionOp.gt:
+        return _op1(builder, bindings.obx_qb_greater_than_bytes);
+      case ConditionOp.greaterOrEq:
+        return _op1(builder, bindings.obx_qb_greater_or_equal_bytes);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
     }

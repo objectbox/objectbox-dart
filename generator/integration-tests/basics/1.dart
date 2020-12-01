@@ -35,4 +35,22 @@ void main() {
     expect(entity(model, 'D').flags, equals(OBXEntityFlags.SYNC_ENABLED));
     expect(entity(jsonModel, 'D').flags, equals(OBXEntityFlags.SYNC_ENABLED));
   });
+
+  test('types', () {
+    expect(property(model, 'T.tBool').type, OBXPropertyType.Bool);
+    expect(property(model, 'T.tByte').type, OBXPropertyType.Byte);
+    expect(property(model, 'T.tShort').type, OBXPropertyType.Short);
+    expect(property(model, 'T.tChar').type, OBXPropertyType.Char);
+    expect(property(model, 'T.tInt').type, OBXPropertyType.Int);
+    expect(property(model, 'T.tLong').type, OBXPropertyType.Long);
+    expect(property(model, 'T.tFloat').type, OBXPropertyType.Float);
+    expect(property(model, 'T.tDouble').type, OBXPropertyType.Double);
+    expect(property(model, 'T.tString').type, OBXPropertyType.String);
+    expect(property(model, 'T.tDate').type, OBXPropertyType.Date);
+    expect(property(model, 'T.tDateNano').type, OBXPropertyType.DateNano);
+    expect(property(model, 'T.tListInt').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tInt8List').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tUint8List').type, OBXPropertyType.ByteVector);
+    expect(property(model, 'T.tListString').type, OBXPropertyType.StringVector);
+  });
 }

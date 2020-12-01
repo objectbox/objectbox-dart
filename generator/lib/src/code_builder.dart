@@ -140,6 +140,7 @@ class CodeBuilder extends Builder {
     propInModel.name = prop.name;
     propInModel.type = prop.type;
     propInModel.flags = prop.flags;
+    propInModel.dartFieldType = prop.dartFieldType;
 
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();

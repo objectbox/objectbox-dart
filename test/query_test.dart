@@ -198,6 +198,25 @@ void main() {
     [qs0, qs1, qs2, qs3, qn0, qn1, qn2].forEach((q) => q.close());
   });
 
+  test('.count matches of List<String> `contains`', () {
+    box.put(TestEntity(tStrings: ['foo', 'bar']));
+    box.put(TestEntity(tStrings: ['barbar']));
+    box.put(TestEntity(tStrings: ['foo']));
+
+    final prop = TestEntity_.tStrings;
+
+    final qs0 = box.query(prop.contains('bar')).build();
+    expect(qs0.count(), 1);
+
+    final qs1 = box.query(prop.contains('ar')).build();
+    expect(qs1.count(), 0);
+
+    final qs2 = box.query(prop.contains('foo')).build();
+    expect(qs2.count(), 2);
+
+    [qs0, qs1, qs2].forEach((q) => q.close());
+  });
+
   test('.findIds returns List<int>', () {
     box.put(TestEntity(tString: 'meh'));
     box.put(TestEntity(tString: 'bleh'));
@@ -492,6 +511,24 @@ void main() {
 
     query.close();
     queryReverseOrder.close();
+  });
+
+  test('.describeParameters BytesVector', () {
+    final q = box
+        .query(TestEntity_.tUint8List.equals([1, 2]) &
+            TestEntity_.tInt8List.greaterThan([3, 4]) &
+            TestEntity_.tByteList.greaterOrEqual([5, 6, 7]) &
+            TestEntity_.tUint8List.lessThan([8]) &
+            TestEntity_.tUint8List.lessOrEqual([9, 10, 11, 12]))
+        .build();
+    expect(
+        q.describeParameters(),
+        equals('(tUint8List == byte[2]{0x0102}\n'
+            ' AND tInt8List > byte[2]{0x0304}\n'
+            ' AND tByteList >= byte[3]{0x050607}\n'
+            ' AND tUint8List < byte[1]{0x08}\n'
+            ' AND tUint8List <= byte[4]{0x090A0B0C})'));
+    q.close();
   });
 
   tearDown(() {

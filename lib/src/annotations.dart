@@ -13,13 +13,69 @@ class Entity {
 ///
 /// Use OBXPropertyType and OBXPropertyFlag values, resp. for type and flag.
 class Property {
-  final int /*?*/ uid, type, flag;
+  final int /*?*/ uid, flag;
+
+  /// Override dart type with an alternative ObjectBox property type
+  final PropertyType /*?*/ type;
 
   const Property({this.type, this.flag, this.uid});
 }
 
+// Specify ObjectBox property type explicitly
+enum PropertyType {
+  // dart type=bool, size: 1-byte/8-bits
+  // no need to specify explicitly, just use `bool`
+  // bool,
+
+  /// size: 1-byte/8-bits
+  byte,
+
+  /// size: 2-bytes/16-bits
+  short,
+
+  /// size: 1-byte/8-bits
+  char,
+
+  /// size: 4-bytes/32-bits
+  int,
+
+  // dart type=int, size: 8-bytes/64-bits
+  // no need to specify explicitly, just use `int`
+  // long,
+
+  /// size: 4-bytes/32-bits
+  float,
+
+  // dart type=double, size: 8-bytes/64-bits
+  // no need to specify explicitly, just use `double`
+  // double,
+
+  // dart type=String
+  // no need to specify explicitly, just use `String`
+  // string,
+
+  // Relation, currently not supported
+  // relation,
+
+  /// Unix timestamp (milliseconds since 1970), size: 8-bytes/64-bits
+  date,
+
+  /// Unix timestamp (nanoseconds since 1970), size: 8-bytes/64-bits
+  dateNano,
+
+  /// dart type=Uint8List - automatic, no need to specify explicitly
+  /// dart type=Int8List  - automatic, no need to specify explicitly
+  /// dart type=List<int> - specify the type explicitly using @Property(type:)
+  ///                     - values are truncated to 8-bit int (0..255)
+  byteVector,
+
+  // dart type=List<String>
+  // no need to specify explicitly, just use `List<String> `
+  // stringVector
+}
+
 class Id {
-  final int /*?*/ uid;
+  final int /*?*/ uid; // TODO remove, use `Property(uid:)`
 
   const Id({this.uid});
 }
@@ -28,8 +84,8 @@ class Transient {
   const Transient();
 }
 
-/// See Sync() in sync.dart.
-/// Defining a class with the same name here would cause a duplicate export.
+// See Sync() in sync.dart.
+// Defining a class with the same name here would cause a duplicate export.
 // class Sync {
 //   const Sync();
 // }
@@ -44,6 +100,7 @@ class Transient {
 /// properties.
 class Index {
   final IndexType /*?*/ type;
+
   const Index({this.type});
 }
 

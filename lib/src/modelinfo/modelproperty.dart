@@ -1,5 +1,5 @@
-import 'package:objectbox/src/bindings/bindings.dart';
-
+import '../bindings/bindings.dart';
+import '../bindings/helpers.dart';
 import 'modelentity.dart';
 import 'iduid.dart';
 
@@ -10,6 +10,10 @@ class ModelProperty {
   /*late*/ int _type, _flags;
   IdUid /*?*/ _indexId;
   ModelEntity /*?*/ entity;
+
+  /// Type used in the source dart code - used by the code generator.
+  /// Note: must be included in to/fromMap to be handled `build_runner`.
+  String /*?*/ dartFieldType;
 
   String get name => _name;
 
@@ -50,7 +54,7 @@ class ModelProperty {
   }
 
   ModelProperty(this.id, String /*?*/ name, int /*?*/ type,
-      {int flags = 0, String /*?*/ indexId, this.entity}) {
+      {int flags = 0, String /*?*/ indexId, this.entity, this.dartFieldType}) {
     this.name = name;
     this.type = type;
     this.flags = flags;
@@ -61,7 +65,8 @@ class ModelProperty {
       : this(IdUid.fromString(data['id']), data['name'], data['type'],
             flags: data['flags'] ?? 0,
             indexId: data['indexId'],
-            entity: entity);
+            entity: entity,
+            dartFieldType: data['dartFieldType']);
 
   Map<String, dynamic> toMap() {
     final ret = <String, dynamic>{};
@@ -70,6 +75,7 @@ class ModelProperty {
     ret['type'] = type;
     if (flags != 0) ret['flags'] = flags;
     if (indexId != null) ret['indexId'] = indexId /*!*/ .toString();
+    if (dartFieldType != null) ret['dartFieldType'] = dartFieldType;
     return ret;
   }
 
@@ -92,5 +98,25 @@ class ModelProperty {
       entity.model.retiredIndexUids.add(_indexId.uid);
       indexId = null;
     }
+  }
+
+  @override
+  String toString() {
+    var result = 'property ${name}(${id})';
+    result += ' type:${obxPropertyTypeToString(type)}';
+    result += ' flags:${flags}';
+
+    if (hasIndexFlag()) {
+      result += ' index:' +
+          (hasFlag(OBXPropertyFlags.INDEXED)
+              ? 'value'
+              : hasFlag(OBXPropertyFlags.INDEX_HASH)
+                  ? 'hash'
+                  : hasFlag(OBXPropertyFlags.INDEX_HASH64)
+                      ? 'hash64'
+                      : 'unknown');
+    }
+
+    return result;
   }
 }

@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 import 'bindings.dart';
+import '../annotations.dart';
 import '../common.dart';
 
 void checkObx(int code) {
@@ -47,4 +48,61 @@ String cString(Pointer<Int8> charPtr) {
   }
 
   return Utf8.fromUtf8(charPtr.cast<Utf8>());
+}
+
+String obxPropertyTypeToString(int type) {
+  switch (type) {
+    case OBXPropertyType.Bool:
+      return 'bool';
+    case OBXPropertyType.Byte:
+      return 'byte';
+    case OBXPropertyType.Short:
+      return 'short';
+    case OBXPropertyType.Char:
+      return 'char';
+    case OBXPropertyType.Int:
+      return 'int';
+    case OBXPropertyType.Long:
+      return 'long';
+    case OBXPropertyType.Float:
+      return 'float';
+    case OBXPropertyType.Double:
+      return 'double';
+    case OBXPropertyType.String:
+      return 'string';
+    case OBXPropertyType.Date:
+      return 'date';
+    case OBXPropertyType.Relation:
+      return 'relation';
+    case OBXPropertyType.DateNano:
+      return 'dateNano';
+    case OBXPropertyType.ByteVector:
+      return 'byteVector';
+    case OBXPropertyType.StringVector:
+      return 'stringVector';
+  }
+
+  throw Exception('Invalid OBXPropertyType: ${type}');
+}
+
+int propertyTypeToOBXPropertyType(PropertyType type) {
+  switch (type) {
+    case PropertyType.byte:
+      return OBXPropertyType.Byte;
+    case PropertyType.short:
+      return OBXPropertyType.Short;
+    case PropertyType.char:
+      return OBXPropertyType.Char;
+    case PropertyType.int:
+      return OBXPropertyType.Int;
+    case PropertyType.float:
+      return OBXPropertyType.Float;
+    case PropertyType.date:
+      return OBXPropertyType.Date;
+    case PropertyType.dateNano:
+      return OBXPropertyType.DateNano;
+    case PropertyType.byteVector:
+      return OBXPropertyType.ByteVector;
+  }
+  throw Exception('Invalid PropertyType: ${type}');
 }
