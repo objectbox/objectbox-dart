@@ -23,8 +23,8 @@ class Property {
 
 // Specify ObjectBox property type explicitly
 enum PropertyType {
-  /// dart type=bool, size: 1-byte/8-bits
-  /// no need to specify explicitly, just use `bool`
+  // dart type=bool, size: 1-byte/8-bits
+  // no need to specify explicitly, just use `bool`
   // bool,
 
   /// size: 1-byte/8-bits
@@ -39,22 +39,22 @@ enum PropertyType {
   /// size: 4-bytes/32-bits
   int,
 
-  /// dart type=int, size: 8-bytes/64-bits
-  /// no need to specify explicitly, just use `int`
+  // dart type=int, size: 8-bytes/64-bits
+  // no need to specify explicitly, just use `int`
   // long,
 
   /// size: 4-bytes/32-bits
   float,
 
-  /// dart type=double, size: 8-bytes/64-bits
-  /// no need to specify explicitly, just use `double`
+  // dart type=double, size: 8-bytes/64-bits
+  // no need to specify explicitly, just use `double`
   // double,
 
-  /// dart type=String
-  /// no need to specify explicitly, just use `String`
+  // dart type=String
+  // no need to specify explicitly, just use `String`
   // string,
 
-  /// Relation, currently not supported
+  // Relation, currently not supported
   // relation,
 
   /// Unix timestamp (milliseconds since 1970), size: 8-bytes/64-bits
@@ -69,8 +69,8 @@ enum PropertyType {
   ///                     - values are truncated to 8-bit int (0..255)
   byteVector,
 
-  /// dart type=List<String>
-  /// no need to specify explicitly, just use `List<String> `
+  // dart type=List<String>
+  // no need to specify explicitly, just use `List<String> `
   // stringVector
 }
 
@@ -84,8 +84,8 @@ class Transient {
   const Transient();
 }
 
-/// See Sync() in sync.dart.
-/// Defining a class with the same name here would cause a duplicate export.
+// See Sync() in sync.dart.
+// Defining a class with the same name here would cause a duplicate export.
 // class Sync {
 //   const Sync();
 // }
