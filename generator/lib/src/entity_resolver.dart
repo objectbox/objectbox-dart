@@ -145,14 +145,10 @@ class EntityResolver extends Builder {
           fieldType = OBXPropertyType.StringVector;
         } else if (fieldTypeDart.element.name == 'Int8List') {
           fieldType = OBXPropertyType.ByteVector;
-          dartFieldType =
-              fieldTypeDart.element.name; // needed for code generation
+          dartFieldType = fieldTypeDart.element.name; // for code generation
         } else if (fieldTypeDart.element.name == 'Uint8List') {
           fieldType = OBXPropertyType.ByteVector;
-          // TODO check if UNSIGNED also applies to byte-vector in the core
-          flags |= OBXPropertyFlags.UNSIGNED;
-          dartFieldType =
-              fieldTypeDart.element.name; // needed for code generation
+          dartFieldType = fieldTypeDart.element.name; // for code generation
         } else {
           log.warning(
               "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${fieldTypeDart}'");
@@ -206,23 +202,8 @@ class EntityResolver extends Builder {
 
     // If available use index type from annotation.
     if (indexAnnotation != null && !indexAnnotation.isNull) {
-      // find out @Index(type:) value - its an enum IndexType
-      final indexTypeField = indexAnnotation.getField('type');
-      if (!indexTypeField.isNull) {
-        final indexTypeEnumValues = (indexTypeField.type as InterfaceType)
-            .element
-            .fields
-            .where((f) => f.isEnumConstant)
-            .toList();
-
-        // Find the index of the matching enum constant.
-        for (var i = 0; i < indexTypeEnumValues.length; i++) {
-          if (indexTypeEnumValues[i].computeConstantValue() == indexTypeField) {
-            indexType = obx.IndexType.values[i];
-            break;
-          }
-        }
-      }
+      final enumValItem = enumValueItem(indexAnnotation.getField('type'));
+      if (enumValItem != null) indexType = obx.IndexType.values[enumValItem];
     }
 
     // Fall back to index type based on property type.
@@ -263,23 +244,31 @@ class EntityResolver extends Builder {
     }
   }
 
-  // find out @Property(type:) field value - its an enum PropertyType
-  int /*?*/ propertyTypeFromAnnotation(DartObject typeField) {
-    if (typeField.isNull) return null;
-    final enumValues = (typeField.type as InterfaceType)
-        .element
-        .fields
-        .where((f) => f.isEnumConstant)
-        .toList();
+  int /*?*/ enumValueItem(DartObject typeField) {
+    if (!typeField.isNull) {
+      final enumValues = (typeField.type as InterfaceType)
+          .element
+          .fields
+          .where((f) => f.isEnumConstant)
+          .toList();
 
-    // Find the index of the matching enum constant.
-    for (var i = 0; i < enumValues.length; i++) {
-      if (enumValues[i].computeConstantValue() == typeField) {
-        return propertyTypeToOBXPropertyType(obx.PropertyType.values[i]);
+      // Find the index of the matching enum constant.
+      for (var i = 0; i < enumValues.length; i++) {
+        if (enumValues[i].computeConstantValue() == typeField) {
+          return i;
+        }
       }
     }
 
     return null;
+  }
+
+  // find out @Property(type:) field value - its an enum PropertyType
+  int /*?*/ propertyTypeFromAnnotation(DartObject typeField) {
+    final item = enumValueItem(typeField);
+    return item == null
+        ? null
+        : propertyTypeToOBXPropertyType(obx.PropertyType.values[item]);
   }
 
   DartType /*?*/ listItemType(DartType listType) {
