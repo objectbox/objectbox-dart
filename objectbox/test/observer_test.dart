@@ -33,6 +33,10 @@ void main() async {
     box = env.box;
   });
 
+  tearDown(() {
+    env.close();
+  });
+
   test('Observe single entity', () async {
     Completer completer;
     var expectedEvents = 0;
@@ -112,7 +116,40 @@ void main() async {
     expect(expectedEvents, 1); // note: unchanged, no events received anymore
   });
 
-  tearDown(() {
-    env.close();
+  test('Observer pause/resume', () async {
+    final testPauseResume = (Stream stream) async {
+      Completer completer;
+      final subscription = stream.listen((_) {
+        completer.complete();
+      });
+
+      // triggers when listening
+      completer = Completer();
+      box.put(simpleStringItems[0]);
+      await completer.future.timeout(defaultTimeout);
+
+      // won't trigger when paused
+      subscription.pause();
+      completer = Completer();
+      box.put(simpleStringItems[0]);
+      expect(completer.future.timeout(defaultTimeout),
+          throwsA(isA<TimeoutException>()));
+
+      // triggers when resumed
+      subscription.resume();
+      completer = Completer();
+      box.put(simpleStringItems[0]);
+      await completer.future.timeout(defaultTimeout);
+
+      // won't trigger when cancelled
+      await subscription.cancel();
+      completer = Completer();
+      box.put(simpleStringItems[0]);
+      expect(completer.future.timeout(defaultTimeout),
+          throwsA(isA<TimeoutException>()));
+    };
+
+    await testPauseResume(env.store.subscribe<TestEntity>());
+    await testPauseResume(env.store.subscribeAll());
   });
 }

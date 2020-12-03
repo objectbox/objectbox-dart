@@ -37,11 +37,19 @@ class _Observer<StreamValueType> {
   // stop() is called when the stream subscription is paused or canceled
   void stop() {
     _debugLog('stopped');
-    if (_cObserver != null) checkObx(C.observer_close(_cObserver));
+    if (_cObserver != null) {
+      checkObx(C.observer_close(_cObserver));
+      _cObserver = null;
+    }
+
+    if (receivePort != null) {
+      receivePort.close();
+      receivePort = null;
+    }
   }
 
   void _debugLog(String message) {
-    // print('Observer=${_cObserver?.address} ' + message);
+    // print('Observer=${_cObserver?.address} $message');
   }
 }
 
@@ -52,7 +60,7 @@ extension ObservableStore on Store {
   /// Create a stream to data changes on EntityT (stored Entity class).
   ///
   /// The stream receives an event whenever an object of EntityT is created or
-  /// changed or deleted. Make sure to close() the subscription after you're
+  /// changed or deleted. Make sure to cancel() the subscription after you're
   /// done with it to avoid hanging change listeners.
   Stream<void> subscribe<EntityT>() {
     final observer = _Observer<void>();
@@ -74,7 +82,7 @@ extension ObservableStore on Store {
   /// Create a stream to data changes on all Entity types.
   ///
   /// The stream receives an even whenever any data changes in the database.
-  /// Make sure to close() the subscription after you're done with it to avoid
+  /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
   Stream<Type> subscribeAll() {
     initializeDartAPI();

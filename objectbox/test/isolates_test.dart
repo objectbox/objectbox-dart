@@ -85,16 +85,18 @@ void main() {
 
     {
       // verify that query streams (using observers) work fine across isolates
-      final queryStream = env.box.query().build().findStream();
-      final futureFirst = queryStream.first; // this starts a subscription
+      final query = env.box.query().build();
+      final futureFirst = query.findStream().first; // starts a subscription
       expect(await call(['put', 'Bar']), equals(2));
       List<TestEntity> found = await futureFirst.timeout(Duration(seconds: 1));
       expect(found.length, equals(2));
       expect(found.last.tString, equals('Bar'));
+      query.close();
     }
 
     isolate.kill(priority: Isolate.immediate);
     receivePort.close();
+    env.close();
   });
 }
 
