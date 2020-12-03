@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
@@ -98,7 +99,7 @@ extension ObservableStore on Store {
       // and we must map it to a dart type (class) corresponding to that entity.
       observer.receivePort = ReceivePort()
         ..listen((entityIds) {
-          if (entityIds is! List) {
+          if (entityIds is! Uint32List) {
             observer.controller.addError(Exception(
                 'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
             return;
