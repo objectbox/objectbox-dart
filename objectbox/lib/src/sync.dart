@@ -275,6 +275,47 @@ class Sync {
   }
 }
 
+/* BACKUP: Sync change listener async callback message handling
+  ReceivePort()..listen((syncChanges) {
+          if (syncChanges is! List) {
+            observer.controller.addError(Exception(
+                'Received invalid data type from the core notification: (${syncChanges.runtimeType}) $syncChanges'));
+            return;
+          }
+
+          // List<SyncChange> is flattened to List<dynamic>, with SyncChange object
+          // properties always coming in groups of three (entityId, puts, removals)
+          const numProperties = 3;
+          if (syncChanges.length % numProperties != 0) {
+            observer.controller.addError(Exception(
+                'Received invalid list length from the core notification: (${syncChanges.runtimeType}) $syncChanges'));
+            return;
+          }
+
+          for (var i = 0; i < syncChanges.length / numProperties; i++) {
+            final entityId = syncChanges[i * numProperties + 0];
+            final putsBytes = syncChanges[i * numProperties + 1];
+            final removalsBytes = syncChanges[i * numProperties + 2];
+
+            if (entityId is! int ||
+                putsBytes is! Uint8List ||
+                removalsBytes is! Uint8List) {
+              observer.controller.addError(Exception(
+                  'Received invalid list items format from the core notification at i=${i}: '
+                  'entityId = (${entityId.runtimeType}) $entityId; '
+                  'putsBytes = (${putsBytes.runtimeType}) $putsBytes; '
+                  'removalsBytes = (${removalsBytes.runtimeType}) $removalsBytes'));
+              return;
+            }
+
+            final puts = Uint64List.view(putsBytes.buffer).toList();
+            final removals = Uint64List.view(removalsBytes.buffer).toList();
+
+            // forward the event with entityId, puts & removals
+          }
+      });
+*/
+
 /// Tests only.
 // TODO enable annotation once meta:1.3.0 is out
 // @internal
