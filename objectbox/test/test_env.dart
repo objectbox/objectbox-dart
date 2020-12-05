@@ -27,7 +27,9 @@ class TestEnv {
 
   void close() {
     store.close();
-    if (dir != null && dir.existsSync()) dir.deleteSync(recursive: true);
+    if (dir != null && dir /*!*/ .existsSync()) {
+      dir /*!*/ .deleteSync(recursive: true);
+    }
   }
 }
 

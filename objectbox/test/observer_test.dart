@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:objectbox/observable.dart';
 import 'package:test/test.dart';
 
@@ -9,8 +10,7 @@ import 'test_env.dart';
 
 void main() async {
   /*late final*/ TestEnv env;
-  /*late final*/
-  Box<TestEntity> box;
+  /*late final*/ Box<TestEntity> box;
 
   final defaultTimeout = Duration(milliseconds: 100);
 

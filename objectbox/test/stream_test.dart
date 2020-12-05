@@ -21,7 +21,7 @@ void main() {
 
   // Yield execution to other isolates.
   //
-  // We need to do this to receive an even in the stream before processing
+  // We need to do this to receive an event in the stream before processing
   // the remainder of the test case.
   final yieldExecution = () async => await Future.delayed(Duration.zero);
 
