@@ -19,12 +19,6 @@ void main() {
     box = env.box;
   });
 
-  // Yield execution to other isolates.
-  //
-  // We need to do this to receive an event in the stream before processing
-  // the remainder of the test case.
-  final yieldExecution = () async => await Future.delayed(Duration.zero);
-
   test('Subscribe to stream of entities', () async {
     final result = <String>[];
     final text = TestEntity_.tString;

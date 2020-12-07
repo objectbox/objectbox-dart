@@ -18,15 +18,18 @@ void main() {
   /*late final*/ TestEnv env;
   /*late final*/
   Store store;
+  TestEnv /*?*/ env2;
   int serverPort = 9999;
 
   setUp(() {
     env = TestEnv('sync');
     store = env.store;
+    env2 = TestEnv('sync2');
   });
 
   tearDown(() {
-    if (env != null) env.close();
+    env?.close();
+    env2?.close();
   });
 
   // lambda to easily create clients in the test below
@@ -100,7 +103,6 @@ void main() {
     });
 
     test('SyncClient is closed when a store is closed', () {
-      final env2 = TestEnv('sync2');
       final client = createClient(env2.store);
       env2.close();
       expect(client.isClosed(), isTrue);
@@ -109,7 +111,6 @@ void main() {
     test('different Store => different SyncClient', () {
       SyncClient c1 = createClient(store);
 
-      final env2 = TestEnv('sync2');
       SyncClient c2 = createClient(env2.store);
       expect(c1, isNot(equals(c2)));
       env2.close();
@@ -175,8 +176,6 @@ void main() {
       });
 
       test('SyncClient data sync', () async {
-        final env2 = TestEnv('sync2');
-
         loggedInClient(env.store);
         loggedInClient(env2.store);
 
@@ -189,6 +188,55 @@ void main() {
         expect(read2, isNotNull);
         expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
         expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+      });
+
+      test('SyncClient listeners: connection', () async {
+        final client = createClient(env.store);
+
+        // collect connection events
+        final events = <SyncConnectionEvent>[];
+        final streamSub = client.connectionEvents.listen(events.add);
+
+        // multiple subscriptions work as well
+        final events2 = <SyncConnectionEvent>[];
+        final streamSub2 = client.connectionEvents.listen(events2.add);
+
+        client.start();
+
+        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        await yieldExecution();
+        expect(events, equals([SyncConnectionEvent.connected]));
+        expect(events2, equals([SyncConnectionEvent.connected]));
+
+        await streamSub2.cancel();
+
+        await server.stop(keepDb: true);
+
+        expect(
+            waitUntil(() => client.state() == SyncState.disconnected), isTrue);
+        await yieldExecution();
+        expect(
+            events,
+            equals([
+              SyncConnectionEvent.connected,
+              SyncConnectionEvent.disconnected
+            ]));
+
+        await server.start(keepDb: true);
+
+        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        await yieldExecution();
+
+        expect(
+            events,
+            equals([
+              SyncConnectionEvent.connected,
+              SyncConnectionEvent.disconnected,
+              SyncConnectionEvent.connected
+            ]));
+        expect(events2, equals([SyncConnectionEvent.connected]));
+
+        client.close();
       });
     },
         skip: SyncServer.isAvailable()
@@ -222,11 +270,11 @@ class SyncServer {
     }
   }
 
-  void start() async {
-    port = await _getUnusedPort();
+  void start({bool keepDb = false}) async {
+    port ??= await _getUnusedPort();
 
-    dir = Directory('testdata-sync-server-$port');
-    _deleteDb();
+    dir ??= Directory('testdata-sync-server-$port');
+    if (!keepDb) _deleteDb();
 
     process = await Process.start('sync-server', [
       '--unsecured-no-authentication',
@@ -237,14 +285,15 @@ class SyncServer {
     ]);
   }
 
-  void stop() async {
-    assert(process != null); // call `await server.start()` before stopping
-    process /*!*/ .kill(ProcessSignal.sigint);
-    await stdout.addStream(process /*!*/ .stdout);
-    await stderr.addStream(process /*!*/ .stderr);
-    expect(await process /*!*/ .exitCode, isZero);
-    _deleteDb();
+  void stop({bool keepDb = false}) async {
+    if (process == null) return;
+    final proc = process /*!*/;
     process = null;
+    proc.kill(ProcessSignal.sigint);
+    await stdout.addStream(proc.stdout);
+    await stderr.addStream(proc.stderr);
+    expect(await proc.exitCode, isZero);
+    if (!keepDb) _deleteDb();
   }
 
   Future<int> _getUnusedPort() {
