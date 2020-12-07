@@ -18,6 +18,7 @@ class Store {
   /*late final*/ Pointer<OBX_store> _cStore;
   final _boxes = <Type, Box>{};
   final ModelDefinition _defs;
+  bool _closed = false;
 
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
@@ -103,6 +104,9 @@ class Store {
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
+    if (_closed) return;
+    _closed = true;
+
     _boxes.values.forEach(InternalBoxAccess.close);
     _boxes.clear();
 
