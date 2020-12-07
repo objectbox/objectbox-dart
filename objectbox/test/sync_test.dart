@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -17,6 +18,7 @@ void main() {
   /*late final*/ TestEnv env;
   /*late final*/
   Store store;
+  int serverPort = 9999;
 
   setUp(() {
     env = TestEnv('sync');
@@ -29,7 +31,7 @@ void main() {
 
   // lambda to easily create clients in the test below
   SyncClient createClient(Store s) =>
-      Sync.client(s, 'ws://127.0.0.1:9999', SyncCredentials.none());
+      Sync.client(s, 'ws://127.0.0.1:$serverPort', SyncCredentials.none());
 
   // lambda to easily create clients in the test below
   SyncClient loggedInClient(Store s) {
@@ -160,29 +162,40 @@ void main() {
       expect(c.state(), equals(SyncState.stopped));
     });
 
-    test('SyncClient - data test (requires manual server setup)', () {
-      final env2 = TestEnv('sync2');
+    group('Sync tests with server', () {
+      SyncServer server;
+      setUp(() async {
+        server = SyncServer();
+        await server.start();
+        serverPort = server.port;
+      });
 
-      loggedInClient(env.store);
-      loggedInClient(env2.store);
+      tearDown(() async {
+        await server.stop();
+      });
 
-      int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
-      expect(waitUntil(() => env2.box.get(id) != null), isTrue);
+      test('SyncClient data sync', () async {
+        final env2 = TestEnv('sync2');
 
-      TestEntity /*?*/ read1 = env.box.get(id);
-      TestEntity /*?*/ read2 = env2.box.get(id);
-      expect(read1, isNotNull);
-      expect(read2, isNotNull);
-      expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
-      expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+        loggedInClient(env.store);
+        loggedInClient(env2.store);
+
+        int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
+        expect(waitUntil(() => env2.box.get(id) != null), isTrue);
+
+        TestEntity /*?*/ read1 = env.box.get(id);
+        TestEntity /*?*/ read2 = env2.box.get(id);
+        expect(read1, isNotNull);
+        expect(read2, isNotNull);
+        expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
+        expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+      });
     },
-        // Note: only available when you start a sync server manually.
-        // Comment out the `skip: ` argument in tthe test-case definition.
-        // run sync-server --unsecured-no-authentication --model=/path/objectbox-dart/test/objectbox-model.json
-        skip: 'Data sync test is disabled, Enable after running sync-server.' //
-        );
+        skip: SyncServer.isAvailable()
+            ? null
+            : 'sync-server executable is not available in PATH - tests requiring it are skipped');
   } else {
-    // TESTS to run when SYNC isn't available
+    // TESTS to run when SYNC is NOT available
 
     test('SyncClient cannot be created when running with non-sync library', () {
       expect(
@@ -190,5 +203,61 @@ void main() {
           throwsA(predicate((Exception e) => e.toString().contains(
               'Sync is not available in the loaded ObjectBox runtime library'))));
     });
+  }
+}
+
+/// sync-server process wrapper for testing clients
+class SyncServer {
+  Directory /*?*/ dir;
+  int /*?*/ port;
+  Process /*?*/ process;
+
+  static bool isAvailable() {
+    try {
+      Process.runSync('sync-server', ['--help']);
+      return true;
+    } on ProcessException {
+      //print(e);
+      return false;
+    }
+  }
+
+  void start() async {
+    port = await _getUnusedPort();
+
+    dir = Directory('testdata-sync-server-$port');
+    _deleteDb();
+
+    process = await Process.start('sync-server', [
+      '--unsecured-no-authentication',
+      '--db-directory=${dir.path}',
+      '--model=${Directory.current.path}/test/objectbox-model.json',
+      '--bind=ws://127.0.0.1:$port',
+      '--browser-bind=http://127.0.0.1:${await _getUnusedPort()}'
+    ]);
+  }
+
+  void stop() async {
+    assert(process != null); // call `await server.start()` before stopping
+    process /*!*/ .kill(ProcessSignal.sigint);
+    await stdout.addStream(process /*!*/ .stdout);
+    await stderr.addStream(process /*!*/ .stderr);
+    expect(await process /*!*/ .exitCode, isZero);
+    _deleteDb();
+    process = null;
+  }
+
+  Future<int> _getUnusedPort() {
+    return ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((socket) {
+      var port = socket.port;
+      socket.close();
+      return port;
+    });
+  }
+
+  void _deleteDb() {
+    if (dir != null && dir /*!*/ .existsSync()) {
+      dir /*!*/ .deleteSync(recursive: true);
+    }
   }
 }
