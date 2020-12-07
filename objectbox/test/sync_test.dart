@@ -264,6 +264,23 @@ void main() {
 
         client.close();
       });
+
+      test('SyncClient listeners: completion', () async {
+        final client = loggedInClient(store);
+        expect(env.box.isEmpty(), isTrue);
+        int id = env.box.put(TestEntity(tLong: 100));
+
+        // Note: wait for the client to finish sending to the server.
+        // There's currently no other way to recognize this.
+        sleep(Duration(milliseconds: 100));
+        client.close();
+
+        final client2 = loggedInClient(env2.store);
+        await client2.completionEvents.first.timeout(Duration(seconds: 1));
+        client2.close();
+
+        expect(env2.box.get(1) /*!*/ .tLong, 100);
+      });
     },
         skip: SyncServer.isAvailable()
             ? null
