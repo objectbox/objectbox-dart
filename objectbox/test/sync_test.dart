@@ -238,6 +238,32 @@ void main() {
 
         client.close();
       });
+
+      test('SyncClient listeners: login', () async {
+        final client = createClient(env.store);
+
+        client.setCredentials(SyncCredentials.sharedSecretString('foo'));
+
+        // collect login events
+        final events = <SyncLoginEvent>[];
+        client.loginEvents.listen(events.add);
+
+        client.start();
+
+        expect(await client.loginEvents.first.timeout(Duration(seconds: 1)),
+            equals(SyncLoginEvent.credentialsRejected));
+
+        client.setCredentials(SyncCredentials.none());
+
+        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        await yieldExecution();
+        expect(
+            events,
+            equals(
+                [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
+
+        client.close();
+      });
     },
         skip: SyncServer.isAvailable()
             ? null
