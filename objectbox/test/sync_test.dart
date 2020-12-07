@@ -3,11 +3,11 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:objectbox/src/bindings/bindings.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
+import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
@@ -281,6 +281,53 @@ void main() {
 
         expect(env2.box.get(1) /*!*/ .tLong, 100);
       });
+
+      test('SyncClient listeners: changes', () async {
+        final client = loggedInClient(store);
+        final client2 = loggedInClient(env2.store);
+
+        final events = <List<SyncChange>>[];
+        client2.changeEvents.listen(events.add);
+
+        expect(env2.box.get(1), isNull);
+
+        env.box.put(TestEntity(tString: 'foo'));
+        env.store.runInTransaction(TxMode.Write, () {
+          Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
+          env.box.put(TestEntity(tString: 'bar'));
+          env.box.put(TestEntity(tString: 'oof'));
+          env.box.remove(1);
+        });
+
+        // wait for the data to be transferred
+        expect(waitUntil(() => env2.box.count() == 2), isTrue);
+
+        // check the events
+        await yieldExecution();
+        expect(events.length, 2);
+
+        // env.box.put(TestEntity(tString: 'foo'));
+        expect(events[0].length, 1);
+        expect(events[0][0].entity, TestEntity);
+        expect(events[0][0].entityId, 1);
+        expect(events[0][0].puts, [1]);
+        expect(events[0][0].removals, []);
+
+        // env.store.runInTransaction(TxMode.Write, () {
+        //   Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
+        //   env.box.put(TestEntity(tString: 'bar'));
+        //   env.box.put(TestEntity(tString: 'oof'));
+        //   env.box.remove(1);
+        // });
+        expect(events[1].length, 1);
+        expect(events[1][0].entity, TestEntity);
+        expect(events[1][0].entityId, 1);
+        expect(events[1][0].puts, [2, 3]);
+        expect(events[1][0].removals, [1]);
+
+        client.close();
+        client2.close();
+      });
     },
         skip: SyncServer.isAvailable()
             ? null
@@ -333,9 +380,12 @@ class SyncServer {
     final proc = process /*!*/;
     process = null;
     proc.kill(ProcessSignal.sigint);
-    await stdout.addStream(proc.stdout);
-    await stderr.addStream(proc.stderr);
-    expect(await proc.exitCode, isZero);
+    final exitCode = await proc.exitCode;
+    if (exitCode != 0) {
+      await stdout.addStream(proc.stdout);
+      await stderr.addStream(proc.stderr);
+      expect(await proc.exitCode, isZero);
+    }
     if (!keepDb) _deleteDb();
   }
 
