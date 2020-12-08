@@ -1,6 +1,8 @@
 import 'dart:ffi';
 import 'dart:io' show Platform;
 
+import '../common.dart';
+import 'helpers.dart';
 import 'objectbox-c.dart';
 
 // let files importing bindings.dart also get all the OBX_* types
@@ -47,14 +49,27 @@ ObjectBoxC /*?*/ _cachedBindings;
 
 ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();
 
-/// Init DartAPI in C for async callbacks - only needs to be called once.
-/// See the following issue:
-/// https://github.com/objectbox/objectbox-dart/issues/143
+/// Init DartAPI in C for async callbacks.
+///
+/// Call each time you're assign a native listener - will throw if the Dart
+/// native API isn't available.
+/// See https://github.com/objectbox/objectbox-dart/issues/143
 void initializeDartAPI() {
-  if (!_dartAPIinitialized) {
-    _dartAPIinitialized = true;
-    C.dart_init_api(NativeApi.initializeApiDLData);
+  if (_dartAPIinitialized == null) {
+    final errCode = C.dart_init_api(NativeApi.initializeApiDLData);
+    _dartAPIinitialized = (OBX_SUCCESS == errCode);
+    if (!_dartAPIinitialized) {
+      _dartAPIinitException = latestNativeError(codeIfMissing: errCode);
+    }
+  }
+
+  if (_dartAPIinitException != null) {
+    throw _dartAPIinitException;
   }
 }
 
-bool _dartAPIinitialized = false;
+// null  => not initialized
+// true  => initialized successfully
+// false => failed to initialize - incompatible Dart version
+bool /*?*/ _dartAPIinitialized;
+ObjectBoxException /*?*/ _dartAPIinitException;
