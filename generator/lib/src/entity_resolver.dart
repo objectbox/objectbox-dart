@@ -143,10 +143,8 @@ class EntityResolver extends Builder {
             listItemType(fieldTypeDart).isDartCoreString) {
           // List<String>
           fieldType = OBXPropertyType.StringVector;
-        } else if (fieldTypeDart.element.name == 'Int8List') {
-          fieldType = OBXPropertyType.ByteVector;
-          dartFieldType = fieldTypeDart.element.name; // for code generation
-        } else if (fieldTypeDart.element.name == 'Uint8List') {
+        } else if (['Int8List', 'Uint8List']
+            .contains(fieldTypeDart.element.name)) {
           fieldType = OBXPropertyType.ByteVector;
           dartFieldType = fieldTypeDart.element.name; // for code generation
         } else {

@@ -157,15 +157,12 @@
         {
           "id": "29:5913356482905885282",
           "name": "tInt8List",
-          "type": 23,
-          "dartFieldType": "Int8List"
+          "type": 23
         },
         {
           "id": "30:9172821003206716871",
           "name": "tUint8List",
-          "type": 23,
-          "flags": 8192,
-          "dartFieldType": "Uint8List"
+          "type": 23
         }
       ]
     },

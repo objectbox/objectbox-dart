@@ -15,7 +15,7 @@ class CodeChunks {
     import '${imports.join("';\n import '")}';
     
     ModelDefinition getObjectBoxModel() {
-      final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap(forCodeGen: true))}, check: false);
+      final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap())}, check: false);
       
       final bindings = <Type, EntityDefinition>{};
       ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 
@@ -52,8 +52,7 @@ class CodeChunks {
   }
 
   static bool isTypedDataList(ModelProperty property) {
-    return (property.dartFieldType == 'Uint8List' ||
-        property.dartFieldType == 'Int8List');
+    return ['Int8List', 'Uint8List'].contains(property.dartFieldType);
   }
 
   static String propertyBinding(ModelProperty property) {

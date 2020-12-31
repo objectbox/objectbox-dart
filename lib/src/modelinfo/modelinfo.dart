@@ -98,20 +98,23 @@ class ModelInfo {
     }
   }
 
-  Map<String, dynamic> toMap({bool forCodeGen = false}) {
+  // Note: this function is used when generting objectbox-model.json as well as
+  // for model persistence in build_runner cache files.
+  Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
-    if (!forCodeGen) {
+    if (forModelJson) {
       ret['_note1'] = notes[0];
       ret['_note2'] = notes[1];
       ret['_note3'] = notes[2];
     }
-    ret['entities'] = entities.map((p) => p.toMap()).toList();
+    ret['entities'] =
+        entities.map((e) => e.toMap(forModelJson: forModelJson)).toList();
     ret['lastEntityId'] = lastEntityId.toString();
     ret['lastIndexId'] = lastIndexId.toString();
     ret['lastRelationId'] = lastRelationId.toString();
     ret['lastSequenceId'] = lastSequenceId.toString();
     ret['modelVersion'] = modelVersion;
-    if (!forCodeGen) {
+    if (forModelJson) {
       ret['modelVersionParserMinimum'] = modelVersionParserMinimum;
       ret['retiredEntityUids'] = retiredEntityUids;
       ret['retiredIndexUids'] = retiredIndexUids;

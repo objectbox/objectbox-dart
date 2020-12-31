@@ -101,13 +101,14 @@ class ModelEntity {
     }
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['lastPropertyId'] = lastPropertyId.toString();
     ret['name'] = name;
     if (flags != 0) ret['flags'] = flags;
-    ret['properties'] = properties.map((p) => p.toMap()).toList();
+    ret['properties'] =
+        properties.map((p) => p.toMap(forModelJson: forModelJson)).toList();
     return ret;
   }
 

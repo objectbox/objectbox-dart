@@ -68,14 +68,16 @@ class ModelProperty {
             entity: entity,
             dartFieldType: data['dartFieldType']);
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
     ret['type'] = type;
     if (flags != 0) ret['flags'] = flags;
     if (indexId != null) ret['indexId'] = indexId /*!*/ .toString();
-    if (dartFieldType != null) ret['dartFieldType'] = dartFieldType;
+    if (!forModelJson && dartFieldType != null) {
+      ret['dartFieldType'] = dartFieldType;
+    }
     return ret;
   }
 
