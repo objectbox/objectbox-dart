@@ -1,4 +1,5 @@
 import 'dart:ffi' as ffi;
+import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/src/bindings/helpers.dart';
 import 'package:test/test.dart';
@@ -14,5 +15,20 @@ void main() {
 
     final error = latestNativeError();
     expect(error.nativeMsg, matches('Argument .+ must not be null'));
+  });
+
+  test('model UID generation', () {
+    final model = ModelInfo();
+    final uid1 = model.generateUid();
+    final uid2 = model.generateUid();
+    expect(uid1, isNot(equals(uid2)));
+    expect(uid1, isNot(equals(0)));
+    expect(uid2, isNot(equals(0)));
+
+    var foundLargeUid = false;
+    for (var i = 0; i < 1000 && !foundLargeUid; i++) {
+      foundLargeUid = model.generateUid() > (1 << 32);
+    }
+    expect(foundLargeUid, isTrue);
   });
 }
