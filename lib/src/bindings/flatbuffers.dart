@@ -88,6 +88,7 @@ class OBXFlatbuffersManager<T> {
           builder.addInt32(field, value);
           break;
         case OBXPropertyType.Long:
+        case OBXPropertyType.Relation:
           builder.addInt64(field, value);
           break;
         case OBXPropertyType.Float:
@@ -138,6 +139,7 @@ class OBXFlatbuffersManager<T> {
           propReader = fb.Int32Reader();
           break;
         case OBXPropertyType.Long:
+        case OBXPropertyType.Relation:
           propReader = fb.Int64Reader();
           break;
         case OBXPropertyType.String:
@@ -162,7 +164,7 @@ class OBXFlatbuffersManager<T> {
       propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);
     });
 
-    return _entity.writer(propVals);
+    return _entity.writer(this._store, propVals);
   }
 
   T /*?*/ unmarshalWithMissing(Pointer<Uint8> dataPtr, int length) {

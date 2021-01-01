@@ -1,7 +1,9 @@
+import '../store.dart';
 import 'modelentity.dart';
 
 typedef ObjectReader<T> = Map<String, dynamic> Function(T object);
-typedef ObjectWriter<T> = T Function(Map<String, dynamic> properties);
+typedef ObjectWriter<T> = T Function(
+    Store store, Map<String, dynamic> properties);
 typedef ObjectGetId<T> = int /*?*/ Function(T object);
 typedef ObjectSetId<T> = void Function(T object, int id);
 

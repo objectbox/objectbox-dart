@@ -18,7 +18,8 @@ class CodeChunks {
       final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap())}, check: false);
       
       final bindings = <Type, EntityDefinition>{};
-      ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 
+      ${model.entities.map((entity) => "bindings[${entity
+      .name}] = ${entityBinding(entity)};").join("\n")} 
       
       return ModelDefinition(model, bindings);
     }
@@ -32,11 +33,12 @@ class CodeChunks {
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
-        setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
+        setId: ($name inst, int id) {inst.${propertyFieldName(
+        entity.idProperty)} = id;},
         reader: ($name inst) => {
           ${entity.properties.map(propertyReader).join(",\n")}
         },
-        writer: (Map<String, dynamic> members) {
+        writer: (Store store, Map<String, dynamic> members) {
           final r = $name();
           ${entity.properties.map(propertyWriter).join()}
           return r;
@@ -58,19 +60,37 @@ class CodeChunks {
   }
 
   static String propertyFieldName(ModelProperty property) {
+    if (property.type == OBXPropertyType.Relation) {
+      if (!property.name.endsWith('Id')) {
+        throw ArgumentError.value(property.name, 'property.name',
+            'Relation property name must end with "Id"');
+      }
+
+      return property.name.substring(0, property.name.length - 2);
+    }
+
     return property.name;
   }
 
   static String propertyReader(ModelProperty property) {
-    return "'${property.name}': inst.${propertyFieldName(property)}";
+    if (property.type == OBXPropertyType.Relation) {
+      return "'${property.name}': inst.${propertyFieldName(property)}.targetId";
+    } else {
+      return "'${property.name}': inst.${propertyFieldName(property)}";
+    }
   }
 
   static String propertyWriter(ModelProperty property) {
     final name = property.name;
+    final field = propertyFieldName(property);
     if (isTypedDataList(property)) {
-      return "r.${propertyFieldName(property)} = members['${name}'] == null ? null : ${property.dartFieldType}.fromList(members['${name}']);";
+      return "r.$field = members['${name}'] == null ? null : ${property
+          .dartFieldType}.fromList(members['${name}']);";
+    } else if (property.type == OBXPropertyType.Relation) {
+      return "r.$field.targetId = members['${name}'];" +
+          "\n r.$field.attach(store);";
     } else {
-      return "r.${propertyFieldName(property)} = members['${name}'];";
+      return "r.$field = members['${name}'];";
     }
   }
 
@@ -110,15 +130,18 @@ class CodeChunks {
           break;
         default:
           throw InvalidGenerationSourceError(
-              'Unsupported property type (${prop.type}): ${entity.name}.${name}');
+              'Unsupported property type (${prop.type}): ${entity
+                  .name}.${name}');
       }
 
       final relationTypeGenericParam = prop.type == OBXPropertyType.Relation
-          ? '<${prop.dartFieldType}>'
+          ? '<${prop.relationTarget}>'
           : '';
 
       ret.add('''
-        static final ${prop.name} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+        static final ${propertyFieldName(
+          prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity
+          .id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
         ''');
     }
     return ret.join();

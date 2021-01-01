@@ -36,13 +36,9 @@ class EntityResolver extends Builder {
 
     // generate for all entities
     final entities = <Map<String, dynamic>>[];
-    final annotatedWithEntity = libReader.annotatedWith(_entityChecker);
-    final entityNames = annotatedWithEntity.map((a) => a.element.name).toSet();
-    final entityNamesAsList =
-        annotatedWithEntity.map((a) => 'List<${a.element.name}>').toSet();
-    for (var annotatedEl in annotatedWithEntity) {
-      entities.add(generateForAnnotatedElement(annotatedEl.element,
-              annotatedEl.annotation, entityNames, entityNamesAsList)
+    for (var annotatedEl in libReader.annotatedWith(_entityChecker)) {
+      entities.add(generateForAnnotatedElement(
+              annotatedEl.element, annotatedEl.annotation)
           .toMap());
     }
 
@@ -54,10 +50,7 @@ class EntityResolver extends Builder {
   }
 
   ModelEntity generateForAnnotatedElement(
-      Element elementBare,
-      ConstantReader annotation,
-      Set<String> relatableEntityNames,
-      Set<String> relatableEntityNamesAsList) {
+      Element elementBare, ConstantReader annotation) {
     if (elementBare is! ClassElement) {
       throw InvalidGenerationSourceError(
           "in target ${elementBare.name}: annotated element isn't a class");
@@ -94,7 +87,7 @@ class EntityResolver extends Builder {
         continue;
       }
 
-      if (readOnlyFields.containsKey(f.name)) {
+      if (readOnlyFields.containsKey(f.name) && !isRelationField(f)) {
         log.info('  skipping read-only/getter ${f.name}');
         continue;
       }
@@ -154,8 +147,7 @@ class EntityResolver extends Builder {
             .contains(fieldTypeDart.element.name)) {
           fieldType = OBXPropertyType.ByteVector;
           dartFieldType = fieldTypeDart.element.name; // for code generation
-        } else if (areRelated(fieldTypeDart.toString().replaceAll('*', ''),
-            relatableEntityNames, relatableEntityNamesAsList)) {
+        } else if (isRelationField(f)) {
           fieldType = OBXPropertyType.Relation;
         } else {
           log.warning(
@@ -167,6 +159,19 @@ class EntityResolver extends Builder {
       // create property (do not use readEntity.createProperty in order to avoid generating new ids)
       final prop = ModelProperty(IdUid.empty(), f.name, fieldType,
           flags: flags, entity: entity);
+
+      if (fieldType == OBXPropertyType.Relation) {
+        if (!isRelationField(f) || (f.type is! ParameterizedType)) {
+          log.severe(
+              "  invalid relation property '${f.name}' in entity '${element.name}' - must use ToOne<TargetEntity>");
+          continue;
+        }
+        prop.name += 'Id';
+        prop.relationTarget =
+            (f.type as ParameterizedType).typeArguments[0].name;
+        prop.flags |= OBXPropertyFlags.INDEXED;
+        prop.flags |= OBXPropertyFlags.INDEX_PARTIAL_SKIP_ZERO;
+      }
 
       // Index and unique annotation.
       processAnnotationIndexUnique(f, fieldType, elementBare, prop);
@@ -285,8 +290,5 @@ class EntityResolver extends Builder {
     return typeArgs.length == 1 ? typeArgs[0] : null;
   }
 
-  bool areRelated(String typeString, Set<String> typeCollection,
-          Set<String> listTypeCollection) =>
-      typeCollection.contains(typeString) ||
-      listTypeCollection.contains(typeString);
+  bool isRelationField(FieldElement f) => f.type.element.name == 'ToOne';
 }

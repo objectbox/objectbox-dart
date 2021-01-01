@@ -148,35 +148,35 @@ class TestEntity {
     this.iChar,
   });
 
-  RelatedEntityA relA;
-  RelatedEntityB relB;
-  List<RelatedEntityA> listA;
-  List<RelatedEntityB> listB;
-
-  TestEntity.relate({this.relA, this.relB, this.listA, this.listB});
+  final relA = ToOne<RelatedEntityA>();
+  final relB = ToOne<RelatedEntityB>();
+  // ToMany<RelatedEntityA> relManyA;
+  // ToMany<RelatedEntityB> relManyB;
 }
 
 @Entity()
+@Sync()
 class RelatedEntityA {
   @Id()
   int id;
 
   int tInt;
   bool tBool;
-  RelatedEntityB relB;
+  final relB = ToOne<RelatedEntityB>();
 
-  RelatedEntityA({this.id, this.tInt, this.tBool, this.relB});
+  RelatedEntityA({this.id, this.tInt, this.tBool});
 }
 
 @Entity()
+@Sync()
 class RelatedEntityB {
   @Id()
   int id;
 
   String tString;
   double tDouble;
-  RelatedEntityA relA;
+  final relA = ToOne<RelatedEntityA>();
+  final relB = ToOne<RelatedEntityB>();
 
-  RelatedEntityB({this.id, this.tString, this.tDouble, this.relA});
-}
+  RelatedEntityB({this.id, this.tString, this.tDouble});
 }

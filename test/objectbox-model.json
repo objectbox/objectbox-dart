@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:4630700155272683157",
-      "lastPropertyId": "30:9172821003206716871",
+      "lastPropertyId": "32:8664662867703418562",
       "name": "TestEntity",
       "flags": 2,
       "properties": [
@@ -163,6 +163,22 @@
           "id": "30:9172821003206716871",
           "name": "tUint8List",
           "type": 23
+        },
+        {
+          "id": "31:2809605701582877706",
+          "name": "relAId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "16:2470631863336693263",
+          "relationTarget": "RelatedEntityA"
+        },
+        {
+          "id": "32:8664662867703418562",
+          "name": "relBId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "17:1880235110135739998",
+          "relationTarget": "RelatedEntityB"
         }
       ]
     },
@@ -178,10 +194,82 @@
           "flags": 1
         }
       ]
+    },
+    {
+      "id": "4:5869889852256391401",
+      "lastPropertyId": "4:4770420600931409867",
+      "name": "RelatedEntityA",
+      "flags": 2,
+      "properties": [
+        {
+          "id": "1:128913756071495440",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2916297740510880110",
+          "name": "tInt",
+          "type": 6
+        },
+        {
+          "id": "3:3081472243015700207",
+          "name": "tBool",
+          "type": 1
+        },
+        {
+          "id": "4:4770420600931409867",
+          "name": "relBId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "13:4152155418078636653",
+          "relationTarget": "RelatedEntityB"
+        }
+      ]
+    },
+    {
+      "id": "5:6318951170461175163",
+      "lastPropertyId": "5:4421486877612415347",
+      "name": "RelatedEntityB",
+      "flags": 2,
+      "properties": [
+        {
+          "id": "1:309961321923874745",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3178336503815169125",
+          "name": "tString",
+          "type": 9
+        },
+        {
+          "id": "3:8803276777247640989",
+          "name": "tDouble",
+          "type": 8
+        },
+        {
+          "id": "4:2040461616972321497",
+          "name": "relAId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "14:9134773468347164958",
+          "relationTarget": "RelatedEntityA"
+        },
+        {
+          "id": "5:4421486877612415347",
+          "name": "relBId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "15:1869174197194604432",
+          "relationTarget": "RelatedEntityB"
+        }
+      ]
     }
   ],
-  "lastEntityId": "3:3569200127393812728",
-  "lastIndexId": "12:5335419474465474748",
+  "lastEntityId": "5:6318951170461175163",
+  "lastIndexId": "17:1880235110135739998",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
