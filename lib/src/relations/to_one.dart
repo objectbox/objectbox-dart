@@ -30,7 +30,7 @@ class ToOne<EntityT> {
     } else {
       // TODO id getter - needed when the field isn't called `id`.
       //      Adding [EntityDefinition.getId()] would probably make most sense.
-      int id = (object as dynamic).id;
+      int id = (object as dynamic).id ?? 0;
       _value = (id == 0)
           ? _ToOneValue<EntityT>.unstored(object)
           : _ToOneValue<EntityT>.stored(id, object);
