@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   generator:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container:
       image:  google/dart:latest
     steps:
@@ -16,7 +16,7 @@ jobs:
 
   lib:
     needs: generator
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container:
       image:  google/dart:latest
     steps:
