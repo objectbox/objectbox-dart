@@ -164,7 +164,7 @@ class OBXFlatbuffersManager<T> {
       propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);
     });
 
-    return _entity.writer(this._store, propVals);
+    return _entity.writer(_store, propVals);
   }
 
   T /*?*/ unmarshalWithMissing(Pointer<Uint8> dataPtr, int length) {

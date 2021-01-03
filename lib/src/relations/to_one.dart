@@ -1,4 +1,5 @@
 import '../box.dart';
+import '../modelinfo/entity_definition.dart';
 import '../store.dart';
 
 /// Manages a to-one relation: resolves the target object, keeps the target Id in sync, etc.
@@ -11,6 +12,9 @@ import '../store.dart';
 /// changes persisted here. Call [ToMany.reset()] to update when next accessed.
 class ToOne<EntityT> {
   /*late final*/ Box<EntityT> _box;
+
+  /*late final*/
+  EntityDefinition<EntityT> _entity;
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
@@ -28,9 +32,7 @@ class ToOne<EntityT> {
     if (object == null) {
       _value = _ToOneValue<EntityT>.none();
     } else {
-      // TODO id getter - needed when the field isn't called `id`.
-      //      Adding [EntityDefinition.getId()] would probably make most sense.
-      int id = (object as dynamic).id ?? 0;
+      final id = _entity.getId(object) ?? 0;
       _value = (id == 0)
           ? _ToOneValue<EntityT>.unstored(object)
           : _ToOneValue<EntityT>.stored(id, object);
@@ -42,15 +44,25 @@ class ToOne<EntityT> {
   set targetId(int /*?*/ id) {
     id ??= 0;
     if (id == _value._id) return;
-    _value =
-        (id == 0) ? _ToOneValue<EntityT>.none() : _ToOneValue<EntityT>.lazy(id);
+    if (id == 0) {
+      _value = _ToOneValue<EntityT>.none();
+    } else if (_value._state == _ToOneState.unstored &&
+        id == _entity.getId(_value._object)) {
+      _value = _ToOneValue<EntityT>.stored(id, _value._object);
+    } else {
+      _value = _ToOneValue<EntityT>.lazy(id);
+    }
   }
 
   bool get hasValue => _value._state != _ToOneState.none;
 
   void attach(Store store) {
-    _box = Box<EntityT>(store);
+    _box = store.box<EntityT>();
+    _entity = store.entityDef<EntityT>();
   }
+
+  /// Internal only, may change at any point.
+  Box<EntityT> get internalTargetBox => _box;
 }
 
 enum _ToOneState { none, unstored, lazy, stored, unresolvable }

@@ -9,7 +9,7 @@ void main() {
   /*late final*/ TestEnv env;
 
   setUp(() {
-    env = TestEnv('box');
+    env = TestEnv('relations');
   });
 
   tearDown(() {

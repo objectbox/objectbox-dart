@@ -32,6 +32,7 @@ class CodeChunks {
     return """
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
+        toOneRelations: ($name inst) => [${toOneRelationsList(entity).join(',')}],
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(
         entity.idProperty)} = id;},
@@ -93,6 +94,12 @@ class CodeChunks {
       return "r.$field = members['${name}'];";
     }
   }
+
+  static List<String> toOneRelationsList(ModelEntity entity) =>
+      entity.properties
+          .where((ModelProperty prop) => prop.type == OBXPropertyType.Relation)
+          .map((ModelProperty prop) => "inst.${propertyFieldName(prop)}")
+          .toList(growable: false);
 
   static String _queryConditionBuilder(ModelEntity entity) {
     final ret = <String>[];
