@@ -2,14 +2,46 @@ import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
 
-/// Manages a to-one relation: resolves the target object, keeps the target Id in sync, etc.
-/// A to-relation is unidirectional: it points from the source entity to the target entity.
-/// The target is referenced by its ID, which is persisted in the source entity.
+/// Manages a to-one relation, an unidirectional link from a "source" entity to
+/// a "target" entity. The target object is referenced by its ID, which is
+/// persisted in the source object.
 ///
-/// TODO:
-/// If there is a [ToMany] relation linking back to this to-one relation
-/// [@Backlink()], the [ToMany] object will not be notified/updated about
-/// changes persisted here. Call [ToMany.reset()] to update when next accessed.
+/// You can:
+///   - set [target]=null or [targetId]=0 to remove the relation.
+///   - set [target] to an object to set the relation.
+///     Call [Box<SourceEntity>.put()] to persist the changes. If the target
+///     object is a new one (its ID is 0), it will be also saved automatically.
+///   - set [targetId] to an existing object's ID to set the relation.
+///     Call [Box<SourceEntity>.put()] to persist the changes.
+///
+/// ```
+/// class Order: Entity {
+///   final customer = ToOne<Customer>();
+///   ...
+/// }
+///
+/// // Example 1: create a relation
+/// final order = Order(...);
+/// final customer = Customer();
+/// order.customer.target = customer;
+///
+/// // Or you could create the target object in place:
+/// // order.customer.target = Customer()
+///
+/// // attach() must be called when creating new instances. On objects (e.g.
+/// // "orders" in this example) read with box.get() its done automatically.
+/// order.customer.attach(store);
+///
+/// // saves both [customer] and [order] in the database
+/// store.box<Order>().put(order);
+///
+///
+/// // Example 2: remove a relation
+///
+/// order.customer.target = null
+/// // ... or ...
+/// order.customer.targetId = 0
+/// ```
 class ToOne<EntityT> {
   /*late final*/ Box<EntityT> _box;
 

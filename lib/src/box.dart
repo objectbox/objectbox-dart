@@ -97,10 +97,28 @@ class Box<T> {
     return id;
   }
 
-  /// Puts the given [objects] into this Box in a single transaction. Returns a list of all IDs of the inserted
-  /// Objects.
+  /// Puts the given [objects] into this Box in a single transaction.
+  ///
+  /// Returns a list of all IDs of the inserted Objects.
   List<int> putMany(List<T> objects, {PutMode mode = PutMode.Put}) {
+    if (_hasRelations) {
+      return _store.runInTransaction(
+          TxMode.Write, () => _putMany(objects, mode, true));
+    } else {
+      return _putMany(objects, mode, false);
+    }
+  }
+
+  List<int> _putMany(List<T> objects, PutMode mode, bool inTx) {
     if (objects.isEmpty) return [];
+
+    if (_hasRelations) {
+      if (!inTx) {
+        throw Exception(
+            'Invalid state: can only use _put() on an entity with relations when executing from inside a write transaction.');
+      }
+      objects.forEach((object) => _putToOneRelFields(object, mode));
+    }
 
     // read all property values and find number of instances where ID is missing
     var allPropVals = objects.map(_entity.reader).toList();
