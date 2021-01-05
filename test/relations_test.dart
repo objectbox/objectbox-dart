@@ -62,7 +62,7 @@ void main() {
     expect(read.relA.target.relB.targetId, isZero);
 
     // remove a relation, using [target]
-    read.relA.target= null;
+    read.relA.target = null;
     env.store.box<TestEntity>().put(read);
     read = env.box.get(1);
     expect(read.relA.target, isNull);
@@ -78,7 +78,7 @@ void main() {
 
     src.relA.attach(env.store);
     src.relA.target = target;
-    env.box.put(src);
+    srcBox.put(src);
 
     final read = env.box.get(1);
     expect(read.relA.targetId, target.id);
@@ -108,5 +108,39 @@ void main() {
     expect(read.tString, equals('there'));
     expect(read.relA.targetId, equals(0));
     query.close();
+  });
+
+  test('to-one query link', () {
+    final src1 = TestEntity(tString: 'foo');
+    src1.relA.attach(env.store);
+    src1.relA.target = RelatedEntityA(tInt: 5);
+    final src2 = TestEntity(tString: 'bar');
+    src2.relA.attach(env.store);
+    src2.relA.target = RelatedEntityA(tInt: 10);
+    src2.relA.target.relB.attach(env.store);
+    src2.relA.target.relB.target = RelatedEntityB(tString: 'deep');
+    env.box.putMany([src1, src2]);
+
+    {
+      final qb = env.box.query();
+      qb.link(TestEntity_.relA, RelatedEntityA_.tInt.equals(10));
+      final query = qb.build();
+      final found = query.find();
+      expect(found.length, 1);
+      expect(found[0].tString, 'bar');
+      query.close();
+    }
+
+    {
+      final qb = env.box.query();
+      qb
+          .link(TestEntity_.relA)
+          .link(RelatedEntityA_.relB, RelatedEntityB_.tString.equals('deep'));
+      final query = qb.build();
+      final found = query.find();
+      expect(found.length, 1);
+      expect(found[0].tString, 'bar');
+      query.close();
+    }
   });
 }
