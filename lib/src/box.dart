@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart' show allocate, free;
 
+import '../flatbuffers/flat_buffers.dart' as fb;
 import 'store.dart';
 import 'bindings/bindings.dart';
 import 'bindings/data_visitor.dart';
@@ -72,13 +73,12 @@ class Box<T> {
     }
 
     // put object into box and free the buffer
-    final bytes = _fbManager.marshal(propVals);
+    final fbb = _fbManager.marshal(propVals);
     try {
       checkObx(bindings.obx_box_put5(
-          _cBox, id, bytes.ptr, bytes.size, _getOBXPutMode(mode)));
+          _cBox, id, fbb.bufPtr, fbb.bufPtrSize, _getOBXPutMode(mode)));
     } finally {
-      // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
-      bytes.freeManaged();
+      fbb.bufPtrFree();
     }
     return id;
   }
@@ -129,19 +129,20 @@ class Box<T> {
       final bytesArrayPtr = checkObxPtr(
           bindings.obx_bytes_array(allPropVals.length),
           'could not create OBX_bytes_array');
-      final listToFree = <OBX_bytes_wrapper>[];
+      final listToFree = <fb.Builder>[];
       try {
         for (var i = 0; i < allPropVals.length; i++) {
-          final bytes = _fbManager.marshal(allPropVals[i]);
-          listToFree.add(bytes);
-          bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.size);
+          final fbb = _fbManager.marshal(allPropVals[i]);
+          listToFree.add(fbb);
+          bindings.obx_bytes_array_set(
+              bytesArrayPtr, i, fbb.bufPtr, fbb.bufPtrSize);
         }
 
         checkObx(bindings.obx_box_put_many(
             _cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
         bindings.obx_bytes_array_free(bytesArrayPtr);
-        listToFree.forEach((OBX_bytes_wrapper bytes) => bytes.freeManaged());
+        listToFree.forEach((fb.Builder fbb) => fbb.bufPtrFree());
       }
     } finally {
       free(allIdsMemory);

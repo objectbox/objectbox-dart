@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
 
-import 'package:flat_buffers/flat_buffers.dart' as fb;
+import '../../flatbuffers/flat_buffers.dart' as fb;
 
 import '../common.dart';
 import 'bindings.dart';
@@ -39,7 +39,7 @@ class OBXFlatbuffersManager<T> {
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
-  OBX_bytes_wrapper marshal(Map<String, dynamic> propVals) {
+  fb.Builder marshal(Map<String, dynamic> propVals) {
     var builder = fb.Builder(initialSize: 1024);
 
     // write all strings
@@ -106,9 +106,8 @@ class OBXFlatbuffersManager<T> {
       }
     });
 
-    var endOffset = builder.endTable();
-    return OBX_bytes_wrapper.managedCopyOf(builder.finish(endOffset),
-        align: true);
+    builder.finish(builder.endTable());
+    return builder;
   }
 
   T unmarshal(Pointer<Uint8> dataPtr, int length) {
