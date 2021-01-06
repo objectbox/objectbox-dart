@@ -90,31 +90,26 @@ class Box<T> {
 
     // read all property values and find number of instances where ID is missing
     var allPropVals = objects.map(_entityReader).toList();
-    var missingIdsCount = 0;
-    for (var instPropVals in allPropVals) {
-      if (instPropVals[_modelEntity.idProperty.name] == null ||
-          instPropVals[_modelEntity.idProperty.name] == 0) {
-        ++missingIdsCount;
+    final missingIds = <int>[];
+    for (var i = 0; i < allPropVals.length; i++) {
+      if ((allPropVals[i][_modelEntity.idProperty.name] ?? 0) == 0) {
+        missingIds.add(i);
       }
     }
 
     // generate new IDs for these instances and set them
-    if (missingIdsCount != 0) {
+    if (missingIds.isNotEmpty) {
       var nextId = 0;
       final nextIdPtr = allocate<Uint64>(count: 1);
       try {
         checkObx(
-            bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
+            bindings.obx_box_ids_for_put(_cBox, missingIds.length, nextIdPtr));
         nextId = nextIdPtr.value;
       } finally {
         free(nextIdPtr);
       }
-      for (var instPropVals in allPropVals) {
-        if (instPropVals[_modelEntity.idProperty.name] == null ||
-            instPropVals[_modelEntity.idProperty.name] == 0) {
-          instPropVals[_modelEntity.idProperty.name] = nextId++;
-        }
-      }
+      missingIds.forEach(
+          (i) => allPropVals[i][_modelEntity.idProperty.name] = nextId++);
     }
 
     // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
