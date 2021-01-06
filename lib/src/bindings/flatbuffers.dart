@@ -39,8 +39,12 @@ class OBXFlatbuffersManager<T> {
 
   OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
 
-  fb.Builder marshal(Map<String, dynamic> propVals) {
-    var builder = fb.Builder(initialSize: 1024);
+  fb.Builder marshal(Map<String, dynamic> propVals, [fb.Builder builder]) {
+    if (builder == null) {
+      builder = fb.Builder(initialSize: 1024);
+    } else {
+      builder.reset();
+    }
 
     // write all strings
     final offsets = <int, int>{};

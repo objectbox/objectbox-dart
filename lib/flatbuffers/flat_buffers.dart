@@ -469,14 +469,15 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
-    // TODO reuse original ptr
-    bufPtrFree();
-    _bufPtr = allocate<Uint8>(count: initialSize);
-    _buf = new ByteData.view(_bufPtr.asTypedList(initialSize).buffer);
+    if (_bufPtr == null) {
+      _bufPtr = allocate<Uint8>(count: initialSize);
+      _buf = new ByteData.view(_bufPtr.asTypedList(initialSize).buffer);
+    }
     _bufClear();
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
+    _vTables.clear(); // ff https://github.com/google/flatbuffers/pull/6386
     if (_strings != null) {
       _strings = new Map<String, int>();
     }

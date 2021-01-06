@@ -112,36 +112,26 @@ class Box<T> {
           (i) => allPropVals[i][_modelEntity.idProperty.name] = nextId++);
     }
 
-    // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
-    // generate this list now (only needed if not all IDs have been generated)
-    final allIdsMemory = allocate<Uint64>(count: objects.length);
-    try {
-      for (var i = 0; i < allPropVals.length; ++i) {
-        allIdsMemory[i] = (allPropVals[i][_modelEntity.idProperty.name] as int);
-      }
-
-      // marshal all objects to be put into the box
-      final bytesArrayPtr = checkObxPtr(
-          bindings.obx_bytes_array(allPropVals.length),
-          'could not create OBX_bytes_array');
-      final listToFree = <fb.Builder>[];
+    _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
+      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _modelEntity.id.id),
+          'failed to create cursor');
       try {
-        for (var i = 0; i < allPropVals.length; i++) {
-          final fbb = _fbManager.marshal(allPropVals[i]);
-          listToFree.add(fbb);
-          bindings.obx_bytes_array_set(
-              bytesArrayPtr, i, fbb.bufPtr, fbb.bufPtrSize);
+        final fbb = fb.Builder(initialSize: 1024);
+        final cMode = _getOBXPutMode(mode);
+        try {
+          for (var i = 0; i < objects.length; i++) {
+            final id = (allPropVals[i][_modelEntity.idProperty.name] as int);
+            _fbManager.marshal(allPropVals[i], fbb);
+            checkObx(bindings.obx_cursor_put4(
+                cCursor, id, fbb.bufPtr, fbb.bufPtrSize, cMode));
+          }
+        } finally {
+          fbb.bufPtrFree();
         }
-
-        checkObx(bindings.obx_box_put_many(
-            _cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
-        bindings.obx_bytes_array_free(bytesArrayPtr);
-        listToFree.forEach((fb.Builder fbb) => fbb.bufPtrFree());
+        checkObx(bindings.obx_cursor_close(cCursor));
       }
-    } finally {
-      free(allIdsMemory);
-    }
+    });
 
     return allPropVals
         .map((p) => p[_modelEntity.idProperty.name] as int /*!*/)
