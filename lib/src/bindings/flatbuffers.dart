@@ -3,10 +3,11 @@ import 'dart:typed_data' show Uint8List;
 
 import '../../flatbuffers/flat_buffers.dart' as fb;
 
-import '../common.dart';
 import 'bindings.dart';
 import 'structs.dart';
+import '../common.dart';
 import '../modelinfo/index.dart';
+import '../store.dart';
 
 class _OBXFBEntity {
   _OBXFBEntity._(this._bc, this._bcOffset);
@@ -34,10 +35,10 @@ class _OBXFBEntityReader extends fb.TableReader<_OBXFBEntity> {
 }
 
 class OBXFlatbuffersManager<T> {
-  final ModelEntity _modelEntity;
-  final ObjectWriter<T> _entityBuilder;
+  final Store _store;
+  final EntityDefinition<T> _entity;
 
-  OBXFlatbuffersManager(this._modelEntity, this._entityBuilder);
+  OBXFlatbuffersManager(this._store) : _entity = _store.entityDef<T>();
 
   fb.Builder marshal(Map<String, dynamic> propVals, [fb.Builder builder]) {
     if (builder == null) {
@@ -48,7 +49,7 @@ class OBXFlatbuffersManager<T> {
 
     // write all strings
     final offsets = <int, int>{};
-    _modelEntity.properties.forEach((ModelProperty p) {
+    _entity.model.properties.forEach((ModelProperty p) {
       switch (p.type) {
         case OBXPropertyType.String:
           offsets[p.id.id] = builder.writeString(propVals[p.name]);
@@ -71,7 +72,7 @@ class OBXFlatbuffersManager<T> {
     // create table and write actual properties
     // TODO: make sure that Id property has a value >= 1
     builder.startTable();
-    _modelEntity.properties.forEach((ModelProperty p) {
+    _entity.model.properties.forEach((ModelProperty p) {
       final field = p.id.id - 1;
       final value = propVals[p.name];
       switch (p.type) {
@@ -121,7 +122,7 @@ class OBXFlatbuffersManager<T> {
     final entity = _OBXFBEntity(bytes);
     final propVals = <String, dynamic>{};
 
-    _modelEntity.properties.forEach((p) {
+    _entity.model.properties.forEach((p) {
       var propReader;
       switch (p.type) {
         case OBXPropertyType.Bool:
@@ -164,7 +165,7 @@ class OBXFlatbuffersManager<T> {
       propVals[p.name] = entity.getProp(propReader, (p.id.id + 1) * 2);
     });
 
-    return _entityBuilder(propVals);
+    return _entity.writer(propVals);
   }
 
   T /*?*/ unmarshalWithMissing(Pointer<Uint8> dataPtr, int length) {

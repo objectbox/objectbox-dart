@@ -31,12 +31,14 @@ class CodeChunks {
     return """
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
+        getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
+        setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
         reader: ($name inst) => {
-          ${entity.properties.map((p) => "'${p.name}': inst.${p.name}").join(",\n")}
+          ${entity.properties.map(propertyReader).join(",\n")}
         },
         writer: (Map<String, dynamic> members) {
           final r = $name();
-          ${entity.properties.map(propertyBinding).join()}
+          ${entity.properties.map(propertyWriter).join()}
           return r;
         }
       )
@@ -55,11 +57,20 @@ class CodeChunks {
     return ['Int8List', 'Uint8List'].contains(property.dartFieldType);
   }
 
-  static String propertyBinding(ModelProperty property) {
+  static String propertyFieldName(ModelProperty property) {
+    return property.name;
+  }
+
+  static String propertyReader(ModelProperty property) {
+    return "'${property.name}': inst.${propertyFieldName(property)}";
+  }
+
+  static String propertyWriter(ModelProperty property) {
+    final name = property.name;
     if (isTypedDataList(property)) {
-      return "r.${property.name} = members['${property.name}'] == null ? null : ${property.dartFieldType}.fromList(members['${property.name}']);";
+      return "r.${propertyFieldName(property)} = members['${name}'] == null ? null : ${property.dartFieldType}.fromList(members['${name}']);";
     } else {
-      return "r.${property.name} = members['${property.name}'];";
+      return "r.${propertyFieldName(property)} = members['${name}'];";
     }
   }
 
