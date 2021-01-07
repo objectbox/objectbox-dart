@@ -23,24 +23,17 @@ class Box<T> {
   /*late final*/
   Pointer<OBX_box> _cBox;
 
-  /*late final*/
-  ModelEntity _modelEntity;
+  final EntityDefinition<T> _entity;
 
-  /*late final*/
-  ObjectReader<T> _entityReader;
+  final OBXFlatbuffersManager<T> _fbManager;
 
-  /*late final*/
-  OBXFlatbuffersManager<T> _fbManager;
   final bool _supportsBytesArrays;
 
   Box(this._store)
-      : _supportsBytesArrays = bindings.obx_supports_bytes_array() {
-    final entityDefs = _store.entityDef<T>();
-    _modelEntity = entityDefs.model;
-    _entityReader = entityDefs.reader;
-    _fbManager = OBXFlatbuffersManager<T>(_modelEntity, entityDefs.writer);
-
-    _cBox = bindings.obx_box(_store.ptr, _modelEntity.id.id);
+      : _supportsBytesArrays = bindings.obx_supports_bytes_array(),
+        _entity = _store.entityDef<T>(),
+        _fbManager = OBXFlatbuffersManager<T>(_store) {
+    _cBox = bindings.obx_box(_store.ptr, _entity.model.id.id);
     checkObxPtr(_cBox, 'failed to create box');
   }
 
@@ -62,13 +55,13 @@ class Box<T> {
   ///
   /// Performance note: if you want to put several entities, consider [putMany] instead.
   int put(T object, {_PutMode mode = _PutMode.Put}) {
-    var propVals = _entityReader(object);
+    var propVals = _entity.reader(object);
 
-    int /*?*/ id = propVals[_modelEntity.idProperty.name];
+    int /*?*/ id = propVals[_entity.model.idProperty.name];
     if (id == null || id == 0) {
       id = bindings.obx_box_id_for_put(_cBox, 0);
       if (id == 0) throw latestNativeError();
-      propVals[_modelEntity.idProperty.name] = id;
+      propVals[_entity.model.idProperty.name] = id;
     }
 
     // put object into box and free the buffer
@@ -89,11 +82,11 @@ class Box<T> {
     if (objects.isEmpty) return [];
 
     // read all property values and find number of instances where ID is missing
-    var allPropVals = objects.map(_entityReader).toList();
+    var allPropVals = objects.map(_entity.reader).toList();
     var missingIdsCount = 0;
     for (var instPropVals in allPropVals) {
-      if (instPropVals[_modelEntity.idProperty.name] == null ||
-          instPropVals[_modelEntity.idProperty.name] == 0) {
+      if (instPropVals[_entity.model.idProperty.name] == null ||
+          instPropVals[_entity.model.idProperty.name] == 0) {
         ++missingIdsCount;
       }
     }
@@ -110,9 +103,9 @@ class Box<T> {
         free(nextIdPtr);
       }
       for (var instPropVals in allPropVals) {
-        if (instPropVals[_modelEntity.idProperty.name] == null ||
-            instPropVals[_modelEntity.idProperty.name] == 0) {
-          instPropVals[_modelEntity.idProperty.name] = nextId++;
+        if (instPropVals[_entity.model.idProperty.name] == null ||
+            instPropVals[_entity.model.idProperty.name] == 0) {
+          instPropVals[_entity.model.idProperty.name] = nextId++;
         }
       }
     }
@@ -122,7 +115,8 @@ class Box<T> {
     final allIdsMemory = allocate<Uint64>(count: objects.length);
     try {
       for (var i = 0; i < allPropVals.length; ++i) {
-        allIdsMemory[i] = (allPropVals[i][_modelEntity.idProperty.name] as int);
+        allIdsMemory[i] =
+            (allPropVals[i][_entity.model.idProperty.name] as int);
       }
 
       // marshal all objects to be put into the box
@@ -148,7 +142,7 @@ class Box<T> {
     }
 
     return allPropVals
-        .map((p) => p[_modelEntity.idProperty.name] as int /*!*/)
+        .map((p) => p[_entity.model.idProperty.name] as int /*!*/)
         .toList();
   }
 
@@ -237,7 +231,7 @@ class Box<T> {
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   QueryBuilder<T> query([Condition /*?*/ qc]) =>
-      QueryBuilder<T>(_store, _fbManager, _modelEntity.id.id, qc);
+      QueryBuilder<T>(_store, _fbManager, _entity.model.id.id, qc);
 
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
   /// is lower.

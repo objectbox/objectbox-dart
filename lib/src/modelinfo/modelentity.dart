@@ -33,9 +33,12 @@ class ModelEntity {
     _flags = value /*!*/;
   }
 
-  ModelProperty get idProperty => (_idProperty == null)
-      ? throw Exception('idProperty is null')
-      : _idProperty /*!*/;
+  ModelProperty get idProperty {
+    _idProperty ??= _properties.singleWhere(
+        (ModelProperty prop) => prop.hasFlag(OBXPropertyFlags.ID),
+        orElse: () => throw Exception('idProperty is null'));
+    return _idProperty /*!*/;
+  }
 
   ModelInfo get model =>
       (_model == null) ? throw Exception('model is null') : _model /*!*/;
