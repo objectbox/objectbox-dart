@@ -23,6 +23,10 @@ const int _sizeofInt64 = 8;
 const int _sizeofFloat32 = 4;
 const int _sizeofFloat64 = 8;
 
+// FFI signature
+typedef _dart_memset =  void Function(Pointer<Void>,int,int);
+_dart_memset _memset;
+
 /// Callback used to invoke a struct builder's finish method.
 ///
 /// This callback is used by other struct's `finish` methods to write the nested
@@ -126,17 +130,23 @@ class Builder {
 
   void _bufClear([int length]) {
     length ??= _buf.lengthInBytes;
-    // TODO these are slow, can we use memset() from DynamicLibrary.process()?
+    // Note: memset is faster than any of the following alternatives
+    _memset ??= DynamicLibrary.process().lookupFunction<
+        Void Function(Pointer<Void>, Int32, IntPtr), _dart_memset>('memset');
+    _memset(_bufPtr.cast<Void>(), 0, length);
+    // // Option A:
     // for (var i = 0; i < length; i++) _bufPtr.elementAt(i).value = 0;
-    if (length % 8 == 0) {
-      _buf.buffer.asUint64List().fillRange(0, (length / 8).floor(), 0);
-    } else if (length % 4 == 0) {
-      _buf.buffer.asUint32List().fillRange(0, (length / 4).floor(), 0);
-    } else if (length % 2 == 0) {
-      _buf.buffer.asUint16List().fillRange(0, (length / 2).floor(), 0);
-    } else {
-      _buf.buffer.asUint8List().fillRange(0, length, 0);
-    }
+
+    // // Option B:
+    // if (length % 8 == 0) {
+    //   _buf.buffer.asUint64List().fillRange(0, (length / 8).floor(), 0);
+    // } else if (length % 4 == 0) {
+    //   _buf.buffer.asUint32List().fillRange(0, (length / 4).floor(), 0);
+    // } else if (length % 2 == 0) {
+    //   _buf.buffer.asUint16List().fillRange(0, (length / 2).floor(), 0);
+    // } else {
+    //   _buf.buffer.asUint8List().fillRange(0, length, 0);
+    // }
   }
 
   ByteData _buf;
