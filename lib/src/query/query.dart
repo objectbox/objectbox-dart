@@ -742,7 +742,7 @@ class Query<T> {
     try {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
-          ? <int>[]
+          ? List<int>.empty()
           : idArray.ids.asTypedList(idArray.count);
     } finally {
       bindings.obx_id_array_free(idArrayPtr);

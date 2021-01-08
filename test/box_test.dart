@@ -295,7 +295,7 @@ void main() {
     expect(box.count(limit: 2), equals(2));
     expect(box.count(limit: 10), equals(6));
     //add more
-    ids.addAll(box.putMany(simpleItems()));
+    box.putMany(simpleItems());
     expect(box.count(), equals(12));
   });
 
@@ -371,7 +371,7 @@ void main() {
     //try with different number of items
     List<TestEntity> items =
         ['one', 'two', 'three'].map((s) => TestEntity(tString: s)).toList();
-    ids.addAll(box.putMany(items));
+    box.putMany(items);
     removed = box.removeAll();
     expect(removed, equals(3));
   });

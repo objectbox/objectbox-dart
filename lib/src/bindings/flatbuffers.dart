@@ -101,10 +101,8 @@ class OBXFlatbuffersManager<T> {
 
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
   List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray) {
-    final result = <T>[];
-    result.length = bytesArray.ref.count;
-
-    for (var i = 0; i < bytesArray.ref.count; i++) {
+    final result = List<T>(bytesArray.ref.count);
+    for (var i = 0; i < result.length; i++) {
       final bytesPtr = bytesArray.ref.bytes.elementAt(i);
       if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
         throw ObjectBoxException(
@@ -119,10 +117,8 @@ class OBXFlatbuffersManager<T> {
   // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
   List<T /*?*/ > unmarshalArrayWithMissing(
       final Pointer<OBX_bytes_array> bytesArray) {
-    final result = <T /*?*/ >[];
-    result.length = bytesArray.ref.count;
-
-    for (var i = 0; i < bytesArray.ref.count; i++) {
+    final result = List<T /*?*/ >(bytesArray.ref.count);
+    for (var i = 0; i < result.length; i++) {
       final bytesPtr = bytesArray.ref.bytes.elementAt(i);
       if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
         result[i] = null;

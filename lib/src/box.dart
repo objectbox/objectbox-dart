@@ -77,7 +77,7 @@ class Box<T> {
   /// Returns a list of all IDs of the inserted Objects.
   List<int> putMany(List<T> objects, {_PutMode mode = _PutMode.Put}) {
     if (objects.isEmpty) return [];
-    final putIds = <int>[];
+    final putIds = List<int>(objects.length);
 
     _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
       final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
@@ -86,13 +86,14 @@ class Box<T> {
         final fbb = fb.Builder(initialSize: 1024);
         final cMode = _getOBXPutMode(mode);
         try {
-          objects.forEach((object) {
+          for (var i = 0; i < objects.length; i++) {
+            final object = objects[i];
             fbb.reset();
             final id = _entity.objectToFB(object, fbb);
             final newId = bindings.obx_cursor_put_object4(
                 cCursor, fbb.bufPtr, fbb.bufPtrSize, cMode);
-            putIds.add(_handlePutObjectResult(object, id, newId));
-          });
+            putIds[i] = _handlePutObjectResult(object, id, newId);
+          }
         } finally {
           fbb.bufPtrFree();
         }
