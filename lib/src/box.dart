@@ -50,60 +50,34 @@ class Box<T> {
     throw Exception('Invalid put mode ' + mode.toString());
   }
 
-  /// Puts the given Object in the box (aka persisting it). If this is a new entity (its ID property is 0), a new ID
-  /// will be assigned to the entity (and returned). If the entity was already put in the box before, it will be
-  /// overwritten.
+  /// Puts the given Object in the box (aka persisting it).
   ///
-  /// Performance note: if you want to put several entities, consider [putMany] instead.
+  /// If this is a new object (its ID property is 0), a new ID will be assigned
+  /// to the object (and returned).
+  ///
+  /// If the object with given was already in the box, it will be overwritten.
+  ///
+  /// Performance note: consider [putMany] to put several objects at once.
   int put(T object, {_PutMode mode = _PutMode.Put}) {
-    var propVals = _entity.reader(object);
-
-    int /*?*/ id = propVals[_entity.model.idProperty.name];
-    if (id == null || id == 0) {
-      id = bindings.obx_box_id_for_put(_cBox, 0);
-      if (id == 0) throw latestNativeError();
-      propVals[_entity.model.idProperty.name] = id;
-    }
-
-    // put object into box and free the buffer
-    final fbb = _fbManager.marshal(propVals);
+    int id;
+    final fbb = fb.Builder(initialSize: 1024);
     try {
-      checkObx(bindings.obx_box_put5(
-          _cBox, id, fbb.bufPtr, fbb.bufPtrSize, _getOBXPutMode(mode)));
+      id = _entity.objectToFB(object, fbb);
+      final newId = bindings.obx_box_put_object4(
+          _cBox, fbb.bufPtr, fbb.bufPtrSize, _getOBXPutMode(mode));
+      id = _handlePutObjectResult(object, id, newId);
     } finally {
       fbb.bufPtrFree();
     }
     return id;
   }
 
-  /// Puts the given [objects] into this Box in a single transaction. Returns a list of all IDs of the inserted
-  /// Objects.
+  /// Puts the given [objects] into this Box in a single transaction.
+  ///
+  /// Returns a list of all IDs of the inserted Objects.
   List<int> putMany(List<T> objects, {_PutMode mode = _PutMode.Put}) {
     if (objects.isEmpty) return [];
-
-    // read all property values and find number of instances where ID is missing
-    var allPropVals = objects.map(_entity.reader).toList();
-    final missingIds = <int>[];
-    for (var i = 0; i < allPropVals.length; i++) {
-      if ((allPropVals[i][_entity.model.idProperty.name] ?? 0) == 0) {
-        missingIds.add(i);
-      }
-    }
-
-    // generate new IDs for these instances and set them
-    if (missingIds.isNotEmpty) {
-      var nextId = 0;
-      final nextIdPtr = allocate<Uint64>(count: 1);
-      try {
-        checkObx(
-            bindings.obx_box_ids_for_put(_cBox, missingIds.length, nextIdPtr));
-        nextId = nextIdPtr.value;
-      } finally {
-        free(nextIdPtr);
-      }
-      missingIds.forEach(
-          (i) => allPropVals[i][_entity.model.idProperty.name] = nextId++);
-    }
+    final putIds = <int>[];
 
     _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
       final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
@@ -112,12 +86,13 @@ class Box<T> {
         final fbb = fb.Builder(initialSize: 1024);
         final cMode = _getOBXPutMode(mode);
         try {
-          for (var i = 0; i < objects.length; i++) {
-            final id = (allPropVals[i][_entity.model.idProperty.name] as int);
-            _fbManager.marshal(allPropVals[i], fbb);
-            checkObx(bindings.obx_cursor_put4(
-                cCursor, id, fbb.bufPtr, fbb.bufPtrSize, cMode));
-          }
+          objects.forEach((object) {
+            fbb.reset();
+            final id = _entity.objectToFB(object, fbb);
+            final newId = bindings.obx_cursor_put_object4(
+                cCursor, fbb.bufPtr, fbb.bufPtrSize, cMode);
+            putIds.add(_handlePutObjectResult(object, id, newId));
+          });
         } finally {
           fbb.bufPtrFree();
         }
@@ -126,9 +101,15 @@ class Box<T> {
       }
     });
 
-    return allPropVals
-        .map((p) => p[_entity.model.idProperty.name] as int /*!*/)
-        .toList();
+    return putIds;
+  }
+
+  // Checks if native obx_*_put_object() was successful (result is a valid ID).
+  // Sets the given ID on the object if previous ID was zero (new object).
+  int _handlePutObjectResult(T object, int prevId, int result) {
+    if (result == 0) throw latestNativeError(dartMsg: 'object put failed');
+    if (prevId == 0) _entity.setId(object, result);
+    return result;
   }
 
   /// Retrieves the stored object with the ID [id] from this box's database.

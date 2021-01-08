@@ -18,7 +18,7 @@ void main() {
   });
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
-  final integerList = integers
+  final integerList = () => integers
       .map((i) => TestEntity(
           tBool: true,
           tByte: 1 + i,
@@ -38,9 +38,9 @@ void main() {
     'swing',
     '2WITHSUFFIX'
   ];
-  final stringList = strings.map((s) => TestEntity(tString: s)).toList();
+  final stringList = () => strings.map((s) => TestEntity(tString: s)).toList();
   final floats = [-0.5, 0, 0.0, 0.1, 0.2, 0.1];
-  final floatList =
+  final floatList = () =>
       floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
   final tBool = TestEntity_.tBool;
@@ -67,9 +67,9 @@ void main() {
   final tString = TestEntity_.tString;
 
   test('.count (basic query)', () {
-    box.putMany(integerList);
-    box.putMany(stringList);
-    box.putMany(floatList);
+    box.putMany(integerList());
+    box.putMany(stringList());
+    box.putMany(floatList());
 
     tIntegers.forEach((i) {
       final queryInt = box.query(i.greaterThan(0)).build();
@@ -97,9 +97,9 @@ void main() {
   });
 
   test('query.property(E_.field) property query, type inference', () {
-    box.putMany(integerList);
-    box.putMany(stringList);
-    box.putMany(floatList);
+    box.putMany(integerList());
+    box.putMany(stringList());
+    box.putMany(floatList());
 
     final query = box.query(tLong < 2).build();
 
@@ -122,7 +122,7 @@ void main() {
 
   final add = (a, b) => a + b;
   test('.sum integers', () {
-    box.putMany(integerList);
+    box.putMany(integerList());
 
     final query = box.query((tLong < 100)).build();
     final propSum = (qp) {
@@ -150,7 +150,7 @@ void main() {
   });
 
   test('.min integers', () {
-    box.putMany(integerList);
+    box.putMany(integerList());
 
     final query = box.query((tLong < 100)).build();
     final propMin = (qp) {
@@ -178,7 +178,7 @@ void main() {
   });
 
   test('.max integers', () {
-    box.putMany(integerList);
+    box.putMany(integerList());
 
     final query = box.query((tLong < 100)).build();
     final propMax = (qp) {
@@ -206,7 +206,7 @@ void main() {
   });
 
   test('.sum floats', () {
-    box.putMany(floatList);
+    box.putMany(floatList());
 
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final propSum = (qp) {
@@ -230,7 +230,7 @@ void main() {
   });
 
   test('.min floats', () {
-    box.putMany(floatList);
+    box.putMany(floatList());
 
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final propMin = (qp) {
@@ -254,7 +254,7 @@ void main() {
   });
 
   test('.max floats', () {
-    box.putMany(floatList);
+    box.putMany(floatList());
 
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final propMax = (qp) {
@@ -278,9 +278,9 @@ void main() {
   });
 
   test('.find', () {
-    box.putMany(integerList);
-    box.putMany(floatList);
-    box.putMany(stringList);
+    box.putMany(integerList());
+    box.putMany(floatList());
+    box.putMany(stringList());
 
     final queryIntegers = box.query(tLong.lessThan(100)).build();
     final queryFloats = box.query(tDouble.between(-1.0, 1.0)).build();
@@ -358,8 +358,8 @@ void main() {
   });
 
   test('.average', () {
-    box.putMany(integerList);
-    box.putMany(floatList);
+    box.putMany(integerList());
+    box.putMany(floatList());
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
     final queryFloats = box.query(tDouble.lessThan(1000.0)).build();
@@ -397,7 +397,7 @@ void main() {
 
   test('.find() replace null integers', () {
     // integers are null on string populated entities
-    box.putMany(stringList);
+    box.putMany(stringList());
 
     final queryStrings = box.query(tString.contains('t')).build();
     final queryAndCheck = (prop, valueIfNull, reason) {
@@ -419,7 +419,7 @@ void main() {
 
   test('.find() replace null floats', () {
     // floats are null on integer populated entities
-    box.putMany(integerList);
+    box.putMany(integerList());
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
     final queryAndCheck = (p, valueIfNull, reason) {
@@ -435,7 +435,7 @@ void main() {
 
   test('.find() replace null strings', () {
     // strings are null on float populated entities
-    box.putMany(floatList);
+    box.putMany(floatList());
 
     final queryFloats = box.query(tDouble.lessThan(1000.0)).build();
     final qp = queryFloats.stringProperty(tString);
@@ -444,9 +444,9 @@ void main() {
   });
 
   test('.distinct, .count, .close property query', () {
-    box.putMany(integerList);
-    box.putMany(stringList);
-    box.putMany(floatList);
+    box.putMany(integerList());
+    box.putMany(stringList());
+    box.putMany(floatList());
 
     // int
     for (var i = 0; i < tIntegers.length; i++) {

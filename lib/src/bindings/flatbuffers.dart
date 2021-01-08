@@ -4,7 +4,6 @@ import 'dart:typed_data' show Uint8List;
 import '../../flatbuffers/flat_buffers.dart' as fb;
 
 import 'bindings.dart';
-import 'structs.dart';
 import '../common.dart';
 import '../modelinfo/index.dart';
 import '../store.dart';
@@ -39,81 +38,6 @@ class OBXFlatbuffersManager<T> {
   final EntityDefinition<T> _entity;
 
   OBXFlatbuffersManager(this._store) : _entity = _store.entityDef<T>();
-
-  fb.Builder marshal(Map<String, dynamic> propVals, [fb.Builder builder]) {
-    if (builder == null) {
-      builder = fb.Builder(initialSize: 1024);
-    } else {
-      builder.reset();
-    }
-
-    // write all strings
-    final offsets = <int, int>{};
-    _entity.model.properties.forEach((ModelProperty p) {
-      switch (p.type) {
-        case OBXPropertyType.String:
-          offsets[p.id.id] = builder.writeString(propVals[p.name]);
-          break;
-        case OBXPropertyType.StringVector:
-          final stringVector = propVals[p.name] as List<String>;
-          offsets[p.id.id] = stringVector == null
-              ? null
-              : builder.writeList(
-                  stringVector.map((str) => builder.writeString(str)).toList());
-          break;
-        case OBXPropertyType.ByteVector:
-          final byteVector = propVals[p.name];
-          offsets[p.id.id] =
-              byteVector == null ? null : builder.writeListInt8(byteVector);
-          break;
-      }
-    });
-
-    // create table and write actual properties
-    // TODO: make sure that Id property has a value >= 1
-    builder.startTable();
-    _entity.model.properties.forEach((ModelProperty p) {
-      final field = p.id.id - 1;
-      final value = propVals[p.name];
-      switch (p.type) {
-        case OBXPropertyType.Bool:
-          builder.addBool(field, value);
-          break;
-        case OBXPropertyType.Char:
-          builder.addInt8(field, value);
-          break;
-        case OBXPropertyType.Byte:
-          builder.addUint8(field, value);
-          break;
-        case OBXPropertyType.Short:
-          builder.addInt16(field, value);
-          break;
-        case OBXPropertyType.Int:
-          builder.addInt32(field, value);
-          break;
-        case OBXPropertyType.Long:
-          builder.addInt64(field, value);
-          break;
-        case OBXPropertyType.Float:
-          builder.addFloat32(field, value);
-          break;
-        case OBXPropertyType.Double:
-          builder.addFloat64(field, value);
-          break;
-        // offset-based fields
-        case OBXPropertyType.String:
-        case OBXPropertyType.StringVector:
-        case OBXPropertyType.ByteVector:
-          builder.addOffset(field, offsets[p.id.id] /*!*/);
-          break;
-        default:
-          throw Exception('unsupported type: ${p.type}');
-      }
-    });
-
-    builder.finish(builder.endTable());
-    return builder;
-  }
 
   T unmarshal(Pointer<Uint8> dataPtr, int length) {
     // create a no-copy view

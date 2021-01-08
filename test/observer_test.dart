@@ -79,16 +79,16 @@ void main() async {
   final testEntityId =
       getObjectBoxModel().model.findEntityByName('TestEntity').id.id;
 
-  final simpleStringItems = <String>[
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six'
-  ].map((s) => TestEntity(tString: s)).toList().cast<TestEntity>();
+  final simpleStringItems = () => <String>[
+        'One',
+        'Two',
+        'Three',
+        'Four',
+        'Five',
+        'Six'
+      ].map((s) => TestEntity(tString: s)).toList().cast<TestEntity>();
 
-  final simpleNumberItems = [1, 2, 3, 4, 5, 6]
+  final simpleNumberItems = () => [1, 2, 3, 4, 5, 6]
       .map((s) => TestEntity(tInt: s))
       .toList()
       .cast<TestEntity>();
@@ -115,9 +115,9 @@ void main() async {
       putCount++;
     }, randomPtr);
 
-    box.putMany(simpleStringItems);
-    simpleStringItems.forEach((i) => box.put(i));
-    simpleNumberItems.forEach((i) => box.put(i));
+    box.putMany(simpleStringItems());
+    simpleStringItems().forEach((i) => box.put(i));
+    simpleNumberItems().forEach((i) => box.put(i));
 
     bindings.obx_observer_close(ObservableMany.observer);
     expect(putCount, 13);
@@ -130,9 +130,9 @@ void main() async {
       putCount++;
     }, randomPtr);
 
-    box.putMany(simpleStringItems);
-    simpleStringItems.forEach((i) => box.put(i));
-    simpleNumberItems.forEach((i) => box.put(i));
+    box.putMany(simpleStringItems());
+    simpleStringItems().forEach((i) => box.put(i));
+    simpleNumberItems().forEach((i) => box.put(i));
 
     bindings.obx_observer_close(ObservableSingle.observer);
     expect(putCount, 13);
@@ -143,7 +143,7 @@ void main() async {
     final observer =
         bindings.obx_observe(store.ptr, callback, Pointer.fromAddress(1337));
 
-    box.putMany(simpleStringItems);
+    box.putMany(simpleStringItems());
 
     box.remove(1);
 
@@ -167,9 +167,9 @@ void main() async {
     final observer = bindings.obx_observe_single_type(
         store.ptr, testEntityId, callback, randomPtr);
 
-    box.putMany(simpleStringItems);
-    simpleStringItems.forEach((i) => box.put(i));
-    simpleNumberItems.forEach((i) => box.put(i));
+    box.putMany(simpleStringItems());
+    simpleStringItems().forEach((i) => box.put(i));
+    simpleNumberItems().forEach((i) => box.put(i));
 
     expect(callbackSingleTypeCounter, 13);
     bindings.obx_observer_close(observer);

@@ -11,6 +11,7 @@ class CodeChunks {
     // ignore_for_file: prefer_single_quotes
     ${typedDataImportIfNeeded(model)}
     import 'package:objectbox/objectbox.dart';
+    import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     import '${imports.join("';\n import '")}';
     
@@ -33,9 +34,7 @@ class CodeChunks {
         model: model.getEntityByUid(${entity.id.uid}),
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
-        reader: ($name inst) => {
-          ${entity.properties.map(propertyReader).join(",\n")}
-        },
+        objectToFB: ${objectToFB(entity)},
         writer: (Map<String, dynamic> members) {
           final r = $name();
           ${entity.properties.map(propertyWriter).join()}
@@ -61,8 +60,60 @@ class CodeChunks {
     return property.name;
   }
 
-  static String propertyReader(ModelProperty property) {
-    return "'${property.name}': inst.${propertyFieldName(property)}";
+  static final _propertyFlatBuffersType = <int, String>{
+    OBXPropertyType.Bool: 'Bool',
+    OBXPropertyType.Byte: 'Uint8',
+    OBXPropertyType.Short: 'Int16',
+    OBXPropertyType.Char: 'Int8',
+    OBXPropertyType.Int: 'Int32',
+    OBXPropertyType.Long: 'Int64',
+    OBXPropertyType.Float: 'Float32',
+    OBXPropertyType.Double: 'Float64',
+    OBXPropertyType.Date: 'Int64',
+    OBXPropertyType.Relation: 'Int64',
+    OBXPropertyType.DateNano: 'Int64',
+  };
+
+  static String objectToFB(ModelEntity entity) {
+    // prepare properties that must be defined before the FB table is started
+    final offsets = <int, String>{};
+    final offsetsCode = entity.properties.map((ModelProperty p) {
+      final offsetVar = 'offset${propertyFieldName(p)}';
+      final fieldName = 'inst.${propertyFieldName(p)}';
+      final nullIfNull = 'final $offsetVar = $fieldName == null ? null';
+      offsets[p.id.id] = offsetVar; // see default case in the switch
+      switch (p.type) {
+        case OBXPropertyType.String:
+          return '$nullIfNull : fbb.writeString($fieldName);';
+        case OBXPropertyType.StringVector:
+          return '$nullIfNull : fbb.writeList($fieldName.map(fbb.writeString).toList(growable: false));';
+        case OBXPropertyType.ByteVector:
+          return '$nullIfNull : fbb.writeListInt8($fieldName);';
+        default:
+          offsets.remove(p.id.id);
+          return null;
+      }
+    }).where((s) => s != null);
+
+    // prepare the remainder of the properties, including those with offsets
+    final propsCode = entity.properties.map((ModelProperty p) {
+      final fbField = p.id.id - 1;
+      if (offsets.containsKey(p.id.id)) {
+        return 'fbb.addOffset($fbField, ${offsets[p.id.id]});';
+      } else {
+        // ID must always be present in the flatbuffer
+        final valueIfNull = (p == entity.idProperty) ? ' ?? 0' : '';
+        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, inst.${propertyFieldName(p)}$valueIfNull);';
+      }
+    });
+
+    return '''(${entity.name} inst, fb.Builder fbb) {
+      ${offsetsCode.join('\n')}
+      fbb.startTable();
+      ${propsCode.join('\n')}
+      fbb.finish(fbb.endTable());
+      return inst.${propertyFieldName(entity.idProperty)} ?? 0;
+    }''';
   }
 
   static String propertyWriter(ModelProperty property) {
@@ -114,8 +165,8 @@ class CodeChunks {
       }
 
       ret.add('''
-        static final ${prop.name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
-        ''');
+    static final ${prop.name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+    ''');
     }
     return ret.join();
   }
@@ -124,7 +175,7 @@ class CodeChunks {
     // TODO add entity.id check to throw an error Box if the wrong entity.property is used
     return '''
     class ${entity.name}_ {
-      ${_queryConditionBuilder(entity)}
+    ${_queryConditionBuilder(entity)}
     }''';
   }
 }
