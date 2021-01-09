@@ -760,27 +760,19 @@ class Query<T> {
       this.limit(limit);
     }
     return store.runInTransaction(TxMode.Read, () {
-      if (bindings.obx_supports_bytes_array()) {
-        final bytesArray =
-            checkObxPtr(bindings.obx_query_find(_cQuery), 'find');
-        try {
-          return _fbManager.unmarshalArray(bytesArray);
-        } finally {
-          bindings.obx_bytes_array_free(bytesArray);
-        }
-      } else {
-        final results = <T>[];
-        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-          results.add(_fbManager.unmarshal(dataPtr, length));
-          return true;
-        });
+      final results = <T>[];
+      final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
+        results.add(_fbManager.unmarshal(dataPtr, length));
+        return true;
+      });
 
-        final err =
-            bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData);
+      try {
+        checkObx(
+            bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData));
+      } finally {
         visitor.close();
-        checkObx(err);
-        return results;
       }
+      return results;
     });
   }
 

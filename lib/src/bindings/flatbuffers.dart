@@ -98,36 +98,4 @@ class OBXFlatbuffersManager<T> {
     }
     return unmarshal(dataPtr, length);
   }
-
-  // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T> unmarshalArray(final Pointer<OBX_bytes_array> bytesArray) {
-    final result = List<T>(bytesArray.ref.count);
-    for (var i = 0; i < result.length; i++) {
-      final bytesPtr = bytesArray.ref.bytes.elementAt(i);
-      if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
-        throw ObjectBoxException(
-            dartMsg: "can't access data of empty OBX_bytes");
-      }
-      result[i] = unmarshal(bytesPtr.ref.data.cast<Uint8>(), bytesPtr.ref.size);
-    }
-
-    return result;
-  }
-
-  // expects pointer to OBX_bytes_array and manually resolves its contents (see objectbox.h)
-  List<T /*?*/ > unmarshalArrayWithMissing(
-      final Pointer<OBX_bytes_array> bytesArray) {
-    final result = List<T /*?*/ >(bytesArray.ref.count);
-    for (var i = 0; i < result.length; i++) {
-      final bytesPtr = bytesArray.ref.bytes.elementAt(i);
-      if (bytesPtr == null || bytesPtr == nullptr || bytesPtr.ref.size == 0) {
-        result[i] = null;
-      } else {
-        result[i] = unmarshalWithMissing(
-            bytesPtr.ref.data.cast<Uint8>(), bytesPtr.ref.size);
-      }
-    }
-
-    return result;
-  }
 }

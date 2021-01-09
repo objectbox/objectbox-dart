@@ -28,11 +28,8 @@ class Box<T> {
 
   final OBXFlatbuffersManager<T> _fbManager;
 
-  final bool _supportsBytesArrays;
-
   Box(this._store)
-      : _supportsBytesArrays = bindings.obx_supports_bytes_array(),
-        _entity = _store.entityDef<T>(),
+      : _entity = _store.entityDef<T>(),
         _fbManager = OBXFlatbuffersManager<T>(_store) {
     _cBox = bindings.obx_box(_store.ptr, _entity.model.id.id);
     checkObxPtr(_cBox, 'failed to create box');
@@ -139,33 +136,20 @@ class Box<T> {
     }
   }
 
-  List<R> _getMany<R>(
-      List<R> Function(Pointer<OBX_bytes_array>) unmarshalArrayFn,
-      R Function(Pointer<Uint8>, int) unmarshalSingleFn,
-      Pointer<OBX_bytes_array> Function() cGetArray,
+  List<R> _getMany<R>(R Function(Pointer<Uint8>, int) unmarshalSingleFn,
       void Function(DataVisitor) cVisit) {
     return _store.runInTransaction(TxMode.Read, () {
-      if (_supportsBytesArrays) {
-        final bytesArray = cGetArray();
-        try {
-          return unmarshalArrayFn(bytesArray);
-        } finally {
-          bindings.obx_bytes_array_free(bytesArray);
-        }
-      } else {
-        final results = <R>[];
-        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-          results.add(unmarshalSingleFn(dataPtr, length));
-          return true;
-        });
-
-        try {
-          cVisit(visitor);
-        } finally {
-          visitor.close();
-        }
-        return results;
+      final results = <R>[];
+      final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
+        results.add(unmarshalSingleFn(dataPtr, length));
+        return true;
+      });
+      try {
+        cVisit(visitor);
+      } finally {
+        visitor.close();
       }
+      return results;
     });
   }
 
@@ -177,10 +161,7 @@ class Box<T> {
     return executeWithIdArray(
         ids,
         (ptr) => _getMany(
-            _fbManager.unmarshalArrayWithMissing,
             _fbManager.unmarshalWithMissing,
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr),
-                'failed to get many objects from box'),
             (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(
                 _cBox, ptr, visitor.fn, visitor.userData))));
   }
@@ -188,10 +169,7 @@ class Box<T> {
   /// Returns all stored objects in this Box.
   List<T> getAll() {
     return _getMany(
-        _fbManager.unmarshalArray,
         _fbManager.unmarshal,
-        () => checkObxPtr(bindings.obx_box_get_all(_cBox),
-            'failed to get all objects from box'),
         (DataVisitor visitor) => checkObx(
             bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
   }
