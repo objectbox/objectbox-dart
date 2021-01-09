@@ -290,7 +290,7 @@ void main() {
 
   test('.count() works', () {
     expect(box.count(), equals(0));
-    List<int> ids = box.putMany(simpleItems());
+    box.putMany(simpleItems());
     expect(box.count(), equals(6));
     expect(box.count(limit: 2), equals(2));
     expect(box.count(limit: 10), equals(6));
@@ -364,7 +364,7 @@ void main() {
   });
 
   test('.removeAll() works', () {
-    List<int> ids = box.putMany(simpleItems());
+    box.putMany(simpleItems());
     int removed = box.removeAll();
     expect(removed, equals(6));
     expect(box.count(), equals(0));
