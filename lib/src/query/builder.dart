@@ -3,15 +3,13 @@ part of query;
 // Construct a tree from the first condition object
 class QueryBuilder<T> {
   final Store _store;
-  final int _entityId; // aka model id, entity id
+  final EntityDefinition<T> _entity;
   final Condition /*?*/ _queryCondition;
   final Pointer<OBX_query_builder> _cBuilder;
-  final OBXFlatbuffersManager<T> _fbManager;
 
-  QueryBuilder(
-      this._store, this._fbManager, this._entityId, this._queryCondition)
+  QueryBuilder(this._store, this._entity, this._queryCondition)
       : _cBuilder = checkObxPtr(
-            bindings.obx_query_builder(_store.ptr, _entityId),
+            bindings.obx_query_builder(_store.ptr, _entity.model.id.id),
             'failed to create QueryBuilder');
 
   void _throwExceptionIfNecessary() {
@@ -29,16 +27,16 @@ class QueryBuilder<T> {
     }
 
     try {
-      return Query<T>._(_store, _fbManager, _cBuilder, _entityId);
+      return Query<T>._(_store, _cBuilder, _entity);
     } finally {
       checkObx(bindings.obx_qb_close(_cBuilder));
     }
   }
 
   QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
-    if (p._entityId != _entityId) {
+    if (p._entityId != _entity.model.id.id) {
       throw Exception(
-          'Passed a property of another entity: ${p._entityId} instead of $_entityId');
+          'Passed a property of another entity: ${p._entityId} instead of ${_entity.model.id.id}');
     }
     checkObx(bindings.obx_qb_order(_cBuilder, p._propertyId, flags));
     return this;

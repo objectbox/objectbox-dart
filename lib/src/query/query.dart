@@ -9,9 +9,9 @@ import '../store.dart';
 import '../common.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
-import '../bindings/flatbuffers.dart';
 import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
+import '../modelinfo/entity_definition.dart';
 
 part 'builder.dart';
 
@@ -656,12 +656,11 @@ class ConditionGroupAll extends ConditionGroup {
 class Query<T> {
   final Pointer<OBX_query> _cQuery;
   final Store store;
-  final OBXFlatbuffersManager<T> _fbManager;
-  final int entityId;
+  final EntityDefinition<T> _entity;
 
-  // package private ctor
-  Query._(this.store, this._fbManager, Pointer<OBX_query_builder> cBuilder,
-      this.entityId)
+  int get entityId => _entity.model.id.id;
+
+  Query._(this.store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(bindings.obx_query(cBuilder), 'create query');
 
   /// Configure an [offset] for this query.
@@ -760,19 +759,14 @@ class Query<T> {
       this.limit(limit);
     }
     return store.runInTransaction(TxMode.Read, () {
-      final results = <T>[];
-      final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-        results.add(_fbManager.unmarshal(dataPtr, length));
-        return true;
-      });
-
+      final collector = ObjectCollector<T>(_entity);
       try {
-        checkObx(
-            bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData));
+        checkObx(bindings.obx_query_visit(
+            _cQuery, collector.fn, collector.userData));
       } finally {
-        visitor.close();
+        collector.close();
       }
-      return results;
+      return collector.list;
     });
   }
 

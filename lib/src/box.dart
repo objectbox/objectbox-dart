@@ -5,7 +5,6 @@ import '../flatbuffers/flat_buffers.dart' as fb;
 import 'store.dart';
 import 'bindings/bindings.dart';
 import 'bindings/data_visitor.dart';
-import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
 import 'modelinfo/index.dart';
@@ -26,11 +25,7 @@ class Box<T> {
 
   final EntityDefinition<T> _entity;
 
-  final OBXFlatbuffersManager<T> _fbManager;
-
-  Box(this._store)
-      : _entity = _store.entityDef<T>(),
-        _fbManager = OBXFlatbuffersManager<T>(_store) {
+  Box(this._store) : _entity = _store.entityDef<T>() {
     _cBox = bindings.obx_box(_store.ptr, _entity.model.id.id);
     checkObxPtr(_cBox, 'failed to create box');
   }
@@ -127,8 +122,7 @@ class Box<T> {
 
         // ignore: omit_local_variable_types
         Pointer<Uint8> dataPtr = dataPtrPtr.value.cast<Uint8>();
-        final size = sizePtr.value;
-        return _fbManager.unmarshal(dataPtr, size);
+        return _entity.objectFromFB(dataPtr.asTypedList(sizePtr.value));
       });
     } finally {
       free(dataPtrPtr);
@@ -136,47 +130,38 @@ class Box<T> {
     }
   }
 
-  List<R> _getMany<R>(R Function(Pointer<Uint8>, int) unmarshalSingleFn,
-      void Function(DataVisitor) cVisit) {
-    return _store.runInTransaction(TxMode.Read, () {
-      final results = <R>[];
-      final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-        results.add(unmarshalSingleFn(dataPtr, length));
-        return true;
-      });
-      try {
-        cVisit(visitor);
-      } finally {
-        visitor.close();
-      }
-      return results;
-    });
-  }
-
   /// Returns a list of [ids.length] Objects of type T, each corresponding to the location of its ID in [ids].
   /// Non-existent IDs become null.
   List<T /*?*/ > getMany(List<int> ids) {
     if (ids.isEmpty) return [];
-
-    return executeWithIdArray(
-        ids,
-        (ptr) => _getMany(
-            _fbManager.unmarshalWithMissing,
-            (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(
-                _cBox, ptr, visitor.fn, visitor.userData))));
+    final collector = ObjectCollectorNullable<T>(_entity);
+    try {
+      executeWithIdArray(
+          ids,
+          (Pointer<OBX_id_array> idsPtr) => checkObx(
+              bindings.obx_box_visit_many(
+                  _cBox, idsPtr, collector.fn, collector.userData)));
+    } finally {
+      collector.close();
+    }
+    return collector.list;
   }
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    return _getMany(
-        _fbManager.unmarshal,
-        (DataVisitor visitor) => checkObx(
-            bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
+    final collector = ObjectCollector<T>(_entity);
+    try {
+      checkObx(
+          bindings.obx_box_visit_all(_cBox, collector.fn, collector.userData));
+    } finally {
+      collector.close();
+    }
+    return collector.list;
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   QueryBuilder<T> query([Condition /*?*/ qc]) =>
-      QueryBuilder<T>(_store, _fbManager, _entity.model.id.id, qc);
+      QueryBuilder<T>(_store, _entity, qc);
 
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
   /// is lower.

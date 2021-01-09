@@ -9,7 +9,9 @@ class CodeChunks {
     
     // Currently loading model from "JSON" which always encodes with double quotes
     // ignore_for_file: prefer_single_quotes
-    ${typedDataImportIfNeeded(model)}
+    
+    import 'dart:typed_data';
+    
     import 'package:objectbox/objectbox.dart';
     import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -35,40 +37,31 @@ class CodeChunks {
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
         objectToFB: ${objectToFB(entity)},
-        writer: (Map<String, dynamic> members) {
-          final r = $name();
-          ${entity.properties.map(propertyWriter).join()}
-          return r;
-        }
+        objectFromFB: ${objectFromFB(entity)}
       )
       """;
-  }
-
-  static String typedDataImportIfNeeded(ModelInfo model) {
-    if (model.entities
-        .any((ModelEntity entity) => entity.properties.any(isTypedDataList))) {
-      return "import 'dart:typed_data';\n";
-    }
-    return '';
-  }
-
-  static bool isTypedDataList(ModelProperty property) {
-    return ['Int8List', 'Uint8List'].contains(property.dartFieldType);
   }
 
   static String propertyFieldName(ModelProperty property) {
     return property.name;
   }
 
+  static int propertyFlatBuffersSlot(ModelProperty property) =>
+      property.id.id - 1;
+
+  static int propertyFlatBuffersvTableOffset(ModelProperty property) =>
+      4 + 2 * propertyFlatBuffersSlot(property);
+
   static final _propertyFlatBuffersType = <int, String>{
     OBXPropertyType.Bool: 'Bool',
-    OBXPropertyType.Byte: 'Uint8',
+    OBXPropertyType.Byte: 'Int8',
     OBXPropertyType.Short: 'Int16',
     OBXPropertyType.Char: 'Int8',
     OBXPropertyType.Int: 'Int32',
     OBXPropertyType.Long: 'Int64',
     OBXPropertyType.Float: 'Float32',
     OBXPropertyType.Double: 'Float64',
+    OBXPropertyType.String: 'String',
     OBXPropertyType.Date: 'Int64',
     OBXPropertyType.Relation: 'Int64',
     OBXPropertyType.DateNano: 'Int64',
@@ -97,7 +90,7 @@ class CodeChunks {
 
     // prepare the remainder of the properties, including those with offsets
     final propsCode = entity.properties.map((ModelProperty p) {
-      final fbField = p.id.id - 1;
+      final fbField = propertyFlatBuffersSlot(p);
       if (offsets.containsKey(p.id.id)) {
         return 'fbb.addOffset($fbField, ${offsets[p.id.id]});';
       } else {
@@ -116,13 +109,36 @@ class CodeChunks {
     }''';
   }
 
-  static String propertyWriter(ModelProperty property) {
-    final name = property.name;
-    if (isTypedDataList(property)) {
-      return "r.${propertyFieldName(property)} = members['${name}'] == null ? null : ${property.dartFieldType}.fromList(members['${name}']);";
-    } else {
-      return "r.${propertyFieldName(property)} = members['${name}'];";
-    }
+  static String objectFromFB(ModelEntity entity) {
+    final propsCode = entity.properties.map((ModelProperty p) {
+      String fbReader;
+      switch (p.type) {
+        case OBXPropertyType.ByteVector:
+          fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
+          if (['Int8List', 'Uint8List'].contains(p.dartFieldType)) {
+            return '''{
+             final list = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});
+             object.${propertyFieldName(p)} = list == null ? null : ${p.dartFieldType}.fromList(list);
+           }''';
+          }
+          break;
+        case OBXPropertyType.StringVector:
+          fbReader = 'fb.ListReader<String>(fb.StringReader())';
+          break;
+        default:
+          fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
+      }
+      return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
+    });
+
+    return '''(Uint8List fbData) {
+      final buffer = fb.BufferContext.fromBytes(fbData);
+      final rootOffset = buffer.derefObject(0);
+      
+      final object = ${entity.name}();
+      ${propsCode.join('\n')}
+      return object;
+    }''';
   }
 
   static String _queryConditionBuilder(ModelEntity entity) {
