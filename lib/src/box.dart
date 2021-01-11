@@ -1,10 +1,9 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart' show allocate, free;
 
-import '../flatbuffers/flat_buffers.dart' as fb;
 import 'store.dart';
 import 'bindings/bindings.dart';
-import 'bindings/data_visitor.dart';
+import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
 import 'modelinfo/index.dart';
@@ -52,14 +51,14 @@ class Box<T> {
   /// Performance note: consider [putMany] to put several objects at once.
   int put(T object, {_PutMode mode = _PutMode.Put}) {
     int id;
-    final fbb = fb.Builder(initialSize: 1024);
+    final builder = BuilderWithCBuffer();
     try {
-      id = _entity.objectToFB(object, fbb);
-      final newId = bindings.obx_box_put_object4(
-          _cBox, fbb.bufPtr, fbb.bufPtrSize, _getOBXPutMode(mode));
+      id = _entity.objectToFB(object, builder.fbb);
+      final newId = bindings.obx_box_put_object4(_cBox,
+          builder.bufPtr.cast<Void>(), builder.fbb.size, _getOBXPutMode(mode));
       id = _handlePutObjectResult(object, id, newId);
     } finally {
-      fbb.bufPtrFree();
+      builder.close();
     }
     return id;
   }
@@ -75,19 +74,19 @@ class Box<T> {
       final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
           'failed to create cursor');
       try {
-        final fbb = fb.Builder(initialSize: 1024);
+        final builder = BuilderWithCBuffer();
         final cMode = _getOBXPutMode(mode);
         try {
           for (var i = 0; i < objects.length; i++) {
             final object = objects[i];
-            fbb.reset();
-            final id = _entity.objectToFB(object, fbb);
+            builder.fbb.reset();
+            final id = _entity.objectToFB(object, builder.fbb);
             final newId = bindings.obx_cursor_put_object4(
-                cCursor, fbb.bufPtr, fbb.bufPtrSize, cMode);
+                cCursor, builder.bufPtr.cast<Void>(), builder.fbb.size, cMode);
             putIds[i] = _handlePutObjectResult(object, id, newId);
           }
         } finally {
-          fbb.bufPtrFree();
+          builder.close();
         }
       } finally {
         checkObx(bindings.obx_cursor_close(cCursor));

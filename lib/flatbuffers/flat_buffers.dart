@@ -4,13 +4,8 @@
 
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:math';
 import 'dart:typed_data';
-
-import 'package:ffi/ffi.dart' show allocate, free;
-
-// import 'cbytedata.dart';
 
 const int _sizeofUint8 = 1;
 const int _sizeofUint16 = 2;
@@ -22,10 +17,6 @@ const int _sizeofInt32 = 4;
 const int _sizeofInt64 = 8;
 const int _sizeofFloat32 = 4;
 const int _sizeofFloat64 = 8;
-
-// FFI signature
-typedef _dart_memset =  void Function(Pointer<Void>,int,int);
-_dart_memset _memset;
 
 /// Callback used to invoke a struct builder's finish method.
 ///
@@ -52,23 +43,31 @@ class BufferContext {
   Uint8List _asUint8LIst(int offset, int length) =>
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
-  double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
+  double _getFloat64(int offset) =>
+      _buffer.getFloat64(offset, Endian.little);
 
-  double _getFloat32(int offset) => _buffer.getFloat32(offset, Endian.little);
+  double _getFloat32(int offset) =>
+      _buffer.getFloat32(offset, Endian.little);
 
-  int _getInt64(int offset) => _buffer.getInt64(offset, Endian.little);
+  int _getInt64(int offset) =>
+      _buffer.getInt64(offset, Endian.little);
 
-  int _getInt32(int offset) => _buffer.getInt32(offset, Endian.little);
+  int _getInt32(int offset) =>
+      _buffer.getInt32(offset, Endian.little);
 
-  int _getInt16(int offset) => _buffer.getInt16(offset, Endian.little);
+  int _getInt16(int offset) =>
+      _buffer.getInt16(offset, Endian.little);
 
   int _getInt8(int offset) => _buffer.getInt8(offset);
 
-  int _getUint64(int offset) => _buffer.getUint64(offset, Endian.little);
+  int _getUint64(int offset) =>
+      _buffer.getUint64(offset, Endian.little);
 
-  int _getUint32(int offset) => _buffer.getUint32(offset, Endian.little);
+  int _getUint32(int offset) =>
+      _buffer.getUint32(offset, Endian.little);
 
-  int _getUint16(int offset) => _buffer.getUint16(offset, Endian.little);
+  int _getUint16(int offset) =>
+      _buffer.getUint16(offset, Endian.little);
 
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
@@ -114,42 +113,9 @@ class Builder {
   //final List<_VTable> _vTables = <_VTable>[];
   final List<int> _vTables = <int>[];
 
-  Pointer<Uint8> _bufPtr;
-  Pointer<Void> _bufPtrFinished; // see [finish()]
-  int _bufPtrFinishedSize;
-
-  Pointer<Void> get bufPtr => _bufPtrFinished;
-
-  int get bufPtrSize => _bufPtrFinishedSize;
-
-  void bufPtrFree() {
-    if (_bufPtr != null) free(_bufPtr);
-    _bufPtr = null;
-    _bufPtrFinished = null;
-  }
-
-  void _bufClear([int length]) {
-    length ??= _buf.lengthInBytes;
-    // Note: memset is faster than any of the following alternatives
-    _memset ??= DynamicLibrary.process().lookupFunction<
-        Void Function(Pointer<Void>, Int32, IntPtr), _dart_memset>('memset');
-    _memset(_bufPtr.cast<Void>(), 0, length);
-    // // Option A:
-    // for (var i = 0; i < length; i++) _bufPtr.elementAt(i).value = 0;
-
-    // // Option B:
-    // if (length % 8 == 0) {
-    //   _buf.buffer.asUint64List().fillRange(0, (length / 8).floor(), 0);
-    // } else if (length % 4 == 0) {
-    //   _buf.buffer.asUint32List().fillRange(0, (length / 4).floor(), 0);
-    // } else if (length % 2 == 0) {
-    //   _buf.buffer.asUint16List().fillRange(0, (length / 2).floor(), 0);
-    // } else {
-    //   _buf.buffer.asUint8List().fillRange(0, length, 0);
-    // }
-  }
-
   ByteData _buf;
+
+  Allocator _allocator;
 
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
@@ -178,12 +144,16 @@ class Builder {
   /// automatically grow the array if/as needed.  `internStrings`, if set to
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
-  Builder({this.initialSize: 1024, bool internStrings = false}) {
+  Builder(
+      {this.initialSize: 1024, bool internStrings = false, Allocator allocator})
+      : _allocator = allocator ?? DefaultAllocator() {
     if (internStrings == true) {
       _strings = new Map<String, int>();
     }
     reset();
   }
+
+  int get size => _tail + ((-_tail) % _maxAlign);
 
   /// Add the [field] with the given boolean [value].  The field is not added if
   /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
@@ -371,8 +341,7 @@ class Builder {
   ///
   /// Most clients should prefer calling [finish].
   Uint8List lowFinish() {
-    int alignedTail = _tail + ((-_tail) % _maxAlign);
-    return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
+    return _buf.buffer.asUint8List(_buf.lengthInBytes - size);
   }
 
   /// Finish off the creation of the buffer.  The given [offset] is used as the
@@ -382,19 +351,14 @@ class Builder {
   /// bytes 4-7 of the file.
   Uint8List finish(int offset, [String fileIdentifier]) {
     _prepare(max(_sizeofUint32, _maxAlign), fileIdentifier == null ? 1 : 2);
-    int alignedTail = _tail + ((-_tail) % _maxAlign);
-    _setUint32AtTail(_buf, alignedTail, alignedTail - offset);
+    _setUint32AtTail(_buf, size, size - offset);
     if (fileIdentifier != null) {
       for (int i = 0; i < 4; i++) {
-        _setUint8AtTail(_buf, alignedTail - _sizeofUint32 - i,
+        _setUint8AtTail(_buf, size - _sizeofUint32 - i,
             fileIdentifier.codeUnitAt(i));
       }
     }
-    final bufOffset = _buf.lengthInBytes - alignedTail;
-    _bufPtrFinished =
-        Pointer<Uint8>.fromAddress(_bufPtr.address + bufOffset).cast<Void>();
-    _bufPtrFinishedSize = alignedTail;
-    return _buf.buffer.asUint8List(bufOffset);
+    return _buf.buffer.asUint8List(_buf.lengthInBytes - size);
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
@@ -479,15 +443,16 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
-    if (_bufPtr == null) {
-      _bufPtr = allocate<Uint8>(count: initialSize);
-      _buf = new ByteData.view(_bufPtr.asTypedList(initialSize).buffer);
+    if (_buf == null) {
+      _buf = _allocator.allocate(initialSize);
+      _allocator.clear(_buf, true);
+    } else {
+      _allocator.clear(_buf, false);
     }
-    _bufClear();
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
-    _vTables.clear(); // ff https://github.com/google/flatbuffers/pull/6386
+    _vTables.clear();
     if (_strings != null) {
       _strings = new Map<String, int>();
     }
@@ -714,6 +679,7 @@ class Builder {
     for (int i = 0; i < length; i++) {
       _buf.setUint8(offset++, bytes[i]);
     }
+    _buf.setUint8(offset, 0); // trailing zero
     return result;
   }
 
@@ -754,23 +720,14 @@ class Builder {
     int alignDelta = (-(_tail + dataSize)) % size;
     int bufSize = alignDelta + dataSize;
     // Ensure that we have the required amount of space.
-    {
+        {
       int oldCapacity = _buf.lengthInBytes;
       if (_tail + bufSize > oldCapacity) {
         int desiredNewCapacity = (oldCapacity + bufSize) * 2;
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) % _maxAlign;
         int newCapacity = oldCapacity + deltaCapacity;
-        final newBufPtr = allocate<Uint8>(count: newCapacity);
-        ByteData newBuf =
-            new ByteData.view(newBufPtr.asTypedList(newCapacity).buffer);
-        newBuf.buffer
-            .asUint8List()
-            .setAll(deltaCapacity, _buf.buffer.asUint8List());
-        bufPtrFree();
-        _bufPtr = newBufPtr;
-        _buf = newBuf;
-        _bufClear(deltaCapacity);
+        _buf = _allocator.reallocateDownward(_buf, newCapacity, oldCapacity, 0);
       }
     }
     // Update the tail pointer.
@@ -895,7 +852,6 @@ class Float32Reader extends Reader<double> {
 
 class Int64Reader extends Reader<int> {
   const Int64Reader() : super();
-
   @override
   int get size => _sizeofInt64;
 
@@ -970,7 +926,7 @@ abstract class Reader<T> {
     int vTableFieldOffset = field;
     if (vTableFieldOffset < vTableSize) {
       int fieldOffsetInObject =
-          object._getUint16(vTableOffset + vTableFieldOffset);
+      object._getUint16(vTableOffset + vTableFieldOffset);
       if (fieldOffsetInObject != 0) {
         return read(object, offset + fieldOffsetInObject);
       }
@@ -1257,7 +1213,8 @@ class _VTable {
   bool _offsetsMatch(int vt2Start, ByteData buf) {
     for (int i = 0; i < fieldOffsets.length; i++) {
       if (fieldOffsets[i] !=
-          buf.getUint16(vt2Start + _metadataLength + (2 * i), Endian.little)) {
+          buf.getUint16(
+              vt2Start + _metadataLength + (2 * i), Endian.little)) {
         return false;
       }
     }
@@ -1286,6 +1243,75 @@ class _VTable {
     for (int fieldOffset in fieldOffsets) {
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
+    }
+  }
+}
+
+// Allocator interface. This is flatbuffers-specific - only for [Builder].
+abstract class Allocator {
+  ByteData allocate(int size);
+
+  void deallocate(ByteData data);
+
+  /// Reallocate [newSize] bytes of memory, replacing the old [oldData]. This
+  /// grows downwards, and is intended specifically for use with [Builder].
+  /// Params [inUseBack] and [inUseFront] indicate how much of [oldData] is
+  /// actually in use at each end, and needs to be copied.
+  ByteData reallocateDownward(
+      ByteData oldData, int newSize, int inUseBack, int inUseFront) {
+    final newData = allocate(newSize);
+    clear(newData, true);
+    _copyDownward(oldData, newData, inUseBack, inUseFront);
+    deallocate(oldData);
+    return newData;
+  }
+
+  /// Clear the allocated data contents.
+  ///
+  /// Param [isFresh] is true if the given data has been freshly allocated,
+  /// depending on the allocator implementation, clearing may be unnecessary.
+  void clear(ByteData data, bool isFresh) {
+    final length = data.lengthInBytes;
+    final length64b = (length / 8).floor();
+    // fillRange iterates over data so it's faster with larger data type
+    if (length64b > 0) data.buffer.asUint64List().fillRange(0, length64b, 0);
+    data.buffer.asUint8List().fillRange(length64b * 8, length % 8, 0);
+  }
+
+  /// Called by [reallocate] to copy memory from [oldData] to [newData]. Only
+  /// memory of size [inUseFront] and [inUseBack] will be copied from the front
+  /// and back of the old memory allocation.
+  void _copyDownward(
+      ByteData oldData, ByteData newData, int inUseBack, int inUseFront) {
+    if (inUseBack != 0) {
+      newData.buffer.asUint8List().setAll(
+          newData.lengthInBytes - inUseBack,
+          oldData.buffer.asUint8List().getRange(
+              oldData.lengthInBytes - inUseBack, oldData.lengthInBytes));
+    }
+    if (inUseFront != 0) {
+      newData.buffer
+          .asUint8List()
+          .setAll(0, oldData.buffer.asUint8List().getRange(0, inUseFront));
+    }
+  }
+}
+
+class DefaultAllocator extends Allocator {
+  @override
+  ByteData allocate(int size) => ByteData(size);
+
+  @override
+  void deallocate(ByteData _) {
+    // nothing to do, it's garbage-collected
+  }
+
+  @override
+  void clear(ByteData data, bool isFresh) {
+    if (isFresh) {
+      // nothing to do, ByteData is created all zeroed out
+    } else {
+      super.clear(data, isFresh);
     }
   }
 }
