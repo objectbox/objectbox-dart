@@ -50,7 +50,8 @@ class DataVisitor {
 
   Pointer<Void> get userData => _idPtr.cast<Void>();
 
-  DataVisitor(bool Function(Pointer<Uint8> dataPtr, int length)/*?*/ callback) {
+  DataVisitor(
+      bool Function(Pointer<Uint8> dataPtr, int length) /*?*/ callback) {
     // cycle through ids until we find an empty slot
     _lastId++;
     var initialId = _lastId;

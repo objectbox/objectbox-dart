@@ -15,14 +15,9 @@ void main() {
   /*late final*/
   Box<TestEntity> box;
 
-  final simpleItems = () => [
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six'
-  ].map((s) => TestEntity(tString: s)).toList();
+  final simpleItems = () => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+      .map((s) => TestEntity(tString: s))
+      .toList();
 
   setUp(() {
     env = TestEnv('box');
