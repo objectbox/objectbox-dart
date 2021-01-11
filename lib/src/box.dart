@@ -134,29 +134,56 @@ class Box<T> {
   /// Non-existent IDs become null.
   List<T /*?*/ > getMany(List<int> ids) {
     if (ids.isEmpty) return [];
-    final collector = ObjectCollectorNullable<T>(_entity);
-    try {
-      executeWithIdArray(
-          ids,
-          (Pointer<OBX_id_array> idsPtr) => checkObx(
-              bindings.obx_box_visit_many(
-                  _cBox, idsPtr, collector.fn, collector.userData)));
-    } finally {
-      collector.close();
-    }
-    return collector.list;
+    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
+      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
+          'failed to create cursor');
+      final dataPtrPtr = allocate<Pointer<Void>>();
+      final sizePtr = allocate<IntPtr>();
+      try {
+        final result = List<T>(ids.length);
+        for (var i = 0; i < ids.length; i++) {
+          final code =
+              bindings.obx_cursor_get(cCursor, ids[i], dataPtrPtr, sizePtr);
+          if (code == OBX_NOT_FOUND) {
+            result[i] = null;
+          } else {
+            checkObx(code);
+            result[i] = _entity.objectFromFB(
+                dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value));
+          }
+        }
+        return result;
+      } finally {
+        free(dataPtrPtr);
+        free(sizePtr);
+        checkObx(bindings.obx_cursor_close(cCursor));
+      }
+    });
   }
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    final collector = ObjectCollector<T>(_entity);
-    try {
-      checkObx(
-          bindings.obx_box_visit_all(_cBox, collector.fn, collector.userData));
-    } finally {
-      collector.close();
-    }
-    return collector.list;
+    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
+      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
+          'failed to create cursor');
+      final dataPtrPtr = allocate<Pointer<Void>>();
+      final sizePtr = allocate<IntPtr>();
+      try {
+        final result = <T>[];
+        var code = bindings.obx_cursor_first(cCursor, dataPtrPtr, sizePtr);
+        while (code != OBX_NOT_FOUND) {
+          checkObx(code);
+          result.add(_entity.objectFromFB(
+              dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value)));
+          code = bindings.obx_cursor_next(cCursor, dataPtrPtr, sizePtr);
+        }
+        return result;
+      } finally {
+        free(dataPtrPtr);
+        free(sizePtr);
+        checkObx(bindings.obx_cursor_close(cCursor));
+      }
+    });
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
