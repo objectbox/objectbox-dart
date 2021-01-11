@@ -41,25 +41,33 @@ void main() {
     expect(read.tString, equals(src.tString));
     expect(read.relA.hasValue, isTrue);
     expect(read.relA.targetId, 1);
-    expect(read.relA.target.tInt, 42);
-    expect(read.relA.target.relB.target.tString, equals('B1'));
+    var readRelA = read.relA;
+    expect(readRelA.target.tInt, 42);
+    var readRelARelB = readRelA.target.relB;
+    expect(readRelARelB.target.tString, equals('B1'));
 
     // attach an existing item
-    expect(read.relA.target.relB.target.relA.hasValue, isFalse);
-    read.relA.target.relB.target.relA.target = read.relA.target;
-    expect(read.relA.target.relB.target.relA.hasValue, isTrue);
-    expect(read.relA.target.relB.target.relA.targetId, read.relA.targetId);
-    env.store.box<RelatedEntityB>().put(read.relA.target.relB.target);
+    var readRelARelBRelA = readRelARelB.target.relA;
+    expect(readRelARelBRelA.hasValue, isFalse);
+    readRelARelBRelA.target = readRelA.target;
+    expect(readRelARelBRelA.hasValue, isTrue);
+    expect(readRelARelBRelA.targetId, readRelA.targetId);
+    env.store.box<RelatedEntityB>().put(readRelARelB.target);
 
     read = env.box.get(1);
-    expect(read.relA.target.relB.target.relA.targetId, read.relA.targetId);
+    readRelA = read.relA;
+    readRelARelB = readRelA.target.relB;
+    readRelARelBRelA = readRelARelB.target.relA;
+    expect(readRelARelBRelA.targetId, readRelA.targetId);
 
     // remove a relation, using [targetId]
-    read.relA.target.relB.targetId = 0;
-    env.store.box<RelatedEntityA>().put(read.relA.target);
+    readRelARelB.targetId = 0;
+    env.store.box<RelatedEntityA>().put(readRelA.target);
     read = env.box.get(1);
-    expect(read.relA.target.relB.target, isNull);
-    expect(read.relA.target.relB.targetId, isZero);
+    readRelA = read.relA;
+    readRelARelB = readRelA.target.relB;
+    expect(readRelARelB.target, isNull);
+    expect(readRelARelB.targetId, isZero);
 
     // remove a relation, using [target]
     read.relA.target = null;

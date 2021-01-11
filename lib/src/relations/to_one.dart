@@ -15,7 +15,8 @@ import '../store.dart';
 ///     Call [Box<SourceEntity>.put()] to persist the changes.
 ///
 /// ```
-/// class Order: Entity {
+/// @Entity()
+/// class Order {
 ///   final customer = ToOne<Customer>();
 ///   ...
 /// }
@@ -52,6 +53,7 @@ class ToOne<EntityT> {
 
   EntityT /*?*/ get target {
     if (_value._state == _ToOneState.lazy) {
+      _verifyAttached();
       final object = _box /*!*/ .get(_value._id);
       _value = (object == null)
           ? _ToOneValue<EntityT>.unresolvable(_value._id)
@@ -64,7 +66,7 @@ class ToOne<EntityT> {
     if (object == null) {
       _value = _ToOneValue<EntityT>.none();
     } else {
-      final id = _entity.getId(object) ?? 0;
+      final id = _getId(object);
       _value = (id == 0)
           ? _ToOneValue<EntityT>.unstored(object)
           : _ToOneValue<EntityT>.stored(id, object);
@@ -79,7 +81,9 @@ class ToOne<EntityT> {
     if (id == 0) {
       _value = _ToOneValue<EntityT>.none();
     } else if (_value._state == _ToOneState.unstored &&
-        id == _entity.getId(_value._object)) {
+        id == _getId(_value._object)) {
+      // Optimization for targetId being set from box.put(sourceObject)
+      // after entity.setId(object, newID) was already called on the new target.
       _value = _ToOneValue<EntityT>.stored(id, _value._object);
     } else {
       _value = _ToOneValue<EntityT>.lazy(id);
@@ -95,6 +99,18 @@ class ToOne<EntityT> {
 
   /// Internal only, may change at any point.
   Box<EntityT> get internalTargetBox => _box;
+
+  void _verifyAttached() {
+    if (_box == null || _entity == null) {
+      throw Exception('ToOne relation field not initialized. '
+          'Make sure to call attach(store) before the first use.');
+    }
+  }
+
+  int _getId(EntityT object) {
+    _verifyAttached();
+    return _entity.getId(object) ?? 0;
+  }
 }
 
 enum _ToOneState { none, unstored, lazy, stored, unresolvable }

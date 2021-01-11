@@ -18,8 +18,7 @@ class CodeChunks {
       final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap())}, check: false);
       
       final bindings = <Type, EntityDefinition>{};
-      ${model.entities.map((entity) => "bindings[${entity
-      .name}] = ${entityBinding(entity)};").join("\n")} 
+      ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 
       
       return ModelDefinition(model, bindings);
     }
@@ -34,8 +33,7 @@ class CodeChunks {
         model: model.getEntityByUid(${entity.id.uid}),
         toOneRelations: ($name inst) => [${toOneRelationsList(entity).join(',')}],
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
-        setId: ($name inst, int id) {inst.${propertyFieldName(
-        entity.idProperty)} = id;},
+        setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
         reader: ($name inst) => {
           ${entity.properties.map(propertyReader).join(",\n")}
         },
@@ -85,8 +83,7 @@ class CodeChunks {
     final name = property.name;
     final field = propertyFieldName(property);
     if (isTypedDataList(property)) {
-      return "r.$field = members['${name}'] == null ? null : ${property
-          .dartFieldType}.fromList(members['${name}']);";
+      return "r.$field = members['${name}'] == null ? null : ${property.dartFieldType}.fromList(members['${name}']);";
     } else if (property.type == OBXPropertyType.Relation) {
       return "r.$field.targetId = members['${name}'];" +
           "\n r.$field.attach(store);";
@@ -139,8 +136,7 @@ class CodeChunks {
           break;
         default:
           throw InvalidGenerationSourceError(
-              'Unsupported property type (${prop.type}): ${entity
-                  .name}.${name}');
+              'Unsupported property type (${prop.type}): ${entity.name}.${name}');
       }
 
       final relationTypeGenericParam = prop.type == OBXPropertyType.Relation
@@ -148,9 +144,7 @@ class CodeChunks {
           : '';
 
       ret.add('''
-        static final ${propertyFieldName(
-          prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity
-          .id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+        static final ${propertyFieldName(prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
         ''');
     }
     return ret.join();
