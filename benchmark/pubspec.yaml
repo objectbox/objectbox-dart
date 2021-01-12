@@ -1,0 +1,18 @@
+name: objectbox_benchmark
+description: Simple ObjectBox-Dart performance benchmark
+
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+
+dependencies:
+  objectbox: any
+
+dev_dependencies:
+  objectbox_generator: any
+  build_runner: ^1.0.0
+
+dependency_overrides:
+  objectbox:
+    path: ../
+  objectbox_generator:
+    path: ../generator
