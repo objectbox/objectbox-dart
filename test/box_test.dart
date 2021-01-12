@@ -160,6 +160,18 @@ void main() {
     expect(fetchedItems[2] /*!*/ .tString, equals('Two'));
   });
 
+  test('.getMany result list fixed vs growable', () {
+    // Unfortunately there's no property telling whether the list is growable...
+    final mustThrow = throwsA(predicate(
+        (UnsupportedError e) => e.toString().contains('fixed-length list')));
+
+    expect(() => box.getMany([]).add(null), mustThrow);
+    box.getMany([], growableResult: true).add(null);
+
+    expect(() => box.getMany([1]).add(null), mustThrow);
+    box.getMany([1], growableResult: true).add(null);
+  });
+
   test('all limit integers are stored correctly', () {
     final int8Min = -128;
     final int8Max = 127;

@@ -129,23 +129,23 @@ class Box<T> {
     }
   }
 
-  /// Returns a list of [ids.length] Objects of type T, each corresponding to the location of its ID in [ids].
-  /// Non-existent IDs become null.
-  List<T /*?*/ > getMany(List<int> ids) {
-    if (ids.isEmpty) return [];
+  /// Returns a list of [ids.length] Objects of type T, each corresponding to
+  /// the location of its ID in [ids]. Non-existent IDs become null.
+  ///
+  /// Pass growableResult: true for the resulting list to be growable.
+  List<T /*?*/ > getMany(List<int> ids, {growableResult: false}) {
+    final result = List<T>.filled(ids.length, null, growable: growableResult);
+    if (ids.isEmpty) return result;
     return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
       final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
           'failed to create cursor');
       final dataPtrPtr = allocate<Pointer<Void>>();
       final sizePtr = allocate<IntPtr>();
       try {
-        final result = List<T>(ids.length);
         for (var i = 0; i < ids.length; i++) {
           final code =
               bindings.obx_cursor_get(cCursor, ids[i], dataPtrPtr, sizePtr);
-          if (code == OBX_NOT_FOUND) {
-            result[i] = null;
-          } else {
+          if (code != OBX_NOT_FOUND) {
             checkObx(code);
             result[i] = _entity.objectFromFB(
                 dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value));
