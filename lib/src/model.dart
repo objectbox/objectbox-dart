@@ -74,7 +74,15 @@ class Model {
       _check(bindings.obx_model_property(
           _cModel, name, prop.type, prop.id.id, prop.id.uid));
 
-      if (prop.indexId != null) {
+      if (prop.type == OBXPropertyType.Relation) {
+        var relTarget = Utf8.toUtf8(prop.relationTarget /*!*/).cast<Int8>();
+        try {
+          _check(bindings.obx_model_property_relation(_cModel, relTarget,
+              prop.indexId /*!*/ .id, prop.indexId /*!*/ .uid));
+        } finally {
+          free(relTarget);
+        }
+      } else if (prop.indexId != null) {
         _check(bindings.obx_model_property_index_id(
             _cModel, prop.indexId.id, prop.indexId.uid));
       }

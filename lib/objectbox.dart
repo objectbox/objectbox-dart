@@ -11,5 +11,6 @@ export 'src/common.dart';
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
 export 'src/query/query.dart';
+export 'src/relations/to_one.dart';
 export 'src/store.dart';
 export 'src/sync.dart';

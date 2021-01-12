@@ -147,4 +147,34 @@ class TestEntity {
     this.iByte,
     this.iChar,
   });
+
+  final relA = ToOne<RelatedEntityA>();
+  final relB = ToOne<RelatedEntityB>();
+}
+
+@Entity()
+@Sync()
+class RelatedEntityA {
+  @Id()
+  int id;
+
+  int tInt;
+  bool tBool;
+  final relB = ToOne<RelatedEntityB>();
+
+  RelatedEntityA({this.id, this.tInt, this.tBool});
+}
+
+@Entity()
+@Sync()
+class RelatedEntityB {
+  @Id()
+  int id;
+
+  String tString;
+  double tDouble;
+  final relA = ToOne<RelatedEntityA>();
+  final relB = ToOne<RelatedEntityB>();
+
+  RelatedEntityB({this.id, this.tString, this.tDouble});
 }

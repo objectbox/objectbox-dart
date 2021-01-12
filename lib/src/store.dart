@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
+import 'box.dart';
 import 'modelinfo/index.dart';
 import 'model.dart';
 import 'common.dart';
@@ -17,6 +18,7 @@ enum TxMode {
 /// specific type.
 class Store {
   /*late final*/ Pointer<OBX_store> _cStore;
+  final _boxes = <Type, Box>{};
   final ModelDefinition defs;
 
   /// Creates a BoxStore using the model definition from your
@@ -96,12 +98,22 @@ class Store {
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
+    _boxes.clear();
+
     // Call each "onBeforeClose()" event listener.
     // Move the list to prevent "Concurrent modification during iteration".
     final listeners = StoreCloseObserver.removeAllListeners(this);
     listeners.forEach((listener) => listener());
 
     checkObx(bindings.obx_store_close(_cStore));
+  }
+
+  /// Returns a cached Box instance.
+  Box<T> box<T>() {
+    if (!_boxes.containsKey(T)) {
+      _boxes[T] = Box<T>(this);
+    }
+    return _boxes[T];
   }
 
   EntityDefinition<T> entityDef<T>() {

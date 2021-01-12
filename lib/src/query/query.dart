@@ -281,6 +281,14 @@ class QueryStringVectorProperty extends QueryProperty {
   }
 }
 
+class QueryRelationProperty<Target> extends QueryIntegerProperty {
+  QueryRelationProperty(
+      {/*required*/ int entityId,
+      /*required*/ int propertyId,
+      /*required*/ int obxType})
+      : super(entityId: entityId, propertyId: propertyId, obxType: obxType);
+}
+
 enum ConditionOp {
   isNull,
   notNull,
@@ -331,7 +339,7 @@ abstract class Condition {
     return ConditionGroupAny([this, ...rh]);
   }
 
-  int apply(QueryBuilder builder, bool isRoot);
+  int apply(_QueryBuilder builder, bool isRoot);
 }
 
 class NullCondition extends Condition {
@@ -341,7 +349,7 @@ class NullCondition extends Condition {
   NullCondition(this._op, this._property);
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.isNull:
         return bindings.obx_qb_null(builder._cBuilder, _property._propertyId);
@@ -372,7 +380,7 @@ class StringCondition extends PropertyCondition<String> {
       : _caseSensitive = caseSensitive,
         super(op, prop, value, value2);
 
-  int _op1(QueryBuilder builder,
+  int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
     final cStr = Utf8.toUtf8(_value).cast<Int8>();
     try {
@@ -384,7 +392,7 @@ class StringCondition extends PropertyCondition<String> {
   }
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.eq:
         return _op1(builder, bindings.obx_qb_equals_string);
@@ -421,7 +429,7 @@ class StringListCondition extends PropertyCondition<List<String>> {
       : _caseSensitive = caseSensitive,
         super(op, prop, value);
 
-  int _inside(QueryBuilder builder) {
+  int _inside(_QueryBuilder builder) {
     final func = bindings.obx_qb_in_strings;
     final listLength = _value.length;
     final arrayOfCStrings = allocate<Pointer<Int8>>(count: listLength);
@@ -440,7 +448,7 @@ class StringListCondition extends PropertyCondition<List<String>> {
   }
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.inside:
         return _inside(builder); // bindings.obx_qb_string_in
@@ -455,13 +463,13 @@ class IntegerCondition extends PropertyCondition<int> {
       [int /*?*/ value2])
       : super(op, prop, value, value2);
 
-  int _op1(QueryBuilder builder,
+  int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, int /*?*/) func) {
     return func(builder._cBuilder, _property._propertyId, _value);
   }
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.eq:
         return _op1(builder, bindings.obx_qb_equals_int);
@@ -485,7 +493,7 @@ class IntegerListCondition extends PropertyCondition<List<int>> {
       : super(op, prop, value);
 
   int _opList<T extends NativeType>(
-      QueryBuilder builder,
+      _QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<T>, int) func,
       void Function(Pointer<T>, int, int) setIndex) {
     final length = _value.length;
@@ -507,7 +515,7 @@ class IntegerListCondition extends PropertyCondition<List<int>> {
   static void opListSetIndexInt64(Pointer<Int64> list, i, val) => list[i] = val;
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.inside:
         switch (_property._type) {
@@ -548,7 +556,7 @@ class DoubleCondition extends PropertyCondition<double> {
   }
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.gt:
         return bindings.obx_qb_greater_than_double(
@@ -569,7 +577,7 @@ class ByteVectorCondition extends PropertyCondition<Uint8List> {
   ByteVectorCondition(ConditionOp op, QueryProperty prop, Uint8List value)
       : super(op, prop, value);
 
-  int _op1(QueryBuilder builder,
+  int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Void>, int) func) {
     final cBytes = OBX_bytes_wrapper.managedCopyOf(_value, align: false);
     try {
@@ -581,7 +589,7 @@ class ByteVectorCondition extends PropertyCondition<Uint8List> {
   }
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.eq:
         return _op1(builder, bindings.obx_qb_equals_bytes);
@@ -606,7 +614,7 @@ class ConditionGroup extends Condition {
   ConditionGroup(this._conditions, this._func);
 
   @override
-  int apply(QueryBuilder builder, bool isRoot) {
+  int apply(_QueryBuilder builder, bool isRoot) {
     final size = _conditions.length;
 
     if (size == 0) {
