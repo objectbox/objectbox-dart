@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart' show allocate, free;
 
+import '../store.dart';
 import 'bindings.dart';
 import '../modelinfo/entity_definition.dart';
 
@@ -82,9 +83,9 @@ class DataVisitor {
 class ObjectCollector<T> extends DataVisitor {
   final list = <T>[];
 
-  ObjectCollector(EntityDefinition<T> entity) : super(null) {
+  ObjectCollector(Store store, EntityDefinition<T> entity) : super(null) {
     _init((Pointer<Uint8> dataPtr, int length) {
-      list.add(entity.objectFromFB(dataPtr.asTypedList(length)));
+      list.add(entity.objectFromFB(store, dataPtr.asTypedList(length)));
       return true;
     });
   }
@@ -93,11 +94,12 @@ class ObjectCollector<T> extends DataVisitor {
 class ObjectCollectorNullable<T> extends DataVisitor {
   final list = <T /*?*/ >[];
 
-  ObjectCollectorNullable(EntityDefinition<T> entity) : super(null) {
+  ObjectCollectorNullable(Store store, EntityDefinition<T> entity)
+      : super(null) {
     _init((Pointer<Uint8> dataPtr, int length) {
       list.add(length == 0
           ? null
-          : entity.objectFromFB(dataPtr.asTypedList(length)));
+          : entity.objectFromFB(store, dataPtr.asTypedList(length)));
       return true;
     });
   }

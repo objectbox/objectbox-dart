@@ -34,6 +34,7 @@ class CodeChunks {
     return """
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
+        toOneRelations: ($name inst) => [${toOneRelationsList(entity).join(',')}],
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
         objectToFB: ${objectToFB(entity)},
@@ -43,6 +44,15 @@ class CodeChunks {
   }
 
   static String propertyFieldName(ModelProperty property) {
+    if (property.type == OBXPropertyType.Relation) {
+      if (!property.name.endsWith('Id')) {
+        throw ArgumentError.value(property.name, 'property.name',
+            'Relation property name must end with "Id"');
+      }
+
+      return property.name.substring(0, property.name.length - 2);
+    }
+
     return property.name;
   }
 
@@ -94,9 +104,14 @@ class CodeChunks {
       if (offsets.containsKey(p.id.id)) {
         return 'fbb.addOffset($fbField, ${offsets[p.id.id]});';
       } else {
-        // ID must always be present in the flatbuffer
-        final valueIfNull = (p == entity.idProperty) ? ' ?? 0' : '';
-        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, inst.${propertyFieldName(p)}$valueIfNull);';
+        var accessorSuffix = '';
+        if (p == entity.idProperty) {
+          // ID must always be present in the flatbuffer
+          accessorSuffix = ' ?? 0';
+        } else if (p.type == OBXPropertyType.Relation) {
+          accessorSuffix = '.targetId';
+        }
+        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, inst.${propertyFieldName(p)}$accessorSuffix);';
       }
     });
 
@@ -122,6 +137,10 @@ class CodeChunks {
            }''';
           }
           break;
+        case OBXPropertyType.Relation:
+          fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
+          return "object.${propertyFieldName(p)}.targetId = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});" +
+              "\n object.${propertyFieldName(p)}.attach(store);";
         case OBXPropertyType.StringVector:
           fbReader = 'fb.ListReader<String>(fb.StringReader())';
           break;
@@ -131,7 +150,7 @@ class CodeChunks {
       return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
     });
 
-    return '''(Uint8List fbData) {
+    return '''(Store store, Uint8List fbData) {
       final buffer = fb.BufferContext.fromBytes(fbData);
       final rootOffset = buffer.derefObject(0);
       
@@ -140,6 +159,12 @@ class CodeChunks {
       return object;
     }''';
   }
+
+  static List<String> toOneRelationsList(ModelEntity entity) =>
+      entity.properties
+          .where((ModelProperty prop) => prop.type == OBXPropertyType.Relation)
+          .map((ModelProperty prop) => "inst.${propertyFieldName(prop)}")
+          .toList(growable: false);
 
   static String _queryConditionBuilder(ModelEntity entity) {
     final ret = <String>[];
@@ -166,8 +191,10 @@ class CodeChunks {
         case OBXPropertyType.Long:
         case OBXPropertyType.Date:
         case OBXPropertyType.DateNano:
-        case OBXPropertyType.Relation:
           fieldType = 'Integer';
+          break;
+        case OBXPropertyType.Relation:
+          fieldType = 'Relation';
           break;
         case OBXPropertyType.ByteVector:
           fieldType = 'ByteVector';
@@ -180,9 +207,13 @@ class CodeChunks {
               'Unsupported property type (${prop.type}): ${entity.name}.${name}');
       }
 
+      final relationTypeGenericParam = prop.type == OBXPropertyType.Relation
+          ? '<${prop.relationTarget}>'
+          : '';
+
       ret.add('''
-    static final ${prop.name} = Query${fieldType}Property(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
-    ''');
+        static final ${propertyFieldName(prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+      ''');
     }
     return ret.join();
   }

@@ -25,6 +25,15 @@ void main() {
     store = env.store;
   });
 
+  test('store box vending', () {
+    final box1 = store.box<TestEntity>();
+    expect(box1.isEmpty(), isTrue);
+    int putId = env.box.put(TestEntity(tString: 'Hello'));
+    expect(box1.get(putId).tString, equals('Hello'));
+
+    expect(box1, equals(store.box<TestEntity>()));
+  });
+
   test('.put() returns a valid id', () {
     final object = TestEntity(tString: 'Hello');
     expect(object.id ?? 0, isZero);
