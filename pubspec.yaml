@@ -35,9 +35,6 @@ ffigen:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
-  functions:
-    exclude:
-      - 'obx_(query_)?cursor.*' # We don't use 'cursor' functions
   # add location to standard library imports, e.g. stddef.h
   compiler-opts: '-I/usr/lib/clang/10.0.1/include'
   typedef-map:

@@ -1,7 +1,9 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart' show allocate, free;
 
+import '../store.dart';
 import 'bindings.dart';
+import '../modelinfo/entity_definition.dart';
 
 /// This file implements C call forwarding using a trampoline approach.
 ///
@@ -49,7 +51,8 @@ class DataVisitor {
 
   Pointer<Void> get userData => _idPtr.cast<Void>();
 
-  DataVisitor(bool Function(Pointer<Uint8> dataPtr, int length) callback) {
+  DataVisitor(
+      bool Function(Pointer<Uint8> dataPtr, int length) /*?*/ callback) {
     // cycle through ids until we find an empty slot
     _lastId++;
     var initialId = _lastId;
@@ -63,6 +66,10 @@ class DataVisitor {
     }
     // register the visitor
     _idPtr.value = _lastId;
+    if (callback != null) _init(callback);
+  }
+
+  void _init(bool Function(Pointer<Uint8> dataPtr, int length) callback) {
     _callbacks[_idPtr.value] = callback;
   }
 
@@ -70,5 +77,30 @@ class DataVisitor {
     // unregister the visitor
     _callbacks.remove(_idPtr.value);
     free(_idPtr);
+  }
+}
+
+class ObjectCollector<T> extends DataVisitor {
+  final list = <T>[];
+
+  ObjectCollector(Store store, EntityDefinition<T> entity) : super(null) {
+    _init((Pointer<Uint8> dataPtr, int length) {
+      list.add(entity.objectFromFB(store, dataPtr.asTypedList(length)));
+      return true;
+    });
+  }
+}
+
+class ObjectCollectorNullable<T> extends DataVisitor {
+  final list = <T /*?*/ >[];
+
+  ObjectCollectorNullable(Store store, EntityDefinition<T> entity)
+      : super(null) {
+    _init((Pointer<Uint8> dataPtr, int length) {
+      list.add(length == 0
+          ? null
+          : entity.objectFromFB(store, dataPtr.asTypedList(length)));
+      return true;
+    });
   }
 }

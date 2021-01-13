@@ -54,4 +54,3 @@ void main(List<String> arguments) {
     'removeAll',
   ]);
 }
-

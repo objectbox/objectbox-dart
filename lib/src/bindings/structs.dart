@@ -83,9 +83,9 @@ class OBX_string_array_wrapper {
   OBX_string_array_wrapper(this._cPtr);
 
   List<String> items() {
-    final list = <String>[];
-    for (var i = 0; i < _cPtr.ref.count; i++) {
-      list.add(Utf8.fromUtf8(_cPtr.ref.items.elementAt(i).value.cast<Utf8>()));
+    final list = List<String>(_cPtr.ref.count);
+    for (var i = 0; i < list.length; i++) {
+      list[i] = Utf8.fromUtf8(_cPtr.ref.items.elementAt(i).value.cast<Utf8>());
     }
     return list;
   }

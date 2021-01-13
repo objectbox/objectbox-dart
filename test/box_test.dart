@@ -15,14 +15,9 @@ void main() {
   /*late final*/
   Box<TestEntity> box;
 
-  final List<TestEntity> simpleItems = [
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six'
-  ].map((s) => TestEntity(tString: s)).toList();
+  final simpleItems = () => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+      .map((s) => TestEntity(tString: s))
+      .toList();
 
   setUp(() {
     env = TestEnv('box');
@@ -40,8 +35,11 @@ void main() {
   });
 
   test('.put() returns a valid id', () {
-    int putId = box.put(TestEntity(tString: 'Hello'));
+    final object = TestEntity(tString: 'Hello');
+    expect(object.id ?? 0, isZero);
+    int putId = box.put(object);
     expect(putId, greaterThan(0));
+    expect(object.id, equals(putId)); // ID on the object is updated
   });
 
   test('.get() returns the correct item', () {
@@ -128,6 +126,7 @@ void main() {
     final List<int> ids = box.putMany(items);
     expect(ids.length, equals(items.length));
     for (var i = 0; i < items.length; ++i) {
+      expect(items[i].id, equals(ids[i])); // IDs on the objects are updated
       expect(box.get(ids[i]) /*!*/ .tString, equals(items[i].tString));
     }
   });
@@ -168,6 +167,18 @@ void main() {
     expect(fetchedItems[0] /*!*/ .tString, equals('One'));
     expect(fetchedItems[1], isNull);
     expect(fetchedItems[2] /*!*/ .tString, equals('Two'));
+  });
+
+  test('.getMany result list fixed vs growable', () {
+    // Unfortunately there's no property telling whether the list is growable...
+    final mustThrow = throwsA(predicate(
+        (UnsupportedError e) => e.toString().contains('fixed-length list')));
+
+    expect(() => box.getMany([]).add(null), mustThrow);
+    box.getMany([], growableResult: true).add(null);
+
+    expect(() => box.getMany([1]).add(null), mustThrow);
+    box.getMany([1], growableResult: true).add(null);
   });
 
   test('all limit integers are stored correctly', () {
@@ -295,12 +306,12 @@ void main() {
 
   test('.count() works', () {
     expect(box.count(), equals(0));
-    List<int> ids = box.putMany(simpleItems);
+    box.putMany(simpleItems());
     expect(box.count(), equals(6));
     expect(box.count(limit: 2), equals(2));
     expect(box.count(limit: 10), equals(6));
     //add more
-    ids.addAll(box.putMany(simpleItems));
+    box.putMany(simpleItems());
     expect(box.count(), equals(12));
   });
 
@@ -308,7 +319,7 @@ void main() {
     bool isEmpty = box.isEmpty();
     expect(isEmpty, equals(true));
     //check complementary
-    box.putMany(simpleItems);
+    box.putMany(simpleItems());
     isEmpty = box.isEmpty();
     expect(isEmpty, equals(false));
   });
@@ -324,7 +335,7 @@ void main() {
   });
 
   test('.containsMany() works', () {
-    List<int> ids = box.putMany(simpleItems);
+    List<int> ids = box.putMany(simpleItems());
     bool contains = box.containsMany(ids);
     expect(contains, equals(true));
     //check with one missing id
@@ -338,7 +349,7 @@ void main() {
   });
 
   test('.remove(id) works', () {
-    final List<int> ids = box.putMany(simpleItems);
+    final List<int> ids = box.putMany(simpleItems());
     //check if single id remove works
     expect(box.remove(ids[1]), equals(true));
     expect(box.count(), equals(5));
@@ -354,7 +365,7 @@ void main() {
   });
 
   test('.removeMany(ids) works', () {
-    final List<int> ids = box.putMany(simpleItems);
+    final List<int> ids = box.putMany(simpleItems());
     expect(box.count(), equals(6));
     box.removeMany(ids.sublist(4));
     expect(box.count(), equals(4));
@@ -369,14 +380,14 @@ void main() {
   });
 
   test('.removeAll() works', () {
-    List<int> ids = box.putMany(simpleItems);
+    box.putMany(simpleItems());
     int removed = box.removeAll();
     expect(removed, equals(6));
     expect(box.count(), equals(0));
     //try with different number of items
     List<TestEntity> items =
         ['one', 'two', 'three'].map((s) => TestEntity(tString: s)).toList();
-    ids.addAll(box.putMany(items));
+    box.putMany(items);
     removed = box.removeAll();
     expect(removed, equals(3));
   });
@@ -384,7 +395,7 @@ void main() {
   test('simple write in txn works', () {
     int count;
     void fn() {
-      box.putMany(simpleItems);
+      box.putMany(simpleItems());
     }
 
     store.runInTransaction(TxMode.Write, fn);
@@ -395,7 +406,7 @@ void main() {
   test('failing transactions', () {
     try {
       store.runInTransaction(TxMode.Write, () {
-        box.putMany(simpleItems);
+        box.putMany(simpleItems());
         throw Exception('Test exception');
       });
     } on Exception {
@@ -407,9 +418,9 @@ void main() {
 
   test('recursive write in write transaction', () {
     store.runInTransaction(TxMode.Write, () {
-      box.putMany(simpleItems);
+      box.putMany(simpleItems());
       store.runInTransaction(TxMode.Write, () {
-        box.putMany(simpleItems);
+        box.putMany(simpleItems());
       });
     });
     expect(box.count(), equals(12));
@@ -417,7 +428,7 @@ void main() {
 
   test('recursive read in write transaction', () {
     int count = store.runInTransaction(TxMode.Write, () {
-      box.putMany(simpleItems);
+      box.putMany(simpleItems());
       return store.runInTransaction(TxMode.Read, () {
         return box.count();
       });
@@ -430,7 +441,7 @@ void main() {
       store.runInTransaction(TxMode.Read, () {
         box.count();
         return store.runInTransaction(TxMode.Write, () {
-          return box.putMany(simpleItems);
+          return box.putMany(simpleItems());
         });
       });
     } on ObjectBoxException catch (ex) {
@@ -443,7 +454,7 @@ void main() {
     store.runInTransaction(TxMode.Write, () {
       //should throw code10001 -> valid until fix
       List<int> ids = store.runInTransaction(TxMode.Read, () {
-        return box.putMany(simpleItems);
+        return box.putMany(simpleItems());
       });
       expect(ids.length, equals(6));
     });

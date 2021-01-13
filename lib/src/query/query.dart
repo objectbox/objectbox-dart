@@ -9,9 +9,9 @@ import '../store.dart';
 import '../common.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
-import '../bindings/flatbuffers.dart';
 import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
+import '../modelinfo/entity_definition.dart';
 
 part 'builder.dart';
 
@@ -664,12 +664,11 @@ class ConditionGroupAll extends ConditionGroup {
 class Query<T> {
   final Pointer<OBX_query> _cQuery;
   final Store store;
-  final OBXFlatbuffersManager<T> _fbManager;
-  final int entityId;
+  final EntityDefinition<T> _entity;
 
-  // package private ctor
-  Query._(this.store, this._fbManager, Pointer<OBX_query_builder> cBuilder,
-      this.entityId)
+  int get entityId => _entity.model.id.id;
+
+  Query._(this.store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(bindings.obx_query(cBuilder), 'create query');
 
   /// Configure an [offset] for this query.
@@ -750,7 +749,7 @@ class Query<T> {
     try {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
-          ? <int>[]
+          ? List<int>.empty()
           : idArray.ids.asTypedList(idArray.count);
     } finally {
       bindings.obx_id_array_free(idArrayPtr);
@@ -768,27 +767,14 @@ class Query<T> {
       this.limit(limit);
     }
     return store.runInTransaction(TxMode.Read, () {
-      if (bindings.obx_supports_bytes_array()) {
-        final bytesArray =
-            checkObxPtr(bindings.obx_query_find(_cQuery), 'find');
-        try {
-          return _fbManager.unmarshalArray(bytesArray);
-        } finally {
-          bindings.obx_bytes_array_free(bytesArray);
-        }
-      } else {
-        final results = <T>[];
-        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-          results.add(_fbManager.unmarshal(dataPtr, length));
-          return true;
-        });
-
-        final err =
-            bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData);
-        visitor.close();
-        checkObx(err);
-        return results;
+      final collector = ObjectCollector<T>(store, _entity);
+      try {
+        checkObx(bindings.obx_query_visit(
+            _cQuery, collector.fn, collector.userData));
+      } finally {
+        collector.close();
       }
+      return collector.list;
     });
   }
 

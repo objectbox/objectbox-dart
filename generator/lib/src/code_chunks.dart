@@ -9,8 +9,11 @@ class CodeChunks {
     
     // Currently loading model from "JSON" which always encodes with double quotes
     // ignore_for_file: prefer_single_quotes
-    ${typedDataImportIfNeeded(model)}
+    
+    import 'dart:typed_data';
+    
     import 'package:objectbox/objectbox.dart';
+    import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     import '${imports.join("';\n import '")}';
     
@@ -34,28 +37,10 @@ class CodeChunks {
         toOneRelations: ($name inst) => [${toOneRelationsList(entity).join(',')}],
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
-        reader: ($name inst) => {
-          ${entity.properties.map(propertyReader).join(",\n")}
-        },
-        writer: (Store store, Map<String, dynamic> members) {
-          final r = $name();
-          ${entity.properties.map(propertyWriter).join()}
-          return r;
-        }
+        objectToFB: ${objectToFB(entity)},
+        objectFromFB: ${objectFromFB(entity)}
       )
       """;
-  }
-
-  static String typedDataImportIfNeeded(ModelInfo model) {
-    if (model.entities
-        .any((ModelEntity entity) => entity.properties.any(isTypedDataList))) {
-      return "import 'dart:typed_data';\n";
-    }
-    return '';
-  }
-
-  static bool isTypedDataList(ModelProperty property) {
-    return ['Int8List', 'Uint8List'].contains(property.dartFieldType);
   }
 
   static String propertyFieldName(ModelProperty property) {
@@ -71,25 +56,108 @@ class CodeChunks {
     return property.name;
   }
 
-  static String propertyReader(ModelProperty property) {
-    if (property.type == OBXPropertyType.Relation) {
-      return "'${property.name}': inst.${propertyFieldName(property)}.targetId";
-    } else {
-      return "'${property.name}': inst.${propertyFieldName(property)}";
-    }
+  static int propertyFlatBuffersSlot(ModelProperty property) =>
+      property.id.id - 1;
+
+  static int propertyFlatBuffersvTableOffset(ModelProperty property) =>
+      4 + 2 * propertyFlatBuffersSlot(property);
+
+  static final _propertyFlatBuffersType = <int, String>{
+    OBXPropertyType.Bool: 'Bool',
+    OBXPropertyType.Byte: 'Int8',
+    OBXPropertyType.Short: 'Int16',
+    OBXPropertyType.Char: 'Int8',
+    OBXPropertyType.Int: 'Int32',
+    OBXPropertyType.Long: 'Int64',
+    OBXPropertyType.Float: 'Float32',
+    OBXPropertyType.Double: 'Float64',
+    OBXPropertyType.String: 'String',
+    OBXPropertyType.Date: 'Int64',
+    OBXPropertyType.Relation: 'Int64',
+    OBXPropertyType.DateNano: 'Int64',
+  };
+
+  static String objectToFB(ModelEntity entity) {
+    // prepare properties that must be defined before the FB table is started
+    final offsets = <int, String>{};
+    final offsetsCode = entity.properties.map((ModelProperty p) {
+      final offsetVar = 'offset${propertyFieldName(p)}';
+      final fieldName = 'inst.${propertyFieldName(p)}';
+      final nullIfNull = 'final $offsetVar = $fieldName == null ? null';
+      offsets[p.id.id] = offsetVar; // see default case in the switch
+      switch (p.type) {
+        case OBXPropertyType.String:
+          return '$nullIfNull : fbb.writeString($fieldName);';
+        case OBXPropertyType.StringVector:
+          return '$nullIfNull : fbb.writeList($fieldName.map(fbb.writeString).toList(growable: false));';
+        case OBXPropertyType.ByteVector:
+          return '$nullIfNull : fbb.writeListInt8($fieldName);';
+        default:
+          offsets.remove(p.id.id);
+          return null;
+      }
+    }).where((s) => s != null);
+
+    // prepare the remainder of the properties, including those with offsets
+    final propsCode = entity.properties.map((ModelProperty p) {
+      final fbField = propertyFlatBuffersSlot(p);
+      if (offsets.containsKey(p.id.id)) {
+        return 'fbb.addOffset($fbField, ${offsets[p.id.id]});';
+      } else {
+        var accessorSuffix = '';
+        if (p == entity.idProperty) {
+          // ID must always be present in the flatbuffer
+          accessorSuffix = ' ?? 0';
+        } else if (p.type == OBXPropertyType.Relation) {
+          accessorSuffix = '.targetId';
+        }
+        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, inst.${propertyFieldName(p)}$accessorSuffix);';
+      }
+    });
+
+    return '''(${entity.name} inst, fb.Builder fbb) {
+      ${offsetsCode.join('\n')}
+      fbb.startTable();
+      ${propsCode.join('\n')}
+      fbb.finish(fbb.endTable());
+      return inst.${propertyFieldName(entity.idProperty)} ?? 0;
+    }''';
   }
 
-  static String propertyWriter(ModelProperty property) {
-    final name = property.name;
-    final field = propertyFieldName(property);
-    if (isTypedDataList(property)) {
-      return "r.$field = members['${name}'] == null ? null : ${property.dartFieldType}.fromList(members['${name}']);";
-    } else if (property.type == OBXPropertyType.Relation) {
-      return "r.$field.targetId = members['${name}'];" +
-          "\n r.$field.attach(store);";
-    } else {
-      return "r.$field = members['${name}'];";
-    }
+  static String objectFromFB(ModelEntity entity) {
+    final propsCode = entity.properties.map((ModelProperty p) {
+      String fbReader;
+      switch (p.type) {
+        case OBXPropertyType.ByteVector:
+          fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
+          if (['Int8List', 'Uint8List'].contains(p.dartFieldType)) {
+            return '''{
+             final list = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});
+             object.${propertyFieldName(p)} = list == null ? null : ${p.dartFieldType}.fromList(list);
+           }''';
+          }
+          break;
+        case OBXPropertyType.Relation:
+          fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
+          return "object.${propertyFieldName(p)}.targetId = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});" +
+              "\n object.${propertyFieldName(p)}.attach(store);";
+        case OBXPropertyType.StringVector:
+          fbReader = 'fb.ListReader<String>(fb.StringReader())';
+          break;
+        default:
+          fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
+      }
+      return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
+    });
+
+    return '''(Store store, Uint8List fbData) {
+      final buffer = fb.BufferContext.fromBytes(fbData);
+      final rootOffset = buffer.derefObject(0);
+      
+      final object = ${entity.name}();
+      ${propsCode.join('\n')}
+      return object;
+    }''';
   }
 
   static List<String> toOneRelationsList(ModelEntity entity) =>
@@ -145,7 +213,7 @@ class CodeChunks {
 
       ret.add('''
         static final ${propertyFieldName(prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
-        ''');
+      ''');
     }
     return ret.join();
   }
@@ -154,7 +222,7 @@ class CodeChunks {
     // TODO add entity.id check to throw an error Box if the wrong entity.property is used
     return '''
     class ${entity.name}_ {
-      ${_queryConditionBuilder(entity)}
+    ${_queryConditionBuilder(entity)}
     }''';
   }
 }

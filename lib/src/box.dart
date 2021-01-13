@@ -3,7 +3,6 @@ import 'package:ffi/ffi.dart' show allocate, free;
 
 import 'store.dart';
 import 'bindings/bindings.dart';
-import 'bindings/data_visitor.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
@@ -26,17 +25,10 @@ class Box<T> {
 
   final EntityDefinition<T> _entity;
 
-  final OBXFlatbuffersManager<T> _fbManager;
-
-  final bool _supportsBytesArrays;
-
   /*late final*/
   bool _hasRelations;
 
-  Box(this._store)
-      : _supportsBytesArrays = bindings.obx_supports_bytes_array(),
-        _entity = _store.entityDef<T>(),
-        _fbManager = OBXFlatbuffersManager<T>(_store) {
+  Box(this._store) : _entity = _store.entityDef<T>() {
     _hasRelations = _entity.model.properties
         .any((ModelProperty prop) => prop.type == OBXPropertyType.Relation);
     _cBox = bindings.obx_box(_store.ptr, _entity.model.id.id);
@@ -55,11 +47,14 @@ class Box<T> {
     throw Exception('Invalid put mode ' + mode.toString());
   }
 
-  /// Puts the given Object in the box (aka persisting it). If this is a new entity (its ID property is 0), a new ID
-  /// will be assigned to the entity (and returned). If the entity was already put in the box before, it will be
-  /// overwritten.
+  /// Puts the given Object in the box (aka persisting it).
   ///
-  /// Performance note: if you want to put several entities, consider [putMany] instead.
+  /// If this is a new object (its ID property is 0), a new ID will be assigned
+  /// to the object (and returned).
+  ///
+  /// If the object with given was already in the box, it will be overwritten.
+  ///
+  /// Performance note: consider [putMany] to put several objects at once.
   int put(T object, {PutMode mode = PutMode.Put}) {
     if (_hasRelations) {
       return _store.runInTransaction(
@@ -77,22 +72,15 @@ class Box<T> {
       }
       _putToOneRelFields(object, mode);
     }
-    var propVals = _entity.reader(object);
-    int /*?*/ id = propVals[_entity.model.idProperty.name];
-    if (id == null || id == 0) {
-      id = bindings.obx_box_id_for_put(_cBox, 0);
-      if (id == 0) throw latestNativeError();
-      propVals[_entity.model.idProperty.name] = id;
-    }
-
-    // put object into box and free the buffer
-    final bytes = _fbManager.marshal(propVals);
+    int id;
+    final builder = BuilderWithCBuffer();
     try {
-      checkObx(bindings.obx_box_put5(
-          _cBox, id, bytes.ptr, bytes.size, _getOBXPutMode(mode)));
+      id = _entity.objectToFB(object, builder.fbb);
+      final newId = bindings.obx_box_put_object4(_cBox,
+          builder.bufPtr.cast<Void>(), builder.fbb.size, _getOBXPutMode(mode));
+      id = _handlePutObjectResult(object, id, newId);
     } finally {
-      // because fbManager.marshal() allocates the inner bytes, we need to clean those as well
-      bytes.freeManaged();
+      builder.close();
     }
     return id;
   }
@@ -120,69 +108,40 @@ class Box<T> {
       objects.forEach((object) => _putToOneRelFields(object, mode));
     }
 
-    // read all property values and find number of instances where ID is missing
-    var allPropVals = objects.map(_entity.reader).toList();
-    var missingIdsCount = 0;
-    for (var instPropVals in allPropVals) {
-      if (instPropVals[_entity.model.idProperty.name] == null ||
-          instPropVals[_entity.model.idProperty.name] == 0) {
-        ++missingIdsCount;
-      }
-    }
+    final putIds = List<int>(objects.length);
 
-    // generate new IDs for these instances and set them
-    if (missingIdsCount != 0) {
-      var nextId = 0;
-      final nextIdPtr = allocate<Uint64>(count: 1);
+    _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
+      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
+          'failed to create cursor');
       try {
-        checkObx(
-            bindings.obx_box_ids_for_put(_cBox, missingIdsCount, nextIdPtr));
-        nextId = nextIdPtr.value;
-      } finally {
-        free(nextIdPtr);
-      }
-      for (var instPropVals in allPropVals) {
-        if (instPropVals[_entity.model.idProperty.name] == null ||
-            instPropVals[_entity.model.idProperty.name] == 0) {
-          instPropVals[_entity.model.idProperty.name] = nextId++;
+        final builder = BuilderWithCBuffer();
+        final cMode = _getOBXPutMode(mode);
+        try {
+          for (var i = 0; i < objects.length; i++) {
+            final object = objects[i];
+            builder.fbb.reset();
+            final id = _entity.objectToFB(object, builder.fbb);
+            final newId = bindings.obx_cursor_put_object4(
+                cCursor, builder.bufPtr.cast<Void>(), builder.fbb.size, cMode);
+            putIds[i] = _handlePutObjectResult(object, id, newId);
+          }
+        } finally {
+          builder.close();
         }
-      }
-    }
-
-    // because obx_box_put_many also needs a list of all IDs of the elements to be put into the box,
-    // generate this list now (only needed if not all IDs have been generated)
-    final allIdsMemory = allocate<Uint64>(count: objects.length);
-    try {
-      for (var i = 0; i < allPropVals.length; ++i) {
-        allIdsMemory[i] =
-            (allPropVals[i][_entity.model.idProperty.name] as int);
-      }
-
-      // marshal all objects to be put into the box
-      final bytesArrayPtr = checkObxPtr(
-          bindings.obx_bytes_array(allPropVals.length),
-          'could not create OBX_bytes_array');
-      final listToFree = <OBX_bytes_wrapper>[];
-      try {
-        for (var i = 0; i < allPropVals.length; i++) {
-          final bytes = _fbManager.marshal(allPropVals[i]);
-          listToFree.add(bytes);
-          bindings.obx_bytes_array_set(bytesArrayPtr, i, bytes.ptr, bytes.size);
-        }
-
-        checkObx(bindings.obx_box_put_many(
-            _cBox, bytesArrayPtr, allIdsMemory, _getOBXPutMode(mode)));
       } finally {
-        bindings.obx_bytes_array_free(bytesArrayPtr);
-        listToFree.forEach((OBX_bytes_wrapper bytes) => bytes.freeManaged());
+        checkObx(bindings.obx_cursor_close(cCursor));
       }
-    } finally {
-      free(allIdsMemory);
-    }
+    });
 
-    return allPropVals
-        .map((p) => p[_entity.model.idProperty.name] as int /*!*/)
-        .toList();
+    return putIds;
+  }
+
+  // Checks if native obx_*_put_object() was successful (result is a valid ID).
+  // Sets the given ID on the object if previous ID was zero (new object).
+  int _handlePutObjectResult(T object, int prevId, int result) {
+    if (result == 0) throw latestNativeError(dartMsg: 'object put failed');
+    if (prevId == 0) _entity.setId(object, result);
+    return result;
   }
 
   /// Retrieves the stored object with the ID [id] from this box's database.
@@ -202,8 +161,7 @@ class Box<T> {
 
         // ignore: omit_local_variable_types
         Pointer<Uint8> dataPtr = dataPtrPtr.value.cast<Uint8>();
-        final size = sizePtr.value;
-        return _fbManager.unmarshal(dataPtr, size);
+        return _entity.objectFromFB(_store, dataPtr.asTypedList(sizePtr.value));
       });
     } finally {
       free(dataPtrPtr);
@@ -211,66 +169,65 @@ class Box<T> {
     }
   }
 
-  List<R> _getMany<R>(
-      List<R> Function(Pointer<OBX_bytes_array>) unmarshalArrayFn,
-      R Function(Pointer<Uint8>, int) unmarshalSingleFn,
-      Pointer<OBX_bytes_array> Function() cGetArray,
-      void Function(DataVisitor) cVisit) {
-    return _store.runInTransaction(TxMode.Read, () {
-      if (_supportsBytesArrays) {
-        final bytesArray = cGetArray();
-        try {
-          return unmarshalArrayFn(bytesArray);
-        } finally {
-          bindings.obx_bytes_array_free(bytesArray);
+  /// Returns a list of [ids.length] Objects of type T, each corresponding to
+  /// the location of its ID in [ids]. Non-existent IDs become null.
+  ///
+  /// Pass growableResult: true for the resulting list to be growable.
+  List<T /*?*/ > getMany(List<int> ids, {growableResult = false}) {
+    final result = List<T>.filled(ids.length, null, growable: growableResult);
+    if (ids.isEmpty) return result;
+    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
+      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
+          'failed to create cursor');
+      final dataPtrPtr = allocate<Pointer<Void>>();
+      final sizePtr = allocate<IntPtr>();
+      try {
+        for (var i = 0; i < ids.length; i++) {
+          final code =
+              bindings.obx_cursor_get(cCursor, ids[i], dataPtrPtr, sizePtr);
+          if (code != OBX_NOT_FOUND) {
+            checkObx(code);
+            result[i] = _entity.objectFromFB(_store,
+                dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value));
+          }
         }
-      } else {
-        final results = <R>[];
-        final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-          results.add(unmarshalSingleFn(dataPtr, length));
-          return true;
-        });
-
-        try {
-          cVisit(visitor);
-        } finally {
-          visitor.close();
-        }
-        return results;
+        return result;
+      } finally {
+        free(dataPtrPtr);
+        free(sizePtr);
+        checkObx(bindings.obx_cursor_close(cCursor));
       }
     });
   }
 
-  /// Returns a list of [ids.length] Objects of type T, each corresponding to the location of its ID in [ids].
-  /// Non-existent IDs become null.
-  List<T /*?*/ > getMany(List<int> ids) {
-    if (ids.isEmpty) return [];
-
-    return executeWithIdArray(
-        ids,
-        (ptr) => _getMany(
-            _fbManager.unmarshalArrayWithMissing,
-            _fbManager.unmarshalWithMissing,
-            () => checkObxPtr(bindings.obx_box_get_many(_cBox, ptr),
-                'failed to get many objects from box'),
-            (DataVisitor visitor) => checkObx(bindings.obx_box_visit_many(
-                _cBox, ptr, visitor.fn, visitor.userData))));
-  }
-
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    return _getMany(
-        _fbManager.unmarshalArray,
-        _fbManager.unmarshal,
-        () => checkObxPtr(bindings.obx_box_get_all(_cBox),
-            'failed to get all objects from box'),
-        (DataVisitor visitor) => checkObx(
-            bindings.obx_box_visit_all(_cBox, visitor.fn, visitor.userData)));
+    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
+      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
+          'failed to create cursor');
+      final dataPtrPtr = allocate<Pointer<Void>>();
+      final sizePtr = allocate<IntPtr>();
+      try {
+        final result = <T>[];
+        var code = bindings.obx_cursor_first(cCursor, dataPtrPtr, sizePtr);
+        while (code != OBX_NOT_FOUND) {
+          checkObx(code);
+          result.add(_entity.objectFromFB(_store,
+              dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value)));
+          code = bindings.obx_cursor_next(cCursor, dataPtrPtr, sizePtr);
+        }
+        return result;
+      } finally {
+        free(dataPtrPtr);
+        free(sizePtr);
+        checkObx(bindings.obx_cursor_close(cCursor));
+      }
+    });
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   QueryBuilder<T> query([Condition /*?*/ qc]) =>
-      QueryBuilder<T>(_store, _fbManager, _entity.model.id.id, qc);
+      QueryBuilder<T>(_store, _entity, qc);
 
   /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
   /// is lower.

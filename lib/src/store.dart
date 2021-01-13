@@ -128,6 +128,14 @@ class Store {
   ///
   /// Returns type of [fn] if [return] is called in [fn].
   R runInTransaction<R>(TxMode mode, R Function() fn) {
+    return runInTransactionWithPtr(mode, (txn) => fn());
+  }
+
+  /// Executes a given function inside a transaction.
+  ///
+  /// Returns type of [fn] if [return] is called in [fn].
+  R runInTransactionWithPtr<R>(
+      TxMode mode, R Function(Pointer<OBX_txn> txn) fn) {
     final write = mode == TxMode.Write;
     final txn = write
         ? bindings.obx_txn_write(_cStore)
@@ -137,7 +145,7 @@ class Store {
       if (write) {
         checkObx(bindings.obx_txn_mark_success(txn, true));
       }
-      return fn();
+      return fn(txn);
     } catch (ex) {
       if (write) {
         checkObx(bindings.obx_txn_mark_success(txn, false));
