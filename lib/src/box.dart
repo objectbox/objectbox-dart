@@ -108,7 +108,7 @@ class Box<T> {
       objects.forEach((object) => _putToOneRelFields(object, mode));
     }
 
-    final putIds = List<int>(objects.length);
+    final putIds = List<int>.filled(objects.length, 0);
 
     _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
       final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
