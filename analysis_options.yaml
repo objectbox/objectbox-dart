@@ -11,4 +11,3 @@ analyzer:
     - example/**
     - generator/**
     - benchmark/**
-    - lib/flatbuffers/**

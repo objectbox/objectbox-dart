@@ -2,6 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Ignore existing issues in FB to avoid a score penalty for pub.dev/objectbox
+// ignore_for_file: prefer_generic_function_type_aliases
+// ignore_for_file: omit_local_variable_types
+// ignore_for_file: unnecessary_new
+// ignore_for_file: prefer_final_fields
+// ignore_for_file: prefer_equal_for_default_values
+// ignore_for_file: prefer_collection_literals
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: annotate_overrides
+// ignore_for_file: avoid_return_types_on_setters
+
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -43,31 +54,23 @@ class BufferContext {
   Uint8List _asUint8LIst(int offset, int length) =>
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
-  double _getFloat64(int offset) =>
-      _buffer.getFloat64(offset, Endian.little);
+  double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
 
-  double _getFloat32(int offset) =>
-      _buffer.getFloat32(offset, Endian.little);
+  double _getFloat32(int offset) => _buffer.getFloat32(offset, Endian.little);
 
-  int _getInt64(int offset) =>
-      _buffer.getInt64(offset, Endian.little);
+  int _getInt64(int offset) => _buffer.getInt64(offset, Endian.little);
 
-  int _getInt32(int offset) =>
-      _buffer.getInt32(offset, Endian.little);
+  int _getInt32(int offset) => _buffer.getInt32(offset, Endian.little);
 
-  int _getInt16(int offset) =>
-      _buffer.getInt16(offset, Endian.little);
+  int _getInt16(int offset) => _buffer.getInt16(offset, Endian.little);
 
   int _getInt8(int offset) => _buffer.getInt8(offset);
 
-  int _getUint64(int offset) =>
-      _buffer.getUint64(offset, Endian.little);
+  int _getUint64(int offset) => _buffer.getUint64(offset, Endian.little);
 
-  int _getUint32(int offset) =>
-      _buffer.getUint32(offset, Endian.little);
+  int _getUint32(int offset) => _buffer.getUint32(offset, Endian.little);
 
-  int _getUint16(int offset) =>
-      _buffer.getUint16(offset, Endian.little);
+  int _getUint16(int offset) => _buffer.getUint16(offset, Endian.little);
 
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
@@ -354,8 +357,8 @@ class Builder {
     _setUint32AtTail(_buf, size, size - offset);
     if (fileIdentifier != null) {
       for (int i = 0; i < 4; i++) {
-        _setUint8AtTail(_buf, size - _sizeofUint32 - i,
-            fileIdentifier.codeUnitAt(i));
+        _setUint8AtTail(
+            _buf, size - _sizeofUint32 - i, fileIdentifier.codeUnitAt(i));
       }
     }
     return _buf.buffer.asUint8List(_buf.lengthInBytes - size);
@@ -720,7 +723,7 @@ class Builder {
     int alignDelta = (-(_tail + dataSize)) % size;
     int bufSize = alignDelta + dataSize;
     // Ensure that we have the required amount of space.
-        {
+    {
       int oldCapacity = _buf.lengthInBytes;
       if (_tail + bufSize > oldCapacity) {
         int desiredNewCapacity = (oldCapacity + bufSize) * 2;
@@ -926,7 +929,7 @@ abstract class Reader<T> {
     int vTableFieldOffset = field;
     if (vTableFieldOffset < vTableSize) {
       int fieldOffsetInObject =
-      object._getUint16(vTableOffset + vTableFieldOffset);
+          object._getUint16(vTableOffset + vTableFieldOffset);
       if (fieldOffsetInObject != 0) {
         return read(object, offset + fieldOffsetInObject);
       }
@@ -1213,8 +1216,7 @@ class _VTable {
   bool _offsetsMatch(int vt2Start, ByteData buf) {
     for (int i = 0; i < fieldOffsets.length; i++) {
       if (fieldOffsets[i] !=
-          buf.getUint16(
-              vt2Start + _metadataLength + (2 * i), Endian.little)) {
+          buf.getUint16(vt2Start + _metadataLength + (2 * i), Endian.little)) {
         return false;
       }
     }
