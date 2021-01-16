@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' show allocate, free;
 
@@ -113,7 +112,7 @@ class Box<T> {
     final putIds = List<int>.filled(objects.length, 0);
 
     _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
-      final cursor = _CursorHelper(txn, _entity, true);
+      final cursor = CursorHelper(txn, _entity, true);
       try {
         final builder = BuilderWithCBuffer();
         final cMode = _getOBXPutMode(mode);
@@ -178,7 +177,7 @@ class Box<T> {
     final result = List<T>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
     return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
-      final cursor = _CursorHelper(txn, _entity, false);
+      final cursor = CursorHelper(txn, _entity, false);
       try {
         for (var i = 0; i < ids.length; i++) {
           final code = bindings.obx_cursor_get(
@@ -198,7 +197,7 @@ class Box<T> {
   /// Returns all stored objects in this Box.
   List<T> getAll() {
     return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
-      final cursor = _CursorHelper(txn, _entity, false);
+      final cursor = CursorHelper(txn, _entity, false);
       try {
         final result = <T>[];
         var code = bindings.obx_cursor_first(
@@ -310,33 +309,5 @@ class Box<T> {
         rel.targetId = rel.internalTargetBox._put(rel.target, mode, true);
       }
     });
-  }
-}
-
-class _CursorHelper {
-  final Pointer<OBX_cursor> ptr;
-
-  /*late final*/
-  Pointer<Pointer<Void>> dataPtrPtr;
-
-  /*late final*/
-  Pointer<IntPtr> sizePtr;
-
-  _CursorHelper(Pointer<OBX_txn> txn, EntityDefinition entity, bool isWrite)
-      : ptr = checkObxPtr(bindings.obx_cursor(txn, entity.model.id.id),
-            'failed to create cursor') {
-    if (!isWrite) {
-      dataPtrPtr = allocate<Pointer<Void>>();
-      sizePtr = allocate<IntPtr>();
-    }
-  }
-
-  Uint8List get readData =>
-      dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value);
-
-  void close() {
-    if (dataPtrPtr != null) free(dataPtrPtr);
-    if (sizePtr != null) free(sizePtr);
-    checkObx(bindings.obx_cursor_close(ptr));
   }
 }

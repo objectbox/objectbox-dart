@@ -1,9 +1,12 @@
 import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart';
 
 import 'bindings.dart';
 import '../annotations.dart';
 import '../common.dart';
+import '../modelinfo/entity_definition.dart';
 
 void checkObx(int code) {
   if (code != OBX_SUCCESS) {
@@ -17,8 +20,8 @@ bool checkObxSuccess(int code) {
   return true;
 }
 
-Pointer<T> checkObxPtr<T extends NativeType>(
-    Pointer<T> /*?*/ ptr, [String dartMsg]) {
+Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> /*?*/ ptr,
+    [String dartMsg]) {
   if (ptr == null || ptr.address == 0) {
     throw latestNativeError(dartMsg: dartMsg);
   }
@@ -105,4 +108,32 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.ByteVector;
   }
   throw Exception('Invalid PropertyType: ${type}');
+}
+
+class CursorHelper {
+  final Pointer<OBX_cursor> ptr;
+
+  /*late final*/
+  Pointer<Pointer<Void>> dataPtrPtr;
+
+  /*late final*/
+  Pointer<IntPtr> sizePtr;
+
+  CursorHelper(Pointer<OBX_txn> txn, EntityDefinition entity, bool isWrite)
+      : ptr = checkObxPtr(bindings.obx_cursor(txn, entity.model.id.id),
+            'failed to create cursor') {
+    if (!isWrite) {
+      dataPtrPtr = allocate<Pointer<Void>>();
+      sizePtr = allocate<IntPtr>();
+    }
+  }
+
+  Uint8List get readData =>
+      dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value);
+
+  void close() {
+    if (dataPtrPtr != null) free(dataPtrPtr);
+    if (sizePtr != null) free(sizePtr);
+    checkObx(bindings.obx_cursor_close(ptr));
+  }
 }
