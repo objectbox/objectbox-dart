@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
@@ -98,7 +100,11 @@ class ToOne<EntityT> {
   }
 
   /// Internal only, may change at any point.
-  Box<EntityT> get internalTargetBox => _box;
+  @internal
+  Box<EntityT> get internalTargetBox {
+    _verifyAttached();
+    return _box;
+  }
 
   void _verifyAttached() {
     if (_box == null || _entity == null) {
