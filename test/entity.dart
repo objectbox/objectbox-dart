@@ -11,7 +11,6 @@ class TestingUnknownAnnotation {
 @TestingUnknownAnnotation()
 @Sync()
 class TestEntity {
-  @Id()
   @TestingUnknownAnnotation()
   int /*?*/ id;
 
@@ -155,7 +154,6 @@ class TestEntity {
 @Entity()
 @Sync()
 class RelatedEntityA {
-  @Id()
   int id;
 
   int tInt;
@@ -168,7 +166,6 @@ class RelatedEntityA {
 @Entity()
 @Sync()
 class RelatedEntityB {
-  @Id()
   int id;
 
   String tString;

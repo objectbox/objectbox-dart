@@ -3,7 +3,6 @@ import 'objectbox.g.dart';
 
 @Entity()
 class A {
-  @Id()
   int id;
 
   @Index()

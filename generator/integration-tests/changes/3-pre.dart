@@ -10,7 +10,6 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class A {
-  @Id()
   int id;
 
   String text1;
@@ -23,7 +22,6 @@ class A {
 
 @Entity(uid: 2000)
 class Renamed {
-  @Id()
   int id;
 
   bool value;
