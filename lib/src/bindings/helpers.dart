@@ -18,7 +18,7 @@ bool checkObxSuccess(int code) {
 }
 
 Pointer<T> checkObxPtr<T extends NativeType>(
-    Pointer<T> /*?*/ ptr, String dartMsg) {
+    Pointer<T> /*?*/ ptr, [String dartMsg]) {
   if (ptr == null || ptr.address == 0) {
     throw latestNativeError(dartMsg: dartMsg);
   }

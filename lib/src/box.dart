@@ -1,4 +1,6 @@
 import 'dart:ffi';
+import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart' show allocate, free;
 
 import 'store.dart';
@@ -111,8 +113,7 @@ class Box<T> {
     final putIds = List<int>.filled(objects.length, 0);
 
     _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
-      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
-          'failed to create cursor');
+      final cursor = _CursorHelper(txn, _entity, true);
       try {
         final builder = BuilderWithCBuffer();
         final cMode = _getOBXPutMode(mode);
@@ -121,15 +122,15 @@ class Box<T> {
             final object = objects[i];
             builder.fbb.reset();
             final id = _entity.objectToFB(object, builder.fbb);
-            final newId = bindings.obx_cursor_put_object4(
-                cCursor, builder.bufPtr.cast<Void>(), builder.fbb.size, cMode);
+            final newId = bindings.obx_cursor_put_object4(cursor.ptr,
+                builder.bufPtr.cast<Void>(), builder.fbb.size, cMode);
             putIds[i] = _handlePutObjectResult(object, id, newId);
           }
         } finally {
           builder.close();
         }
       } finally {
-        checkObx(bindings.obx_cursor_close(cCursor));
+        cursor.close();
       }
     });
 
@@ -177,25 +178,19 @@ class Box<T> {
     final result = List<T>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
     return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
-      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
-          'failed to create cursor');
-      final dataPtrPtr = allocate<Pointer<Void>>();
-      final sizePtr = allocate<IntPtr>();
+      final cursor = _CursorHelper(txn, _entity, false);
       try {
         for (var i = 0; i < ids.length; i++) {
-          final code =
-              bindings.obx_cursor_get(cCursor, ids[i], dataPtrPtr, sizePtr);
+          final code = bindings.obx_cursor_get(
+              cursor.ptr, ids[i], cursor.dataPtrPtr, cursor.sizePtr);
           if (code != OBX_NOT_FOUND) {
             checkObx(code);
-            result[i] = _entity.objectFromFB(_store,
-                dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value));
+            result[i] = _entity.objectFromFB(_store, cursor.readData);
           }
         }
         return result;
       } finally {
-        free(dataPtrPtr);
-        free(sizePtr);
-        checkObx(bindings.obx_cursor_close(cCursor));
+        cursor.close();
       }
     });
   }
@@ -203,24 +198,20 @@ class Box<T> {
   /// Returns all stored objects in this Box.
   List<T> getAll() {
     return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
-      final cCursor = checkObxPtr(bindings.obx_cursor(txn, _entity.model.id.id),
-          'failed to create cursor');
-      final dataPtrPtr = allocate<Pointer<Void>>();
-      final sizePtr = allocate<IntPtr>();
+      final cursor = _CursorHelper(txn, _entity, false);
       try {
         final result = <T>[];
-        var code = bindings.obx_cursor_first(cCursor, dataPtrPtr, sizePtr);
+        var code = bindings.obx_cursor_first(
+            cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
         while (code != OBX_NOT_FOUND) {
           checkObx(code);
-          result.add(_entity.objectFromFB(_store,
-              dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value)));
-          code = bindings.obx_cursor_next(cCursor, dataPtrPtr, sizePtr);
+          result.add(_entity.objectFromFB(_store, cursor.readData));
+          code = bindings.obx_cursor_next(
+              cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
         }
         return result;
       } finally {
-        free(dataPtrPtr);
-        free(sizePtr);
-        checkObx(bindings.obx_cursor_close(cCursor));
+        cursor.close();
       }
     });
   }
@@ -319,5 +310,33 @@ class Box<T> {
         rel.targetId = rel.internalTargetBox._put(rel.target, mode, true);
       }
     });
+  }
+}
+
+class _CursorHelper {
+  final Pointer<OBX_cursor> ptr;
+
+  /*late final*/
+  Pointer<Pointer<Void>> dataPtrPtr;
+
+  /*late final*/
+  Pointer<IntPtr> sizePtr;
+
+  _CursorHelper(Pointer<OBX_txn> txn, EntityDefinition entity, bool isWrite)
+      : ptr = checkObxPtr(bindings.obx_cursor(txn, entity.model.id.id),
+            'failed to create cursor') {
+    if (!isWrite) {
+      dataPtrPtr = allocate<Pointer<Void>>();
+      sizePtr = allocate<IntPtr>();
+    }
+  }
+
+  Uint8List get readData =>
+      dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value);
+
+  void close() {
+    if (dataPtrPtr != null) free(dataPtrPtr);
+    if (sizePtr != null) free(sizePtr);
+    checkObx(bindings.obx_cursor_close(ptr));
   }
 }
