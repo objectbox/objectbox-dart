@@ -18,6 +18,7 @@ void main() {
   test('to-one put', () {
     final src = TestEntity(tString: 'Hello');
     src.relA.attach(env.store);
+    src.relB.attach(env.store);
 
     expect(src.relA.hasValue, isFalse);
     expect(src.relA.target, isNull);
@@ -30,8 +31,8 @@ void main() {
     src.relA.target.relB.attach(env.store);
     src.relA.target.relB.target = RelatedEntityB(tString: 'B1');
 
-    // TODO wait for #62, now duplicates the object without object ID assignment
-    // src.relB.target = src.relA.target.relB.target;
+    // use the same target on two relations - must insert only once
+    src.relB.target = src.relA.target.relB.target;
 
     env.box.put(src);
 
@@ -43,6 +44,10 @@ void main() {
     expect(readRelA.target.tInt, 42);
     var readRelARelB = readRelA.target.relB;
     expect(readRelARelB.target.tString, equals('B1'));
+
+    // it's the same DB object ID but different instances (read twice)
+    expect(read.relB.targetId, equals(readRelARelB.targetId));
+    expect(read.relB.target, isNot(equals(readRelARelB.target)));
 
     // attach an existing item
     var readRelARelBRelA = readRelARelB.target.relA;
