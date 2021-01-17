@@ -1,3 +1,4 @@
+import 'package:objectbox/src/relations/to_many.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -153,5 +154,93 @@ void main() {
       expect(found[0].tString, 'bar');
       query.close();
     }
+  });
+
+  final toInt = (e) => e.tInt;
+
+  group('ToMany list management', () {
+    ToMany<TestEntity> rel;
+    InternalToManyTestAccess<TestEntity> relT;
+
+    final check = ({List<int> items, List<int> added, List<int> removed}) {
+      expect(relT.items.map(toInt), unorderedEquals(items));
+      expect(relT.added.map(toInt), unorderedEquals(added));
+      expect(relT.removed.map(toInt), unorderedEquals(removed));
+    };
+
+    setUp(() {
+      rel = ToMany<TestEntity>();
+      relT = InternalToManyTestAccess<TestEntity>(rel);
+    });
+
+    test('basics', () {
+      // test adding new objects as well as existing (duplicate) objects
+      rel.add(TestEntity(tInt: 1));
+      rel.addAll([TestEntity(tInt: 2), rel[0], TestEntity(tInt: 3)]);
+      rel.add(rel[2]);
+      expect(rel.length, 5);
+      expect(rel.toSet().length, 3);
+
+      check(items: [1, 1, 1, 2, 3], added: [1, 2, 3], removed: []);
+
+      // replace one of the duplicate objects with a new one
+      expect(rel[2].tInt, equals(1));
+      rel[2] = TestEntity(tInt: 4);
+      check(items: [1, 1, 2, 3, 4], added: [1, 2, 3, 4], removed: []);
+
+      expect(rel[0].tInt, equals(1));
+      expect(rel[4].tInt, equals(1));
+      rel.removeAt(0);
+      check(items: [1, 2, 3, 4], added: [1, 2, 3, 4], removed: []);
+      rel.removeAt(3);
+      check(items: [2, 3, 4], added: [2, 3, 4], removed: []);
+
+      rel.length = 1;
+      check(items: [2], added: [2], removed: []);
+    });
+
+    test('removal', () {
+      // bypass ToMany's list management to fake data loaded from DB
+      relT.items.addAll(
+          [TestEntity(tInt: 1), TestEntity(tInt: 2), TestEntity(tInt: 3)]);
+      check(items: [1, 2, 3], added: [], removed: []);
+
+      rel.removeAt(1);
+      check(items: [1, 3], added: [], removed: [2]);
+
+      rel.remove(rel[1]);
+      check(items: [1], added: [], removed: [2, 3]);
+
+      rel.add(TestEntity(tInt: 4));
+      check(items: [1, 4], added: [4], removed: [2, 3]);
+
+      rel.remove(rel[1]);
+      check(items: [1], added: [], removed: [2, 3]);
+
+      rel.add(rel[0]);
+      check(items: [1, 1], added: [1], removed: [2, 3]);
+      rel.remove(rel[0]);
+      check(items: [1], added: [], removed: [2, 3]);
+    });
+  });
+
+  group('ToMany', () {
+    TestEntity src;
+    setUp(() {
+      src = TestEntity(tString: 'Hello');
+      src.relA.attach(env.store);
+    });
+
+    test('put', () {
+      expect(src.relManyA, isNotNull);
+      src.relManyA.add(RelatedEntityA(tInt: 1));
+      src.relManyA.addAll(
+          [RelatedEntityA(tInt: 2), src.relManyA[0], RelatedEntityA(tInt: 3)]);
+      env.box.put(src);
+
+      // var read = env.box.get(1);
+      // expect(read.relManyA.length, 3);
+      // expect(read.relManyA.map(toInt), unorderedEquals([1, 2, 3]));
+    });
   });
 }

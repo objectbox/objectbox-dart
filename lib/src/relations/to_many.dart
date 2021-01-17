@@ -61,8 +61,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   RelInfo _rel;
 
   List<EntityT> /*?*/ __items;
-  final _added = <EntityT>{};
-  final _removed = <EntityT>{};
+  final _counts = <EntityT, int>{};
 
   void attach(Store store) {
     _store = store;
@@ -76,7 +75,9 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   @override
   set length(int newLength) {
     if (newLength < _items.length) {
-      _items.getRange(newLength, _items.length).forEach(_remove);
+      _items
+          .getRange(newLength, _items.length)
+          .forEach((EntityT element) => _track(element, -1));
     }
     _items.length = newLength;
   }
@@ -92,43 +93,43 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     }
     if (index < items.length) {
       if (items[index] == element) return;
-      _remove(items[index]);
+      _track(items[index], -1);
     }
     items[index] = element;
-    _added.add(element);
-    _removed.remove(element);
+    _track(element, 1);
   }
 
   @override
   void add(EntityT element) {
     if (element == null) ArgumentError.notNull('element');
     _items.add(element);
-    _added.add(element);
-    _removed.remove(element);
+    _track(element, 1);
   }
 
   @override
   void addAll(Iterable<EntityT> iterable) {
     iterable.forEach((element) {
       if (element == null) ArgumentError.notNull('element');
+      _track(element, 1);
     });
     _items.addAll(iterable);
-    _added.addAll(iterable);
-    _removed.removeAll(iterable);
   }
 
   // note: to override, arg must be "Object", same as in the base class.
   @override
   bool remove(Object /*?*/ element) {
     if (!_items.remove(element)) return false;
-    if (element != null) _remove(element);
+    if (element != null) _track(element, -1);
     return true;
   }
 
-  void _remove(EntityT object) {
-    _added.remove(object);
-    if (_entity.getId(object) ?? 0 != 0) {
-      _removed.add(object);
+  /// "add":    increment = 1
+  /// "remove": increment = -1
+  void _track(EntityT object, int increment) {
+    if (_counts.containsKey(object)) {
+      _counts[object] += increment;
+    } else {
+      _counts[object] = increment;
     }
   }
 
@@ -137,7 +138,10 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       _items.toList(growable: growable);
 
   /// True if there are any changes not yet saved in DB.
-  bool get hasPendingDbChanges => _added.isNotEmpty || _removed.isNotEmpty;
+  bool get _hasPendingDbChanges =>
+      _counts.values.where((c) => c != 0).isNotEmpty;
+
+  // bool get _hasPendingDbChanges => _added.isNotEmpty || _removed.isNotEmpty;
 
   /// Save changes made to this ToMany relation to the database. Alternatively,
   /// you can call box.put(object), its relations are automatically saved.
@@ -145,8 +149,8 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// If this collection contains new objects (with zero IDs),  applyToDb()
   /// will put them on-the-fly. For this to work the source object (the object
   /// owing this ToMany) must be already stored because its ID is required.
-  void applyToDb() {
-    if (!hasPendingDbChanges) return;
+  void applyToDb({PutMode mode = PutMode.Put}) {
+    if (!_hasPendingDbChanges) return;
     _verifyAttached();
 
     if (_rel == null) {
@@ -156,17 +160,20 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     switch (_rel.type) {
       case RelType.toMany:
         _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
-          _added.forEach((EntityT object) {
+          _counts.forEach((EntityT object, count) {
+            if (count == 0) return;
             var id = _entity.getId(object) ?? 0;
-            if (id == 0) id = _box.put(object);
-            bindings.obx_box_rel_put(_box.ptr, _rel.id, _rel.objectId, id);
-          });
-          _removed.forEach((EntityT object) {
-            var id = _entity.getId(object) ?? 0;
-            if (id == 0) {
-              throw Exception("Can't remove relation to an unstored object");
+            if (count > 0) {
+              // added
+              if (id == 0) id = _box.put(object, mode: mode);
+              checkObx(bindings.obx_box_rel_put(
+                  _box.ptr, _rel.id, _rel.objectId, id));
+            } else {
+              // removed
+              if (id == 0) return;
+              checkObx(bindings.obx_box_rel_remove(
+                  _box.ptr, _rel.id, _rel.objectId, id));
             }
-            bindings.obx_box_rel_remove(_box.ptr, _rel.id, _rel.objectId, id);
           });
         });
         break;
@@ -174,8 +181,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         throw UnimplementedError();
     }
 
-    _added.clear();
-    _removed.clear();
+    _counts.clear();
   }
 
   /// Internal only, may change at any point.
@@ -247,4 +253,30 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       return result;
     });
   }
+}
+
+@internal
+@visibleForTesting
+class InternalToManyTestAccess<EntityT> {
+  final ToMany<EntityT> _rel;
+
+  List<EntityT> get items => _rel._items;
+
+  Set<EntityT> get added {
+    final result = <EntityT>{};
+    _rel._counts.forEach((EntityT object, count) {
+      if (count > 0) result.add(object);
+    });
+    return result;
+  }
+
+  Set<EntityT> get removed {
+    final result = <EntityT>{};
+    _rel._counts.forEach((EntityT object, count) {
+      if (count < 0) result.add(object);
+    });
+    return result;
+  }
+
+  InternalToManyTestAccess(this._rel);
 }
