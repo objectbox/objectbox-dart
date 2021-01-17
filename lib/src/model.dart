@@ -20,6 +20,12 @@ class Model {
       bindings.obx_model_last_entity_id(
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
 
+      // set last relation id
+      if (model.lastRelationId != null) {
+        bindings.obx_model_last_relation_id(
+            _cModel, model.lastRelationId.id, model.lastRelationId.uid);
+      }
+
       // set last index id
       if (model.lastIndexId != null) {
         bindings.obx_model_last_index_id(
@@ -66,6 +72,8 @@ class Model {
     // set last property id
     _check(bindings.obx_model_entity_last_property_id(
         _cModel, entity.lastPropertyId.id, entity.lastPropertyId.uid));
+
+    entity.relations.forEach(addRelation);
   }
 
   void addProperty(ModelProperty prop) {
@@ -93,5 +101,10 @@ class Model {
     if (prop.flags != 0) {
       _check(bindings.obx_model_property_flags(_cModel, prop.flags));
     }
+  }
+
+  void addRelation(ModelRelation rel) {
+    _check(bindings.obx_model_relation(
+        _cModel, rel.id.id, rel.id.uid, rel.targetId.id, rel.targetId.uid));
   }
 }

@@ -150,6 +150,18 @@ class CodeBuilder extends Builder {
     }
   }
 
+  void mergeRelation(ModelEntity entity, ModelRelation rel) {
+    var relInModel = entity.findSameRelation(rel);
+
+    if (relInModel == null) {
+      log.info('Found new relation ${entity.name}.${rel.name}');
+      relInModel = entity.createRelation(rel.name, rel.id.uid);
+    }
+
+    relInModel.name = rel.name;
+    relInModel.targetId = entity.model.findEntityByName(rel.targetName).id;
+  }
+
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
     // 'readEntity' only contains the entity info directly read from the annotations and Dart source (i.e. with missing ID, lastPropertyId etc.)
     // 'entityInModel' is the entity from the model with all correct id/uid, lastPropertyId etc.
@@ -166,6 +178,7 @@ class CodeBuilder extends Builder {
 
     // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));
+    entity.relations.forEach((r) => mergeRelation(entityInModel, r));
 
     // then remove all properties not present anymore in readEntity
     final missingProps = entityInModel.properties
@@ -176,6 +189,17 @@ class CodeBuilder extends Builder {
       log.warning(
           'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
       entityInModel.removeProperty(p);
+    });
+
+    // then remove all relations not present anymore in readEntity
+    final missingRels = entityInModel.relations
+        .where((p) => entity.findSameRelation(p) == null)
+        .toList(growable: false);
+
+    missingRels.forEach((p) {
+      log.warning(
+          'Relation ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
+      entityInModel.removeRelation(p);
     });
 
     return entityInModel.id;

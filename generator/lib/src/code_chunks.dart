@@ -34,7 +34,8 @@ class CodeChunks {
     return """
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
-        toOneRelations: ($name inst) => [${toOneRelationsList(entity).join(',')}],
+        toOneRelations: ($name inst) => ${toOneRelations(entity)},
+        toManyRelations: ($name inst) => ${toManyRelations(entity)},
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
         objectToFB: ${objectToFB(entity)},
@@ -160,11 +161,21 @@ class CodeChunks {
     }''';
   }
 
-  static List<String> toOneRelationsList(ModelEntity entity) =>
+  static String toOneRelations(ModelEntity entity) =>
+      '[' +
       entity.properties
           .where((ModelProperty prop) => prop.type == OBXPropertyType.Relation)
           .map((ModelProperty prop) => "inst.${propertyFieldName(prop)}")
-          .toList(growable: false);
+          .join(',') +
+      ']';
+
+  static String toManyRelations(ModelEntity entity) =>
+      '{' +
+      entity.relations
+          .map((ModelRelation rel) =>
+              "RelInfo(RelType.toMany, ${rel.id.id}, inst.${propertyFieldName(entity.idProperty)}): inst.${rel.name}")
+          .join(',') +
+      '}';
 
   static String _queryConditionBuilder(ModelEntity entity) {
     final ret = <String>[];

@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/src/bindings/helpers.dart';
 
-import 'internal.dart';
+import 'info.dart';
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';

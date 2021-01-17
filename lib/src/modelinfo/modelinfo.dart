@@ -96,6 +96,31 @@ class ModelInfo {
       throw Exception(
           'lastEntityId ${lastEntityId.toString()} does not match any entity');
     }
+
+    if (!lastRelationId.isEmpty || hasRelations()) {
+      var lastRelationIdFound = false;
+      for (final e in entities) {
+        for (final p in e.relations) {
+          if (lastRelationId /*!*/ .id < p.id.id) {
+            throw Exception(
+                "lastRelationId ${lastRelationId.toString()} is lower than the one of relation '${p.name}' with id ${p.id.toString()}");
+          }
+          if (lastRelationId /*!*/ .id == p.id.id) {
+            if (lastRelationId /*!*/ .uid != p.id.uid) {
+              throw Exception(
+                  "lastRelationId ${lastRelationId.toString()} does not match relation '${p.name}' with id ${p.id.toString()}");
+            }
+            lastRelationIdFound = true;
+          }
+        }
+      }
+
+      if (!lastRelationIdFound &&
+          !listContains(retiredRelationUids, lastRelationId.uid)) {
+        throw Exception(
+            'lastRelationId ${lastRelationId.toString()} does not match any standalone relation');
+      }
+    }
   }
 
   // Note: this function is used when generting objectbox-model.json as well as
@@ -211,4 +236,7 @@ class ModelInfo {
     lastIndexId = IdUid(id, generateUid());
     return lastIndexId;
   }
+
+  bool hasRelations() =>
+      entities.indexWhere((e) => e.relations.isNotEmpty) != -1;
 }

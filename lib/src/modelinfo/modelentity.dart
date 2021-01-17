@@ -3,15 +3,19 @@ import '../util.dart';
 import 'iduid.dart';
 import 'modelinfo.dart';
 import 'modelproperty.dart';
+import 'modelrelation.dart';
 
 /// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
 /// information: id, name and last property id.
 class ModelEntity {
   IdUid id;
-  /*late*/ String _name;
+
+  /*late*/
+  String _name;
   IdUid lastPropertyId = IdUid.empty();
   int _flags = 0;
   final _properties = <ModelProperty>[];
+  final _relations = <ModelRelation>[];
   ModelProperty /*?*/ _idProperty;
   final ModelInfo /*?*/ _model;
 
@@ -45,6 +49,8 @@ class ModelEntity {
 
   List<ModelProperty> get properties => _properties;
 
+  List<ModelRelation> get relations => _relations;
+
   ModelEntity(this.id, String /*?*/ name, this._model) {
     this.name = name;
     validate();
@@ -61,6 +67,12 @@ class ModelEntity {
     if (data['properties'] == null) throw Exception('properties is null');
     for (final p in data['properties']) {
       _properties.add(ModelProperty.fromMap(p, this));
+    }
+
+    if (data['relations'] != null) {
+      for (final p in data['relations']) {
+        _relations.add(ModelRelation.fromMap(p));
+      }
     }
 
     if (check) validate();
@@ -102,6 +114,13 @@ class ModelEntity {
             'lastPropertyId ${lastPropertyId.toString()} does not match any property');
       }
     }
+
+    for (final r in relations) {
+      if (r.targetId.isEmpty) {
+        throw Exception(
+            "relation '${r.name}' with id ${r.id.toString()} has incorrect target entity reference");
+      }
+    }
   }
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
@@ -112,6 +131,8 @@ class ModelEntity {
     if (flags != 0) ret['flags'] = flags;
     ret['properties'] =
         properties.map((p) => p.toMap(forModelJson: forModelJson)).toList();
+    ret['relations'] =
+        relations.map((r) => r.toMap(forModelJson: forModelJson)).toList();
     return ret;
   }
 
@@ -167,10 +188,61 @@ class ModelEntity {
     }
   }
 
+  ModelRelation /*?*/ _findRelationByUid(int uid) {
+    final idx = relations.indexWhere((p) => p.id.uid == uid);
+    return idx == -1 ? null : relations[idx];
+  }
+
+  ModelRelation /*?*/ _findRelationByName(String name) {
+    final found = relations
+        .where((p) => p.name.toLowerCase() == name.toLowerCase())
+        .toList();
+    if (found.isEmpty) return null;
+    if (found.length >= 2) {
+      throw Exception(
+          'ambiguous relation name: $name; please specify a UID in its annotation');
+    }
+    return found[0];
+  }
+
+  ModelRelation /*?*/ findSameRelation(ModelRelation other) {
+    ModelRelation /*?*/ ret;
+    if (other.id.uid != 0) ret = _findRelationByUid(other.id.uid);
+    return ret ??= _findRelationByName(other.name);
+  }
+
+  ModelRelation createRelation(String name, [int uid = 0]) {
+    var id = 1;
+    if (relations.isNotEmpty) id = model.lastRelationId.id + 1;
+    if (uid != 0 && model.containsUid(uid)) {
+      throw Exception('uid already exists: $uid');
+    }
+    final uniqueUid = uid == 0 ? model.generateUid() : uid;
+
+    final relation = ModelRelation(IdUid(id, uniqueUid), name);
+    relations.add(relation);
+    model.lastRelationId = relation.id;
+
+    return relation;
+  }
+
+  void removeRelation(ModelRelation rel) {
+    final foundRel = findSameRelation(rel);
+    if (foundRel == null) {
+      throw Exception(
+          "cannot remove relation '${rel.name}' with id ${rel.id.toString()}: not found");
+    }
+    _relations.remove(foundRel);
+    model.retiredRelationUids.add(rel.id.uid);
+  }
+
   bool containsUid(int searched) {
     if (id.uid == searched) return true;
     if (lastPropertyId.uid == searched) return true;
-    if (properties.indexWhere((p) => p.containsUid(searched)) != -1) {
+    if (properties.indexWhere((p) => p.id.uid == searched) != -1) {
+      return true;
+    }
+    if (relations.indexWhere((p) => p.id.uid == searched) != -1) {
       return true;
     }
     return false;
