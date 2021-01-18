@@ -727,7 +727,10 @@ class Query<T> {
 
   /// Finds Objects matching the query and returns the first result or null
   /// if there are no results.
+  /// Warning: this implicitly sets offset=0 & limit=1 and leaves them set.
+  /// In the future, this behaviour will change.
   T /*?*/ findFirst() {
+    // TODO move to the core to avoid side-effects
     offset(0);
     limit(1);
     final list = find();
@@ -750,7 +753,7 @@ class Query<T> {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
           ? List<int>.empty()
-          : idArray.ids.asTypedList(idArray.count);
+          : idArray.ids.asTypedList(idArray.count).toList(growable: false);
     } finally {
       bindings.obx_id_array_free(idArrayPtr);
     }
