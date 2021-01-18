@@ -35,11 +35,6 @@ import '../store.dart';
 /// final student2 = Customer();
 /// student2.teachers.add(teacher2);
 ///
-/// // attach() must be called when creating new instances. On objects (e.g.
-/// // "students" in this example) read with box.get() its done automatically.
-/// student1.teachers.attach(store);
-/// student2.teachers.attach(store);
-///
 /// // saves students as well as teachers in the database
 /// store.box<Student>().putMany([student1, student2]);
 ///
@@ -56,18 +51,15 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   Box<EntityT> _box;
 
   /*late final*/
+  Box _srcBox;
+
+  /*late final*/
   EntityDefinition<EntityT> _entity;
 
   RelInfo _rel;
 
   List<EntityT> /*?*/ __items;
   final _counts = <EntityT, int>{};
-
-  void attach(Store store) {
-    _store = store;
-    _box = store.box<EntityT>();
-    _entity = store.entityDef<EntityT>();
-  }
 
   @override
   int get length => _items.length;
@@ -102,6 +94,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   @override
   void add(EntityT element) {
     if (element == null) ArgumentError.notNull('element');
+    // TODO add and addAll() don't need to load from DB, unless already loaded
     _items.add(element);
     _track(element, 1);
   }
@@ -167,12 +160,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
               // added
               if (id == 0) id = _box.put(object, mode: mode);
               checkObx(bindings.obx_box_rel_put(
-                  _box.ptr, _rel.id, _rel.objectId, id));
+                  _srcBox.ptr, _rel.id, _rel.objectId, id));
             } else {
               // removed
               if (id == 0) return;
               checkObx(bindings.obx_box_rel_remove(
-                  _box.ptr, _rel.id, _rel.objectId, id));
+                  _srcBox.ptr, _rel.id, _rel.objectId, id));
             }
           });
         });
@@ -185,16 +178,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   /// Internal only, may change at any point.
-  @internal
-  Box<EntityT> get internalTargetBox {
-    _verifyAttached();
-    return _box;
-  }
-
-  /// Internal only, may change at any point.
-  @internal
-  void internalSetRelInfo(RelInfo rel) {
+  void internalSetRelInfo(Store store, RelInfo rel, Box srcBox) {
+    _store = store;
+    _box = store.box<EntityT>();
+    _entity = store.entityDef<EntityT>();
     _rel = rel;
+    _srcBox = srcBox;
   }
 
   List<EntityT> get _items => __items ??= _loadItems();
@@ -217,9 +206,9 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   void _verifyAttached() {
-    if (_box == null || _entity == null) {
-      throw Exception('ToOne relation field not initialized. '
-          'Make sure to call attach(store) before the first use.');
+    if (_box == null || _entity == null || _srcBox == null) {
+      throw Exception('ToMany relation field not initialized.'
+          "Don't call applyToDb() on new objects,  use box.put() instead");
     }
   }
 

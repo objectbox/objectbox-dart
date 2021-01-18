@@ -7,10 +7,10 @@ enum RelType {
 class RelInfo {
   final RelType _type;
 
-  // "source" object ID
+  /// "source" object ID
   final int _objectId;
 
-  // either propertyId or relationId
+  /// either propertyId or relationId
   final int _id;
 
   const RelInfo(this._type, this._id, this._objectId);

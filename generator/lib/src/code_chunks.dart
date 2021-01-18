@@ -35,7 +35,7 @@ class CodeChunks {
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
         toOneRelations: ($name inst) => ${toOneRelations(entity)},
-        toManyRelations: ($name inst) => ${toManyRelations(entity)},
+        toManyRelations: ($name object) => ${toManyRelations(entity)},
         getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
         setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
         objectToFB: ${objectToFB(entity)},
@@ -151,12 +151,16 @@ class CodeChunks {
       return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
     });
 
+    final relsCode = entity.relations.map((ModelRelation rel) =>
+        "object.${rel.name}.internalSetRelInfo(store, ${relInfo(entity, rel)}, store.box<${entity.name}>());");
+
     return '''(Store store, Uint8List fbData) {
       final buffer = fb.BufferContext.fromBytes(fbData);
       final rootOffset = buffer.derefObject(0);
       
       final object = ${entity.name}();
       ${propsCode.join('\n')}
+      ${relsCode.join('\n')}
       return object;
     }''';
   }
@@ -169,11 +173,14 @@ class CodeChunks {
           .join(',') +
       ']';
 
+  static String relInfo(ModelEntity entity, ModelRelation rel) =>
+      "RelInfo(RelType.toMany, ${rel.id.id}, object.${propertyFieldName(entity.idProperty)})";
+
   static String toManyRelations(ModelEntity entity) =>
       '{' +
       entity.relations
           .map((ModelRelation rel) =>
-              "RelInfo(RelType.toMany, ${rel.id.id}, inst.${propertyFieldName(entity.idProperty)}): inst.${rel.name}")
+              "${relInfo(entity, rel)}: object.${rel.name}")
           .join(',') +
       '}';
 
