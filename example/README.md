@@ -18,7 +18,7 @@ import 'package:objectbox/objectbox.dart';
 @Entity()
 class Note {
     // Each "Entity" needs a unique integer ID property.
-    // Add `Id()` annotation if its name isn't "id" (case insensitive).
+    // Add `@Id()` annotation if its name isn't "id" (case insensitive).
     int id;
 
     String text;
@@ -36,7 +36,7 @@ class Note {
 }
 ```
 
-To generate ObjectBox binding code for your entities, run `(flutter|dart) pub build_runner build`.
+To generate ObjectBox binding code for your entities, run `pub run build_runner build`.
 ObjectBox generator will look for all `@Entity` annotations in your `lib` folder and create a single database definition
 `lib/objectbox-model.json` and supporting code in `lib/objectbox.g.dart`.
 You should commit `objectbox-model.json` into your source control (e.g. git) and add `objectbox.g.dart` to the ignore
@@ -60,7 +60,7 @@ Use `getApplicationDocumentsDirectory()` from the `path_provider` package to ret
 ```dart
 import 'package:path_provider/path_provider.dart';
 
-import 'objectbox.g.dart'; // created by `pub run build_runner build`
+import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 
 class _MyHomePageState extends State<MyHomePage> {
   Store _store;
@@ -93,7 +93,7 @@ In standard apps (not on mobile), ObjectBox can write anywhere the current user 
 omits the argument to `Store(directory: )`, thus using the default - 'objectbox' in the current working directory.
 
 ```dart
-import 'objectbox.g.dart'; // created by `pub run build_runner build`
+import 'objectbox.g.dart'; // created by `dart pub run build_runner build`
 
 void main() {
   var store = Store(getObjectBoxModel()); // Note: getObjectBoxModel() is generated for you in objectbox.g.dart

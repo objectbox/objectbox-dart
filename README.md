@@ -7,7 +7,7 @@ ObjectBox is a super-fast database storing Dart objects locally.
 
 * 🏁 **High performance** - improving response rates and enabling real-time applications.
 * 🪂 **ACID compliance** - Atomic, Consistent, Isolated, Durable.
-* 🔗 **Relations** - object links / relationships are build-in.
+* 🔗 **Relations** - object links / relationships are built-in.
 * 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
 * 💐 **Queries** - filter data as needed, even across relations.
 * 🦮 **Statically typed** - compile time checks & optimizations.
