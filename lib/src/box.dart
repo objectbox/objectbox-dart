@@ -304,8 +304,10 @@ class Box<T> {
 
   void _putToOneRelFields(T object, PutMode mode) {
     _entity.toOneRelations(object).forEach((ToOne rel) {
+      if (!rel.hasValue) return;
+      rel.attach(_store);
       // put new objects
-      if (rel.hasValue && rel.targetId == 0) {
+      if (rel.targetId == 0) {
         rel.targetId = rel.internalTargetBox._put(rel.target, mode, true);
       }
     });

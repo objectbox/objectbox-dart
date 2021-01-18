@@ -18,18 +18,21 @@ void main() {
 
   test('to-one put', () {
     final src = TestEntity(tString: 'Hello');
-    src.relA.attach(env.store);
-    src.relB.attach(env.store);
 
     expect(src.relA.hasValue, isFalse);
     expect(src.relA.target, isNull);
     src.relA.target = RelatedEntityA(tInt: 42);
     expect(src.relA.hasValue, isTrue);
     expect(src.relA.target, isNotNull);
-    expect(src.relA.targetId, isZero);
     expect(src.relA.target.tInt, 42);
 
-    src.relA.target.relB.attach(env.store);
+    // Can't access targetId on new objects (not coming from box) unless
+    // attached manually.
+    expect(() => src.relA.targetId, throwsA(predicate(
+            (Exception e) => e.toString().contains('call attach('))));
+    src.relA.attach(env.store);
+    expect(src.relA.targetId, isZero);
+
     src.relA.target.relB.target = RelatedEntityB(tString: 'B1');
 
     // use the same target on two relations - must insert only once
@@ -88,7 +91,6 @@ void main() {
     final target = RelatedEntityA(tInt: 42);
     target.id = targetBox.put(target);
 
-    src.relA.attach(env.store);
     src.relA.target = target;
     srcBox.put(src);
 
@@ -102,7 +104,6 @@ void main() {
 
   test('to-one putMany & simple ID query', () {
     final src = TestEntity(tString: 'Hello');
-    src.relA.attach(env.store);
     src.relA.target = RelatedEntityA(tInt: 42);
     env.box.putMany([src, TestEntity(tString: 'there')]);
     expect(src.relA.targetId, 1);
@@ -124,12 +125,9 @@ void main() {
 
   test('to-one query link', () {
     final src1 = TestEntity(tString: 'foo');
-    src1.relA.attach(env.store);
     src1.relA.target = RelatedEntityA(tInt: 5);
     final src2 = TestEntity(tString: 'bar');
-    src2.relA.attach(env.store);
     src2.relA.target = RelatedEntityA(tInt: 10);
-    src2.relA.target.relB.attach(env.store);
     src2.relA.target.relB.target = RelatedEntityB(tString: 'deep');
     env.box.putMany([src1, src2]);
 
@@ -218,7 +216,6 @@ void main() {
     TestEntity src;
     setUp(() {
       src = TestEntity(tString: 'Hello');
-      src.relA.attach(env.store);
     });
 
     test('put', () {
