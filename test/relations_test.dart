@@ -243,6 +243,29 @@ void main() {
       src = env.box.get(1);
       check(src.relManyA, items: [1, 3, 4], added: [], removed: []);
     });
+
+    test("don't load old data when just adding", () {
+      expect(src.relManyA, isNotNull);
+      src.relManyA.add(RelatedEntityA(tInt: 1));
+      src.relManyA.addAll(
+          [RelatedEntityA(tInt: 2), src.relManyA[0], RelatedEntityA(tInt: 3)]);
+      env.box.put(src);
+
+      src = env.box.get(1);
+      check(src.relManyA, items: [1, 2, 3], added: [], removed: []);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isTrue);
+
+      src = env.box.get(1);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
+      final rel = RelatedEntityA(tInt: 4);
+      src.relManyA.add(rel);
+      src.relManyA.addAll([RelatedEntityA(tInt: 5), rel]);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
+      env.box.put(src);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
+      src = env.box.get(1);
+      check(src.relManyA, items: [1, 2, 3, 4, 5], added: [], removed: []);
+    });
   });
 }
 

@@ -32,7 +32,7 @@ import '../store.dart';
 /// student1.teachers.add(teacher1);
 /// student1.teachers.add(teacher2);
 ///
-/// final student2 = Customer();
+/// final student2 = Student();
 /// student2.teachers.add(teacher2);
 ///
 /// // saves students as well as teachers in the database
@@ -60,6 +60,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
   List<EntityT> /*?*/ __items;
   final _counts = <EntityT, int>{};
+  final _addedBeforeLoad = <EntityT>[];
 
   @override
   int get length => _items.length;
@@ -93,19 +94,28 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
   @override
   void add(EntityT element) {
-    if (element == null) ArgumentError.notNull('element');
-    // TODO add and addAll() don't need to load from DB, unless already loaded
-    _items.add(element);
+    ArgumentError.checkNotNull(element, 'element');
     _track(element, 1);
+    if (__items == null) {
+      // We don't need to load old data from DB to add new items.
+      _addedBeforeLoad.add(element);
+    } else {
+      _items.add(element);
+    }
   }
 
   @override
   void addAll(Iterable<EntityT> iterable) {
     iterable.forEach((element) {
-      if (element == null) ArgumentError.notNull('element');
+      ArgumentError.checkNotNull(element, 'iterable element');
       _track(element, 1);
     });
-    _items.addAll(iterable);
+    if (__items == null) {
+      // We don't need to load old data from DB to add new items.
+      _addedBeforeLoad.addAll(iterable);
+    } else {
+      _items.addAll(iterable);
+    }
   }
 
   // note: to override, arg must be "Object", same as in the base class.
@@ -192,23 +202,29 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     if (_rel == null) {
       // Null _rel means this relation is used on a new (not stored) object.
       // Therefore, we're sure there are no stored items yet.
-      return [];
+      __items = [];
+    } else {
+      _verifyAttached();
+      switch (_rel.type) {
+        case RelType.toMany:
+          __items = _getMany(() =>
+              bindings.obx_box_rel_get_ids(_box.ptr, _rel.id, _rel.objectId));
+          break;
+        default:
+          throw UnimplementedError();
+      }
     }
-    _verifyAttached();
-    switch (_rel.type) {
-      case RelType.toMany:
-        return __items = _getMany(() =>
-            bindings.obx_box_rel_get_ids(_box.ptr, _rel.id, _rel.objectId));
-        break;
-      default:
-        throw UnimplementedError();
+    if (_addedBeforeLoad.isNotEmpty) {
+      __items.addAll(_addedBeforeLoad);
+      _addedBeforeLoad.clear();
     }
+    return __items;
   }
 
   void _verifyAttached() {
-    if (_box == null || _entity == null || _srcBox == null) {
-      throw Exception('ToMany relation field not initialized.'
-          "Don't call applyToDb() on new objects,  use box.put() instead");
+    if (_store == null) {
+      throw Exception('ToMany relation field not initialized. '
+          "Don't call applyToDb() on new objects, use box.put() instead.");
     }
   }
 
@@ -248,6 +264,8 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 @visibleForTesting
 class InternalToManyTestAccess<EntityT> {
   final ToMany<EntityT> _rel;
+
+  bool get itemsLoaded => _rel.__items != null;
 
   List<EntityT> get items => _rel._items;
 
