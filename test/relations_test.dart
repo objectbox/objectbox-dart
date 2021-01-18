@@ -28,8 +28,10 @@ void main() {
 
     // Can't access targetId on new objects (not coming from box) unless
     // attached manually.
-    expect(() => src.relA.targetId, throwsA(predicate(
-            (Exception e) => e.toString().contains('call attach('))));
+    expect(
+        () => src.relA.targetId,
+        throwsA(
+            predicate((Exception e) => e.toString().contains('call attach('))));
     src.relA.attach(env.store);
     expect(src.relA.targetId, isZero);
 
@@ -265,6 +267,37 @@ void main() {
       expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
       src = env.box.get(1);
       check(src.relManyA, items: [1, 2, 3, 4, 5], added: [], removed: []);
+    });
+
+    test('query link', () {
+      final src1 = TestEntity(tString: 'foo');
+      src1.relManyA.add(RelatedEntityA(tInt: 5));
+      final src2 = TestEntity(tString: 'bar');
+      src2.relManyA.add(RelatedEntityA(tInt: 10));
+      src2.relManyA[0].relB.target = RelatedEntityB(tString: 'deep');
+      env.box.putMany([src1, src2]);
+
+      {
+        final qb = env.box.query();
+        qb.linkMany(TestEntity_.relManyA, RelatedEntityA_.tInt.equals(10));
+        final query = qb.build();
+        final found = query.find();
+        expect(found.length, 1);
+        expect(found[0].tString, 'bar');
+        query.close();
+      }
+
+      {
+        final qb = env.box.query();
+        qb
+            .linkMany(TestEntity_.relManyA)
+            .link(RelatedEntityA_.relB, RelatedEntityB_.tString.equals('deep'));
+        final query = qb.build();
+        final found = query.find();
+        expect(found.length, 1);
+        expect(found[0].tString, 'bar');
+        query.close();
+      }
     });
   });
 }

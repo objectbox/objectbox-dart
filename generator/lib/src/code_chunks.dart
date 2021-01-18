@@ -233,6 +233,14 @@ class CodeChunks {
         static final ${propertyFieldName(prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
       ''');
     }
+
+    for (var rel in entity.relations) {
+      final targetEntityName =
+          entity.model.findEntityByUid(rel.targetId.uid).name;
+      ret.add('''
+        static final ${rel.name} = QueryRelationMany<$targetEntityName>(entityId:${entity.id.id}, relationId:${rel.id.id});
+      ''');
+    }
     return ret.join();
   }
 
