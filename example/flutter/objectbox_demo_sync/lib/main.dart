@@ -12,7 +12,6 @@ import 'objectbox.g.dart';
 @Entity()
 @Sync()
 class Note {
-  @Id()
   int id;
 
   String text;

@@ -6,7 +6,6 @@ export 'other.dart';
 
 @Entity()
 class A {
-  @Id()
   int id;
   String text;
 
@@ -15,8 +14,8 @@ class A {
 
 @Entity()
 class B {
-  @Id() // TODO support id without an annotation
-  int id;
+  @Id()
+  int identifier;
 
   B();
 }
@@ -24,7 +23,6 @@ class B {
 @Entity()
 @Sync()
 class D {
-  @Id()
   int id;
 
   D();
@@ -32,7 +30,6 @@ class D {
 
 @Entity()
 class T {
-  @Id()
   int id;
 
   // implicit PropertyType.bool

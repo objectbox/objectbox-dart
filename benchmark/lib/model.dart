@@ -2,7 +2,6 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class TestEntity {
-  @Id()
   int /*?*/ id;
 
   String /*?*/ tString;

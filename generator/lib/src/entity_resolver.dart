@@ -53,7 +53,7 @@ class EntityResolver extends Builder {
       Element elementBare, ConstantReader annotation) {
     if (elementBare is! ClassElement) {
       throw InvalidGenerationSourceError(
-          "in target ${elementBare.name}: annotated element isn't a class");
+          "entity ${elementBare.name}: annotated element isn't a class");
     }
 
     var element = elementBare as ClassElement;
@@ -80,7 +80,6 @@ class EntityResolver extends Builder {
     }
 
     // read all suitable annotated properties
-    var hasIdProperty = false;
     for (var f in element.fields) {
       if (_transientChecker.hasAnnotationOfExact(f)) {
         log.info('  skipping property ${f.name} (annotated with @Transient)');
@@ -98,28 +97,15 @@ class EntityResolver extends Builder {
       String dartFieldType; // to be passed to ModelProperty.dartFieldType
 
       if (_idChecker.hasAnnotationOfExact(f)) {
-        if (hasIdProperty) {
-          throw InvalidGenerationSourceError(
-              'in target ${elementBare.name}: has more than one properties annotated with @Id');
-        }
-        if (!f.type.isDartCoreInt) {
-          throw InvalidGenerationSourceError(
-              "in target ${elementBare.name}: field with @Id property has type '${f.type}', but it must be 'int'");
-        }
-
-        hasIdProperty = true;
-
-        fieldType = OBXPropertyType.Long;
         flags |= OBXPropertyFlags.ID;
+      }
 
-        final _idAnnotation = _idChecker.firstAnnotationOfExact(f);
-        propUid = _idAnnotation.getField('uid').toIntValue();
-      } else if (_propertyChecker.hasAnnotationOfExact(f)) {
+      if (_propertyChecker.hasAnnotationOfExact(f)) {
         final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
         propUid = _propertyAnnotation.getField('uid').toIntValue();
         fieldType =
             propertyTypeFromAnnotation(_propertyAnnotation.getField('type'));
-        flags = _propertyAnnotation.getField('flag').toIntValue() ?? 0;
+        flags |= _propertyAnnotation.getField('flag').toIntValue() ?? 0;
       }
 
       if (fieldType == null) {
@@ -179,17 +165,48 @@ class EntityResolver extends Builder {
       if (propUid != null) prop.id.uid = propUid;
       prop.dartFieldType = dartFieldType;
       entity.properties.add(prop);
-
-      log.info('  ${prop}');
     }
 
-    // some checks on the entity's integrity
-    if (!hasIdProperty) {
-      throw InvalidGenerationSourceError(
-          'in target ${elementBare.name}: has no properties annotated with @Id');
-    }
+    processIdProperty(entity);
+
+    entity.properties.forEach((p) => log.info('  ${p}'));
 
     return entity;
+  }
+
+  void processIdProperty(ModelEntity entity) {
+    // check properties explicitly annotated with @Id()
+    final annotated =
+        entity.properties.where((p) => p.hasFlag(OBXPropertyFlags.ID));
+    if (annotated.length > 1) {
+      throw InvalidGenerationSourceError(
+          "entity ${entity.name}: multiple fields annotated with Id(), there may only be one");
+    }
+
+    if (annotated.length == 1) {
+      if (annotated.first.type != OBXPropertyType.Long) {
+        throw InvalidGenerationSourceError(
+            "entity ${entity.name}: Id() annotated property has invalid type, expected 'int'");
+      }
+    } else {
+      // if there are no annotated props, try to find one by name & type
+      final candidates = entity.properties.where((p) =>
+          p.name.toLowerCase() == 'id' && p.type == OBXPropertyType.Long);
+      if (candidates.length != 1) {
+        throw InvalidGenerationSourceError(
+            'entity ${entity.name}: ID property not found - either define '
+            ' an integer field named ID/id/... (case insensitive) or add '
+            ' @Id annotation to any integer field');
+      }
+      candidates.first.flags |= OBXPropertyFlags.ID;
+    }
+
+    // finally, ensure ID field compatibility with other bindings
+    final idProperty =
+        entity.properties.singleWhere((p) => p.hasFlag(OBXPropertyFlags.ID));
+
+    // IDs must not be tagged unsigned for compatibility reasons
+    idProperty.flags &= ~OBXPropertyFlags.UNSIGNED;
   }
 
   void processAnnotationIndexUnique(FieldElement f, int fieldType,
@@ -205,12 +222,12 @@ class EntityResolver extends Builder {
         fieldType == OBXPropertyType.Double ||
         fieldType == OBXPropertyType.ByteVector) {
       throw InvalidGenerationSourceError(
-          "in target ${elementBare.name}: @Index/@Unique is not supported for type '${f.type}' of field '${f.name}'");
+          "entity ${elementBare.name}: @Index/@Unique is not supported for type '${f.type}' of field '${f.name}'");
     }
 
     if (prop.hasFlag(OBXPropertyFlags.ID)) {
       throw InvalidGenerationSourceError(
-          'in target ${elementBare.name}: @Index/@Unique is not supported for ID field ${f.name}. IDs are unique by definition and automatically indexed');
+          'entity ${elementBare.name}: @Index/@Unique is not supported for ID field ${f.name}. IDs are unique by definition and automatically indexed');
     }
 
     // If available use index type from annotation.
@@ -234,7 +251,7 @@ class EntityResolver extends Builder {
         (indexType == obx.IndexType.hash ||
             indexType == obx.IndexType.hash64)) {
       throw InvalidGenerationSourceError(
-          "in target ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
+          "entity ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
     }
 
     if (hasUniqueAnnotation) {
@@ -253,7 +270,7 @@ class EntityResolver extends Builder {
         break;
       default:
         throw InvalidGenerationSourceError(
-            'in target ${elementBare.name}: invalid index type: $indexType');
+            'entity ${elementBare.name}: invalid index type: $indexType');
     }
   }
 

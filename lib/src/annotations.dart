@@ -75,9 +75,7 @@ enum PropertyType {
 }
 
 class Id {
-  final int /*?*/ uid; // TODO remove, use `Property(uid:)`
-
-  const Id({this.uid});
+  const Id();
 }
 
 class Transient {
