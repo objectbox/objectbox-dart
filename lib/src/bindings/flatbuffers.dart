@@ -20,9 +20,17 @@ class BuilderWithCBuffer {
     _fbb = fb.Builder(initialSize: initialSize, allocator: _allocator);
   }
 
-  void close() => _allocator._allocs.keys
-      .toList(growable: false)
-      .forEach((data) => _allocator.deallocate(data));
+  void close() {
+    if (_allocator._allocs.isEmpty) return;
+    if (_allocator._allocs.length == 1) {
+      // This is the most common case so no need to create an intermediary list.
+      _allocator.deallocate(_allocator._allocs.keys.first);
+    } else {
+      _allocator._allocs.keys
+          .toList(growable: false)
+          .forEach((data) => _allocator.deallocate(data));
+    }
+  }
 }
 
 // FFI signature
