@@ -278,3 +278,38 @@ order.items.addAll(purchasedItems); // add a list of existing items
 // create the order and the customer in the database with a single call
 store.box<Order>().put(order);
 ```
+
+### Relation backlinks
+
+For every `ToOne` relation that you have, you can define a backlink. Backlinks are using the same relation information, 
+but in the reverse direction. Thus, a backlink of a `ToOne` will result in a list of potentially multiple objects: all 
+objects pointing to the same target.
+
+Example: Two `Order` objects point to the same `Customer` using a `ToOne`. The backlink is a `ToMany` from the 
+`Customer` referencing its two `Order` objects. The updated schema from the previous example could look like this:
+
+```dart
+@Entity()
+class Customer {
+  int id;
+  String name;
+  
+  @Backlink()
+  final orders = ToMany<Order>();
+}
+
+@Entity()
+class Order {
+  int id;
+
+  final customer = ToOne<Customer>();
+  final items = ToMany<Item>();
+}
+
+@Entity()
+class Item {
+  int id;
+}
+```
+
+Note: if you change the `customer.orders` list, you're actually changing `order.customer.targetId` on each target. 

@@ -300,6 +300,63 @@ void main() {
       }
     });
   });
+
+  group('to-one backlink', () {
+    Box<RelatedEntityB> boxB;
+    setUp(() {
+      boxB = env.store.box();
+      env.box.put(TestEntity(tString: 'foo')
+        ..relB.target = RelatedEntityB(tString: 'foo B'));
+      env.box.put(TestEntity(tString: 'bar')
+        ..relB.target = RelatedEntityB(tString: 'bar B'));
+      env.box.put(TestEntity(tString: 'bar2')..relB.targetId = 2);
+
+      boxB.put(RelatedEntityB()..tString = 'not referenced');
+    });
+
+    test('put and get', () {
+      final b = boxB.getAll();
+      expect(b[0].id, 1);
+      expect(b[0].tString, 'foo B');
+      expect(b[1].id, 2);
+      expect(b[1].tString, 'bar B');
+      expect(b[2].id, 3);
+      expect(b[2].tString, 'not referenced');
+
+      final strings = (e) => e.tString;
+      expect(b[0].testEntities.map(strings), unorderedEquals(['foo']));
+      expect(b[1].testEntities.map(strings), unorderedEquals(['bar', 'bar2']));
+      expect(b[2].testEntities.length, isZero);
+
+      // Update an existing target.
+      b[1].testEntities.add(env.box.get(1)); // foo
+      expect(b[1].testEntities.map(strings),
+          unorderedEquals(['foo', 'bar', 'bar2']));
+      b[1].testEntities.removeWhere((e) => e.tString == 'bar');
+      expect(b[1].testEntities.map(strings), unorderedEquals(['foo', 'bar2']));
+      boxB.put(b[1]);
+      b[1] = boxB.get(b[1].id);
+      expect(b[1].testEntities.map(strings), unorderedEquals(['foo', 'bar2']));
+
+      // Insert a new target, already with some "source" entities pointing to it.
+      var newB = RelatedEntityB();
+      expect(newB.testEntities.length, isZero);
+      newB.testEntities.add(env.box.get(1)); // foo
+      newB.testEntities.add(TestEntity(tString: 'newly created from B'));
+      boxB.put(newB);
+      expect(newB.testEntities[0].id, 1);
+      expect(newB.testEntities[1].id, 4);
+
+      expect(env.box.get(4).tString, equals('newly created from B'));
+      newB = boxB.get(newB.id);
+      expect(newB.testEntities.map(strings),
+          unorderedEquals(['foo', 'newly created from B']));
+
+      // The previous put also affects b[1], 'foo' is not related anymore.
+      b[1] = boxB.get(b[1].id);
+      expect(b[1].testEntities.map(strings), unorderedEquals(['bar2']));
+    });
+  });
 }
 
 int toInt(e) => e.tInt;

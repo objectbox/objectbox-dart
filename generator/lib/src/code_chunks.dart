@@ -46,7 +46,7 @@ class CodeChunks {
   }
 
   static String propertyFieldName(ModelProperty property) {
-    if (property.type == OBXPropertyType.Relation) {
+    if (property.isRelation) {
       if (!property.name.endsWith('Id')) {
         throw ArgumentError.value(property.name, 'property.name',
             'Relation property name must end with "Id"');
@@ -110,7 +110,7 @@ class CodeChunks {
         if (p == entity.idProperty) {
           // ID must always be present in the flatbuffer
           accessorSuffix = ' ?? 0';
-        } else if (p.type == OBXPropertyType.Relation) {
+        } else if (p.isRelation) {
           accessorSuffix = '.targetId';
         }
         return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
@@ -127,7 +127,8 @@ class CodeChunks {
   }
 
   static String objectFromFB(ModelEntity entity) {
-    final propsCode = entity.properties.map((ModelProperty p) {
+    var lines = <String>[];
+    lines.addAll(entity.properties.map((ModelProperty p) {
       String fbReader;
       switch (p.type) {
         case OBXPropertyType.ByteVector:
@@ -150,18 +151,21 @@ class CodeChunks {
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
       }
       return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
-    });
+    }));
 
-    final relsCode = entity.relations.map((ModelRelation rel) =>
-        "InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());");
+    lines.addAll(entity.relations.map((ModelRelation rel) =>
+        'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());'));
+
+    lines.addAll(entity.backlinks.map((ModelBacklink bl) {
+      return 'InternalToManyAccess.setRelInfo(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity.name}>());';
+    }));
 
     return '''(Store store, Uint8List fbData) {
       final buffer = fb.BufferContext.fromBytes(fbData);
       final rootOffset = buffer.derefObject(0);
       
       final object = ${entity.name}();
-      ${propsCode.join('\n')}
-      ${relsCode.join('\n')}
+      ${lines.join('\n')}
       return object;
     }''';
   }
@@ -169,19 +173,67 @@ class CodeChunks {
   static String toOneRelations(ModelEntity entity) =>
       '[' +
       entity.properties
-          .where((ModelProperty prop) => prop.type == OBXPropertyType.Relation)
+          .where((ModelProperty prop) => prop.isRelation)
           .map((ModelProperty prop) => "object.${propertyFieldName(prop)}")
           .join(',') +
       ']';
 
   static String relInfo(ModelEntity entity, ModelRelation rel) =>
-      "RelInfo(RelType.toMany, ${rel.id.id}, object.${propertyFieldName(entity.idProperty)})";
+      'RelInfo.toMany(${rel.id.id}, object.${propertyFieldName(entity.idProperty)})';
+
+  static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
+    final srcEntity = entity.model.findEntityByName(bl.srcEntity);
+
+    // either of these will be set, based on the source field that matches
+    ModelRelation srcRel;
+    ModelProperty srcProp;
+
+    if (bl.srcField.isEmpty) {
+      final matchingProps = srcEntity.properties
+          .where((p) => p.isRelation && p.relationTarget == entity.name);
+      final matchingRels =
+          srcEntity.relations.where((r) => r.targetId == entity.id);
+      final candidatesCount = matchingProps.length + matchingRels.length;
+      if (candidatesCount > 1) {
+        throw InvalidGenerationSourceError(
+            'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
+            ' Matching property: $matchingProps.'
+            ' Matching standalone relations: $matchingRels.');
+      } else if (matchingProps.isNotEmpty) {
+        srcProp = matchingProps.first;
+      } else if (matchingRels.isNotEmpty) {
+        srcRel = matchingRels.first;
+      }
+    } else {
+      srcProp = srcEntity.findPropertyByName(bl.srcField);
+      if (srcProp == null) {
+        srcRel = srcEntity.relations
+            .firstWhere((r) => r.name == bl.srcField, orElse: () => null);
+      }
+    }
+
+    if (srcRel == null && srcProp == null) {
+      throw InvalidGenerationSourceError(
+          'Unknown relation backlink source for ${entity.name}.${bl.name}');
+    }
+
+    final prefix = srcRel != null ? 'toMany' : 'toOne';
+    final srcField = srcRel != null ? srcRel.name : propertyFieldName(srcProp);
+    return 'RelInfo<${srcEntity.name}>.${prefix}Backlink('
+        '${srcRel?.id?.id ?? srcProp.id.id}, '
+        'object.${propertyFieldName(entity.idProperty)}, '
+        '(${srcEntity.name} srcObject) => srcObject.$srcField)';
+  }
 
   static String toManyRelations(ModelEntity entity) =>
       '{' +
       entity.relations
           .map((ModelRelation rel) =>
-              "${relInfo(entity, rel)}: object.${rel.name}")
+              '${relInfo(entity, rel)}: object.${rel.name}')
+          .join(',') +
+      entity.backlinks
+          .map((ModelBacklink bl) =>
+              '${backlinkRelInfo(entity, bl)}: object.${bl.name}')
           .join(',') +
       '}';
 

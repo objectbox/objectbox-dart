@@ -5,3 +5,4 @@ export 'model_definition.dart';
 export 'modelinfo.dart';
 export 'modelproperty.dart';
 export 'modelrelation.dart';
+export 'modelbacklink.dart';
