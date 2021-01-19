@@ -221,3 +221,60 @@ final sub2 = stream.listen((list) {
 // clean up
 sub2.cancel();
 ```
+
+Relations
+---------
+
+Objects may reference other objects, for example using a simple reference or a list of objects. In database terms, we
+call those references relations. The object defining the relation we call the source object, the referenced object we
+call target object. So the relation has a direction.
+
+If there is one target object, we call the relation to-one. And if there can be multiple target objects, we call it
+to-many. Relations are lazily initialized: the actual target objects are fetched from the database when they are first
+accessed. Once the target objects are fetched, they are cached for further accesses.
+
+You define a to-one relation using the `ToOne` class, a smart proxy to the target object. It gets and caches the target
+object transparently. For example, an order is typically made by one customer. Thus, we could model the `Order` class to
+have a to-one relation to the `Customer`.
+
+Similarly, you can define a to-many relation using the `ToMany` class, which you can use as an ordinary list in your
+code and it takes care of loading/storing the relational data for you.
+
+Have a look at the following example how a shop database could look like.
+
+```dart
+@Entity()
+class Customer {
+  int id;
+  String name;
+}
+
+@Entity()
+class Order {
+  int id;
+
+  final customer = ToOne<Customer>();
+  final items = ToMany<Item>();
+}
+
+@Entity()
+class Item {
+  int id;
+}
+```
+
+Now, let’s say a new customer has just confirmed an order through the UI. We need to create the `Customer` and the
+`Order` in the database, attaching a list of purchased items. We assume those items are already stored in the DB,
+customer must heve selected them somehow, right?
+
+```dart
+List<Item> purchasedItems = [...]; // loaded from the shopping basket
+
+// create a new order with a new customer
+final order = Order();
+order.customer.target = Customer()..name="John Doe"; // add a new Customer object
+order.items.addAll(purchasedItems); // add a list of existing items
+
+// create the order and the customer in the database with a single call
+store.box<Order>().put(order);
+```

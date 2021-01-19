@@ -289,6 +289,17 @@ class QueryRelationProperty<Target> extends QueryIntegerProperty {
       : super(entityId: entityId, propertyId: propertyId, obxType: obxType);
 }
 
+class QueryRelationMany<Target> {
+  final int _entityId;
+  final int _relationId;
+
+  QueryRelationMany(
+      {/*required*/ int entityId,
+      /*required*/ int relationId})
+      : _entityId = entityId,
+        _relationId = relationId;
+}
+
 enum ConditionOp {
   isNull,
   notNull,

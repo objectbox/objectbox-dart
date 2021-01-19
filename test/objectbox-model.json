@@ -180,6 +180,13 @@
           "indexId": "17:1880235110135739998",
           "relationTarget": "RelatedEntityB"
         }
+      ],
+      "relations": [
+        {
+          "id": "1:2155747579134420981",
+          "name": "relManyA",
+          "targetId": "4:5869889852256391401"
+        }
       ]
     },
     {
@@ -193,7 +200,8 @@
           "type": 6,
           "flags": 1
         }
-      ]
+      ],
+      "relations": []
     },
     {
       "id": "4:5869889852256391401",
@@ -225,7 +233,8 @@
           "indexId": "13:4152155418078636653",
           "relationTarget": "RelatedEntityB"
         }
-      ]
+      ],
+      "relations": []
     },
     {
       "id": "5:6318951170461175163",
@@ -265,12 +274,13 @@
           "indexId": "15:1869174197194604432",
           "relationTarget": "RelatedEntityB"
         }
-      ]
+      ],
+      "relations": []
     }
   ],
   "lastEntityId": "5:6318951170461175163",
   "lastIndexId": "17:1880235110135739998",
-  "lastRelationId": "0:0",
+  "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,

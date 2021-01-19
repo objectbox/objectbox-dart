@@ -9,7 +9,9 @@ import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
 import 'modelinfo/index.dart';
 import 'query/query.dart';
+import 'relations/info.dart';
 import 'relations/to_one.dart';
+import 'relations/to_many.dart';
 
 enum PutMode {
   Put,
@@ -27,16 +29,22 @@ class Box<T> {
   final EntityDefinition<T> _entity;
 
   /*late final*/
-  bool _hasRelations;
+  bool _hasToOneRelations;
+
+  /*late final*/
+  bool _hasToManyRelations;
 
   Box(this._store) : _entity = _store.entityDef<T>() {
-    _hasRelations = _entity.model.properties
+    _hasToOneRelations = _entity.model.properties
         .any((ModelProperty prop) => prop.type == OBXPropertyType.Relation);
+    _hasToManyRelations = _entity.model.relations.isNotEmpty;
     _cBox = bindings.obx_box(_store.ptr, _entity.model.id.id);
     checkObxPtr(_cBox, 'failed to create box');
   }
 
-  int _getOBXPutMode(PutMode mode) {
+  bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
+
+  static int _getOBXPutMode(PutMode mode) {
     switch (mode) {
       case PutMode.Put:
         return OBXPutMode.PUT;
@@ -71,7 +79,7 @@ class Box<T> {
         throw Exception(
             'Invalid state: can only use _put() on an entity with relations when executing from inside a write transaction.');
       }
-      _putToOneRelFields(object, mode);
+      if (_hasToOneRelations) _putToOneRelFields(object, mode);
     }
     int id;
     final builder = BuilderWithCBuffer();
@@ -83,6 +91,7 @@ class Box<T> {
     } finally {
       builder.close();
     }
+    if (_hasToManyRelations) _putToManyRelFields(object, mode);
     return id;
   }
 
@@ -90,28 +99,15 @@ class Box<T> {
   ///
   /// Returns a list of all IDs of the inserted Objects.
   List<int> putMany(List<T> objects, {PutMode mode = PutMode.Put}) {
-    if (_hasRelations) {
-      return _store.runInTransaction(
-          TxMode.Write, () => _putMany(objects, mode, true));
-    } else {
-      return _putMany(objects, mode, false);
-    }
-  }
-
-  List<int> _putMany(List<T> objects, PutMode mode, bool inTx) {
     if (objects.isEmpty) return [];
-
-    if (_hasRelations) {
-      if (!inTx) {
-        throw Exception(
-            'Invalid state: can only use _put() on an entity with relations when executing from inside a write transaction.');
-      }
-      objects.forEach((object) => _putToOneRelFields(object, mode));
-    }
 
     final putIds = List<int>.filled(objects.length, 0);
 
     _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
+      if (_hasToOneRelations) {
+        objects.forEach((object) => _putToOneRelFields(object, mode));
+      }
+
       final cursor = CursorHelper(txn, _entity, true);
       try {
         final builder = BuilderWithCBuffer();
@@ -130,6 +126,10 @@ class Box<T> {
         }
       } finally {
         cursor.close();
+      }
+
+      if (_hasToManyRelations) {
+        objects.forEach((object) => _putToManyRelFields(object, mode));
       }
     });
 
@@ -304,10 +304,19 @@ class Box<T> {
 
   void _putToOneRelFields(T object, PutMode mode) {
     _entity.toOneRelations(object).forEach((ToOne rel) {
+      if (!rel.hasValue) return;
+      rel.attach(_store);
       // put new objects
-      if (rel.hasValue && rel.targetId == 0) {
+      if (rel.targetId == 0) {
         rel.targetId = rel.internalTargetBox._put(rel.target, mode, true);
       }
+    });
+  }
+
+  void _putToManyRelFields(T object, PutMode mode) {
+    _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
+      rel.internalSetRelInfo(_store, info, this);
+      rel.applyToDb(mode: mode);
     });
   }
 }

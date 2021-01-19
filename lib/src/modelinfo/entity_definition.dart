@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import '../../flatbuffers/flat_buffers.dart' as fb;
+import '../relations/info.dart';
 import '../relations/to_one.dart';
+import '../relations/to_many.dart';
 import '../store.dart';
 import 'modelentity.dart';
 
@@ -14,6 +16,7 @@ class EntityDefinition<T> {
   final int /*?*/ Function(T) getId;
   final void Function(T, int) setId;
   final List<ToOne> Function(T) toOneRelations;
+  final Map<RelInfo, ToMany> Function(T) toManyRelations;
 
   const EntityDefinition(
       {/*required*/ this.model,
@@ -21,7 +24,8 @@ class EntityDefinition<T> {
       /*required*/ this.objectFromFB,
       /*required*/ this.getId,
       /*required*/ this.setId,
-      /*required*/ this.toOneRelations});
+      /*required*/ this.toOneRelations,
+      /*required*/ this.toManyRelations});
 
   Type type() {
     return T;

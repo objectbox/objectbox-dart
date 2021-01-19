@@ -34,9 +34,10 @@ class CodeChunks {
     return """
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
-        toOneRelations: ($name inst) => [${toOneRelationsList(entity).join(',')}],
-        getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
-        setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
+        toOneRelations: ($name object) => ${toOneRelations(entity)},
+        toManyRelations: ($name object) => ${toManyRelations(entity)},
+        getId: ($name object) => object.${propertyFieldName(entity.idProperty)},
+        setId: ($name object, int id) {object.${propertyFieldName(entity.idProperty)} = id;},
         objectToFB: ${objectToFB(entity)},
         objectFromFB: ${objectFromFB(entity)}
       )
@@ -82,7 +83,7 @@ class CodeChunks {
     final offsets = <int, String>{};
     final offsetsCode = entity.properties.map((ModelProperty p) {
       final offsetVar = 'offset${propertyFieldName(p)}';
-      final fieldName = 'inst.${propertyFieldName(p)}';
+      final fieldName = 'object.${propertyFieldName(p)}';
       final nullIfNull = 'final $offsetVar = $fieldName == null ? null';
       offsets[p.id.id] = offsetVar; // see default case in the switch
       switch (p.type) {
@@ -111,16 +112,16 @@ class CodeChunks {
         } else if (p.type == OBXPropertyType.Relation) {
           accessorSuffix = '.targetId';
         }
-        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, inst.${propertyFieldName(p)}$accessorSuffix);';
+        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
       }
     });
 
-    return '''(${entity.name} inst, fb.Builder fbb) {
+    return '''(${entity.name} object, fb.Builder fbb) {
       ${offsetsCode.join('\n')}
       fbb.startTable();
       ${propsCode.join('\n')}
       fbb.finish(fbb.endTable());
-      return inst.${propertyFieldName(entity.idProperty)} ?? 0;
+      return object.${propertyFieldName(entity.idProperty)} ?? 0;
     }''';
   }
 
@@ -150,21 +151,38 @@ class CodeChunks {
       return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
     });
 
+    final relsCode = entity.relations.map((ModelRelation rel) =>
+        "object.${rel.name}.internalSetRelInfo(store, ${relInfo(entity, rel)}, store.box<${entity.name}>());");
+
     return '''(Store store, Uint8List fbData) {
       final buffer = fb.BufferContext.fromBytes(fbData);
       final rootOffset = buffer.derefObject(0);
       
       final object = ${entity.name}();
       ${propsCode.join('\n')}
+      ${relsCode.join('\n')}
       return object;
     }''';
   }
 
-  static List<String> toOneRelationsList(ModelEntity entity) =>
+  static String toOneRelations(ModelEntity entity) =>
+      '[' +
       entity.properties
           .where((ModelProperty prop) => prop.type == OBXPropertyType.Relation)
-          .map((ModelProperty prop) => "inst.${propertyFieldName(prop)}")
-          .toList(growable: false);
+          .map((ModelProperty prop) => "object.${propertyFieldName(prop)}")
+          .join(',') +
+      ']';
+
+  static String relInfo(ModelEntity entity, ModelRelation rel) =>
+      "RelInfo(RelType.toMany, ${rel.id.id}, object.${propertyFieldName(entity.idProperty)})";
+
+  static String toManyRelations(ModelEntity entity) =>
+      '{' +
+      entity.relations
+          .map((ModelRelation rel) =>
+              "${relInfo(entity, rel)}: object.${rel.name}")
+          .join(',') +
+      '}';
 
   static String _queryConditionBuilder(ModelEntity entity) {
     final ret = <String>[];
@@ -213,6 +231,14 @@ class CodeChunks {
 
       ret.add('''
         static final ${propertyFieldName(prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
+      ''');
+    }
+
+    for (var rel in entity.relations) {
+      final targetEntityName =
+          entity.model.findEntityByUid(rel.targetId.uid).name;
+      ret.add('''
+        static final ${rel.name} = QueryRelationMany<$targetEntityName>(entityId:${entity.id.id}, relationId:${rel.id.id});
       ''');
     }
     return ret.join();

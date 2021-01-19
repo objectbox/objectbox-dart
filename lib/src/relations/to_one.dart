@@ -46,6 +46,8 @@ import '../store.dart';
 /// order.customer.targetId = 0
 /// ```
 class ToOne<EntityT> {
+  /*late final*/ Store _store;
+
   /*late final*/ Box<EntityT> _box;
 
   /*late final*/
@@ -67,19 +69,33 @@ class ToOne<EntityT> {
   set target(EntityT /*?*/ object) {
     if (object == null) {
       _value = _ToOneValue<EntityT>.none();
-    } else {
+    } else if (_attached) {
       final id = _getId(object);
       _value = (id == 0)
           ? _ToOneValue<EntityT>.unstored(object)
           : _ToOneValue<EntityT>.stored(id, object);
+    } else {
+      _value = _ToOneValue.unknown(object);
     }
   }
 
-  int get targetId => _value._id;
+  int get targetId {
+    if (_value._state == _ToOneState.unknown) {
+      // If the target was previously set while not attached, the ID is unknown.
+      // It's because we couldn't call _entity.getId() when _entity was null.
+      // If, in the meantime, we have become attached, the ID can be resolved.
+      if (_attached) {
+        target = _value._object;
+      } else {
+        // Otherwise, we still can't access the ID so let's throw...
+        _verifyAttached();
+      }
+    }
+    return _value._id;
+  }
 
   set targetId(int /*?*/ id) {
     id ??= 0;
-    if (id == _value._id) return;
     if (id == 0) {
       _value = _ToOneValue<EntityT>.none();
     } else if (_value._state == _ToOneState.unstored &&
@@ -87,6 +103,8 @@ class ToOne<EntityT> {
       // Optimization for targetId being set from box.put(sourceObject)
       // after entity.setId(object, newID) was already called on the new target.
       _value = _ToOneValue<EntityT>.stored(id, _value._object);
+    } else if (_value._state != _ToOneState.unknown && id == _value._id) {
+      return;
     } else {
       _value = _ToOneValue<EntityT>.lazy(id);
     }
@@ -95,6 +113,8 @@ class ToOne<EntityT> {
   bool get hasValue => _value._state != _ToOneState.none;
 
   void attach(Store store) {
+    if (_store == store) return;
+    _store = store;
     _box = store.box<EntityT>();
     _entity = store.entityDef<EntityT>();
   }
@@ -106,8 +126,10 @@ class ToOne<EntityT> {
     return _box;
   }
 
+  bool get _attached => _store != null;
+
   void _verifyAttached() {
-    if (_box == null || _entity == null) {
+    if (!_attached) {
       throw Exception('ToOne relation field not initialized. '
           'Make sure to call attach(store) before the first use.');
     }
@@ -119,7 +141,7 @@ class ToOne<EntityT> {
   }
 }
 
-enum _ToOneState { none, unstored, lazy, stored, unresolvable }
+enum _ToOneState { none, unstored, unknown, lazy, stored, unresolvable }
 
 class _ToOneValue<EntityT> {
   final EntityT /*?*/ _object;
@@ -132,6 +154,10 @@ class _ToOneValue<EntityT> {
   /// Set by app developer, but not stored
   const _ToOneValue.unstored(EntityT object)
       : this._(_ToOneState.unstored, 0, object);
+
+  /// Set by app developer before attach() was called - maybe new or existing
+  const _ToOneValue.unknown(EntityT object)
+      : this._(_ToOneState.unknown, 0, object);
 
   /// Initial state before attempting a lazy load
   const _ToOneValue.lazy(int id) : this._(_ToOneState.lazy, id, null);

@@ -46,6 +46,16 @@ class _QueryBuilder<T> {
     _applyCondition();
   }
 
+  _QueryBuilder._linkStandalone(
+      _QueryBuilder srcQB, int relId, this._queryCondition)
+      : _store = srcQB._store,
+        _entity = srcQB._store.entityDef<T>(),
+        _cBuilder = checkObxPtr(
+            bindings.obx_qb_link_standalone(srcQB._cBuilder, relId),
+            'failed to create QueryBuilder') {
+    _applyCondition();
+  }
+
   void _close() {
     _innerQBs.forEach((iqb) => iqb._close());
     checkObx(bindings.obx_qb_close(_cBuilder));
@@ -80,6 +90,19 @@ class _QueryBuilder<T> {
     _throwIfOtherEntity(rel);
     final innerQB =
         _QueryBuilder<TargetEntityT>._linkProperty(this, rel._propertyId, qc);
+    _innerQBs.add(innerQB);
+    return innerQB;
+  }
+
+  _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
+      QueryRelationMany<TargetEntityT> rel,
+      [Condition /*?*/ qc]) {
+    if (rel._entityId != _entity.model.id.id) {
+      throw Exception(
+          'Passed a property of another entity: ${rel._entityId} instead of ${_entity.model.id.id}');
+    }
+    final innerQB =
+        _QueryBuilder<TargetEntityT>._linkStandalone(this, rel._relationId, qc);
     _innerQBs.add(innerQB);
     return innerQB;
   }

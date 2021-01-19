@@ -149,6 +149,8 @@ class TestEntity {
 
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();
+
+  final relManyA = ToMany<RelatedEntityA>();
 }
 
 @Entity()

@@ -88,10 +88,6 @@ class ModelProperty {
     return ret;
   }
 
-  bool containsUid(int searched) {
-    return id.uid == searched;
-  }
-
   bool hasFlag(int flag) {
     return (flags & flag) == flag;
   }

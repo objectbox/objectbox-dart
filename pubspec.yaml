@@ -9,6 +9,7 @@ environment:
   sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
+  collection: ^1.14.11
   # take care updating flatbuffers - keep aligned with other bindings
   # currently using a forked version in lib/flatbuffers, except for tests (see dev_dependencies)
   # flat_buffers: 1.12.0

@@ -91,6 +91,7 @@ class EntityResolver extends Builder {
         continue;
       }
 
+      bool isToManyRel = false;
       int fieldType;
       var flags = 0;
       int propUid;
@@ -133,8 +134,10 @@ class EntityResolver extends Builder {
             .contains(fieldTypeDart.element.name)) {
           fieldType = OBXPropertyType.ByteVector;
           dartFieldType = fieldTypeDart.element.name; // for code generation
-        } else if (isRelationField(f)) {
+        } else if (isToOneRelationField(f)) {
           fieldType = OBXPropertyType.Relation;
+        } else if (isToManyRelationField(f)) {
+          isToManyRel = true;
         } else {
           log.warning(
               "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${fieldTypeDart}'");
@@ -142,29 +145,43 @@ class EntityResolver extends Builder {
         }
       }
 
-      // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-      final prop = ModelProperty(IdUid.empty(), f.name, fieldType,
-          flags: flags, entity: entity);
-
-      if (fieldType == OBXPropertyType.Relation) {
-        if (!isRelationField(f) || (f.type is! ParameterizedType)) {
+      String relTargetName;
+      if (isRelationField(f)) {
+        if (f.type is! ParameterizedType) {
           log.severe(
-              "  invalid relation property '${f.name}' in entity '${element.name}' - must use ToOne<TargetEntity>");
+              "  invalid relation property '${f.name}' in entity '${element.name}' - must use ToOne/ToMany<TargetEntity>");
           continue;
         }
-        prop.name += 'Id';
-        prop.relationTarget =
-            (f.type as ParameterizedType).typeArguments[0].name;
-        prop.flags |= OBXPropertyFlags.INDEXED;
-        prop.flags |= OBXPropertyFlags.INDEX_PARTIAL_SKIP_ZERO;
+        relTargetName = (f.type as ParameterizedType).typeArguments[0].name;
       }
 
-      // Index and unique annotation.
-      processAnnotationIndexUnique(f, fieldType, elementBare, prop);
+      if (isToManyRel) {
+        // create relation
+        final rel =
+            ModelRelation(IdUid.empty(), f.name, targetName: relTargetName);
+        if (propUid != null) rel.id.uid = propUid;
+        entity.relations.add(rel);
 
-      if (propUid != null) prop.id.uid = propUid;
-      prop.dartFieldType = dartFieldType;
-      entity.properties.add(prop);
+        log.info('  ${rel}');
+      } else {
+        // create property (do not use readEntity.createProperty in order to avoid generating new ids)
+        final prop = ModelProperty(IdUid.empty(), f.name, fieldType,
+            flags: flags, entity: entity);
+
+        if (fieldType == OBXPropertyType.Relation) {
+          prop.name += 'Id';
+          prop.relationTarget = relTargetName;
+          prop.flags |= OBXPropertyFlags.INDEXED;
+          prop.flags |= OBXPropertyFlags.INDEX_PARTIAL_SKIP_ZERO;
+        }
+
+        // Index and unique annotation.
+        processAnnotationIndexUnique(f, fieldType, elementBare, prop);
+
+        if (propUid != null) prop.id.uid = propUid;
+        prop.dartFieldType = dartFieldType;
+        entity.properties.add(prop);
+      }
     }
 
     processIdProperty(entity);
@@ -307,5 +324,10 @@ class EntityResolver extends Builder {
     return typeArgs.length == 1 ? typeArgs[0] : null;
   }
 
-  bool isRelationField(FieldElement f) => f.type.element.name == 'ToOne';
+  bool isRelationField(FieldElement f) =>
+      isToOneRelationField(f) || isToManyRelationField(f);
+
+  bool isToOneRelationField(FieldElement f) => f.type.element.name == 'ToOne';
+
+  bool isToManyRelationField(FieldElement f) => f.type.element.name == 'ToMany';
 }
