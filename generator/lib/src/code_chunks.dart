@@ -212,17 +212,17 @@ class CodeChunks {
       }
     }
 
-    if (srcRel == null && srcProp == null) {
+    if (srcRel != null) {
+      return 'RelInfo.toManyBacklink('
+          '${srcRel.id.id}, object.${propertyFieldName(entity.idProperty)})';
+    } else if (srcProp != null) {
+      return 'RelInfo<${srcEntity.name}>.toOneBacklink('
+          '${srcProp.id.id}, object.${propertyFieldName(entity.idProperty)}, '
+          '(${srcEntity.name} srcObject) => srcObject.${propertyFieldName(srcProp)})';
+    } else {
       throw InvalidGenerationSourceError(
           'Unknown relation backlink source for ${entity.name}.${bl.name}');
     }
-
-    final prefix = srcRel != null ? 'toMany' : 'toOne';
-    final srcField = srcRel != null ? srcRel.name : propertyFieldName(srcProp);
-    return 'RelInfo<${srcEntity.name}>.${prefix}Backlink('
-        '${srcRel?.id?.id ?? srcProp.id.id}, '
-        'object.${propertyFieldName(entity.idProperty)}, '
-        '(${srcEntity.name} srcObject) => srcObject.$srcField)';
   }
 
   static String toManyRelations(ModelEntity entity) =>

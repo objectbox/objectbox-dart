@@ -2,7 +2,7 @@ import 'to_one.dart';
 
 enum RelType {
   toMany,
-  // toManyBacklink,
+  toManyBacklink,
   toOneBacklink,
 }
 
@@ -27,6 +27,9 @@ class RelInfo<SourceEntityT> {
   const RelInfo.toOneBacklink(
       int id, int objectId, ToOne Function(SourceEntityT) srcFieldAccessor)
       : this._(RelType.toOneBacklink, id, objectId, srcFieldAccessor);
+
+  const RelInfo.toManyBacklink(int id, int objectId)
+      : this._(RelType.toManyBacklink, id, objectId, null);
 
   int get id => _id;
 
