@@ -34,10 +34,10 @@ class CodeChunks {
     return """
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
-        toOneRelations: ($name inst) => ${toOneRelations(entity)},
+        toOneRelations: ($name object) => ${toOneRelations(entity)},
         toManyRelations: ($name object) => ${toManyRelations(entity)},
-        getId: ($name inst) => inst.${propertyFieldName(entity.idProperty)},
-        setId: ($name inst, int id) {inst.${propertyFieldName(entity.idProperty)} = id;},
+        getId: ($name object) => object.${propertyFieldName(entity.idProperty)},
+        setId: ($name object, int id) {object.${propertyFieldName(entity.idProperty)} = id;},
         objectToFB: ${objectToFB(entity)},
         objectFromFB: ${objectFromFB(entity)}
       )
@@ -83,7 +83,7 @@ class CodeChunks {
     final offsets = <int, String>{};
     final offsetsCode = entity.properties.map((ModelProperty p) {
       final offsetVar = 'offset${propertyFieldName(p)}';
-      final fieldName = 'inst.${propertyFieldName(p)}';
+      final fieldName = 'object.${propertyFieldName(p)}';
       final nullIfNull = 'final $offsetVar = $fieldName == null ? null';
       offsets[p.id.id] = offsetVar; // see default case in the switch
       switch (p.type) {
@@ -112,16 +112,16 @@ class CodeChunks {
         } else if (p.type == OBXPropertyType.Relation) {
           accessorSuffix = '.targetId';
         }
-        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, inst.${propertyFieldName(p)}$accessorSuffix);';
+        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
       }
     });
 
-    return '''(${entity.name} inst, fb.Builder fbb) {
+    return '''(${entity.name} object, fb.Builder fbb) {
       ${offsetsCode.join('\n')}
       fbb.startTable();
       ${propsCode.join('\n')}
       fbb.finish(fbb.endTable());
-      return inst.${propertyFieldName(entity.idProperty)} ?? 0;
+      return object.${propertyFieldName(entity.idProperty)} ?? 0;
     }''';
   }
 
@@ -169,7 +169,7 @@ class CodeChunks {
       '[' +
       entity.properties
           .where((ModelProperty prop) => prop.type == OBXPropertyType.Relation)
-          .map((ModelProperty prop) => "inst.${propertyFieldName(prop)}")
+          .map((ModelProperty prop) => "object.${propertyFieldName(prop)}")
           .join(',') +
       ']';
 

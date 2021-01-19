@@ -81,12 +81,13 @@ class ToOne<EntityT> {
 
   int get targetId {
     if (_value._state == _ToOneState.unknown) {
-      // if the target was previously set while not attached, ID is unknown.
-      // We may now be able to resolve it we've become attached in the meantime.
+      // If the target was previously set while not attached, the ID is unknown.
+      // It's because we couldn't call _entity.getId() when _entity was null.
+      // If, in the meantime, we have become attached, the ID can be resolved.
       if (_attached) {
         target = _value._object;
       } else {
-        // can't access ID if not attached, throw
+        // Otherwise, we still can't access the ID so let's throw...
         _verifyAttached();
       }
     }

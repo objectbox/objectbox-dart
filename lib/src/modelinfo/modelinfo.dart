@@ -100,15 +100,15 @@ class ModelInfo {
     if (!lastRelationId.isEmpty || hasRelations()) {
       var lastRelationIdFound = false;
       for (final e in entities) {
-        for (final p in e.relations) {
-          if (lastRelationId /*!*/ .id < p.id.id) {
+        for (final r in e.relations) {
+          if (lastRelationId /*!*/ .id < r.id.id) {
             throw Exception(
-                "lastRelationId ${lastRelationId.toString()} is lower than the one of relation '${p.name}' with id ${p.id.toString()}");
+                "lastRelationId ${lastRelationId.toString()} is lower than the one of relation '${r.name}' with id ${r.id.toString()}");
           }
-          if (lastRelationId /*!*/ .id == p.id.id) {
-            if (lastRelationId /*!*/ .uid != p.id.uid) {
+          if (lastRelationId /*!*/ .id == r.id.id) {
+            if (lastRelationId /*!*/ .uid != r.id.uid) {
               throw Exception(
-                  "lastRelationId ${lastRelationId.toString()} does not match relation '${p.name}' with id ${p.id.toString()}");
+                  "lastRelationId ${lastRelationId.toString()} does not match relation '${r.name}' with id ${r.id.toString()}");
             }
             lastRelationIdFound = true;
           }

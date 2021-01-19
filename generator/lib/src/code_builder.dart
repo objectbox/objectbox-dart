@@ -129,12 +129,12 @@ class CodeBuilder extends Builder {
     });
   }
 
-  void mergeProperty(ModelEntity entity, ModelProperty prop) {
-    var propInModel = entity.findSameProperty(prop);
+  void mergeProperty(ModelEntity entityInModel, ModelProperty prop) {
+    var propInModel = entityInModel.findSameProperty(prop);
 
     if (propInModel == null) {
-      log.info('Found new property ${entity.name}.${prop.name}');
-      propInModel = entity.createProperty(prop.name, prop.id.uid);
+      log.info('Found new property ${entityInModel.name}.${prop.name}');
+      propInModel = entityInModel.createProperty(prop.name, prop.id.uid);
     }
 
     propInModel.name = prop.name;
@@ -146,24 +146,24 @@ class CodeBuilder extends Builder {
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();
     } else {
-      propInModel.indexId ??= entity.model.createIndexId();
+      propInModel.indexId ??= entityInModel.model.createIndexId();
     }
   }
 
-  void mergeRelation(ModelEntity entity, ModelRelation rel) {
-    var relInModel = entity.findSameRelation(rel);
+  void mergeRelation(ModelEntity entityInModel, ModelRelation rel) {
+    var relInModel = entityInModel.findSameRelation(rel);
 
     if (relInModel == null) {
-      log.info('Found new relation ${entity.name}.${rel.name}');
-      relInModel = entity.createRelation(rel.name, rel.id.uid);
+      log.info('Found new relation ${entityInModel.name}.${rel.name}');
+      relInModel = entityInModel.createRelation(rel.name, rel.id.uid);
     }
 
     relInModel.name = rel.name;
-    relInModel.targetId = entity.model.findEntityByName(rel.targetName).id;
+    relInModel.targetId = entityInModel.model.findEntityByName(rel.targetName).id;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
-    // 'readEntity' only contains the entity info directly read from the annotations and Dart source (i.e. with missing ID, lastPropertyId etc.)
+    // 'entity' only contains the entity info directly read from the annotations and Dart source (i.e. with missing ID, lastPropertyId etc.)
     // 'entityInModel' is the entity from the model with all correct id/uid, lastPropertyId etc.
     var entityInModel = modelInfo.findSameEntity(entity);
 
@@ -176,11 +176,11 @@ class CodeBuilder extends Builder {
     entityInModel.name = entity.name;
     entityInModel.flags = entity.flags;
 
-    // here, the entity was found already and entityInModel and readEntity might differ, i.e. conflicts need to be resolved, so merge all properties first
+    // here, the entity was found already and entityInModel and entity might differ, i.e. conflicts need to be resolved, so merge all properties first
     entity.properties.forEach((p) => mergeProperty(entityInModel, p));
     entity.relations.forEach((r) => mergeRelation(entityInModel, r));
 
-    // then remove all properties not present anymore in readEntity
+    // then remove all properties not present anymore in entity
     final missingProps = entityInModel.properties
         .where((p) => entity.findSameProperty(p) == null)
         .toList(growable: false);
@@ -191,7 +191,7 @@ class CodeBuilder extends Builder {
       entityInModel.removeProperty(p);
     });
 
-    // then remove all relations not present anymore in readEntity
+    // then remove all relations not present anymore in entity
     final missingRels = entityInModel.relations
         .where((p) => entity.findSameRelation(p) == null)
         .toList(growable: false);
