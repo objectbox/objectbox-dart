@@ -45,7 +45,7 @@ box.remove(person.id);       // Delete
 
 // find all people whose name start with letter 'J'
 final query = box.query(Person_.firstName.startsWith('J')).build();
-final people = query.find();  // find()returns List<Person>
+final people = query.find();  // find() returns List<Person>
 ```
 
 Head over to [example/README.md](example/README.md) for more.
