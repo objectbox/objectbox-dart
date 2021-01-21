@@ -12,11 +12,20 @@ import 'query/query.dart';
 import 'relations/info.dart';
 import 'relations/to_one.dart';
 import 'relations/to_many.dart';
+import 'util.dart';
 
 enum PutMode {
   Put,
   Insert,
   Update,
+}
+
+/// Global internal storage of all boxes for the given store.
+final _boxes = <Store, Map<Type, Box>>{};
+
+// we need this to clear c-allocated memory in the BuilderWithCBuffer()
+void _closeStoreBoxes(Store store) {
+  _boxes[store].values.map((box) => box._builder.clear());
 }
 
 /// A box to store objects of a particular class.
@@ -34,7 +43,25 @@ class Box<T> {
   /*late final*/
   bool _hasToManyRelations;
 
-  Box(this._store) : _entity = _store.entityDef<T>() {
+  final _builder = BuilderWithCBuffer();
+
+  factory Box(Store store) {
+    if (!_boxes.containsKey(store)) {
+      _boxes[store] = <Type, Box>{};
+      final listenerKey = 'boxes';
+      StoreCloseObserver.addListener(store, listenerKey, () {
+        _closeStoreBoxes(store);
+        StoreCloseObserver.removeListener(store, listenerKey);
+      });
+    }
+    final storeBoxes = _boxes[store];
+    if (!storeBoxes.containsKey(T)) {
+      return storeBoxes[T] = Box<T>._(store);
+    }
+    return storeBoxes[T];
+  }
+
+  Box._(this._store) : _entity = _store.entityDef<T>() {
     _hasToOneRelations = _entity.model.properties
         .any((ModelProperty prop) => prop.type == OBXPropertyType.Relation);
     _hasToManyRelations = _entity.model.relations.isNotEmpty;
@@ -81,17 +108,12 @@ class Box<T> {
       }
       if (_hasToOneRelations) _putToOneRelFields(object, mode);
     }
-    int id;
-    final builder = BuilderWithCBuffer();
-    try {
-      id = _entity.objectToFB(object, builder.fbb);
-      final newId = C.box_put_object4(_cBox, builder.bufPtr.cast<Void>(),
-          builder.fbb.size, _getOBXPutMode(mode));
-      id = _handlePutObjectResult(object, id, newId);
-    } finally {
-      builder.close();
-    }
+    var id = _entity.objectToFB(object, _builder.fbb);
+    final newId = C.box_put_object4(_cBox, _builder.bufPtr.cast<Void>(),
+        _builder.fbb.size, _getOBXPutMode(mode));
+    id = _handlePutObjectResult(object, id, newId);
     if (_hasToManyRelations) _putToManyRelFields(object, mode);
+    _builder.resetIfLarge();
     return id;
   }
 
@@ -110,19 +132,14 @@ class Box<T> {
 
       final cursor = CursorHelper(txn, _entity, true);
       try {
-        final builder = BuilderWithCBuffer();
         final cMode = _getOBXPutMode(mode);
-        try {
-          for (var i = 0; i < objects.length; i++) {
-            final object = objects[i];
-            builder.fbb.reset();
-            final id = _entity.objectToFB(object, builder.fbb);
-            final newId = C.cursor_put_object4(cursor.ptr,
-                builder.bufPtr.cast<Void>(), builder.fbb.size, cMode);
-            putIds[i] = _handlePutObjectResult(object, id, newId);
-          }
-        } finally {
-          builder.close();
+        for (var i = 0; i < objects.length; i++) {
+          final object = objects[i];
+          _builder.fbb.reset();
+          final id = _entity.objectToFB(object, _builder.fbb);
+          final newId = C.cursor_put_object4(cursor.ptr,
+              _builder.bufPtr.cast<Void>(), _builder.fbb.size, cMode);
+          putIds[i] = _handlePutObjectResult(object, id, newId);
         }
       } finally {
         cursor.close();
@@ -131,6 +148,7 @@ class Box<T> {
       if (_hasToManyRelations) {
         objects.forEach((object) => _putToManyRelFields(object, mode));
       }
+      _builder.resetIfLarge();
     });
 
     return putIds;

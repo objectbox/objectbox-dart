@@ -18,7 +18,6 @@ enum TxMode {
 /// specific type.
 class Store {
   /*late final*/ Pointer<OBX_store> _cStore;
-  final _boxes = <Type, Box>{};
   final ModelDefinition defs;
 
   /// Creates a BoxStore using the model definition from your
@@ -98,8 +97,6 @@ class Store {
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
-    _boxes.clear();
-
     // Call each "onBeforeClose()" event listener.
     // Move the list to prevent "Concurrent modification during iteration".
     final listeners = StoreCloseObserver.removeAllListeners(this);
@@ -109,12 +106,7 @@ class Store {
   }
 
   /// Returns a cached Box instance.
-  Box<T> box<T>() {
-    if (!_boxes.containsKey(T)) {
-      _boxes[T] = Box<T>(this);
-    }
-    return _boxes[T];
-  }
+  Box<T> box<T>() => Box<T>(this);
 
   EntityDefinition<T> entityDef<T>() {
     final binding = defs.bindings[T];

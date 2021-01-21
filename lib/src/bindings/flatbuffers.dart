@@ -7,6 +7,8 @@ import '../../flatbuffers/flat_buffers.dart' as fb;
 
 class BuilderWithCBuffer {
   final _allocator = _Allocator();
+  final int _initialSize;
+  final int _resetIfLargerThan;
 
   /*late final*/
   fb.Builder _fbb;
@@ -16,11 +18,21 @@ class BuilderWithCBuffer {
   Pointer<Uint8> get bufPtr => Pointer<Uint8>.fromAddress(
       _allocator.bufPtr.address + _allocator._capacity - _fbb.size);
 
-  BuilderWithCBuffer({initialSize = 1024}) {
+  BuilderWithCBuffer(
+      {int initialSize = 256, int resetIfLargerThan = 64 * 1024})
+      : _initialSize = initialSize,
+        _resetIfLargerThan = resetIfLargerThan {
     _fbb = fb.Builder(initialSize: initialSize, allocator: _allocator);
   }
 
-  void close() {
+  void resetIfLarge() {
+    if (_allocator._capacity > _resetIfLargerThan) {
+      clear();
+      _fbb = fb.Builder(initialSize: _initialSize, allocator: _allocator);
+    }
+  }
+
+  void clear() {
     if (_allocator._allocs.isEmpty) return;
     if (_allocator._allocs.length == 1) {
       // This is the most common case so no need to create an intermediary list.
@@ -41,7 +53,7 @@ _dart_memset _memset;
 class _Allocator extends fb.Allocator {
   // we may have multiple allocations at once (e.g. during [reallocate()])
   final _allocs = <ByteData, Pointer<Uint8>>{};
-  int _capacity;
+  int _capacity = 0;
 
   Pointer<Uint8> get bufPtr {
     if (_allocs.length != 1) {

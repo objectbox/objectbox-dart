@@ -35,7 +35,7 @@ void main() {
       expect(addFbData(fb1.fbb), equals(list1a));
       expect(fb1.bufPtr.asTypedList(fb1.fbb.size), equals(list1b));
 
-      fb1.close();
+      fb1.clear();
     });
   });
 }
