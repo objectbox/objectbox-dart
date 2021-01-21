@@ -17,7 +17,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
   }
 
   QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
-    _throwIfOtherEntity(p);
+    _throwIfOtherEntity(p._entityId);
     checkObx(C.qb_order(_cBuilder, p._propertyId, flags));
     return this;
   }
@@ -36,22 +36,10 @@ class _QueryBuilder<T> {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
   }
 
-  _QueryBuilder._linkProperty(
-      _QueryBuilder srcQB, int relPropertyId, this._queryCondition)
+  _QueryBuilder._link(_QueryBuilder srcQB, this._queryCondition, this._cBuilder)
       : _store = srcQB._store,
-        _entity = srcQB._store.entityDef<T>(),
-        _cBuilder = checkObxPtr(
-            C.qb_link_property(srcQB._cBuilder, relPropertyId),
-            'failed to create QueryBuilder') {
-    _applyCondition();
-  }
-
-  _QueryBuilder._linkStandalone(
-      _QueryBuilder srcQB, int relId, this._queryCondition)
-      : _store = srcQB._store,
-        _entity = srcQB._store.entityDef<T>(),
-        _cBuilder = checkObxPtr(C.qb_link_standalone(srcQB._cBuilder, relId),
-            'failed to create QueryBuilder') {
+        _entity = srcQB._store.entityDef<T>() {
+    checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
     _applyCondition();
   }
 
@@ -69,10 +57,10 @@ class _QueryBuilder<T> {
     }
   }
 
-  void _throwIfOtherEntity(QueryProperty p) {
-    if (p._entityId != _entity.model.id.id) {
+  void _throwIfOtherEntity(int entityId) {
+    if (entityId != _entity.model.id.id) {
       throw Exception(
-          'Passed a property of another entity: ${p._entityId} instead of ${_entity.model.id.id}');
+          'Passed a property of another entity: $entityId instead of ${_entity.model.id.id}');
     }
   }
 
@@ -83,26 +71,39 @@ class _QueryBuilder<T> {
     }
   }
 
-  _QueryBuilder<TargetEntityT> link<TargetEntityT>(
-      QueryRelationProperty<TargetEntityT> rel,
+  _QueryBuilder<TargetEntityT> link<_, TargetEntityT>(
+      QueryRelationProperty<_, TargetEntityT> rel,
       [Condition /*?*/ qc]) {
-    _throwIfOtherEntity(rel);
-    final innerQB =
-        _QueryBuilder<TargetEntityT>._linkProperty(this, rel._propertyId, qc);
-    _innerQBs.add(innerQB);
-    return innerQB;
+    _throwIfOtherEntity(rel._entityId);
+    _innerQBs.add(_QueryBuilder<TargetEntityT>._link(
+        this, qc, C.qb_link_property(_cBuilder, rel._propertyId)));
+    return _innerQBs.last;
   }
 
-  _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
-      QueryRelationMany<TargetEntityT> rel,
+  _QueryBuilder<SourceEntityT> backlink<SourceEntityT, _>(
+      QueryRelationProperty<SourceEntityT, _> rel,
       [Condition /*?*/ qc]) {
-    if (rel._entityId != _entity.model.id.id) {
-      throw Exception(
-          'Passed a property of another entity: ${rel._entityId} instead of ${_entity.model.id.id}');
-    }
-    final innerQB =
-        _QueryBuilder<TargetEntityT>._linkStandalone(this, rel._relationId, qc);
-    _innerQBs.add(innerQB);
-    return innerQB;
+    _throwIfOtherEntity(rel._targetEntityId);
+    _innerQBs.add(_QueryBuilder<SourceEntityT>._link(this, qc,
+        C.qb_backlink_property(_cBuilder, rel._entityId, rel._propertyId)));
+    return _innerQBs.last;
+  }
+
+  _QueryBuilder<TargetEntityT> linkMany<_, TargetEntityT>(
+      QueryRelationMany<_, TargetEntityT> rel,
+      [Condition /*?*/ qc]) {
+    _throwIfOtherEntity(rel._entityId);
+    _innerQBs.add(_QueryBuilder<TargetEntityT>._link(
+        this, qc, C.qb_link_standalone(_cBuilder, rel._relationId)));
+    return _innerQBs.last;
+  }
+
+  _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT, _>(
+      QueryRelationMany<SourceEntityT, _> rel,
+      [Condition /*?*/ qc]) {
+    _throwIfOtherEntity(rel._targetEntityId);
+    _innerQBs.add(_QueryBuilder<SourceEntityT>._link(
+        this, qc, C.qb_backlink_standalone(_cBuilder, rel._relationId)));
+    return _innerQBs.last;
   }
 }

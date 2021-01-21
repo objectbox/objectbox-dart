@@ -278,21 +278,26 @@ class CodeChunks {
               'Unsupported property type (${prop.type}): ${entity.name}.${name}');
       }
 
-      final relationTypeGenericParam = prop.type == OBXPropertyType.Relation
-          ? '<${prop.relationTarget}>'
-          : '';
-
-      ret.add('''
-        static final ${propertyFieldName(prop)} = Query${fieldType}Property$relationTypeGenericParam(entityId:${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});
-      ''');
+      var propCode =
+          'static final ${propertyFieldName(prop)} = Query${fieldType}Property';
+      if (prop.type == OBXPropertyType.Relation) {
+        propCode += '<${entity.name}, ${prop.relationTarget}>'
+            '(targetEntityId: ${entity.model.findEntityByName(prop.relationTarget).id.id}, '
+            'sourceEntityId:';
+      } else {
+        propCode += '(entityId:';
+      }
+      propCode +=
+          '${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});';
+      ret.add(propCode);
     }
 
     for (var rel in entity.relations) {
       final targetEntityName =
           entity.model.findEntityByUid(rel.targetId.uid).name;
-      ret.add('''
-        static final ${rel.name} = QueryRelationMany<$targetEntityName>(entityId:${entity.id.id}, relationId:${rel.id.id});
-      ''');
+      ret.add(
+          'static final ${rel.name} = QueryRelationMany<${entity.name}, $targetEntityName>'
+          '(sourceEntityId:${entity.id.id}, targetEntityId:${rel.targetId.id}, relationId:${rel.id.id});');
     }
     return ret.join();
   }

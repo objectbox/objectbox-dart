@@ -356,6 +356,16 @@ void main() {
       b[1] = boxB.get(b[1].id);
       expect(b[1].testEntities.map(strings), unorderedEquals(['bar2']));
     });
+
+    test('query', () {
+      final qb = boxB.query();
+      qb.backlink(TestEntity_.relB, TestEntity_.tString.startsWith('bar'));
+      final query = qb.build();
+      final b = query.find();
+      expect(b.length, 1);
+      expect(b.first.tString, 'bar B');
+      query.close();
+    });
   });
 
   group('to-many backlink', () {
@@ -411,6 +421,17 @@ void main() {
 
       // The previous put also affects TestEntity(foo) - added target (tInt=4).
       expect(env.box.get(1).relManyA.map(toInt), unorderedEquals([1, 2, 4]));
+    });
+
+    test('query', () {
+      final qb = boxA.query();
+      qb.backlinkMany(
+          TestEntity_.relManyA, TestEntity_.tString.startsWith('bar'));
+      final query = qb.build();
+      final a = query.find();
+      expect(a.length, 1);
+      expect(a.first.tInt, 2);
+      query.close();
     });
   });
 }
