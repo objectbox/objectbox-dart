@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as f;
 import 'dart:ffi';
+import 'dart:io' show Platform;
 
 import '../../flatbuffers/flat_buffers.dart' as fb;
 
@@ -80,8 +81,17 @@ class _Allocator extends fb.Allocator {
 
   @override
   void clear(ByteData data, bool _) {
-    _memset ??= DynamicLibrary.process().lookupFunction<
-        Void Function(Pointer<Void>, Int32, IntPtr), _dart_memset>('memset');
+    if (_memset == null) {
+      DynamicLibrary lib;
+      if (Platform.isWindows) {
+        // DynamicLibrary.process() is not available on Windows
+        lib = DynamicLibrary.open('msvcr100.dll');
+      } else {
+        lib = DynamicLibrary.process();
+      }
+      _memset = lib.lookupFunction<Void Function(Pointer<Void>, Int32, IntPtr),
+          _dart_memset>('memset');
+    }
     _memset(_allocs[data].cast<Void>(), 0, data.lengthInBytes);
   }
 }
