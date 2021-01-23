@@ -118,6 +118,8 @@ void main() {
     final qp = query.property(tString);
     expect(qp is StringPropertyQuery, true);
     qp.close();
+
+    query.close();
   });
 
   final add = (a, b) => a + b;
@@ -415,6 +417,8 @@ void main() {
     queryAndCheck(tShort, -2, 'short null->negative');
     queryAndCheck(tInt, -2, 'int null->negative');
     queryAndCheck(tLong, -2, 'long null->negative');
+
+    queryStrings.close();
   });
 
   test('.find() replace null floats', () {
@@ -431,6 +435,8 @@ void main() {
 
     queryAndCheck(tDouble, 1337.0, 'null double');
     queryAndCheck(tFloat, 1337.0, 'null float');
+
+    queryIntegers.close();
   });
 
   test('.find() replace null strings', () {
@@ -441,6 +447,7 @@ void main() {
     final qp = queryFloats.stringProperty(tString);
     expect(qp.find(replaceNullWith: 't').first, 't');
     qp.close();
+    queryFloats.close();
   });
 
   test('.distinct, .count, .close property query', () {

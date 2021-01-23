@@ -1,12 +1,16 @@
 name: Build and test
 
-on: [push, pull_request]
+on: [ push, pull_request ]
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   generator:
     runs-on: ubuntu-20.04
     container:
-      image:  google/dart:latest
+      image: google/dart:latest
     steps:
       - uses: actions/checkout@v1
       - name: Install ObjectBox C-API
@@ -15,17 +19,32 @@ jobs:
         run: ./generator/test.sh
 
   lib:
-    needs: generator
     runs-on: ubuntu-20.04
     container:
-      image:  google/dart:latest
+      image: google/dart:latest
     steps:
       - uses: actions/checkout@v1
       - name: Install ObjectBox C-API
         run: ./install.sh
-      - name: Install dependencies
-        run: pub get
+      - run: pub get
       - name: Generate ObjectBox models
         run: pub run build_runner build
       - name: Run tests
         run: pub run test
+
+  valgrind:
+    runs-on: ubuntu-20.04
+    container:
+      image: google/dart:latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install ObjectBox C-API
+        run: ./install.sh
+      - run: pub get
+      - name: Generate ObjectBox models
+        run: pub run build_runner build
+      - name: Install Valgrind
+        run: |
+          apt update
+          apt install -y valgrind
+      - run: ./tool/valgrind.sh

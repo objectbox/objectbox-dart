@@ -41,6 +41,8 @@ void main() {
 
     expect(q.count(), 1);
     expect(q.findFirst().ignore, null);
+
+    q.close();
   });
 
   test('ignore multiple transient fields', () {
@@ -60,6 +62,8 @@ void main() {
     expect(q.count(), 1);
     expect(result.disregard, null);
     expect(result.omit, null);
+
+    q.close();
   });
 
   test('.null and .notNull', () {
@@ -290,11 +294,12 @@ void main() {
     box.put(TestEntity(tString: largeString));
     box.put(TestEntity(tString: largeString));
 
-    List<TestEntity> items =
-        box.query(TestEntity_.id.lessThan(3)).build().find();
+    final query = box.query(TestEntity_.id.lessThan(3)).build();
+    List<TestEntity> items = query.find();
     expect(items.length, 2);
     expect(items[0].tString, largeString);
     expect(items[1].tString, largeString);
+    query.close();
   });
 
   test('.remove deletes the right items', () {

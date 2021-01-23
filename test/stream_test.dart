@@ -47,6 +47,7 @@ void main() {
     expect(result, ['Hello world', 'for now, Goodbye, Hello world']);
 
     await subscription.cancel();
+    query.close();
   });
 
   test('Subscribe to stream of query', () async {
@@ -72,6 +73,7 @@ void main() {
     expect(result, [1, 3]);
 
     await subscription.cancel();
+    query.close();
   });
 
   test(

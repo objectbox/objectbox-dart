@@ -1,7 +1,7 @@
 # Default target executed when no arguments are given to make.
 default: all
 
-.PHONY: default help depend test publish integration-test
+.PHONY: default help depend test valgrind-test publish integration-test
 
 help:			## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -17,6 +17,10 @@ depend:			## Build dependencies
 test: 			## Test all targets
 	pub run build_runner build
 	pub run test
+
+valgrind-test: 		## Test all targets with valgrind
+	pub run build_runner build
+	./tool/valgrind.sh
 
 integration-test:	## Execute integration tests
 	cd example/flutter/objectbox_demo/						; \
