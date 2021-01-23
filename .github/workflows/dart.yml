@@ -19,18 +19,36 @@ jobs:
         run: ./generator/test.sh
 
   lib:
-    runs-on: ubuntu-20.04
-    container:
-      image: google/dart:latest
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+          - macos-10.15
+          - ubuntu-20.04
+        dart:
+          - 2.10.5
+          # - 2.9.3 - generator stuck. I remember there was an issue in some dependency but don't remember which one.
+          - 2.8.4
+          - 2.7.2
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      # Note: dart-sdk from flutter doesn't work on linux, see https://github.com/flutter/flutter/issues/74599
+      #      - uses: subosito/flutter-action@v1
+      #        with:
+      #          flutter-version: 1.22.x
+      #      - run: flutter --version
+      - uses: cedx/setup-dart@v2
+        with:
+          version: ${{ matrix.dart }}
+      - run: dart --version
+      - uses: actions/checkout@v2
       - name: Install ObjectBox C-API
         run: ./install.sh
-      - run: pub get
+      - run: ./tool/pub.sh get
       - name: Generate ObjectBox models
-        run: pub run build_runner build
+        run: ./tool/pub.sh run build_runner build
       - name: Run tests
-        run: pub run test
+        run: ./tool/pub.sh run test
 
   valgrind:
     runs-on: ubuntu-20.04

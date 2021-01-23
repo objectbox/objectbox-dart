@@ -6,7 +6,8 @@ description: ObjectBox is a super-fast NoSQL ACID compliant object database.
 
 environment:
   #  sdk: '>=2.12.0-0 <3.0.0'
-  sdk: '>=2.6.0 <3.0.0'
+  # min 2.7.0 because of ffigen
+  sdk: '>=2.7.0 <3.0.0'
 
 dependencies:
   collection: ^1.14.11
@@ -20,8 +21,8 @@ dev_dependencies:
   build_runner: ^1.0.0
   objectbox_generator:
     path: generator
-  pedantic: ^1.10.0-nullsafety.0
-  test: ^1.16.0-nullsafety.0
+  pedantic: ^1.9.0
+  test: ^1.0.0
   ffigen: ^1.1.0
   flat_buffers: 1.12.0
 
