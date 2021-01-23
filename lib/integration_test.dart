@@ -29,6 +29,6 @@ class IntegrationTest {
     modelInfo.validate();
 
     final model = Model(modelInfo);
-    checkObx(C.obx_model_free(model.ptr));
+    checkObx(C.model_free(model.ptr));
   }
 }

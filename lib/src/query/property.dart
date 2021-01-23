@@ -7,7 +7,7 @@ abstract class PropertyQuery<T> {
 
   PropertyQuery(Pointer<OBX_query> cQuery, int propertyId, this._type)
       : _cProp =
-            checkObxPtr(C.obx_query_prop(cQuery, propertyId), 'property query');
+            checkObxPtr(C.query_prop(cQuery, propertyId), 'property query');
 
   /// Returns values of this property matching the query.
   ///
@@ -16,7 +16,7 @@ abstract class PropertyQuery<T> {
   List<T> find({T /*?*/ replaceNullWith});
 
   void close() {
-    checkObx(C.obx_query_prop_close(_cProp));
+    checkObx(C.query_prop_close(_cProp));
   }
 
   bool get distinct => _distinct;
@@ -26,14 +26,14 @@ abstract class PropertyQuery<T> {
   /// E.g. 1,2,3 instead of 1,1,2,3,3,3. Strings default to case-insensitive comparision.
   set distinct(bool d) {
     _distinct = d;
-    checkObx(C.obx_query_prop_distinct(_cProp, d));
+    checkObx(C.query_prop_distinct(_cProp, d));
   }
 
   /// Returns the count of non-null values.
   int count() {
     final ptr = allocate<Uint64>(count: 1);
     try {
-      checkObx(C.obx_query_prop_count(_cProp, ptr));
+      checkObx(C.query_prop_count(_cProp, ptr));
       return ptr.value;
     } finally {
       free(ptr);
@@ -64,7 +64,7 @@ mixin _CommonNumeric<T> on PropertyQuery<T> {
   double average() {
     final ptr = allocate<Double>();
     try {
-      checkObx(C.obx_query_prop_avg(_cProp, ptr, nullptr));
+      checkObx(C.query_prop_avg(_cProp, ptr, nullptr));
       return ptr.value;
     } finally {
       free(ptr);
@@ -89,15 +89,15 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
   }
 
   int min() {
-    return _op(C.obx_query_prop_min_int);
+    return _op(C.query_prop_min_int);
   }
 
   int max() {
-    return _op(C.obx_query_prop_max_int);
+    return _op(C.query_prop_max_int);
   }
 
   int sum() {
-    return _op(C.obx_query_prop_sum_int);
+    return _op(C.query_prop_sum_int);
   }
 
   @override
@@ -109,38 +109,38 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
         final cDefault = _cDefault<Int8>(replaceNullWith);
         if (replaceNullWith != null) cDefault.value = replaceNullWith;
         return _find(
-            C.obx_query_prop_find_int8s,
+            C.query_prop_find_int8s,
             cDefault,
             (Pointer<OBX_int8_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
-            C.obx_int8_array_free);
+            C.int8_array_free);
       case OBXPropertyType.Short: // Int16
         final cDefault = _cDefault<Int16>(replaceNullWith);
         if (replaceNullWith != null) cDefault.value = replaceNullWith;
         return _find(
-            C.obx_query_prop_find_int16s,
+            C.query_prop_find_int16s,
             cDefault,
             (Pointer<OBX_int16_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
-            C.obx_int16_array_free);
+            C.int16_array_free);
       case OBXPropertyType.Int: // Int32
         final cDefault = _cDefault<Int32>(replaceNullWith);
         if (replaceNullWith != null) cDefault.value = replaceNullWith;
         return _find(
-            C.obx_query_prop_find_int32s,
+            C.query_prop_find_int32s,
             cDefault,
             (Pointer<OBX_int32_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
-            C.obx_int32_array_free);
+            C.int32_array_free);
       case OBXPropertyType.Long: // Int64
         final cDefault = _cDefault<Int64>(replaceNullWith);
         if (replaceNullWith != null) cDefault.value = replaceNullWith;
         return _find(
-            C.obx_query_prop_find_int64s,
+            C.query_prop_find_int64s,
             cDefault,
             (Pointer<OBX_int64_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
-            C.obx_int64_array_free);
+            C.int64_array_free);
       default:
         throw Exception(
             'Property query: unsupported type (OBXPropertyType: ${_type})');
@@ -165,15 +165,15 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
   }
 
   double min() {
-    return _op(C.obx_query_prop_min);
+    return _op(C.query_prop_min);
   }
 
   double max() {
-    return _op(C.obx_query_prop_max);
+    return _op(C.query_prop_max);
   }
 
   double sum() {
-    return _op(C.obx_query_prop_sum);
+    return _op(C.query_prop_sum);
   }
 
   @override
@@ -183,20 +183,20 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
         final cDefault = _cDefault<Float>(replaceNullWith);
         if (replaceNullWith != null) cDefault.value = replaceNullWith;
         return _find(
-            C.obx_query_prop_find_floats,
+            C.query_prop_find_floats,
             cDefault,
             (Pointer<OBX_float_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
-            C.obx_float_array_free);
+            C.float_array_free);
       case OBXPropertyType.Double:
         final cDefault = _cDefault<Double>(replaceNullWith);
         if (replaceNullWith != null) cDefault.value = replaceNullWith;
         return _find(
-            C.obx_query_prop_find_doubles,
+            C.query_prop_find_doubles,
             cDefault,
             (Pointer<OBX_double_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
-            C.obx_double_array_free);
+            C.double_array_free);
       default:
         throw Exception(
             'Property query: unsupported type (OBXPropertyType: ${_type})');
@@ -215,7 +215,7 @@ class StringPropertyQuery extends PropertyQuery<String> {
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
-    checkObx(C.obx_query_prop_distinct_case(_cProp, _distinct, _caseSensitive));
+    checkObx(C.query_prop_distinct_case(_cProp, _distinct, _caseSensitive));
   }
 
   bool get caseSensitive => _caseSensitive;
@@ -223,7 +223,7 @@ class StringPropertyQuery extends PropertyQuery<String> {
   @override
   set distinct(bool d) {
     _distinct = d;
-    checkObx(C.obx_query_prop_distinct_case(_cProp, d, _caseSensitive));
+    checkObx(C.query_prop_distinct_case(_cProp, d, _caseSensitive));
   }
 
   @override
@@ -233,10 +233,10 @@ class StringPropertyQuery extends PropertyQuery<String> {
         : Utf8.toUtf8(replaceNullWith).cast<Int8>();
 
     return _find(
-        C.obx_query_prop_find_strings,
+        C.query_prop_find_strings,
         cDefault,
         (Pointer<OBX_string_array> cItems) =>
             OBX_string_array_wrapper(cItems).items(),
-        C.obx_string_array_free);
+        C.string_array_free);
   }
 }

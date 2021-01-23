@@ -30,8 +30,8 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> /*?*/ ptr,
 
 ObjectBoxException latestNativeError(
     {String /*?*/ dartMsg, int codeIfMissing = OBX_ERROR_UNKNOWN}) {
-  final code = C.obx_last_error_code();
-  final text = cString(C.obx_last_error_message());
+  final code = C.last_error_code();
+  final text = cString(C.last_error_message());
 
   if (code == 0 && text.isEmpty) {
     return ObjectBoxException(
@@ -121,7 +121,7 @@ class CursorHelper {
 
   CursorHelper(Pointer<OBX_txn> txn, EntityDefinition entity, bool isWrite)
       : ptr = checkObxPtr(
-            C.obx_cursor(txn, entity.model.id.id), 'failed to create cursor') {
+            C.cursor(txn, entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {
       dataPtrPtr = allocate<Pointer<Void>>();
       sizePtr = allocate<IntPtr>();
@@ -134,6 +134,6 @@ class CursorHelper {
   void close() {
     if (dataPtrPtr != null) free(dataPtrPtr);
     if (sizePtr != null) free(sizePtr);
-    checkObx(C.obx_cursor_close(ptr));
+    checkObx(C.cursor_close(ptr));
   }
 }

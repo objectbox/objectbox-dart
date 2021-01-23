@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 void main() {
   // Prior to Dart 2.6, the exception wasn't accessible in the core so the text wasn't reported
   test('error reporting works', () {
-    final cStore = C.obx_store_open(ffi.nullptr);
+    final cStore = C.store_open(ffi.nullptr);
 
     // sanity check - the result is a null pointer
     expect(cStore,

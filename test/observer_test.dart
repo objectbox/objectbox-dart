@@ -47,8 +47,7 @@ class ObservableSingle {
     single = fn;
     final callback =
         Pointer.fromFunction<obx_observer_single_type>(_singleCallback);
-    observer =
-        C.obx_observe_single_type(store.ptr, entityId, callback, identifier);
+    observer = C.observe_single_type(store.ptr, entityId, callback, identifier);
   }
 }
 
@@ -67,7 +66,7 @@ class ObservableMany {
   void observe(Any fn, Pointer<Void> identifier) {
     any = fn;
     final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
-    observer = C.obx_observe(store.ptr, callback, identifier);
+    observer = C.observe(store.ptr, callback, identifier);
   }
 }
 
@@ -119,7 +118,7 @@ void main() async {
     simpleStringItems().forEach((i) => box.put(i));
     simpleNumberItems().forEach((i) => box.put(i));
 
-    C.obx_observer_close(ObservableMany.observer);
+    C.observer_close(ObservableMany.observer);
     expect(putCount, 13);
   });
 
@@ -134,14 +133,13 @@ void main() async {
     simpleStringItems().forEach((i) => box.put(i));
     simpleNumberItems().forEach((i) => box.put(i));
 
-    C.obx_observer_close(ObservableSingle.observer);
+    C.observer_close(ObservableSingle.observer);
     expect(putCount, 13);
   });
 
   test('Observe any entity with static callback', () async {
     final callback = Pointer.fromFunction<obx_observer>(callbackAnyType);
-    final observer =
-        C.obx_observe(store.ptr, callback, Pointer.fromAddress(1337));
+    final observer = C.observe(store.ptr, callback, Pointer.fromAddress(1337));
 
     box.putMany(simpleStringItems());
 
@@ -158,21 +156,21 @@ void main() async {
     box2.put(TestEntity2());
 
     expect(callbackAnyTypeCounter, 6);
-    C.obx_observer_close(observer);
+    C.observer_close(observer);
   });
 
   test('Observe single entity', () async {
     final callback =
         Pointer.fromFunction<obx_observer_single_type>(callbackSingleType);
     final observer =
-        C.obx_observe_single_type(store.ptr, testEntityId, callback, randomPtr);
+        C.observe_single_type(store.ptr, testEntityId, callback, randomPtr);
 
     box.putMany(simpleStringItems());
     simpleStringItems().forEach((i) => box.put(i));
     simpleNumberItems().forEach((i) => box.put(i));
 
     expect(callbackSingleTypeCounter, 13);
-    C.obx_observer_close(observer);
+    C.observer_close(observer);
   });
 
   tearDown(() {

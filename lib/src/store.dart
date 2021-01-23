@@ -44,33 +44,33 @@ class Store {
       int /*?*/ maxReaders}) {
     var model = Model(defs.model);
 
-    var opt = C.obx_opt();
+    var opt = C.opt();
     checkObxPtr(opt, 'failed to create store options');
 
     try {
-      checkObx(C.obx_opt_model(opt, model.ptr));
+      checkObx(C.opt_model(opt, model.ptr));
       if (directory != null && directory.isNotEmpty) {
         var cStr = Utf8.toUtf8(directory).cast<Int8>();
         try {
-          checkObx(C.obx_opt_directory(opt, cStr));
+          checkObx(C.opt_directory(opt, cStr));
         } finally {
           free(cStr);
         }
       }
       if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
-        C.obx_opt_max_db_size_in_kb(opt, maxDBSizeInKB);
+        C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
       }
       if (fileMode != null && fileMode >= 0) {
-        C.obx_opt_file_mode(opt, fileMode);
+        C.opt_file_mode(opt, fileMode);
       }
       if (maxReaders != null && maxReaders > 0) {
-        C.obx_opt_max_readers(opt, maxReaders);
+        C.opt_max_readers(opt, maxReaders);
       }
     } catch (e) {
-      C.obx_opt_free(opt);
+      C.opt_free(opt);
       rethrow;
     }
-    _cStore = C.obx_store_open(opt);
+    _cStore = C.store_open(opt);
 
     try {
       checkObxPtr(_cStore, 'failed to create store');
@@ -105,7 +105,7 @@ class Store {
     final listeners = StoreCloseObserver.removeAllListeners(this);
     listeners.forEach((listener) => listener());
 
-    checkObx(C.obx_store_close(_cStore));
+    checkObx(C.store_close(_cStore));
   }
 
   /// Returns a cached Box instance.
@@ -137,20 +137,20 @@ class Store {
   R runInTransactionWithPtr<R>(
       TxMode mode, R Function(Pointer<OBX_txn> txn) fn) {
     final write = mode == TxMode.Write;
-    final txn = write ? C.obx_txn_write(_cStore) : C.obx_txn_read(_cStore);
+    final txn = write ? C.txn_write(_cStore) : C.txn_read(_cStore);
     checkObxPtr(txn, 'failed to create transaction');
     try {
       if (write) {
-        checkObx(C.obx_txn_mark_success(txn, true));
+        checkObx(C.txn_mark_success(txn, true));
       }
       return fn(txn);
     } catch (ex) {
       if (write) {
-        checkObx(C.obx_txn_mark_success(txn, false));
+        checkObx(C.txn_mark_success(txn, false));
       }
       rethrow;
     } finally {
-      checkObx(C.obx_txn_close(txn));
+      checkObx(C.txn_close(txn));
     }
   }
 

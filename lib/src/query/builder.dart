@@ -3,8 +3,8 @@ part of query;
 // Construct a tree from the first condition object
 class QueryBuilder<T> extends _QueryBuilder<T> {
   QueryBuilder(Store store, EntityDefinition<T> entity, Condition /*?*/ qc)
-      : super(store, entity, qc,
-            C.obx_query_builder(store.ptr, entity.model.id.id));
+      : super(
+            store, entity, qc, C.query_builder(store.ptr, entity.model.id.id));
 
   Query<T> build() {
     _applyCondition();
@@ -18,7 +18,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
 
   QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
     _throwIfOtherEntity(p);
-    checkObx(C.obx_qb_order(_cBuilder, p._propertyId, flags));
+    checkObx(C.qb_order(_cBuilder, p._propertyId, flags));
     return this;
   }
 }
@@ -41,7 +41,7 @@ class _QueryBuilder<T> {
       : _store = srcQB._store,
         _entity = srcQB._store.entityDef<T>(),
         _cBuilder = checkObxPtr(
-            C.obx_qb_link_property(srcQB._cBuilder, relPropertyId),
+            C.qb_link_property(srcQB._cBuilder, relPropertyId),
             'failed to create QueryBuilder') {
     _applyCondition();
   }
@@ -50,21 +50,20 @@ class _QueryBuilder<T> {
       _QueryBuilder srcQB, int relId, this._queryCondition)
       : _store = srcQB._store,
         _entity = srcQB._store.entityDef<T>(),
-        _cBuilder = checkObxPtr(
-            C.obx_qb_link_standalone(srcQB._cBuilder, relId),
+        _cBuilder = checkObxPtr(C.qb_link_standalone(srcQB._cBuilder, relId),
             'failed to create QueryBuilder') {
     _applyCondition();
   }
 
   void _close() {
     _innerQBs.forEach((iqb) => iqb._close());
-    checkObx(C.obx_qb_close(_cBuilder));
+    checkObx(C.qb_close(_cBuilder));
     _cBuilder = null;
   }
 
   void _throwExceptionIfNecessary() {
-    if (C.obx_qb_error_code(_cBuilder) != OBX_SUCCESS) {
-      final msg = cString(C.obx_qb_error_message(_cBuilder));
+    if (C.qb_error_code(_cBuilder) != OBX_SUCCESS) {
+      final msg = cString(C.qb_error_message(_cBuilder));
       throw ObjectBoxException(
           dartMsg: 'Query building failed', nativeMsg: msg);
     }

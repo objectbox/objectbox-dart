@@ -39,7 +39,7 @@ class _Observable {
     final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
     final storePtr = store.ptr;
     _anyObserver[storePtr.address] =
-        C.obx_observe(storePtr, callback, storePtr.cast<Void>());
+        C.observe(storePtr, callback, storePtr.cast<Void>());
     StoreCloseObserver.addListener(store, _anyObserver[storePtr.address], () {
       unsubscribe(store);
     });
@@ -52,7 +52,7 @@ class _Observable {
       return;
     }
     StoreCloseObserver.removeListener(store, _anyObserver[storeAddress]);
-    C.obx_observer_close(_anyObserver[storeAddress]);
+    C.observer_close(_anyObserver[storeAddress]);
     _anyObserver.remove(storeAddress);
     syncOrObserversExclusive.unmark(store);
   }

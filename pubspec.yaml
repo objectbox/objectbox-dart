@@ -34,13 +34,16 @@ ffigen:
       - 'lib/src/bindings/objectbox.h'
     include-directives:
       - '**objectbox.h'
+  functions:
+    rename:
+      'obx_(.*)': '$1'
   enums:
     member-rename:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
   # add location to standard library imports, e.g. stddef.h
-  compiler-opts: '-I/usr/lib/clang/10.0.1/include'
+  compiler-opts: '-I/usr/lib/clang/11.0.1/include'
   typedef-map:
     'size_t': 'IntPtr'
   preamble: |
