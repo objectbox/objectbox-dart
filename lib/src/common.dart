@@ -21,7 +21,7 @@ Version versionLib() {
       patchPtr = allocate<Int32>();
 
   try {
-    bindings.obx_version(majorPtr, minorPtr, patchPtr);
+    C.obx_version(majorPtr, minorPtr, patchPtr);
     return Version(majorPtr.value, minorPtr.value, patchPtr.value);
   } finally {
     free(majorPtr);

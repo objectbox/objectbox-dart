@@ -159,7 +159,8 @@ class CodeBuilder extends Builder {
     }
 
     relInModel.name = rel.name;
-    relInModel.targetId = entityInModel.model.findEntityByName(rel.targetName).id;
+    relInModel.targetId =
+        entityInModel.model.findEntityByName(rel.targetName).id;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {

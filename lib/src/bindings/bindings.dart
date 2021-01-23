@@ -32,4 +32,4 @@ ObjectBoxC loadObjectBoxLib() {
 
 ObjectBoxC /*?*/ _cachedBindings;
 
-ObjectBoxC get bindings => _cachedBindings ??= loadObjectBoxLib();
+ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();

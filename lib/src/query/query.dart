@@ -363,10 +363,9 @@ class NullCondition extends Condition {
   int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.isNull:
-        return bindings.obx_qb_null(builder._cBuilder, _property._propertyId);
+        return C.obx_qb_null(builder._cBuilder, _property._propertyId);
       case ConditionOp.notNull:
-        return bindings.obx_qb_not_null(
-            builder._cBuilder, _property._propertyId);
+        return C.obx_qb_not_null(builder._cBuilder, _property._propertyId);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
     }
@@ -406,26 +405,26 @@ class StringCondition extends PropertyCondition<String> {
   int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.eq:
-        return _op1(builder, bindings.obx_qb_equals_string);
+        return _op1(builder, C.obx_qb_equals_string);
       case ConditionOp.notEq:
-        return _op1(builder, bindings.obx_qb_not_equals_string);
+        return _op1(builder, C.obx_qb_not_equals_string);
       case ConditionOp.contains:
         final cFn = (_property._type == OBXPropertyType.String)
-            ? bindings.obx_qb_contains_string
-            : bindings.obx_qb_any_equals_string;
+            ? C.obx_qb_contains_string
+            : C.obx_qb_any_equals_string;
         return _op1(builder, cFn);
       case ConditionOp.startsWith:
-        return _op1(builder, bindings.obx_qb_starts_with_string);
+        return _op1(builder, C.obx_qb_starts_with_string);
       case ConditionOp.endsWith:
-        return _op1(builder, bindings.obx_qb_ends_with_string);
+        return _op1(builder, C.obx_qb_ends_with_string);
       case ConditionOp.lt:
-        return _op1(builder, bindings.obx_qb_less_than_string);
+        return _op1(builder, C.obx_qb_less_than_string);
       case ConditionOp.lessOrEq:
-        return _op1(builder, bindings.obx_qb_less_or_equal_string);
+        return _op1(builder, C.obx_qb_less_or_equal_string);
       case ConditionOp.gt:
-        return _op1(builder, bindings.obx_qb_greater_than_string);
+        return _op1(builder, C.obx_qb_greater_than_string);
       case ConditionOp.greaterOrEq:
-        return _op1(builder, bindings.obx_qb_greater_or_equal_string);
+        return _op1(builder, C.obx_qb_greater_or_equal_string);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
     }
@@ -441,7 +440,7 @@ class StringListCondition extends PropertyCondition<List<String>> {
         super(op, prop, value);
 
   int _inside(_QueryBuilder builder) {
-    final func = bindings.obx_qb_in_strings;
+    final func = C.obx_qb_in_strings;
     final listLength = _value.length;
     final arrayOfCStrings = allocate<Pointer<Int8>>(count: listLength);
     try {
@@ -483,15 +482,15 @@ class IntegerCondition extends PropertyCondition<int> {
   int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.eq:
-        return _op1(builder, bindings.obx_qb_equals_int);
+        return _op1(builder, C.obx_qb_equals_int);
       case ConditionOp.notEq:
-        return _op1(builder, bindings.obx_qb_not_equals_int);
+        return _op1(builder, C.obx_qb_not_equals_int);
       case ConditionOp.gt:
-        return _op1(builder, bindings.obx_qb_greater_than_int);
+        return _op1(builder, C.obx_qb_greater_than_int);
       case ConditionOp.lt:
-        return _op1(builder, bindings.obx_qb_less_than_int);
+        return _op1(builder, C.obx_qb_less_than_int);
       case ConditionOp.between:
-        return bindings.obx_qb_between_2ints(
+        return C.obx_qb_between_2ints(
             builder._cBuilder, _property._propertyId, _value, _value2);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
@@ -531,11 +530,9 @@ class IntegerListCondition extends PropertyCondition<List<int>> {
       case ConditionOp.inside:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList(
-                builder, bindings.obx_qb_in_int32s, opListSetIndexInt32);
+            return _opList(builder, C.obx_qb_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList(
-                builder, bindings.obx_qb_in_int64s, opListSetIndexInt64);
+            return _opList(builder, C.obx_qb_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -544,10 +541,10 @@ class IntegerListCondition extends PropertyCondition<List<int>> {
         switch (_property._type) {
           case OBXPropertyType.Int:
             return _opList(
-                builder, bindings.obx_qb_not_in_int32s, opListSetIndexInt32);
+                builder, C.obx_qb_not_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
             return _opList(
-                builder, bindings.obx_qb_not_in_int64s, opListSetIndexInt64);
+                builder, C.obx_qb_not_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -570,13 +567,13 @@ class DoubleCondition extends PropertyCondition<double> {
   int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.gt:
-        return bindings.obx_qb_greater_than_double(
+        return C.obx_qb_greater_than_double(
             builder._cBuilder, _property._propertyId, _value);
       case ConditionOp.lt:
-        return bindings.obx_qb_less_than_double(
+        return C.obx_qb_less_than_double(
             builder._cBuilder, _property._propertyId, _value);
       case ConditionOp.between:
-        return bindings.obx_qb_between_2doubles(
+        return C.obx_qb_between_2doubles(
             builder._cBuilder, _property._propertyId, _value, _value2);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
@@ -603,15 +600,15 @@ class ByteVectorCondition extends PropertyCondition<Uint8List> {
   int apply(_QueryBuilder builder, bool isRoot) {
     switch (_op) {
       case ConditionOp.eq:
-        return _op1(builder, bindings.obx_qb_equals_bytes);
+        return _op1(builder, C.obx_qb_equals_bytes);
       case ConditionOp.lt:
-        return _op1(builder, bindings.obx_qb_less_than_bytes);
+        return _op1(builder, C.obx_qb_less_than_bytes);
       case ConditionOp.lessOrEq:
-        return _op1(builder, bindings.obx_qb_less_or_equal_bytes);
+        return _op1(builder, C.obx_qb_less_or_equal_bytes);
       case ConditionOp.gt:
-        return _op1(builder, bindings.obx_qb_greater_than_bytes);
+        return _op1(builder, C.obx_qb_greater_than_bytes);
       case ConditionOp.greaterOrEq:
-        return _op1(builder, bindings.obx_qb_greater_or_equal_bytes);
+        return _op1(builder, C.obx_qb_greater_or_equal_bytes);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
     }
@@ -660,11 +657,11 @@ class ConditionGroup extends Condition {
 }
 
 class ConditionGroupAny extends ConditionGroup {
-  ConditionGroupAny(conditions) : super(conditions, bindings.obx_qb_any);
+  ConditionGroupAny(conditions) : super(conditions, C.obx_qb_any);
 }
 
 class ConditionGroupAll extends ConditionGroup {
-  ConditionGroupAll(conditions) : super(conditions, bindings.obx_qb_all);
+  ConditionGroupAll(conditions) : super(conditions, C.obx_qb_all);
 }
 
 /// A repeatable Query returning the latest matching Objects.
@@ -680,7 +677,7 @@ class Query<T> {
   int get entityId => _entity.model.id.id;
 
   Query._(this.store, Pointer<OBX_query_builder> cBuilder, this._entity)
-      : _cQuery = checkObxPtr(bindings.obx_query(cBuilder), 'create query');
+      : _cQuery = checkObxPtr(C.obx_query(cBuilder), 'create query');
 
   /// Configure an [offset] for this query.
   ///
@@ -691,7 +688,7 @@ class Query<T> {
   /// Call with offset=0 to reset to the default behavior,
   /// i.e. starting from the first element.
   Query<T> offset(int offset) {
-    checkObx(bindings.obx_query_offset(_cQuery, offset));
+    checkObx(C.obx_query_offset(_cQuery, offset));
     return this;
   }
 
@@ -704,7 +701,7 @@ class Query<T> {
   /// Call with limit=0 to reset to the default behavior -
   /// zero limit means no limit applied.
   Query<T> limit(int limit) {
-    checkObx(bindings.obx_query_limit(_cQuery, limit));
+    checkObx(C.obx_query_limit(_cQuery, limit));
     return this;
   }
 
@@ -712,7 +709,7 @@ class Query<T> {
   int count() {
     final ptr = allocate<Uint64>();
     try {
-      checkObx(bindings.obx_query_count(_cQuery, ptr));
+      checkObx(C.obx_query_count(_cQuery, ptr));
       return ptr.value;
     } finally {
       free(ptr);
@@ -723,7 +720,7 @@ class Query<T> {
   int remove() {
     final ptr = allocate<Uint64>();
     try {
-      checkObx(bindings.obx_query_remove(_cQuery, ptr));
+      checkObx(C.obx_query_remove(_cQuery, ptr));
       return ptr.value;
     } finally {
       free(ptr);
@@ -733,7 +730,7 @@ class Query<T> {
   /// Close the query and free resources.
   // TODO Document wrap with closure to fake auto close
   void close() {
-    checkObx(bindings.obx_query_close(_cQuery));
+    checkObx(C.obx_query_close(_cQuery));
   }
 
   /// Finds Objects matching the query and returns the first result or null
@@ -758,15 +755,14 @@ class Query<T> {
     if (limit > 0) {
       this.limit(limit);
     }
-    final idArrayPtr =
-        checkObxPtr(bindings.obx_query_find_ids(_cQuery), 'find ids');
+    final idArrayPtr = checkObxPtr(C.obx_query_find_ids(_cQuery), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
           ? List<int>.empty()
           : idArray.ids.asTypedList(idArray.count).toList(growable: false);
     } finally {
-      bindings.obx_id_array_free(idArrayPtr);
+      C.obx_id_array_free(idArrayPtr);
     }
   }
 
@@ -783,8 +779,7 @@ class Query<T> {
     return store.runInTransaction(TxMode.Read, () {
       final collector = ObjectCollector<T>(store, _entity);
       try {
-        checkObx(bindings.obx_query_visit(
-            _cQuery, collector.fn, collector.userData));
+        checkObx(C.obx_query_visit(_cQuery, collector.fn, collector.userData));
       } finally {
         collector.close();
       }
@@ -794,12 +789,12 @@ class Query<T> {
 
   /// For internal testing purposes.
   String describe() {
-    return cString(bindings.obx_query_describe(_cQuery));
+    return cString(C.obx_query_describe(_cQuery));
   }
 
   /// For internal testing purposes.
   String describeParameters() {
-    return cString(bindings.obx_query_describe_params(_cQuery));
+    return cString(C.obx_query_describe_params(_cQuery));
   }
 
   /// Creates a property query for the given property [qp].

@@ -38,7 +38,7 @@ class Box<T> {
     _hasToOneRelations = _entity.model.properties
         .any((ModelProperty prop) => prop.type == OBXPropertyType.Relation);
     _hasToManyRelations = _entity.model.relations.isNotEmpty;
-    _cBox = bindings.obx_box(_store.ptr, _entity.model.id.id);
+    _cBox = C.obx_box(_store.ptr, _entity.model.id.id);
     checkObxPtr(_cBox, 'failed to create box');
   }
 
@@ -85,8 +85,8 @@ class Box<T> {
     final builder = BuilderWithCBuffer();
     try {
       id = _entity.objectToFB(object, builder.fbb);
-      final newId = bindings.obx_box_put_object4(_cBox,
-          builder.bufPtr.cast<Void>(), builder.fbb.size, _getOBXPutMode(mode));
+      final newId = C.obx_box_put_object4(_cBox, builder.bufPtr.cast<Void>(),
+          builder.fbb.size, _getOBXPutMode(mode));
       id = _handlePutObjectResult(object, id, newId);
     } finally {
       builder.close();
@@ -117,7 +117,7 @@ class Box<T> {
             final object = objects[i];
             builder.fbb.reset();
             final id = _entity.objectToFB(object, builder.fbb);
-            final newId = bindings.obx_cursor_put_object4(cursor.ptr,
+            final newId = C.obx_cursor_put_object4(cursor.ptr,
                 builder.bufPtr.cast<Void>(), builder.fbb.size, cMode);
             putIds[i] = _handlePutObjectResult(object, id, newId);
           }
@@ -153,7 +153,7 @@ class Box<T> {
     try {
       // get element with specified id from database
       return _store.runInTransaction(TxMode.Read, () {
-        final err = bindings.obx_box_get(_cBox, id, dataPtrPtr, sizePtr);
+        final err = C.obx_box_get(_cBox, id, dataPtrPtr, sizePtr);
         if (err == OBX_NOT_FOUND) {
           return null;
         }
@@ -180,7 +180,7 @@ class Box<T> {
       final cursor = CursorHelper(txn, _entity, false);
       try {
         for (var i = 0; i < ids.length; i++) {
-          final code = bindings.obx_cursor_get(
+          final code = C.obx_cursor_get(
               cursor.ptr, ids[i], cursor.dataPtrPtr, cursor.sizePtr);
           if (code != OBX_NOT_FOUND) {
             checkObx(code);
@@ -200,13 +200,13 @@ class Box<T> {
       final cursor = CursorHelper(txn, _entity, false);
       try {
         final result = <T>[];
-        var code = bindings.obx_cursor_first(
-            cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
+        var code =
+            C.obx_cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
         while (code != OBX_NOT_FOUND) {
           checkObx(code);
           result.add(_entity.objectFromFB(_store, cursor.readData));
-          code = bindings.obx_cursor_next(
-              cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
+          code =
+              C.obx_cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
         }
         return result;
       } finally {
@@ -224,7 +224,7 @@ class Box<T> {
   int count({int limit = 0}) {
     final count = allocate<Uint64>();
     try {
-      checkObx(bindings.obx_box_count(_cBox, limit, count));
+      checkObx(C.obx_box_count(_cBox, limit, count));
       return count.value;
     } finally {
       free(count);
@@ -235,7 +235,7 @@ class Box<T> {
   bool isEmpty() {
     final isEmpty = allocate<Uint8>();
     try {
-      checkObx(bindings.obx_box_is_empty(_cBox, isEmpty));
+      checkObx(C.obx_box_is_empty(_cBox, isEmpty));
       return isEmpty.value == 1;
     } finally {
       free(isEmpty);
@@ -246,7 +246,7 @@ class Box<T> {
   bool contains(int id) {
     final contains = allocate<Uint8>();
     try {
-      checkObx(bindings.obx_box_contains(_cBox, id, contains));
+      checkObx(C.obx_box_contains(_cBox, id, contains));
       return contains.value == 1;
     } finally {
       free(contains);
@@ -258,7 +258,7 @@ class Box<T> {
     final contains = allocate<Uint8>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(bindings.obx_box_contains_many(_cBox, ptr, contains));
+        checkObx(C.obx_box_contains_many(_cBox, ptr, contains));
         return contains.value == 1;
       });
     } finally {
@@ -269,7 +269,7 @@ class Box<T> {
   /// Removes (deletes) the Object with the ID [id]. Returns true if an entity was actually removed and false if no
   /// entity exists with the given ID.
   bool remove(int id) {
-    final err = bindings.obx_box_remove(_cBox, id);
+    final err = C.obx_box_remove(_cBox, id);
     if (err == OBX_NOT_FOUND) return false;
     checkObx(err); // throws on other errors
     return true;
@@ -280,7 +280,7 @@ class Box<T> {
     final countRemoved = allocate<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(bindings.obx_box_remove_many(_cBox, ptr, countRemoved));
+        checkObx(C.obx_box_remove_many(_cBox, ptr, countRemoved));
         return countRemoved.value;
       });
     } finally {
@@ -292,7 +292,7 @@ class Box<T> {
   int removeAll() {
     final removedItems = allocate<Uint64>();
     try {
-      checkObx(bindings.obx_box_remove_all(_cBox, removedItems));
+      checkObx(C.obx_box_remove_all(_cBox, removedItems));
       return removedItems.value;
     } finally {
       free(removedItems);

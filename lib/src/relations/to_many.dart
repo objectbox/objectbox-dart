@@ -169,12 +169,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
             if (count > 0) {
               // added
               if (id == 0) id = _box.put(object, mode: mode);
-              checkObx(bindings.obx_box_rel_put(
-                  _srcBox.ptr, _rel.id, _rel.objectId, id));
+              checkObx(
+                  C.obx_box_rel_put(_srcBox.ptr, _rel.id, _rel.objectId, id));
             } else {
               // removed
               if (id == 0) return;
-              checkObx(bindings.obx_box_rel_remove(
+              checkObx(C.obx_box_rel_remove(
                   _srcBox.ptr, _rel.id, _rel.objectId, id));
             }
           });
@@ -207,8 +207,8 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       _verifyAttached();
       switch (_rel.type) {
         case RelType.toMany:
-          __items = _getMany(() =>
-              bindings.obx_box_rel_get_ids(_box.ptr, _rel.id, _rel.objectId));
+          __items = _getMany(
+              () => C.obx_box_rel_get_ids(_box.ptr, _rel.id, _rel.objectId));
           break;
         default:
           throw UnimplementedError();
@@ -241,7 +241,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           final cursor = CursorHelper(txn, _entity, false);
           try {
             for (var i = 0; i < cIds.count; i++) {
-              final code = bindings.obx_cursor_get(
+              final code = C.obx_cursor_get(
                   cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
               if (code != OBX_NOT_FOUND) {
                 checkObx(code);
@@ -253,7 +253,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           }
         }
       } finally {
-        bindings.obx_id_array_free(cIdsPtr);
+        C.obx_id_array_free(cIdsPtr);
       }
       return result;
     });

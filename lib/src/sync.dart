@@ -83,8 +83,8 @@ class SyncClient {
 
     final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
     try {
-      _cSync = checkObxPtr(bindings.obx_sync(_store.ptr, cServerUri),
-          'failed to create sync client');
+      _cSync = checkObxPtr(
+          C.obx_sync(_store.ptr, cServerUri), 'failed to create sync client');
     } finally {
       free(cServerUri);
     }
@@ -96,7 +96,7 @@ class SyncClient {
   /// It can no longer be used afterwards, make a new sync client instead.
   /// Does nothing if this sync client has already been closed.
   void close() {
-    final err = bindings.obx_sync_close(_cSync);
+    final err = C.obx_sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
     StoreCloseObserver.removeListener(_store, this);
@@ -111,7 +111,7 @@ class SyncClient {
 
   /// Gets the current sync client state.
   SyncState state() {
-    final state = bindings.obx_sync_state(ptr);
+    final state = C.obx_sync_state(ptr);
     switch (state) {
       case OBXSyncState.CREATED:
         return SyncState.created;
@@ -137,7 +137,7 @@ class SyncClient {
   void setCredentials(SyncCredentials creds) {
     final cCreds = OBX_bytes_wrapper.managedCopyOf(creds._data, align: false);
     try {
-      checkObx(bindings.obx_sync_credentials(
+      checkObx(C.obx_sync_credentials(
           ptr,
           creds._type,
           creds._type == OBXSyncCredentialsType.NONE ? nullptr : cCreds.ptr,
@@ -164,7 +164,7 @@ class SyncClient {
       default:
         throw Exception('Unknown mode argument: ' + mode.toString());
     }
-    checkObx(bindings.obx_sync_request_updates_mode(ptr, cMode));
+    checkObx(C.obx_sync_request_updates_mode(ptr, cMode));
   }
 
   /// Once the sync client is configured, you can "start" it to initiate synchronization.
@@ -175,12 +175,12 @@ class SyncClient {
   /// increasing backoff intervals.
   /// If you haven't set the credentials in the options during construction, call [setCredentials()] before start().
   void start() {
-    checkObx(bindings.obx_sync_start(ptr));
+    checkObx(C.obx_sync_start(ptr));
   }
 
   /// Stops this sync client. Does nothing if it is already stopped.
   void stop() {
-    checkObx(bindings.obx_sync_stop(ptr));
+    checkObx(C.obx_sync_stop(ptr));
   }
 
   /// Request updates since we last synchronized our database.
@@ -189,13 +189,13 @@ class SyncClient {
   /// Call [cancelUpdates()] to stop the updates.
   bool requestUpdates(bool subscribeForFuturePushes) {
     return checkObxSuccess(
-        bindings.obx_sync_updates_request(ptr, subscribeForFuturePushes));
+        C.obx_sync_updates_request(ptr, subscribeForFuturePushes));
   }
 
   /// Cancel updates from the server so that it will stop sending updates.
   /// See also [requestUpdates()].
   bool cancelUpdates() {
-    return checkObxSuccess(bindings.obx_sync_updates_cancel(ptr));
+    return checkObxSuccess(C.obx_sync_updates_cancel(ptr));
   }
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
@@ -205,7 +205,7 @@ class SyncClient {
   int outgoingMessageCount({int limit = 0}) {
     final count = allocate<Uint64>();
     try {
-      checkObx(bindings.obx_sync_outgoing_message_count(ptr, limit, count));
+      checkObx(C.obx_sync_outgoing_message_count(ptr, limit, count));
       return count.value;
     } finally {
       free(count);
@@ -226,7 +226,7 @@ class Sync {
   static bool isAvailable() {
     // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_sync_available() exists.
     try {
-      _syncAvailable ??= bindings.obx_sync_available();
+      _syncAvailable ??= C.obx_sync_available();
     } catch (_) {
       _syncAvailable = false;
     }
