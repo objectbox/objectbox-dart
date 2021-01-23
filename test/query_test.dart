@@ -98,7 +98,6 @@ void main() {
     final d = TestEntity_.tDouble;
     final b = TestEntity_.tBool;
 
-    // #43 final anyQuery0 = (d.between(0.79, 0.81) & ((b == false) as Condition)) | (d.between(0.69, 0.71) & ((b == false) as Condition));
     final anyQuery0 = (d.between(0.79, 0.81) & b.equals(false) |
         (d.between(0.69, 0.71) & b.equals(false)));
     final anyQuery1 = (d.between(0.79, 0.81).and(b.equals(false)))
@@ -113,7 +112,6 @@ void main() {
         .or(d.between(0.69, 0.71))
         .and(b.equals(false));
 
-    // #43 final allQuery0 = d.between(0.09, 0.11) & ((b == true) as Condition);
     final allQuery0 = d.between(0.09, 0.11) & b.equals(true);
 
     final q0 = box.query(b.equals(false)).build();
@@ -331,7 +329,6 @@ void main() {
     final text = TestEntity_.tString;
     final number = TestEntity_.tLong;
 
-    // #43 Condition cond1 = ((text == 'Hello') as Condition) | ((number == 1337) as Condition);
     Condition cond1 = text.equals('Hello') | number.equals(1337);
     Condition cond2 = text.equals('Hello') | number.equals(1337);
     Condition cond3 =
@@ -343,11 +340,7 @@ void main() {
         .or(text.equals('Cruel'))
         .or(text.equals('World'));
     Condition cond5 = text.equals('bleh') & number.equals(-1337);
-    // #43 Condition cond6 = ((tString == 'Hello') as Condition) & ((tLong == 1337) as Condition);
     Condition cond6 = text.equals('Hello') & number.equals(1337);
-
-    // #43 final selfInference1 = (tString == 'Hello') & (tLong == 1337);
-    // #43 final selfInference2 = (tString == 'Hello') | (tLong == 1337);
 
     final q1 = box.query(cond1).build();
     final q2 = box.query(cond2).build();
@@ -355,8 +348,6 @@ void main() {
     final q4 = box.query(cond4).build();
     final q5 = box.query(cond5).build();
     final q6 = box.query(cond6).build();
-    // #43 final q7 = box.query(selfInference1 as Condition).build();
-    // #43 final q8 = box.query(selfInference2 as Condition).build();
 
     expect(q1.count(), 3);
     expect(q2.count(), 3);
@@ -364,10 +355,7 @@ void main() {
     expect(q4.count(), 3);
     expect(q5.count(), 1);
     expect(q6.count(), 0);
-    // #43 expect(q7.count(), 0);
-    // #43 expect(q8.count(), 3);
 
-    // #43 [q1, q2, q3, q4, q5, q6, q7, q8].forEach((q) => q.close());
     [q1, q2, q3, q4, q5, q6].forEach((q) => q.close());
   });
 

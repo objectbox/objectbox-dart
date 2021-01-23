@@ -126,9 +126,6 @@ class QueryStringProperty extends QueryProperty {
   Condition lessOrEqual(String p, {bool caseSensitive = false}) {
     return _op(p, ConditionOp.lessOrEq, caseSensitive);
   }
-
-//  Condition operator ==(String p) => equals(p); // see issue #43
-//  Condition operator != (String p) => notEqual(p); // not overloadable
 }
 
 class QueryByteVectorProperty extends QueryProperty {
@@ -209,9 +206,6 @@ class QueryIntegerProperty extends QueryProperty {
   Condition notIn(List<int> list) {
     return notInList(list);
   }
-
-// Condition operator != (int p) => notEqual(p); // not overloadable
-// Condition operator ==(int p) => equals(p); // see issue #43
 }
 
 class QueryDoubleProperty extends QueryProperty {
@@ -246,9 +240,6 @@ class QueryDoubleProperty extends QueryProperty {
   Condition operator <(double p) => lessThan(p);
 
   Condition operator >(double p) => greaterThan(p);
-
-// Note: currently not supported - override the operator and throw explicitly to prevent the default comparison.
-// void operator ==(double p) => DoubleCondition(ConditionOp.eq, this, null, null); // see issue #43
 }
 
 class QueryBooleanProperty extends QueryProperty {
@@ -265,8 +256,6 @@ class QueryBooleanProperty extends QueryProperty {
   Condition notEquals(bool p) {
     return IntegerCondition(ConditionOp.notEq, this, (p ? 1 : 0));
   }
-
-// Condition operator ==(bool p) => equals(p); // see issue #43
 }
 
 class QueryStringVectorProperty extends QueryProperty {
