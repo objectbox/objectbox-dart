@@ -82,15 +82,28 @@ class _Allocator extends fb.Allocator {
   @override
   void clear(ByteData data, bool _) {
     if (_memset == null) {
-      DynamicLibrary lib;
-      if (Platform.isWindows) {
-        // DynamicLibrary.process() is not available on Windows
-        lib = DynamicLibrary.open('msvcr100.dll');
-      } else {
-        lib = DynamicLibrary.process();
+      try {
+        DynamicLibrary lib;
+        if (Platform.isWindows) {
+          // DynamicLibrary.process() is not available on Windows, let's load a
+          // lib that defines 'memset()' it - should be mscvr100 or mscvrt DLL.
+          // mscvr100.dll is in the frequently installed MSVC Redistributable.
+          lib = DynamicLibrary.open('msvcr100.dll');
+        } else {
+          lib = DynamicLibrary.process();
+        }
+        _memset = lib.lookupFunction<
+            Void Function(Pointer<Void>, Int32, IntPtr),
+            _dart_memset>('memset');
+      } catch (_) {
+        // fall back if we can't load a native memset()
+        _memset = (Pointer<Void> ptr, int byte, int size) {
+          final bytes = ptr.cast<Uint8>();
+          for (var i = 0; i < size; i++) {
+            bytes[i] = byte;
+          }
+        };
       }
-      _memset = lib.lookupFunction<Void Function(Pointer<Void>, Int32, IntPtr),
-          _dart_memset>('memset');
     }
     _memset(_allocs[data].cast<Void>(), 0, data.lengthInBytes);
   }
