@@ -11,8 +11,18 @@ ObjectBoxC loadObjectBoxLib() {
   var libName = 'objectbox';
   if (Platform.isWindows) {
     libName += '.dll';
+    try {
+      lib = DynamicLibrary.open(libName);
+    } on ArgumentError {
+      lib = DynamicLibrary.open('lib/' + libName);
+    }
   } else if (Platform.isMacOS) {
     libName = 'lib' + libName + '.dylib';
+    try {
+      lib = DynamicLibrary.open(libName);
+    } on ArgumentError {
+      lib = DynamicLibrary.open('/usr/local/lib/' + libName);
+    }
   } else if (Platform.isIOS) {
     // this works in combination with `'OTHER_LDFLAGS' => '-framework ObjectBox'` in objectbox_flutter_libs.podspec
     lib = DynamicLibrary.process();

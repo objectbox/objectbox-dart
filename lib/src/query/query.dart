@@ -754,7 +754,7 @@ class Query<T> {
     try {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
-          ? List<int>.empty()
+          ? List<int>.filled(0, 0)
           : idArray.ids.asTypedList(idArray.count).toList(growable: false);
     } finally {
       C.id_array_free(idArrayPtr);
