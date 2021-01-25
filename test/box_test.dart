@@ -25,13 +25,17 @@ void main() {
     store = env.store;
   });
 
+  tearDown(() => env?.close());
+
   test('store box vending', () {
     final box1 = store.box<TestEntity>();
     expect(box1.isEmpty(), isTrue);
     int putId = env.box.put(TestEntity(tString: 'Hello'));
     expect(box1.get(putId).tString, equals('Hello'));
 
+    // All accesses to a box for a given entity return the same instance.
     expect(box1, equals(store.box<TestEntity>()));
+    expect(box1, equals(Box<TestEntity>(store)));
   });
 
   test('.put() returns a valid id', () {
@@ -458,9 +462,5 @@ void main() {
       });
       expect(ids.length, equals(6));
     });
-  });
-
-  tearDown(() {
-    env.close();
   });
 }

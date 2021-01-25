@@ -18,8 +18,7 @@ class BuilderWithCBuffer {
   Pointer<Uint8> get bufPtr => Pointer<Uint8>.fromAddress(
       _allocator.bufPtr.address + _allocator._capacity - _fbb.size);
 
-  BuilderWithCBuffer(
-      {int initialSize = 256, int resetIfLargerThan = 64 * 1024})
+  BuilderWithCBuffer({int initialSize = 256, int resetIfLargerThan = 64 * 1024})
       : _initialSize = initialSize,
         _resetIfLargerThan = resetIfLargerThan {
     _fbb = fb.Builder(initialSize: initialSize, allocator: _allocator);

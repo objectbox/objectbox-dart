@@ -25,7 +25,7 @@ final _boxes = <Store, Map<Type, Box>>{};
 
 // we need this to clear c-allocated memory in the BuilderWithCBuffer()
 void _closeStoreBoxes(Store store) {
-  _boxes[store].values.map((box) => box._builder.clear());
+  _boxes[store].values.forEach((box) => box._builder.clear());
 }
 
 /// A box to store objects of a particular class.
