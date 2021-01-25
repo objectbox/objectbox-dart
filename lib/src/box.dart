@@ -62,8 +62,8 @@ class Box<T> {
   }
 
   Box._(this._store) : _entity = _store.entityDef<T>() {
-    _hasToOneRelations = _entity.model.properties
-        .any((ModelProperty prop) => prop.type == OBXPropertyType.Relation);
+    _hasToOneRelations =
+        _entity.model.properties.any((ModelProperty prop) => prop.isRelation);
     _hasToManyRelations = _entity.model.relations.isNotEmpty ||
         _entity.model.backlinks.isNotEmpty;
     _cBox = C.box(_store.ptr, _entity.model.id.id);

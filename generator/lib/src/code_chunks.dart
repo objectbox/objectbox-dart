@@ -280,7 +280,7 @@ class CodeChunks {
 
       var propCode =
           'static final ${propertyFieldName(prop)} = Query${fieldType}Property';
-      if (prop.type == OBXPropertyType.Relation) {
+      if (prop.isRelation) {
         propCode += '<${entity.name}, ${prop.relationTarget}>'
             '(targetEntityId: ${entity.model.findEntityByName(prop.relationTarget).id.id}, '
             'sourceEntityId:';

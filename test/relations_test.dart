@@ -409,15 +409,15 @@ void main() {
       var newA = RelatedEntityA(tInt: 4);
       expect(newA.testEntities.length, isZero);
       newA.testEntities.add(env.box.get(1)); // foo
-      newA.testEntities.add(TestEntity(tString: 'newly created from B'));
+      newA.testEntities.add(TestEntity(tString: 'newly created from A'));
       boxA.put(newA);
       expect(newA.testEntities[0].id, 1);
       expect(newA.testEntities[1].id, 4);
 
-      expect(env.box.get(4).tString, equals('newly created from B'));
+      expect(env.box.get(4).tString, equals('newly created from A'));
       newA = boxA.get(newA.id);
       expect(newA.testEntities.map(strings),
-          unorderedEquals(['foo', 'newly created from B']));
+          unorderedEquals(['foo', 'newly created from A']));
 
       // The previous put also affects TestEntity(foo) - added target (tInt=4).
       expect(env.box.get(1).relManyA.map(toInt), unorderedEquals([1, 2, 4]));

@@ -145,8 +145,6 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// True if there are any changes not yet saved in DB.
   bool get _hasPendingDbChanges => _counts.values.any((c) => c != 0);
 
-  // bool get _hasPendingDbChanges => _added.isNotEmpty || _removed.isNotEmpty;
-
   /// Save changes made to this ToMany relation to the database. Alternatively,
   /// you can call box.put(object), its relations are automatically saved.
   ///

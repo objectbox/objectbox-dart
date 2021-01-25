@@ -81,7 +81,7 @@ class Model {
       _check(
           C.model_property(_cModel, name, prop.type, prop.id.id, prop.id.uid));
 
-      if (prop.type == OBXPropertyType.Relation) {
+      if (prop.isRelation) {
         var relTarget = Utf8.toUtf8(prop.relationTarget /*!*/).cast<Int8>();
         try {
           _check(C.model_property_relation(_cModel, relTarget,
