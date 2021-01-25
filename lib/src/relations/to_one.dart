@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
