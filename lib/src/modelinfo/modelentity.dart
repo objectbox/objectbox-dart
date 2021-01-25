@@ -4,6 +4,7 @@ import 'iduid.dart';
 import 'modelinfo.dart';
 import 'modelproperty.dart';
 import 'modelrelation.dart';
+import 'modelbacklink.dart';
 
 /// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
 /// information: id, name and last property id.
@@ -16,6 +17,7 @@ class ModelEntity {
   int _flags = 0;
   final _properties = <ModelProperty>[];
   final _relations = <ModelRelation>[];
+  final _backlinks = <ModelBacklink>[];
   ModelProperty /*?*/ _idProperty;
   final ModelInfo /*?*/ _model;
 
@@ -51,6 +53,8 @@ class ModelEntity {
 
   List<ModelRelation> get relations => _relations;
 
+  List<ModelBacklink> get backlinks => _backlinks;
+
   ModelEntity(this.id, String /*?*/ name, this._model) {
     this.name = name;
     validate();
@@ -72,6 +76,12 @@ class ModelEntity {
     if (data['relations'] != null) {
       for (final p in data['relations']) {
         _relations.add(ModelRelation.fromMap(p));
+      }
+    }
+
+    if (data['backlinks'] != null) {
+      for (final p in data['backlinks']) {
+        _backlinks.add(ModelBacklink.fromMap(p));
       }
     }
 
@@ -133,6 +143,9 @@ class ModelEntity {
         properties.map((p) => p.toMap(forModelJson: forModelJson)).toList();
     ret['relations'] =
         relations.map((r) => r.toMap(forModelJson: forModelJson)).toList();
+    if (!forModelJson) {
+      ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
+    }
     return ret;
   }
 
@@ -141,7 +154,7 @@ class ModelEntity {
     return idx == -1 ? null : properties[idx];
   }
 
-  ModelProperty /*?*/ _findPropertyByName(String name) {
+  ModelProperty /*?*/ findPropertyByName(String name) {
     final found = properties
         .where((p) => p.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -156,7 +169,7 @@ class ModelEntity {
   ModelProperty /*?*/ findSameProperty(ModelProperty other) {
     ModelProperty /*?*/ ret;
     if (other.id.uid != 0) ret = _findPropertyByUid(other.id.uid);
-    return ret ??= _findPropertyByName(other.name);
+    return ret ??= findPropertyByName(other.name);
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {

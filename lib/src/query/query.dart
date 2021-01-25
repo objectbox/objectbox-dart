@@ -270,22 +270,30 @@ class QueryStringVectorProperty extends QueryProperty {
   }
 }
 
-class QueryRelationProperty<Target> extends QueryIntegerProperty {
+class QueryRelationProperty<Source, Target> extends QueryIntegerProperty {
+  final int _targetEntityId;
+
   QueryRelationProperty(
-      {/*required*/ int entityId,
+      {/*required*/ int sourceEntityId,
+      /*required*/ int targetEntityId,
       /*required*/ int propertyId,
       /*required*/ int obxType})
-      : super(entityId: entityId, propertyId: propertyId, obxType: obxType);
+      : _targetEntityId = targetEntityId,
+        super(
+            entityId: sourceEntityId, propertyId: propertyId, obxType: obxType);
 }
 
-class QueryRelationMany<Target> {
+class QueryRelationMany<Source, Target> {
   final int _entityId;
+  final int _targetEntityId;
   final int _relationId;
 
   QueryRelationMany(
-      {/*required*/ int entityId,
+      {/*required*/ int sourceEntityId,
+      /*required*/ int targetEntityId,
       /*required*/ int relationId})
-      : _entityId = entityId,
+      : _entityId = sourceEntityId,
+        _targetEntityId = targetEntityId,
         _relationId = relationId;
 }
 

@@ -98,6 +98,8 @@ class ModelProperty {
         hasFlag(OBXPropertyFlags.INDEX_HASH64);
   }
 
+  bool get isRelation => type == OBXPropertyType.Relation;
+
   void removeIndex() {
     if (_indexId != null) {
       entity.model.retiredIndexUids.add(_indexId.uid);

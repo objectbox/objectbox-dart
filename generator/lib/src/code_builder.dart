@@ -203,6 +203,9 @@ class CodeBuilder extends Builder {
       entityInModel.removeRelation(p);
     });
 
+    // Only for code generator, backlinks are not actually in model JSON.
+    entityInModel.backlinks.addAll(entity.backlinks);
+
     return entityInModel.id;
   }
 }

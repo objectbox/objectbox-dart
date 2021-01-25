@@ -47,11 +47,13 @@ import '../store.dart';
 class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /*late final*/ Store _store;
 
+  /// Standard direction: target box; backlinks: source box.
   /*late final*/
   Box<EntityT> _box;
 
+  /// Standard direction: source box; backlinks: target box.
   /*late final*/
-  Box _srcBox;
+  Box _otherBox;
 
   /*late final*/
   EntityDefinition<EntityT> _entity;
@@ -141,10 +143,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       _items.toList(growable: growable);
 
   /// True if there are any changes not yet saved in DB.
-  bool get _hasPendingDbChanges =>
-      _counts.values.where((c) => c != 0).isNotEmpty;
-
-  // bool get _hasPendingDbChanges => _added.isNotEmpty || _removed.isNotEmpty;
+  bool get _hasPendingDbChanges => _counts.values.any((c) => c != 0);
 
   /// Save changes made to this ToMany relation to the database. Alternatively,
   /// you can call box.put(object), its relations are automatically saved.
@@ -160,38 +159,59 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       throw StateError("Relation info not initialized, can't applyToDb()");
     }
 
-    switch (_rel.type) {
-      case RelType.toMany:
-        _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
-          _counts.forEach((EntityT object, count) {
-            if (count == 0) return;
-            var id = _entity.getId(object) ?? 0;
-            if (count > 0) {
-              // added
+    if (_rel.objectId == 0) {
+      // This shouldn't happen but let's be a little paranoid.
+      throw Exception(
+          "Can't store relation info for the target object with zero ID");
+    }
+
+    _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
+      _counts.forEach((EntityT object, count) {
+        if (count == 0) return;
+        final add = count > 0; // otherwise: remove
+        var id = _entity.getId(object) ?? 0;
+
+        switch (_rel.type) {
+          case RelType.toMany:
+            if (add) {
               if (id == 0) id = _box.put(object, mode: mode);
-              checkObx(C.box_rel_put(_srcBox.ptr, _rel.id, _rel.objectId, id));
+              checkObx(
+                  C.box_rel_put(_otherBox.ptr, _rel.id, _rel.objectId, id));
             } else {
-              // removed
               if (id == 0) return;
               checkObx(
-                  C.box_rel_remove(_srcBox.ptr, _rel.id, _rel.objectId, id));
+                  C.box_rel_remove(_otherBox.ptr, _rel.id, _rel.objectId, id));
             }
-          });
-        });
-        break;
-      default:
-        throw UnimplementedError();
-    }
+            break;
+          case RelType.toOneBacklink:
+            final srcField = _rel.toOneSourceField(object);
+            srcField.targetId = add ? _rel.objectId : null;
+            _box.put(object, mode: mode);
+            break;
+          case RelType.toManyBacklink:
+            if (add) {
+              if (id == 0) id = _box.put(object, mode: mode);
+              checkObx(C.box_rel_put(_box.ptr, _rel.id, id, _rel.objectId));
+            } else {
+              if (id == 0) return;
+              checkObx(C.box_rel_remove(_box.ptr, _rel.id, id, _rel.objectId));
+            }
+            break;
+          default:
+            throw UnimplementedError();
+        }
+      });
+    });
 
     _counts.clear();
   }
 
-  void _setRelInfo(Store store, RelInfo rel, Box srcBox) {
+  void _setRelInfo(Store store, RelInfo rel, Box otherBox) {
     _store = store;
     _box = store.box<EntityT>();
     _entity = store.entityDef<EntityT>();
     _rel = rel;
-    _srcBox = srcBox;
+    _otherBox = otherBox;
   }
 
   List<EntityT> get _items => __items ??= _loadItems();
@@ -207,6 +227,14 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         case RelType.toMany:
           __items = _getMany(
               () => C.box_rel_get_ids(_box.ptr, _rel.id, _rel.objectId));
+          break;
+        case RelType.toOneBacklink:
+          __items = _getMany(
+              () => C.box_get_backlink_ids(_box.ptr, _rel.id, _rel.objectId));
+          break;
+        case RelType.toManyBacklink:
+          __items = _getMany(() =>
+              C.box_rel_get_backlink_ids(_box.ptr, _rel.id, _rel.objectId));
           break;
         default:
           throw UnimplementedError();

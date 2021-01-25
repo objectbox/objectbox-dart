@@ -162,6 +162,9 @@ class RelatedEntityA {
   bool tBool;
   final relB = ToOne<RelatedEntityB>();
 
+  @Backlink('relManyA')
+  final testEntities = ToMany<TestEntity>();
+
   RelatedEntityA({this.id, this.tInt, this.tBool});
 }
 
@@ -174,6 +177,9 @@ class RelatedEntityB {
   double tDouble;
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();
+
+  @Backlink()
+  final testEntities = ToMany<TestEntity>();
 
   RelatedEntityB({this.id, this.tString, this.tDouble});
 }

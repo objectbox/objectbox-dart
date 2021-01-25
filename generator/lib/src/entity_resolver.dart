@@ -27,6 +27,7 @@ class EntityResolver extends Builder {
   final _syncChecker = const TypeChecker.fromRuntime(obx.Sync);
   final _uniqueChecker = const TypeChecker.fromRuntime(obx.Unique);
   final _indexChecker = const TypeChecker.fromRuntime(obx.Index);
+  final _backlinkChecker = const TypeChecker.fromRuntime(obx.Backlink);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -155,7 +156,20 @@ class EntityResolver extends Builder {
         relTargetName = (f.type as ParameterizedType).typeArguments[0].name;
       }
 
-      if (isToManyRel) {
+      if (_backlinkChecker.hasAnnotationOfExact(f)) {
+        if (!isToManyRel) {
+          log.severe(
+              '  invalid use of @Backlink() annotation - may only be used on a ToMany<> field');
+          continue;
+        }
+        final backlinkField = _backlinkChecker
+            .firstAnnotationOfExact(f)
+            .getField('to')
+            .toStringValue();
+        final backlink = ModelBacklink(f.name, relTargetName, backlinkField);
+        entity.backlinks.add(backlink);
+        log.info('  ${backlink}');
+      } else if (isToManyRel) {
         // create relation
         final rel =
             ModelRelation(IdUid.empty(), f.name, targetName: relTargetName);

@@ -119,3 +119,37 @@ enum IndexType {
 class Unique {
   const Unique();
 }
+
+/// Defines a relation backlink, reversing the direction of another relation.
+/// This works as an "updatable view" of the original relation, and doesn't
+/// cause any more data to be stored in the database. Changes made to the
+/// backlink relation are reflected in the original direction.
+///
+/// Example - backlink based on a [ToOne] relation:
+/// ```dart
+/// class Order {
+///   final customer = ToOne<Customer>();
+/// }
+/// class Customer {
+///   @Backlink()
+///   final orders = ToMany<Customer>();
+/// }
+/// ```
+///
+/// Example - backlink based on a [ToMany] relation:
+/// ```dart
+/// class Student {
+///   final teachers = ToMany<Teacher>();
+/// }
+/// class Teacher {
+///   @Backlink()
+///   final students = ToMany<Student>();
+/// }
+/// ```
+class Backlink {
+  final String to;
+
+  /// If there are multiple relations pointing to the current entity, specify
+  /// the field name of the desired source relation: Backlink('sourceField').
+  const Backlink([this.to = '']);
+}
