@@ -325,15 +325,18 @@ class Box<T> {
       rel.attach(_store);
       // put new objects
       if (rel.targetId == 0) {
-        rel.targetId = rel.internalTargetBox._put(rel.target, mode, true);
+        rel.targetId =
+            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, true);
       }
     });
   }
 
   void _putToManyRelFields(T object, PutMode mode) {
     _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
-      rel.internalSetRelInfo(_store, info, this);
-      rel.applyToDb(mode: mode);
+      if (InternalToManyAccess.hasPendingDbChanges(rel)) {
+        InternalToManyAccess.setRelInfo(rel, _store, info, this);
+        rel.applyToDb(mode: mode);
+      }
     });
   }
 }

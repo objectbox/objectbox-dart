@@ -12,7 +12,8 @@ export 'src/model.dart';
 export 'src/modelinfo/index.dart';
 export 'src/query/query.dart';
 export 'src/relations/info.dart';
-export 'src/relations/to_one.dart';
-export 'src/relations/to_many.dart' hide InternalToManyTestAccess;
+export 'src/relations/to_one.dart' hide InternalToOneAccess;
+export 'src/relations/to_many.dart'
+    hide InternalToManyAccess, InternalToManyTestAccess;
 export 'src/store.dart';
 export 'src/sync.dart';

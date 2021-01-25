@@ -186,8 +186,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     _counts.clear();
   }
 
-  /// Internal only, may change at any point.
-  void internalSetRelInfo(Store store, RelInfo rel, Box srcBox) {
+  void _setRelInfo(Store store, RelInfo rel, Box srcBox) {
     _store = store;
     _box = store.box<EntityT>();
     _entity = store.entityDef<EntityT>();
@@ -259,7 +258,17 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 }
 
-@internal
+class InternalToManyAccess {
+  // TODO enable annotation once meta:1.3.0 is out
+  // @internal
+  static bool hasPendingDbChanges(ToMany toMany) => toMany._hasPendingDbChanges;
+
+  static void setRelInfo(ToMany toMany, Store store, RelInfo rel, Box srcBox) =>
+      toMany._setRelInfo(store, rel, srcBox);
+}
+
+// TODO enable annotation once meta:1.3.0 is out
+// @internal
 @visibleForTesting
 class InternalToManyTestAccess<EntityT> {
   final ToMany<EntityT> _rel;

@@ -15,6 +15,7 @@ class CodeChunks {
     import 'package:objectbox/objectbox.dart';
     import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
+    import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
     import '${imports.join("';\n import '")}';
     
     ModelDefinition getObjectBoxModel() {
@@ -152,7 +153,7 @@ class CodeChunks {
     });
 
     final relsCode = entity.relations.map((ModelRelation rel) =>
-        "object.${rel.name}.internalSetRelInfo(store, ${relInfo(entity, rel)}, store.box<${entity.name}>());");
+        "InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());");
 
     return '''(Store store, Uint8List fbData) {
       final buffer = fb.BufferContext.fromBytes(fbData);

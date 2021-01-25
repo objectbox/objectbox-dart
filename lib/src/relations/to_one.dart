@@ -48,7 +48,8 @@ import '../store.dart';
 class ToOne<EntityT> {
   /*late final*/ Store _store;
 
-  /*late final*/ Box<EntityT> _box;
+  /*late final*/
+  Box<EntityT> _box;
 
   /*late final*/
   EntityDefinition<EntityT> _entity;
@@ -119,13 +120,6 @@ class ToOne<EntityT> {
     _entity = store.entityDef<EntityT>();
   }
 
-  /// Internal only, may change at any point.
-  @internal
-  Box<EntityT> get internalTargetBox {
-    _verifyAttached();
-    return _box;
-  }
-
   bool get _attached => _store != null;
 
   void _verifyAttached() {
@@ -171,4 +165,11 @@ class _ToOneValue<EntityT> {
       : this._(_ToOneState.unresolvable, id, null);
 
   const _ToOneValue._(this._state, this._id, this._object);
+}
+
+class InternalToOneAccess {
+  static Box targetBox(ToOne toOne) {
+    toOne._verifyAttached();
+    return toOne._box;
+  }
 }
