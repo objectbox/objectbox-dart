@@ -14,7 +14,7 @@ import 'transaction.dart';
 /// specific type.
 class Store {
   /*late final*/ Pointer<OBX_store> _cStore;
-  final ModelDefinition defs;
+  final ModelDefinition _defs;
 
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file.
@@ -32,12 +32,12 @@ class Store {
   /// ```
   ///
   /// See our examples for more details.
-  Store(this.defs,
+  Store(this._defs,
       {String /*?*/ directory,
       int /*?*/ maxDBSizeInKB,
       int /*?*/ fileMode,
       int /*?*/ maxReaders}) {
-    var model = Model(defs.model);
+    var model = Model(_defs.model);
 
     var opt = C.opt();
     checkObxPtr(opt, 'failed to create store options');
@@ -104,14 +104,6 @@ class Store {
   /// Returns a cached Box instance.
   Box<T> box<T>() => Box<T>(this);
 
-  EntityDefinition<T> entityDef<T>() {
-    final binding = defs.bindings[T];
-    if (binding == null) {
-      throw ArgumentError('Unknown entity type ' + T.toString());
-    }
-    return binding /*!*/ as EntityDefinition<T>;
-  }
-
   /// Executes a given function inside a transaction.
   ///
   /// Returns type of [fn] if [return] is called in [fn].
@@ -124,4 +116,16 @@ class Store {
 
   /// The low-level pointer to this store.
   Pointer<OBX_store> get ptr => _cStore;
+}
+
+// TODO enable annotation once meta:1.3.0 is out
+// @internal
+class InternalStoreAccess {
+  static EntityDefinition<T> entityDef<T>(Store store) {
+    final binding = store._defs.bindings[T];
+    if (binding == null) {
+      throw ArgumentError('Unknown entity type ' + T.toString());
+    }
+    return binding /*!*/ as EntityDefinition<T>;
+  }
 }

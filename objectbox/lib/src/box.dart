@@ -62,7 +62,7 @@ class Box<T> {
     return storeBoxes[T];
   }
 
-  Box._(this._store) : _entity = _store.entityDef<T>() {
+  Box._(this._store) : _entity = InternalStoreAccess.entityDef<T>(_store) {
     _hasToOneRelations =
         _entity.model.properties.any((ModelProperty prop) => prop.isRelation);
     _hasToManyRelations = _entity.model.relations.isNotEmpty ||

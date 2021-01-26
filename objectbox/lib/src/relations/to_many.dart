@@ -215,7 +215,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   void _setRelInfo(Store store, RelInfo rel, Box otherBox) {
     _store = store;
     _box = store.box<EntityT>();
-    _entity = store.entityDef<EntityT>();
+    _entity = InternalStoreAccess.entityDef<EntityT>(_store);
     _rel = rel;
     _otherBox = otherBox;
   }

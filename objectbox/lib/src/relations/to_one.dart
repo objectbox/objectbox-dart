@@ -115,7 +115,7 @@ class ToOne<EntityT> {
     if (_store == store) return;
     _store = store;
     _box = store.box<EntityT>();
-    _entity = store.entityDef<EntityT>();
+    _entity = InternalStoreAccess.entityDef<EntityT>(_store);
   }
 
   bool get _attached => _store != null;

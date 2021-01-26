@@ -38,7 +38,7 @@ class _QueryBuilder<T> {
 
   _QueryBuilder._link(_QueryBuilder srcQB, this._queryCondition, this._cBuilder)
       : _store = srcQB._store,
-        _entity = srcQB._store.entityDef<T>() {
+        _entity = InternalStoreAccess.entityDef<T>(srcQB._store) {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
     _applyCondition();
   }

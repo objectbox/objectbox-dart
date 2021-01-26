@@ -15,6 +15,6 @@ export 'src/relations/info.dart';
 export 'src/relations/to_one.dart' hide InternalToOneAccess;
 export 'src/relations/to_many.dart'
     hide InternalToManyAccess, InternalToManyTestAccess;
-export 'src/store.dart';
+export 'src/store.dart' hide InternalStoreAccess;
 export 'src/sync.dart';
 export 'src/transaction.dart' show TxMode;
