@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
+import '../store.dart';
 import 'bindings.dart';
 import '../annotations.dart';
 import '../common.dart';
@@ -111,6 +112,8 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
 }
 
 class CursorHelper {
+  final EntityDefinition _entity;
+  final Store _store;
   final Pointer<OBX_cursor> ptr;
 
   /*late final*/
@@ -119,21 +122,34 @@ class CursorHelper {
   /*late final*/
   Pointer<IntPtr> sizePtr;
 
-  CursorHelper(Pointer<OBX_txn> txn, EntityDefinition entity, bool isWrite)
+  bool _closed = false;
+
+  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity, bool isWrite)
       : ptr = checkObxPtr(
-            C.cursor(txn, entity.model.id.id), 'failed to create cursor') {
+            C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {
-      dataPtrPtr = allocate<Pointer<Void>>();
-      sizePtr = allocate<IntPtr>();
+      dataPtrPtr = allocate();
+      sizePtr = allocate();
     }
   }
 
   Uint8List get readData =>
       dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value);
 
+  EntityDefinition get entity => _entity;
+
   void close() {
+    if (_closed) return;
+    _closed = true;
     if (dataPtrPtr != null) free(dataPtrPtr);
     if (sizePtr != null) free(sizePtr);
     checkObx(C.cursor_close(ptr));
+  }
+
+  T /*?*/ get<T>(int id) {
+    final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
+    if (code == OBX_NOT_FOUND) return null;
+    checkObx(code);
+    return _entity.objectFromFB(_store, readData);
   }
 }

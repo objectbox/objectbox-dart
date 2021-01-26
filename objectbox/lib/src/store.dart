@@ -8,11 +8,7 @@ import 'model.dart';
 import 'common.dart';
 import 'util.dart';
 import 'sync.dart';
-
-enum TxMode {
-  Read,
-  Write,
-}
+import 'transaction.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow getting and putting Objects of
 /// specific type.
@@ -119,32 +115,8 @@ class Store {
   /// Executes a given function inside a transaction.
   ///
   /// Returns type of [fn] if [return] is called in [fn].
-  R runInTransaction<R>(TxMode mode, R Function() fn) {
-    return runInTransactionWithPtr(mode, (txn) => fn());
-  }
-
-  /// Executes a given function inside a transaction.
-  ///
-  /// Returns type of [fn] if [return] is called in [fn].
-  R runInTransactionWithPtr<R>(
-      TxMode mode, R Function(Pointer<OBX_txn> txn) fn) {
-    final write = mode == TxMode.Write;
-    final txn = write ? C.txn_write(_cStore) : C.txn_read(_cStore);
-    checkObxPtr(txn, 'failed to create transaction');
-    try {
-      if (write) {
-        checkObx(C.txn_mark_success(txn, true));
-      }
-      return fn(txn);
-    } catch (ex) {
-      if (write) {
-        checkObx(C.txn_mark_success(txn, false));
-      }
-      rethrow;
-    } finally {
-      checkObx(C.txn_close(txn));
-    }
-  }
+  R runInTransaction<R>(TxMode mode, R Function() fn) =>
+      Transaction.execute(this, mode, fn);
 
   /// Return an existing SyncClient associated with the store or null if not available.
   /// See [Sync.client()] to create one first.

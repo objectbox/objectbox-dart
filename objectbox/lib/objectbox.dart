@@ -17,3 +17,4 @@ export 'src/relations/to_many.dart'
     hide InternalToManyAccess, InternalToManyTestAccess;
 export 'src/store.dart';
 export 'src/sync.dart';
+export 'src/transaction.dart' show TxMode;

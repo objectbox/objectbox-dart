@@ -9,6 +9,7 @@ import 'info.dart';
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
+import '../transaction.dart';
 
 /// Manages a to-many relation, an unidirectional link from a "source" entity to
 /// multiple objects of a "target" entity.
@@ -151,7 +152,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// If this collection contains new objects (with zero IDs),  applyToDb()
   /// will put them on-the-fly. For this to work the source object (the object
   /// owing this ToMany) must be already stored because its ID is required.
-  void applyToDb({PutMode mode = PutMode.Put}) {
+  void applyToDb({PutMode mode = PutMode.Put, Transaction tx}) {
     if (!_hasPendingDbChanges) return;
     _verifyAttached();
 
@@ -165,7 +166,9 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           "Can't store relation info for the target object with zero ID");
     }
 
-    _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
+    final ownedTx = tx == null;
+    tx ??= Transaction(_store, TxMode.Write);
+    try {
       _counts.forEach((EntityT object, count) {
         if (count == 0) return;
         final add = count > 0; // otherwise: remove
@@ -201,7 +204,10 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
             throw UnimplementedError();
         }
       });
-    });
+      if (ownedTx) tx.markSuccessful(true);
+    } finally {
+      if (ownedTx) tx.close();
+    }
 
     _counts.clear();
   }
@@ -258,31 +264,30 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// in a single Transaction, ensuring consistency. And it's a little more
   /// efficient for not unpacking the id array to a dart list.
   List<EntityT> _getMany(Pointer<OBX_id_array> Function() cIdsGetterFn) {
-    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
+    final tx = Transaction(_store, TxMode.Read);
+    try {
       final result = <EntityT>[];
       final cIdsPtr = checkObxPtr(cIdsGetterFn());
       try {
         final cIds = cIdsPtr.ref;
         if (cIds.count > 0) {
-          final cursor = CursorHelper(txn, _entity, false);
-          try {
-            for (var i = 0; i < cIds.count; i++) {
-              final code = C.cursor_get(
-                  cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
-              if (code != OBX_NOT_FOUND) {
-                checkObx(code);
-                result.add(_entity.objectFromFB(_store, cursor.readData));
-              }
+          final cursor = tx.cursor(_entity);
+          for (var i = 0; i < cIds.count; i++) {
+            final code = C.cursor_get(
+                cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
+            if (code != OBX_NOT_FOUND) {
+              checkObx(code);
+              result.add(_entity.objectFromFB(_store, cursor.readData));
             }
-          } finally {
-            cursor.close();
           }
         }
       } finally {
         C.id_array_free(cIdsPtr);
       }
       return result;
-    });
+    } finally {
+      tx.close();
+    }
   }
 }
 

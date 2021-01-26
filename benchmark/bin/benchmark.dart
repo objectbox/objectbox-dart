@@ -38,7 +38,9 @@ void main(List<String> arguments) {
 
   for (var i = 0; i < runs; i++) {
     bench.putMany(inserts);
+    final ids = inserts.map((e) => e.id).toList(growable: false);
     final items = bench.readAll();
+    bench.readOneByOne(ids);
     bench.changeValues(items);
     bench.updateAll(items);
     bench.removeAll();
@@ -47,10 +49,5 @@ void main(List<String> arguments) {
   }
 
   bench.close();
-  bench.printTimes([
-    'putMany',
-    'readAll',
-    'updateAll',
-    'removeAll',
-  ]);
+  bench.printTimes();
 }

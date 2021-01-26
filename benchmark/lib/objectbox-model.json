@@ -34,7 +34,8 @@
           "name": "tDouble",
           "type": 8
         }
-      ]
+      ],
+      "relations": []
     }
   ],
   "lastEntityId": "1:1824294286181366916",
