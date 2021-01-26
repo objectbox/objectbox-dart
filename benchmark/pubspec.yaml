@@ -13,6 +13,6 @@ dev_dependencies:
 
 dependency_overrides:
   objectbox:
-    path: ../
+    path: ../objectbox
   objectbox_generator:
     path: ../generator

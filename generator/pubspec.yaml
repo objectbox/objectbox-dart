@@ -19,4 +19,4 @@ dependencies:
 # NOTE: remove before publishing
 dependency_overrides:
   objectbox:
-    path: ..
+    path: ../objectbox

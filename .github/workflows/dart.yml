@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install ObjectBox C-API
         run: ./install.sh
-      - name: Run tests
+      - name: Test
         run: ./generator/test.sh
 
   lib:
@@ -43,12 +43,15 @@ jobs:
       - run: dart --version
       - uses: actions/checkout@v2
       - name: Install ObjectBox C-API
-        run: ./install.sh
-      - run: ./tool/pub.sh get
-      - name: Generate ObjectBox models
-        run: ./tool/pub.sh run build_runner build
-      - name: Run tests
-        run: ./tool/pub.sh run test
+        working-directory: objectbox
+        run: ../install.sh
+      - name: Test
+        working-directory: objectbox
+        run: |
+          ../tool/pub.sh get
+          ../tool/pub.sh run build_runner build
+          ../tool/pub.sh run test
+
 
   valgrind:
     runs-on: ubuntu-20.04
@@ -58,11 +61,13 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install ObjectBox C-API
         run: ./install.sh
-      - run: pub get
-      - name: Generate ObjectBox models
-        run: pub run build_runner build
       - name: Install Valgrind
         run: |
           apt update
           apt install -y valgrind
-      - run: ./tool/valgrind.sh
+      - name: Test
+        working-directory: objectbox
+        run: |
+          ../tool/pub.sh get
+          ../tool/pub.sh run build_runner build
+          ./tool/valgrind.sh
