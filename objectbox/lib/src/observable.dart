@@ -9,11 +9,11 @@ import 'util.dart';
 // ignore_for_file: non_constant_identifier_names
 
 // dart callback signature
-typedef Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
+typedef _Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
 
 class _Observable {
   static final _anyObserver = <int, Pointer<OBX_observer>>{};
-  static final _any = <int, Map<int, Any>>{};
+  static final _any = <int, Map<int, _Any>>{};
 
   // sync:true -> ObjectBoxException: 10001 TX is not active anymore: #101
   static final controller = StreamController<int>.broadcast();
@@ -68,7 +68,7 @@ extension Streamable<T> on Query<T> {
     }
     final storeAddress = store.ptr.address;
 
-    _Observable._any[storeAddress] ??= <int, Any>{};
+    _Observable._any[storeAddress] ??= <int, _Any>{};
     _Observable._any[storeAddress] /*!*/ [entityId] ??= (u, _, __) {
       // dummy value to trigger an event
       _Observable.controller.add(entityId);
