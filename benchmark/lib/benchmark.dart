@@ -74,6 +74,9 @@ class Executor {
     return _track('readAll', () => box.getAll());
   }
 
+  List<TestEntity> readOneByOne(List<int> ids) =>
+      _track('readOneByOne', () => ids.map(box.get).toList(growable: false));
+
   void removeAll() {
     _track('removeAll', () => box.removeAll());
   }

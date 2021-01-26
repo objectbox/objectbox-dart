@@ -3,7 +3,7 @@
 * Add `ToOne<>` class to wrap related entities. See examples for details.
   (thanks [@Buggaboo](https://github.com/Buggaboo) for jump-starting this).
 * Add `ToMany<>` class to wrap related entities. See examples for details.
-* Significantly improve read and write performance of all box operations.
+* Significantly improve `Box` read and write performance.
 * Change `Box.put()` and `putMany()` - now also update given object's ID property.
   Note: If you previously `put()` the same new object instance multiple times without setting id, the object will now
   be inserted only the first time, and overwritten on subsequent puts of the same instance, its ID is not zero anymore.

@@ -13,6 +13,7 @@ import 'relations/info.dart';
 import 'relations/to_one.dart';
 import 'relations/to_many.dart';
 import 'util.dart';
+import 'transaction.dart';
 
 enum PutMode {
   Put,
@@ -94,26 +95,32 @@ class Box<T> {
   /// Performance note: consider [putMany] to put several objects at once.
   int put(T object, {PutMode mode = PutMode.Put}) {
     if (_hasRelations) {
-      return _store.runInTransaction(
-          TxMode.Write, () => _put(object, mode, true));
+      final tx = Transaction(_store, TxMode.Write);
+      try {
+        final id = _put(object, mode, tx);
+        tx.markSuccessful(true);
+        return id;
+      } finally {
+        tx.close();
+      }
     } else {
-      return _put(object, mode, false);
+      return _put(object, mode, null);
     }
   }
 
-  int _put(T object, PutMode mode, bool inTx) {
+  int _put(T object, PutMode mode, Transaction /*?*/ tx) {
     if (_hasRelations) {
-      if (!inTx) {
+      if (tx == null) {
         throw Exception(
             'Invalid state: can only use _put() on an entity with relations when executing from inside a write transaction.');
       }
-      if (_hasToOneRelations) _putToOneRelFields(object, mode);
+      if (_hasToOneRelations) _putToOneRelFields(object, mode, tx);
     }
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.box_put_object4(_cBox, _builder.bufPtr.cast<Void>(),
         _builder.fbb.size, _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
-    if (_hasToManyRelations) _putToManyRelFields(object, mode);
+    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx);
     _builder.resetIfLarge();
     return id;
   }
@@ -126,31 +133,31 @@ class Box<T> {
 
     final putIds = List<int>.filled(objects.length, 0);
 
-    _store.runInTransactionWithPtr(TxMode.Write, (Pointer<OBX_txn> txn) {
+    final tx = Transaction(_store, TxMode.Write);
+    try {
       if (_hasToOneRelations) {
-        objects.forEach((object) => _putToOneRelFields(object, mode));
+        objects.forEach((object) => _putToOneRelFields(object, mode, tx));
       }
 
-      final cursor = CursorHelper(txn, _entity, true);
-      try {
-        final cMode = _getOBXPutMode(mode);
-        for (var i = 0; i < objects.length; i++) {
-          final object = objects[i];
-          _builder.fbb.reset();
-          final id = _entity.objectToFB(object, _builder.fbb);
-          final newId = C.cursor_put_object4(cursor.ptr,
-              _builder.bufPtr.cast<Void>(), _builder.fbb.size, cMode);
-          putIds[i] = _handlePutObjectResult(object, id, newId);
-        }
-      } finally {
-        cursor.close();
+      final cursor = tx.cursor(_entity);
+      final cMode = _getOBXPutMode(mode);
+      for (var i = 0; i < objects.length; i++) {
+        final object = objects[i];
+        _builder.fbb.reset();
+        final id = _entity.objectToFB(object, _builder.fbb);
+        final newId = C.cursor_put_object4(
+            cursor.ptr, _builder.bufPtr.cast<Void>(), _builder.fbb.size, cMode);
+        putIds[i] = _handlePutObjectResult(object, id, newId);
       }
 
       if (_hasToManyRelations) {
-        objects.forEach((object) => _putToManyRelFields(object, mode));
+        objects.forEach((object) => _putToManyRelFields(object, mode, tx));
       }
       _builder.resetIfLarge();
-    });
+      tx.markSuccessful(true);
+    } finally {
+      tx.close();
+    }
 
     return putIds;
   }
@@ -166,25 +173,11 @@ class Box<T> {
   /// Retrieves the stored object with the ID [id] from this box's database.
   /// Returns null if an object with the given ID doesn't exist.
   T /*?*/ get(int id) {
-    final dataPtrPtr = allocate<Pointer<Void>>();
-    final sizePtr = allocate<IntPtr>();
-
+    final tx = Transaction(_store, TxMode.Read);
     try {
-      // get element with specified id from database
-      return _store.runInTransaction(TxMode.Read, () {
-        final err = C.box_get(_cBox, id, dataPtrPtr, sizePtr);
-        if (err == OBX_NOT_FOUND) {
-          return null;
-        }
-        checkObx(err);
-
-        // ignore: omit_local_variable_types
-        Pointer<Uint8> dataPtr = dataPtrPtr.value.cast<Uint8>();
-        return _entity.objectFromFB(_store, dataPtr.asTypedList(sizePtr.value));
-      });
+      return tx.cursor(_entity).get(id);
     } finally {
-      free(dataPtrPtr);
-      free(sizePtr);
+      tx.close();
     }
   }
 
@@ -195,42 +188,35 @@ class Box<T> {
   List<T /*?*/ > getMany(List<int> ids, {growableResult = false}) {
     final result = List<T>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
-    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
-      final cursor = CursorHelper(txn, _entity, false);
-      try {
-        for (var i = 0; i < ids.length; i++) {
-          final code = C.cursor_get(
-              cursor.ptr, ids[i], cursor.dataPtrPtr, cursor.sizePtr);
-          if (code != OBX_NOT_FOUND) {
-            checkObx(code);
-            result[i] = _entity.objectFromFB(_store, cursor.readData);
-          }
-        }
-        return result;
-      } finally {
-        cursor.close();
+    final tx = Transaction(_store, TxMode.Read);
+    try {
+      final cursor = tx.cursor(_entity);
+      for (var i = 0; i < ids.length; i++) {
+        final object = cursor.get(ids[i]);
+        if (object != null) result[i] = object;
       }
-    });
+      return result;
+    } finally {
+      tx.close();
+    }
   }
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    return _store.runInTransactionWithPtr(TxMode.Read, (Pointer<OBX_txn> txn) {
-      final cursor = CursorHelper(txn, _entity, false);
-      try {
-        final result = <T>[];
-        var code =
-            C.cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-        while (code != OBX_NOT_FOUND) {
-          checkObx(code);
-          result.add(_entity.objectFromFB(_store, cursor.readData));
-          code = C.cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-        }
-        return result;
-      } finally {
-        cursor.close();
+    final tx = Transaction(_store, TxMode.Read);
+    try {
+      final cursor = tx.cursor(_entity);
+      final result = <T>[];
+      var code = C.cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
+      while (code != OBX_NOT_FOUND) {
+        checkObx(code);
+        result.add(_entity.objectFromFB(_store, cursor.readData));
+        code = C.cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
       }
-    });
+      return result;
+    } finally {
+      tx.close();
+    }
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
@@ -320,23 +306,23 @@ class Box<T> {
   /// The low-level pointer to this box.
   Pointer<OBX_box> get ptr => _cBox;
 
-  void _putToOneRelFields(T object, PutMode mode) {
+  void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
     _entity.toOneRelations(object).forEach((ToOne rel) {
       if (!rel.hasValue) return;
       rel.attach(_store);
       // put new objects
       if (rel.targetId == 0) {
         rel.targetId =
-            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, true);
+            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, tx);
       }
     });
   }
 
-  void _putToManyRelFields(T object, PutMode mode) {
+  void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
     _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
         InternalToManyAccess.setRelInfo(rel, _store, info, this);
-        rel.applyToDb(mode: mode);
+        rel.applyToDb(mode: mode, tx: tx);
       }
     });
   }

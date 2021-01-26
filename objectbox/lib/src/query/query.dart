@@ -12,6 +12,7 @@ import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
 import '../modelinfo/entity_definition.dart';
+import '../transaction.dart';
 
 part 'builder.dart';
 
