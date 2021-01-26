@@ -19,7 +19,6 @@ update sync_flutter_libs/pubspec.yaml "${versionExpr}"
 dependencyHigherExpr="s/objectbox: \^.*/objectbox: ^${version}/g"
 update README.md "${dependencyHigherExpr}"
 update example/flutter/objectbox_demo/pubspec.yaml "${dependencyHigherExpr}"
-update example/flutter/objectbox_demo_desktop/pubspec.yaml "${dependencyHigherExpr}"
 update example/flutter/objectbox_demo_sync/pubspec.yaml "${dependencyHigherExpr}"
 
 dependencyExactExpr="s/objectbox: [0-9]\+.*/objectbox: ${version}/g"
