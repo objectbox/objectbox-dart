@@ -8,11 +8,11 @@ help:			## Show this help
 
 #==============================================================================
 
-all: depend test integration-test
+all: depend test valgrind-test integration-test
 
 depend:			## Build dependencies
 	pub get
-	./install.sh
+	../install.sh
 
 test: 			## Test all targets
 	pub run build_runner build
@@ -20,13 +20,10 @@ test: 			## Test all targets
 
 valgrind-test: 		## Test all targets with valgrind
 	pub run build_runner build
-	./tool/valgrind.sh
+	../tool/valgrind.sh
 
 integration-test:	## Execute integration tests
 	cd example/flutter/objectbox_demo/						; \
 	flutter pub get											; \
 	flutter pub run build_runner build						; \
 	flutter drive --verbose --target=test_driver/app.dart	; \
-
-publish: 		## Publish all packages to pub.dev
-	echo "TODO implement publishing"

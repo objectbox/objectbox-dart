@@ -9,12 +9,11 @@ jobs:
       image:  google/dart:latest
     steps:
       - uses: actions/checkout@v2
-      - run: pub get
-
       - uses: axel-op/dart-package-analyzer@v3
         id: analysis # set an id for the current step
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+          relativePath: objectbox
 
       # You can then use this id to retrieve the outputs in the next steps.
       # The following step shows how to exit the workflow with an error if a score is below 100:

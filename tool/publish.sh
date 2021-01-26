@@ -40,7 +40,7 @@ function publish() {
   esac
 }
 
-publish .
+publish objectbox
 publish generator
 publish flutter_libs
 publish sync_flutter_libs

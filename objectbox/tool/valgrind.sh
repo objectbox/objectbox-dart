@@ -1,4 +1,11 @@
-. "$(dirname "$0")"/common.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+root=$(
+  cd "$(dirname "$0")/.."
+  pwd -P
+)
+echo "Package root dir: $root"
 
 if [[ "$#" -gt "1" ]]; then
   echo "usage: $0 [test name]"

@@ -12,23 +12,21 @@ dependencies:
   path_provider: any
   intl: any
   objectbox: ^0.10.0
-  objectbox_flutter_libs: any
+  objectbox_sync_flutter_libs: any
 
 dev_dependencies:
-  objectbox_generator: any
-  build_runner: ^1.0.0
-  flutter_driver:
+  flutter_test:
     sdk: flutter
-  test: any
+  build_runner: ^1.0.0
+  objectbox_generator: any
 
 flutter:
   uses-material-design: true
 
 # Note: these overrides are only for ObjectBox internal development, don't use them in your app.
-dependency_overrides:
-  objectbox:
-    path: ../../..
-  objectbox_generator:
-    path: ../../../generator
-  objectbox_flutter_libs:
-    path: ../../../flutter_libs
+objectbox:
+  path: ../../../../objectbox
+objectbox_generator:
+  path: ../../../../generator
+objectbox_flutter_libs:
+  path: ../../../../flutter_libs
