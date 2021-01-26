@@ -49,7 +49,8 @@ class ObjectBoxC {
   _dart_version_is_at_least _version_is_at_least;
 
   /// /// Return the version of the library to be printed.
-  /// /// The format may change; to query for version use the int based methods instead.
+  /// /// The format may change in any future release; only use for information purposes.
+  /// /// @see obx_version() and obx_version_is_at_least()
   ffi.Pointer<ffi.Int8> version_string() {
     _version_string ??=
         _dylib.lookupFunction<_c_version_string, _dart_version_string>(
@@ -60,7 +61,8 @@ class ObjectBoxC {
   _dart_version_string _version_string;
 
   /// /// Return the version of the ObjectBox core to be printed.
-  /// /// The format may change, do not rely on its current form.
+  /// /// The format may change in any future release; only use for information purposes.
+  /// /// @see obx_version() and obx_version_is_at_least()
   ffi.Pointer<ffi.Int8> version_core_string() {
     _version_core_string ??= _dylib.lookupFunction<_c_version_core_string,
         _dart_version_core_string>('obx_version_core_string');
@@ -68,6 +70,40 @@ class ObjectBoxC {
   }
 
   _dart_version_core_string _version_core_string;
+
+  /// /// Checks whether the given feature is available in the currently loaded library.
+  bool has_feature(
+    int feature,
+  ) {
+    _has_feature ??= _dylib
+        .lookupFunction<_c_has_feature, _dart_has_feature>('obx_has_feature');
+    return _has_feature(
+          feature,
+        ) !=
+        0;
+  }
+
+  _dart_has_feature _has_feature;
+
+  /// /// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
+  /// /// @deprecated use obx_has_feature(OBXFeature_BytesArray) instead
+  bool supports_bytes_array() {
+    _supports_bytes_array ??= _dylib.lookupFunction<_c_supports_bytes_array,
+        _dart_supports_bytes_array>('obx_supports_bytes_array');
+    return _supports_bytes_array() != 0;
+  }
+
+  _dart_supports_bytes_array _supports_bytes_array;
+
+  /// /// Check whether time series functions are available in the version of this library
+  /// /// @deprecated use obx_has_feature(OBXFeature_TimeSeries) instead
+  bool supports_time_series() {
+    _supports_time_series ??= _dylib.lookupFunction<_c_supports_time_series,
+        _dart_supports_time_series>('obx_supports_time_series');
+    return _supports_time_series() != 0;
+  }
+
+  _dart_supports_time_series _supports_time_series;
 
   /// /// Delete the store files from the given directory
   int remove_db_files(
@@ -82,24 +118,6 @@ class ObjectBoxC {
   }
 
   _dart_remove_db_files _remove_db_files;
-
-  /// /// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
-  bool supports_bytes_array() {
-    _supports_bytes_array ??= _dylib.lookupFunction<_c_supports_bytes_array,
-        _dart_supports_bytes_array>('obx_supports_bytes_array');
-    return _supports_bytes_array() != 0;
-  }
-
-  _dart_supports_bytes_array _supports_bytes_array;
-
-  /// /// Check whether time series functions are available in the version of this library
-  bool supports_time_series() {
-    _supports_time_series ??= _dylib.lookupFunction<_c_supports_time_series,
-        _dart_supports_time_series>('obx_supports_time_series');
-    return _supports_time_series() != 0;
-  }
-
-  _dart_supports_time_series _supports_time_series;
 
   /// /// Return the error status on the current thread and clear the error state.
   /// /// The buffer returned in out_message is valid only until the next call into ObjectBox.
@@ -4737,6 +4755,7 @@ class ObjectBoxC {
   /// /// Before calling any of the other sync APIs, ensure that those are actually available.
   /// /// If the application is linked a non-sync ObjectBox library, this allows you to fail gracefully.
   /// /// @return true if this library comes with the sync API
+  /// /// @deprecated use obx_has_feature(OBXFeature_Sync)
   bool sync_available() {
     _sync_available ??=
         _dylib.lookupFunction<_c_sync_available, _dart_sync_available>(
@@ -4780,7 +4799,7 @@ class ObjectBoxC {
   /// /// Sets credentials to authenticate the client with the server.
   /// /// See OBXSyncCredentialsType for available options.
   /// /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
-  /// /// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_UNCHECKED
+  /// /// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_NONE
   int sync_credentials(
     ffi.Pointer<OBX_sync> sync_1,
     int type,
@@ -5095,6 +5114,186 @@ class ObjectBoxC {
   }
 
   _dart_sync_listener_change _sync_listener_change;
+
+  /// /// Initializes Dart API - call before any other obx_dart_* functions.
+  int dartc_init_api(
+    ffi.Pointer<ffi.Void> data,
+  ) {
+    _dartc_init_api ??=
+        _dylib.lookupFunction<_c_dartc_init_api, _dart_dartc_init_api>(
+            'obx_dart_init_api');
+    return _dartc_init_api(
+      data,
+    );
+  }
+
+  _dart_dartc_init_api _dartc_init_api;
+
+  /// /// @see obx_observe()
+  /// /// Note: use obx_observer_close() to free unassign the observer and free resources after you're done with it
+  ffi.Pointer<OBX_observer> dartc_observe(
+    ffi.Pointer<OBX_store> store,
+    int native_port,
+  ) {
+    _dartc_observe ??=
+        _dylib.lookupFunction<_c_dartc_observe, _dart_dartc_observe>(
+            'obx_dart_observe');
+    return _dartc_observe(
+      store,
+      native_port,
+    );
+  }
+
+  _dart_dartc_observe _dartc_observe;
+
+  ffi.Pointer<OBX_observer> dartc_observe_single_type(
+    ffi.Pointer<OBX_store> store,
+    int type_id,
+    int native_port,
+  ) {
+    _dartc_observe_single_type ??= _dylib.lookupFunction<
+        _c_dartc_observe_single_type,
+        _dart_dartc_observe_single_type>('obx_dart_observe_single_type');
+    return _dartc_observe_single_type(
+      store,
+      type_id,
+      native_port,
+    );
+  }
+
+  _dart_dartc_observe_single_type _dartc_observe_single_type;
+
+  /// /// @param listener may be NULL
+  int dartc_sync_listener_close(
+    ffi.Pointer<OBX_dart_sync_listener> listener,
+  ) {
+    _dartc_sync_listener_close ??= _dylib.lookupFunction<
+        _c_dartc_sync_listener_close,
+        _dart_dartc_sync_listener_close>('obx_dart_sync_listener_close');
+    return _dartc_sync_listener_close(
+      listener,
+    );
+  }
+
+  _dart_dartc_sync_listener_close _dartc_sync_listener_close;
+
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_connect(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    _dartc_sync_listener_connect ??= _dylib.lookupFunction<
+        _c_dartc_sync_listener_connect,
+        _dart_dartc_sync_listener_connect>('obx_dart_sync_listener_connect');
+    return _dartc_sync_listener_connect(
+      sync_1,
+      native_port,
+    );
+  }
+
+  _dart_dartc_sync_listener_connect _dartc_sync_listener_connect;
+
+  /// /// @see obx_sync_listener_disconnect()
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_disconnect(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    _dartc_sync_listener_disconnect ??= _dylib.lookupFunction<
+            _c_dartc_sync_listener_disconnect,
+            _dart_dartc_sync_listener_disconnect>(
+        'obx_dart_sync_listener_disconnect');
+    return _dartc_sync_listener_disconnect(
+      sync_1,
+      native_port,
+    );
+  }
+
+  _dart_dartc_sync_listener_disconnect _dartc_sync_listener_disconnect;
+
+  /// /// @see obx_sync_listener_login()
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_login(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    _dartc_sync_listener_login ??= _dylib.lookupFunction<
+        _c_dartc_sync_listener_login,
+        _dart_dartc_sync_listener_login>('obx_dart_sync_listener_login');
+    return _dartc_sync_listener_login(
+      sync_1,
+      native_port,
+    );
+  }
+
+  _dart_dartc_sync_listener_login _dartc_sync_listener_login;
+
+  /// /// @see obx_sync_listener_login_failure()
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_login_failure(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    _dartc_sync_listener_login_failure ??= _dylib.lookupFunction<
+            _c_dartc_sync_listener_login_failure,
+            _dart_dartc_sync_listener_login_failure>(
+        'obx_dart_sync_listener_login_failure');
+    return _dartc_sync_listener_login_failure(
+      sync_1,
+      native_port,
+    );
+  }
+
+  _dart_dartc_sync_listener_login_failure _dartc_sync_listener_login_failure;
+
+  /// /// @see obx_sync_listener_complete()
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_complete(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    _dartc_sync_listener_complete ??= _dylib.lookupFunction<
+        _c_dartc_sync_listener_complete,
+        _dart_dartc_sync_listener_complete>('obx_dart_sync_listener_complete');
+    return _dartc_sync_listener_complete(
+      sync_1,
+      native_port,
+    );
+  }
+
+  _dart_dartc_sync_listener_complete _dartc_sync_listener_complete;
+
+  /// /// @see obx_sync_listener_change()
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_change(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    _dartc_sync_listener_change ??= _dylib.lookupFunction<
+        _c_dartc_sync_listener_change,
+        _dart_dartc_sync_listener_change>('obx_dart_sync_listener_change');
+    return _dartc_sync_listener_change(
+      sync_1,
+      native_port,
+    );
+  }
+
+  _dart_dartc_sync_listener_change _dartc_sync_listener_change;
+}
+
+abstract class OBXFeature {
+  /// /// Functions that are returning multiple results (e.g. multiple objects) can be only used if this is available.
+  /// /// This is only available for 64-bit OSes and is the opposite of "chunked mode", which forces to consume results
+  /// /// in chunks (e.g. one by one).
+  /// /// Since chunked mode consumes a bit less RAM, ResultArray style functions are typically only preferable if
+  /// /// there's an additional overhead per call, e.g. caused by a higher level language abstraction like CGo.
+  static const int ResultArray = 1;
+
+  /// /// TimeSeries support (date/date-nano companion ID and other time-series functionality).
+  static const int TimeSeries = 2;
+
+  /// /// Sync client availability. Visit https://objectbox.io/sync for more details.
+  static const int Sync = 3;
+
+  /// /// Check whether debug log can be enabled during runtime.
+  static const int DebugLog = 4;
+
+  /// /// HTTP server with a database browser.
+  static const int ObjectBrowser = 5;
 }
 
 abstract class OBXPropertyType {
@@ -5139,6 +5338,15 @@ abstract class OBXEntityFlags {
   /// /// Enable "data synchronization" for this entity type: objects will be synced with other stores over the network.
   /// /// It's possible to have local-only (non-synced) types and synced types in the same store (schema/data model).
   static const int SYNC_ENABLED = 2;
+
+  /// /// Makes object IDs for a synced types (SYNC_ENABLED is set) global.
+  /// /// By default (not using this flag), the 64 bit object IDs have a local scope and are not unique globally.
+  /// /// This flag tells ObjectBox to treat object IDs globally and thus no ID mapping (local <-> global) is performed.
+  /// /// Often this is used with assignable IDs (ID_SELF_ASSIGNABLE property flag is set) and some special ID scheme.
+  /// /// Note: typically you won't do this with automatically assigned IDs, set by the local ObjectBox store.
+  /// ///       Two devices would likely overwrite each other's object during sync as object IDs are prone to collide.
+  /// ///       It might be OK if you can somehow ensure that only a single device will create new IDs.
+  static const int SHARED_GLOBAL_IDS = 4;
 }
 
 /// /// Bit-flags defining the behavior of properties.
@@ -5453,6 +5661,8 @@ class OBX_sync_change_array extends ffi.Struct {
   int count;
 }
 
+class OBX_dart_sync_listener extends ffi.Struct {}
+
 const int OBX_VERSION_MAJOR = 0;
 
 const int OBX_VERSION_MINOR = 11;
@@ -5527,6 +5737,10 @@ const int OBX_ERROR_FILE_PAGES_CORRUPT = 10503;
 
 const int OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND = 10504;
 
+const int OBX_ERROR_TIME_SERIES_NOT_AVAILABLE = 10601;
+
+const int OBX_ERROR_SYNC_NOT_AVAILABLE = 10602;
+
 typedef _c_version = ffi.Void Function(
   ffi.Pointer<ffi.Int32> major,
   ffi.Pointer<ffi.Int32> minor,
@@ -5559,12 +5773,12 @@ typedef _c_version_core_string = ffi.Pointer<ffi.Int8> Function();
 
 typedef _dart_version_core_string = ffi.Pointer<ffi.Int8> Function();
 
-typedef _c_remove_db_files = ffi.Int32 Function(
-  ffi.Pointer<ffi.Int8> directory,
+typedef _c_has_feature = ffi.Uint8 Function(
+  ffi.Int32 feature,
 );
 
-typedef _dart_remove_db_files = int Function(
-  ffi.Pointer<ffi.Int8> directory,
+typedef _dart_has_feature = int Function(
+  int feature,
 );
 
 typedef _c_supports_bytes_array = ffi.Uint8 Function();
@@ -5574,6 +5788,14 @@ typedef _dart_supports_bytes_array = int Function();
 typedef _c_supports_time_series = ffi.Uint8 Function();
 
 typedef _dart_supports_time_series = int Function();
+
+typedef _c_remove_db_files = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int8> directory,
+);
+
+typedef _dart_remove_db_files = int Function(
+  ffi.Pointer<ffi.Int8> directory,
+);
 
 typedef _c_last_error_pop = ffi.Uint8 Function(
   ffi.Pointer<ffi.Int32> out_error,
@@ -8695,4 +8917,114 @@ typedef _dart_sync_listener_change = void Function(
   ffi.Pointer<OBX_sync> sync_1,
   ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_change>> listener,
   ffi.Pointer<ffi.Void> listener_arg,
+);
+
+typedef _c_dartc_init_api = ffi.Int32 Function(
+  ffi.Pointer<ffi.Void> data,
+);
+
+typedef _dart_dartc_init_api = int Function(
+  ffi.Pointer<ffi.Void> data,
+);
+
+typedef _c_dartc_observe = ffi.Pointer<OBX_observer> Function(
+  ffi.Pointer<OBX_store> store,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_observe = ffi.Pointer<OBX_observer> Function(
+  ffi.Pointer<OBX_store> store,
+  int native_port,
+);
+
+typedef _c_dartc_observe_single_type = ffi.Pointer<OBX_observer> Function(
+  ffi.Pointer<OBX_store> store,
+  ffi.Uint32 type_id,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_observe_single_type = ffi.Pointer<OBX_observer> Function(
+  ffi.Pointer<OBX_store> store,
+  int type_id,
+  int native_port,
+);
+
+typedef _c_dartc_sync_listener_close = ffi.Int32 Function(
+  ffi.Pointer<OBX_dart_sync_listener> listener,
+);
+
+typedef _dart_dartc_sync_listener_close = int Function(
+  ffi.Pointer<OBX_dart_sync_listener> listener,
+);
+
+typedef _c_dartc_sync_listener_connect = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_connect = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
+);
+
+typedef _c_dartc_sync_listener_disconnect = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_disconnect
+    = ffi.Pointer<OBX_dart_sync_listener> Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
+);
+
+typedef _c_dartc_sync_listener_login = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_login = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
+);
+
+typedef _c_dartc_sync_listener_login_failure
+    = ffi.Pointer<OBX_dart_sync_listener> Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_login_failure
+    = ffi.Pointer<OBX_dart_sync_listener> Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
+);
+
+typedef _c_dartc_sync_listener_complete = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_complete = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
+);
+
+typedef _c_dartc_sync_listener_change = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_change = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
 );

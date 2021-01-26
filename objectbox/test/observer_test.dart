@@ -125,26 +125,26 @@ void main() async {
 
       // triggers when listening
       completer = Completer();
-      box.put(simpleStringItems[0]);
+      box.put(simpleStringItems().first);
       await completer.future.timeout(defaultTimeout);
 
       // won't trigger when paused
       subscription.pause();
       completer = Completer();
-      box.put(simpleStringItems[0]);
+      box.put(simpleStringItems().first);
       expect(completer.future.timeout(defaultTimeout),
           throwsA(isA<TimeoutException>()));
 
       // triggers when resumed
       subscription.resume();
       completer = Completer();
-      box.put(simpleStringItems[0]);
+      box.put(simpleStringItems().first);
       await completer.future.timeout(defaultTimeout);
 
       // won't trigger when cancelled
       await subscription.cancel();
       completer = Completer();
-      box.put(simpleStringItems[0]);
+      box.put(simpleStringItems().first);
       expect(completer.future.timeout(defaultTimeout),
           throwsA(isA<TimeoutException>()));
     };

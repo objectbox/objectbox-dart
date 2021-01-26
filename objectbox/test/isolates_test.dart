@@ -94,7 +94,9 @@ void main() {
       query.close();
     }
 
-    isolate.kill(priority: Isolate.immediate);
+    expect(await call(['close']), equals('done'));
+
+    isolate.kill();
     receivePort.close();
     env.close();
   });
@@ -140,6 +142,13 @@ void createDataIsolate(SendPort sendPort) async {
           case 'put':
             final id = env.box.put(TestEntity(tString: data[1]));
             sendPort.send(id);
+            break;
+          case 'close':
+            env.close();
+            sendPort.send('done');
+            break;
+          default:
+            sendPort.send('unknown message: $data');
         }
       }
     }

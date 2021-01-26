@@ -65,7 +65,7 @@ extension ObservableStore on Store {
   /// done with it to avoid hanging change listeners.
   Stream<void> subscribe<EntityT>() {
     final observer = _Observer<void>();
-    final entityId = entityDef<EntityT>().model.id.id;
+    final entityId = InternalStoreAccess.entityDef<EntityT>(this).model.id.id;
 
     observer.init(() {
       // We're listening to events on single entity so there's no argument.
@@ -74,7 +74,7 @@ extension ObservableStore on Store {
       observer.receivePort = ReceivePort()
         ..listen((_) => observer.controller.add(null));
       observer.cObserver =
-          C.dart_observe_single_type(ptr, entityId, observer.nativePort);
+          C.dartc_observe_single_type(ptr, entityId, observer.nativePort);
     });
 
     return observer.stream;
@@ -91,8 +91,9 @@ extension ObservableStore on Store {
 
     // create a map from Entity ID to Entity type (dart class)
     final entityTypesById = <int, Type>{};
-    defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
-        entityTypesById[entityDef.model.id.id] = entity);
+    InternalStoreAccess.defs(this).bindings.forEach(
+        (Type entity, EntityDefinition entityDef) =>
+            entityTypesById[entityDef.model.id.id] = entity);
 
     observer.init(() {
       // We're listening to a events for all entity types. C-API sends entity ID
@@ -121,7 +122,7 @@ extension ObservableStore on Store {
             }
           });
         });
-      observer.cObserver = C.dart_observe(ptr, observer.nativePort);
+      observer.cObserver = C.dartc_observe(ptr, observer.nativePort);
     });
 
     return observer.stream;

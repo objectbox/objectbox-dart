@@ -266,6 +266,15 @@ typedef enum {
     /// Enable "data synchronization" for this entity type: objects will be synced with other stores over the network.
     /// It's possible to have local-only (non-synced) types and synced types in the same store (schema/data model).
     OBXEntityFlags_SYNC_ENABLED = 2,
+
+    /// Makes object IDs for a synced types (SYNC_ENABLED is set) global.
+    /// By default (not using this flag), the 64 bit object IDs have a local scope and are not unique globally.
+    /// This flag tells ObjectBox to treat object IDs globally and thus no ID mapping (local <-> global) is performed.
+    /// Often this is used with assignable IDs (ID_SELF_ASSIGNABLE property flag is set) and some special ID scheme.
+    /// Note: typically you won't do this with automatically assigned IDs, set by the local ObjectBox store.
+    ///       Two devices would likely overwrite each other's object during sync as object IDs are prone to collide.
+    ///       It might be OK if you can somehow ensure that only a single device will create new IDs.
+    OBXEntityFlags_SHARED_GLOBAL_IDS = 4,
 } OBXEntityFlags;
 
 /// Bit-flags defining the behavior of properties.
@@ -1869,49 +1878,6 @@ void obx_sync_listener_complete(OBX_sync* sync, OBX_sync_listener_complete* list
 /// @param listener set NULL to reset
 /// @param listener_arg is a pass-through argument passed to the listener
 void obx_sync_listener_change(OBX_sync* sync, OBX_sync_listener_change* listener, void* listener_arg);
-
-//----------------------------------------------
-// Dart-specific binding
-//
-// Following section provides [Dart](https://dart.dev) specific async callbacks integration.
-// These functions are only used internally by [objectbox-dart](https://github.com/objectbox/objectbox-dart) binding.
-// In short - instead of issuing callbacks from background threads, their messages are sent to Dart over NativePorts.
-//----------------------------------------------
-
-/// Initializes Dart API - call before any other obx_dart_* functions.
-obx_err obx_dart_init_api(void* data);
-
-/// @see obx_observe()
-/// Note: use obx_observer_close() to free unassign the observer and free resources after you're done with it
-OBX_observer* obx_dart_observe(OBX_store* store, int64_t native_port);
-
-// @see obx_observe_single_type()
-OBX_observer* obx_dart_observe_single_type(OBX_store* store, obx_schema_id type_id, int64_t native_port);
-
-// Note: use OBX_dart_sync_listener_close() to unassign the listener and free native resources
-struct OBX_dart_sync_listener;
-typedef struct OBX_dart_sync_listener OBX_dart_sync_listener;
-
-/// @param listener may be NULL
-obx_err OBX_dart_sync_listener_close(OBX_dart_sync_listener* listener);
-
-// @see obx_sync_listener_connect()
-OBX_dart_sync_listener* obx_dart_sync_listener_connect(OBX_sync* sync, int64_t native_port);
-
-/// @see obx_sync_listener_disconnect()
-OBX_dart_sync_listener* obx_dart_sync_listener_disconnect(OBX_sync* sync, int64_t native_port);
-
-/// @see obx_sync_listener_login()
-OBX_dart_sync_listener* obx_dart_sync_listener_login(OBX_sync* sync, int64_t native_port);
-
-/// @see obx_sync_listener_login_failure()
-OBX_dart_sync_listener* obx_dart_sync_listener_login_failure(OBX_sync* sync, int64_t native_port);
-
-/// @see obx_sync_listener_complete()
-OBX_dart_sync_listener* obx_dart_sync_listener_complete(OBX_sync* sync, int64_t native_port);
-
-/// @see obx_sync_listener_change()
-OBX_dart_sync_listener* obx_dart_sync_listener_change(OBX_sync* sync, int64_t native_port);
 
 #ifdef __cplusplus
 }

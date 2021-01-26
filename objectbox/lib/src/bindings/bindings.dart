@@ -56,7 +56,7 @@ ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();
 /// See https://github.com/objectbox/objectbox-dart/issues/143
 void initializeDartAPI() {
   if (_dartAPIinitialized == null) {
-    final errCode = C.dart_init_api(NativeApi.initializeApiDLData);
+    final errCode = C.dartc_init_api(NativeApi.initializeApiDLData);
     _dartAPIinitialized = (OBX_SUCCESS == errCode);
     if (!_dartAPIinitialized) {
       _dartAPIinitException = latestNativeError(codeIfMissing: errCode);

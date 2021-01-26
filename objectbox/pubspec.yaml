@@ -42,6 +42,7 @@ ffigen:
       - '**objectbox*.h'
   functions:
     rename:
+      'obx_dart_(.*)': 'dartc_$1'
       'obx_(.*)': '$1'
   enums:
     member-rename:

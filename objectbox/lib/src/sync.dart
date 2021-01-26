@@ -269,11 +269,11 @@ class SyncClient {
           _SyncListenerGroup<SyncConnectionEvent>('sync-connection');
 
       _connectionEvents.add(_SyncListenerConfig(
-          (int nativePort) => C.dart_sync_listener_connect(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_connect(ptr, nativePort),
           (_, controller) => controller.add(SyncConnectionEvent.connected)));
 
       _connectionEvents.add(_SyncListenerConfig(
-          (int nativePort) => C.dart_sync_listener_disconnect(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_disconnect(ptr, nativePort),
           (_, controller) => controller.add(SyncConnectionEvent.disconnected)));
 
       _connectionEvents.finish();
@@ -292,12 +292,12 @@ class SyncClient {
       _loginEvents = _SyncListenerGroup<SyncLoginEvent>('sync-login');
 
       _loginEvents.add(_SyncListenerConfig(
-          (int nativePort) => C.dart_sync_listener_login(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_login(ptr, nativePort),
           (_, controller) => controller.add(SyncLoginEvent.loggedIn)));
 
       _loginEvents.add(_SyncListenerConfig(
           (int nativePort) =>
-              C.dart_sync_listener_login_failure(ptr, nativePort),
+              C.dartc_sync_listener_login_failure(ptr, nativePort),
           (code, controller) {
         // see OBXSyncCode - TODO should we match any other codes?
         switch (code) {
@@ -324,7 +324,7 @@ class SyncClient {
       _completionEvents = _SyncListenerGroup<void>('sync-completion');
 
       _completionEvents.add(_SyncListenerConfig(
-          (int nativePort) => C.dart_sync_listener_complete(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_complete(ptr, nativePort),
           (_, controller) => controller.add(null)));
 
       _completionEvents.finish();
@@ -344,11 +344,12 @@ class SyncClient {
 
       // create a map from Entity ID to Entity type (dart class)
       final entityTypesById = <int, Type>{};
-      _store.defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
-          entityTypesById[entityDef.model.id.id] = entity);
+      InternalStoreAccess.defs(_store).bindings.forEach(
+          (Type entity, EntityDefinition entityDef) =>
+              entityTypesById[entityDef.model.id.id] = entity);
 
       _changeEvents.add(_SyncListenerConfig(
-          (int nativePort) => C.dart_sync_listener_change(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_change(ptr, nativePort),
           (syncChanges, controller) {
         if (syncChanges is! List) {
           controller.addError(Exception(
@@ -500,7 +501,7 @@ class _SyncListenerGroup<StreamValueType> {
     assert(finished, 'Stopping an unfinished group?!');
 
     final cErrorCodes = _cListeners
-        .map(C.dart_sync_listener_close) // map() is lazy
+        .map(C.dartc_sync_listener_close) // map() is lazy
         .toList(growable: false); // call toList() to execute immediately
     _cListeners.clear();
 

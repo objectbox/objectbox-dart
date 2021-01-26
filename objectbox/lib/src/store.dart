@@ -24,6 +24,10 @@ class Store {
   final _onClose = <dynamic, void Function()>{};
 
   /// Creates a BoxStore using the model definition from the generated
+  /// whether this store was created from a pointer (won't close in that case)
+  bool _weak = false;
+
+  /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file.
   ///
   /// For example in a Flutter app:
@@ -98,7 +102,8 @@ class Store {
     }
   }
 
-  Store.fromPtr(this.defs, this._cStore);
+  Store.fromPtr(this._defs, this._cStore)
+      : _weak = true; // must not close the same native store twice
 
   /// Closes this store.
   ///
@@ -115,7 +120,7 @@ class Store {
     _onClose.values.toList(growable: false).forEach((listener) => listener());
     _onClose.clear();
 
-    checkObx(C.store_close(_cStore));
+    if (!_weak) checkObx(C.store_close(_cStore));
   }
 
   /// Returns a cached Box instance.
