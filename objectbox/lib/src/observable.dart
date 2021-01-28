@@ -40,7 +40,8 @@ class _Observable {
     final storePtr = store.ptr;
     _anyObserver[storePtr.address] =
         C.observe(storePtr, callback, storePtr.cast<Void>());
-    StoreCloseObserver.addListener(store, _anyObserver[storePtr.address], () {
+    InternalStoreAccess.addCloseListener(store, _anyObserver[storePtr.address],
+        () {
       unsubscribe(store);
     });
   }
@@ -51,7 +52,7 @@ class _Observable {
     if (!_anyObserver.containsKey(storeAddress)) {
       return;
     }
-    StoreCloseObserver.removeListener(store, _anyObserver[storeAddress]);
+    InternalStoreAccess.removeCloseListener(store, _anyObserver[storeAddress]);
     C.observer_close(_anyObserver[storeAddress]);
     _anyObserver.remove(storeAddress);
     syncOrObserversExclusive.unmark(store);

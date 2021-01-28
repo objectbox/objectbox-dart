@@ -17,6 +17,9 @@ class Store {
   final _boxes = <Type, Box>{};
   final ModelDefinition _defs;
 
+  /// A list of observers of the Store.close() event.
+  final _onClose = <dynamic, void Function()>{};
+
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file.
   ///
@@ -97,10 +100,10 @@ class Store {
     _boxes.values.forEach(InternalBoxAccess.close);
     _boxes.clear();
 
-    // Call each "onBeforeClose()" event listener.
+    // Call each "onClose()" event listener.
     // Move the list to prevent "Concurrent modification during iteration".
-    final listeners = StoreCloseObserver.removeAllListeners(this);
-    listeners.forEach((listener) => listener());
+    _onClose.values.toList(growable: false).forEach((listener) => listener());
+    _onClose.clear();
 
     checkObx(C.store_close(_cStore));
   }
@@ -139,4 +142,13 @@ class Store {
 // @internal
 class InternalStoreAccess {
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
+
+  /// Adds a listener to the [store.close()] event.
+  static void addCloseListener(
+          Store store, dynamic key, void Function() listener) =>
+      store._onClose[key] = listener;
+
+  /// Removes a [store.close()] event listener.
+  static void removeCloseListener(Store store, dynamic key) =>
+      store._onClose.remove(key);
 }

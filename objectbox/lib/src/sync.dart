@@ -99,7 +99,7 @@ class SyncClient {
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
-    StoreCloseObserver.removeListener(_store, this);
+    InternalStoreAccess.removeCloseListener(_store, this);
     syncOrObserversExclusive.unmark(_store);
     checkObx(err);
   }
@@ -246,7 +246,7 @@ class Sync {
     syncOrObserversExclusive.mark(store);
     final client = SyncClient(store, serverUri, creds);
     syncClientsStorage[store] = client;
-    StoreCloseObserver.addListener(store, client, client.close);
+    InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
   }
 }
