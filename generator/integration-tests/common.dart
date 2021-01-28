@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
-import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/internal.dart';
 import 'package:test/test.dart';
 
 /// it's necessary to read json model because the generated one doesn't contain all the information

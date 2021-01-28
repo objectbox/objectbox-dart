@@ -267,7 +267,8 @@ class QueryStringVectorProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition contains(String p, {bool caseSensitive = false}) {
-    return _StringCondition(_ConditionOp.contains, this, p, null, caseSensitive);
+    return _StringCondition(
+        _ConditionOp.contains, this, p, null, caseSensitive);
   }
 }
 

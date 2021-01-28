@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/internal.dart';
+export 'package:objectbox/internal.dart';
 
 class TestEnv<Entity> {
   static final dir = Directory('testdata');
