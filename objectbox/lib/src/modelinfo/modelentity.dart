@@ -1,5 +1,4 @@
 import '../bindings/bindings.dart';
-import '../util.dart';
 import 'iduid.dart';
 import 'modelinfo.dart';
 import 'modelproperty.dart';
@@ -119,7 +118,7 @@ class ModelEntity {
       }
 
       if (!lastPropertyIdFound &&
-          !listContains(model.retiredPropertyUids, lastPropertyId /*!*/ .uid)) {
+          !model.retiredPropertyUids.contains(lastPropertyId /*!*/ .uid)) {
         throw Exception(
             'lastPropertyId ${lastPropertyId.toString()} does not match any property');
       }

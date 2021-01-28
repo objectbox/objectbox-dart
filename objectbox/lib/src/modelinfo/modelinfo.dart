@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import '../util.dart';
 import 'modelentity.dart';
 import 'iduid.dart';
 
@@ -91,8 +90,7 @@ class ModelInfo {
       }
     }
 
-    if (!lastEntityIdFound &&
-        !listContains(retiredEntityUids, lastEntityId.uid)) {
+    if (!lastEntityIdFound && !retiredEntityUids.contains(lastEntityId.uid)) {
       throw Exception(
           'lastEntityId ${lastEntityId.toString()} does not match any entity');
     }
@@ -116,7 +114,7 @@ class ModelInfo {
       }
 
       if (!lastRelationIdFound &&
-          !listContains(retiredRelationUids, lastRelationId.uid)) {
+          !retiredRelationUids.contains(lastRelationId.uid)) {
         throw Exception(
             'lastRelationId ${lastRelationId.toString()} does not match any standalone relation');
       }
@@ -224,10 +222,10 @@ class ModelInfo {
     if (lastRelationId.uid == uid) return true;
     if (lastSequenceId.uid == uid) return true;
     if (entities.indexWhere((e) => e.containsUid(uid)) != -1) return true;
-    if (listContains(retiredEntityUids, uid)) return true;
-    if (listContains(retiredIndexUids, uid)) return true;
-    if (listContains(retiredPropertyUids, uid)) return true;
-    if (listContains(retiredRelationUids, uid)) return true;
+    if (retiredEntityUids.contains(uid)) return true;
+    if (retiredIndexUids.contains(uid)) return true;
+    if (retiredPropertyUids.contains(uid)) return true;
+    if (retiredRelationUids.contains(uid)) return true;
     return false;
   }
 
