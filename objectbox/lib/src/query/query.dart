@@ -48,11 +48,11 @@ class QueryProperty {
   QueryProperty(this._entityId, this._propertyId, this._type);
 
   Condition isNull() {
-    return NullCondition(_ConditionOp.isNull, this);
+    return _NullCondition(_ConditionOp.isNull, this);
   }
 
   Condition notNull() {
-    return NullCondition(_ConditionOp.notNull, this);
+    return _NullCondition(_ConditionOp.notNull, this);
   }
 }
 
@@ -64,12 +64,12 @@ class QueryStringProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition _op(String p, _ConditionOp cop, [bool caseSensitive = false]) {
-    return StringCondition(cop, this, p, null, caseSensitive);
+    return _StringCondition(cop, this, p, null, caseSensitive);
   }
 
   Condition _opList(List<String> list, _ConditionOp cop,
       [bool caseSensitive = false]) {
-    return StringListCondition(cop, this, list, caseSensitive);
+    return _StringListCondition(cop, this, list, caseSensitive);
   }
 
   Condition equals(String p, {bool caseSensitive = false}) {
@@ -137,7 +137,7 @@ class QueryByteVectorProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition _op(List<int> val, _ConditionOp cop) {
-    return ByteVectorCondition(cop, this, Uint8List.fromList(val));
+    return _ByteVectorCondition(cop, this, Uint8List.fromList(val));
   }
 
   Condition equals(List<int> val) {
@@ -169,11 +169,11 @@ class QueryIntegerProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition _op(int p, _ConditionOp cop) {
-    return IntegerCondition(cop, this, p, 0);
+    return _IntegerCondition(cop, this, p, 0);
   }
 
   Condition _opList(List<int> list, _ConditionOp cop) {
-    return IntegerListCondition(cop, this, list);
+    return _IntegerListCondition(cop, this, list);
   }
 
   Condition equals(int p) {
@@ -217,7 +217,7 @@ class QueryDoubleProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition _op(_ConditionOp op, double p1, double /*?*/ p2) {
-    return DoubleCondition(op, this, p1, p2);
+    return _DoubleCondition(op, this, p1, p2);
   }
 
   Condition between(double p1, double p2) {
@@ -251,11 +251,11 @@ class QueryBooleanProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition equals(bool p) {
-    return IntegerCondition(_ConditionOp.eq, this, (p ? 1 : 0));
+    return _IntegerCondition(_ConditionOp.eq, this, (p ? 1 : 0));
   }
 
   Condition notEquals(bool p) {
-    return IntegerCondition(_ConditionOp.notEq, this, (p ? 1 : 0));
+    return _IntegerCondition(_ConditionOp.notEq, this, (p ? 1 : 0));
   }
 }
 
@@ -267,7 +267,7 @@ class QueryStringVectorProperty extends QueryProperty {
       : super(entityId, propertyId, obxType);
 
   Condition contains(String p, {bool caseSensitive = false}) {
-    return StringCondition(_ConditionOp.contains, this, p, null, caseSensitive);
+    return _StringCondition(_ConditionOp.contains, this, p, null, caseSensitive);
   }
 }
 
@@ -320,42 +320,42 @@ abstract class Condition {
   Condition operator &(Condition rh) => and(rh);
 
   Condition and(Condition rh) {
-    if (this is ConditionGroupAll) {
+    if (this is _ConditionGroupAll) {
       // no need for brackets
-      return ConditionGroupAll(
-          [...(this as ConditionGroupAll)._conditions, rh]);
+      return _ConditionGroupAll(
+          [...(this as _ConditionGroupAll)._conditions, rh]);
     }
-    return ConditionGroupAll([this, rh]);
+    return _ConditionGroupAll([this, rh]);
   }
 
   Condition andAll(List<Condition> rh) {
-    return ConditionGroupAll([this, ...rh]);
+    return _ConditionGroupAll([this, ...rh]);
   }
 
   // using | because || is not overridable
   Condition operator |(Condition rh) => or(rh);
 
   Condition or(Condition rh) {
-    if (this is ConditionGroupAny) {
+    if (this is _ConditionGroupAny) {
       // no need for brackets
-      return ConditionGroupAny(
-          [...(this as ConditionGroupAny)._conditions, rh]);
+      return _ConditionGroupAny(
+          [...(this as _ConditionGroupAny)._conditions, rh]);
     }
-    return ConditionGroupAny([this, rh]);
+    return _ConditionGroupAny([this, rh]);
   }
 
   Condition orAny(List<Condition> rh) {
-    return ConditionGroupAny([this, ...rh]);
+    return _ConditionGroupAny([this, ...rh]);
   }
 
   int apply(_QueryBuilder builder, bool isRoot);
 }
 
-class NullCondition extends Condition {
+class _NullCondition extends Condition {
   final QueryProperty _property;
   final _ConditionOp _op;
 
-  NullCondition(this._op, this._property);
+  _NullCondition(this._op, this._property);
 
   @override
   int apply(_QueryBuilder builder, bool isRoot) {
@@ -370,20 +370,20 @@ class NullCondition extends Condition {
   }
 }
 
-abstract class PropertyCondition<DartType> extends Condition {
+abstract class _PropertyCondition<DartType> extends Condition {
   final QueryProperty _property;
   final DartType _value;
   final DartType /*?*/ _value2;
 
   final _ConditionOp _op;
 
-  PropertyCondition(this._op, this._property, this._value, [this._value2]);
+  _PropertyCondition(this._op, this._property, this._value, [this._value2]);
 }
 
-class StringCondition extends PropertyCondition<String> {
+class _StringCondition extends _PropertyCondition<String> {
   final bool _caseSensitive;
 
-  StringCondition(_ConditionOp op, QueryProperty prop, String value,
+  _StringCondition(_ConditionOp op, QueryProperty prop, String value,
       String /*?*/ value2, bool caseSensitive)
       : _caseSensitive = caseSensitive,
         super(op, prop, value, value2);
@@ -429,10 +429,10 @@ class StringCondition extends PropertyCondition<String> {
   }
 }
 
-class StringListCondition extends PropertyCondition<List<String>> {
+class _StringListCondition extends _PropertyCondition<List<String>> {
   final bool _caseSensitive;
 
-  StringListCondition(_ConditionOp op, QueryProperty prop, List<String> value,
+  _StringListCondition(_ConditionOp op, QueryProperty prop, List<String> value,
       bool caseSensitive)
       : _caseSensitive = caseSensitive,
         super(op, prop, value);
@@ -466,8 +466,8 @@ class StringListCondition extends PropertyCondition<List<String>> {
   }
 }
 
-class IntegerCondition extends PropertyCondition<int> {
-  IntegerCondition(_ConditionOp op, QueryProperty prop, int value,
+class _IntegerCondition extends _PropertyCondition<int> {
+  _IntegerCondition(_ConditionOp op, QueryProperty prop, int value,
       [int /*?*/ value2])
       : super(op, prop, value, value2);
 
@@ -496,8 +496,8 @@ class IntegerCondition extends PropertyCondition<int> {
   }
 }
 
-class IntegerListCondition extends PropertyCondition<List<int>> {
-  IntegerListCondition(_ConditionOp op, QueryProperty prop, List<int> value)
+class _IntegerListCondition extends _PropertyCondition<List<int>> {
+  _IntegerListCondition(_ConditionOp op, QueryProperty prop, List<int> value)
       : super(op, prop, value);
 
   int _opList<T extends NativeType>(
@@ -551,8 +551,8 @@ class IntegerListCondition extends PropertyCondition<List<int>> {
   }
 }
 
-class DoubleCondition extends PropertyCondition<double> {
-  DoubleCondition(
+class _DoubleCondition extends _PropertyCondition<double> {
+  _DoubleCondition(
       _ConditionOp op, QueryProperty prop, double value, double /*?*/ value2)
       : super(op, prop, value, value2) {
     assert(op != _ConditionOp.eq,
@@ -577,8 +577,8 @@ class DoubleCondition extends PropertyCondition<double> {
   }
 }
 
-class ByteVectorCondition extends PropertyCondition<Uint8List> {
-  ByteVectorCondition(_ConditionOp op, QueryProperty prop, Uint8List value)
+class _ByteVectorCondition extends _PropertyCondition<Uint8List> {
+  _ByteVectorCondition(_ConditionOp op, QueryProperty prop, Uint8List value)
       : super(op, prop, value);
 
   int _op1(_QueryBuilder builder,
@@ -611,11 +611,11 @@ class ByteVectorCondition extends PropertyCondition<Uint8List> {
   }
 }
 
-class ConditionGroup extends Condition {
+class _ConditionGroup extends Condition {
   final List<Condition> _conditions;
   final int Function(Pointer<OBX_query_builder>, Pointer<Int32>, int) _func;
 
-  ConditionGroup(this._conditions, this._func);
+  _ConditionGroup(this._conditions, this._func);
 
   @override
   int apply(_QueryBuilder builder, bool isRoot) {
@@ -641,7 +641,7 @@ class ConditionGroup extends Condition {
       }
 
       // root All (AND) is implicit so no need to actually combine the conditions
-      if (isRoot && this is ConditionGroupAll) {
+      if (isRoot && this is _ConditionGroupAll) {
         return -1; // no error but no condition ID either
       }
 
@@ -652,12 +652,12 @@ class ConditionGroup extends Condition {
   }
 }
 
-class ConditionGroupAny extends ConditionGroup {
-  ConditionGroupAny(conditions) : super(conditions, C.qb_any);
+class _ConditionGroupAny extends _ConditionGroup {
+  _ConditionGroupAny(conditions) : super(conditions, C.qb_any);
 }
 
-class ConditionGroupAll extends ConditionGroup {
-  ConditionGroupAll(conditions) : super(conditions, C.qb_all);
+class _ConditionGroupAll extends _ConditionGroup {
+  _ConditionGroupAll(conditions) : super(conditions, C.qb_all);
 }
 
 /// A repeatable Query returning the latest matching Objects.
