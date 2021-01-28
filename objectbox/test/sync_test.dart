@@ -40,8 +40,7 @@ void main() {
 
   test('Model Entity has sync enabled', () {
     final model = getObjectBoxModel().model;
-    final entity =
-        model.entities.firstWhere((e) => e.name == 'TestEntity');
+    final entity = model.entities.firstWhere((e) => e.name == 'TestEntity');
     expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
