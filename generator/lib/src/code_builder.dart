@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
-import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/internal.dart';
 import 'package:dart_style/dart_style.dart';
 import 'entity_resolver.dart';
 import 'code_chunks.dart';

@@ -1,6 +1,6 @@
 library integration_test;
 
-import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/internal.dart';
 import './src/bindings/helpers.dart';
 import './src/bindings/bindings.dart';
 

@@ -6,15 +6,21 @@
 library objectbox;
 
 export 'src/annotations.dart';
-export 'src/box.dart' hide InternalBoxAccess;
+export 'src/box.dart' show Box;
 export 'src/common.dart';
-export 'src/model.dart';
-export 'src/modelinfo/index.dart';
-export 'src/query/query.dart';
+export 'src/query/query.dart'
+    show
+        Query,
+        QueryBuilder,
+        Order,
+        Condition,
+        PropertyQuery,
+        IntegerPropertyQuery,
+        DoublePropertyQuery,
+        StringPropertyQuery;
 export 'src/relations/info.dart';
-export 'src/relations/to_one.dart' hide InternalToOneAccess;
-export 'src/relations/to_many.dart'
-    hide InternalToManyAccess, InternalToManyTestAccess;
-export 'src/store.dart' hide InternalStoreAccess;
+export 'src/relations/to_one.dart' show ToOne;
+export 'src/relations/to_many.dart' show ToMany;
+export 'src/store.dart' show Store;
 export 'src/sync.dart';
 export 'src/transaction.dart' show TxMode;
