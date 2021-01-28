@@ -220,7 +220,7 @@ void main() {
   });
 
   test('.findIds returns List<int>', () {
-    box.put(TestEntity(tString: 'meh'));
+    box.put(TestEntity(tString: null));
     box.put(TestEntity(tString: 'bleh'));
     box.put(TestEntity(tString: 'bleh'));
     box.put(TestEntity(tString: 'helb'));
@@ -239,13 +239,20 @@ void main() {
     final q3 = box.query(text.equals("can't find this")).build();
     final result3 = q3.findIds();
 
-    expect(result0.length, 7);
-    expect(result2.length, 1);
-    expect(result3.length, 0);
+    expect(result0, unorderedEquals([2, 3, 4, 5, 6, 7]));
+    expect(result2, unorderedEquals([7]));
+    expect(result3, unorderedEquals([]));
 
     q0.close();
     q2.close();
     q3.close();
+
+    // paranoia
+    [result0, result2, result3].forEach((ids) => ids.forEach((id) {
+          final read = box.get(id);
+          expect(read, isNotNull);
+          expect(read.id, equals(id));
+        }));
   });
 
   test('.find offset and limit', () {
