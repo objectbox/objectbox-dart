@@ -14,6 +14,7 @@ import 'transaction.dart';
 /// specific type.
 class Store {
   /*late final*/ Pointer<OBX_store> _cStore;
+  final _boxes = <Type, Box>{};
   final ModelDefinition _defs;
 
   /// Creates a BoxStore using the model definition from your
@@ -93,6 +94,9 @@ class Store {
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
+    _boxes.values.forEach(InternalBoxAccess.close);
+    _boxes.clear();
+
     // Call each "onBeforeClose()" event listener.
     // Move the list to prevent "Concurrent modification during iteration".
     final listeners = StoreCloseObserver.removeAllListeners(this);
@@ -102,7 +106,20 @@ class Store {
   }
 
   /// Returns a cached Box instance.
-  Box<T> box<T>() => Box<T>(this);
+  Box<T> box<T>() {
+    if (!_boxes.containsKey(T)) {
+      return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
+    }
+    return _boxes[T];
+  }
+
+  EntityDefinition<T> _entityDef<T>() {
+    final binding = _defs.bindings[T];
+    if (binding == null) {
+      throw ArgumentError('Unknown entity type ' + T.toString());
+    }
+    return binding /*!*/ as EntityDefinition<T>;
+  }
 
   /// Executes a given function inside a transaction.
   ///
@@ -121,11 +138,5 @@ class Store {
 // TODO enable annotation once meta:1.3.0 is out
 // @internal
 class InternalStoreAccess {
-  static EntityDefinition<T> entityDef<T>(Store store) {
-    final binding = store._defs.bindings[T];
-    if (binding == null) {
-      throw ArgumentError('Unknown entity type ' + T.toString());
-    }
-    return binding /*!*/ as EntityDefinition<T>;
-  }
+  static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 }

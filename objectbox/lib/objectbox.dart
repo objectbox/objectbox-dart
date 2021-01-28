@@ -6,7 +6,7 @@
 library objectbox;
 
 export 'src/annotations.dart';
-export 'src/box.dart';
+export 'src/box.dart' hide InternalBoxAccess;
 export 'src/common.dart';
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';

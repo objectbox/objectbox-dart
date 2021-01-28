@@ -12,7 +12,6 @@ import 'query/query.dart';
 import 'relations/info.dart';
 import 'relations/to_one.dart';
 import 'relations/to_many.dart';
-import 'util.dart';
 import 'transaction.dart';
 
 enum PutMode {
@@ -21,53 +20,23 @@ enum PutMode {
   Update,
 }
 
-/// Global internal storage of all boxes for the given store.
-final _boxes = <Store, Map<Type, Box>>{};
-
-// we need this to clear c-allocated memory in the BuilderWithCBuffer()
-void _closeStoreBoxes(Store store) {
-  _boxes[store].values.forEach((box) => box._builder.clear());
-}
-
 /// A box to store objects of a particular class.
 class Box<T> {
   final Store _store;
-
-  /*late final*/
-  Pointer<OBX_box> _cBox;
-
+  final Pointer<OBX_box> _cBox;
   final EntityDefinition<T> _entity;
-
-  /*late final*/
-  bool _hasToOneRelations;
-
-  /*late final*/
-  bool _hasToManyRelations;
-
+  final bool _hasToOneRelations;
+  final bool _hasToManyRelations;
   final _builder = BuilderWithCBuffer();
 
-  factory Box(Store store) {
-    if (!_boxes.containsKey(store)) {
-      _boxes[store] = <Type, Box>{};
-      final listenerKey = 'boxes';
-      StoreCloseObserver.addListener(store, listenerKey, () {
-        _closeStoreBoxes(store);
-        StoreCloseObserver.removeListener(store, listenerKey);
-      });
-    }
-    final storeBoxes = _boxes[store];
-    if (!storeBoxes.containsKey(T)) {
-      return storeBoxes[T] = Box<T>._(store);
-    }
-    return storeBoxes[T];
-  }
+  factory Box(Store store) => store.box();
 
-  Box._(this._store) : _entity = InternalStoreAccess.entityDef<T>(_store) {
-    _hasToOneRelations =
-        _entity.model.properties.any((ModelProperty prop) => prop.isRelation);
-    _hasToManyRelations = _entity.model.relations.isNotEmpty ||
-        _entity.model.backlinks.isNotEmpty;
-    _cBox = C.box(_store.ptr, _entity.model.id.id);
+  Box._(this._store, this._entity)
+      : _hasToOneRelations = _entity.model.properties
+            .any((ModelProperty prop) => prop.isRelation),
+        _hasToManyRelations = _entity.model.relations.isNotEmpty ||
+            _entity.model.backlinks.isNotEmpty,
+        _cBox = C.box(_store.ptr, _entity.model.id.id) {
     checkObxPtr(_cBox, 'failed to create box');
   }
 
@@ -326,4 +295,13 @@ class Box<T> {
       }
     });
   }
+}
+
+// TODO enable annotation once meta:1.3.0 is out
+// @internal
+class InternalBoxAccess {
+  static Box<T> create<T>(Store store, EntityDefinition<T> entity) =>
+      Box._(store, entity);
+
+  static void close(Box box) => box._builder.clear();
 }
