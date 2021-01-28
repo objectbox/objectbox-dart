@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:objectbox/observable.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';

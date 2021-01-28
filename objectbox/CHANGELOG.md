@@ -10,7 +10,9 @@
 * Change `Box.putMany()` and `Query.FindIds()` to return fixed-size lists.
 * Change `Box.GetMany()` to return a fixed-size list by default, with an option to return a growable list.
 * Change `@Id()` annotation to optional - recognized automatically if there's an `int id` field (case insensitive).
+* Make `observable.dart` part of `objectbox.dart` exports, no need to import it separately.  
 * Expose `PutMode` - allowing semantics choice between put, update and insert.
+* Hide internal classes not intended for general use (e.g. all Model* classes).
 
 ## 0.10.0 (2020-12-01)
 

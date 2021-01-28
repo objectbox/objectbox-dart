@@ -24,3 +24,4 @@ export 'src/relations/to_many.dart' show ToMany;
 export 'src/store.dart' show Store;
 export 'src/sync.dart';
 export 'src/transaction.dart' show TxMode;
+export 'src/observable.dart';
