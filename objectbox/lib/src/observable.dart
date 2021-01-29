@@ -62,6 +62,9 @@ class _Observable {
       _Observable._anyObserver.containsKey(store.ptr.address);
 }
 
+/// Streamable adds stream support to queries. The stream reruns the query
+/// whenever there's a change in any of the object in the queried Entity
+/// (regardless of the filter conditions).
 extension Streamable<T> on Query<T> {
   void _setup() {
     if (!_Observable.isSubscribed(store)) {

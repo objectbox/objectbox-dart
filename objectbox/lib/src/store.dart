@@ -10,8 +10,8 @@ import 'util.dart';
 import 'sync.dart';
 import 'transaction.dart';
 
-/// Represents an ObjectBox database and works together with [Box] to allow getting and putting Objects of
-/// specific type.
+/// Represents an ObjectBox database and works together with [Box] to allow
+/// getting and putting.
 class Store {
   /*late final*/ Pointer<OBX_store> _cStore;
   final _boxes = <Type, Box>{};
@@ -20,7 +20,7 @@ class Store {
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
 
-  /// Creates a BoxStore using the model definition from your
+  /// Creates a BoxStore using the model definition from the generated
   /// `objectbox.g.dart` file.
   ///
   /// For example in a Flutter app:
@@ -83,8 +83,10 @@ class Store {
         if (e.nativeMsg /*!*/ .endsWith(' (13)') ||
             e.nativeMsg /*!*/ .endsWith(' (30)')) {
           final msg = e.nativeMsg /*!*/ +
-              " - this usually indicates a problem with permissions; if you're using Flutter you may need to use " +
-              'getApplicationDocumentsDirectory() from the path_provider package, see example/README.md';
+              ' - this usually indicates a problem with permissions; '
+                  "if you're using Flutter you may need to use "
+                  'getApplicationDocumentsDirectory() from the path_provider '
+                  'package, see example/README.md';
           throw ObjectBoxException(
               dartMsg: e.dartMsg, nativeCode: e.nativeCode, nativeMsg: msg);
         }
@@ -125,13 +127,12 @@ class Store {
   }
 
   /// Executes a given function inside a transaction.
-  ///
   /// Returns type of [fn] if [return] is called in [fn].
   R runInTransaction<R>(TxMode mode, R Function() fn) =>
       Transaction.execute(this, mode, fn);
 
-  /// Return an existing SyncClient associated with the store or null if not available.
-  /// See [Sync.client()] to create one first.
+  /// Return an existing SyncClient associated with the store or null if not
+  /// available. Use [Sync.client()] to create one first.
   SyncClient /*?*/ syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.

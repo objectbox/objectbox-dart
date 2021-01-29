@@ -1,27 +1,55 @@
+/// Entity annotation is used to on a class to let ObjectBox know it should
+/// store it - making the class a "persistable Entity".
+///
+/// This annotation is matched by ObjectBox code generator when you call
+/// `pub run_build_runner build`. The generator creates `objectbox.g.dart` with
+/// all the binding code necessary to store the class in the database.
 class Entity {
+  /// ObjectBox keeps track of entities and properties by assigning them unique
+  /// identifiers, UIDs, during the code-generation phase. All those UIDs are
+  /// stored in a file objectbox-model.json in your package and are looked up by
+  /// name. If the name changes a new uid is assigned, effectively creating a
+  /// new Entity in the database.
+  ///
+  /// If you explicitly specify a [uid] on an [Entity], ObjectBox would be able
+  /// to identify it even after you change the name and would update the
+  /// database accordingly on the next application launch - renaming the stored
+  /// Entity instead of creating a new one.
   final int /*?*/ uid;
 
   const Entity({this.uid});
 }
 
-/// A dart int value can map to different OBXPropertyTypes,
-/// e.g. Short (Int16), Int (Int32), Long (Int64), all signed values.
-/// Also a dart double can also map to e.g. Float and Double
+/// Property annotation enables you to explicitly specify configure some details
+/// about how a field is stored in the database.
 ///
-/// Property allows the mapping to be specific. The defaults are
-/// e.g. Int -> Int64, double -> Float64, bool -> Bool.
-///
-/// Use OBXPropertyType and OBXPropertyFlag values, resp. for type and flag.
+/// Use PropertyType and OBXPropertyFlag values, resp. for type and flag.
 class Property {
-  final int /*?*/ uid, flag;
+  /// ObjectBox keeps track of entities and properties by assigning them unique
+  /// identifiers, UIDs, during the code-generation phase. All those UIDs are
+  /// stored in a file objectbox-model.json in your package and are looked up by
+  /// name. If the name changes a new uid is assigned, effectively creating a
+  /// new field in the database.
+  ///
+  /// If you explicitly specify a [uid] on a [Property], ObjectBox would be able
+  /// to identify it even after you change the name and would update the
+  /// database accordingly on the next application launch - renaming the stored
+  /// Property instead of creating a new one.
+  final int /*?*/ uid;
 
-  /// Override dart type with an alternative ObjectBox property type
+  /// Override dart type with an alternative ObjectBox property type.
+  ///
+  /// A dart int value can map to different [PropertyType]s,
+  /// e.g. Short (Int16), Int (Int32), Long (Int64), all signed values.
+  /// Also a dart double can also map to e.g. Float and Double
+  ///
+  /// The defaults are e.g. Int -> Int64, double -> Float64, bool -> Bool.
   final PropertyType /*?*/ type;
 
-  const Property({this.type, this.flag, this.uid});
+  const Property({this.type, this.uid});
 }
 
-// Specify ObjectBox property type explicitly
+/// Specify ObjectBox property storage type explicitly.
 enum PropertyType {
   // dart type=bool, size: 1-byte/8-bits
   // no need to specify explicitly, just use `bool`
@@ -74,10 +102,13 @@ enum PropertyType {
   // stringVector
 }
 
+/// Annotation Id can be used to specify an entity ID property if it's named
+/// anything else then "id" (case insensitive).
 class Id {
   const Id();
 }
 
+/// Transient annotation marks properties that should not be stored in the DB.
 class Transient {
   const Transient();
 }
@@ -102,14 +133,35 @@ class Index {
   const Index({this.type});
 }
 
+/// IndexType can be used to change what type ObjectBox uses when indexing a
+/// property.
+///
+/// Limits of [hash]/[hash64] indexes: Hashes work great for equality checks,
+/// but not for "starts with" conditions. If you frequently use those, consider
+/// [value] indexes instead for [String] properties.
 enum IndexType {
+  /// Uses property values to build the index. This is a default for scalar
+  /// properties.
+  ///
+  /// If used for a [String] property, this may require more storage space than
+  /// it's default, [hash].
   value,
+
+  /// Uses a 32-bit hash of the field value to build the index. This is a
+  /// default for [String] properties.
+  ///
+  /// Hash collisions should be sporadic and shouldn't impact performance in
+  /// practice. Because it requires less storage space, it's usually a better
+  /// choice than  [hash64].
   hash,
+
+  /// Uses a long hash of the field value to build the index. Uses more storage
+  /// space than [hash], thus should be used with consideration.
   hash64,
 }
 
-/// Enforces that the value of a property is unique among all Objects in a Box
-/// before an Object can be put.
+/// Unique annotation forces that the value of a property is unique among all
+/// objects stored for the given entity.
 ///
 /// Trying to put an Object with offending values will result in an exception.
 ///
@@ -120,7 +172,9 @@ class Unique {
   const Unique();
 }
 
-/// Defines a relation backlink, reversing the direction of another relation.
+/// Backlink annotation specifies a link in a reverse direction of another
+/// relation.
+///
 /// This works as an "updatable view" of the original relation, and doesn't
 /// cause any more data to be stored in the database. Changes made to the
 /// backlink relation are reflected in the original direction.

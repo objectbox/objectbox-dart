@@ -39,6 +39,7 @@ class SyncCredentials {
       : this._(OBXSyncCredentialsType.GOOGLE_AUTH, data);
 }
 
+/// Current state of the [SyncClient].
 enum SyncState {
   unknown,
   created,
@@ -50,22 +51,27 @@ enum SyncState {
   dead
 }
 
+/// Configuration of how [SyncClient] fetches remote updates from the server.
 enum SyncRequestUpdatesMode {
-  /// no updates by default, [SyncClient.requestUpdates()] must be called manually
+  /// No updates, [SyncClient.requestUpdates()] must be called manually.
   manual,
 
-  /// same as calling [SyncClient.requestUpdates(true)]
-  /// default mode unless overridden by [SyncClient.setRequestUpdatesMode()]
+  /// Automatic updates, including subsequent pushes from the server, same as
+  /// calling [SyncClient.requestUpdates(true)]. This is the default unless
+  /// changed by [SyncClient.setRequestUpdatesMode()].
   auto,
 
-  /// same as calling [SyncClient.requestUpdates(false)]
+  /// Automatic update after connection, without subscribing for pushes from the
+  /// server. Similar to calling [SyncClient.requestUpdates(false)].
   autoNoPushes
 }
 
-/// Sync client is used to provide ObjectBox Sync client capabilities to your application.
+/// Sync client is used to connect to an ObjectBox sync server.
 class SyncClient {
   final Store _store;
-  /*late final*/ Pointer<OBX_sync> _cSync;
+
+  /*late final*/
+  Pointer<OBX_sync> _cSync;
 
   /// The low-level pointer to this box.
   Pointer<OBX_sync> get ptr => (_cSync.address != 0)
@@ -132,8 +138,7 @@ class SyncClient {
     }
   }
 
-  /// Configure authentication credentials.
-  /// The accepted [SyncCredentials] type depends on your sync-server configuration.
+  /// Configure authentication credentials, depending on your server config.
   void setCredentials(SyncCredentials creds) {
     final cCreds = OBX_bytes_wrapper.managedCopyOf(creds._data, align: false);
     try {
@@ -147,8 +152,8 @@ class SyncClient {
     }
   }
 
-  /// Configures how sync updates are received from the server.
-  /// If automatic sync updates are turned off, they will need to be requested manually.
+  /// Configures how sync updates are received from the server. If automatic
+  /// updates are turned off, they will need to be requested manually.
   void setRequestUpdatesMode(SyncRequestUpdatesMode mode) {
     int cMode;
     switch (mode) {
@@ -167,13 +172,15 @@ class SyncClient {
     checkObx(C.sync_request_updates_mode(ptr, cMode));
   }
 
-  /// Once the sync client is configured, you can "start" it to initiate synchronization.
-  /// This method triggers communication in the background and will return immediately.
-  /// If the synchronization destination is reachable, this background thread will connect to the server,
-  /// log in (authenticate) and, depending on "update request mode", start syncing data.
-  /// If the device, network or server is currently offline, connection attempts will be retried later using
-  /// increasing backoff intervals.
-  /// If you haven't set the credentials in the options during construction, call [setCredentials()] before start().
+  /// Once the sync client is configured, you can [start] it to initiate
+  /// synchronization.
+  ///
+  /// This method triggers communication in the background and returns
+  /// immediately. The background thread will try to connect to the server,
+  /// log-in and start syncing data (depends on [SyncRequestUpdatesMode]).
+  /// If the device, network or server is currently offline, connection attempts
+  /// will be retried later automatically. If you haven't set the credentials in
+  /// the options during construction, call [setCredentials()] before [start()].
   void start() {
     checkObx(C.sync_start(ptr));
   }
@@ -184,6 +191,7 @@ class SyncClient {
   }
 
   /// Request updates since we last synchronized our database.
+  ///
   /// Additionally, you can subscribe for future pushes from the server, to let
   /// it send us future updates as they come in.
   /// Call [cancelUpdates()] to stop the updates.
@@ -198,10 +206,14 @@ class SyncClient {
     return checkObxSuccess(C.sync_updates_cancel(ptr));
   }
 
-  /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
-  /// Note: This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
-  ///       While this will still be fast, avoid calling this function excessively.
-  ///       2) the result follows transaction view semantics, thus it may not always match the actual value.
+  /// Count the number of messages in the outgoing queue, i.e. those waiting to
+  /// be sent to the server.
+  ///
+  /// Note: This calls uses a (read) transaction internally:
+  ///   1) It's not just a "cheap" return of a single number. While this will
+  ///      still be fast, avoid calling this function excessively.
+  ///   2) the result follows transaction view semantics, thus it may not always
+  ///      match the actual value.
   int outgoingMessageCount({int limit = 0}) {
     final count = allocate<Uint64>();
     try {
@@ -213,9 +225,10 @@ class SyncClient {
   }
 }
 
-/// [ObjectBox Sync](https://objectbox.io/sync/) makes data available on other devices.
+/// [ObjectBox Sync](https://objectbox.io/sync/) makes data available and
+/// synchronized across devices, online and offline.
 ///
-/// Start building a sync client using [Sync.client()] and connect to a remote server.
+/// Start a client using [Sync.client()] and connect to a remote server.
 class Sync {
   /// Sync() annotation enables synchronization for an entity.
   const Sync();
@@ -233,11 +246,12 @@ class Sync {
     return _syncAvailable;
   }
 
-  /// Creates a sync client associated with the given store and configures it with the given options.
-  /// This does not initiate any connection attempts yet: call [SyncClient.start()] to do so.
-  /// Before start(), you can still configure some aspects of the sync client, e.g. its "request update" mode.
-  /// Note: While you may not interact with SyncClient directly after start(), you need to hold on to the object.
-  ///       Make sure the SyncClient is not destroyed and thus synchronization can keep running in the background.
+  /// Creates a sync client associated with the given store and configures it
+  /// with the given options. This does not initiate any connection attempts
+  /// yet, call [SyncClient.start()] to do so.
+  ///
+  /// Before [SyncClient.start()], you can still configure some aspects of the
+  /// client, e.g. its [SyncRequestUpdatesMode] mode.
   static SyncClient client(
       Store store, String serverUri, SyncCredentials creds) {
     if (syncClientsStorage.containsKey(store)) {

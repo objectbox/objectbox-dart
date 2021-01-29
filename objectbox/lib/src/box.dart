@@ -20,7 +20,15 @@ enum PutMode {
   Update,
 }
 
-/// A box to store objects of a particular class.
+/// A Box instance gives you access to objects of a particular type.
+/// You get Box instances via [Store.box()] or [Box(Store)].
+///
+/// For example, if you have User and Order entities, you need two Box objects
+/// to interact with each:
+/// ```dart
+/// Box<User> userBox = store.box();
+/// Box<Order> orderBox = store.box();
+/// ```
 class Box<T> {
   final Store _store;
   final Pointer<OBX_box> _cBox;
