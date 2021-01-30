@@ -13,6 +13,8 @@
 * Make `observable.dart` part of `objectbox.dart` exports, no need to import it separately.  
 * Expose `PutMode` - allowing semantics choice between put, update and insert.
 * Hide internal classes not intended for general use (e.g. all Model* classes).
+* Rename `versionLib()` to `nativeLibraryVersion()`.
+* Remove `flags` from the `Property()` annotation.
 
 ## 0.10.0 (2020-12-01)
 

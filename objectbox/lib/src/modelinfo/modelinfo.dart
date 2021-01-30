@@ -74,25 +74,24 @@ class ModelInfo {
     for (final e in entities) {
       if (e.model != this) {
         throw Exception(
-            "entity '${e.name}' with id ${e.id.toString()} has incorrect parent model reference");
+            "entity '${e.name}' with id ${e.id} has incorrect parent model reference");
       }
       e.validate();
       if (lastEntityId.id < e.id.id) {
         throw Exception(
-            "lastEntityId ${lastEntityId.toString()} is lower than the one of entity '${e.name}' with id ${e.id.toString()}");
+            "lastEntityId ${lastEntityId} is lower than the one of entity '${e.name}' with id ${e.id}");
       }
       if (lastEntityId.id == e.id.id) {
         if (lastEntityId.uid != e.id.uid) {
           throw Exception(
-              "lastEntityId ${lastEntityId.toString()} does not match entity '${e.name}' with id ${e.id.toString()}");
+              "lastEntityId ${lastEntityId} does not match entity '${e.name}' with id ${e.id}");
         }
         lastEntityIdFound = true;
       }
     }
 
     if (!lastEntityIdFound && !retiredEntityUids.contains(lastEntityId.uid)) {
-      throw Exception(
-          'lastEntityId ${lastEntityId.toString()} does not match any entity');
+      throw Exception('lastEntityId ${lastEntityId} does not match any entity');
     }
 
     if (!lastRelationId.isEmpty || hasRelations()) {
@@ -101,12 +100,12 @@ class ModelInfo {
         for (final r in e.relations) {
           if (lastRelationId /*!*/ .id < r.id.id) {
             throw Exception(
-                "lastRelationId ${lastRelationId.toString()} is lower than the one of relation '${r.name}' with id ${r.id.toString()}");
+                "lastRelationId ${lastRelationId} is lower than the one of relation '${r.name}' with id ${r.id}");
           }
           if (lastRelationId /*!*/ .id == r.id.id) {
             if (lastRelationId /*!*/ .uid != r.id.uid) {
               throw Exception(
-                  "lastRelationId ${lastRelationId.toString()} does not match relation '${r.name}' with id ${r.id.toString()}");
+                  "lastRelationId ${lastRelationId} does not match relation '${r.name}' with id ${r.id}");
             }
             lastRelationIdFound = true;
           }
@@ -116,7 +115,7 @@ class ModelInfo {
       if (!lastRelationIdFound &&
           !retiredRelationUids.contains(lastRelationId.uid)) {
         throw Exception(
-            'lastRelationId ${lastRelationId.toString()} does not match any standalone relation');
+            'lastRelationId ${lastRelationId} does not match any standalone relation');
       }
     }
   }
@@ -196,7 +195,7 @@ class ModelInfo {
     final foundEntity = findSameEntity(entity);
     if (foundEntity == null) {
       throw Exception(
-          "cannot remove entity '${entity.name}' with id ${entity.id.toString()}: not found");
+          "cannot remove entity '${entity.name}' with id ${entity.id}: not found");
     }
     entities = entities.where((p) => p != foundEntity).toList();
     retiredEntityUids.add(entity.id.uid);

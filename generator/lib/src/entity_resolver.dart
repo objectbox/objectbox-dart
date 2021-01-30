@@ -5,7 +5,8 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
-import 'package:objectbox/internal.dart' as obx;
+import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/src/bindings/helpers.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
@@ -20,14 +21,14 @@ class EntityResolver extends Builder {
     '.dart': [suffix]
   };
 
-  final _entityChecker = const TypeChecker.fromRuntime(obx.Entity);
-  final _propertyChecker = const TypeChecker.fromRuntime(obx.Property);
-  final _idChecker = const TypeChecker.fromRuntime(obx.Id);
-  final _transientChecker = const TypeChecker.fromRuntime(obx.Transient);
-  final _syncChecker = const TypeChecker.fromRuntime(obx.Sync);
-  final _uniqueChecker = const TypeChecker.fromRuntime(obx.Unique);
-  final _indexChecker = const TypeChecker.fromRuntime(obx.Index);
-  final _backlinkChecker = const TypeChecker.fromRuntime(obx.Backlink);
+  final _entityChecker = const TypeChecker.fromRuntime(Entity);
+  final _propertyChecker = const TypeChecker.fromRuntime(Property);
+  final _idChecker = const TypeChecker.fromRuntime(Id);
+  final _transientChecker = const TypeChecker.fromRuntime(Transient);
+  final _syncChecker = const TypeChecker.fromRuntime(Sync);
+  final _uniqueChecker = const TypeChecker.fromRuntime(Unique);
+  final _indexChecker = const TypeChecker.fromRuntime(Index);
+  final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -73,10 +74,10 @@ class EntityResolver extends Builder {
     log.info(entity);
 
     // getters, ... (anything else?)
-    final readOnlyFields = <String, bool>{};
+    final readOnlyFields = <String>{};
     for (var f in element.accessors) {
       if (f.isGetter && f.correspondingSetter == null) {
-        readOnlyFields[f.name] = true;
+        readOnlyFields.add(f.name);
       }
     }
 
@@ -87,7 +88,7 @@ class EntityResolver extends Builder {
         continue;
       }
 
-      if (readOnlyFields.containsKey(f.name) && !isRelationField(f)) {
+      if (readOnlyFields.contains(f.name) && !isRelationField(f)) {
         log.info('  skipping read-only/getter ${f.name}');
         continue;
       }
@@ -107,7 +108,6 @@ class EntityResolver extends Builder {
         propUid = _propertyAnnotation.getField('uid').toIntValue();
         fieldType =
             propertyTypeFromAnnotation(_propertyAnnotation.getField('type'));
-        flags |= _propertyAnnotation.getField('flag').toIntValue() ?? 0;
       }
 
       if (fieldType == null) {
@@ -241,8 +241,8 @@ class EntityResolver extends Builder {
   }
 
   void processAnnotationIndexUnique(FieldElement f, int fieldType,
-      Element elementBare, obx.ModelProperty prop) {
-    obx.IndexType indexType;
+      Element elementBare, ModelProperty prop) {
+    IndexType indexType;
 
     final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
     final hasUniqueAnnotation = _uniqueChecker.hasAnnotationOfExact(f);
@@ -264,23 +264,23 @@ class EntityResolver extends Builder {
     // If available use index type from annotation.
     if (indexAnnotation != null && !indexAnnotation.isNull) {
       final enumValItem = enumValueItem(indexAnnotation.getField('type'));
-      if (enumValItem != null) indexType = obx.IndexType.values[enumValItem];
+      if (enumValItem != null) indexType = IndexType.values[enumValItem];
     }
 
     // Fall back to index type based on property type.
     final supportsHashIndex = fieldType == OBXPropertyType.String;
     if (indexType == null) {
       if (supportsHashIndex) {
-        indexType = obx.IndexType.hash;
+        indexType = IndexType.hash;
       } else {
-        indexType = obx.IndexType.value;
+        indexType = IndexType.value;
       }
     }
 
     // Throw if HASH or HASH64 is not supported by property type.
     if (!supportsHashIndex &&
-        (indexType == obx.IndexType.hash ||
-            indexType == obx.IndexType.hash64)) {
+        (indexType == IndexType.hash ||
+            indexType == IndexType.hash64)) {
       throw InvalidGenerationSourceError(
           "entity ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
     }
@@ -290,13 +290,13 @@ class EntityResolver extends Builder {
     }
 
     switch (indexType) {
-      case obx.IndexType.value:
+      case IndexType.value:
         prop.flags |= OBXPropertyFlags.INDEXED;
         break;
-      case obx.IndexType.hash:
+      case IndexType.hash:
         prop.flags |= OBXPropertyFlags.INDEX_HASH;
         break;
-      case obx.IndexType.hash64:
+      case IndexType.hash64:
         prop.flags |= OBXPropertyFlags.INDEX_HASH64;
         break;
       default:
@@ -329,7 +329,7 @@ class EntityResolver extends Builder {
     final item = enumValueItem(typeField);
     return item == null
         ? null
-        : propertyTypeToOBXPropertyType(obx.PropertyType.values[item]);
+        : propertyTypeToOBXPropertyType(PropertyType.values[item]);
   }
 
   DartType /*?*/ listItemType(DartType listType) {

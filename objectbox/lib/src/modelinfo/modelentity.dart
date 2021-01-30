@@ -102,16 +102,16 @@ class ModelEntity {
       for (final p in properties) {
         if (p.entity != this) {
           throw Exception(
-              "property '${p.name}' with id ${p.id.toString()} has incorrect parent entity reference");
+              "property '${p.name}' with id ${p.id} has incorrect parent entity reference");
         }
         if (lastPropertyId /*!*/ .id < p.id.id) {
           throw Exception(
-              "lastPropertyId ${lastPropertyId.toString()} is lower than the one of property '${p.name}' with id ${p.id.toString()}");
+              "lastPropertyId ${lastPropertyId} is lower than the one of property '${p.name}' with id ${p.id}");
         }
         if (lastPropertyId /*!*/ .id == p.id.id) {
           if (lastPropertyId /*!*/ .uid != p.id.uid) {
             throw Exception(
-                "lastPropertyId ${lastPropertyId.toString()} does not match property '${p.name}' with id ${p.id.toString()}");
+                "lastPropertyId ${lastPropertyId} does not match property '${p.name}' with id ${p.id}");
           }
           lastPropertyIdFound = true;
         }
@@ -120,14 +120,14 @@ class ModelEntity {
       if (!lastPropertyIdFound &&
           !model.retiredPropertyUids.contains(lastPropertyId /*!*/ .uid)) {
         throw Exception(
-            'lastPropertyId ${lastPropertyId.toString()} does not match any property');
+            'lastPropertyId ${lastPropertyId} does not match any property');
       }
     }
 
     for (final r in relations) {
       if (r.targetId.isEmpty) {
         throw Exception(
-            "relation '${r.name}' with id ${r.id.toString()} has incorrect target entity reference");
+            "relation '${r.name}' with id ${r.id} has incorrect target entity reference");
       }
     }
   }
@@ -190,7 +190,7 @@ class ModelEntity {
     final foundProp = findSameProperty(prop);
     if (foundProp == null) {
       throw Exception(
-          "cannot remove property '${prop.name}' with id ${prop.id.toString()}: not found");
+          "cannot remove property '${prop.name}' with id ${prop.id}: not found");
     }
     _properties.remove(foundProp);
     model.retiredPropertyUids.add(prop.id.uid);
@@ -242,7 +242,7 @@ class ModelEntity {
     final foundRel = findSameRelation(rel);
     if (foundRel == null) {
       throw Exception(
-          "cannot remove relation '${rel.name}' with id ${rel.id.toString()}: not found");
+          "cannot remove relation '${rel.name}' with id ${rel.id}: not found");
     }
     _relations.remove(foundRel);
     model.retiredRelationUids.add(rel.id.uid);

@@ -3,6 +3,8 @@ import 'package:ffi/ffi.dart' show allocate, free;
 
 import 'bindings/bindings.dart';
 
+// TODO use pub_semver?
+/// Wrapper for a semantic version information.
 class Version {
   final int major;
   final int minor;
@@ -14,8 +16,8 @@ class Version {
   String toString() => '$major.$minor.$patch';
 }
 
-/// Returns the underlying ObjectBox-C library version
-Version versionLib() {
+/// Returns the underlying ObjectBox-C library version.
+Version nativeLibraryVersion() {
   var majorPtr = allocate<Int32>(),
       minorPtr = allocate<Int32>(),
       patchPtr = allocate<Int32>();
@@ -30,6 +32,7 @@ Version versionLib() {
   }
 }
 
+/// ObjectBox native exception wrapper.
 class ObjectBoxException implements Exception {
   final String /*?*/ dartMsg;
   final int nativeCode;

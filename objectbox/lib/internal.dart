@@ -1,6 +1,5 @@
 /// This library serves as an entrypoint for generated code and objectbox tools.
 /// Don't import into your own code, use 'objectbox.dart' instead.
-export 'objectbox.dart'; // everything already public
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
 export 'src/query/query.dart';

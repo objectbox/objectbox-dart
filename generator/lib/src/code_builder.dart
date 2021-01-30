@@ -113,18 +113,18 @@ class CodeBuilder extends Builder {
 
   void merge(ModelInfo model, List<ModelEntity> entities) {
     // update existing and add new, while collecting all entity IDs at the end
-    final currentEntityIds = <int, bool>{};
+    final currentEntityIds = <int>{};
     entities.forEach((entity) {
       final id = mergeEntity(model, entity);
-      currentEntityIds[id.id] = true;
+      currentEntityIds.add(id.id);
     });
 
     // remove ('retire') missing entities
     model.entities
-        .where((entity) => !currentEntityIds.containsKey(entity.id.id))
+        .where((entity) => !currentEntityIds.contains(entity.id.id))
         .forEach((entity) {
       log.warning(
-          'Entity ${entity.name}(${entity.id.toString()}) not found in the code, removing from the model');
+          'Entity ${entity.name}(${entity.id}) not found in the code, removing from the model');
       model.removeEntity(entity);
     });
   }
@@ -188,7 +188,7 @@ class CodeBuilder extends Builder {
 
     missingProps.forEach((p) {
       log.warning(
-          'Property ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
+          'Property ${entity.name}.${p.name}(${p.id}) not found in the code, removing from the model');
       entityInModel.removeProperty(p);
     });
 
@@ -199,7 +199,7 @@ class CodeBuilder extends Builder {
 
     missingRels.forEach((p) {
       log.warning(
-          'Relation ${entity.name}.${p.name}(${p.id.toString()}) not found in the code, removing from the model');
+          'Relation ${entity.name}.${p.name}(${p.id}) not found in the code, removing from the model');
       entityInModel.removeRelation(p);
     });
 
