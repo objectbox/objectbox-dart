@@ -2,14 +2,14 @@ import 'dart:collection';
 import 'dart:ffi';
 
 import 'package:meta/meta.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
-import 'package:objectbox/src/bindings/helpers.dart';
 
-import 'info.dart';
+import '../bindings/bindings.dart';
+import '../bindings/helpers.dart';
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
 import '../transaction.dart';
+import 'info.dart';
 
 /// Manages a to-many relation, an unidirectional link from a "source" entity to
 /// multiple objects of a "target" entity.
@@ -152,7 +152,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// If this collection contains new objects (with zero IDs),  applyToDb()
   /// will put them on-the-fly. For this to work the source object (the object
   /// owing this ToMany) must be already stored because its ID is required.
-  void applyToDb({PutMode mode = PutMode.Put, Transaction tx}) {
+  void applyToDb({PutMode mode = PutMode.put, Transaction tx}) {
     if (!_hasPendingDbChanges) return;
     _verifyAttached();
 
@@ -167,7 +167,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     }
 
     final ownedTx = tx == null;
-    tx ??= Transaction(_store, TxMode.Write);
+    tx ??= Transaction(_store, TxMode.write);
     try {
       _counts.forEach((EntityT object, count) {
         if (count == 0) return;
@@ -204,7 +204,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
             throw UnimplementedError();
         }
       });
-      if (ownedTx) tx.markSuccessful(true);
+      if (ownedTx) tx.markSuccessful();
     } finally {
       if (ownedTx) tx.close();
     }
@@ -264,7 +264,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// in a single Transaction, ensuring consistency. And it's a little more
   /// efficient for not unpacking the id array to a dart list.
   List<EntityT> _getMany(Pointer<OBX_id_array> Function() cIdsGetterFn) {
-    final tx = Transaction(_store, TxMode.Read);
+    final tx = Transaction(_store, TxMode.read);
     try {
       final result = <EntityT>[];
       final cIdsPtr = checkObxPtr(cIdsGetterFn());

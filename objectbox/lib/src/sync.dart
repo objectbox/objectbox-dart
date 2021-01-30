@@ -1,14 +1,14 @@
+import 'dart:convert' show utf8;
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
-import 'dart:convert' show utf8;
 
 import 'package:ffi/ffi.dart';
 
-import 'store.dart';
-import 'util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
+import 'store.dart';
+import 'util.dart';
 
 /// Credentials used to authenticate a sync client against a server.
 class SyncCredentials {
@@ -16,8 +16,6 @@ class SyncCredentials {
   final Uint8List _data;
 
   Uint8List get data => _data;
-
-  SyncCredentials(this._type, this._data);
 
   SyncCredentials._(this._type, String data)
       : _data = Uint8List.fromList(utf8.encode(data));
@@ -111,9 +109,7 @@ class SyncClient {
   }
 
   /// Returns if this sync client is closed and can no longer be used.
-  bool isClosed() {
-    return _cSync.address == 0;
-  }
+  bool isClosed() => _cSync.address == 0;
 
   /// Gets the current sync client state.
   SyncState state() {
@@ -195,16 +191,12 @@ class SyncClient {
   /// Additionally, you can subscribe for future pushes from the server, to let
   /// it send us future updates as they come in.
   /// Call [cancelUpdates()] to stop the updates.
-  bool requestUpdates(bool subscribeForFuturePushes) {
-    return checkObxSuccess(
-        C.sync_updates_request(ptr, subscribeForFuturePushes));
-  }
+  bool requestUpdates({/*required*/ bool subscribeForFuturePushes}) =>
+      checkObxSuccess(C.sync_updates_request(ptr, subscribeForFuturePushes));
 
   /// Cancel updates from the server so that it will stop sending updates.
   /// See also [requestUpdates()].
-  bool cancelUpdates() {
-    return checkObxSuccess(C.sync_updates_cancel(ptr));
-  }
+  bool cancelUpdates() => checkObxSuccess(C.sync_updates_cancel(ptr));
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to
   /// be sent to the server.

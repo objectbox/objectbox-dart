@@ -1,10 +1,13 @@
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
 
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'common.dart';
 import 'modelinfo/index.dart';
+
+// ignore_for_file: public_member_api_docs
 
 class Model {
   final Pointer<OBX_model> _cModel;

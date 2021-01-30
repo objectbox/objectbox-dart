@@ -1,15 +1,18 @@
 import 'dart:math';
 
-import 'modelentity.dart';
 import 'iduid.dart';
+import 'modelentity.dart';
+
+// ignore_for_file: public_member_api_docs
 
 const _minModelVersion = 5;
 const _maxModelVersion = 5;
 
-/// In order to represent the model stored in `objectbox-model.json` in Dart, several classes have been introduced.
-/// Conceptually, these classes are comparable to how models are handled in ObjectBox Java and ObjectBox Go; eventually,
-/// ObjectBox Dart models will be fully compatible to them. This is also why for explanations on most concepts related
-/// to ObjectBox models, you can refer to the [existing documentation](https://docs.objectbox.io/advanced).
+/// In order to represent the model stored in `objectbox-model.json` in Dart,
+/// several classes have been introduced. Conceptually, these classes are
+/// comparable to how models are handled in ObjectBox Java and ObjectBox Go.
+/// This is also why for explanations on most concepts related to ObjectBox
+/// models, you can refer to https://docs.objectbox.io/advanced.
 class ModelInfo {
   static const notes = [
     'KEEP THIS FILE! Check it into a version control system (VCS) like git.',
@@ -80,19 +83,19 @@ class ModelInfo {
       e.validate();
       if (lastEntityId.id < e.id.id) {
         throw Exception(
-            "lastEntityId ${lastEntityId} is lower than the one of entity '${e.name}' with id ${e.id}");
+            "lastEntityId $lastEntityId is lower than the one of entity '${e.name}' with id ${e.id}");
       }
       if (lastEntityId.id == e.id.id) {
         if (lastEntityId.uid != e.id.uid) {
           throw Exception(
-              "lastEntityId ${lastEntityId} does not match entity '${e.name}' with id ${e.id}");
+              "lastEntityId $lastEntityId does not match entity '${e.name}' with id ${e.id}");
         }
         lastEntityIdFound = true;
       }
     }
 
     if (!lastEntityIdFound && !retiredEntityUids.contains(lastEntityId.uid)) {
-      throw Exception('lastEntityId ${lastEntityId} does not match any entity');
+      throw Exception('lastEntityId $lastEntityId does not match any entity');
     }
 
     if (!lastRelationId.isEmpty || hasRelations()) {
@@ -101,12 +104,12 @@ class ModelInfo {
         for (final r in e.relations) {
           if (lastRelationId /*!*/ .id < r.id.id) {
             throw Exception(
-                "lastRelationId ${lastRelationId} is lower than the one of relation '${r.name}' with id ${r.id}");
+                "lastRelationId $lastRelationId is lower than the one of relation '${r.name}' with id ${r.id}");
           }
           if (lastRelationId /*!*/ .id == r.id.id) {
             if (lastRelationId /*!*/ .uid != r.id.uid) {
               throw Exception(
-                  "lastRelationId ${lastRelationId} does not match relation '${r.name}' with id ${r.id}");
+                  "lastRelationId $lastRelationId does not match relation '${r.name}' with id ${r.id}");
             }
             lastRelationIdFound = true;
           }
@@ -116,7 +119,7 @@ class ModelInfo {
       if (!lastRelationIdFound &&
           !retiredRelationUids.contains(lastRelationId.uid)) {
         throw Exception(
-            'lastRelationId ${lastRelationId} does not match any standalone relation');
+            'lastRelationId $lastRelationId does not match any standalone relation');
       }
     }
   }

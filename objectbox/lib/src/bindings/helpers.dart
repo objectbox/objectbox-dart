@@ -3,11 +3,13 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-import '../store.dart';
-import 'bindings.dart';
 import '../annotations.dart';
 import '../common.dart';
 import '../modelinfo/entity_definition.dart';
+import '../store.dart';
+import 'bindings.dart';
+
+// ignore_for_file: public_member_api_docs
 
 void checkObx(int code) {
   if (code != OBX_SUCCESS) {
@@ -86,7 +88,7 @@ String obxPropertyTypeToString(int type) {
       return 'stringVector';
   }
 
-  throw Exception('Invalid OBXPropertyType: ${type}');
+  throw Exception('Invalid OBXPropertyType: $type');
 }
 
 int propertyTypeToOBXPropertyType(PropertyType type) {
@@ -108,7 +110,7 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
     case PropertyType.byteVector:
       return OBXPropertyType.ByteVector;
   }
-  throw Exception('Invalid PropertyType: ${type}');
+  throw Exception('Invalid PropertyType: $type');
 }
 
 class CursorHelper<T> {
@@ -124,7 +126,8 @@ class CursorHelper<T> {
 
   bool _closed = false;
 
-  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity, bool isWrite)
+  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
+      {/*required*/ bool isWrite})
       : ptr = checkObxPtr(
             C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {

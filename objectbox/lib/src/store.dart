@@ -1,14 +1,16 @@
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
+
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'box.dart';
-import 'modelinfo/index.dart';
-import 'model.dart';
 import 'common.dart';
-import 'util.dart';
+import 'model.dart';
+import 'modelinfo/index.dart';
 import 'sync.dart';
 import 'transaction.dart';
+import 'util.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
@@ -141,6 +143,7 @@ class Store {
 
 // TODO enable annotation once meta:1.3.0 is out
 // @internal
+// ignore: public_member_api_docs
 class InternalStoreAccess {
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 

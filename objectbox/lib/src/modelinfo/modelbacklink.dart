@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs
+
 /// ModelBacklink describes a relation backlink
 class ModelBacklink {
   final String name;

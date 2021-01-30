@@ -2,10 +2,12 @@ import 'dart:typed_data';
 
 import '../../flatbuffers/flat_buffers.dart' as fb;
 import '../relations/info.dart';
-import '../relations/to_one.dart';
 import '../relations/to_many.dart';
+import '../relations/to_one.dart';
 import '../store.dart';
 import 'modelentity.dart';
+
+// ignore_for_file: public_member_api_docs
 
 /// Used by the generated code as a container for model loading callables
 /// TODO change to an abstract class?
@@ -27,7 +29,5 @@ class EntityDefinition<T> {
       /*required*/ this.toOneRelations,
       /*required*/ this.toManyRelations});
 
-  Type type() {
-    return T;
-  }
+  Type type() => T;
 }

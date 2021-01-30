@@ -1,10 +1,12 @@
 import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
+
 import 'package:ffi/ffi.dart' show allocate, free, Utf8;
+
 import '../common.dart';
 import 'bindings.dart';
 
-// Disable some linter rules for this file
+// ignore_for_file: public_member_api_docs
 // ignore_for_file: camel_case_types
 
 /// Execute the given function, managing the resources consistently
@@ -48,7 +50,8 @@ class OBX_bytes_wrapper {
   Pointer<Void> get ptr => _cBytes.ref.data;
 
   /// Returns a pointer to OBX_bytes with copy of the passed data.
-  /// Warning: this creates two unmanaged pointers which must be freed manually: OBX_bytes.freeManaged(result).
+  /// Warning: this creates two unmanaged pointers which must be freed manually:
+  /// [freeManaged()].
   /// ObjectBox requires object data to be aligned to the length of 4.
   OBX_bytes_wrapper.managedCopyOf(Uint8List data, {/*required*/ bool align})
       : _cBytes = allocate<OBX_bytes>() {
@@ -56,7 +59,8 @@ class OBX_bytes_wrapper {
 
     bytes.size = align ? ((data.length + 3.0) ~/ 4.0) * 4 : data.length;
 
-    // NOTE: currently there's no way to get access to the underlying memory of Uint8List to avoid a copy.
+    // NOTE: currently there's no way to get access to the underlying memory of
+    // Uint8List to avoid a copy.
     // See https://github.com/dart-lang/ffi/issues/27
     // if (data.length == bytes.length) {
     //   bytes._dataPtr = data.some-way-to-get-the-underlying-memory-pointer

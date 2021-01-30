@@ -1,12 +1,13 @@
 import '../bindings/bindings.dart';
 import 'iduid.dart';
+import 'modelbacklink.dart';
 import 'modelinfo.dart';
 import 'modelproperty.dart';
 import 'modelrelation.dart';
-import 'modelbacklink.dart';
 
-/// ModelEntity describes an entity of a model and consists of instances of `ModelProperty` as well as an other entity
-/// information: id, name and last property id.
+// ignore_for_file: public_member_api_docs
+
+/// ModelEntity describes an entity of a model.
 class ModelEntity {
   IdUid id;
 
@@ -106,12 +107,12 @@ class ModelEntity {
         }
         if (lastPropertyId /*!*/ .id < p.id.id) {
           throw Exception(
-              "lastPropertyId ${lastPropertyId} is lower than the one of property '${p.name}' with id ${p.id}");
+              "lastPropertyId $lastPropertyId is lower than the one of property '${p.name}' with id ${p.id}");
         }
         if (lastPropertyId /*!*/ .id == p.id.id) {
           if (lastPropertyId /*!*/ .uid != p.id.uid) {
             throw Exception(
-                "lastPropertyId ${lastPropertyId} does not match property '${p.name}' with id ${p.id}");
+                "lastPropertyId $lastPropertyId does not match property '${p.name}' with id ${p.id}");
           }
           lastPropertyIdFound = true;
         }
@@ -120,7 +121,7 @@ class ModelEntity {
       if (!lastPropertyIdFound &&
           !model.retiredPropertyUids.contains(lastPropertyId /*!*/ .uid)) {
         throw Exception(
-            'lastPropertyId ${lastPropertyId} does not match any property');
+            'lastPropertyId $lastPropertyId does not match any property');
       }
     }
 
@@ -260,13 +261,11 @@ class ModelEntity {
     return false;
   }
 
-  bool hasFlag(int flag) {
-    return (flags & flag) == flag;
-  }
+  bool hasFlag(int flag) => (flags & flag) == flag;
 
   @override
   String toString() {
-    var result = 'entity ${name}(${id})';
+    var result = 'entity $name($id)';
     result += ' sync:${hasFlag(OBXEntityFlags.SYNC_ENABLED) ? 'ON' : 'OFF'}';
     return result;
   }

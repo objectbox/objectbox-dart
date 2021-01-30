@@ -1,4 +1,5 @@
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart' show allocate, free;
 
 import 'bindings/bindings.dart';
@@ -38,11 +39,7 @@ class ObjectBoxException implements Exception {
   final int nativeCode;
   final String /*?*/ nativeMsg;
 
-  ObjectBoxException(
-      {String /*?*/ dartMsg, int nativeCode = 0, String /*?*/ nativeMsg})
-      : dartMsg = dartMsg,
-        nativeCode = nativeCode,
-        nativeMsg = nativeMsg;
+  ObjectBoxException({this.dartMsg, this.nativeCode = 0, this.nativeMsg});
 
   @override
   String toString() {

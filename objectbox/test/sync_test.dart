@@ -14,7 +14,8 @@ import 'test_env.dart';
 
 void main() {
   /*late final*/ TestEnv env;
-  /*late final*/ Store store;
+  /*late final*/
+  Store store;
 
   setUp(() {
     env = TestEnv('sync');
@@ -147,7 +148,7 @@ void main() {
       expect(() => c.stop(), error);
       expect(() => c.state(), error);
       expect(() => c.cancelUpdates(), error);
-      expect(() => c.requestUpdates(true), error);
+      expect(() => c.requestUpdates(subscribeForFuturePushes: true), error);
       expect(() => c.outgoingMessageCount(), error);
       expect(() => c.setCredentials(SyncCredentials.none()), error);
       expect(() => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto), error);
@@ -166,8 +167,9 @@ void main() {
       c.setCredentials(SyncCredentials.none());
       c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
       c.start();
-      expect(c.requestUpdates(true), isFalse); // false because not connected
-      expect(c.requestUpdates(false), isFalse); // false because not connected
+      // false because not connected
+      expect(c.requestUpdates(subscribeForFuturePushes: true), isFalse);
+      expect(c.requestUpdates(subscribeForFuturePushes: false), isFalse);
       expect(c.outgoingMessageCount(), isZero);
       c.stop();
       expect(c.state(), equals(SyncState.stopped));

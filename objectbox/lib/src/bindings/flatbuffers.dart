@@ -1,10 +1,12 @@
+import 'dart:ffi';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as f;
-import 'dart:ffi';
-import 'dart:io' show Platform;
 
 import '../../flatbuffers/flat_buffers.dart' as fb;
+
+// ignore_for_file: public_member_api_docs
 
 class BuilderWithCBuffer {
   final _allocator = _Allocator();
@@ -40,7 +42,7 @@ class BuilderWithCBuffer {
     } else {
       _allocator._allocs.keys
           .toList(growable: false)
-          .forEach((data) => _allocator.deallocate(data));
+          .forEach(_allocator.deallocate);
     }
   }
 }

@@ -136,7 +136,8 @@ void main() {
   });
 
   test('.getAll/getMany works on large arrays', () {
-    // This would fail on 32-bit system if objectbox-c obx_supports_bytes_array() wasn't respected
+    // This would fail on 32-bit system if objectbox-c
+    // obx_supports_bytes_array() wasn't respected
     final length = 10 * 1000;
     final largeString = 'A' * length;
     expect(largeString.length, length);
@@ -399,14 +400,14 @@ void main() {
       box.putMany(simpleItems());
     }
 
-    store.runInTransaction(TxMode.Write, fn);
+    store.runInTransaction(TxMode.write, fn);
     count = box.count();
     expect(count, equals(6));
   });
 
   test('failing transactions', () {
     try {
-      store.runInTransaction(TxMode.Write, () {
+      store.runInTransaction(TxMode.write, () {
         box.putMany(simpleItems());
         throw Exception('Test exception');
       });
@@ -418,9 +419,9 @@ void main() {
   });
 
   test('recursive write in write transaction', () {
-    store.runInTransaction(TxMode.Write, () {
+    store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
-      store.runInTransaction(TxMode.Write, () {
+      store.runInTransaction(TxMode.write, () {
         box.putMany(simpleItems());
       });
     });
@@ -428,22 +429,19 @@ void main() {
   });
 
   test('recursive read in write transaction', () {
-    int count = store.runInTransaction(TxMode.Write, () {
+    int count = store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
-      return store.runInTransaction(TxMode.Read, () {
-        return box.count();
-      });
+      return store.runInTransaction(TxMode.read, () => box.count());
     });
     expect(count, equals(6));
   });
 
   test('recursive write in read -> fails during creation', () {
     try {
-      store.runInTransaction(TxMode.Read, () {
+      store.runInTransaction(TxMode.read, () {
         box.count();
-        return store.runInTransaction(TxMode.Write, () {
-          return box.putMany(simpleItems());
-        });
+        return store.runInTransaction(
+            TxMode.write, () => box.putMany(simpleItems()));
       });
     } on ObjectBoxException catch (ex) {
       expect(ex.toString(),
@@ -452,11 +450,10 @@ void main() {
   });
 
   test('failing in recursive txn', () {
-    store.runInTransaction(TxMode.Write, () {
+    store.runInTransaction(TxMode.write, () {
       //should throw code10001 -> valid until fix
-      List<int> ids = store.runInTransaction(TxMode.Read, () {
-        return box.putMany(simpleItems());
-      });
+      List<int> ids =
+          store.runInTransaction(TxMode.read, () => box.putMany(simpleItems()));
       expect(ids.length, equals(6));
     });
   });

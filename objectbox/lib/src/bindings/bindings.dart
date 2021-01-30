@@ -6,6 +6,8 @@ import 'objectbox-c.dart';
 // let files importing bindings.dart also get all the OBX_* types
 export 'objectbox-c.dart';
 
+// ignore_for_file: public_member_api_docs
+
 ObjectBoxC loadObjectBoxLib() {
   DynamicLibrary /*?*/ lib;
   var libName = 'objectbox';
@@ -24,9 +26,10 @@ ObjectBoxC loadObjectBoxLib() {
       lib = DynamicLibrary.open('/usr/local/lib/' + libName);
     }
   } else if (Platform.isIOS) {
-    // this works in combination with `'OTHER_LDFLAGS' => '-framework ObjectBox'` in objectbox_flutter_libs.podspec
+    // this works in combination with 'OTHER_LDFLAGS' => '-framework ObjectBox'
+    // in objectbox_flutter_libs.podspec
     lib = DynamicLibrary.process();
-    // alternatively, if `DynamicLibrary.process()` wasn't faster (it should be though...)
+    // alternatively, if `DynamicLibrary.process()` wasn't faster (it should be)
     // libName = 'ObjectBox.framework/ObjectBox';
   } else if (Platform.isAndroid) {
     libName = 'lib' + libName + '-jni.so';

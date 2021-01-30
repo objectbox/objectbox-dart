@@ -411,7 +411,7 @@ void main() {
       expect(a[1].testEntities.map(strings),
           unorderedEqualsStrings(['foo', 'bar2']));
 
-      // Insert a new target, already with some "source" entities pointing to it.
+      // Insert a new target with some "source" entities pointing to it.
       var newA = RelatedEntityA(tInt: 4);
       expect(newA.testEntities.length, isZero);
       newA.testEntities.add(env.box.get(1)); // foo

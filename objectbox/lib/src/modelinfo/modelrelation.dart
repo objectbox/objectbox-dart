@@ -1,5 +1,7 @@
 import 'iduid.dart';
 
+// ignore_for_file: public_member_api_docs
+
 /// ModelRelation describes a standalone relation
 class ModelRelation {
   IdUid id;
@@ -64,5 +66,5 @@ class ModelRelation {
 
   @override
   String toString() =>
-      'standalone relation ${name}(${id}) relTarget: ${targetName}(${targetId})';
+      'standalone relation $name($id) relTarget: $targetName($targetId)';
 }

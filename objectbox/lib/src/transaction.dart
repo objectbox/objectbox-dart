@@ -6,8 +6,8 @@ import 'modelinfo/entity_definition.dart';
 import 'store.dart';
 
 enum TxMode {
-  Read,
-  Write,
+  read,
+  write,
 }
 
 // TODO enable annotation once meta:1.3.0 is out
@@ -29,8 +29,8 @@ class Transaction {
   Pointer<OBX_txn> get ptr => _cTxn;
 
   Transaction(this._store, TxMode mode)
-      : _isWrite = mode == TxMode.Write,
-        _cTxn = mode == TxMode.Write
+      : _isWrite = mode == TxMode.write,
+        _cTxn = mode == TxMode.write
             ? C.txn_write(_store.ptr)
             : C.txn_read(_store.ptr) {
     checkObxPtr(_cTxn, 'failed to create transaction');
@@ -39,7 +39,7 @@ class Transaction {
   void _finish(bool successful) {
     if (_isWrite) {
       try {
-        markSuccessful(successful);
+        _mark(successful);
       } finally {
         close();
       }
@@ -52,8 +52,12 @@ class Transaction {
 
   void abortAndClose() => _finish(false);
 
-  void markSuccessful([bool successful = true]) =>
+  void _mark(bool successful) =>
       checkObx(C.txn_mark_success(_cTxn, successful));
+
+  void markSuccessful() => _mark(true);
+
+  void markFailed() => _mark(false);
 
   void close() {
     if (_closed) return;
@@ -72,7 +76,8 @@ class Transaction {
   /// Note: the cursor may have already been used, don't rely on its state!
   CursorHelper<T> cursor<T>(EntityDefinition<T> entity) {
     if (_firstCursor == null) {
-      return _firstCursor = CursorHelper<T>(_store, _cTxn, entity, _isWrite);
+      return _firstCursor =
+          CursorHelper<T>(_store, _cTxn, entity, isWrite: _isWrite);
     } else if (_firstCursor.entity == entity) {
       return _firstCursor as CursorHelper<T>;
     }
@@ -82,7 +87,7 @@ class Transaction {
       return _cursors[entityId] as CursorHelper<T>;
     }
     return _cursors[entityId] =
-        CursorHelper<T>(_store, _cTxn, entity, _isWrite);
+        CursorHelper<T>(_store, _cTxn, entity, isWrite: _isWrite);
   }
 
   /// Executes a given function inside a transaction.
@@ -95,10 +100,10 @@ class Transaction {
       // In practice, it's safe to assume most functions will be successful and
       // thus marking before the call allows us to return directly, before an
       // intermediary variable.
-      if (tx._isWrite) tx.markSuccessful(true);
+      if (tx._isWrite) tx.markSuccessful();
       return fn();
     } catch (ex) {
-      if (tx._isWrite) tx.markSuccessful(false);
+      if (tx._isWrite) tx.markFailed();
       rethrow;
     } finally {
       tx.close();

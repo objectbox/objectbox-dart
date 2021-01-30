@@ -2,7 +2,6 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show allocate, free;
 
-import 'store.dart';
 import 'bindings/bindings.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
@@ -10,14 +9,15 @@ import 'bindings/structs.dart';
 import 'modelinfo/index.dart';
 import 'query/query.dart';
 import 'relations/info.dart';
-import 'relations/to_one.dart';
 import 'relations/to_many.dart';
+import 'relations/to_one.dart';
+import 'store.dart';
 import 'transaction.dart';
 
 enum PutMode {
-  Put,
-  Insert,
-  Update,
+  put,
+  insert,
+  update,
 }
 
 /// A Box instance gives you access to objects of a particular type.
@@ -52,11 +52,11 @@ class Box<T> {
 
   static int _getOBXPutMode(PutMode mode) {
     switch (mode) {
-      case PutMode.Put:
+      case PutMode.put:
         return OBXPutMode.PUT;
-      case PutMode.Insert:
+      case PutMode.insert:
         return OBXPutMode.INSERT;
-      case PutMode.Update:
+      case PutMode.update:
         return OBXPutMode.UPDATE;
     }
     throw Exception('Invalid put mode ' + mode.toString());
@@ -70,12 +70,12 @@ class Box<T> {
   /// If the object with given was already in the box, it will be overwritten.
   ///
   /// Performance note: consider [putMany] to put several objects at once.
-  int put(T object, {PutMode mode = PutMode.Put}) {
+  int put(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
-      final tx = Transaction(_store, TxMode.Write);
+      final tx = Transaction(_store, TxMode.write);
       try {
         final id = _put(object, mode, tx);
-        tx.markSuccessful(true);
+        tx.markSuccessful();
         return id;
       } finally {
         tx.close();
@@ -105,12 +105,12 @@ class Box<T> {
   /// Puts the given [objects] into this Box in a single transaction.
   ///
   /// Returns a list of all IDs of the inserted Objects.
-  List<int> putMany(List<T> objects, {PutMode mode = PutMode.Put}) {
+  List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) {
     if (objects.isEmpty) return [];
 
     final putIds = List<int>.filled(objects.length, 0);
 
-    final tx = Transaction(_store, TxMode.Write);
+    final tx = Transaction(_store, TxMode.write);
     try {
       if (_hasToOneRelations) {
         objects.forEach((object) => _putToOneRelFields(object, mode, tx));
@@ -131,7 +131,7 @@ class Box<T> {
         objects.forEach((object) => _putToManyRelFields(object, mode, tx));
       }
       _builder.resetIfLarge();
-      tx.markSuccessful(true);
+      tx.markSuccessful();
     } finally {
       tx.close();
     }
@@ -150,7 +150,7 @@ class Box<T> {
   /// Retrieves the stored object with the ID [id] from this box's database.
   /// Returns null if an object with the given ID doesn't exist.
   T /*?*/ get(int id) {
-    final tx = Transaction(_store, TxMode.Read);
+    final tx = Transaction(_store, TxMode.read);
     try {
       return tx.cursor(_entity).get(id);
     } finally {
@@ -165,7 +165,7 @@ class Box<T> {
   List<T /*?*/ > getMany(List<int> ids, {bool growableResult = false}) {
     final result = List<T>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
-    final tx = Transaction(_store, TxMode.Read);
+    final tx = Transaction(_store, TxMode.read);
     try {
       final cursor = tx.cursor(_entity);
       for (var i = 0; i < ids.length; i++) {
@@ -180,7 +180,7 @@ class Box<T> {
 
   /// Returns all stored objects in this Box.
   List<T> getAll() {
-    final tx = Transaction(_store, TxMode.Read);
+    final tx = Transaction(_store, TxMode.read);
     try {
       final cursor = tx.cursor(_entity);
       final result = <T>[];
@@ -200,8 +200,8 @@ class Box<T> {
   QueryBuilder<T> query([Condition /*?*/ qc]) =>
       QueryBuilder<T>(_store, _entity, qc);
 
-  /// Returns the count of all stored Objects in this box or, if [limit] is not zero, the given [limit], whichever
-  /// is lower.
+  /// Returns the count of all stored Objects in this box.
+  /// If [limit] is not zero, stops counting at the given limit.
   int count({int limit = 0}) {
     final count = allocate<Uint64>();
     try {
@@ -234,7 +234,7 @@ class Box<T> {
     }
   }
 
-  /// Returns true if this box contains objects with all of the given [ids] using a single transaction.
+  /// Returns true if this box contains objects with all of the given [ids].
   bool containsMany(List<int> ids) {
     final contains = allocate<Uint8>();
     try {
@@ -247,8 +247,8 @@ class Box<T> {
     }
   }
 
-  /// Removes (deletes) the Object with the ID [id]. Returns true if an entity was actually removed and false if no
-  /// entity exists with the given ID.
+  /// Removes (deletes) the Object with the given [id]. Returns true if the
+  /// object was present (and thus removed), otherwise returns false.
   bool remove(int id) {
     final err = C.box_remove(_cBox, id);
     if (err == OBX_NOT_FOUND) return false;
@@ -256,7 +256,7 @@ class Box<T> {
     return true;
   }
 
-  /// Removes (deletes) Objects by their ID in a single transaction. Returns a list of IDs of all removed Objects.
+  /// Removes (deletes) by ID, returning a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
     final countRemoved = allocate<Uint64>();
     try {

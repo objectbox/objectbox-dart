@@ -1,5 +1,7 @@
-import 'package:objectbox/src/modelinfo/modelinfo.dart';
-import 'package:objectbox/src/modelinfo/entity_definition.dart';
+// ignore_for_file: public_member_api_docs
+
+import 'entity_definition.dart';
+import 'modelinfo.dart';
 
 class ModelDefinition {
   final ModelInfo model;

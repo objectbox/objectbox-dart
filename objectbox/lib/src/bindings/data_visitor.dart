@@ -1,36 +1,43 @@
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart' show allocate, free;
 
+import '../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
-import '../modelinfo/entity_definition.dart';
+
+// ignore_for_file: public_member_api_docs
 
 /// This file implements C call forwarding using a trampoline approach.
 ///
-/// When you want to pass a dart callback to a C function you cannot use lambdas and instead the callback must be
-/// a static function, otherwise `Pointer.fromFunction()` called with your function won't compile.
-/// Since static functions don't have any state, you must either rely on a global state or use a "userData" pointer
-/// pass-through functionality provided by a C function.
+/// When you want to pass a dart callback to a C function you cannot use lambdas
+/// and instead the callback must be a static function, otherwise
+/// [Pointer.fromFunction()] called with your function won't compile.
+/// Since static functions don't have any state, you must either rely on a
+/// global state or use a "userData" pointer pass-through functionality provided
+/// by a C function.
 ///
-/// The DataVisitor class tries to alleviate the burden of managing this and instead allows using lambdas from
-/// user-code, internally mapping the C calls to the appropriate lambda.
+/// The DataVisitor class tries to alleviate the burden of managing this and
+/// instead allows using lambdas from user-code, internally mapping the C calls
+/// to the appropriate lambda.
 ///
 /// Sample usage:
 ///   final results = <T>[];
 ///   final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
 ///     final bytes = dataPtr.asTypedList(length);
 ///     results.add(_fbManager.unmarshal(bytes));
-///     return true; // return value usually indicates to the C function whether it should continue.
+///     return true; // return value usually indicates whether to continue.
 ///   });
 ///
-///   final err = bindings.obx_query_visit(_cQuery, visitor.fn, visitor.userData, offset, limit);
-///   visitor.close(); // make sure to close the visitor, unregistering the callback it from the forwarder
+///   final err = bindings.obx_query_visit(_cQuery, visitor.fn,
+///     visitor.userData, offset, limit);
+///   visitor.close(); // make sure to close the visitor
 ///   checkObx(err);
 
 int _lastId = 0;
 final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
 
-// called from C, forwards calls to the actual callback registered at the given ID
+// Called from C, forwards to the actual callback registered at the given ID.
 int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
   if (callbackId == null || callbackId.address == 0) {
     throw Exception(

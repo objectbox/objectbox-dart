@@ -23,7 +23,8 @@ abstract class PropertyQuery<T> {
 
   /// Set to only return distinct values.
   ///
-  /// E.g. 1,2,3 instead of 1,1,2,3,3,3. Strings default to case-insensitive comparision.
+  /// E.g. [1,2,3] instead of [1,1,2,3,3,3].
+  /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
     checkObx(C.query_prop_distinct(_cProp, d));
@@ -88,17 +89,11 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
     }
   }
 
-  int min() {
-    return _op(C.query_prop_min_int);
-  }
+  int min() => _op(C.query_prop_min_int);
 
-  int max() {
-    return _op(C.query_prop_max_int);
-  }
+  int max() => _op(C.query_prop_max_int);
 
-  int sum() {
-    return _op(C.query_prop_sum_int);
-  }
+  int sum() => _op(C.query_prop_sum_int);
 
   @override
   List<int> find({int /*?*/ replaceNullWith}) {
@@ -143,7 +138,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
             C.int64_array_free);
       default:
         throw Exception(
-            'Property query: unsupported type (OBXPropertyType: ${_type})');
+            'Property query: unsupported type (OBXPropertyType: $_type)');
     }
   }
 }
@@ -164,17 +159,11 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
     }
   }
 
-  double min() {
-    return _op(C.query_prop_min);
-  }
+  double min() => _op(C.query_prop_min);
 
-  double max() {
-    return _op(C.query_prop_max);
-  }
+  double max() => _op(C.query_prop_max);
 
-  double sum() {
-    return _op(C.query_prop_sum);
-  }
+  double sum() => _op(C.query_prop_sum);
 
   @override
   List<double> find({double /*?*/ replaceNullWith}) {
@@ -199,7 +188,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
             C.double_array_free);
       default:
         throw Exception(
-            'Property query: unsupported type (OBXPropertyType: ${_type})');
+            'Property query: unsupported type (OBXPropertyType: $_type)');
     }
   }
 }

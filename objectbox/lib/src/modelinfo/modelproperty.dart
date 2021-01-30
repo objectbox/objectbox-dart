@@ -1,9 +1,11 @@
 import '../bindings/bindings.dart';
 import '../bindings/helpers.dart';
-import 'modelentity.dart';
 import 'iduid.dart';
+import 'modelentity.dart';
 
-/// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
+// ignore_for_file: public_member_api_docs
+
+/// ModelProperty describes a single property of an entity.
 class ModelProperty {
   IdUid id;
 
@@ -93,15 +95,12 @@ class ModelProperty {
     return ret;
   }
 
-  bool hasFlag(int flag) {
-    return (flags & flag) == flag;
-  }
+  bool hasFlag(int flag) => (flags & flag) == flag;
 
-  bool hasIndexFlag() {
-    return hasFlag(OBXPropertyFlags.INDEXED) ||
-        hasFlag(OBXPropertyFlags.INDEX_HASH) ||
-        hasFlag(OBXPropertyFlags.INDEX_HASH64);
-  }
+  bool hasIndexFlag() =>
+      hasFlag(OBXPropertyFlags.INDEXED) ||
+      hasFlag(OBXPropertyFlags.INDEX_HASH) ||
+      hasFlag(OBXPropertyFlags.INDEX_HASH64);
 
   bool get isRelation => type == OBXPropertyType.Relation;
 
@@ -114,9 +113,9 @@ class ModelProperty {
 
   @override
   String toString() {
-    var result = 'property ${name}(${id})';
+    var result = 'property $name($id)';
     result += ' type:${obxPropertyTypeToString(type)}';
-    result += ' flags:${flags}';
+    result += ' flags:$flags';
 
     if (hasIndexFlag()) {
       result += ' index:' +
@@ -130,7 +129,7 @@ class ModelProperty {
     }
 
     if (relationTarget != null) {
-      result += ' relTarget: ${relationTarget}';
+      result += ' relTarget: $relationTarget';
     }
 
     return result;

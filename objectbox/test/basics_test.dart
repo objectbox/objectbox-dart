@@ -5,7 +5,10 @@ import 'package:objectbox/src/bindings/helpers.dart';
 import 'package:test/test.dart';
 
 void main() {
-  // Prior to Dart 2.6, the exception wasn't accessible in the core so the text wasn't reported
+  // Prior to Dart 2.6, the exception wasn't accessible and may have crashed.
+  // Similarly, this occured in Fluter for Linux (desktop).
+  // https://github.com/dart-lang/sdk/issues/38141
+  // https://github.com/flutter/flutter/issues/74599
   test('error reporting works', () {
     final cStore = C.store_open(ffi.nullptr);
 
