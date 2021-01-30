@@ -15,9 +15,11 @@ import '../store.dart';
 import '../transaction.dart';
 
 part 'builder.dart';
-
 part 'property.dart';
 
+// ignore_for_file: public_member_api_docs
+
+/// Groups query order flags.
 class Order {
   /// Reverts the order from ascending (default) to descending.
   static final descending = 1;
@@ -64,7 +66,7 @@ class QueryStringProperty extends QueryProperty {
       _StringCondition(cop, this, p, null, caseSensitive: caseSensitive);
 
   Condition _opList(List<String> list, _ConditionOp cop,
-      {/*required*/ bool caseSensitive}) =>
+          {/*required*/ bool caseSensitive}) =>
       _StringListCondition(cop, this, list, caseSensitive: caseSensitive);
 
   Condition equals(String p, {bool caseSensitive = false}) =>
@@ -382,7 +384,7 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
   final bool _caseSensitive;
 
   _StringListCondition(_ConditionOp op, QueryProperty prop, List<String> value,
-  {/*required*/ bool caseSensitive})
+      {/*required*/ bool caseSensitive})
       : _caseSensitive = caseSensitive,
         super(op, prop, value);
 
@@ -612,7 +614,7 @@ class _ConditionGroupAll extends _ConditionGroup {
 
 /// A repeatable Query returning the latest matching Objects.
 ///
-/// Use [find] or related methods to fetch the latest results from the BoxStore.
+/// Use [find] or related methods to fetch the latest results from the Box.
 ///
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
@@ -755,12 +757,12 @@ class Query<T> {
   /// ```
   PQ property<PQ extends PropertyQuery<dynamic>>(QueryProperty qp) {
     if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
-      return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+      return IntegerPropertyQuery._(_cQuery, qp._propertyId, qp._type) as PQ;
     } else if (OBXPropertyType.Float == qp._type ||
         qp._type == OBXPropertyType.Double) {
-      return DoublePropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+      return DoublePropertyQuery._(_cQuery, qp._propertyId, qp._type) as PQ;
     } else if (OBXPropertyType.String == qp._type) {
-      return StringPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
+      return StringPropertyQuery._(_cQuery, qp._propertyId, qp._type) as PQ;
     } else {
       throw Exception(
           'Property query: unsupported type (OBXPropertyType: ${qp._type})');

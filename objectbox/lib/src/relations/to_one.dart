@@ -54,6 +54,7 @@ class ToOne<EntityT> {
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
+  /// Get target object. If it's the first access, this reads from DB.
   EntityT /*?*/ get target {
     if (_value._state == _ToOneState.lazy) {
       _verifyAttached();
@@ -65,6 +66,8 @@ class ToOne<EntityT> {
     return _value._object;
   }
 
+  /// Set relation target object. Note: this does not store the change yet, use
+  /// [Box.put()] on the containing (relation source) object.
   set target(EntityT /*?*/ object) {
     if (object == null) {
       _value = _ToOneValue<EntityT>.none();
@@ -78,6 +81,7 @@ class ToOne<EntityT> {
     }
   }
 
+  /// Get ID of a relation target object.
   int get targetId {
     if (_value._state == _ToOneState.unknown) {
       // If the target was previously set while not attached, the ID is unknown.
@@ -93,6 +97,8 @@ class ToOne<EntityT> {
     return _value._id;
   }
 
+  /// Set ID of a relation target object. Note: this does not store the change
+  /// yet, use [Box.put()] on the containing (relation source) object.
   set targetId(int /*?*/ id) {
     id ??= 0;
     if (id == 0) {
@@ -109,8 +115,15 @@ class ToOne<EntityT> {
     }
   }
 
+  /// Whether the relatin field has a value stored. Otherwise it's null.
   bool get hasValue => _value._state != _ToOneState.none;
 
+  /// Initialize the relation field, attaching it to the store.
+  ///
+  /// [Box.put()] calls this automatically. You only need to call this manually
+  /// on new objects after you've set [target] and want to read [targetId],
+  /// which is a very unusual operation because you've just assigned the
+  /// [target] so you should know it's ID.
   void attach(Store store) {
     if (_store == store) return;
     _store = store;
@@ -165,7 +178,9 @@ class _ToOneValue<EntityT> {
   const _ToOneValue._(this._state, this._id, this._object);
 }
 
+/// Internal only.
 class InternalToOneAccess {
+  /// Get access of the relation's target box.
   static Box targetBox(ToOne toOne) {
     toOne._verifyAttached();
     return toOne._box;

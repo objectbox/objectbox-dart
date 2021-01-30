@@ -1,11 +1,14 @@
 part of query;
 
-// Construct a tree from the first condition object
+/// Query builder allows creating reusable queries.
 class QueryBuilder<T> extends _QueryBuilder<T> {
+  /// Start creating a query.
   QueryBuilder(Store store, EntityDefinition<T> entity, Condition /*?*/ qc)
       : super(
             store, entity, qc, C.query_builder(store.ptr, entity.model.id.id));
 
+  /// Finish building a [Query]. Call [Query.close()] after you're done with it
+  /// to free resources.
   Query<T> build() {
     _applyCondition();
 
@@ -16,6 +19,8 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     }
   }
 
+  /// Configure how the results are ordered.
+  /// Pass a combination of [Order] flags.
   QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
     _throwIfOtherEntity(p._entityId);
     checkObx(C.qb_order(_cBuilder, p._propertyId, flags));

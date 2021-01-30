@@ -128,8 +128,15 @@ class Store {
     return binding /*!*/ as EntityDefinition<T>;
   }
 
-  /// Executes a given function inside a transaction.
-  /// Returns type of [fn] if [return] is called in [fn].
+  /// Executes a given function inside a transaction. Returns [fn]'s result.
+  /// Aborts a transaction or rethrows if there's an exception.
+  ///
+  /// A transaction can group several operations into a single unit of work that
+  /// either executes completely or not at all.
+  /// The advantage of explicit transactions over the bulk put operations is
+  /// that you can perform any number of operations and use objects of multiple
+  /// boxes. In addition, you get a consistent (transactional) view on your data
+  /// while the transaction is in progress.
   R runInTransaction<R>(TxMode mode, R Function() fn) =>
       Transaction.execute(this, mode, fn);
 
@@ -141,10 +148,11 @@ class Store {
   Pointer<OBX_store> get ptr => _cStore;
 }
 
+/// Internal only.
 // TODO enable annotation once meta:1.3.0 is out
 // @internal
-// ignore: public_member_api_docs
 class InternalStoreAccess {
+  /// Access entity model for the given class (Dart Type).
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 
   /// Adds a listener to the [store.close()] event.

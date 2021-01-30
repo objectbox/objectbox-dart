@@ -22,5 +22,6 @@ export 'src/query/query.dart'
 export 'src/relations/to_many.dart' show ToMany;
 export 'src/relations/to_one.dart' show ToOne;
 export 'src/store.dart' show Store;
-export 'src/sync.dart';
+export 'src/sync.dart'
+    show Sync, SyncClient, SyncCredentials, SyncRequestUpdatesMode, SyncState;
 export 'src/transaction.dart' show TxMode;

@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
@@ -15,37 +16,56 @@ class SyncCredentials {
   final int _type;
   final Uint8List _data;
 
-  Uint8List get data => _data;
-
   SyncCredentials._(this._type, String data)
       : _data = Uint8List.fromList(utf8.encode(data));
 
+  /// No credentials - usually only for development purposes with a server
+  /// configured to accept all connections without authentication.
   SyncCredentials.none()
       : _type = OBXSyncCredentialsType.NONE,
         _data = Uint8List(0);
 
+  /// Shared secret authentication.
   SyncCredentials.sharedSecretUint8List(this._data)
       : _type = OBXSyncCredentialsType.SHARED_SECRET;
 
+  /// Shared secret authentication.
   SyncCredentials.sharedSecretString(String data)
       : this._(OBXSyncCredentialsType.SHARED_SECRET, data);
 
+  /// Google authentication.
   SyncCredentials.googleAuthUint8List(this._data)
       : _type = OBXSyncCredentialsType.GOOGLE_AUTH;
 
+  /// Google authentication.
   SyncCredentials.googleAuthString(String data)
       : this._(OBXSyncCredentialsType.GOOGLE_AUTH, data);
 }
 
 /// Current state of the [SyncClient].
 enum SyncState {
+  /// State is unknown, e.g. C-API reported a state that's not recognized yet.
   unknown,
+
+  /// Client created but not yet started.
   created,
+
+  /// Client started and connecting.
   started,
+
+  /// Connection with the server established but not authenticated yet.
   connected,
+
+  /// Client authenticated and synchronizing.
   loggedIn,
+
+  /// Lost connection, will try to reconnect if the credentials are valid.
   disconnected,
+
+  /// Client in the process of being closed.
   stopped,
+
+  /// Invalid access to the client after it was closed.
   dead
 }
 
@@ -222,7 +242,7 @@ class SyncClient {
 ///
 /// Start a client using [Sync.client()] and connect to a remote server.
 class Sync {
-  /// Sync() annotation enables synchronization for an entity.
+  /// Create a Sync annotation, enabling synchronization for an entity.
   const Sync();
 
   static /*late final*/ bool _syncAvailable;
@@ -255,4 +275,13 @@ class Sync {
     InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
   }
+}
+
+/// Tests only.
+// TODO enable annotation once meta:1.3.0 is out
+// @internal
+@visibleForTesting
+class InternaSyncTestAccess {
+  /// Access credentials internal data representation.
+  static Uint8List credentialsData(SyncCredentials creds) => creds._data;
 }

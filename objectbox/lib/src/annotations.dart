@@ -17,6 +17,7 @@ class Entity {
   /// Entity instead of creating a new one.
   final int /*?*/ uid;
 
+  /// Create an Entity annotation.
   const Entity({this.uid});
 }
 
@@ -46,6 +47,7 @@ class Property {
   /// The defaults are e.g. Int -> Int64, double -> Float64, bool -> Bool.
   final PropertyType /*?*/ type;
 
+  /// Create an Property annotation.
   const Property({this.type, this.uid});
 }
 
@@ -105,11 +107,13 @@ enum PropertyType {
 /// Annotation Id can be used to specify an entity ID property if it's named
 /// anything else then "id" (case insensitive).
 class Id {
+  /// Create an Id annotation.
   const Id();
 }
 
 /// Transient annotation marks properties that should not be stored in the DB.
 class Transient {
+  /// Create a Transient annotation.
   const Transient();
 }
 
@@ -128,8 +132,10 @@ class Transient {
 /// Note: indexes are currently not supported for ByteVector, Float or Double
 /// properties.
 class Index {
+  /// Index type.
   final IndexType /*?*/ type;
 
+  /// Create an Index annotaion.
   const Index({this.type});
 }
 
@@ -169,6 +175,7 @@ enum IndexType {
 /// It is supported to explicitly add the [Index] annotation to configure the
 /// index type.
 class Unique {
+  /// Create a Unique annotation.
   const Unique();
 }
 
@@ -201,6 +208,8 @@ class Unique {
 /// }
 /// ```
 class Backlink {
+  /// Target entity to which this backlink points. It's the entity that contains
+  /// a [ToOne] or [ToMany] relation pointing to the current entity.
   final String to;
 
   /// If there are multiple relations pointing to the current entity, specify

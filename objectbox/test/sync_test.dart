@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:objectbox/internal.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -49,7 +50,9 @@ void main() {
     // look like if the same shared secret was provided to the sync-server via
     // an utf-8 encoded json file (i.e. the usual way).
     final str = 'uũú';
-    expect(SyncCredentials.sharedSecretString(str).data,
+    expect(
+        InternaSyncTestAccess.credentialsData(
+            SyncCredentials.sharedSecretString(str)),
         equals(Uint8List.fromList([117, 197, 169, 195, 186])));
   });
 

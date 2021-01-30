@@ -13,14 +13,14 @@ import 'test_env.dart';
 /// Pointer.fromAddress(0) does not fire at all
 Pointer<Void> randomPtr = Pointer.fromAddress(1337);
 
-var callbackSingleTypeCounter = 0;
+int callbackSingleTypeCounter = 0;
 
 void callbackSingleType(Pointer<Void> user_data) {
   expect(user_data.address, randomPtr.address);
   callbackSingleTypeCounter++;
 }
 
-var callbackAnyTypeCounter = 0;
+int callbackAnyTypeCounter = 0;
 
 void callbackAnyType(
     Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {

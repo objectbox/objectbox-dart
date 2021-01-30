@@ -14,9 +14,15 @@ import 'relations/to_one.dart';
 import 'store.dart';
 import 'transaction.dart';
 
+/// Box put (write) mode.
 enum PutMode {
+  /// Insert (if given object's ID is zero) or update an existing object.
   put,
+
+  /// Insert a new object.
   insert,
+
+  /// Update an existing object, fails if the given ID doesn't exist.
   update,
 }
 
@@ -37,6 +43,7 @@ class Box<T> {
   final bool _hasToManyRelations;
   final _builder = BuilderWithCBuffer();
 
+  /// Create a box for an Entity.
   factory Box(Store store) => store.box();
 
   Box._(this._store, this._entity)
@@ -305,11 +312,14 @@ class Box<T> {
   }
 }
 
+/// Internal only.
 // TODO enable annotation once meta:1.3.0 is out
 // @internal
 class InternalBoxAccess {
+  /// Create a box in the store for the given entity.
   static Box<T> create<T>(Store store, EntityDefinition<T> entity) =>
       Box._(store, entity);
 
+  /// Close the box, freeing resources.
   static void close(Box box) => box._builder.clear();
 }

@@ -1,11 +1,12 @@
 part of query;
 
+/// Property query base
 abstract class PropertyQuery<T> {
   final Pointer<OBX_query_prop> _cProp;
   final int _type;
   bool _distinct = false;
 
-  PropertyQuery(Pointer<OBX_query> cQuery, int propertyId, this._type)
+  PropertyQuery._(Pointer<OBX_query> cQuery, int propertyId, this._type)
       : _cProp =
             checkObxPtr(C.query_prop(cQuery, propertyId), 'property query');
 
@@ -15,10 +16,12 @@ abstract class PropertyQuery<T> {
   /// Set [replaceNullWith] to return null values as that value.
   List<T> find({T /*?*/ replaceNullWith});
 
+  /// Close the property query, freeing its resources
   void close() {
     checkObx(C.query_prop_close(_cProp));
   }
 
+  /// Get the status of "distinct-values" configuration.
   bool get distinct => _distinct;
 
   /// Set to only return distinct values.
@@ -62,6 +65,7 @@ abstract class PropertyQuery<T> {
 
 /// shared implementation, hence mixin
 mixin _CommonNumeric<T> on PropertyQuery<T> {
+  /// Average value of the property over all objects matching the query.
   double average() {
     final ptr = allocate<Double>();
     try {
@@ -73,9 +77,10 @@ mixin _CommonNumeric<T> on PropertyQuery<T> {
   }
 }
 
+/// "Property query" for an integer field. Created by [Query.property()].
 class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
-  IntegerPropertyQuery(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super(query, propertyId, obxType);
+  IntegerPropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
+      : super._(query, propertyId, obxType);
 
   int _op(
       int Function(Pointer<OBX_query_prop>, Pointer<Int64>, Pointer<Int64>)
@@ -89,10 +94,13 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
     }
   }
 
+  /// Minimum value of the property over all objects matching the query.
   int min() => _op(C.query_prop_min_int);
 
+  /// Maximum value of the property over all objects matching the query.
   int max() => _op(C.query_prop_max_int);
 
+  /// Sum of all property values over objects matching the query.
   int sum() => _op(C.query_prop_sum_int);
 
   @override
@@ -143,9 +151,10 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
   }
 }
 
+/// "Property query" for a double field. Created by [Query.property()].
 class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
-  DoublePropertyQuery(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super(query, propertyId, obxType);
+  DoublePropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
+      : super._(query, propertyId, obxType);
 
   double _op(
       int Function(Pointer<OBX_query_prop>, Pointer<Double>, Pointer<Int64>)
@@ -159,10 +168,13 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
     }
   }
 
+  /// Minimum value of the property over all objects matching the query.
   double min() => _op(C.query_prop_min);
 
+  /// Maximum value of the property over all objects matching the query.
   double max() => _op(C.query_prop_max);
 
+  /// Sum of all property values over objects matching the query.
   double sum() => _op(C.query_prop_sum);
 
   @override
@@ -193,11 +205,12 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
   }
 }
 
+/// "Property query" for a string field. Created by [Query.property()].
 class StringPropertyQuery extends PropertyQuery<String> {
   bool _caseSensitive = false;
 
-  StringPropertyQuery(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super(query, propertyId, obxType);
+  StringPropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
+      : super._(query, propertyId, obxType);
 
   /// Set to return case sensitive distinct values.
   ///
@@ -207,6 +220,7 @@ class StringPropertyQuery extends PropertyQuery<String> {
     checkObx(C.query_prop_distinct_case(_cProp, _distinct, _caseSensitive));
   }
 
+  /// Get status of the case-sensitive configuration.
   bool get caseSensitive => _caseSensitive;
 
   @override

@@ -291,25 +291,32 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 }
 
+/// Internal only.
 class InternalToManyAccess {
+  /// Check whether the relation has any unsaved changes.
   // TODO enable annotation once meta:1.3.0 is out
   // @internal
   static bool hasPendingDbChanges(ToMany toMany) => toMany._hasPendingDbChanges;
 
+  /// Set relation info.
   static void setRelInfo(ToMany toMany, Store store, RelInfo rel, Box srcBox) =>
       toMany._setRelInfo(store, rel, srcBox);
 }
 
+/// Internal only.
 // TODO enable annotation once meta:1.3.0 is out
 // @internal
 @visibleForTesting
 class InternalToManyTestAccess<EntityT> {
   final ToMany<EntityT> _rel;
 
+  /// Used in tests.
   bool get itemsLoaded => _rel.__items != null;
 
+  /// Used in tests.
   List<EntityT> get items => _rel._items;
 
+  /// Used in tests.
   Set<EntityT> get added {
     final result = <EntityT>{};
     _rel._counts.forEach((EntityT object, count) {
@@ -318,6 +325,7 @@ class InternalToManyTestAccess<EntityT> {
     return result;
   }
 
+  /// Used in tests.
   Set<EntityT> get removed {
     final result = <EntityT>{};
     _rel._counts.forEach((EntityT object, count) {
@@ -326,5 +334,6 @@ class InternalToManyTestAccess<EntityT> {
     return result;
   }
 
+  /// Used in tests.
   InternalToManyTestAccess(this._rel);
 }

@@ -79,6 +79,8 @@ extension Streamable<T> on Query<T> {
     };
   }
 
+  /// Create a stream, executing [Query.find()] whenever there's a change to the
+  /// underlying Entity.
   Stream<List<T>> findStream(
       {@Deprecated('Use offset() instead') int offset = 0,
       @Deprecated('Use limit() instead') int limit = 0}) {
