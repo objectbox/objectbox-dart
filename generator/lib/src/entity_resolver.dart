@@ -93,7 +93,7 @@ class EntityResolver extends Builder {
         continue;
       }
 
-      bool isToManyRel = false;
+      var isToManyRel = false;
       int fieldType;
       var flags = 0;
       int propUid;
@@ -153,7 +153,9 @@ class EntityResolver extends Builder {
               "  invalid relation property '${f.name}' in entity '${element.name}' - must use ToOne/ToMany<TargetEntity>");
           continue;
         }
-        relTargetName = (f.type as ParameterizedType).typeArguments[0].name;
+        relTargetName = (f.type as ParameterizedType)
+            .typeArguments[0]
+            .getDisplayString(withNullability: false);
       }
 
       if (_backlinkChecker.hasAnnotationOfExact(f)) {
@@ -211,7 +213,7 @@ class EntityResolver extends Builder {
         entity.properties.where((p) => p.hasFlag(OBXPropertyFlags.ID));
     if (annotated.length > 1) {
       throw InvalidGenerationSourceError(
-          "entity ${entity.name}: multiple fields annotated with Id(), there may only be one");
+          'entity ${entity.name}: multiple fields annotated with Id(), there may only be one');
     }
 
     if (annotated.length == 1) {
@@ -240,8 +242,8 @@ class EntityResolver extends Builder {
     idProperty.flags &= ~OBXPropertyFlags.UNSIGNED;
   }
 
-  void processAnnotationIndexUnique(FieldElement f, int fieldType,
-      Element elementBare, ModelProperty prop) {
+  void processAnnotationIndexUnique(
+      FieldElement f, int fieldType, Element elementBare, ModelProperty prop) {
     IndexType indexType;
 
     final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
@@ -279,8 +281,7 @@ class EntityResolver extends Builder {
 
     // Throw if HASH or HASH64 is not supported by property type.
     if (!supportsHashIndex &&
-        (indexType == IndexType.hash ||
-            indexType == IndexType.hash64)) {
+        (indexType == IndexType.hash || indexType == IndexType.hash64)) {
       throw InvalidGenerationSourceError(
           "entity ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
     }

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
@@ -122,31 +123,21 @@ void main() {
     query.close();
   });
 
-  final add = (a, b) => a + b;
   test('.sum integers', () {
     box.putMany(integerList());
 
     final query = box.query((tLong < 100)).build();
-    final propSum = (qp) {
-      final p = query.integerProperty(qp);
-      try {
-        return p.sum();
-      } finally {
-        p.close();
-      }
-    };
-
     final all = box.getAll();
 
-    final sumByte = all.map((s) => s.tByte).toList().fold(0, add);
-    final sumShort = all.map((s) => s.tShort).toList().fold(0, add);
-    final sumInt = all.map((s) => s.tInt).toList().fold(0, add);
-    final sumLong = all.map((s) => s.tLong).toList().fold(0, add);
+    final sumByte = all.map((s) => s.tByte).toList().fold(0, _add);
+    final sumShort = all.map((s) => s.tShort).toList().fold(0, _add);
+    final sumInt = all.map((s) => s.tInt).toList().fold(0, _add);
+    final sumLong = all.map((s) => s.tLong).toList().fold(0, _add);
 
-    expect(propSum(tByte), sumByte);
-    expect(propSum(tShort), sumShort);
-    expect(propSum(tInt), sumInt);
-    expect(propSum(tLong), sumLong);
+    expect(_propQueryExecInt(query, tByte, _pqSumInt), sumByte);
+    expect(_propQueryExecInt(query, tShort, _pqSumInt), sumShort);
+    expect(_propQueryExecInt(query, tInt, _pqSumInt), sumInt);
+    expect(_propQueryExecInt(query, tLong, _pqSumInt), sumLong);
 
     query.close();
   });
@@ -155,15 +146,6 @@ void main() {
     box.putMany(integerList());
 
     final query = box.query((tLong < 100)).build();
-    final propMin = (qp) {
-      final p = query.integerProperty(qp);
-      try {
-        return p.min();
-      } finally {
-        p.close();
-      }
-    };
-
     final all = box.getAll();
 
     final minByte = all.map((s) => s.tByte).toList().reduce(min);
@@ -171,10 +153,10 @@ void main() {
     final minInt = all.map((s) => s.tInt).toList().reduce(min);
     final minLong = all.map((s) => s.tLong).toList().reduce(min);
 
-    expect(propMin(tByte), minByte);
-    expect(propMin(tShort), minShort);
-    expect(propMin(tInt), minInt);
-    expect(propMin(tLong), minLong);
+    expect(_propQueryExecInt(query, tByte, _pqMinInt), minByte);
+    expect(_propQueryExecInt(query, tShort, _pqMinInt), minShort);
+    expect(_propQueryExecInt(query, tInt, _pqMinInt), minInt);
+    expect(_propQueryExecInt(query, tLong, _pqMinInt), minLong);
 
     query.close();
   });
@@ -183,15 +165,6 @@ void main() {
     box.putMany(integerList());
 
     final query = box.query((tLong < 100)).build();
-    final propMax = (qp) {
-      final p = query.integerProperty(qp);
-      try {
-        return p.max();
-      } finally {
-        p.close();
-      }
-    };
-
     final all = box.getAll();
 
     final maxByte = all.map((s) => s.tByte).toList().reduce(max);
@@ -199,10 +172,10 @@ void main() {
     final maxInt = all.map((s) => s.tInt).toList().reduce(max);
     final maxLong = all.map((s) => s.tLong).toList().reduce(max);
 
-    expect(propMax(tByte), maxByte);
-    expect(propMax(tShort), maxShort);
-    expect(propMax(tInt), maxInt);
-    expect(propMax(tLong), maxLong);
+    expect(_propQueryExecInt(query, tByte, _pqMaxInt), maxByte);
+    expect(_propQueryExecInt(query, tShort, _pqMaxInt), maxShort);
+    expect(_propQueryExecInt(query, tInt, _pqMaxInt), maxInt);
+    expect(_propQueryExecInt(query, tLong, _pqMaxInt), maxLong);
 
     query.close();
   });
@@ -211,22 +184,14 @@ void main() {
     box.putMany(floatList());
 
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
-    final propSum = (qp) {
-      final p = query.doubleProperty(qp);
-      try {
-        return p.sum();
-      } finally {
-        p.close();
-      }
-    };
 
     final all = box.getAll();
 
-    final sumFloat = all.map((s) => s.tFloat).toList().fold(0, add);
-    final sumDouble = all.map((s) => s.tDouble).toList().fold(0, add);
+    final sumFloat = all.map((s) => s.tFloat).toList().fold(0.0, _add);
+    final sumDouble = all.map((s) => s.tDouble).toList().fold(0.0, _add);
 
-    expect(propSum(tFloat), sumFloat);
-    expect(propSum(tDouble), sumDouble);
+    expect(_propQueryExecDouble(query, tFloat, _pqSumDouble), sumFloat);
+    expect(_propQueryExecDouble(query, tDouble, _pqSumDouble), sumDouble);
 
     query.close();
   });
@@ -235,22 +200,14 @@ void main() {
     box.putMany(floatList());
 
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
-    final propMin = (qp) {
-      final p = query.doubleProperty(qp);
-      try {
-        return p.min();
-      } finally {
-        p.close();
-      }
-    };
 
     final all = box.getAll();
 
     final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
     final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
 
-    expect(propMin(tFloat), minFloat);
-    expect(propMin(tDouble), minDouble);
+    expect(_propQueryExecDouble(query, tFloat, _pqMinDouble), minFloat);
+    expect(_propQueryExecDouble(query, tDouble, _pqMinDouble), minDouble);
 
     query.close();
   });
@@ -259,22 +216,13 @@ void main() {
     box.putMany(floatList());
 
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
-    final propMax = (qp) {
-      final p = query.doubleProperty(qp);
-      try {
-        return p.max();
-      } finally {
-        p.close();
-      }
-    };
-
     final all = box.getAll();
 
     final maxFloat = all.map((s) => s.tFloat).toList().reduce(max);
     final maxDouble = all.map((s) => s.tDouble).toList().reduce(max);
 
-    expect(propMax(tFloat), maxFloat);
-    expect(propMax(tDouble), maxDouble);
+    expect(_propQueryExecDouble(query, tFloat, _pqMaxDouble), maxFloat);
+    expect(_propQueryExecDouble(query, tDouble, _pqMaxDouble), maxDouble);
 
     query.close();
   });
@@ -369,7 +317,7 @@ void main() {
     // integers
     var intBaseAvg = integers.reduce((a, b) => a + b) / integers.length;
 
-    final qpInteger = (p, avg) {
+    final qpInteger = (QueryProperty p, double avg) {
       final qp = queryIntegers.integerProperty(p);
       expect(qp.average(), avg);
       qp.close();
@@ -381,7 +329,7 @@ void main() {
     qpInteger(tShort, intBaseAvg + 2);
 
     // floats
-    final qpFloat = (p, double avg) {
+    final qpFloat = (QueryProperty p, double avg) {
       final qp = queryFloats.doubleProperty(p);
       expect(qp.average().toStringAsFixed(2), avg.toStringAsFixed(2));
       qp.close();
@@ -402,7 +350,7 @@ void main() {
     box.putMany(stringList());
 
     final queryStrings = box.query(tString.contains('t')).build();
-    final queryAndCheck = (prop, valueIfNull, reason) {
+    final queryAndCheck = (QueryProperty prop, int valueIfNull, String reason) {
       final qp = queryStrings.integerProperty(prop);
       expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
           reason: reason);
@@ -426,8 +374,9 @@ void main() {
     box.putMany(integerList());
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
-    final queryAndCheck = (p, valueIfNull, reason) {
-      final qp = queryIntegers.doubleProperty(p);
+    final queryAndCheck =
+        (QueryProperty prop, double valueIfNull, String reason) {
+      final qp = queryIntegers.doubleProperty(prop);
       expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
           reason: reason);
       qp.close();
@@ -513,3 +462,37 @@ void main() {
     env.close();
   });
 }
+
+T _add<T extends num>(T lhs, T rhs) => (lhs + rhs) as T;
+
+T _propQueryExecInt<T>(Query query, QueryProperty prop,
+    T Function(IntegerPropertyQuery propQuery) fn) {
+  final propQuery = query.integerProperty(prop);
+  try {
+    return fn(propQuery);
+  } finally {
+    propQuery.close();
+  }
+}
+
+int _pqSumInt(IntegerPropertyQuery propQuery) => propQuery.sum();
+
+int _pqMinInt(IntegerPropertyQuery propQuery) => propQuery.min();
+
+int _pqMaxInt(IntegerPropertyQuery propQuery) => propQuery.max();
+
+T _propQueryExecDouble<T>(Query query, QueryProperty prop,
+    T Function(DoublePropertyQuery propQuery) fn) {
+  final propQuery = query.doubleProperty(prop);
+  try {
+    return fn(propQuery);
+  } finally {
+    propQuery.close();
+  }
+}
+
+double _pqSumDouble(DoublePropertyQuery propQuery) => propQuery.sum();
+
+double _pqMinDouble(DoublePropertyQuery propQuery) => propQuery.min();
+
+double _pqMaxDouble(DoublePropertyQuery propQuery) => propQuery.max();

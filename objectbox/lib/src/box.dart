@@ -162,7 +162,7 @@ class Box<T> {
   /// the location of its ID in [ids]. Non-existent IDs become null.
   ///
   /// Pass growableResult: true for the resulting list to be growable.
-  List<T /*?*/ > getMany(List<int> ids, {growableResult = false}) {
+  List<T /*?*/ > getMany(List<int> ids, {bool growableResult = false}) {
     final result = List<T>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
     final tx = Transaction(_store, TxMode.Read);

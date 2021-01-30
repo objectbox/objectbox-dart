@@ -239,9 +239,9 @@ void main() {
     final q3 = box.query(text.equals("can't find this")).build();
     final result3 = q3.findIds();
 
-    expect(result0, unorderedEquals([2, 3, 4, 5, 6, 7]));
-    expect(result2, unorderedEquals([7]));
-    expect(result3, unorderedEquals([]));
+    expect(result0, unorderedEqualsInts([2, 3, 4, 5, 6, 7]));
+    expect(result2, unorderedEqualsInts([7]));
+    expect(result3.isEmpty, isTrue);
 
     q0.close();
     q2.close();

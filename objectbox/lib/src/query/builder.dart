@@ -77,7 +77,7 @@ class _QueryBuilder<T> {
     _throwIfOtherEntity(rel._entityId);
     _innerQBs.add(_QueryBuilder<TargetEntityT>._link(
         this, qc, C.qb_link_property(_cBuilder, rel._propertyId)));
-    return _innerQBs.last;
+    return _innerQBs.last as _QueryBuilder<TargetEntityT>;
   }
 
   _QueryBuilder<SourceEntityT> backlink<SourceEntityT, _>(
@@ -86,7 +86,7 @@ class _QueryBuilder<T> {
     _throwIfOtherEntity(rel._targetEntityId);
     _innerQBs.add(_QueryBuilder<SourceEntityT>._link(this, qc,
         C.qb_backlink_property(_cBuilder, rel._entityId, rel._propertyId)));
-    return _innerQBs.last;
+    return _innerQBs.last as _QueryBuilder<SourceEntityT>;
   }
 
   _QueryBuilder<TargetEntityT> linkMany<_, TargetEntityT>(
@@ -95,7 +95,7 @@ class _QueryBuilder<T> {
     _throwIfOtherEntity(rel._entityId);
     _innerQBs.add(_QueryBuilder<TargetEntityT>._link(
         this, qc, C.qb_link_standalone(_cBuilder, rel._relationId)));
-    return _innerQBs.last;
+    return _innerQBs.last as _QueryBuilder<TargetEntityT>;
   }
 
   _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT, _>(
@@ -104,6 +104,6 @@ class _QueryBuilder<T> {
     _throwIfOtherEntity(rel._targetEntityId);
     _innerQBs.add(_QueryBuilder<SourceEntityT>._link(
         this, qc, C.qb_backlink_standalone(_cBuilder, rel._relationId)));
-    return _innerQBs.last;
+    return _innerQBs.last as _QueryBuilder<SourceEntityT>;
   }
 }

@@ -35,13 +35,13 @@ void main() {
     // The delay is here to ensure that the callback execution is executed
     // sequentially, otherwise the testing framework's execution  will be
     // prioritized (for some reason), before any callback.
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
 
     box.putMany(<TestEntity>[
       TestEntity(tString: 'Goodbye'),
       TestEntity(tString: 'for now')
     ]);
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
 
     expect(result, ['Hello world', 'for now, Goodbye, Hello world']);
 
@@ -60,14 +60,14 @@ void main() {
     });
 
     box.put(TestEntity(tString: 'Hello world'));
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
 
     // idem, see above
     box.putMany(<TestEntity>[
       TestEntity(tString: 'Goodbye'),
       TestEntity(tString: 'for now')
     ]);
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
 
     expect(result, [1, 3]);
 
@@ -99,7 +99,7 @@ void main() {
     final t2 = TestEntity2();
     box2.put(t2);
 
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
     expect(counter1, 0);
     expect(counter2, 1);
 
@@ -107,7 +107,7 @@ void main() {
     final t1 = TestEntity();
     box.put(t1);
 
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
     expect(counter1, 1);
     expect(counter2, 1);
 
@@ -115,7 +115,7 @@ void main() {
     final ts1 = [1, 2, 3].map((i) => TestEntity(tInt: i)).toList();
     box.putMany(ts1);
 
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
     expect(counter1, 2);
     expect(counter2, 1);
 
@@ -123,7 +123,7 @@ void main() {
     final ts2 = [1, 2, 3].map((i) => TestEntity2()).toList();
     box2.putMany(ts2);
 
-    await Future.delayed(Duration(seconds: 0));
+    await Future<dynamic>.delayed(Duration(seconds: 0));
     expect(counter1, 2);
     expect(counter2, 2);
 

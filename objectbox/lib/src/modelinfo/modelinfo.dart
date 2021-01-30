@@ -41,21 +41,22 @@ class ModelInfo {
 
   ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true})
       : entities = [],
-        lastEntityId = IdUid.fromString(data['lastEntityId']),
-        lastIndexId = IdUid.fromString(data['lastIndexId']),
-        lastRelationId = IdUid.fromString(data['lastRelationId']),
-        lastSequenceId = IdUid.fromString(data['lastSequenceId']),
-        retiredEntityUids = List<int>.from(data['retiredEntityUids'] ?? []),
-        retiredIndexUids = List<int>.from(data['retiredIndexUids'] ?? []),
-        retiredPropertyUids = List<int>.from(data['retiredPropertyUids'] ?? []),
-        retiredRelationUids = List<int>.from(data['retiredRelationUids'] ?? []),
-        modelVersion = data['modelVersion'] ?? 0,
+        lastEntityId = IdUid.fromString(data['lastEntityId'] as String),
+        lastIndexId = IdUid.fromString(data['lastIndexId'] as String),
+        lastRelationId = IdUid.fromString(data['lastRelationId'] as String),
+        lastSequenceId = IdUid.fromString(data['lastSequenceId'] as String),
+        retiredEntityUids = _uids(data['retiredEntityUids']),
+        retiredIndexUids = _uids(data['retiredIndexUids']),
+        retiredPropertyUids = _uids(data['retiredPropertyUids']),
+        retiredRelationUids = _uids(data['retiredRelationUids']),
+        modelVersion = data['modelVersion'] as int ?? 0,
         modelVersionParserMinimum =
-            data['modelVersionParserMinimum'] ?? _maxModelVersion,
-        version = data['version'] ?? 1 {
+            data['modelVersionParserMinimum'] as int ?? _maxModelVersion,
+        version = data['version'] as int ?? 1 {
     if (data['entities'] == null) throw Exception('entities is null');
     for (final e in data['entities']) {
-      entities.add(ModelEntity.fromMap(e, model: this, check: check));
+      entities.add(ModelEntity.fromMap(e as Map<String, dynamic>,
+          model: this, check: check));
     }
     if (check) validate();
   }
@@ -237,3 +238,6 @@ class ModelInfo {
   bool hasRelations() =>
       entities.indexWhere((e) => e.relations.isNotEmpty) != -1;
 }
+
+List<int> _uids(dynamic list) =>
+    list == null ? [] : List<int>.from(list as List<dynamic>);

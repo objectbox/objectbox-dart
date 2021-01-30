@@ -11,3 +11,7 @@ analyzer:
     - example/**
     - generator/**
     - benchmark/**
+    - test/objectbox.g.dart # TODO remove exception after #168 is implemented
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false

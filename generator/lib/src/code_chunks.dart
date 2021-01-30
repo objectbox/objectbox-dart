@@ -32,7 +32,7 @@ class CodeChunks {
 
   static String entityBinding(ModelEntity entity) {
     final name = entity.name;
-    return """
+    return '''
       EntityDefinition<${name}>(
         model: model.getEntityByUid(${entity.id.uid}),
         toOneRelations: ($name object) => ${toOneRelations(entity)},
@@ -42,7 +42,7 @@ class CodeChunks {
         objectToFB: ${objectToFB(entity)},
         objectFromFB: ${objectFromFB(entity)}
       )
-      """;
+      ''';
   }
 
   static String propertyFieldName(ModelProperty property) {
@@ -142,8 +142,8 @@ class CodeChunks {
           break;
         case OBXPropertyType.Relation:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
-          return "object.${propertyFieldName(p)}.targetId = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});" +
-              "\n object.${propertyFieldName(p)}.attach(store);";
+          return 'object.${propertyFieldName(p)}.targetId = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});'
+              '\n object.${propertyFieldName(p)}.attach(store);';
         case OBXPropertyType.StringVector:
           fbReader = 'fb.ListReader<String>(fb.StringReader())';
           break;
@@ -174,12 +174,12 @@ class CodeChunks {
       '[' +
       entity.properties
           .where((ModelProperty prop) => prop.isRelation)
-          .map((ModelProperty prop) => "object.${propertyFieldName(prop)}")
+          .map((ModelProperty prop) => 'object.${propertyFieldName(prop)}')
           .join(',') +
       ']';
 
   static String relInfo(ModelEntity entity, ModelRelation rel) =>
-      'RelInfo.toMany(${rel.id.id}, object.${propertyFieldName(entity.idProperty)})';
+      'RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldName(entity.idProperty)})';
 
   static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
     final srcEntity = entity.model.findEntityByName(bl.srcEntity);
@@ -213,7 +213,7 @@ class CodeChunks {
     }
 
     if (srcRel != null) {
-      return 'RelInfo.toManyBacklink('
+      return 'RelInfo<${srcEntity.name}>.toManyBacklink('
           '${srcRel.id.id}, object.${propertyFieldName(entity.idProperty)})';
     } else if (srcProp != null) {
       return 'RelInfo<${srcEntity.name}>.toOneBacklink('

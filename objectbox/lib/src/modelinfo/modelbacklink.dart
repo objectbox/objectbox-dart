@@ -9,9 +9,10 @@ class ModelBacklink {
   ModelBacklink(this.name, this.srcEntity, this.srcField);
 
   ModelBacklink.fromMap(Map<String, dynamic> data)
-      : this(data['name'], data['srcEntity'], data['srcField']);
+      : this(data['name'] as String, data['srcEntity'] as String,
+            data['srcField'] as String);
 
-  Map<String, dynamic> toMap() =>
+  Map<String, String> toMap() =>
       {'name': name, 'srcEntity': srcEntity, 'srcField': srcField};
 
   @override

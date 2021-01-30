@@ -6,8 +6,12 @@ import 'iduid.dart';
 /// ModelProperty describes a single property of an entity, i.e. its id, name, type and flags.
 class ModelProperty {
   IdUid id;
-  /*late*/ String _name;
-  /*late*/ int _type, _flags;
+
+  /*late*/
+  String _name;
+
+  /*late*/
+  int _type, _flags;
   IdUid /*?*/ _indexId;
   ModelEntity /*?*/ entity;
   String /*?*/ relationTarget;
@@ -67,12 +71,13 @@ class ModelProperty {
   }
 
   ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity /*?*/ entity)
-      : this(IdUid.fromString(data['id']), data['name'], data['type'],
-            flags: data['flags'] ?? 0,
-            indexId: data['indexId'],
+      : this(IdUid.fromString(data['id'] as String), data['name'] as String,
+            data['type'] as int,
+            flags: data['flags'] as int ?? 0,
+            indexId: data['indexId'] as String,
             entity: entity,
-            dartFieldType: data['dartFieldType'],
-            relationTarget: data['relationTarget']);
+            dartFieldType: data['dartFieldType'] as String,
+            relationTarget: data['relationTarget'] as String);
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};

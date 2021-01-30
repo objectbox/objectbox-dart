@@ -323,20 +323,23 @@ void main() {
       expect(b[2].id, 3);
       expect(b[2].tString, 'not referenced');
 
-      final strings = (e) => e.tString;
-      expect(b[0].testEntities.map(strings), unorderedEquals(['foo']));
-      expect(b[1].testEntities.map(strings), unorderedEquals(['bar', 'bar2']));
+      final strings = (TestEntity e) => e.tString;
+      expect(b[0].testEntities.map(strings), unorderedEqualsStrings(['foo']));
+      expect(b[1].testEntities.map(strings),
+          unorderedEqualsStrings(['bar', 'bar2']));
       expect(b[2].testEntities.length, isZero);
 
       // Update an existing target.
       b[1].testEntities.add(env.box.get(1)); // foo
       expect(b[1].testEntities.map(strings),
-          unorderedEquals(['foo', 'bar', 'bar2']));
+          unorderedEqualsStrings(['foo', 'bar', 'bar2']));
       b[1].testEntities.removeWhere((e) => e.tString == 'bar');
-      expect(b[1].testEntities.map(strings), unorderedEquals(['foo', 'bar2']));
+      expect(b[1].testEntities.map(strings),
+          unorderedEqualsStrings(['foo', 'bar2']));
       boxB.put(b[1]);
       b[1] = boxB.get(b[1].id);
-      expect(b[1].testEntities.map(strings), unorderedEquals(['foo', 'bar2']));
+      expect(b[1].testEntities.map(strings),
+          unorderedEqualsStrings(['foo', 'bar2']));
 
       // Insert a new target, already with some "source" entities pointing to it.
       var newB = RelatedEntityB();
@@ -350,11 +353,11 @@ void main() {
       expect(env.box.get(4).tString, equals('newly created from B'));
       newB = boxB.get(newB.id);
       expect(newB.testEntities.map(strings),
-          unorderedEquals(['foo', 'newly created from B']));
+          unorderedEqualsStrings(['foo', 'newly created from B']));
 
       // The previous put also affects b[1], 'foo' is not related anymore.
       b[1] = boxB.get(b[1].id);
-      expect(b[1].testEntities.map(strings), unorderedEquals(['bar2']));
+      expect(b[1].testEntities.map(strings), unorderedEqualsStrings(['bar2']));
     });
 
     test('query', () {
@@ -390,20 +393,23 @@ void main() {
       expect(a[2].id, 3);
       expect(a[2].tInt, 3);
 
-      final strings = (e) => e.tString;
-      expect(a[0].testEntities.map(strings), unorderedEquals(['foo']));
-      expect(a[1].testEntities.map(strings), unorderedEquals(['bar', 'bar2']));
+      final strings = (TestEntity e) => e.tString;
+      expect(a[0].testEntities.map(strings), unorderedEqualsStrings(['foo']));
+      expect(a[1].testEntities.map(strings),
+          unorderedEqualsStrings(['bar', 'bar2']));
       expect(a[2].testEntities.length, isZero);
 
       // Update an existing target.
       a[1].testEntities.add(env.box.get(1)); // foo
       expect(a[1].testEntities.map(strings),
-          unorderedEquals(['foo', 'bar', 'bar2']));
+          unorderedEqualsStrings(['foo', 'bar', 'bar2']));
       a[1].testEntities.removeWhere((e) => e.tString == 'bar');
-      expect(a[1].testEntities.map(strings), unorderedEquals(['foo', 'bar2']));
+      expect(a[1].testEntities.map(strings),
+          unorderedEqualsStrings(['foo', 'bar2']));
       boxA.put(a[1]);
       a[1] = boxA.get(a[1].id);
-      expect(a[1].testEntities.map(strings), unorderedEquals(['foo', 'bar2']));
+      expect(a[1].testEntities.map(strings),
+          unorderedEqualsStrings(['foo', 'bar2']));
 
       // Insert a new target, already with some "source" entities pointing to it.
       var newA = RelatedEntityA(tInt: 4);
@@ -417,10 +423,11 @@ void main() {
       expect(env.box.get(4).tString, equals('newly created from A'));
       newA = boxA.get(newA.id);
       expect(newA.testEntities.map(strings),
-          unorderedEquals(['foo', 'newly created from A']));
+          unorderedEqualsStrings(['foo', 'newly created from A']));
 
       // The previous put also affects TestEntity(foo) - added target (tInt=4).
-      expect(env.box.get(1).relManyA.map(toInt), unorderedEquals([1, 2, 4]));
+      expect(
+          env.box.get(1).relManyA.map(toInt), unorderedEqualsInts([1, 2, 4]));
     });
 
     test('query', () {
@@ -436,7 +443,7 @@ void main() {
   });
 }
 
-int toInt(e) => e.tInt;
+int toInt(dynamic e) => e.tInt as int;
 
 void check<E>(ToMany<E> rel,
     {List<int> items, List<int> added, List<int> removed}) {

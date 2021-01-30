@@ -49,8 +49,9 @@ class ModelRelation {
   }
 
   ModelRelation.fromMap(Map<String, dynamic> data)
-      : this(IdUid.fromString(data['id']), data['name'],
-            targetId: data['targetId'], targetName: data['targetName']);
+      : this(IdUid.fromString(data['id'] as String), data['name'] as String,
+            targetId: data['targetId'] as String,
+            targetName: data['targetName'] as String);
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};

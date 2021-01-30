@@ -70,18 +70,19 @@ class Transaction {
 
   /// Returns a cursor for the given entity. No need to close it manually.
   /// Note: the cursor may have already been used, don't rely on its state!
-  CursorHelper cursor(EntityDefinition entity) {
+  CursorHelper<T> cursor<T>(EntityDefinition<T> entity) {
     if (_firstCursor == null) {
-      return _firstCursor = CursorHelper(_store, _cTxn, entity, _isWrite);
+      return _firstCursor = CursorHelper<T>(_store, _cTxn, entity, _isWrite);
     } else if (_firstCursor.entity == entity) {
-      return _firstCursor;
+      return _firstCursor as CursorHelper<T>;
     }
     _cursors ??= <int, CursorHelper>{};
     final entityId = entity.model.id.id;
     if (_cursors.containsKey(entityId)) {
-      return _cursors[entityId];
+      return _cursors[entityId] as CursorHelper<T>;
     }
-    return _cursors[entityId] = CursorHelper(_store, _cTxn, entity, _isWrite);
+    return _cursors[entityId] =
+        CursorHelper<T>(_store, _cTxn, entity, _isWrite);
   }
 
   /// Executes a given function inside a transaction.

@@ -519,9 +519,11 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
     }
   }
 
-  static void opListSetIndexInt32(Pointer<Int32> list, i, val) => list[i] = val;
+  static void opListSetIndexInt32(Pointer<Int32> list, int i, int val) =>
+      list[i] = val;
 
-  static void opListSetIndexInt64(Pointer<Int64> list, i, val) => list[i] = val;
+  static void opListSetIndexInt64(Pointer<Int64> list, int i, int val) =>
+      list[i] = val;
 
   @override
   int apply(_QueryBuilder builder, bool isRoot) {
@@ -654,11 +656,11 @@ class _ConditionGroup extends Condition {
 }
 
 class _ConditionGroupAny extends _ConditionGroup {
-  _ConditionGroupAny(conditions) : super(conditions, C.qb_any);
+  _ConditionGroupAny(List<Condition> conditions) : super(conditions, C.qb_any);
 }
 
 class _ConditionGroupAll extends _ConditionGroup {
-  _ConditionGroupAll(conditions) : super(conditions, C.qb_all);
+  _ConditionGroupAll(List<Condition> conditions) : super(conditions, C.qb_all);
 }
 
 /// A repeatable Query returning the latest matching Objects.
@@ -808,7 +810,7 @@ class Query<T> {
   /// ```dart
   /// var q = query.integerProperty(tInteger);
   /// ```
-  PQ property<PQ extends PropertyQuery>(QueryProperty qp) {
+  PQ property<PQ extends PropertyQuery<dynamic>>(QueryProperty qp) {
     if (OBXPropertyType.Bool <= qp._type && qp._type <= OBXPropertyType.Long) {
       return IntegerPropertyQuery(_cQuery, qp._propertyId, qp._type) as PQ;
     } else if (OBXPropertyType.Float == qp._type ||

@@ -111,8 +111,8 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
   throw Exception('Invalid PropertyType: ${type}');
 }
 
-class CursorHelper {
-  final EntityDefinition _entity;
+class CursorHelper<T> {
+  final EntityDefinition<T> _entity;
   final Store _store;
   final Pointer<OBX_cursor> ptr;
 
@@ -136,7 +136,7 @@ class CursorHelper {
   Uint8List get readData =>
       dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value);
 
-  EntityDefinition get entity => _entity;
+  EntityDefinition<T> get entity => _entity;
 
   void close() {
     if (_closed) return;
@@ -146,7 +146,7 @@ class CursorHelper {
     checkObx(C.cursor_close(ptr));
   }
 
-  T /*?*/ get<T>(int id) {
+  T /*?*/ get(int id) {
     final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);

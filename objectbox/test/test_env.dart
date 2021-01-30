@@ -1,4 +1,7 @@
 import 'dart:io';
+
+import 'package:test/test.dart';
+
 import 'entity.dart';
 import 'objectbox.g.dart';
 
@@ -33,3 +36,7 @@ bool waitUntil(bool Function() predicate, {int timeoutMs = 1000}) {
   }
   return success;
 }
+
+Matcher unorderedEqualsStrings(List<String> list) => unorderedEquals(list);
+
+Matcher unorderedEqualsInts(List<int> list) => unorderedEquals(list);

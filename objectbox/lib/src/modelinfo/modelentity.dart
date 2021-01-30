@@ -62,25 +62,25 @@ class ModelEntity {
   ModelEntity.fromMap(Map<String, dynamic> data,
       {ModelInfo /*?*/ model, bool check = true})
       : _model = model,
-        id = IdUid.fromString(data['id']),
-        lastPropertyId = IdUid.fromString(data['lastPropertyId']) {
-    name = data['name'];
-    flags = data['flags'] ?? 0;
+        id = IdUid.fromString(data['id'] as String),
+        lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String) {
+    name = data['name'] as String;
+    flags = data['flags'] as int ?? 0;
 
     if (data['properties'] == null) throw Exception('properties is null');
     for (final p in data['properties']) {
-      _properties.add(ModelProperty.fromMap(p, this));
+      _properties.add(ModelProperty.fromMap(p as Map<String, dynamic>, this));
     }
 
     if (data['relations'] != null) {
       for (final p in data['relations']) {
-        _relations.add(ModelRelation.fromMap(p));
+        _relations.add(ModelRelation.fromMap(p as Map<String, dynamic>));
       }
     }
 
     if (data['backlinks'] != null) {
       for (final p in data['backlinks']) {
-        _backlinks.add(ModelBacklink.fromMap(p));
+        _backlinks.add(ModelBacklink.fromMap(p as Map<String, dynamic>));
       }
     }
 

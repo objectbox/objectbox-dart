@@ -9,7 +9,7 @@ Uint8List addFbData(dynamic fbb) {
   fbb.startTable();
   fbb.addInt32(0, 24);
   fbb.addInt64(1, 42);
-  return fbb.finish(fbb.endTable());
+  return fbb.finish(fbb.endTable()) as Uint8List;
 }
 
 void main() {

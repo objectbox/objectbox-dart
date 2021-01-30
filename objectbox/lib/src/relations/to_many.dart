@@ -125,7 +125,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   @override
   bool remove(Object /*?*/ element) {
     if (!_items.remove(element)) return false;
-    if (element != null) _track(element, -1);
+    if (element != null) _track(element as EntityT, -1);
     return true;
   }
 

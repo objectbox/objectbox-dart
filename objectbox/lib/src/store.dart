@@ -115,7 +115,7 @@ class Store {
     if (!_boxes.containsKey(T)) {
       return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
     }
-    return _boxes[T];
+    return _boxes[T] as Box<T>;
   }
 
   EntityDefinition<T> _entityDef<T>() {
