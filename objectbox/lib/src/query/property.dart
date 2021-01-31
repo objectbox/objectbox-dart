@@ -1,6 +1,6 @@
 part of query;
 
-/// Property query base
+/// Property query base.
 abstract class PropertyQuery<T> {
   final Pointer<OBX_query_prop> _cProp;
   final int _type;

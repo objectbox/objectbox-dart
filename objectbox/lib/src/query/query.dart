@@ -269,6 +269,7 @@ enum _ConditionOp {
   between,
 }
 
+/// A [Query] condition base class.
 abstract class Condition {
   // using & because && is not overridable
   Condition operator &(Condition rh) => and(rh);
