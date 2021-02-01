@@ -1,5 +1,5 @@
-/// Entity annotation is used to on a class to let ObjectBox know it should
-/// store it - making the class a "persistable Entity".
+/// Entity annotation is used on a class to let ObjectBox know it should store
+/// it - making the class a "persistable Entity".
 ///
 /// This annotation is matched by ObjectBox code generator when you call
 /// `pub run_build_runner build`. The generator creates `objectbox.g.dart` with
@@ -21,10 +21,8 @@ class Entity {
   const Entity({this.uid});
 }
 
-/// Property annotation enables you to explicitly specify configure some details
-/// about how a field is stored in the database.
-///
-/// Use PropertyType and OBXPropertyFlag values, resp. for type and flag.
+/// Property annotation enables you to explicitly configure some details about
+/// how a field is stored in the database.
 class Property {
   /// ObjectBox keeps track of entities and properties by assigning them unique
   /// identifiers, UIDs, during the code-generation phase. All those UIDs are
@@ -111,7 +109,7 @@ class Id {
   const Id();
 }
 
-/// Transient annotation marks properties that should not be stored in the DB.
+/// Transient annotation marks fields that should not be stored in the database.
 class Transient {
   /// Create a Transient annotation.
   const Transient();
@@ -135,7 +133,7 @@ class Index {
   /// Index type.
   final IndexType /*?*/ type;
 
-  /// Create an Index annotaion.
+  /// Create an Index annotation.
   const Index({this.type});
 }
 
@@ -153,8 +151,7 @@ enum IndexType {
   /// it's default, [hash].
   value,
 
-  /// Uses a 32-bit hash of the field value to build the index. This is a
-  /// default for [String] properties.
+  /// Uses a 32-bit hash of the field value; default for [String] properties.
   ///
   /// Hash collisions should be sporadic and shouldn't impact performance in
   /// practice. Because it requires less storage space, it's usually a better

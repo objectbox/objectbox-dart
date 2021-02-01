@@ -115,7 +115,7 @@ class ToOne<EntityT> {
     }
   }
 
-  /// Whether the relatin field has a value stored. Otherwise it's null.
+  /// Whether the relation field has a value stored. Otherwise it's null.
   bool get hasValue => _value._state != _ToOneState.none;
 
   /// Initialize the relation field, attaching it to the store.

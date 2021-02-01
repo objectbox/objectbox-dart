@@ -153,9 +153,8 @@ class EntityResolver extends Builder {
               "  invalid relation property '${f.name}' in entity '${element.name}' - must use ToOne/ToMany<TargetEntity>");
           continue;
         }
-        relTargetName = (f.type as ParameterizedType)
-            .typeArguments[0]
-            .getDisplayString(withNullability: false);
+        relTargetName =
+            (f.type as ParameterizedType).typeArguments[0].element.name;
       }
 
       if (_backlinkChecker.hasAnnotationOfExact(f)) {

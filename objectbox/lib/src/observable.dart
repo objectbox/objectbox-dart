@@ -63,7 +63,7 @@ class _Observable {
 }
 
 /// Streamable adds stream support to queries. The stream reruns the query
-/// whenever there's a change in any of the object in the queried Entity
+/// whenever there's a change in any of the objects in the queried Box
 /// (regardless of the filter conditions).
 extension Streamable<T> on Query<T> {
   void _setup() {
@@ -79,8 +79,8 @@ extension Streamable<T> on Query<T> {
     };
   }
 
-  /// Create a stream, executing [Query.find()] whenever there's a change to the
-  /// underlying Entity.
+  /// Create a stream, executing [Query.find()] whenever there's a change to any
+  /// of the objects in the queried Box.
   Stream<List<T>> findStream(
       {@Deprecated('Use offset() instead') int offset = 0,
       @Deprecated('Use limit() instead') int limit = 0}) {
