@@ -1,4 +1,4 @@
-## latest
+## 0.11.0 (2021-02-01)
 
 * Add `ToOne<>` class to wrap related entities. See examples for details.
   (thanks [@Buggaboo](https://github.com/Buggaboo) for jump-starting this).

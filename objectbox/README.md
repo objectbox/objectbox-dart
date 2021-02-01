@@ -59,7 +59,7 @@ Add the following dependencies to start using ObjectBox and code generator.
 
 ```yaml
 dependencies:
-  objectbox: ^0.10.0
+  objectbox: ^0.11.0
   objectbox_flutter_libs: any
 
 dev_dependencies:
@@ -74,7 +74,7 @@ dev_dependencies:
 
 ```yaml
 dependencies:
-  objectbox: ^0.10.0
+  objectbox: ^0.11.0
 
 dev_dependencies:
   build_runner: ^1.0.0
