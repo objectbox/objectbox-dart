@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:objectbox/objectbox.dart';
-import 'package:objectbox/observable.dart';
 
 import 'objectbox.g.dart';
 
