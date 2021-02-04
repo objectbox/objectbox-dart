@@ -12,8 +12,6 @@ void main() async {
   /*late final*/
   Box<TestEntity> box;
 
-  final defaultTimeout = Duration(milliseconds: 100);
-
   final simpleStringItems = () => <String>[
         'One',
         'Two',

@@ -33,13 +33,14 @@ class TestEnv {
   }
 }
 
-/// "Busy-waits" until the predicate returns true.
-bool waitUntil(bool Function() predicate, {int timeoutMs = 1000}) {
-  var success = false;
-  final until = DateTime.now().millisecondsSinceEpoch + timeoutMs;
+const defaultTimeout = Duration(milliseconds: 1000);
 
-  while (!(success = predicate()) &&
-      until > DateTime.now().millisecondsSinceEpoch) {
+/// "Busy-waits" until the predicate returns true.
+bool waitUntil(bool Function() predicate, {Duration timeout = defaultTimeout}) {
+  var success = false;
+  final until = DateTime.now().add(timeout);
+
+  while (!(success = predicate()) && until.isAfter(DateTime.now())) {
     sleep(Duration(milliseconds: 1));
   }
   return success;

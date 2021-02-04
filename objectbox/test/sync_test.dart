@@ -176,6 +176,7 @@ void main() {
       });
 
       test('SyncClient data sync', () async {
+        await server.online();
         loggedInClient(env.store);
         loggedInClient(env2.store);
 
@@ -201,6 +202,7 @@ void main() {
         final events2 = <SyncConnectionEvent>[];
         final streamSub2 = client.connectionEvents.listen(events2.add);
 
+        await server.online();
         client.start();
 
         expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
@@ -223,6 +225,7 @@ void main() {
             ]));
 
         await server.start(keepDb: true);
+        await server.online();
 
         expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
         await yieldExecution();
@@ -249,9 +252,10 @@ void main() {
         final events = <SyncLoginEvent>[];
         client.loginEvents.listen(events.add);
 
+        await server.online();
         client.start();
 
-        expect(await client.loginEvents.first.timeout(Duration(seconds: 1)),
+        expect(await client.loginEvents.first.timeout(defaultTimeout),
             equals(SyncLoginEvent.credentialsRejected));
 
         client.setCredentials(SyncCredentials.none());
@@ -267,6 +271,7 @@ void main() {
       });
 
       test('SyncClient listeners: completion', () async {
+        await server.online();
         final client = loggedInClient(store);
         expect(env.box.isEmpty(), isTrue);
         int id = env.box.put(TestEntity(tLong: 100));
@@ -277,13 +282,14 @@ void main() {
         client.close();
 
         final client2 = loggedInClient(env2.store);
-        await client2.completionEvents.first.timeout(Duration(seconds: 1));
+        await client2.completionEvents.first.timeout(defaultTimeout);
         client2.close();
 
         expect(env2.box.get(id) /*!*/ .tLong, 100);
       });
 
       test('SyncClient listeners: changes', () async {
+        await server.online();
         final client = loggedInClient(store);
         final client2 = loggedInClient(env2.store);
 
@@ -349,7 +355,7 @@ void main() {
 class SyncServer {
   Directory /*?*/ dir;
   int /*?*/ port;
-  Process /*?*/ process;
+  Future<Process> /*?*/ process;
 
   static bool isAvailable() {
     try {
@@ -367,7 +373,7 @@ class SyncServer {
     dir ??= Directory('testdata-sync-server-$port');
     if (!keepDb) _deleteDb();
 
-    process = await Process.start('sync-server', [
+    process = Process.start('sync-server', [
       '--unsecured-no-authentication',
       '--db-directory=${dir.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
@@ -376,9 +382,25 @@ class SyncServer {
     ]);
   }
 
+  /// Wait for the server to respond to a simple http request.
+  /// This simple check speeds up test by only trying to log in after the server
+  /// has started, avoiding the reconnect backoff intervals altogether.
+  Future<void> online() async => Future(() async {
+        while (true) {
+          try {
+            await HttpClient().get('127.0.0.1', port, '');
+            break;
+          } on SocketException catch (e) {
+            // only retry if "connection refused"
+            if (e.osError.errorCode != 111) rethrow;
+            await Future<void>.delayed(Duration(milliseconds: 1));
+          }
+        }
+      }).timeout(defaultTimeout);
+
   void stop({bool keepDb = false}) async {
     if (process == null) return;
-    final proc = process /*!*/;
+    final proc = await process /*!*/;
     process = null;
     proc.kill(ProcessSignal.sigint);
     final exitCode = await proc.exitCode;

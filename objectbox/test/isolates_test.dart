@@ -88,7 +88,7 @@ void main() {
       final query = env.box.query().build();
       final futureFirst = query.findStream().first; // starts a subscription
       expect(await call(['put', 'Bar']), equals(2));
-      List<TestEntity> found = await futureFirst.timeout(Duration(seconds: 1));
+      List<TestEntity> found = await futureFirst.timeout(defaultTimeout);
       expect(found.length, equals(2));
       expect(found.last.tString, equals('Bar'));
       query.close();
