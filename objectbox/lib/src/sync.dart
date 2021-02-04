@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
+import 'modelinfo/entity_definition.dart';
 import 'store.dart';
 import 'util.dart';
 
@@ -87,19 +88,43 @@ enum SyncRequestUpdatesMode {
 }
 
 /// Connection state change event.
-enum SyncConnectionEvent { connected, disconnected }
+enum SyncConnectionEvent {
+  /// Connection to the server is established.
+  connected,
+
+  /// Connection to the server is lost.
+  disconnected
+}
 
 /// Login state change event.
-enum SyncLoginEvent { loggedIn, credentialsRejected, unknownError }
+enum SyncLoginEvent {
+  /// Client has successfully logged in to the server.
+  loggedIn,
+
+  /// Client's credentials has been rejectd by the server.
+  /// Connection will NOT be retried until new credentials are provided.
+  credentialsRejected,
+
+  /// An unknown error occured during authentication.
+  unknownError
+}
 
 /// Sync incoming data event.
 class SyncChange {
+  /// Entity ID this change relates to.
   final int entityId;
+
+  /// Entity type this change relates to.
+  /// TODO Maybe use SyncChange<Type> instead?
   final Type entity;
+
+  /// List of "put" (inserted/updated) object IDs.
   final List<int> puts;
+
+  /// List of removed object IDs.
   final List<int> removals;
 
-  SyncChange(this.entityId, this.entity, this.puts, this.removals);
+  SyncChange._(this.entityId, this.entity, this.puts, this.removals);
 }
 
 /// Sync client is used to connect to an ObjectBox sync server.
@@ -270,11 +295,13 @@ class SyncClient {
 
       _connectionEvents.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_connect(ptr, nativePort),
-          (_, controller) => controller.add(SyncConnectionEvent.connected)));
+          (dynamic _, controller) =>
+              controller.add(SyncConnectionEvent.connected)));
 
       _connectionEvents.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_disconnect(ptr, nativePort),
-          (_, controller) => controller.add(SyncConnectionEvent.disconnected)));
+          (dynamic _, controller) =>
+              controller.add(SyncConnectionEvent.disconnected)));
 
       _connectionEvents.finish();
     }
@@ -293,14 +320,14 @@ class SyncClient {
 
       _loginEvents.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_login(ptr, nativePort),
-          (_, controller) => controller.add(SyncLoginEvent.loggedIn)));
+          (dynamic _, controller) => controller.add(SyncLoginEvent.loggedIn)));
 
       _loginEvents.add(_SyncListenerConfig(
           (int nativePort) =>
               C.dartc_sync_listener_login_failure(ptr, nativePort),
-          (code, controller) {
+          (dynamic code, controller) {
         // see OBXSyncCode - TODO should we match any other codes?
-        switch (code) {
+        switch (code as int) {
           case OBXSyncCode.CREDENTIALS_REJECTED:
             return controller.add(SyncLoginEvent.credentialsRejected);
           default:
@@ -325,7 +352,7 @@ class SyncClient {
 
       _completionEvents.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_complete(ptr, nativePort),
-          (_, controller) => controller.add(null)));
+          (dynamic _, controller) => controller.add(null)));
 
       _completionEvents.finish();
     }
@@ -350,12 +377,14 @@ class SyncClient {
 
       _changeEvents.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_change(ptr, nativePort),
-          (syncChanges, controller) {
-        if (syncChanges is! List) {
+          (dynamic msg, controller) {
+        if (msg is! List) {
           controller.addError(Exception(
-              'Received invalid data type from the core notification: (${syncChanges.runtimeType}) $syncChanges'));
+              'Received invalid data type from the core notification: (${msg.runtimeType}) $msg'));
           return;
         }
+
+        final syncChanges = msg as List;
 
         // List<SyncChange> is flattened to List<dynamic>, with SyncChange object
         // properties always coming in groups of three (entityId, puts, removals)
@@ -368,9 +397,9 @@ class SyncClient {
 
         final changes = <SyncChange>[];
         for (var i = 0; i < syncChanges.length / numProperties; i++) {
-          final entityId = syncChanges[i * numProperties + 0];
-          final putsBytes = syncChanges[i * numProperties + 1];
-          final removalsBytes = syncChanges[i * numProperties + 2];
+          final dynamic entityId = syncChanges[i * numProperties + 0];
+          final dynamic putsBytes = syncChanges[i * numProperties + 1];
+          final dynamic removalsBytes = syncChanges[i * numProperties + 2];
 
           final entityType = entityTypesById[entityId];
           if (entityType == null) {
@@ -383,18 +412,18 @@ class SyncClient {
               putsBytes is! Uint8List ||
               removalsBytes is! Uint8List) {
             controller.addError(Exception(
-                'Received invalid list items format from the core notification at i=${i}: '
+                'Received invalid list items format from the core notification at i=$i: '
                 'entityId = (${entityId.runtimeType}) $entityId; '
                 'putsBytes = (${putsBytes.runtimeType}) $putsBytes; '
                 'removalsBytes = (${removalsBytes.runtimeType}) $removalsBytes'));
             return;
           }
 
-          changes.add(SyncChange(
-              entityId,
+          changes.add(SyncChange._(
+              entityId as int,
               entityType,
-              Uint64List.view(putsBytes.buffer).toList(),
-              Uint64List.view(removalsBytes.buffer).toList()));
+              Uint64List.view((putsBytes as Uint8List).buffer).toList(),
+              Uint64List.view((removalsBytes as Uint8List).buffer).toList()));
         }
 
         controller.add(changes);
@@ -469,7 +498,7 @@ class _SyncListenerGroup<StreamValueType> {
 
       // Initialize a receive port where the native listener will post messages.
       final receivePort = ReceivePort()
-        ..listen((msg) => config.dartListener(msg, controller));
+        ..listen((dynamic msg) => config.dartListener(msg, controller));
 
       // Store the ReceivePort to be able to close it in _stop().
       _receivePorts.add(receivePort);

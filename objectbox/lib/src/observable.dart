@@ -72,7 +72,7 @@ extension ObservableStore on Store {
       // Ideally, controller.add() would work but it doesn't, even though we're
       // using StreamController<Void> so the argument type is `void`.
       observer.receivePort = ReceivePort()
-        ..listen((_) => observer.controller.add(null));
+        ..listen((dynamic _) => observer.controller.add(null));
       observer.cObserver =
           C.dartc_observe_single_type(ptr, entityId, observer.nativePort);
     });
@@ -99,14 +99,14 @@ extension ObservableStore on Store {
       // We're listening to a events for all entity types. C-API sends entity ID
       // and we must map it to a dart type (class) corresponding to that entity.
       observer.receivePort = ReceivePort()
-        ..listen((entityIds) {
+        ..listen((dynamic entityIds) {
           if (entityIds is! Uint32List) {
             observer.controller.addError(Exception(
                 'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
             return;
           }
 
-          entityIds.forEach((entityId) {
+          (entityIds as Uint32List).forEach((int entityId) {
             if (entityId is! int) {
               observer.controller.addError(Exception(
                   'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
@@ -133,18 +133,17 @@ extension ObservableStore on Store {
 /// whenever there's a change in any of the objects in the queried Box
 /// (regardless of the filter conditions).
 extension Streamable<T> on Query<T> {
+  /// Create a stream, executing [Query.find()] whenever there's a change to any
+  /// of the objects in the queried Box.
   Stream<List<T>> findStream(
-      {@Deprecated('Use offset() instead') int offset = 0,
-      @Deprecated('Use limit() instead') int limit = 0}) {
-    return store.subscribe<T>().map((_) {
-      if (offset != 0) this.offset(offset);
-      if (limit != 0) this.limit(limit);
-      return find();
-    });
-  }
+          {@Deprecated('Use offset() instead') int offset = 0,
+          @Deprecated('Use limit() instead') int limit = 0}) =>
+      store.subscribe<T>().map((_) {
+        if (offset != 0) this.offset(offset);
+        if (limit != 0) this.limit(limit);
+        return find();
+      });
 
   /// Use this for Query Property
-  Stream<Query<T>> get stream {
-    return store.subscribe<T>().map((_) => this);
-  }
+  Stream<Query<T>> get stream => store.subscribe<T>().map((_) => this);
 }

@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
 
+import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:test/test.dart';
-import 'package:objectbox/observable.dart';
 
 import 'entity.dart';
 import 'test_env.dart';
@@ -18,9 +18,9 @@ void main() {
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(echoIsolate, receivePort.sendPort);
 
-    Completer sendPortCompleter = Completer<SendPort>();
+    var sendPortCompleter = Completer<SendPort>();
     Completer responseCompleter;
-    receivePort.listen((data) {
+    receivePort.listen((dynamic data) {
       if (data is SendPort) {
         sendPortCompleter.complete(data);
       } else {
@@ -32,7 +32,7 @@ void main() {
     // Receive the SendPort from the Isolate
     SendPort sendPort = await sendPortCompleter.future;
 
-    final call = (message) {
+    final call = (String message) {
       responseCompleter = Completer<String>();
       sendPort.send(message);
       return responseCompleter.future;
@@ -54,7 +54,7 @@ void main() {
 
     final sendPortCompleter = Completer<SendPort>();
     Completer<dynamic> responseCompleter;
-    receivePort.listen((data) {
+    receivePort.listen((dynamic data) {
       if (data is SendPort) {
         sendPortCompleter.complete(data);
       } else {
@@ -66,7 +66,7 @@ void main() {
     // Receive the SendPort from the Isolate
     SendPort sendPort = await sendPortCompleter.future;
 
-    final call = (message) {
+    final call = (dynamic message) {
       responseCompleter = Completer<dynamic>();
       sendPort.send(message);
       return responseCompleter.future;
@@ -128,16 +128,17 @@ void createDataIsolate(SendPort sendPort) async {
 
   TestEnv env;
   // Listen for messages
-  await for (final data in port) {
+  await for (final msg in port) {
     if (env == null) {
       // first message data is Store's C pointer address
-      env = TestEnv.fromPtr(Pointer<OBX_store>.fromAddress(data));
+      env = TestEnv.fromPtr(Pointer<OBX_store>.fromAddress(msg as int));
       sendPort.send('store set');
     } else {
-      print('Isolate received: $data');
-      if (data is! List) {
+      print('Isolate received: $msg');
+      if (msg is! List) {
         sendPort.send('unknown message type, list expected');
       } else {
+        final data = msg as List<String>;
         switch (data[0]) {
           case 'put':
             final id = env.box.put(TestEntity(tString: data[1]));

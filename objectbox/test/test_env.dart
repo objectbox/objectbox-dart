@@ -45,6 +45,9 @@ bool waitUntil(bool Function() predicate, {int timeoutMs = 1000}) {
   return success;
 }
 
+/// same as package:test unorderedEquals() but statically typed
+Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
+
 Matcher unorderedEqualsStrings(List<String> list) => unorderedEquals(list);
 
 Matcher unorderedEqualsInts(List<int> list) => unorderedEquals(list);
@@ -53,4 +56,4 @@ Matcher unorderedEqualsInts(List<int> list) => unorderedEquals(list);
 //
 // We need to do this to receive an event in the stream before processing
 // the remainder of the test case.
-final yieldExecution = () async => await Future.delayed(Duration.zero);
+final yieldExecution = () async => await Future<void>.delayed(Duration.zero);

@@ -236,6 +236,7 @@ void main() {
             ]));
         expect(events2, equals([SyncConnectionEvent.connected]));
 
+        await streamSub.cancel();
         client.close();
       });
 
@@ -279,7 +280,7 @@ void main() {
         await client2.completionEvents.first.timeout(Duration(seconds: 1));
         client2.close();
 
-        expect(env2.box.get(1) /*!*/ .tLong, 100);
+        expect(env2.box.get(id) /*!*/ .tLong, 100);
       });
 
       test('SyncClient listeners: changes', () async {
@@ -292,7 +293,7 @@ void main() {
         expect(env2.box.get(1), isNull);
 
         env.box.put(TestEntity(tString: 'foo'));
-        env.store.runInTransaction(TxMode.Write, () {
+        env.store.runInTransaction(TxMode.write, () {
           Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
           env.box.put(TestEntity(tString: 'bar'));
           env.box.put(TestEntity(tString: 'oof'));
@@ -311,7 +312,7 @@ void main() {
         expect(events[0][0].entity, TestEntity);
         expect(events[0][0].entityId, 1);
         expect(events[0][0].puts, [1]);
-        expect(events[0][0].removals, []);
+        expect(events[0][0].removals, isEmpty);
 
         // env.store.runInTransaction(TxMode.Write, () {
         //   Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
@@ -389,13 +390,12 @@ class SyncServer {
     if (!keepDb) _deleteDb();
   }
 
-  Future<int> _getUnusedPort() {
-    return ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((socket) {
-      var port = socket.port;
-      socket.close();
-      return port;
-    });
-  }
+  Future<int> _getUnusedPort() =>
+      ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((socket) {
+        var port = socket.port;
+        socket.close();
+        return port;
+      });
 
   void _deleteDb() {
     if (dir != null && dir /*!*/ .existsSync()) {

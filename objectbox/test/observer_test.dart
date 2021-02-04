@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:objectbox/observable.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -10,7 +9,8 @@ import 'test_env.dart';
 
 void main() async {
   /*late final*/ TestEnv env;
-  /*late final*/ Box<TestEntity> box;
+  /*late final*/
+  Box<TestEntity> box;
 
   final defaultTimeout = Duration(milliseconds: 100);
 
@@ -23,11 +23,6 @@ void main() async {
         'Six'
       ].map((s) => TestEntity(tString: s)).toList().cast<TestEntity>();
 
-  final simpleNumberItems = () => [1, 2, 3, 4, 5, 6]
-      .map((s) => TestEntity(tInt: s))
-      .toList()
-      .cast<TestEntity>();
-
   setUp(() {
     env = TestEnv('observers');
     box = env.box;
@@ -38,7 +33,7 @@ void main() async {
   });
 
   test('Observe single entity', () async {
-    Completer completer;
+    Completer<void> completer;
     var expectedEvents = 0;
 
     final stream = env.store.subscribe<TestEntity>();
@@ -72,7 +67,7 @@ void main() async {
   });
 
   test('Observe multiple entities', () async {
-    Completer completer;
+    Completer<void> completer;
     var expectedEvents = 0;
     var typesUpdates = <Type, int>{}; // number of events per entity type
 
@@ -100,7 +95,7 @@ void main() async {
     box.putMany(simpleStringItems());
     await completer.future.timeout(defaultTimeout);
     expect(expectedEvents, 0);
-    expect(typesUpdates.keys, unorderedEquals([TestEntity, TestEntity2]));
+    expect(typesUpdates.keys, sameAsList<Type>([TestEntity, TestEntity2]));
     expect(typesUpdates[TestEntity], 2);
     expect(typesUpdates[TestEntity2], 1);
 
@@ -118,8 +113,8 @@ void main() async {
 
   test('Observer pause/resume', () async {
     final testPauseResume = (Stream stream) async {
-      Completer completer;
-      final subscription = stream.listen((_) {
+      Completer<void> completer;
+      final subscription = stream.listen((dynamic _) {
         completer.complete();
       });
 

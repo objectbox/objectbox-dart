@@ -102,6 +102,9 @@ class Store {
     }
   }
 
+  /// Create a Dart store instance from an already opened native store pointer.
+  /// Used for example to create use the same store from multiple isolates, with
+  /// the pointer passed over a stream.
   Store.fromPtr(this._defs, this._cStore)
       : _weak = true; // must not close the same native store twice
 
@@ -165,6 +168,9 @@ class Store {
 class InternalStoreAccess {
   /// Access entity model for the given class (Dart Type).
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
+
+  /// Access model definitions
+  static ModelDefinition defs(Store store) => store._defs;
 
   /// Adds a listener to the [store.close()] event.
   static void addCloseListener(
