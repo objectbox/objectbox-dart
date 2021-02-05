@@ -2,17 +2,17 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show allocate, free;
 
-import 'bindings/bindings.dart';
-import 'bindings/flatbuffers.dart';
-import 'bindings/helpers.dart';
-import 'bindings/structs.dart';
-import 'modelinfo/index.dart';
-import 'query/query.dart';
-import 'relations/info.dart';
-import 'relations/to_many.dart';
-import 'relations/to_one.dart';
-import 'store.dart';
-import 'transaction.dart';
+import '../bindings/bindings.dart';
+import '../bindings/flatbuffers.dart';
+import '../bindings/helpers.dart';
+import '../bindings/structs.dart';
+import '../modelinfo/index.dart';
+import '../query/query.dart';
+import '../relations/info.dart';
+import '../relations/to_many.dart';
+import '../relations/to_one.dart';
+import '../store.dart';
+import '../transaction.dart';
 
 /// Box put (write) mode.
 enum PutMode {
