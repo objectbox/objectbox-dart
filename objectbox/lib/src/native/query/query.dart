@@ -5,14 +5,13 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 
+import '../../common.dart';
+import '../../modelinfo/entity_definition.dart';
+import '../../store.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 import '../bindings/structs.dart';
-import '../common.dart';
-import '../modelinfo/entity_definition.dart';
-import '../store.dart';
-import '../transaction.dart';
 
 part 'builder.dart';
 part 'property.dart';

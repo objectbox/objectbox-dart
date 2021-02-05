@@ -2,8 +2,8 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show allocate, free;
 
-import 'bindings/bindings.dart';
 import '../common.dart';
+import 'bindings/bindings.dart';
 
 /// Returns the underlying ObjectBox-C library version.
 Version libraryVersion() {

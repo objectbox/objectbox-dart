@@ -1,5 +1,7 @@
-import '../bindings/bindings.dart';
-import '../bindings/helpers.dart';
+// TODO remove native imports
+
+import '../native/bindings/bindings.dart';
+import '../native/bindings/helpers.dart';
 import 'iduid.dart';
 import 'modelentity.dart';
 

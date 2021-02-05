@@ -1,26 +1,11 @@
 import 'dart:ffi';
 
+import '../modelinfo/entity_definition.dart';
+import '../store.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
-import 'modelinfo/entity_definition.dart';
-import 'store.dart';
 
 // ignore_for_file: public_member_api_docs
-
-/// Configure transaction mode. Used with [Store.runInTransaction()].
-enum TxMode {
-  /// Read only transaction - trying to execute a write operation results in an
-  /// error. This is useful if you want to group many reads inside a single
-  /// transaction, e.g. to improve performance or to get a consistent view of
-  /// the data across multiple operations.
-  read,
-
-  /// Read/Write transaction. There can be only a single write transaction at
-  /// any time - it holds a lock on the database. Compared to read transaction,
-  /// read/write transactions have much higher "cost", because they need to
-  /// write data to the disk at the end.
-  write,
-}
 
 // TODO enable annotation once meta:1.3.0 is out
 // @internal

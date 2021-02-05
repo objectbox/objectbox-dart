@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
+// TODO remove native imports
+
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
-import 'package:objectbox/src/bindings/helpers.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
+import 'package:objectbox/src/native/bindings/helpers.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 

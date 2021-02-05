@@ -1,7 +1,7 @@
 library integration_test;
 
-import './src/bindings/bindings.dart';
-import './src/bindings/helpers.dart';
+import './src/native/bindings/bindings.dart';
+import './src/native/bindings/helpers.dart';
 import 'internal.dart';
 
 // ignore_for_file: public_member_api_docs

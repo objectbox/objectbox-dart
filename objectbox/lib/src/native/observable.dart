@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:ffi';
 
+import '../util.dart';
 import 'bindings/bindings.dart';
 import 'query/query.dart';
 import 'store.dart';
-import 'util.dart';
 
 // ignore_for_file: non_constant_identifier_names
 

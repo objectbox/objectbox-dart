@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:flat_buffers/flat_buffers.dart' as fb_upstream;
-import 'package:objectbox/src/bindings/flatbuffers.dart';
+import 'package:objectbox/src/native/bindings/flatbuffers.dart';
 
 Uint8List addFbData(dynamic fbb) {
   fbb.startTable();

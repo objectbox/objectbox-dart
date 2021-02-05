@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-import '../annotations.dart';
-import '../common.dart';
-import '../modelinfo/entity_definition.dart';
+import '../../annotations.dart';
+import '../../common.dart';
+import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
 

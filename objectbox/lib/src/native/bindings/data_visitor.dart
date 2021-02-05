@@ -2,7 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' show allocate, free;
 
-import '../modelinfo/entity_definition.dart';
+import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
 

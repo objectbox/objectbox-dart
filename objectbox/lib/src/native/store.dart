@@ -2,15 +2,16 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
+import '../common.dart';
+import '../modelinfo/index.dart';
+import '../store.dart';
+import '../util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'box.dart';
-import 'common.dart';
 import 'model.dart';
-import 'modelinfo/index.dart';
 import 'sync.dart';
 import 'transaction.dart';
-import 'util.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.

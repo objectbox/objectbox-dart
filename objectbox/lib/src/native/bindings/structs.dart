@@ -3,7 +3,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:ffi/ffi.dart' show allocate, free, Utf8;
 
-import '../common.dart';
+import '../../common.dart';
 import 'bindings.dart';
 
 // ignore_for_file: public_member_api_docs

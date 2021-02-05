@@ -5,11 +5,11 @@ import 'dart:typed_data' show Uint8List;
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
 import 'store.dart';
-import 'util.dart';
 
 /// Credentials used to authenticate a sync client against a server.
 class SyncCredentials {

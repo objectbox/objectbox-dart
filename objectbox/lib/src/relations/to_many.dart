@@ -3,12 +3,14 @@ import 'dart:ffi';
 
 import 'package:meta/meta.dart';
 
-import '../bindings/bindings.dart';
-import '../bindings/helpers.dart';
+// TODO remove native imports
+
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
+import '../native/bindings/bindings.dart';
+import '../native/bindings/helpers.dart';
+import '../native/transaction.dart';
 import '../store.dart';
-import '../transaction.dart';
 import 'info.dart';
 
 /// Manages a to-many relation, an unidirectional link from a "source" entity to

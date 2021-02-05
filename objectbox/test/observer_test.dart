@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:objectbox/src/bindings/bindings.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';

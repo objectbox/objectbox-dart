@@ -2,10 +2,10 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
+import '../common.dart';
+import '../modelinfo/index.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
-import 'common.dart';
-import 'modelinfo/index.dart';
 
 // ignore_for_file: public_member_api_docs
 

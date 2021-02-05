@@ -9,7 +9,7 @@ export 'src/annotations.dart';
 export 'src/box.dart' show Box;
 export 'src/common.dart';
 export 'src/observable.dart';
-export 'src/query/query.dart'
+export 'src/query.dart'
     show
         Query,
         QueryBuilder,
@@ -21,7 +21,6 @@ export 'src/query/query.dart'
         StringPropertyQuery;
 export 'src/relations/to_many.dart' show ToMany;
 export 'src/relations/to_one.dart' show ToOne;
-export 'src/store.dart' show Store;
+export 'src/store.dart' show Store, TxMode;
 export 'src/sync.dart'
     show Sync, SyncClient, SyncCredentials, SyncRequestUpdatesMode, SyncState;
-export 'src/transaction.dart' show TxMode;

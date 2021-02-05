@@ -1,6 +1,9 @@
 import 'dart:convert';
+
+// TODO remove native imports
+
 import 'package:objectbox/src/modelinfo/index.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
 class CodeChunks {
