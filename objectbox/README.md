@@ -88,7 +88,7 @@ dev_dependencies:
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
   ```
 
-* macOS: dart later complain that it cannot find the `libobjectbox.dylib`. You probably have to unsign the `dart`
+* macOS: dart might later complain that it cannot find the `libobjectbox.dylib`. You probably have to unsign the `dart`
   binary - see [this dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841) for details.
 
 * Windows: copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges).
