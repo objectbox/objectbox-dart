@@ -7,6 +7,7 @@ import '../relations/info.dart';
 import '../relations/to_many.dart';
 import '../relations/to_one.dart';
 import '../store.dart';
+import '../transaction.dart';
 import 'bindings/bindings.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
@@ -322,4 +323,72 @@ class InternalBoxAccess {
 
   /// Close the box, freeing resources.
   static void close(Box box) => box._builder.clear();
+
+  /// Put the object in a given transaction.
+  static int put<EntityT>(
+          Box<EntityT> box, EntityT object, PutMode mode, Transaction tx) =>
+      box._put(object, mode, tx);
+
+  /// Put a standalone relation.
+  static void relPut(
+    Box box,
+    int relationId,
+    int sourceId,
+    int targetId,
+  ) =>
+      checkObx(C.box_rel_put(box.ptr, relationId, sourceId, targetId));
+
+  /// Remove a standalone relation entry between two objects.
+  static void relRemove(
+    Box box,
+    int relationId,
+    int sourceId,
+    int targetId,
+  ) =>
+      checkObx(C.box_rel_remove(box.ptr, relationId, sourceId, targetId));
+
+  /// Read all objects in this Box related to the given object.
+  /// Similar to box.getMany() but loads the OBX_id_array and reads objects
+  /// in a single Transaction, ensuring consistency. And it's a little more
+  /// efficient for not unpacking the id array to a dart list.
+  static List<EntityT> getRelated<EntityT>(Box<EntityT> box, RelInfo rel) {
+    final tx = Transaction(box._store, TxMode.read);
+    try {
+      Pointer<OBX_id_array> cIdsPtr;
+      switch (rel.type) {
+        case RelType.toMany:
+          cIdsPtr = C.box_rel_get_ids(box.ptr, rel.id, rel.objectId);
+          break;
+        case RelType.toOneBacklink:
+          cIdsPtr = C.box_get_backlink_ids(box.ptr, rel.id, rel.objectId);
+          break;
+        case RelType.toManyBacklink:
+          cIdsPtr = C.box_rel_get_backlink_ids(box.ptr, rel.id, rel.objectId);
+          break;
+        default:
+          throw UnimplementedError();
+      }
+      checkObxPtr(cIdsPtr);
+      final result = <EntityT>[];
+      try {
+        final cIds = cIdsPtr.ref;
+        if (cIds.count > 0) {
+          final cursor = tx.cursor(box._entity);
+          for (var i = 0; i < cIds.count; i++) {
+            final code = C.cursor_get(
+                cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
+            if (code != OBX_NOT_FOUND) {
+              checkObx(code);
+              result.add(box._entity.objectFromFB(box._store, cursor.readData));
+            }
+          }
+        }
+      } finally {
+        C.id_array_free(cIdsPtr);
+      }
+      return result;
+    } finally {
+      tx.close();
+    }
+  }
 }

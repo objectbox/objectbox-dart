@@ -1,16 +1,11 @@
 import 'dart:collection';
-import 'dart:ffi';
 
 import 'package:meta/meta.dart';
 
-// TODO remove native imports
-
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
-import '../native/bindings/bindings.dart';
-import '../native/bindings/helpers.dart';
-import '../native/transaction.dart';
 import '../store.dart';
+import '../transaction.dart';
 import 'info.dart';
 
 /// Manages a to-many relation, an unidirectional link from a "source" entity to
@@ -179,13 +174,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         switch (_rel.type) {
           case RelType.toMany:
             if (add) {
-              if (id == 0) id = _box.put(object, mode: mode);
-              checkObx(
-                  C.box_rel_put(_otherBox.ptr, _rel.id, _rel.objectId, id));
+              if (id == 0) id = InternalBoxAccess.put(_box, object, mode, tx);
+              InternalBoxAccess.relPut(_otherBox, _rel.id, _rel.objectId, id);
             } else {
               if (id == 0) return;
-              checkObx(
-                  C.box_rel_remove(_otherBox.ptr, _rel.id, _rel.objectId, id));
+              InternalBoxAccess.relRemove(
+                  _otherBox, _rel.id, _rel.objectId, id);
             }
             break;
           case RelType.toOneBacklink:
@@ -195,11 +189,11 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
             break;
           case RelType.toManyBacklink:
             if (add) {
-              if (id == 0) id = _box.put(object, mode: mode);
-              checkObx(C.box_rel_put(_box.ptr, _rel.id, id, _rel.objectId));
+              if (id == 0) id = InternalBoxAccess.put(_box, object, mode, tx);
+              InternalBoxAccess.relPut(_box, _rel.id, id, _rel.objectId);
             } else {
               if (id == 0) return;
-              checkObx(C.box_rel_remove(_box.ptr, _rel.id, id, _rel.objectId));
+              InternalBoxAccess.relRemove(_box, _rel.id, id, _rel.objectId);
             }
             break;
           default:
@@ -231,22 +225,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       __items = [];
     } else {
       _verifyAttached();
-      switch (_rel.type) {
-        case RelType.toMany:
-          __items = _getMany(
-              () => C.box_rel_get_ids(_box.ptr, _rel.id, _rel.objectId));
-          break;
-        case RelType.toOneBacklink:
-          __items = _getMany(
-              () => C.box_get_backlink_ids(_box.ptr, _rel.id, _rel.objectId));
-          break;
-        case RelType.toManyBacklink:
-          __items = _getMany(() =>
-              C.box_rel_get_backlink_ids(_box.ptr, _rel.id, _rel.objectId));
-          break;
-        default:
-          throw UnimplementedError();
-      }
+      __items = InternalBoxAccess.getRelated(_box, _rel);
     }
     if (_addedBeforeLoad.isNotEmpty) {
       __items.addAll(_addedBeforeLoad);
@@ -259,36 +238,6 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     if (_store == null) {
       throw Exception('ToMany relation field not initialized. '
           "Don't call applyToDb() on new objects, use box.put() instead.");
-    }
-  }
-
-  /// Similar to box.getMany() but loads the OBX_id_array and reads objects
-  /// in a single Transaction, ensuring consistency. And it's a little more
-  /// efficient for not unpacking the id array to a dart list.
-  List<EntityT> _getMany(Pointer<OBX_id_array> Function() cIdsGetterFn) {
-    final tx = Transaction(_store, TxMode.read);
-    try {
-      final result = <EntityT>[];
-      final cIdsPtr = checkObxPtr(cIdsGetterFn());
-      try {
-        final cIds = cIdsPtr.ref;
-        if (cIds.count > 0) {
-          final cursor = tx.cursor(_entity);
-          for (var i = 0; i < cIds.count; i++) {
-            final code = C.cursor_get(
-                cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
-            if (code != OBX_NOT_FOUND) {
-              checkObx(code);
-              result.add(_entity.objectFromFB(_store, cursor.readData));
-            }
-          }
-        }
-      } finally {
-        C.id_array_free(cIdsPtr);
-      }
-      return result;
-    } finally {
-      tx.close();
     }
   }
 }

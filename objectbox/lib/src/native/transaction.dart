@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
+import '../transaction.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 
