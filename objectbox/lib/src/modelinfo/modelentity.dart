@@ -1,6 +1,4 @@
-// TODO remove native imports
-
-import '../native/bindings/bindings.dart';
+import 'enums.dart';
 import 'iduid.dart';
 import 'modelbacklink.dart';
 import 'modelinfo.dart';

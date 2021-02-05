@@ -1,2 +1,1 @@
-export 'native/query/query.dart'
-  if (dart.library.html) 'web/query.dart';
+export 'native/query/query.dart' if (dart.library.html) 'web/query.dart';
