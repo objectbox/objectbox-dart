@@ -1,7 +1,8 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "parserOptions": { "project": "./tsconfig.json" },
+  // TODO, doesn't like webpack config
+  // "parserOptions": { "project": "./tsconfig.json" },
   "env": { "es6": true },
   "ignorePatterns": ["node_modules", "build", "coverage"],
   "plugins": ["import", "eslint-comments", "functional"],
