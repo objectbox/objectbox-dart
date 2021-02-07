@@ -19,5 +19,7 @@ module.exports = {
   output: {
     filename: 'objectbox.js',
     path: path.resolve(__dirname, 'build'),
+    library: 'objectbox',
+    libraryTarget: 'window'
   },
 };

@@ -1,4 +1,4 @@
-@JS()
+@JS('objectbox')
 library number;
 
 import "package:js/js.dart";

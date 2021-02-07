@@ -14,6 +14,7 @@
     "build:module": "tsc -p tsconfig.module.json",
     "install": "cp build/objectbox.js* ../objectbox/lib/",
     "generate:dart": "cd build/main/lib && dart_js_facade_gen --destination=../../../../objectbox/lib/src/web/ number.d.ts",
+    "all:dart": "run-p build:main && run-p install && run-p generate:dart",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
