@@ -36,3 +36,6 @@ external num Function(num) get double;
 /// ```
 @JS()
 external num Function(num, num) get power;
+
+/// Multiply a value by 2 (dart code)
+num double2(num v) => v * 2;
