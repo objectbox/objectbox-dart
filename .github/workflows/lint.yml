@@ -5,8 +5,6 @@ on: [push, pull_request]
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container:
-      image:  google/dart:latest
     steps:
       - uses: actions/checkout@v2
       - uses: axel-op/dart-package-analyzer@v3
