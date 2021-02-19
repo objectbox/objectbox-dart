@@ -118,7 +118,7 @@ import 'objectbox.g.dart';
 
 final box = store.box<Note>();
 
-final note = Note(text: 'Hello'); // note: node.id is null
+final note = Note(text: 'Hello'); // note: note.id is null
 final id = box.put(note);         // note: sets note.id and also returns it
 print('new note got id=${id}, which is the same as note.id=${note.id}');
 print('refetched note: ${box.get(id)}');
