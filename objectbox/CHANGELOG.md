@@ -1,3 +1,9 @@
+## latest
+
+* Update to objectbox-c v0.12.0
+* Update to objectbox-android v2.9.0
+* Update to objectbox-swift v1.5.0
+
 ## 0.11.0 (2021-02-01)
 
 * Add `ToOne<>` class to wrap related entities. See examples for details.

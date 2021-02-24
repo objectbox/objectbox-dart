@@ -30,7 +30,8 @@
           "name": "date",
           "type": 6
         }
-      ]
+      ],
+      "relations": []
     }
   ],
   "lastEntityId": "1:2802681814019499133",

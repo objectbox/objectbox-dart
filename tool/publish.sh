@@ -4,8 +4,7 @@
 
 echo "Downloading iOS dependencies for package flutter libs"
 "${root}"/flutter_libs/ios/download-framework.sh
-# TODO enable once objectbox-swift with Sync is released
-#"${root}"/sync_flutter_libs/ios/download-framework.sh
+"${root}"/sync_flutter_libs/ios/download-framework.sh
 
 echo "Commenting-out Carthage in .gitignore in flutter libs"
 update flutter_libs/ios/.gitignore "s/^Carthage/#Carthage/g"
