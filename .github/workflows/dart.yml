@@ -26,10 +26,8 @@ jobs:
           - macos-10.15
           - ubuntu-20.04
         dart:
-          - 2.10.5
-          # - 2.9.3 - generator stuck. I remember there was an issue in some dependency but don't remember which one.
-          - 2.8.4
-          - 2.7.2
+          - latest
+          - 2.10.0 # currently the lowest fully supported version (i.e. generator + lib)
     runs-on: ${{ matrix.os }}
     steps:
       # Note: dart-sdk from flutter doesn't work on linux, see https://github.com/flutter/flutter/issues/74599
