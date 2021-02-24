@@ -172,13 +172,15 @@ void main() {
       });
 
       tearDown(() async {
+        print('Waiting for the server to stop');
         await server.stop();
+        print('Server has stopped');
       });
 
       test('SyncClient data sync', () async {
         await server.online();
-        loggedInClient(env.store);
-        loggedInClient(env2.store);
+        final client1 = loggedInClient(env.store);
+        final client2 = loggedInClient(env2.store);
 
         int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
         expect(waitUntil(() => env2.box.get(id) != null), isTrue);
@@ -189,6 +191,8 @@ void main() {
         expect(read2, isNotNull);
         expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
         expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+        client1.close();
+        client2.close();
       });
 
       test('SyncClient listeners: connection', () async {
@@ -358,6 +362,12 @@ class SyncServer {
   Future<Process> /*?*/ process;
 
   static bool isAvailable() {
+    // Note: this causes an additional valgrind summary output with a leak.
+    // Unfortunately, it seems like we can't do anything about that...
+    // Tried running with Process.start() but that didn't help. There currently
+    // doesn't seem to be a way to check if a command is available so we have to
+    // live with that.
+    // At least, the additional error report doesn't cause valgrind to fail.
     try {
       Process.runSync('sync-server', ['--help']);
       return true;
@@ -386,9 +396,10 @@ class SyncServer {
   /// This simple check speeds up test by only trying to log in after the server
   /// has started, avoiding the reconnect backoff intervals altogether.
   Future<void> online() async => Future(() async {
+        final httpClient = HttpClient();
         while (true) {
           try {
-            await HttpClient().get('127.0.0.1', port, '');
+            await httpClient.get('127.0.0.1', port, '');
             break;
           } on SocketException catch (e) {
             // only retry if "connection refused"
@@ -396,6 +407,7 @@ class SyncServer {
             await Future<void>.delayed(Duration(milliseconds: 1));
           }
         }
+        httpClient.close(force: true);
       }).timeout(defaultTimeout);
 
   void stop({bool keepDb = false}) async {

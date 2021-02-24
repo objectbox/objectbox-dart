@@ -85,7 +85,7 @@ void main() async {
       }
     });
 
-    // expect two events after one put() and one putMany()
+    // expect three events: two puts() (separate entities), one putMany()
     expectedEvents = 3;
     completer = Completer();
     box.put(simpleStringItems().first);
@@ -128,7 +128,7 @@ void main() async {
       expect(completer.future.timeout(defaultTimeout),
           throwsA(isA<TimeoutException>()));
 
-      // triggers when resumed
+      // triggers when resumed (Note: no buffering of previous events)
       subscription.resume();
       completer = Completer();
       box.put(simpleStringItems().first);

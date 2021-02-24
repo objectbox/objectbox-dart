@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
+import 'objectbox.g.dart';
 import 'test_env.dart';
 
 // We want to have types explicit - verifying the return types of functions.
@@ -46,7 +46,7 @@ void main() {
     receivePort.close();
   });
 
-  /// Work with a single store accross multiple isolates
+  /// Work with a single store across multiple isolates.
   test('single store in multiple isolates', () async {
     final receivePort = ReceivePort();
     final isolate =
@@ -74,7 +74,7 @@ void main() {
 
     // Pass the store to the isolate
     final env = TestEnv('isolates');
-    expect(await call(env.store.ptr.address), equals('store set'));
+    expect(await call(env.store.reference), equals('store set'));
 
     {
       // check simple box operations
@@ -126,12 +126,12 @@ void createDataIsolate(SendPort sendPort) async {
   // Send the port where the main isolate can contact us
   sendPort.send(port.sendPort);
 
-  TestEnv env;
+  Store store;
   // Listen for messages
   await for (final msg in port) {
-    if (env == null) {
+    if (store == null) {
       // first message data is Store's C pointer address
-      env = TestEnv.fromPtr(Pointer<OBX_store>.fromAddress(msg as int));
+      store = Store.fromReference(getObjectBoxModel(), msg as ByteData);
       sendPort.send('store set');
     } else {
       print('Isolate received: $msg');
@@ -141,11 +141,11 @@ void createDataIsolate(SendPort sendPort) async {
         final data = msg as List<String>;
         switch (data[0]) {
           case 'put':
-            final id = env.box.put(TestEntity(tString: data[1]));
+            final id = Box<TestEntity>(store).put(TestEntity(tString: data[1]));
             sendPort.send(id);
             break;
           case 'close':
-            env.close();
+            store.close();
             sendPort.send('done');
             break;
           default:

@@ -151,7 +151,8 @@ class SyncClient {
     final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
     try {
       _cSync = checkObxPtr(
-          C.sync_1(_store.ptr, cServerUri), 'failed to create sync client');
+          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri),
+          'failed to create sync client');
     } finally {
       free(cServerUri);
     }
@@ -487,7 +488,7 @@ class _SyncListenerGroup<StreamValueType> {
     return controller.stream;
   }
 
-  // stop() is called when the stream subscription is started or resumed
+  // start() is called when the stream subscription is started or resumed
   void _start() {
     _debugLog('starting');
     assert(finished, 'Starting an unfinished group?!');

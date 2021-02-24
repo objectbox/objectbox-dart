@@ -73,8 +73,8 @@ extension ObservableStore on Store {
       // using StreamController<Void> so the argument type is `void`.
       observer.receivePort = ReceivePort()
         ..listen((dynamic _) => observer.controller.add(null));
-      observer.cObserver =
-          C.dartc_observe_single_type(ptr, entityId, observer.nativePort);
+      observer.cObserver = C.dartc_observe_single_type(
+          InternalStoreAccess.ptr(this), entityId, observer.nativePort);
     });
 
     return observer.stream;
@@ -82,7 +82,7 @@ extension ObservableStore on Store {
 
   /// Create a stream to data changes on all Entity types.
   ///
-  /// The stream receives an even whenever any data changes in the database.
+  /// The stream receives an event whenever any data changes in the database.
   /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
   Stream<Type> subscribeAll() {
@@ -122,28 +122,25 @@ extension ObservableStore on Store {
             }
           });
         });
-      observer.cObserver = C.dartc_observe(ptr, observer.nativePort);
+      observer.cObserver =
+          C.dartc_observe(InternalStoreAccess.ptr(this), observer.nativePort);
     });
 
     return observer.stream;
   }
 }
 
-/// Streamable adds stream support to queries. The stream reruns the query
-/// whenever there's a change in any of the objects in the queried Box
-/// (regardless of the filter conditions).
+/// Streamable adds stream support to queries.
 extension Streamable<T> on Query<T> {
   /// Create a stream, executing [Query.find()] whenever there's a change to any
   /// of the objects in the queried Box.
-  Stream<List<T>> findStream(
-          {@Deprecated('Use offset() instead') int offset = 0,
-          @Deprecated('Use limit() instead') int limit = 0}) =>
-      store.subscribe<T>().map((_) {
-        if (offset != 0) this.offset(offset);
-        if (limit != 0) this.limit(limit);
-        return find();
-      });
+  /// TODO consider removing, see issue #195
+  Stream<List<T>> findStream() => stream.map((q) => q.find());
 
-  /// Use this for Query Property
+  /// The stream gets notified whenever there's a change in any of the objects
+  /// in the queried Box (regardless of the filter conditions).
+  ///
+  /// You can use the given [Query] object to run any of its operation,
+  /// e.g. find(), count(), execute a [property()] query
   Stream<Query<T>> get stream => store.subscribe<T>().map((_) => this);
 }

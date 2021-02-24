@@ -1,4 +1,6 @@
 import 'dart:ffi';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
@@ -19,13 +21,14 @@ class Store {
   final _boxes = <Type, Box>{};
   final ModelDefinition _defs;
   bool _closed = false;
+  ByteData _reference;
 
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
 
   /// Creates a BoxStore using the model definition from the generated
   /// whether this store was created from a pointer (won't close in that case)
-  bool _weak = false;
+  final bool _weak;
 
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file.
@@ -47,7 +50,8 @@ class Store {
       {String /*?*/ directory,
       int /*?*/ maxDBSizeInKB,
       int /*?*/ fileMode,
-      int /*?*/ maxReaders}) {
+      int /*?*/ maxReaders})
+      : _weak = false {
     var model = Model(_defs.model);
 
     var opt = C.opt();
@@ -102,11 +106,71 @@ class Store {
     }
   }
 
-  /// Create a Dart store instance from an already opened native store pointer.
-  /// Used for example to create use the same store from multiple isolates, with
-  /// the pointer passed over a stream.
-  Store.fromPtr(this._defs, this._cStore)
-      : _weak = true; // must not close the same native store twice
+  /// Create a Dart store instance from an existing native store reference.
+  /// Use this if you want to access the same store from multiple isolates.
+  /// This results in two (or more) isolates having access to the same
+  /// underlying native store. Concurrent access is ensured using implicit or
+  /// explicit transactions.
+  /// Note: make sure you don't use store in any of the isolates after the
+  /// original store is closed (by calling [close()]).
+  ///
+  /// To do this, you'd send the [reference] over a [SendPort], receive
+  /// it in another isolate and pass it to [attach()].
+  ///
+  /// Example (see test/isolates_test.dart for an actual working example)
+  /// ```dart
+  /// // Main isolate:
+  ///   final store =  Store(getObjectBoxModel())
+  ///
+  /// ...
+  ///
+  /// // use the sendPort of another isolate to send an open store reference.
+  ///   sendPort.send(store.reference);
+  ///
+  /// ...
+  ///
+  /// // receive the reference in another isolate
+  ///   Store store;
+  ///   // Listen for messages
+  ///   await for (final msg in port) {
+  ///     if (store == null) {
+  ///       // first message data is existing Store's reference
+  ///       store = Store.attach(getObjectBoxModel(), msg);
+  ///     }
+  ///     ...
+  ///   }
+  /// ```
+  Store.fromReference(this._defs, this._reference)
+      : _weak = true // must not close the same native store twice
+  {
+    // see [reference] for serialization order
+    final readPid = _reference.getUint64(0 * _int64Size);
+    if (readPid != pid) {
+      throw ArgumentError("Reference.processId $readPid doesn't match the "
+          'current process PID $pid');
+    }
+
+    _cStore = Pointer.fromAddress(_reference.getUint64(1 * _int64Size));
+    if (_cStore.address == 0) {
+      throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
+          'Given native pointer is empty');
+    }
+  }
+
+  /// Returns a store reference you can use to create a new store instance with
+  /// a single underlying native store. See [Store.attach()] for more details.
+  ByteData get reference {
+    if (_reference == null) {
+      _reference = ByteData(2 * _int64Size);
+
+      // Ensure we only try to access the store created in the same process.
+      // Also serves as a simple sanity check/hash.
+      _reference.setUint64(0 * _int64Size, pid);
+
+      _reference.setUint64(1 * _int64Size, _ptr.address);
+    }
+    return _reference;
+  }
 
   /// Closes this store.
   ///
@@ -159,7 +223,10 @@ class Store {
   SyncClient /*?*/ syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.
-  Pointer<OBX_store> get ptr => _cStore;
+  Pointer<OBX_store> get _ptr {
+    if (_closed) throw Exception('Cannot access a closed store pointer');
+    return _cStore;
+  }
 }
 
 /// Internal only.
@@ -180,4 +247,9 @@ class InternalStoreAccess {
   /// Removes a [store.close()] event listener.
   static void removeCloseListener(Store store, dynamic key) =>
       store._onClose.remove(key);
+
+  /// The low-level pointer to this store.
+  static Pointer<OBX_store> ptr(Store store) => store._ptr;
 }
+
+const _int64Size = 8;

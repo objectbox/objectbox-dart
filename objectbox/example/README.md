@@ -96,7 +96,7 @@ omits the argument to `Store(directory: )`, thus using the default - 'objectbox'
 import 'objectbox.g.dart'; // created by `dart pub run build_runner build`
 
 void main() {
-  var store = Store(getObjectBoxModel()); // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+  final store = Store(getObjectBoxModel()); // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
 
   // your app code ...
 
