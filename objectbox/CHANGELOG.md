@@ -1,5 +1,8 @@
 ## latest
 
+* Add `Store.reference` getter and `Store.fromReference()` factory - enabling access to store from multiple isolates.
+* Add `Store.subscribe<EntityType>()` and `Store.subscribe<EntityType>()` data change event streams.
+* Add multiple `SyncClient` event streams.
 * Update to objectbox-c v0.12.0
 * Update to objectbox-android v2.9.0
 * Update to objectbox-swift v1.5.0
