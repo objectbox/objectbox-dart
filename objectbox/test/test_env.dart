@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:test/test.dart';
 
@@ -43,10 +42,6 @@ bool waitUntil(bool Function() predicate, {Duration timeout = defaultTimeout}) {
 
 /// same as package:test unorderedEquals() but statically typed
 Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
-
-Matcher unorderedEqualsStrings(List<String> list) => unorderedEquals(list);
-
-Matcher unorderedEqualsInts(List<int> list) => unorderedEquals(list);
 
 // Yield execution to other isolates.
 //

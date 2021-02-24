@@ -9,7 +9,8 @@ import 'test_env.dart';
 
 void main() {
   /*late final*/ TestEnv env;
-  /*late final*/ Box<TestEntity> box;
+  /*late final*/
+  Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query');
@@ -240,8 +241,8 @@ void main() {
     final q3 = box.query(text.equals("can't find this")).build();
     final result3 = q3.findIds();
 
-    expect(result0, unorderedEqualsInts([2, 3, 4, 5, 6, 7]));
-    expect(result2, unorderedEqualsInts([7]));
+    expect(result0, sameAsList([2, 3, 4, 5, 6, 7]));
+    expect(result2, sameAsList([7]));
     expect(result3.isEmpty, isTrue);
 
     q0.close();
