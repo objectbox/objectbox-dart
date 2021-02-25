@@ -101,13 +101,17 @@ class EntityResolver extends Builder {
 
       if (_idChecker.hasAnnotationOfExact(f)) {
         flags |= OBXPropertyFlags.ID;
+
+        final annotation = _idChecker.firstAnnotationOfExact(f);
+        if (annotation.getField('assignable').toBoolValue()) {
+          flags |= OBXPropertyFlags.ID_SELF_ASSIGNABLE;
+        }
       }
 
       if (_propertyChecker.hasAnnotationOfExact(f)) {
-        final _propertyAnnotation = _propertyChecker.firstAnnotationOfExact(f);
-        propUid = _propertyAnnotation.getField('uid').toIntValue();
-        fieldType =
-            propertyTypeFromAnnotation(_propertyAnnotation.getField('type'));
+        final annotation = _propertyChecker.firstAnnotationOfExact(f);
+        propUid = annotation.getField('uid').toIntValue();
+        fieldType = propertyTypeFromAnnotation(annotation.getField('type'));
       }
 
       if (fieldType == null) {

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
 import 'entity.dart';
+import 'entity2.dart';
 import 'test_env.dart';
 
 // We want to have types explicit - verifying the return types of functions.
@@ -456,5 +457,17 @@ void main() {
           store.runInTransaction(TxMode.read, () => box.putMany(simpleItems()));
       expect(ids.length, equals(6));
     });
+  });
+
+  test('assignable IDs', () {
+    // TestEntity.id IS NOT assignable so this must fail
+    expect(
+        () => box.put(TestEntity(id: 1)),
+        throwsA(predicate((ObjectBoxException e) => e
+            .toString()
+            .contains('ID is higher or equal to internal ID sequence'))));
+
+    // TestEntity2.id IS assignable so this must pass
+    store.box<TestEntity2>().put(TestEntity2(id: 2));
   });
 }

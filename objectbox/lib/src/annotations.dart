@@ -105,8 +105,14 @@ enum PropertyType {
 /// Annotation Id can be used to specify an entity ID property if it's named
 /// anything else then "id" (case insensitive).
 class Id {
+  // When you put a new object you do not assign an ID by default, it's assigned
+  // automatically by ObjectBox. If you need to assign IDs by yourself, use the
+  // @Id(assignable: true) annotation. This will allow putting an object with
+  // any valid ID. You can still set the ID to zero an leave it to ObjectBox.
+  final bool assignable;
+
   /// Create an Id annotation.
-  const Id();
+  const Id({this.assignable = false});
 }
 
 /// Transient annotation marks fields that should not be stored in the database.

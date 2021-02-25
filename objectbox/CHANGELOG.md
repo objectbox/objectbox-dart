@@ -3,7 +3,8 @@
 * Add `Store.reference` getter and `Store.fromReference()` factory - enabling access to store from multiple isolates.
 * Add `Store.subscribe<EntityType>()` and `Store.subscribe<EntityType>()` data change event streams.
 * Add multiple `SyncClient` event streams.
-* Add Query conditions for lessOrEqual/greaterOrEqual on integer and double property types.   
+* Add `Query` conditions for `lessOrEqual`/`greaterOrEqual` on integer and double property types.
+* Add self-assignable IDs: annotation `@Id(assignable: true)`.  
 * Update to objectbox-c v0.12.0
 * Update to objectbox-android v2.9.0
 * Update to objectbox-swift v1.5.0
