@@ -59,7 +59,13 @@ void initializeDartAPI() {
     final errCode = C.dartc_init_api(NativeApi.initializeApiDLData);
     _dartAPIinitialized = (OBX_SUCCESS == errCode);
     if (!_dartAPIinitialized) {
-      _dartAPIinitException = latestNativeError(codeIfMissing: errCode);
+      _dartAPIinitException = latestNativeError(
+          codeIfMissing: errCode,
+          dartMsg: "Dart/Flutter SDK you're using is not compatible with "
+              'ObjectBox observers, query streams and Sync event streams. '
+              'Please consider using Flutter v1.20.x or v1.22.x (or Dart v2.10.x). '
+              'See https://github.com/objectbox/objectbox-dart/issues/197 for more details. '
+              'Native exception');
     }
   }
 
