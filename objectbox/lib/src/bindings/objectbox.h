@@ -46,7 +46,7 @@ extern "C" {
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 0
-#define OBX_VERSION_MINOR 11
+#define OBX_VERSION_MINOR 12
 #define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
@@ -1434,6 +1434,13 @@ obx_err obx_query_param_2doubles(OBX_query* query, obx_schema_id entity_id, obx_
 obx_err obx_query_param_bytes(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id, const void* value,
                               size_t size);
 
+/// Gets the size of the property type used in a query condition.
+/// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
+/// if the language has a bias towards another type (e.g. 64 bit ints).
+/// @returns the size of the underlying property
+/// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
+size_t obx_query_param_get_type_size(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id);
+
 //----------------------------------------------
 // Query parameters with alias - obx_query_param_alias_{type}(s).
 // Similar to obx_query_param_{type}, but when an alias was used for a parameter, see obx_qb_param_alias().
@@ -1447,6 +1454,13 @@ obx_err obx_query_param_alias_int32s(OBX_query* query, const char* alias, const 
 obx_err obx_query_param_alias_double(OBX_query* query, const char* alias, double value);
 obx_err obx_query_param_alias_2doubles(OBX_query* query, const char* alias, double value_a, double value_b);
 obx_err obx_query_param_alias_bytes(OBX_query* query, const char* alias, const void* value, size_t size);
+
+/// Gets the size of the property type used in a query condition.
+/// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
+/// if the language has a bias towards another type (e.g. 64 bit ints).
+/// @returns the size of the underlying property
+/// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
+size_t obx_query_param_alias_get_type_size(OBX_query* query, const char* alias);
 
 //----------------------------------------------
 // Property-Query - getting a single property instead of whole objects

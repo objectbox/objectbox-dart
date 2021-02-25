@@ -3913,6 +3913,28 @@ class ObjectBoxC {
 
   _dart_query_param_bytes _query_param_bytes;
 
+  /// /// Gets the size of the property type used in a query condition.
+  /// /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
+  /// /// if the language has a bias towards another type (e.g. 64 bit ints).
+  /// /// @returns the size of the underlying property
+  /// /// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
+  int query_param_get_type_size(
+    ffi.Pointer<OBX_query> query,
+    int entity_id,
+    int property_id,
+  ) {
+    _query_param_get_type_size ??= _dylib.lookupFunction<
+        _c_query_param_get_type_size,
+        _dart_query_param_get_type_size>('obx_query_param_get_type_size');
+    return _query_param_get_type_size(
+      query,
+      entity_id,
+      property_id,
+    );
+  }
+
+  _dart_query_param_get_type_size _query_param_get_type_size;
+
   int query_param_alias_string(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<ffi.Int8> alias,
@@ -4076,6 +4098,27 @@ class ObjectBoxC {
   }
 
   _dart_query_param_alias_bytes _query_param_alias_bytes;
+
+  /// /// Gets the size of the property type used in a query condition.
+  /// /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
+  /// /// if the language has a bias towards another type (e.g. 64 bit ints).
+  /// /// @returns the size of the underlying property
+  /// /// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
+  int query_param_alias_get_type_size(
+    ffi.Pointer<OBX_query> query,
+    ffi.Pointer<ffi.Int8> alias,
+  ) {
+    _query_param_alias_get_type_size ??= _dylib.lookupFunction<
+            _c_query_param_alias_get_type_size,
+            _dart_query_param_alias_get_type_size>(
+        'obx_query_param_alias_get_type_size');
+    return _query_param_alias_get_type_size(
+      query,
+      alias,
+    );
+  }
+
+  _dart_query_param_alias_get_type_size _query_param_alias_get_type_size;
 
   /// /// Create a "property query" with results referring to single property (not complete objects).
   /// /// Also provides aggregates like for example obx_query_prop_avg().
@@ -5665,7 +5708,7 @@ class OBX_dart_sync_listener extends ffi.Struct {}
 
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 11;
+const int OBX_VERSION_MINOR = 12;
 
 const int OBX_VERSION_PATCH = 0;
 
@@ -8193,6 +8236,18 @@ typedef _dart_query_param_bytes = int Function(
   int size,
 );
 
+typedef _c_query_param_get_type_size = ffi.IntPtr Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Uint32 entity_id,
+  ffi.Uint32 property_id,
+);
+
+typedef _dart_query_param_get_type_size = int Function(
+  ffi.Pointer<OBX_query> query,
+  int entity_id,
+  int property_id,
+);
+
 typedef _c_query_param_alias_string = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
   ffi.Pointer<ffi.Int8> alias,
@@ -8311,6 +8366,16 @@ typedef _dart_query_param_alias_bytes = int Function(
   ffi.Pointer<ffi.Int8> alias,
   ffi.Pointer<ffi.Void> value,
   int size,
+);
+
+typedef _c_query_param_alias_get_type_size = ffi.IntPtr Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Pointer<ffi.Int8> alias,
+);
+
+typedef _dart_query_param_alias_get_type_size = int Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Pointer<ffi.Int8> alias,
 );
 
 typedef _c_query_prop = ffi.Pointer<OBX_query_prop> Function(
