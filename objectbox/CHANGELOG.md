@@ -1,7 +1,9 @@
 ## latest
 
+* Recognize `DateTime` entity fields, setting `PropertyType.date` (millisecond storage precision). 
+* Support specifying `PropertyType.dateNano` for `DateTime` fields (nanosecond storage precision).  
 * Add `Store.reference` getter and `Store.fromReference()` factory - enabling access to store from multiple isolates.
-* Add `Store.subscribe<EntityType>()` and `Store.subscribe<EntityType>()` data change event streams.
+* Add `Store.subscribe<EntityType>()` and `Store.subscribeAll()` data change event streams.
 * Add multiple `SyncClient` event streams.
 * Add `Query` conditions for `lessOrEqual`/`greaterOrEqual` on integer and double property types.
 * Add self-assignable IDs: annotation `@Id(assignable: true)`.  
