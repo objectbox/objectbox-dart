@@ -2,14 +2,6 @@
 
 # ======================= BEFORE publishing==================== #
 
-echo "Downloading iOS dependencies for package flutter libs"
-"${root}"/flutter_libs/ios/download-framework.sh
-"${root}"/sync_flutter_libs/ios/download-framework.sh
-
-echo "Commenting-out Carthage in .gitignore in flutter libs"
-update flutter_libs/ios/.gitignore "s/^Carthage/#Carthage/g"
-update sync_flutter_libs/ios/.gitignore "s/^Carthage/#Carthage/g"
-
 echo "Removing dependency_overrides from all pubspec.yaml files (backup at pubspec.yaml.original)"
 find "${root}" -type f -name "pubspec.yaml" \
   -exec echo "Processing {}" \; \
@@ -47,10 +39,6 @@ publish generator
 publish flutter_libs
 publish sync_flutter_libs
 #======================== AFTER publishing==================== #
-
-echo "Uncommenting Carthage in .gitignore in flutter libs"
-update flutter_libs/ios/.gitignore "s/^#Carthage/Carthage/g"
-update sync_flutter_libs/ios/.gitignore "s/^#Carthage/Carthage/g"
 
 echo "Restoring pubspec.yaml files from backup pubspec.yaml.original"
 find "${root}" -type f -name "pubspec.yaml" \
