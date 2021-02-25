@@ -156,7 +156,11 @@ class QueryIntegerProperty extends QueryProperty {
 
   Condition greaterThan(int p) => _op(p, _ConditionOp.gt);
 
+  Condition greaterOrEqual(int p) => _op(p, _ConditionOp.greaterOrEq);
+
   Condition lessThan(int p) => _op(p, _ConditionOp.lt);
+
+  Condition lessOrEqual(int p) => _op(p, _ConditionOp.lessOrEq);
 
   Condition operator <(int p) => lessThan(p);
 
@@ -190,7 +194,11 @@ class QueryDoubleProperty extends QueryProperty {
 
   Condition greaterThan(double p) => _op(_ConditionOp.gt, p, null);
 
+  Condition greaterOrEqual(double p) => _op(_ConditionOp.greaterOrEq, p, null);
+
   Condition lessThan(double p) => _op(_ConditionOp.lt, p, null);
+
+  Condition lessOrEqual(double p) => _op(_ConditionOp.lessOrEq, p, null);
 
   Condition operator <(double p) => lessThan(p);
 
@@ -436,8 +444,12 @@ class _IntegerCondition extends _PropertyCondition<int> {
         return _op1(builder, C.qb_not_equals_int);
       case _ConditionOp.gt:
         return _op1(builder, C.qb_greater_than_int);
+      case _ConditionOp.greaterOrEq:
+        return _op1(builder, C.qb_greater_or_equal_int);
       case _ConditionOp.lt:
         return _op1(builder, C.qb_less_than_int);
+      case _ConditionOp.lessOrEq:
+        return _op1(builder, C.qb_less_or_equal_int);
       case _ConditionOp.between:
         return C.qb_between_2ints(
             builder._cBuilder, _property._propertyId, _value, _value2);
@@ -518,8 +530,14 @@ class _DoubleCondition extends _PropertyCondition<double> {
       case _ConditionOp.gt:
         return C.qb_greater_than_double(
             builder._cBuilder, _property._propertyId, _value);
+      case _ConditionOp.greaterOrEq:
+        return C.qb_greater_or_equal_double(
+            builder._cBuilder, _property._propertyId, _value);
       case _ConditionOp.lt:
         return C.qb_less_than_double(
+            builder._cBuilder, _property._propertyId, _value);
+      case _ConditionOp.lessOrEq:
+        return C.qb_less_or_equal_double(
             builder._cBuilder, _property._propertyId, _value);
       case _ConditionOp.between:
         return C.qb_between_2doubles(

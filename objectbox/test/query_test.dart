@@ -154,23 +154,23 @@ void main() {
     final t = TestEntity_.tString;
     final n = TestEntity_.tLong;
 
-    final q0 = box.query(d.greaterThan(0.1)).build();
-    final q1 = box.query(b.equals(false)).build();
-    final q2 = box.query(t.greaterThan('more')).build();
-    final q3 = box.query(t.lessThan('more')).build();
-    final q4 = box.query(d.lessThan(0.3)).build();
-    final q5 = box.query(n.lessThan(1337)).build();
-    final q6 = box.query(n.greaterThan(1337)).build();
+    final checkQueryCount = (int expectedCount, Condition condition) {
+      final query = box.query(condition).build();
+      expect(query.count(), expectedCount);
+      query.close();
+    };
 
-    expect(q0.count(), 2);
-    expect(q1.count(), 2);
-    expect(q2.count(), 1);
-    expect(q3.count(), 1);
-    expect(q4.count(), 3);
-    expect(q5.count(), 1);
-    expect(q6.count(), 1);
-
-    [q0, q1, q2, q3, q4, q5, q6].forEach((q) => q.close());
+    checkQueryCount(2, b.equals(false));
+    checkQueryCount(1, t.greaterThan('more'));
+    checkQueryCount(1, t.lessThan('more'));
+    checkQueryCount(2, d.greaterThan(0.1));
+    checkQueryCount(3, d.greaterOrEqual(0.1));
+    checkQueryCount(3, d.lessThan(0.3));
+    checkQueryCount(4, d.lessOrEqual(0.3));
+    checkQueryCount(1, n.lessThan(1337));
+    checkQueryCount(2, n.lessOrEqual(1337));
+    checkQueryCount(1, n.greaterThan(1337));
+    checkQueryCount(2, n.greaterOrEqual(1337));
   });
 
   test('.count matches of `in`, `contains`', () {
