@@ -1,4 +1,4 @@
-. "$(dirname "$0")"/../../tool/common.sh
+. "$(dirname "$0")"/common.sh
 
 if [[ "$#" -ne "1" ]]; then
   echo "usage: $0 <app-dir>"

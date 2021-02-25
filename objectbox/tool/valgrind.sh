@@ -1,4 +1,4 @@
-. "$(dirname "$0")"/../../tool/common.sh
+. "$(dirname "$0")"/common.sh
 
 # Note: when you see the process seemingly stuck after printing "All tests passed!", it's because dart2native produced
 #       binaries will wait for any background isolates to finish before stopping the process.
