@@ -72,7 +72,10 @@ typedef int obx_err;
 typedef bool obx_data_visitor(void* user_data, const void* data, size_t size);
 
 //----------------------------------------------
-// Utilities
+// Runtime library information
+//
+// Functions in this group provide information about the loaded ObjectBox library.
+// Their return values are invariable during runtime - they depend solely on the loaded library and its build settings.
 //----------------------------------------------
 
 /// Return the version of the library as ints. Pointers may be null
@@ -82,24 +85,56 @@ void obx_version(int* major, int* minor, int* patch);
 bool obx_version_is_at_least(int major, int minor, int patch);
 
 /// Return the version of the library to be printed.
-/// The format may change; to query for version use the int based methods instead.
+/// The format may change in any future release; only use for information purposes.
+/// @see obx_version() and obx_version_is_at_least()
 const char* obx_version_string(void);
 
 /// Return the version of the ObjectBox core to be printed.
-/// The format may change, do not rely on its current form.
+/// The format may change in any future release; only use for information purposes.
+/// @see obx_version() and obx_version_is_at_least()
 const char* obx_version_core_string(void);
+
+typedef enum {
+    /// Functions that are returning multiple results (e.g. multiple objects) can be only used if this is available.
+    /// This is only available for 64-bit OSes and is the opposite of "chunked mode", which forces to consume results
+    /// in chunks (e.g. one by one).
+    /// Since chunked mode consumes a bit less RAM, ResultArray style functions are typically only preferable if
+    /// there's an additional overhead per call, e.g. caused by a higher level language abstraction like CGo.
+    OBXFeature_ResultArray = 1,
+
+    /// TimeSeries support (date/date-nano companion ID and other time-series functionality).
+    OBXFeature_TimeSeries = 2,
+
+    /// Sync client availability. Visit https://objectbox.io/sync for more details.
+    OBXFeature_Sync = 3,
+
+    /// Check whether debug log can be enabled during runtime.
+    OBXFeature_DebugLog = 4,
+
+    /// HTTP server with a database browser.
+    OBXFeature_ObjectBrowser = 5,
+} OBXFeature;
+
+/// Checks whether the given feature is available in the currently loaded library.
+bool obx_has_feature(OBXFeature feature);
+
+/// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
+/// @deprecated use obx_has_feature(OBXFeature_BytesArray) instead
+bool obx_supports_bytes_array(void);
+
+/// Check whether time series functions are available in the version of this library
+/// @deprecated use obx_has_feature(OBXFeature_TimeSeries) instead
+bool obx_supports_time_series(void);
+
+//----------------------------------------------
+// Utilities
+//----------------------------------------------
 
 /// To be used for putting objects with prepared ID slots, e.g. obx_cursor_put_object().
 #define OBX_ID_NEW 0xFFFFFFFFFFFFFFFF
 
 /// Delete the store files from the given directory
 obx_err obx_remove_db_files(char const* directory);
-
-/// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
-bool obx_supports_bytes_array(void);
-
-/// Check whether time series functions are available in the version of this library
-bool obx_supports_time_series(void);
 
 //----------------------------------------------
 // Return codes
@@ -165,6 +200,10 @@ bool obx_supports_time_series(void);
 /// A requested schema object (e.g., an entity or a property) was not found in the schema
 #define OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND 10504
 
+/// Feature specific errors
+#define OBX_ERROR_TIME_SERIES_NOT_AVAILABLE 10601
+#define OBX_ERROR_SYNC_NOT_AVAILABLE 10602
+
 //----------------------------------------------
 // Error info; obx_last_error_*
 //----------------------------------------------
@@ -227,6 +266,15 @@ typedef enum {
     /// Enable "data synchronization" for this entity type: objects will be synced with other stores over the network.
     /// It's possible to have local-only (non-synced) types and synced types in the same store (schema/data model).
     OBXEntityFlags_SYNC_ENABLED = 2,
+
+    /// Makes object IDs for a synced types (SYNC_ENABLED is set) global.
+    /// By default (not using this flag), the 64 bit object IDs have a local scope and are not unique globally.
+    /// This flag tells ObjectBox to treat object IDs globally and thus no ID mapping (local <-> global) is performed.
+    /// Often this is used with assignable IDs (ID_SELF_ASSIGNABLE property flag is set) and some special ID scheme.
+    /// Note: typically you won't do this with automatically assigned IDs, set by the local ObjectBox store.
+    ///       Two devices would likely overwrite each other's object during sync as object IDs are prone to collide.
+    ///       It might be OK if you can somehow ensure that only a single device will create new IDs.
+    OBXEntityFlags_SHARED_GLOBAL_IDS = 4,
 } OBXEntityFlags;
 
 /// Bit-flags defining the behavior of properties.
@@ -1640,6 +1688,7 @@ void obx_posix_sem_prefix_set(const char* prefix);
 /// Before calling any of the other sync APIs, ensure that those are actually available.
 /// If the application is linked a non-sync ObjectBox library, this allows you to fail gracefully.
 /// @return true if this library comes with the sync API
+/// @deprecated use obx_has_feature(OBXFeature_Sync)
 bool obx_sync_available();
 
 struct OBX_sync;
@@ -1734,7 +1783,7 @@ obx_err obx_sync_close(OBX_sync* sync);
 /// Sets credentials to authenticate the client with the server.
 /// See OBXSyncCredentialsType for available options.
 /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
-/// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_UNCHECKED
+/// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_NONE
 obx_err obx_sync_credentials(OBX_sync* sync, OBXSyncCredentialsType type, const void* data, size_t size);
 
 /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.

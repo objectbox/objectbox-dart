@@ -43,8 +43,8 @@ class Transaction {
   Transaction(this._store, TxMode mode)
       : _isWrite = mode == TxMode.write,
         _cTxn = mode == TxMode.write
-            ? C.txn_write(_store.ptr)
-            : C.txn_read(_store.ptr) {
+            ? C.txn_write(InternalStoreAccess.ptr(_store))
+            : C.txn_read(InternalStoreAccess.ptr(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
   }
 

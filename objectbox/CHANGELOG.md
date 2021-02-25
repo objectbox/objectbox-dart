@@ -1,3 +1,13 @@
+## latest
+
+* Add `Store.reference` getter and `Store.fromReference()` factory - enabling access to store from multiple isolates.
+* Add `Store.subscribe<EntityType>()` and `Store.subscribe<EntityType>()` data change event streams.
+* Add multiple `SyncClient` event streams.
+* Update to objectbox-c v0.12.0
+* Update to objectbox-android v2.9.0
+* Update to objectbox-swift v1.5.0
+* Increase minimum SDK versions: Flutter v1.20 & Dart v2.9. Code generator already required Flutter v1.22 & Dart v2.10. 
+
 ## 0.11.0 (2021-02-01)
 
 * Add `ToOne<>` class to wrap related entities. See examples for details.

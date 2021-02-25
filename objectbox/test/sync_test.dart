@@ -1,12 +1,13 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:objectbox/src/bindings/bindings.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
+import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
@@ -17,19 +18,23 @@ void main() {
   /*late final*/ TestEnv env;
   /*late final*/
   Store store;
+  TestEnv /*?*/ env2;
+  int serverPort = 9999;
 
   setUp(() {
     env = TestEnv('sync');
     store = env.store;
+    env2 = TestEnv('sync2');
   });
 
   tearDown(() {
-    if (env != null) env.close();
+    env?.close();
+    env2?.close();
   });
 
   // lambda to easily create clients in the test below
   SyncClient createClient(Store s) =>
-      Sync.client(s, 'ws://127.0.0.1:9999', SyncCredentials.none());
+      Sync.client(s, 'ws://127.0.0.1:$serverPort', SyncCredentials.none());
 
   // lambda to easily create clients in the test below
   SyncClient loggedInClient(Store s) {
@@ -58,24 +63,6 @@ void main() {
 
   if (Sync.isAvailable()) {
     // TESTS to run when SYNC is available
-
-    group('Circumvent issue #142 - async callbacks error', () {
-      final error = throwsA(predicate((Exception e) => e.toString().contains(
-          'Using observers/query streams in combination with SyncClient is currently not supported')));
-
-      test('Must not start an Observer when SyncClient is active', () {
-        createClient(store);
-        expect(() => env.box.query().build().findStream(), error);
-      });
-
-      test('Must not start SyncClient when an Observer is active', () {
-        final error = throwsA(predicate((Exception e) => e.toString().contains(
-            'Using observers/query streams in combination with SyncClient is currently not supported')));
-
-        createClient(store);
-        expect(() => env.box.query().build().findStream(), error);
-      });
-    });
 
     test('SyncClient lifecycle', () {
       expect(store.syncClient(), isNull);
@@ -116,7 +103,6 @@ void main() {
     });
 
     test('SyncClient is closed when a store is closed', () {
-      final env2 = TestEnv('sync2');
       final client = createClient(env2.store);
       env2.close();
       expect(client.isClosed(), isTrue);
@@ -125,7 +111,6 @@ void main() {
     test('different Store => different SyncClient', () {
       SyncClient c1 = createClient(store);
 
-      final env2 = TestEnv('sync2');
       SyncClient c2 = createClient(env2.store);
       expect(c1, isNot(equals(c2)));
       env2.close();
@@ -178,29 +163,188 @@ void main() {
       expect(c.state(), equals(SyncState.stopped));
     });
 
-    test('SyncClient - data test (requires manual server setup)', () {
-      final env2 = TestEnv('sync2');
+    group('Sync tests with server', () {
+      SyncServer server;
+      setUp(() async {
+        server = SyncServer();
+        await server.start();
+        serverPort = server.port;
+      });
 
-      loggedInClient(env.store);
-      loggedInClient(env2.store);
+      tearDown(() async {
+        print('Waiting for the server to stop');
+        await server.stop();
+        print('Server has stopped');
+      });
 
-      int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
-      expect(waitUntil(() => env2.box.get(id) != null), isTrue);
+      test('SyncClient data sync', () async {
+        await server.online();
+        final client1 = loggedInClient(env.store);
+        final client2 = loggedInClient(env2.store);
 
-      TestEntity /*?*/ read1 = env.box.get(id);
-      TestEntity /*?*/ read2 = env2.box.get(id);
-      expect(read1, isNotNull);
-      expect(read2, isNotNull);
-      expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
-      expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+        int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
+        expect(waitUntil(() => env2.box.get(id) != null), isTrue);
+
+        TestEntity /*?*/ read1 = env.box.get(id);
+        TestEntity /*?*/ read2 = env2.box.get(id);
+        expect(read1, isNotNull);
+        expect(read2, isNotNull);
+        expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
+        expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+        client1.close();
+        client2.close();
+      });
+
+      test('SyncClient listeners: connection', () async {
+        final client = createClient(env.store);
+
+        // collect connection events
+        final events = <SyncConnectionEvent>[];
+        final streamSub = client.connectionEvents.listen(events.add);
+
+        // multiple subscriptions work as well
+        final events2 = <SyncConnectionEvent>[];
+        final streamSub2 = client.connectionEvents.listen(events2.add);
+
+        await server.online();
+        client.start();
+
+        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        await yieldExecution();
+        expect(events, equals([SyncConnectionEvent.connected]));
+        expect(events2, equals([SyncConnectionEvent.connected]));
+
+        await streamSub2.cancel();
+
+        await server.stop(keepDb: true);
+
+        expect(
+            waitUntil(() => client.state() == SyncState.disconnected), isTrue);
+        await yieldExecution();
+        expect(
+            events,
+            equals([
+              SyncConnectionEvent.connected,
+              SyncConnectionEvent.disconnected
+            ]));
+
+        await server.start(keepDb: true);
+        await server.online();
+
+        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        await yieldExecution();
+
+        expect(
+            events,
+            equals([
+              SyncConnectionEvent.connected,
+              SyncConnectionEvent.disconnected,
+              SyncConnectionEvent.connected
+            ]));
+        expect(events2, equals([SyncConnectionEvent.connected]));
+
+        await streamSub.cancel();
+        client.close();
+      });
+
+      test('SyncClient listeners: login', () async {
+        final client = createClient(env.store);
+
+        client.setCredentials(SyncCredentials.sharedSecretString('foo'));
+
+        // collect login events
+        final events = <SyncLoginEvent>[];
+        client.loginEvents.listen(events.add);
+
+        await server.online();
+        client.start();
+
+        expect(await client.loginEvents.first.timeout(defaultTimeout),
+            equals(SyncLoginEvent.credentialsRejected));
+
+        client.setCredentials(SyncCredentials.none());
+
+        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        await yieldExecution();
+        expect(
+            events,
+            equals(
+                [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
+
+        client.close();
+      });
+
+      test('SyncClient listeners: completion', () async {
+        await server.online();
+        final client = loggedInClient(store);
+        expect(env.box.isEmpty(), isTrue);
+        int id = env.box.put(TestEntity(tLong: 100));
+
+        // Note: wait for the client to finish sending to the server.
+        // There's currently no other way to recognize this.
+        sleep(Duration(milliseconds: 100));
+        client.close();
+
+        final client2 = loggedInClient(env2.store);
+        await client2.completionEvents.first.timeout(defaultTimeout);
+        client2.close();
+
+        expect(env2.box.get(id) /*!*/ .tLong, 100);
+      });
+
+      test('SyncClient listeners: changes', () async {
+        await server.online();
+        final client = loggedInClient(store);
+        final client2 = loggedInClient(env2.store);
+
+        final events = <List<SyncChange>>[];
+        client2.changeEvents.listen(events.add);
+
+        expect(env2.box.get(1), isNull);
+
+        env.box.put(TestEntity(tString: 'foo'));
+        env.store.runInTransaction(TxMode.write, () {
+          Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
+          env.box.put(TestEntity(tString: 'bar'));
+          env.box.put(TestEntity(tString: 'oof'));
+          env.box.remove(1);
+        });
+
+        // wait for the data to be transferred
+        expect(waitUntil(() => env2.box.count() == 2), isTrue);
+
+        // check the events
+        await yieldExecution();
+        expect(events.length, 2);
+
+        // env.box.put(TestEntity(tString: 'foo'));
+        expect(events[0].length, 1);
+        expect(events[0][0].entity, TestEntity);
+        expect(events[0][0].entityId, 1);
+        expect(events[0][0].puts, [1]);
+        expect(events[0][0].removals, isEmpty);
+
+        // env.store.runInTransaction(TxMode.Write, () {
+        //   Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
+        //   env.box.put(TestEntity(tString: 'bar'));
+        //   env.box.put(TestEntity(tString: 'oof'));
+        //   env.box.remove(1);
+        // });
+        expect(events[1].length, 1);
+        expect(events[1][0].entity, TestEntity);
+        expect(events[1][0].entityId, 1);
+        expect(events[1][0].puts, [2, 3]);
+        expect(events[1][0].removals, [1]);
+
+        client.close();
+        client2.close();
+      });
     },
-        // Note: only available when you start a sync server manually.
-        // Comment out the `skip: ` argument in tthe test-case definition.
-        // run sync-server --unsecured-no-authentication --model=/path/objectbox-dart/test/objectbox-model.json
-        skip: 'Data sync test is disabled, Enable after running sync-server.' //
-        );
+        skip: SyncServer.isAvailable()
+            ? null
+            : 'sync-server executable is not available in PATH - tests requiring it are skipped');
   } else {
-    // TESTS to run when SYNC isn't available
+    // TESTS to run when SYNC is NOT available
 
     test('SyncClient cannot be created when running with non-sync library', () {
       expect(
@@ -208,5 +352,88 @@ void main() {
           throwsA(predicate((Exception e) => e.toString().contains(
               'Sync is not available in the loaded ObjectBox runtime library'))));
     });
+  }
+}
+
+/// sync-server process wrapper for testing clients
+class SyncServer {
+  Directory /*?*/ dir;
+  int /*?*/ port;
+  Future<Process> /*?*/ process;
+
+  static bool isAvailable() {
+    // Note: this causes an additional valgrind summary output with a leak.
+    // Unfortunately, it seems like we can't do anything about that...
+    // Tried running with Process.start() but that didn't help. There currently
+    // doesn't seem to be a way to check if a command is available so we have to
+    // live with that.
+    // At least, the additional error report doesn't cause valgrind to fail.
+    try {
+      Process.runSync('sync-server', ['--help']);
+      return true;
+    } on ProcessException {
+      //print(e);
+      return false;
+    }
+  }
+
+  void start({bool keepDb = false}) async {
+    port ??= await _getUnusedPort();
+
+    dir ??= Directory('testdata-sync-server-$port');
+    if (!keepDb) _deleteDb();
+
+    process = Process.start('sync-server', [
+      '--unsecured-no-authentication',
+      '--db-directory=${dir.path}',
+      '--model=${Directory.current.path}/test/objectbox-model.json',
+      '--bind=ws://127.0.0.1:$port',
+      '--browser-bind=http://127.0.0.1:${await _getUnusedPort()}'
+    ]);
+  }
+
+  /// Wait for the server to respond to a simple http request.
+  /// This simple check speeds up test by only trying to log in after the server
+  /// has started, avoiding the reconnect backoff intervals altogether.
+  Future<void> online() async => Future(() async {
+        final httpClient = HttpClient();
+        while (true) {
+          try {
+            await httpClient.get('127.0.0.1', port, '');
+            break;
+          } on SocketException catch (e) {
+            // only retry if "connection refused"
+            if (e.osError.errorCode != 111) rethrow;
+            await Future<void>.delayed(Duration(milliseconds: 1));
+          }
+        }
+        httpClient.close(force: true);
+      }).timeout(defaultTimeout);
+
+  void stop({bool keepDb = false}) async {
+    if (process == null) return;
+    final proc = await process /*!*/;
+    process = null;
+    proc.kill(ProcessSignal.sigint);
+    final exitCode = await proc.exitCode;
+    if (exitCode != 0) {
+      await stdout.addStream(proc.stdout);
+      await stderr.addStream(proc.stderr);
+      expect(await proc.exitCode, isZero);
+    }
+    if (!keepDb) _deleteDb();
+  }
+
+  Future<int> _getUnusedPort() =>
+      ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((socket) {
+        var port = socket.port;
+        socket.close();
+        return port;
+      });
+
+  void _deleteDb() {
+    if (dir != null && dir /*!*/ .existsSync()) {
+      dir /*!*/ .deleteSync(recursive: true);
+    }
   }
 }

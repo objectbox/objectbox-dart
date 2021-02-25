@@ -2,7 +2,12 @@ import 'dart:ffi' as ffi;
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/bindings/bindings.dart';
 import 'package:objectbox/src/bindings/helpers.dart';
+import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
+
+import 'entity.dart';
+import 'objectbox.g.dart';
+import 'test_env.dart';
 
 void main() {
   // Prior to Dart 2.6, the exception wasn't accessible and may have crashed.
@@ -33,5 +38,21 @@ void main() {
       foundLargeUid = model.generateUid() > (1 << 32);
     }
     expect(foundLargeUid, isTrue);
+  });
+
+  test('store reference', () {
+    final env = TestEnv('basics');
+    final store1 = env.store;
+    final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
+    expect(store1, isNot(store2));
+    expect(InternalStoreAccess.ptr(store1), InternalStoreAccess.ptr(store2));
+
+    final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
+    expect(id, 1);
+    final read = store2.box<TestEntity>().get(id);
+    expect(read, isNotNull);
+    expect(read /*!*/ .tString, 'foo');
+    store2.close();
+    store1.close();
   });
 }

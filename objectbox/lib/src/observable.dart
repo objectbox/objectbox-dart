@@ -1,102 +1,146 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'bindings/bindings.dart';
+import 'bindings/helpers.dart';
+import 'modelinfo/entity_definition.dart';
 import 'query/query.dart';
 import 'store.dart';
-import 'util.dart';
 
-// ignore_for_file: non_constant_identifier_names
+/// Simple wrapper used below in ObservableStore to reduce code duplication.
+/// Contains shared code for single-entity observer and the generic/global one.
+class _Observer<StreamValueType> {
+  StreamController<StreamValueType> /*?*/ controller;
+  Pointer<OBX_observer> /*?*/ _cObserver;
+  ReceivePort /*?*/ receivePort;
 
-// dart callback signature
-typedef _Any = void Function(Pointer<Void>, Pointer<Uint32>, int);
+  int get nativePort => receivePort /*!*/ .sendPort.nativePort;
 
-class _Observable {
-  static final _anyObserver = <int, Pointer<OBX_observer>>{};
-  static final _any = <int, Map<int, _Any>>{};
+  set cObserver(Pointer<OBX_observer> value) {
+    _cObserver = checkObxPtr(value, 'observer initialization failed');
+    _debugLog('started');
+  }
 
-  // sync:true -> ObjectBoxException: 10001 TX is not active anymore: #101
-  static final controller = StreamController<int>.broadcast();
+  Stream<StreamValueType> get stream => controller /*!*/ .stream;
 
-  // The user_data is used to pass the store ptr address
-  // in case there is no consensus on the entity id between stores
-  static void _anyCallback(
-      Pointer<Void> user_data, Pointer<Uint32> mutated_ids, int mutated_count) {
-    final storeAddress = user_data.address;
-    // call schema's callback
-    final storeCallbacks = _any[storeAddress];
-    if (storeCallbacks != null) {
-      for (var i = 0; i < mutated_count; i++) {
-        storeCallbacks[mutated_ids[i]]
-            ?.call(user_data, mutated_ids, mutated_count);
-      }
+  _Observer() {
+    initializeDartAPI();
+  }
+
+  // start() is called whenever user starts listen()-ing to the stream
+  void init(void Function() start) {
+    controller = StreamController<StreamValueType>(
+        onListen: start, onPause: stop, onResume: start, onCancel: stop);
+  }
+
+  // stop() is called when the stream subscription is paused or canceled
+  void stop() {
+    _debugLog('stopped');
+    if (_cObserver != null) {
+      checkObx(C.observer_close(_cObserver));
+      _cObserver = null;
+    }
+
+    if (receivePort != null) {
+      receivePort.close();
+      receivePort = null;
     }
   }
 
-  static void subscribe(Store store) {
-    syncOrObserversExclusive.mark(store);
-
-    final callback = Pointer.fromFunction<obx_observer>(_anyCallback);
-    final storePtr = store.ptr;
-    _anyObserver[storePtr.address] =
-        C.observe(storePtr, callback, storePtr.cast<Void>());
-    InternalStoreAccess.addCloseListener(store, _anyObserver[storePtr.address],
-        () {
-      unsubscribe(store);
-    });
+  void _debugLog(String message) {
+    // print('Observer=${_cObserver?.address} $message');
   }
-
-  // #53 ffi:Pointer finalizer
-  static void unsubscribe(Store store) {
-    final storeAddress = store.ptr.address;
-    if (!_anyObserver.containsKey(storeAddress)) {
-      return;
-    }
-    InternalStoreAccess.removeCloseListener(store, _anyObserver[storeAddress]);
-    C.observer_close(_anyObserver[storeAddress]);
-    _anyObserver.remove(storeAddress);
-    syncOrObserversExclusive.unmark(store);
-  }
-
-  static bool isSubscribed(Store store) =>
-      _Observable._anyObserver.containsKey(store.ptr.address);
 }
 
-/// Streamable adds stream support to queries. The stream reruns the query
-/// whenever there's a change in any of the objects in the queried Box
-/// (regardless of the filter conditions).
-extension Streamable<T> on Query<T> {
-  void _setup() {
-    if (!_Observable.isSubscribed(store)) {
-      _Observable.subscribe(store);
-    }
-    final storeAddress = store.ptr.address;
+/// StreamController implementation inspired by the sample controller sample at:
+/// https://dart.dev/articles/libraries/creating-streams#honoring-the-pause-state
+/// https://dart.dev/articles/libraries/code/stream_controller.dart
+extension ObservableStore on Store {
+  /// Create a stream to data changes on EntityT (stored Entity class).
+  ///
+  /// The stream receives an event whenever an object of EntityT is created or
+  /// changed or deleted. Make sure to cancel() the subscription after you're
+  /// done with it to avoid hanging change listeners.
+  Stream<void> subscribe<EntityT>() {
+    final observer = _Observer<void>();
+    final entityId = InternalStoreAccess.entityDef<EntityT>(this).model.id.id;
 
-    _Observable._any[storeAddress] ??= <int, _Any>{};
-    _Observable._any[storeAddress] /*!*/ [entityId] ??= (u, _, __) {
-      // dummy value to trigger an event
-      _Observable.controller.add(entityId);
-    };
+    observer.init(() {
+      // We're listening to events on single entity so there's no argument.
+      // Ideally, controller.add() would work but it doesn't, even though we're
+      // using StreamController<Void> so the argument type is `void`.
+      observer.receivePort = ReceivePort()
+        ..listen((dynamic _) => observer.controller.add(null));
+      observer.cObserver = C.dartc_observe_single_type(
+          InternalStoreAccess.ptr(this), entityId, observer.nativePort);
+    });
+
+    return observer.stream;
   }
 
+  /// Create a stream to data changes on all Entity types.
+  ///
+  /// The stream receives an event whenever any data changes in the database.
+  /// Make sure to cancel() the subscription after you're done with it to avoid
+  /// hanging change listeners.
+  Stream<Type> subscribeAll() {
+    initializeDartAPI();
+    final observer = _Observer<Type>();
+
+    // create a map from Entity ID to Entity type (dart class)
+    final entityTypesById = <int, Type>{};
+    InternalStoreAccess.defs(this).bindings.forEach(
+        (Type entity, EntityDefinition entityDef) =>
+            entityTypesById[entityDef.model.id.id] = entity);
+
+    observer.init(() {
+      // We're listening to a events for all entity types. C-API sends entity ID
+      // and we must map it to a dart type (class) corresponding to that entity.
+      observer.receivePort = ReceivePort()
+        ..listen((dynamic entityIds) {
+          if (entityIds is! Uint32List) {
+            observer.controller.addError(Exception(
+                'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
+            return;
+          }
+
+          (entityIds as Uint32List).forEach((int entityId) {
+            if (entityId is! int) {
+              observer.controller.addError(Exception(
+                  'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
+              return;
+            }
+
+            final entityType = entityTypesById[entityId];
+            if (entityType == null) {
+              observer.controller.addError(Exception(
+                  'Received data change notification for an unknown entity ID $entityId'));
+            } else {
+              observer.controller.add(entityType);
+            }
+          });
+        });
+      observer.cObserver =
+          C.dartc_observe(InternalStoreAccess.ptr(this), observer.nativePort);
+    });
+
+    return observer.stream;
+  }
+}
+
+/// Streamable adds stream support to queries.
+extension Streamable<T> on Query<T> {
   /// Create a stream, executing [Query.find()] whenever there's a change to any
   /// of the objects in the queried Box.
-  Stream<List<T>> findStream(
-      {@Deprecated('Use offset() instead') int offset = 0,
-      @Deprecated('Use limit() instead') int limit = 0}) {
-    _setup();
-    return _Observable.controller.stream.where((e) => e == entityId).map((_) {
-      if (offset != 0) this.offset(offset);
-      if (limit != 0) this.limit(limit);
-      return find();
-    });
-  }
+  /// TODO consider removing, see issue #195
+  Stream<List<T>> findStream() => stream.map((q) => q.find());
 
-  /// Use this for Query Property
-  Stream<Query<T>> get stream {
-    _setup();
-    return _Observable.controller.stream
-        .where((e) => e == entityId)
-        .map((_) => this);
-  }
+  /// The stream gets notified whenever there's a change in any of the objects
+  /// in the queried Box (regardless of the filter conditions).
+  ///
+  /// You can use the given [Query] object to run any of its operation,
+  /// e.g. find(), count(), execute a [property()] query
+  Stream<Query<T>> get stream => store.subscribe<T>().map((_) => this);
 }

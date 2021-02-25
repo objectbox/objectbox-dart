@@ -21,22 +21,30 @@ class TestEnv {
 
   void close() {
     store.close();
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
+    if (dir != null && dir /*!*/ .existsSync()) {
+      dir /*!*/ .deleteSync(recursive: true);
+    }
   }
 }
 
-/// "Busy-waits" until the predicate returns true.
-bool waitUntil(bool Function() predicate, {int timeoutMs = 1000}) {
-  var success = false;
-  final until = DateTime.now().millisecondsSinceEpoch + timeoutMs;
+const defaultTimeout = Duration(milliseconds: 1000);
 
-  while (!(success = predicate()) &&
-      until > DateTime.now().millisecondsSinceEpoch) {
+/// "Busy-waits" until the predicate returns true.
+bool waitUntil(bool Function() predicate, {Duration timeout = defaultTimeout}) {
+  var success = false;
+  final until = DateTime.now().add(timeout);
+
+  while (!(success = predicate()) && until.isAfter(DateTime.now())) {
     sleep(Duration(milliseconds: 1));
   }
   return success;
 }
 
-Matcher unorderedEqualsStrings(List<String> list) => unorderedEquals(list);
+/// same as package:test unorderedEquals() but statically typed
+Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 
-Matcher unorderedEqualsInts(List<int> list) => unorderedEquals(list);
+// Yield execution to other isolates.
+//
+// We need to do this to receive an event in the stream before processing
+// the remainder of the test case.
+final yieldExecution = () async => await Future<void>.delayed(Duration.zero);

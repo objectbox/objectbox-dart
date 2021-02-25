@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:ffi';
-import 'dart:typed_data' show Uint8List;
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
@@ -8,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'bindings/structs.dart';
+import 'modelinfo/entity_definition.dart';
 import 'store.dart';
 import 'util.dart';
 
@@ -84,6 +87,46 @@ enum SyncRequestUpdatesMode {
   autoNoPushes
 }
 
+/// Connection state change event.
+enum SyncConnectionEvent {
+  /// Connection to the server is established.
+  connected,
+
+  /// Connection to the server is lost.
+  disconnected
+}
+
+/// Login state change event.
+enum SyncLoginEvent {
+  /// Client has successfully logged in to the server.
+  loggedIn,
+
+  /// Client's credentials has been rejectd by the server.
+  /// Connection will NOT be retried until new credentials are provided.
+  credentialsRejected,
+
+  /// An unknown error occured during authentication.
+  unknownError
+}
+
+/// Sync incoming data event.
+class SyncChange {
+  /// Entity ID this change relates to.
+  final int entityId;
+
+  /// Entity type this change relates to.
+  /// TODO Maybe use SyncChange<Type> instead?
+  final Type entity;
+
+  /// List of "put" (inserted/updated) object IDs.
+  final List<int> puts;
+
+  /// List of removed object IDs.
+  final List<int> removals;
+
+  SyncChange._(this.entityId, this.entity, this.puts, this.removals);
+}
+
 /// Sync client is used to connect to an ObjectBox sync server.
 class SyncClient {
   final Store _store;
@@ -108,7 +151,8 @@ class SyncClient {
     final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
     try {
       _cSync = checkObxPtr(
-          C.sync_1(_store.ptr, cServerUri), 'failed to create sync client');
+          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri),
+          'failed to create sync client');
     } finally {
       free(cServerUri);
     }
@@ -120,11 +164,14 @@ class SyncClient {
   /// It can no longer be used afterwards, make a new sync client instead.
   /// Does nothing if this sync client has already been closed.
   void close() {
+    _connectionEvents?._stop();
+    _loginEvents?._stop();
+    _completionEvents?._stop();
+    _changeEvents?._stop();
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
     InternalStoreAccess.removeCloseListener(_store, this);
-    syncOrObserversExclusive.unmark(_store);
     checkObx(err);
   }
 
@@ -235,6 +282,271 @@ class SyncClient {
       free(count);
     }
   }
+
+  _SyncListenerGroup<SyncConnectionEvent> /*?*/ _connectionEvents;
+
+  /// Get a broadcast stream of connection state changes (connect/disconnect).
+  ///
+  /// Subscribe (listen) to the stream to actually start listening to events.
+  Stream<SyncConnectionEvent> get connectionEvents {
+    if (_connectionEvents == null) {
+      // Combine events from two C listeners: connect & disconnect.
+      _connectionEvents =
+          _SyncListenerGroup<SyncConnectionEvent>('sync-connection');
+
+      _connectionEvents.add(_SyncListenerConfig(
+          (int nativePort) => C.dartc_sync_listener_connect(ptr, nativePort),
+          (dynamic _, controller) =>
+              controller.add(SyncConnectionEvent.connected)));
+
+      _connectionEvents.add(_SyncListenerConfig(
+          (int nativePort) => C.dartc_sync_listener_disconnect(ptr, nativePort),
+          (dynamic _, controller) =>
+              controller.add(SyncConnectionEvent.disconnected)));
+
+      _connectionEvents.finish();
+    }
+    return _connectionEvents.stream;
+  }
+
+  _SyncListenerGroup<SyncLoginEvent> /*?*/ _loginEvents;
+
+  /// Get a broadcast stream of login events (success/failure).
+  ///
+  /// Subscribe (listen) to the stream to actually start listening to events.
+  Stream<SyncLoginEvent> get loginEvents {
+    if (_loginEvents == null) {
+      // Combine events from two C listeners: login & login-failure.
+      _loginEvents = _SyncListenerGroup<SyncLoginEvent>('sync-login');
+
+      _loginEvents.add(_SyncListenerConfig(
+          (int nativePort) => C.dartc_sync_listener_login(ptr, nativePort),
+          (dynamic _, controller) => controller.add(SyncLoginEvent.loggedIn)));
+
+      _loginEvents.add(_SyncListenerConfig(
+          (int nativePort) =>
+              C.dartc_sync_listener_login_failure(ptr, nativePort),
+          (dynamic code, controller) {
+        // see OBXSyncCode - TODO should we match any other codes?
+        switch (code as int) {
+          case OBXSyncCode.CREDENTIALS_REJECTED:
+            return controller.add(SyncLoginEvent.credentialsRejected);
+          default:
+            return controller.add(SyncLoginEvent.unknownError);
+        }
+      }));
+
+      _loginEvents.finish();
+    }
+    return _loginEvents.stream;
+  }
+
+  _SyncListenerGroup<void> /*?*/ _completionEvents;
+
+  /// Get a broadcast stream of sync completion events - when synchronization
+  /// of incoming changes has completed.
+  ///
+  /// Subscribe (listen) to the stream to actually start listening to events.
+  Stream<void> get completionEvents {
+    if (_completionEvents == null) {
+      _completionEvents = _SyncListenerGroup<void>('sync-completion');
+
+      _completionEvents.add(_SyncListenerConfig(
+          (int nativePort) => C.dartc_sync_listener_complete(ptr, nativePort),
+          (dynamic _, controller) => controller.add(null)));
+
+      _completionEvents.finish();
+    }
+    return _completionEvents.stream;
+  }
+
+  _SyncListenerGroup<List<SyncChange>> /*?*/ _changeEvents;
+
+  /// Get a broadcast stream of incoming synced data changes.
+  ///
+  /// Subscribe (listen) to the stream to actually start listening to events.
+  Stream<List<SyncChange>> get changeEvents {
+    if (_changeEvents == null) {
+      // This stream combines events from two C listeners: connect & disconnect.
+      _changeEvents = _SyncListenerGroup<List<SyncChange>>('sync-change');
+
+      // create a map from Entity ID to Entity type (dart class)
+      final entityTypesById = <int, Type>{};
+      InternalStoreAccess.defs(_store).bindings.forEach(
+          (Type entity, EntityDefinition entityDef) =>
+              entityTypesById[entityDef.model.id.id] = entity);
+
+      _changeEvents.add(_SyncListenerConfig(
+          (int nativePort) => C.dartc_sync_listener_change(ptr, nativePort),
+          (dynamic msg, controller) {
+        if (msg is! List) {
+          controller.addError(Exception(
+              'Received invalid data type from the core notification: (${msg.runtimeType}) $msg'));
+          return;
+        }
+
+        final syncChanges = msg as List;
+
+        // List<SyncChange> is flattened to List<dynamic>, with SyncChange object
+        // properties always coming in groups of three (entityId, puts, removals)
+        const numProperties = 3;
+        if (syncChanges.length % numProperties != 0) {
+          controller.addError(Exception(
+              'Received invalid list length from the core notification: (${syncChanges.runtimeType}) $syncChanges'));
+          return;
+        }
+
+        final changes = <SyncChange>[];
+        for (var i = 0; i < syncChanges.length / numProperties; i++) {
+          final dynamic entityId = syncChanges[i * numProperties + 0];
+          final dynamic putsBytes = syncChanges[i * numProperties + 1];
+          final dynamic removalsBytes = syncChanges[i * numProperties + 2];
+
+          final entityType = entityTypesById[entityId];
+          if (entityType == null) {
+            controller.addError(Exception(
+                'Received sync change notification for an unknown entity ID $entityId'));
+            return;
+          }
+
+          if (entityId is! int ||
+              putsBytes is! Uint8List ||
+              removalsBytes is! Uint8List) {
+            controller.addError(Exception(
+                'Received invalid list items format from the core notification at i=$i: '
+                'entityId = (${entityId.runtimeType}) $entityId; '
+                'putsBytes = (${putsBytes.runtimeType}) $putsBytes; '
+                'removalsBytes = (${removalsBytes.runtimeType}) $removalsBytes'));
+            return;
+          }
+
+          changes.add(SyncChange._(
+              entityId as int,
+              entityType,
+              Uint64List.view((putsBytes as Uint8List).buffer).toList(),
+              Uint64List.view((removalsBytes as Uint8List).buffer).toList()));
+        }
+
+        controller.add(changes);
+      }));
+
+      _changeEvents.finish();
+    }
+    return _changeEvents.stream;
+  }
+}
+
+/// Configuration for _SyncListenerGroup, setting up a single native listener.
+class _SyncListenerConfig {
+  /// Function to create a new native listener.
+  final Pointer<OBX_dart_sync_listener> Function(int nativePort) cListenerInit;
+
+  /// Called on message from a native listener.
+  final void Function(dynamic msg, StreamController controller) dartListener;
+
+  _SyncListenerConfig(this.cListenerInit, this.dartListener);
+}
+
+/// Wrapper used in SyncClient for event listeners forwarding.
+/// Supports merging events from multiple native listeners to a single stream.
+class _SyncListenerGroup<StreamValueType> {
+  final String name;
+  bool finished = false;
+
+  /*late final*/
+  StreamController<StreamValueType> controller;
+  final _configs = <_SyncListenerConfig>[];
+
+  // currently active native listeners and ports attached to them
+  final _cListeners = <Pointer<OBX_dart_sync_listener>>[];
+  final _receivePorts = <ReceivePort>[];
+
+  Stream<StreamValueType> get stream {
+    assert(finished, 'Call finish() before accessing .stream');
+    return controller.stream;
+  }
+
+  /// start() is called whenever user starts listen()-ing to the stream
+  _SyncListenerGroup(this.name) {
+    initializeDartAPI();
+  }
+
+  /// Add a native->dart forwarder config to the group.
+  void add(_SyncListenerConfig config) {
+    assert(!finished, "Can't add more listeners after calling finish().");
+    _configs.add(config);
+  }
+
+  /// Finish the group, creating a listener.
+  Stream<StreamValueType> finish() {
+    assert(!finished, 'finish() may only be called once.');
+    controller = StreamController<StreamValueType>.broadcast(
+        onListen: _start,
+        /* not for broadcast streams: onPause: _stop, onResume: _start,*/
+        onCancel: _stop);
+    finished = true;
+    return controller.stream;
+  }
+
+  // start() is called when the stream subscription is started or resumed
+  void _start() {
+    _debugLog('starting');
+    assert(finished, 'Starting an unfinished group?!');
+
+    var hasError = false;
+    _configs.forEach((_SyncListenerConfig config) {
+      if (hasError) return;
+
+      // Initialize a receive port where the native listener will post messages.
+      final receivePort = ReceivePort()
+        ..listen((dynamic msg) => config.dartListener(msg, controller));
+
+      // Store the ReceivePort to be able to close it in _stop().
+      _receivePorts.add(receivePort);
+
+      // Start the native listener.
+      final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
+      if (cListener == null || cListener == nullptr) {
+        hasError = true;
+      } else {
+        _cListeners.add(cListener);
+      }
+    });
+
+    if (hasError) {
+      try {
+        throw latestNativeError(
+            dartMsg: 'Failed to initialize a sync native listener');
+      } finally {
+        _stop();
+      }
+    }
+
+    _debugLog('started');
+  }
+
+  // stop() is called when the stream subscription is paused or canceled
+  void _stop() {
+    _debugLog('stopping');
+    assert(finished, 'Stopping an unfinished group?!');
+
+    final cErrorCodes = _cListeners
+        .map(C.dartc_sync_listener_close) // map() is lazy
+        .toList(growable: false); // call toList() to execute immediately
+    _cListeners.clear();
+
+    _receivePorts.forEach((rp) => rp.close());
+    _receivePorts.clear();
+
+    // throw on native, if any
+    cErrorCodes.forEach(checkObx);
+
+    _debugLog('stopped');
+  }
+
+  void _debugLog(String message) {
+    // print('Listener ${name}: $message');
+  }
 }
 
 /// [ObjectBox Sync](https://objectbox.io/sync/) makes data available and
@@ -269,7 +581,6 @@ class Sync {
     if (syncClientsStorage.containsKey(store)) {
       throw Exception('Only one sync client can be active for a store');
     }
-    syncOrObserversExclusive.mark(store);
     final client = SyncClient(store, serverUri, creds);
     syncClientsStorage[store] = client;
     InternalStoreAccess.addCloseListener(store, client, client.close);

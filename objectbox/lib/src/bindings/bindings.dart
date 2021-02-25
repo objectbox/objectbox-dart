@@ -1,6 +1,8 @@
 import 'dart:ffi';
 import 'dart:io' show Platform;
 
+import '../common.dart';
+import 'helpers.dart';
 import 'objectbox-c.dart';
 
 // let files importing bindings.dart also get all the OBX_* types
@@ -46,3 +48,34 @@ ObjectBoxC loadObjectBoxLib() {
 ObjectBoxC /*?*/ _cachedBindings;
 
 ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();
+
+/// Init DartAPI in C for async callbacks.
+///
+/// Call each time you're assign a native listener - will throw if the Dart
+/// native API isn't available.
+/// See https://github.com/objectbox/objectbox-dart/issues/143
+void initializeDartAPI() {
+  if (_dartAPIinitialized == null) {
+    final errCode = C.dartc_init_api(NativeApi.initializeApiDLData);
+    _dartAPIinitialized = (OBX_SUCCESS == errCode);
+    if (!_dartAPIinitialized) {
+      _dartAPIinitException = latestNativeError(
+          codeIfMissing: errCode,
+          dartMsg: "Dart/Flutter SDK you're using is not compatible with "
+              'ObjectBox observers, query streams and Sync event streams. '
+              'Please consider using Flutter v1.20.x or v1.22.x (or Dart v2.10.x). '
+              'See https://github.com/objectbox/objectbox-dart/issues/197 for more details. '
+              'Native exception');
+    }
+  }
+
+  if (_dartAPIinitException != null) {
+    throw _dartAPIinitException;
+  }
+}
+
+// null  => not initialized
+// true  => initialized successfully
+// false => failed to initialize - incompatible Dart version
+bool /*?*/ _dartAPIinitialized;
+ObjectBoxException /*?*/ _dartAPIinitException;

@@ -5,7 +5,11 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
   /// Start creating a query.
   QueryBuilder(Store store, EntityDefinition<T> entity, Condition /*?*/ qc)
       : super(
-            store, entity, qc, C.query_builder(store.ptr, entity.model.id.id));
+            store,
+            entity,
+            qc,
+            C.query_builder(
+                InternalStoreAccess.ptr(store), entity.model.id.id));
 
   /// Finish building a [Query]. Call [Query.close()] after you're done with it
   /// to free resources.

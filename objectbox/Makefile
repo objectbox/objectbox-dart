@@ -20,7 +20,7 @@ test: 			## Test all targets
 
 valgrind-test: 		## Test all targets with valgrind
 	pub run build_runner build
-	../tool/valgrind.sh
+	tool/valgrind.sh
 
 integration-test:	## Execute integration tests
 	cd example/flutter/objectbox_demo/						; \

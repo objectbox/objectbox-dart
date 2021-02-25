@@ -12,5 +12,5 @@ android {
 
 dependencies {
     // https://bintray.com/objectbox/objectbox/io.objectbox%3Aobjectbox-android
-    implementation "io.objectbox:objectbox-android:2.8.0"
+    implementation "io.objectbox:objectbox-android:2.9.0"
 }

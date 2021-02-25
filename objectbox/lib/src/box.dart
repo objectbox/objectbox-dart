@@ -51,7 +51,7 @@ class Box<T> {
             .any((ModelProperty prop) => prop.isRelation),
         _hasToManyRelations = _entity.model.relations.isNotEmpty ||
             _entity.model.backlinks.isNotEmpty,
-        _cBox = C.box(_store.ptr, _entity.model.id.id) {
+        _cBox = C.box(InternalStoreAccess.ptr(_store), _entity.model.id.id) {
     checkObxPtr(_cBox, 'failed to create box');
   }
 
