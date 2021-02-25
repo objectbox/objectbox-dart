@@ -1,16 +1,9 @@
-#!/usr/bin/env bash
-set -euo pipefail
+. "$(dirname "$0")"/../../tool/common.sh
 
 # Note: when you see the process seemingly stuck after printing "All tests passed!", it's because dart2native produced
 #       binaries will wait for any background isolates to finish before stopping the process.
 #       For example, the following code has the issue: `HttpClient().get(...)`
 #       while `final httpClient = HttpClient(); httpClient.get(...); httpClient.close(force: true);` works fine.
-
-root=$(
-  cd "$(dirname "$0")/.."
-  pwd -P
-)
-echo "Package root dir: $root"
 
 if [[ "$#" -gt "1" ]]; then
   echo "usage: $0 [test name]"

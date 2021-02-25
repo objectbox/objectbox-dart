@@ -20,10 +20,8 @@ test: 			## Test all targets
 
 valgrind-test: 		## Test all targets with valgrind
 	pub run build_runner build
-	tool/valgrind.sh
+	./tool/valgrind.sh
 
 integration-test:	## Execute integration tests
-	cd example/flutter/objectbox_demo/						; \
-	flutter pub get											; \
-	flutter pub run build_runner build						; \
-	flutter drive --verbose --target=test_driver/app.dart	; \
+	./tool/integration-test.sh example/flutter/objectbox_demo
+	./tool/integration-test.sh example/flutter/objectbox_demo_sync
