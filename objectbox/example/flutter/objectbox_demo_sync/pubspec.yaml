@@ -25,9 +25,10 @@ flutter:
   uses-material-design: true
 
 # Note: these overrides are only for ObjectBox internal development, don't use them in your app.
-objectbox:
-  path: ../../../../objectbox
-objectbox_generator:
-  path: ../../../../generator
-objectbox_flutter_libs:
-  path: ../../../../flutter_libs
+dependency_overrides:
+  objectbox:
+    path: ../../../../objectbox
+  objectbox_generator:
+    path: ../../../../generator
+  objectbox_sync_flutter_libs:
+    path: ../../../../sync_flutter_libs
