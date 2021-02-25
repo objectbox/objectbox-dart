@@ -476,4 +476,32 @@ void main() {
     final read = box2.get(2);
     expect(read, isNotNull);
   });
+
+  test('DateTime field', () {
+    final object = TestEntity();
+    object.tDate = DateTime.now();
+    object.tDateNano = DateTime.now();
+
+    {
+      // first, test some assumptions the code generator makes
+      final millis = object.tDate.millisecondsSinceEpoch;
+      final time1 = DateTime.fromMillisecondsSinceEpoch(millis);
+      expect(object.tDate.difference(time1).inMilliseconds, equals(0));
+
+      final nanos = object.tDateNano.microsecondsSinceEpoch * 1000;
+      final time2 = DateTime.fromMicrosecondsSinceEpoch((nanos / 1000).floor());
+      expect(object.tDateNano.difference(time2).inMicroseconds, equals(0));
+    }
+
+    box.putMany([object, TestEntity()]);
+    final items = box.getAll();
+
+    // DateTime has microsecond precision in dart but is stored in ObjectBox
+    // with millisecond precision so allow a sub-millisecond difference.
+    expect(items[0].tDate.difference(object.tDate).inMilliseconds, 0);
+
+    expect(items[0].tDateNano, object.tDateNano);
+    expect(items[1].tDate, isNull);
+    expect(items[1].tDateNano, isNull);
+  });
 }

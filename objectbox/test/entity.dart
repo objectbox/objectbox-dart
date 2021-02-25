@@ -20,6 +20,7 @@ class TestEntity {
   int /*?*/ tLong;
   double /*?*/ tDouble;
   bool /*?*/ tBool;
+  DateTime /*?*/ tDate;
 
   @Transient()
   int /*?*/ ignore;
@@ -28,6 +29,9 @@ class TestEntity {
   int /*?*/ omit, disregard;
 
   // explicitly declared types
+
+  @Property(type: PropertyType.dateNano)
+  DateTime /*?*/ tDateNano;
 
   // OBXPropertyType.Byte | 1 byte
   @Property(type: PropertyType.byte)

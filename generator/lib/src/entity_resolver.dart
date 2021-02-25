@@ -115,37 +115,40 @@ class EntityResolver extends Builder {
       }
 
       if (fieldType == null) {
-        final fieldTypeDart = f.type;
+        final dartType = f.type;
 
-        if (fieldTypeDart.isDartCoreInt) {
+        if (dartType.isDartCoreInt) {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Long;
-        } else if (fieldTypeDart.isDartCoreString) {
+        } else if (dartType.isDartCoreString) {
           fieldType = OBXPropertyType.String;
-        } else if (fieldTypeDart.isDartCoreBool) {
+        } else if (dartType.isDartCoreBool) {
           // dart: 1 byte
           // ob: 1 byte
           fieldType = OBXPropertyType.Bool;
-        } else if (fieldTypeDart.isDartCoreDouble) {
+        } else if (dartType.isDartCoreDouble) {
           // dart: 8 bytes
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
-        } else if (fieldTypeDart.isDartCoreList &&
-            listItemType(fieldTypeDart).isDartCoreString) {
+        } else if (dartType.isDartCoreList &&
+            listItemType(dartType).isDartCoreString) {
           // List<String>
           fieldType = OBXPropertyType.StringVector;
-        } else if (['Int8List', 'Uint8List']
-            .contains(fieldTypeDart.element.name)) {
+        } else if (['Int8List', 'Uint8List'].contains(dartType.element.name)) {
           fieldType = OBXPropertyType.ByteVector;
-          dartFieldType = fieldTypeDart.element.name; // for code generation
+        } else if (dartType.element.name == 'DateTime') {
+          fieldType = OBXPropertyType.Date;
+          log.warning(
+              "  DateTime property '${f.name}' in entity '${element.name}' is stored and read using millisecond precision. "
+              'To silence this warning, add an explicit type using @Property(type: PropertyType.date) or @Property(type: PropertyType.dateNano) annotation.');
         } else if (isToOneRelationField(f)) {
           fieldType = OBXPropertyType.Relation;
         } else if (isToManyRelationField(f)) {
           isToManyRel = true;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${fieldTypeDart}'");
+              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${dartType}'");
           continue;
         }
       }
@@ -198,7 +201,7 @@ class EntityResolver extends Builder {
         processAnnotationIndexUnique(f, fieldType, elementBare, prop);
 
         if (propUid != null) prop.id.uid = propUid;
-        prop.dartFieldType = dartFieldType;
+        prop.dartFieldType = f.type.element.name; // for code generation
         entity.properties.add(prop);
       }
     }

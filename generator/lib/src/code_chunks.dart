@@ -112,6 +112,12 @@ class CodeChunks {
           accessorSuffix = ' ?? 0';
         } else if (p.isRelation) {
           accessorSuffix = '.targetId';
+        } else if (p.dartFieldType == 'DateTime') {
+          if (p.type == OBXPropertyType.Date) {
+            accessorSuffix = '?.millisecondsSinceEpoch';
+          } else if (p.type == OBXPropertyType.DateNano) {
+            accessorSuffix = ' == null ? null : object.${propertyFieldName(p)}.microsecondsSinceEpoch * 1000';
+          }
         }
         return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
       }
@@ -130,19 +136,21 @@ class CodeChunks {
     var lines = <String>[];
     lines.addAll(entity.properties.map((ModelProperty p) {
       String fbReader;
+      var readField = () =>
+          '${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
       switch (p.type) {
         case OBXPropertyType.ByteVector:
           fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
           if (['Int8List', 'Uint8List'].contains(p.dartFieldType)) {
             return '''{
-             final list = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});
+             final list = ${readField()};
              object.${propertyFieldName(p)} = list == null ? null : ${p.dartFieldType}.fromList(list);
            }''';
           }
           break;
         case OBXPropertyType.Relation:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
-          return 'object.${propertyFieldName(p)}.targetId = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});'
+          return 'object.${propertyFieldName(p)}.targetId = ${readField()};'
               '\n object.${propertyFieldName(p)}.attach(store);';
         case OBXPropertyType.StringVector:
           fbReader = 'fb.ListReader<String>(fb.StringReader())';
@@ -150,7 +158,23 @@ class CodeChunks {
         default:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
       }
-      return 'object.${propertyFieldName(p)} = ${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)});';
+      if (p.dartFieldType == 'DateTime') {
+        if (p.type == OBXPropertyType.Date) {
+          return '''{
+             final value = ${readField()};
+             object.${propertyFieldName(p)} = value == null ? null : DateTime.fromMillisecondsSinceEpoch(value);
+           }''';
+        } else if (p.type == OBXPropertyType.DateNano) {
+          return '''{
+             final value = ${readField()};
+             object.${propertyFieldName(p)} = value == null ? null : DateTime.fromMicrosecondsSinceEpoch((value / 1000).floor());
+           }''';
+        } else {
+          throw InvalidGenerationSourceError(
+              'Invalid property data type ${p.type} for a DateTime field ${entity.name}.${p.name}');
+        }
+      }
+      return 'object.${propertyFieldName(p)} = ${readField()};';
     }));
 
     lines.addAll(entity.relations.map((ModelRelation rel) =>
