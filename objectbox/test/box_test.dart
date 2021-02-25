@@ -466,8 +466,14 @@ void main() {
         throwsA(predicate((ObjectBoxException e) => e
             .toString()
             .contains('ID is higher or equal to internal ID sequence'))));
+    expect(box.isEmpty(), isTrue);
 
     // TestEntity2.id IS assignable so this must pass
-    store.box<TestEntity2>().put(TestEntity2(id: 2));
+    final box2 = store.box<TestEntity2>();
+    final object = TestEntity2(id: 2);
+    box2.put(object);
+    expect(object.id, 2);
+    final read = box2.get(2);
+    expect(read, isNotNull);
   });
 }
