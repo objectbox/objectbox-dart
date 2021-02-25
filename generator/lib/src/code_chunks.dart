@@ -9,6 +9,7 @@ class CodeChunks {
     
     // Currently loading model from "JSON" which always encodes with double quotes
     // ignore_for_file: prefer_single_quotes
+    // ignore_for_file: camel_case_types
     
     import 'dart:typed_data';
     
