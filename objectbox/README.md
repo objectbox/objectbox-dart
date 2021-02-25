@@ -48,7 +48,7 @@ final query = box.query(Person_.firstName.startsWith('J')).build();
 final people = query.find();  // find() returns List<Person>
 ```
 
-Head over to [example/README.md](objectbox/example/README.md) for more.
+Head over to [examples](objectbox/example/README.md) for more.
 
 Getting started
 ---------------

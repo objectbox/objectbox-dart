@@ -16,6 +16,9 @@ find "${root}" -type f -name "pubspec.yaml" \
   -exec cp "{}" "{}.original" \; \
   -exec yq delete -i "{}" dependency_overrides \;
 
+# update links in the readme (see `git restore "${root}/objectbox/README.md"` below)
+"${root}/tool/pubdev-links.sh"
+
 # =========================== PUBLISH ======================== #
 function publish() {
   if [[ "$#" -ne "1" ]]; then
@@ -53,3 +56,6 @@ echo "Restoring pubspec.yaml files from backup pubspec.yaml.original"
 find "${root}" -type f -name "pubspec.yaml" \
   -exec echo "Restoring {}" \; \
   -exec mv "{}.original" "{}" \;
+
+echo "Restoring objectbox/README.md"
+git restore "${root}/objectbox/README.md"
