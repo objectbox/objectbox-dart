@@ -2,6 +2,7 @@
 /// Don't import into your own code, use 'objectbox.dart' instead.
 library objectbox_internal;
 
+export 'src/fb_readers.dart';
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
 export 'src/query/query.dart'

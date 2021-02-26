@@ -79,6 +79,24 @@ class TestEntity {
       this.tUint8List,
       this.ignore});
 
+  TestEntity.filled({
+    this.id,
+    this.tString = 'Foo',
+    this.tBool = true,
+    this.tByte = 42,
+    this.tChar = 24,
+    this.tShort = 1234,
+    this.tInt = 123456789,
+    this.tLong = 123456789123456789,
+    this.tFloat = 4.5,
+    this.tDouble = 2.3,
+  }) {
+    tStrings = ['foo', 'bar'];
+    tByteList = [1, 2, 3];
+    tInt8List = Int8List.fromList([-4, 5, 6]);
+    tUint8List = Uint8List.fromList([7, 8, 9]);
+  }
+
   TestEntity.ignoredExcept(this.tInt) {
     omit = -1;
     disregard = 1;
