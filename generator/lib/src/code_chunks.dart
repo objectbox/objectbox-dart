@@ -141,12 +141,16 @@ class CodeChunks {
           '${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
       switch (p.type) {
         case OBXPropertyType.ByteVector:
-          fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
           if (['Int8List', 'Uint8List'].contains(p.dartFieldType)) {
+            // No need for the eager reader here. We need to call fromList()
+            // constructor anyway - there's no Int8List.generate() factory.
+            fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
             return '''{
              final list = ${readField()};
              object.${propertyFieldName(p)} = list == null ? null : ${p.dartFieldType}.fromList(list);
            }''';
+          } else {
+            fbReader = 'EagerListReader<int>(fb.Int8Reader())';
           }
           break;
         case OBXPropertyType.Relation:
@@ -154,7 +158,7 @@ class CodeChunks {
           return 'object.${propertyFieldName(p)}.targetId = ${readField()};'
               '\n object.${propertyFieldName(p)}.attach(store);';
         case OBXPropertyType.StringVector:
-          fbReader = 'fb.ListReader<String>(fb.StringReader())';
+          fbReader = 'EagerListReader<String>(fb.StringReader())';
           break;
         default:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';

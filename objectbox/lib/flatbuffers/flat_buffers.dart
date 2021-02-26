@@ -39,6 +39,8 @@ typedef void StructBuilder();
 class BufferContext {
   final ByteData _buffer;
 
+  ByteData get buffer => _buffer;
+
   factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
     ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
