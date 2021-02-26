@@ -8,6 +8,8 @@ import '../../flatbuffers/flat_buffers.dart' as fb;
 
 // ignore_for_file: public_member_api_docs
 
+// Note: touch this file with caution, it's a hotspot and optimized for our use.
+
 class BuilderWithCBuffer {
   final _allocator = _Allocator();
   final int _initialSize;
@@ -18,8 +20,8 @@ class BuilderWithCBuffer {
 
   fb.Builder get fbb => _fbb;
 
-  Pointer<Uint8> get bufPtr => Pointer<Uint8>.fromAddress(
-      _allocator.bufPtr.address + _allocator._capacity - _fbb.size);
+  Pointer<Void> get bufPtr => Pointer<Void>.fromAddress(
+      _allocator.bufAddress + _allocator._capacity - _fbb.size);
 
   BuilderWithCBuffer({int initialSize = 256, int resetIfLargerThan = 64 * 1024})
       : _initialSize = initialSize,
@@ -34,79 +36,93 @@ class BuilderWithCBuffer {
     }
   }
 
-  void clear() {
-    if (_allocator._allocs.isEmpty) return;
-    if (_allocator._allocs.length == 1) {
-      // This is the most common case so no need to create an intermediary list.
-      _allocator.deallocate(_allocator._allocs.keys.first);
-    } else {
-      _allocator._allocs.keys
-          .toList(growable: false)
-          .forEach(_allocator.deallocate);
-    }
-  }
+  void clear() => _allocator.close();
 }
 
 // FFI signature
-typedef _dart_memset = void Function(Pointer<Void>, int, int);
+typedef _dart_memset = void Function(Pointer<Uint8>, int, int);
+typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
 _dart_memset _memset;
 
 class _Allocator extends fb.Allocator {
-  // we may have multiple allocations at once (e.g. during [reallocate()])
-  final _allocs = <ByteData, Pointer<Uint8>>{};
+  // We may, in practice, have only two active allocations: one used and one
+  // for resizing. Therefore, we use a ring buffer of a fixed size (2).
+  // Note: keep the list fixed-size - those are much faster to index
+  final _allocs = List<Pointer<Uint8>>.filled(2, nullptr, growable: false);
+
+  // only for testing:
+  // final _data = List<ByteData /*?*/ >.filled(2, null, growable: false);
+
+  // currently used allocator index
+  int _index = 0;
+
+  // allocated buffer capacity
   int _capacity = 0;
 
-  Pointer<Uint8> get bufPtr {
-    if (_allocs.length != 1) {
-      throw Exception(
-          'invalid number of current allocations: ${_allocs.length}');
-    }
-
-    return _allocs.values.first;
+  int get bufAddress {
+    assert(_allocs[_index].address != 0);
+    return _allocs[_index].address;
   }
+
+  // flips _index from 0 to 1 (or back), returning the new value
+  int _flipIndex() => _index == 0 ? ++_index : --_index;
 
   @override
   ByteData allocate(int size) {
     _capacity = size;
-    final ptr = f.allocate<Uint8>(count: size);
-    final data = ByteData.view(ptr.asTypedList(size).buffer);
-    _allocs[data] = ptr;
-    return data;
+    final index = _flipIndex();
+    _allocs[index] = f.allocate<Uint8>(count: size);
+
+    // only for testing:
+    // _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
+    // return _data[index];
+
+    return ByteData.view(_allocs[index].asTypedList(size).buffer);
   }
 
   @override
   void deallocate(ByteData data) {
-    f.free(_allocs[data]);
-    _allocs.remove(data);
+    final index = _index == 0 ? 1 : 0; // get the other index
+
+    // only for testing:
+    // assert(_data[index] == data);
+    // clear(data, true);
+
+    f.free(_allocs[index]);
+    _allocs[index] = nullptr;
   }
 
   @override
   void clear(ByteData data, bool _) {
     if (_memset == null) {
-      try {
-        DynamicLibrary lib;
-        if (Platform.isWindows) {
+      if (Platform.isWindows) {
+        try {
           // DynamicLibrary.process() is not available on Windows, let's load a
           // lib that defines 'memset()' it - should be mscvr100 or mscvrt DLL.
           // mscvr100.dll is in the frequently installed MSVC Redistributable.
-          lib = DynamicLibrary.open('msvcr100.dll');
-        } else {
-          lib = DynamicLibrary.process();
+          _memset = DynamicLibrary.open('msvcr100.dll')
+              .lookupFunction<_c_memset, _dart_memset>('memset');
+        } catch (_) {
+          // fall back if we can't load a native memset()
+          _memset = (Pointer<Uint8> ptr, int byte, int size) {
+            final bytes = ptr.cast<Uint8>();
+            for (var i = 0; i < size; i++) {
+              bytes[i] = byte;
+            }
+          };
         }
-        _memset = lib.lookupFunction<
-            Void Function(Pointer<Void>, Int32, IntPtr),
-            _dart_memset>('memset');
-      } catch (_) {
-        // fall back if we can't load a native memset()
-        _memset = (Pointer<Void> ptr, int byte, int size) {
-          final bytes = ptr.cast<Uint8>();
-          for (var i = 0; i < size; i++) {
-            bytes[i] = byte;
-          }
-        };
+      } else {
+        _memset = DynamicLibrary.process()
+            .lookupFunction<_c_memset, _dart_memset>('memset');
       }
     }
-    _memset(_allocs[data].cast<Void>(), 0, data.lengthInBytes);
+    assert(_allocs[_index].address != 0);
+    _memset(_allocs[_index], 0, data.lengthInBytes);
+  }
+
+  void close() {
+    if (_allocs[0].address != 0) f.free(_allocs[0]);
+    if (_allocs[1].address != 0) f.free(_allocs[1]);
   }
 }

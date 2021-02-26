@@ -19,7 +19,7 @@ void main() {
 
       final fb1 = BuilderWithCBuffer(initialSize: initialSize);
       final list1a = addFbData(fb1.fbb);
-      final list1b = fb1.bufPtr.asTypedList(fb1.fbb.size);
+      final list1b = fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size);
 
       final fb2 = fb_upstream.Builder(initialSize: initialSize);
       final list2 = addFbData(fb2);
@@ -33,7 +33,8 @@ void main() {
       // test resetting
       fb1.fbb.reset();
       expect(addFbData(fb1.fbb), equals(list1a));
-      expect(fb1.bufPtr.asTypedList(fb1.fbb.size), equals(list1b));
+      expect(
+          fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size), equals(list1b));
 
       fb1.clear();
     });
