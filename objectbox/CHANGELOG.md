@@ -1,3 +1,7 @@
+## 0.11.1 (2021-02-26)
+
+* Fix `List<String>` and `List<int>` reading - replace official FlatBuffers lazy reader with a custom (eager) one.
+
 ## 0.11.0 (2021-02-01)
 
 * Add `ToOne<>` class to wrap related entities. See examples for details.
