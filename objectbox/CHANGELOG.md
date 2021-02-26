@@ -1,4 +1,4 @@
-## latest
+## 0.12.0 (2021-02-26)
 
 * Recognize `DateTime` entity fields, setting `PropertyType.date` (millisecond storage precision). 
 * Support specifying `PropertyType.dateNano` for `DateTime` fields (nanosecond storage precision).  
