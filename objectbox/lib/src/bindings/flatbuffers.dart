@@ -9,7 +9,7 @@ import '../../flatbuffers/flat_buffers.dart' as fb;
 // ignore_for_file: public_member_api_docs
 
 class BuilderWithCBuffer {
-  final _allocator = _Allocator();
+  final _allocator = Allocator();
   final int _initialSize;
   final int _resetIfLargerThan;
 
@@ -34,25 +34,16 @@ class BuilderWithCBuffer {
     }
   }
 
-  void clear() {
-    if (_allocator._allocs.isEmpty) return;
-    if (_allocator._allocs.length == 1) {
-      // This is the most common case so no need to create an intermediary list.
-      _allocator.deallocate(_allocator._allocs.keys.first);
-    } else {
-      _allocator._allocs.keys
-          .toList(growable: false)
-          .forEach(_allocator.deallocate);
-    }
-  }
+  void clear() => _allocator.freeAll();
 }
 
 // FFI signature
-typedef _dart_memset = void Function(Pointer<Void>, int, int);
+typedef _dart_memset = void Function(Pointer<Uint8>, int, int);
+typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
-_dart_memset _memset;
+_dart_memset fbMemset;
 
-class _Allocator extends fb.Allocator {
+class Allocator extends fb.Allocator {
   // we may have multiple allocations at once (e.g. during [reallocate()])
   final _allocs = <ByteData, Pointer<Uint8>>{};
   int _capacity = 0;
@@ -83,30 +74,38 @@ class _Allocator extends fb.Allocator {
 
   @override
   void clear(ByteData data, bool _) {
-    if (_memset == null) {
-      try {
-        DynamicLibrary lib;
-        if (Platform.isWindows) {
+    if (fbMemset == null) {
+      if (Platform.isWindows) {
+        try {
           // DynamicLibrary.process() is not available on Windows, let's load a
           // lib that defines 'memset()' it - should be mscvr100 or mscvrt DLL.
           // mscvr100.dll is in the frequently installed MSVC Redistributable.
-          lib = DynamicLibrary.open('msvcr100.dll');
-        } else {
-          lib = DynamicLibrary.process();
+          fbMemset = DynamicLibrary.open('msvcr100.dll')
+              .lookupFunction<_c_memset, _dart_memset>('memset');
+        } catch (_) {
+          // fall back if we can't load a native memset()
+          fbMemset = (Pointer<Uint8> ptr, int byte, int size) {
+            final bytes = ptr.cast<Uint8>();
+            for (var i = 0; i < size; i++) {
+              bytes[i] = byte;
+            }
+          };
         }
-        _memset = lib.lookupFunction<
-            Void Function(Pointer<Void>, Int32, IntPtr),
-            _dart_memset>('memset');
-      } catch (_) {
-        // fall back if we can't load a native memset()
-        _memset = (Pointer<Void> ptr, int byte, int size) {
-          final bytes = ptr.cast<Uint8>();
-          for (var i = 0; i < size; i++) {
-            bytes[i] = byte;
-          }
-        };
+      } else {
+        fbMemset = DynamicLibrary.process()
+            .lookupFunction<_c_memset, _dart_memset>('memset');
       }
     }
-    _memset(_allocs[data].cast<Void>(), 0, data.lengthInBytes);
+    fbMemset(_allocs[data], 0, data.lengthInBytes);
+  }
+
+  void freeAll() {
+    if (_allocs.isEmpty) return;
+    if (_allocs.length == 1) {
+      // This is the most common case so no need to create an intermediary list.
+      deallocate(_allocs.keys.first);
+    } else {
+      _allocs.keys.toList(growable: false).forEach(deallocate);
+    }
   }
 }
