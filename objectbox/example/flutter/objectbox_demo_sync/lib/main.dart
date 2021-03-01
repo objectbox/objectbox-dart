@@ -56,7 +56,8 @@ class ViewModel {
   Query<Note> _query;
 
   ViewModel(Directory dir) {
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox-sync');
+    _store =
+        Store(getObjectBoxModel(), directory: dir.path + '/objectbox-sync');
     _box = Box<Note>(_store);
 
     final dateProp = Note_.date;

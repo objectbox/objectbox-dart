@@ -101,8 +101,8 @@ class Box<T> {
       if (_hasToOneRelations) _putToOneRelFields(object, mode, tx);
     }
     var id = _entity.objectToFB(object, _builder.fbb);
-    final newId = C.box_put_object4(_cBox, _builder.bufPtr,
-        _builder.fbb.size, _getOBXPutMode(mode));
+    final newId = C.box_put_object4(
+        _cBox, _builder.bufPtr, _builder.fbb.size, _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
     if (_hasToManyRelations) _putToManyRelFields(object, mode, tx);
     _builder.resetIfLarge();
