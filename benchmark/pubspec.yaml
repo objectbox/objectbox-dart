@@ -6,6 +6,7 @@ environment:
 
 dependencies:
   objectbox: any
+  benchmark_harness: any
 
 dev_dependencies:
   objectbox_generator: any
