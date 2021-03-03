@@ -109,6 +109,10 @@ class Id {
   /// automatically by ObjectBox. If you need to assign IDs by yourself, use the
   /// @Id(assignable: true) annotation. This will allow putting an object with
   /// any valid ID. You can still set the ID to zero an leave it to ObjectBox.
+  /// Note: in case you use [assignable] IDs on relation targets (with [ToOne]
+  /// or [ToMany]), you're responsible for inserting new target objects before
+  /// the source. If new objects have non-zero IDs ObjectBox has no way of
+  /// telling which objects are new and which are already saved.
   final bool assignable;
 
   /// Create an Id annotation.

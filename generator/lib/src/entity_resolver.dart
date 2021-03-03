@@ -97,7 +97,6 @@ class EntityResolver extends Builder {
       int fieldType;
       var flags = 0;
       int propUid;
-      String dartFieldType; // to be passed to ModelProperty.dartFieldType
 
       if (_idChecker.hasAnnotationOfExact(f)) {
         flags |= OBXPropertyFlags.ID;
