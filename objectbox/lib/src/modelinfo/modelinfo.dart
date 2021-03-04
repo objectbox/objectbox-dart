@@ -177,8 +177,7 @@ class ModelInfo {
   ModelEntity /*?*/ findSameEntity(ModelEntity other) {
     ModelEntity /*?*/ ret;
     if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
-    ret ??= findEntityByName(other.name);
-    return ret;
+    return ret ?? findEntityByName(other.name);
   }
 
   ModelEntity createEntity(String name, [int uid = 0]) {

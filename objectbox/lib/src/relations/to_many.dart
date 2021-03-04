@@ -59,7 +59,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /*late final*/
   EntityDefinition<EntityT> _entity;
 
-  RelInfo _rel;
+  RelInfo /*?*/ _rel;
 
   List<EntityT> /*?*/ __items;
   final _counts = <EntityT, int>{};
@@ -152,7 +152,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// If this collection contains new objects (with zero IDs),  applyToDb()
   /// will put them on-the-fly. For this to work the source object (the object
   /// owing this ToMany) must be already stored because its ID is required.
-  void applyToDb({PutMode mode = PutMode.put, Transaction tx}) {
+  void applyToDb({PutMode mode = PutMode.put, Transaction /*?*/ tx}) {
     if (!_hasPendingDbChanges) return;
     _verifyAttached();
 
@@ -250,7 +250,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       __items.addAll(_addedBeforeLoad);
       _addedBeforeLoad.clear();
     }
-    return __items;
+    return __items /*!*/;
   }
 
   void _verifyAttached() {

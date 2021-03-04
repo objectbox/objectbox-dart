@@ -17,7 +17,7 @@ class TestEnv {
 
   TestEnv._(this.dir, this.store);
 
-  Box<TestEntity> get box => store.box();
+  Box<TestEntity /*!*/ > get box => store.box();
 
   void close() {
     store.close();

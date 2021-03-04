@@ -24,7 +24,7 @@ bool checkObxSuccess(int code) {
 }
 
 Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> /*?*/ ptr,
-    [String dartMsg]) {
+    [String /*?*/ dartMsg]) {
   if (ptr == null || ptr.address == 0) {
     throw latestNativeError(dartMsg: dartMsg);
   }
@@ -154,5 +154,18 @@ class CursorHelper<T> {
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
     return _entity.objectFromFB(_store, readData);
+  }
+}
+
+T withNativeBytes<T>(
+    Uint8List data, T Function(Pointer<Void> ptr, int size) fn) {
+  final size = data.length;
+  assert(size == data.lengthInBytes);
+  final ptr = allocate<Uint8>(count: size);
+  try {
+    ptr.asTypedList(size).setAll(0, data); // copies `data` to `ptr`
+    return fn(ptr.cast<Void>(), size);
+  } finally {
+    free(ptr);
   }
 }

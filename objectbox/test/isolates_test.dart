@@ -126,12 +126,12 @@ void createDataIsolate(SendPort sendPort) async {
   // Send the port where the main isolate can contact us
   sendPort.send(port.sendPort);
 
-  Store store;
+  Store /*?*/ store;
   // Listen for messages
   await for (final msg in port) {
     if (store == null) {
       // first message data is Store's C pointer address
-      store = Store.fromReference(getObjectBoxModel(), msg as ByteData);
+      store = Store.fromReference(getObjectBoxModel(), msg as ByteData /*!*/);
       sendPort.send('store set');
     } else {
       print('Isolate received: $msg');

@@ -302,7 +302,7 @@ void main() {
   });
 
   group('to-one backlink', () {
-    Box<RelatedEntityB> boxB;
+    Box<RelatedEntityB /*!*/ > boxB;
     setUp(() {
       boxB = env.store.box();
       env.box.put(TestEntity(tString: 'foo')
@@ -329,7 +329,7 @@ void main() {
       expect(b[2].testEntities.length, isZero);
 
       // Update an existing target.
-      b[1].testEntities.add(env.box.get(1)); // foo
+      b[1].testEntities.add(env.box.get(1) /*!*/); // foo
       expect(
           b[1].testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
       b[1].testEntities.removeWhere((e) => e.tString == 'bar');
@@ -436,7 +436,7 @@ void main() {
   });
 }
 
-int toInt(dynamic e) => e.tInt as int;
+int toInt(dynamic e) => e.tInt as int /*!*/;
 
 void check<E>(ToMany<E> rel,
     {List<int> items, List<int> added, List<int> removed}) {

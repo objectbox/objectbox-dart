@@ -104,10 +104,10 @@ class ToOne<EntityT> {
     if (id == 0) {
       _value = _ToOneValue<EntityT>.none();
     } else if (_value._state == _ToOneState.unstored &&
-        id == _getId(_value._object)) {
+        id == _getId(_value._object /*!*/)) {
       // Optimization for targetId being set from box.put(sourceObject)
       // after entity.setId(object, newID) was already called on the new target.
-      _value = _ToOneValue<EntityT>.stored(id, _value._object);
+      _value = _ToOneValue<EntityT /*!*/ >.stored(id, _value._object);
     } else if (_value._state != _ToOneState.unknown && id == _value._id) {
       return;
     } else {
@@ -168,7 +168,7 @@ class _ToOneValue<EntityT> {
   const _ToOneValue.lazy(int id) : this._(_ToOneState.lazy, id, null);
 
   /// Known reference established in the database
-  const _ToOneValue.stored(int id, EntityT object)
+  const _ToOneValue.stored(int id, EntityT /*!*/ object)
       : this._(_ToOneState.stored, id, object);
 
   /// ID set but not present in database

@@ -37,7 +37,7 @@ class _QueryBuilder<T> {
   final Store _store;
   final EntityDefinition<T> _entity;
   final Condition /*?*/ _queryCondition;
-  Pointer<OBX_query_builder> /*?*/ _cBuilder;
+  final Pointer<OBX_query_builder> _cBuilder;
   final _innerQBs = <_QueryBuilder>[];
 
   _QueryBuilder(
@@ -50,12 +50,12 @@ class _QueryBuilder<T> {
         _entity = InternalStoreAccess.entityDef<T>(srcQB._store) {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
     _applyCondition();
+    srcQB._innerQBs.add(this);
   }
 
   void _close() {
     _innerQBs.forEach((iqb) => iqb._close());
     checkObx(C.qb_close(_cBuilder));
-    _cBuilder = null;
   }
 
   void _throwExceptionIfNecessary() {
@@ -84,35 +84,31 @@ class _QueryBuilder<T> {
       QueryRelationProperty<_, TargetEntityT> rel,
       [Condition /*?*/ qc]) {
     _throwIfOtherEntity(rel._entityId);
-    _innerQBs.add(_QueryBuilder<TargetEntityT>._link(
-        this, qc, C.qb_link_property(_cBuilder, rel._propertyId)));
-    return _innerQBs.last as _QueryBuilder<TargetEntityT>;
+    return _QueryBuilder<TargetEntityT>._link(
+        this, qc, C.qb_link_property(_cBuilder, rel._propertyId));
   }
 
   _QueryBuilder<SourceEntityT> backlink<SourceEntityT, _>(
       QueryRelationProperty<SourceEntityT, _> rel,
       [Condition /*?*/ qc]) {
     _throwIfOtherEntity(rel._targetEntityId);
-    _innerQBs.add(_QueryBuilder<SourceEntityT>._link(this, qc,
-        C.qb_backlink_property(_cBuilder, rel._entityId, rel._propertyId)));
-    return _innerQBs.last as _QueryBuilder<SourceEntityT>;
+    return _QueryBuilder<SourceEntityT>._link(this, qc,
+        C.qb_backlink_property(_cBuilder, rel._entityId, rel._propertyId));
   }
 
   _QueryBuilder<TargetEntityT> linkMany<_, TargetEntityT>(
       QueryRelationMany<_, TargetEntityT> rel,
       [Condition /*?*/ qc]) {
     _throwIfOtherEntity(rel._entityId);
-    _innerQBs.add(_QueryBuilder<TargetEntityT>._link(
-        this, qc, C.qb_link_standalone(_cBuilder, rel._relationId)));
-    return _innerQBs.last as _QueryBuilder<TargetEntityT>;
+    return _QueryBuilder<TargetEntityT>._link(
+        this, qc, C.qb_link_standalone(_cBuilder, rel._relationId));
   }
 
   _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT, _>(
       QueryRelationMany<SourceEntityT, _> rel,
       [Condition /*?*/ qc]) {
     _throwIfOtherEntity(rel._targetEntityId);
-    _innerQBs.add(_QueryBuilder<SourceEntityT>._link(
-        this, qc, C.qb_backlink_standalone(_cBuilder, rel._relationId)));
-    return _innerQBs.last as _QueryBuilder<SourceEntityT>;
+    return _QueryBuilder<SourceEntityT>._link(
+        this, qc, C.qb_backlink_standalone(_cBuilder, rel._relationId));
   }
 }

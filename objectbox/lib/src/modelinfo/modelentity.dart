@@ -66,7 +66,7 @@ class ModelEntity {
         id = IdUid.fromString(data['id'] as String),
         lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String) {
     name = data['name'] as String;
-    flags = data['flags'] as int ?? 0;
+    flags = data['flags'] as int /*?*/ ?? 0;
 
     if (data['properties'] == null) throw Exception('properties is null');
     for (final p in data['properties']) {
@@ -169,7 +169,7 @@ class ModelEntity {
   ModelProperty /*?*/ findSameProperty(ModelProperty other) {
     ModelProperty /*?*/ ret;
     if (other.id.uid != 0) ret = _findPropertyByUid(other.id.uid);
-    return ret ??= findPropertyByName(other.name);
+    return ret ?? findPropertyByName(other.name);
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {
@@ -197,7 +197,7 @@ class ModelEntity {
     model.retiredPropertyUids.add(prop.id.uid);
 
     if (prop.indexId != null) {
-      model.retiredIndexUids.add(prop.indexId.uid);
+      model.retiredIndexUids.add(prop.indexId /*!*/ .uid);
     }
   }
 
@@ -221,7 +221,7 @@ class ModelEntity {
   ModelRelation /*?*/ findSameRelation(ModelRelation other) {
     ModelRelation /*?*/ ret;
     if (other.id.uid != 0) ret = _findRelationByUid(other.id.uid);
-    return ret ??= _findRelationByName(other.name);
+    return ret ?? _findRelationByName(other.name);
   }
 
   ModelRelation createRelation(String name, [int uid = 0]) {

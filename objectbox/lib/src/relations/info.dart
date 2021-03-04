@@ -51,5 +51,6 @@ class RelInfo<SourceEntityT> {
   RelType get type => _type;
 
   /// Source field associated with this toOne relation backlink.
-  ToOne toOneSourceField(SourceEntityT object) => _getToOneSourceField(object);
+  ToOne toOneSourceField(SourceEntityT object) =>
+      _getToOneSourceField /*!*/ (object);
 }

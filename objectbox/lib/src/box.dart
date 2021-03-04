@@ -104,7 +104,7 @@ class Box<T> {
     final newId = C.box_put_object4(
         _cBox, _builder.bufPtr, _builder.fbb.size, _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
-    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx);
+    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx /*!*/);
     _builder.resetIfLarge();
     return id;
   }
@@ -170,7 +170,8 @@ class Box<T> {
   ///
   /// Pass growableResult: true for the resulting list to be growable.
   List<T /*?*/ > getMany(List<int> ids, {bool growableResult = false}) {
-    final result = List<T>.filled(ids.length, null, growable: growableResult);
+    final result =
+        List<T /*?*/ >.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
     final tx = Transaction(_store, TxMode.read);
     try {

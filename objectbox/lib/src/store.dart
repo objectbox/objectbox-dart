@@ -21,6 +21,8 @@ class Store {
   final _boxes = <Type, Box>{};
   final ModelDefinition _defs;
   bool _closed = false;
+
+  /*late final*/
   ByteData _reference;
 
   /// A list of observers of the Store.close() event.
@@ -104,6 +106,13 @@ class Store {
       }
       rethrow;
     }
+
+    // Always create _reference, so it can be non-nullable.
+    // Ensure we only try to access the store created in the same process.
+    // Also serves as a simple sanity check/hash.
+    _reference = ByteData(2 * _int64Size);
+    _reference.setUint64(0 * _int64Size, pid);
+    _reference.setUint64(1 * _int64Size, _ptr.address);
   }
 
   /// Create a Dart store instance from an existing native store reference.
@@ -159,18 +168,7 @@ class Store {
 
   /// Returns a store reference you can use to create a new store instance with
   /// a single underlying native store. See [Store.attach()] for more details.
-  ByteData get reference {
-    if (_reference == null) {
-      _reference = ByteData(2 * _int64Size);
-
-      // Ensure we only try to access the store created in the same process.
-      // Also serves as a simple sanity check/hash.
-      _reference.setUint64(0 * _int64Size, pid);
-
-      _reference.setUint64(1 * _int64Size, _ptr.address);
-    }
-    return _reference;
-  }
+  ByteData get reference => _reference;
 
   /// Closes this store.
   ///
@@ -195,7 +193,7 @@ class Store {
     if (!_boxes.containsKey(T)) {
       return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
     }
-    return _boxes[T] as Box<T>;
+    return _boxes[T] as Box<T /*!*/ > /*!*/;
   }
 
   EntityDefinition<T> _entityDef<T>() {

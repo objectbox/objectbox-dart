@@ -45,7 +45,7 @@ class BuilderWithCBuffer {
 typedef _dart_memset = void Function(Pointer<Uint8>, int, int);
 typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
-_dart_memset fbMemset;
+_dart_memset /*?*/ fbMemset;
 
 class Allocator extends fb.Allocator {
   // We may, in practice, have only two active allocations: one used and one
@@ -76,7 +76,7 @@ class Allocator extends fb.Allocator {
     final index = _flipIndex();
     _allocs[index] = f.allocate<Uint8>(count: size);
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
-    return _data[index];
+    return _data[index] /*!*/;
   }
 
   @override
@@ -119,7 +119,7 @@ class Allocator extends fb.Allocator {
     assert(_data[_index] == data);
     assert(_allocs[_index].address != 0);
 
-    fbMemset(_allocs[_index], 0, data.lengthInBytes);
+    fbMemset /*!*/ (_allocs[_index], 0, data.lengthInBytes);
   }
 
   void freeAll() {

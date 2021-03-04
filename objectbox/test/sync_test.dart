@@ -18,7 +18,7 @@ void main() {
   /*late final*/ TestEnv env;
   /*late final*/
   Store store;
-  TestEnv /*?*/ env2;
+  /*late final*/ TestEnv env2;
   int serverPort = 9999;
 
   setUp(() {
@@ -164,11 +164,11 @@ void main() {
     });
 
     group('Sync tests with server', () {
-      SyncServer server;
+      /*late final*/ SyncServer server;
       setUp(() async {
         server = SyncServer();
         await server.start();
-        serverPort = server.port;
+        serverPort = server.port /*!*/;
       });
 
       tearDown(() async {
@@ -357,9 +357,9 @@ void main() {
 
 /// sync-server process wrapper for testing clients
 class SyncServer {
-  Directory /*?*/ dir;
-  int /*?*/ port;
-  Future<Process> /*?*/ process;
+  /*late final*/ Directory dir;
+  /*late final*/ int port;
+  /*late final*/ Future<Process> process;
 
   static bool isAvailable() {
     // Note: this causes an additional valgrind summary output with a leak.

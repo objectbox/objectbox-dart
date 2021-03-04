@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
-import 'bindings/structs.dart';
 import 'modelinfo/entity_definition.dart';
 import 'store.dart';
 import 'util.dart';
@@ -203,15 +202,13 @@ class SyncClient {
 
   /// Configure authentication credentials, depending on your server config.
   void setCredentials(SyncCredentials creds) {
-    final cCreds = OBX_bytes_wrapper.managedCopyOf(creds._data, align: false);
-    try {
-      checkObx(C.sync_credentials(
-          ptr,
-          creds._type,
-          creds._type == OBXSyncCredentialsType.NONE ? nullptr : cCreds.ptr,
-          cCreds.size));
-    } finally {
-      cCreds.freeManaged();
+    if (creds._type == OBXSyncCredentialsType.NONE) {
+      checkObx(C.sync_credentials(ptr, creds._type, nullptr, 0));
+    } else {
+      withNativeBytes(
+          creds._data,
+          (Pointer<Void> credsPtr, int credsSize) => checkObx(
+              C.sync_credentials(ptr, creds._type, credsPtr, credsSize)));
     }
   }
 

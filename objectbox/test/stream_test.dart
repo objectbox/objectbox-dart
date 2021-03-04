@@ -10,7 +10,7 @@ import 'test_env.dart';
 void main() {
   /*late final*/ TestEnv env;
   /*late final*/
-  Box<TestEntity> box;
+  Box<TestEntity /*!*/ > box;
 
   setUp(() {
     env = TestEnv('streams');

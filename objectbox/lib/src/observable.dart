@@ -12,7 +12,7 @@ import 'store.dart';
 /// Simple wrapper used below in ObservableStore to reduce code duplication.
 /// Contains shared code for single-entity observer and the generic/global one.
 class _Observer<StreamValueType> {
-  StreamController<StreamValueType> /*?*/ controller;
+  /*late final*/ StreamController<StreamValueType> controller;
   Pointer<OBX_observer> /*?*/ _cObserver;
   ReceivePort /*?*/ receivePort;
 
@@ -23,7 +23,7 @@ class _Observer<StreamValueType> {
     _debugLog('started');
   }
 
-  Stream<StreamValueType> get stream => controller /*!*/ .stream;
+  Stream<StreamValueType> get stream => controller.stream;
 
   _Observer() {
     initializeDartAPI();

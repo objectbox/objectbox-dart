@@ -15,6 +15,7 @@ import '../store.dart';
 import '../transaction.dart';
 
 part 'builder.dart';
+
 part 'property.dart';
 
 // ignore_for_file: public_member_api_docs
@@ -432,7 +433,7 @@ class _IntegerCondition extends _PropertyCondition<int> {
       : super(op, prop, value, value2);
 
   int _op1(_QueryBuilder builder,
-          int Function(Pointer<OBX_query_builder>, int, int /*?*/) func) =>
+          int Function(Pointer<OBX_query_builder>, int, int) func) =>
       func(builder._cBuilder, _property._propertyId, _value);
 
   @override
@@ -452,7 +453,7 @@ class _IntegerCondition extends _PropertyCondition<int> {
         return _op1(builder, C.qb_less_or_equal_int);
       case _ConditionOp.between:
         return C.qb_between_2ints(
-            builder._cBuilder, _property._propertyId, _value, _value2);
+            builder._cBuilder, _property._propertyId, _value, _value2 /*!*/);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
     }
@@ -541,7 +542,7 @@ class _DoubleCondition extends _PropertyCondition<double> {
             builder._cBuilder, _property._propertyId, _value);
       case _ConditionOp.between:
         return C.qb_between_2doubles(
-            builder._cBuilder, _property._propertyId, _value, _value2);
+            builder._cBuilder, _property._propertyId, _value, _value2 /*!*/);
       default:
         throw Exception('Unsupported operation ${_op.toString()}');
     }
@@ -552,16 +553,14 @@ class _ByteVectorCondition extends _PropertyCondition<Uint8List> {
   _ByteVectorCondition(_ConditionOp op, QueryProperty prop, Uint8List value)
       : super(op, prop, value);
 
-  int _op1(_QueryBuilder builder,
-      int Function(Pointer<OBX_query_builder>, int, Pointer<Void>, int) func) {
-    final cBytes = OBX_bytes_wrapper.managedCopyOf(_value, align: false);
-    try {
-      return func(
-          builder._cBuilder, _property._propertyId, cBytes.ptr, cBytes.size);
-    } finally {
-      cBytes.freeManaged();
-    }
-  }
+  int _op1(
+          _QueryBuilder builder,
+          int Function(Pointer<OBX_query_builder>, int, Pointer<Void>, int)
+              func) =>
+      withNativeBytes(
+          _value,
+          (Pointer<Void> ptr, int size) =>
+              func(builder._cBuilder, _property._propertyId, ptr, size));
 
   @override
   int _apply(_QueryBuilder builder, {/*required*/ bool isRoot}) {

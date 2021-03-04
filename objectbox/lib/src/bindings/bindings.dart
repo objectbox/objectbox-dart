@@ -58,7 +58,7 @@ void initializeDartAPI() {
   if (_dartAPIinitialized == null) {
     final errCode = C.dartc_init_api(NativeApi.initializeApiDLData);
     _dartAPIinitialized = (OBX_SUCCESS == errCode);
-    if (!_dartAPIinitialized) {
+    if (!_dartAPIinitialized /*!*/) {
       _dartAPIinitException = latestNativeError(
           codeIfMissing: errCode,
           dartMsg: "Dart/Flutter SDK you're using is not compatible with "

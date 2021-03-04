@@ -61,7 +61,7 @@ class ObjectBoxException implements Exception {
       if (nativeCode != 0 || nativeMsg != null) result += ': ';
     }
     if (nativeCode != 0) result += '$nativeCode ';
-    if (nativeMsg != null) result += nativeMsg;
+    if (nativeMsg != null) result += nativeMsg /*!*/;
     return result.trimRight();
   }
 }
