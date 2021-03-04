@@ -27,6 +27,23 @@ class TestEnv {
   }
 }
 
+// Whether we can run tests depending on async callbacks. See issue #197
+bool asyncCallbacksAvailable() {
+  if (() {
+    final sdkVersion = Platform.version.split(RegExp('[. ]'));
+    if (sdkVersion.length < 3) return false;
+    if (sdkVersion[0] != '2') return false;
+    if (!['9', '10'].contains(sdkVersion[1])) return false;
+    return true;
+  }()) {
+    return true;
+  } else {
+    print(
+        'Skipping some tests - SDK not compatible with native async listeners: ${Platform.version}');
+    return false;
+  }
+}
+
 const defaultTimeout = Duration(milliseconds: 1000);
 
 /// "Busy-waits" until the predicate returns true.

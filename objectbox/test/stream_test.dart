@@ -17,6 +17,8 @@ void main() {
     box = env.box;
   });
 
+  if (!asyncCallbacksAvailable()) return;
+
   test('Subscribe to stream of entities', () async {
     final result = <String>[];
     final text = TestEntity_.tString;

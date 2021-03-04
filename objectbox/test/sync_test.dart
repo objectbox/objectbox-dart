@@ -340,7 +340,7 @@ void main() {
         client2.close();
       });
     },
-        skip: SyncServer.isAvailable()
+        skip: SyncServer.isAvailable() && asyncCallbacksAvailable()
             ? null
             : 'sync-server executable is not available in PATH - tests requiring it are skipped');
   } else {

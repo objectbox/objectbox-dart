@@ -30,6 +30,8 @@ void main() async {
     env.close();
   });
 
+  if (!asyncCallbacksAvailable()) return;
+
   test('Observe single entity', () async {
     Completer<void> completer;
     var expectedEvents = 0;
