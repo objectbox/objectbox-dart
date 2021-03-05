@@ -1,5 +1,4 @@
 // ignore_for_file: non_constant_identifier_names
-// ignore_for_file: unused_field      // TEMPORARY, see related commit message
 
 // AUTO GENERATED FILE, DO NOT EDIT.
 //
@@ -5457,7 +5456,7 @@ abstract class OBXPropertyFlags {
 /// ///   obx_model_last_relation_id()
 class OBX_model extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// Store represents a single database.
@@ -5466,7 +5465,7 @@ class OBX_model extends ffi.Struct {
 /// /// It's possible to have multiple stores open at once, there's no globally shared state.
 class OBX_store extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// Store options customize the behavior of ObjectBox before opening a store. Options can't be changed once the store is
@@ -5474,7 +5473,7 @@ class OBX_store extends ffi.Struct {
 /// /// Some of the notable options are obx_opt_directory() and obx_opt_max_db_size_in_kb().
 class OBX_store_options extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 abstract class OBXDebugFlags {
@@ -5595,13 +5594,13 @@ class OBX_float_array extends ffi.Struct {
 /// /// usually worth learning transaction basics to make your app more consistent and efficient, especially for writes.
 class OBX_txn extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// Cursor provides fine-grained (lower level API) access to the stored objects. Check also the more convenient Box API.
 class OBX_cursor extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 abstract class OBXPutMode {
@@ -5623,20 +5622,20 @@ abstract class OBXPutMode {
 /// /// logically belong together (or for better performance).
 class OBX_box extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// Created by obx_box_async, used for async operations like obx_async_put.
 class OBX_async extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// You use QueryBuilder to specify criteria and create a Query which actually executes the query and returns matching
 /// /// objects.
 class OBX_query_builder extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// Not really an enum, but binary flags to use across languages
@@ -5665,25 +5664,25 @@ abstract class OBXOrderFlags {
 /// /// you may want to create clonse using obx_query_clone().
 class OBX_query extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// PropertyQuery - getting a single property instead of whole objects. Also provides aggregation over properties.
 class OBX_query_prop extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 /// /// Observers are called back when data has changed in the database.
 /// /// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
 class OBX_observer extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 class OBX_sync extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 abstract class OBXSyncCredentialsType {
@@ -5743,7 +5742,7 @@ class OBX_sync_change_array extends ffi.Struct {
 
 class OBX_dart_sync_listener extends ffi.Struct {
   @ffi.Int32()
-  int _dummy;
+  int dummy;
 }
 
 const int OBX_VERSION_MAJOR = 0;
