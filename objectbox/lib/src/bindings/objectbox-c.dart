@@ -5454,18 +5454,27 @@ abstract class OBXPropertyFlags {
 /// /// - define entity types using obx_model_entity() and obx_model_property()
 /// /// - Pass the last ever used IDs with obx_model_last_entity_id(), obx_model_last_index_id(),
 /// ///   obx_model_last_relation_id()
-class OBX_model extends ffi.Struct {}
+class OBX_model extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// Store represents a single database.
 /// /// Once opened using obx_store_open(), it's an entry point to data access APIs such as box, query, cursor, transaction.
 /// /// After your work is done, you must close obx_store_close() to safely release all the handles and avoid data loss.
 /// /// It's possible to have multiple stores open at once, there's no globally shared state.
-class OBX_store extends ffi.Struct {}
+class OBX_store extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// Store options customize the behavior of ObjectBox before opening a store. Options can't be changed once the store is
 /// /// open but of course you can close the store and open it again with the changed options.
 /// /// Some of the notable options are obx_opt_directory() and obx_opt_max_db_size_in_kb().
-class OBX_store_options extends ffi.Struct {}
+class OBX_store_options extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 abstract class OBXDebugFlags {
   static const int LOG_TRANSACTIONS_READ = 1;
@@ -5583,10 +5592,16 @@ class OBX_float_array extends ffi.Struct {
 /// /// is done under the hood and transparent to you.
 /// /// However, there are situations where an explicit read transaction is necessary, e.g. obx_box_get(). Also, it’s
 /// /// usually worth learning transaction basics to make your app more consistent and efficient, especially for writes.
-class OBX_txn extends ffi.Struct {}
+class OBX_txn extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// Cursor provides fine-grained (lower level API) access to the stored objects. Check also the more convenient Box API.
-class OBX_cursor extends ffi.Struct {}
+class OBX_cursor extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 abstract class OBXPutMode {
   /// /// Standard put ("insert or update")
@@ -5605,14 +5620,23 @@ abstract class OBXPutMode {
 /// /// And because transactions offered by this C API are always reentrant, you can set your own transaction boundary
 /// /// using obx_txn_read() or obx_txn_write(). This is very much encouraged for calling multiple write operations that
 /// /// logically belong together (or for better performance).
-class OBX_box extends ffi.Struct {}
+class OBX_box extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// Created by obx_box_async, used for async operations like obx_async_put.
-class OBX_async extends ffi.Struct {}
+class OBX_async extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// You use QueryBuilder to specify criteria and create a Query which actually executes the query and returns matching
 /// /// objects.
-class OBX_query_builder extends ffi.Struct {}
+class OBX_query_builder extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// Not really an enum, but binary flags to use across languages
 abstract class OBXOrderFlags {
@@ -5638,16 +5662,28 @@ abstract class OBXOrderFlags {
 /// /// any number of times. It also supports parametrization before executing, further improving the reusability.
 /// /// Query is NOT thread safe and must only be used from a single thread at the same time. If you prefer to avoid locks,
 /// /// you may want to create clonse using obx_query_clone().
-class OBX_query extends ffi.Struct {}
+class OBX_query extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// PropertyQuery - getting a single property instead of whole objects. Also provides aggregation over properties.
-class OBX_query_prop extends ffi.Struct {}
+class OBX_query_prop extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 /// /// Observers are called back when data has changed in the database.
 /// /// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
-class OBX_observer extends ffi.Struct {}
+class OBX_observer extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
-class OBX_sync extends ffi.Struct {}
+class OBX_sync extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 abstract class OBXSyncCredentialsType {
   static const int NONE = 0;
@@ -5704,7 +5740,10 @@ class OBX_sync_change_array extends ffi.Struct {
   int count;
 }
 
-class OBX_dart_sync_listener extends ffi.Struct {}
+class OBX_dart_sync_listener extends ffi.Struct {
+  @ffi.Int32()
+  int _dummy;
+}
 
 const int OBX_VERSION_MAJOR = 0;
 

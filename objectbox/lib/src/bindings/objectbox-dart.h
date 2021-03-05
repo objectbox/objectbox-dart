@@ -44,7 +44,7 @@ OBX_observer* obx_dart_observe(OBX_store* store, int64_t native_port);
 OBX_observer* obx_dart_observe_single_type(OBX_store* store, obx_schema_id type_id, int64_t native_port);
 
 // Note: use OBX_dart_sync_listener_close() to unassign the listener and free native resources
-struct OBX_dart_sync_listener;
+struct OBX_dart_sync_listener { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_dart_sync_listener OBX_dart_sync_listener;
 
 /// @param listener may be NULL

@@ -340,7 +340,7 @@ typedef enum {
 /// - define entity types using obx_model_entity() and obx_model_property()
 /// - Pass the last ever used IDs with obx_model_last_entity_id(), obx_model_last_index_id(),
 ///   obx_model_last_relation_id()
-struct OBX_model;
+struct OBX_model { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_model OBX_model;
 
 /// Create an (empty) data meta model which is to be consumed by obx_opt_model().
@@ -428,13 +428,13 @@ obx_err obx_model_entity_last_property_id(OBX_model* model, obx_schema_id proper
 /// Once opened using obx_store_open(), it's an entry point to data access APIs such as box, query, cursor, transaction.
 /// After your work is done, you must close obx_store_close() to safely release all the handles and avoid data loss.
 /// It's possible to have multiple stores open at once, there's no globally shared state.
-struct OBX_store;
+struct OBX_store { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_store OBX_store;
 
 /// Store options customize the behavior of ObjectBox before opening a store. Options can't be changed once the store is
 /// open but of course you can close the store and open it again with the changed options.
 /// Some of the notable options are obx_opt_directory() and obx_opt_max_db_size_in_kb().
-struct OBX_store_options;
+struct OBX_store_options { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_store_options OBX_store_options;
 
 typedef enum {
@@ -715,7 +715,7 @@ obx_err obx_store_close(OBX_store* store);
 /// is done under the hood and transparent to you.
 /// However, there are situations where an explicit read transaction is necessary, e.g. obx_box_get(). Also, it’s
 /// usually worth learning transaction basics to make your app more consistent and efficient, especially for writes.
-struct OBX_txn;
+struct OBX_txn { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_txn OBX_txn;
 
 /// Create a write transaction (read and write).
@@ -759,7 +759,7 @@ obx_err obx_txn_mark_success(OBX_txn* txn, bool wasSuccessful);
 //------------------------------------------------------------------
 
 /// Cursor provides fine-grained (lower level API) access to the stored objects. Check also the more convenient Box API.
-struct OBX_cursor;
+struct OBX_cursor { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_cursor OBX_cursor;
 
 typedef enum {
@@ -905,7 +905,7 @@ obx_err obx_cursor_ts_min_max_range(OBX_cursor* cursor, int64_t range_begin, int
 /// And because transactions offered by this C API are always reentrant, you can set your own transaction boundary
 /// using obx_txn_read() or obx_txn_write(). This is very much encouraged for calling multiple write operations that
 /// logically belong together (or for better performance).
-struct OBX_box;
+struct OBX_box { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_box OBX_box;
 
 /// Get access to the box for the given entity. A box may be used across threads.
@@ -1100,7 +1100,7 @@ obx_err obx_box_ts_min_max_range(OBX_box* box, int64_t range_begin, int64_t rang
 //----------------------------------------------
 
 /// Created by obx_box_async, used for async operations like obx_async_put.
-struct OBX_async;
+struct OBX_async { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_async OBX_async;
 
 /// Note: DO NOT close this OBX_async; its lifetime is tied to the OBX_box instance.
@@ -1145,7 +1145,7 @@ obx_err obx_async_close(OBX_async* async);
 
 /// You use QueryBuilder to specify criteria and create a Query which actually executes the query and returns matching
 /// objects.
-struct OBX_query_builder;
+struct OBX_query_builder { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_query_builder OBX_query_builder;
 
 /// Not really an enum, but binary flags to use across languages
@@ -1350,7 +1350,7 @@ OBX_query_builder* obx_qb_link_time(OBX_query_builder* builder, obx_schema_id li
 /// any number of times. It also supports parametrization before executing, further improving the reusability.
 /// Query is NOT thread safe and must only be used from a single thread at the same time. If you prefer to avoid locks,
 /// you may want to create clonse using obx_query_clone().
-struct OBX_query;
+struct OBX_query { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_query OBX_query;
 
 /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
@@ -1467,7 +1467,7 @@ size_t obx_query_param_alias_get_type_size(OBX_query* query, const char* alias);
 //----------------------------------------------
 
 /// PropertyQuery - getting a single property instead of whole objects. Also provides aggregation over properties.
-struct OBX_query_prop;
+struct OBX_query_prop { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_query_prop OBX_query_prop;
 
 /// Create a "property query" with results referring to single property (not complete objects).
@@ -1598,7 +1598,7 @@ OBX_float_array* obx_query_prop_find_floats(OBX_query_prop* query, const float* 
 
 /// Observers are called back when data has changed in the database.
 /// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
-struct OBX_observer;
+struct OBX_observer { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_observer OBX_observer;
 
 /// Callback for obx_observe()
@@ -1705,7 +1705,7 @@ void obx_posix_sem_prefix_set(const char* prefix);
 /// @deprecated use obx_has_feature(OBXFeature_Sync)
 bool obx_sync_available();
 
-struct OBX_sync;
+struct OBX_sync { int _dummy; /* TEMPORARY - prevent Dart SDK 2.12 warning before fully migrating */ };
 typedef struct OBX_sync OBX_sync;
 
 typedef enum {

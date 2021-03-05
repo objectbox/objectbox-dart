@@ -52,7 +52,7 @@ ffigen:
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
   # add location to standard library imports, e.g. stddef.h
-  compiler-opts: '-I/usr/lib/clang/11.0.1/include'
+  compiler-opts: '-I/usr/lib/clang/11.1.0/include'
   typedef-map:
     'size_t': 'IntPtr'
   preamble: |
