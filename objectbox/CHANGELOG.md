@@ -1,4 +1,4 @@
-## latest
+## 0.12.1 (2021-03-05)
 
 * Further performance optimizations in our FlatBuffers fork.
 * Avoid empty FFI structs - get rid of "INFO" messages with new Dart SDK v2.12.
