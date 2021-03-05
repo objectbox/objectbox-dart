@@ -4,17 +4,25 @@ import 'dart:typed_data';
 import 'package:flat_buffers/flat_buffers.dart' as fb_upstream;
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/bindings/flatbuffers.dart';
+import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
 import 'package:test/test.dart';
 
 import 'entity.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
-Uint8List addFbData(dynamic fbb) {
+Uint8List addFbData(fb.Builder fbb) {
+  fbb.startTable(2);
+  fbb.addInt32(0, 24);
+  fbb.addInt64(1, 42);
+  return fbb.finish(fbb.endTable());
+}
+
+Uint8List addFbDataUpstream(fb_upstream.Builder fbb) {
   fbb.startTable();
   fbb.addInt32(0, 24);
   fbb.addInt64(1, 42);
-  return fbb.finish(fbb.endTable()) as Uint8List;
+  return fbb.finish(fbb.endTable());
 }
 
 void main() {
@@ -27,7 +35,7 @@ void main() {
       final list1b = fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size);
 
       final fb2 = fb_upstream.Builder(initialSize: initialSize);
-      final list2 = addFbData(fb2);
+      final list2 = addFbDataUpstream(fb2);
 
       printOnFailure(list1a.toString());
       printOnFailure(list1b.toString());

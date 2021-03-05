@@ -117,7 +117,8 @@ class CodeChunks {
           if (p.type == OBXPropertyType.Date) {
             accessorSuffix = '?.millisecondsSinceEpoch';
           } else if (p.type == OBXPropertyType.DateNano) {
-            accessorSuffix = ' == null ? null : object.${propertyFieldName(p)}.microsecondsSinceEpoch * 1000';
+            accessorSuffix =
+                ' == null ? null : object.${propertyFieldName(p)}.microsecondsSinceEpoch * 1000';
           }
         }
         return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
@@ -126,7 +127,7 @@ class CodeChunks {
 
     return '''(${entity.name} object, fb.Builder fbb) {
       ${offsetsCode.join('\n')}
-      fbb.startTable();
+      fbb.startTable(${entity.lastPropertyId.id + 1});
       ${propsCode.join('\n')}
       fbb.finish(fbb.endTable());
       return object.${propertyFieldName(entity.idProperty)} ?? 0;

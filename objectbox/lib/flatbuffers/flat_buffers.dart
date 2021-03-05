@@ -116,7 +116,9 @@ class Builder {
 
   /// The list of existing VTable(s).
   //final List<_VTable> _vTables = <_VTable>[];
-  final List<int> _vTables = <int>[];
+  final List<int> _vTables = <int>[]
+    ..length = 16
+    ..length = 0;
 
   ByteData _buf;
 
@@ -125,15 +127,15 @@ class Builder {
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
   /// reallocation will need to be a multiple of this many bytes.
-  int _maxAlign;
+  int _maxAlign = 1;
 
   /// The number of bytes that have been written to the buffer so far.  The
   /// most recently written byte is this many bytes from the end of [_buf].
-  int _tail;
+  int _tail = 0;
 
   /// The location of the end of the current table, measured in bytes from the
   /// end of [_buf], or `null` if a table is not currently being built.
-  int _currentTableEndTail;
+  int _currentTableEndTail = 0;
 
   _VTable _currentVTable;
 
@@ -158,7 +160,7 @@ class Builder {
     reset();
   }
 
-  int get size => _tail + ((-_tail) % _maxAlign);
+  int get size => _tail + ((-_tail) & (_maxAlign - 1));
 
   /// Add the [field] with the given boolean [value].  The field is not added if
   /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
@@ -457,18 +459,18 @@ class Builder {
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
-    _vTables.clear();
+    _vTables.length = 0;
     if (_strings != null) {
       _strings = new Map<String, int>();
     }
   }
 
   /// Start a new table.  Must be finished with [endTable] invocation.
-  void startTable() {
+  void startTable(int numFields) {
     if (_currentVTable != null) {
       throw new StateError('Inline tables are not supported.');
     }
-    _currentVTable = new _VTable();
+    _currentVTable = new _VTable(numFields);
     _currentTableEndTail = _tail;
   }
 
@@ -715,6 +717,7 @@ class Builder {
   /// Prepare for writing the given `count` of scalars of the given `size`.
   /// Additionally allocate the specified `additionalBytes`. Update the current
   /// tail pointer to point at the allocated space.
+  @pragma('vm:prefer-inline')
   void _prepare(int size, int count, {int additionalBytes = 0}) {
     // Update the alignment.
     if (_maxAlign < size) {
@@ -722,7 +725,7 @@ class Builder {
     }
     // Prepare amount of required space.
     int dataSize = size * count + additionalBytes;
-    int alignDelta = (-(_tail + dataSize)) % size;
+    int alignDelta = (-(_tail + dataSize)) & (size - 1);
     int bufSize = alignDelta + dataSize;
     // Ensure that we have the required amount of space.
     {
@@ -730,7 +733,7 @@ class Builder {
       if (_tail + bufSize > oldCapacity) {
         int desiredNewCapacity = (oldCapacity + bufSize) * 2;
         int deltaCapacity = desiredNewCapacity - oldCapacity;
-        deltaCapacity += (-deltaCapacity) % _maxAlign;
+        deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
         int newCapacity = oldCapacity + deltaCapacity;
         _buf = _allocator.reallocateDownward(_buf, newCapacity, oldCapacity, 0);
       }
@@ -740,46 +743,57 @@ class Builder {
   }
 
   /// Record the offset of the given [field].
+  @pragma('vm:prefer-inline')
   void _trackField(int field) {
     _currentVTable.addField(field, _tail);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
     _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setFloat32AtTail(ByteData _buf, int tail, double x) {
     _buf.setFloat32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setUint64AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setInt64AtTail(ByteData _buf, int tail, int x) {
     _buf.setInt64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
     _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setInt16AtTail(ByteData _buf, int tail, int x) {
     _buf.setInt16(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setUint16AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint16(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setInt8AtTail(ByteData _buf, int tail, int x) {
     _buf.setInt8(_buf.lengthInBytes - tail, x);
   }
 
+  @pragma('vm:prefer-inline')
   static void _setUint8AtTail(ByteData _buf, int tail, int x) {
     _buf.setUint8(_buf.lengthInBytes - tail, x);
   }
@@ -1194,25 +1208,23 @@ class _FbBoolList extends _FbList<bool> {
 class _VTable {
   static const int _metadataLength = 4;
 
-  final List<int> fieldTails = <int>[];
-  final List<int> fieldOffsets = <int>[];
+  final Uint32List fieldOffsets;
+
+  _VTable(int numFields) : fieldOffsets = Uint32List(numFields);
 
   /// The size of the table that uses this VTable.
-  int tableSize;
+  int tableSize = 0;
 
   /// The tail of this VTable.  It is used to share the same VTable between
   /// multiple tables of identical structure.
-  int tail;
+  int tail = 0;
 
   int get _vTableSize => numOfUint16 * _sizeofUint16;
 
-  int get numOfUint16 => 1 + 1 + fieldTails.length;
+  int get numOfUint16 => 1 + 1 + fieldOffsets.length;
 
   void addField(int field, int offset) {
-    while (fieldTails.length <= field) {
-      fieldTails.add(null);
-    }
-    fieldTails[field] = offset;
+    fieldOffsets[field] = offset;
   }
 
   bool _offsetsMatch(int vt2Start, ByteData buf) {
@@ -1227,10 +1239,10 @@ class _VTable {
 
   /// Fill the [fieldOffsets] field.
   void computeFieldOffsets(int tableTail) {
-    assert(fieldOffsets.isEmpty);
-    for (int fieldTail in fieldTails) {
+    for (var i = 0; i < fieldOffsets.length; i++) {
+      int fieldTail = fieldOffsets[i];
       int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
-      fieldOffsets.add(fieldOffset);
+      fieldOffsets[i] = fieldOffset;
     }
   }
 
@@ -1244,7 +1256,8 @@ class _VTable {
     buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
-    for (int fieldOffset in fieldOffsets) {
+    for (int i = 0; i < fieldOffsets.length; i++) {
+      final fieldOffset = fieldOffsets[i];
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
     }
