@@ -1208,9 +1208,11 @@ class _FbBoolList extends _FbList<bool> {
 class _VTable {
   static const int _metadataLength = 4;
 
+  // Note: fieldOffsets start as "tail offsets"+1 and are then transformed to
+  // actual offsets when a table is finished, by calling [computeFieldOffsets].
   final Uint32List fieldOffsets;
-  static const missingField = 4294967295; // Uint32 max
-  int lastSetField = -1;
+  static const uint32Max = 4294967295;
+  bool offsetsComputed = false;
 
   _VTable(int numFields) : fieldOffsets = Uint32List(numFields);
 
@@ -1226,15 +1228,15 @@ class _VTable {
   int get numOfUint16 => 1 + 1 + fieldOffsets.length;
 
   void addField(int field, int offset) {
-    // add missing fields up to the currently set one
-    fieldOffsets.fillRange(lastSetField + 1, field, missingField);
-    assert(offset != missingField); // the assumption we depend on above
-
-    fieldOffsets[field] = offset;
-    lastSetField = field;
+    assert(!offsetsComputed);
+    // We need to increase the offset by 1 to later (in [computeFieldOffsets])
+    // recognize fields that haven't been set (Uint32List initializes to 0s).
+    assert(offset < uint32Max);
+    fieldOffsets[field] = offset + 1;
   }
 
   bool _offsetsMatch(int vt2Start, ByteData buf) {
+    assert(offsetsComputed);
     for (int i = 0; i < fieldOffsets.length; i++) {
       if (fieldOffsets[i] !=
           buf.getUint16(vt2Start + _metadataLength + (2 * i), Endian.little)) {
@@ -1246,19 +1248,18 @@ class _VTable {
 
   /// Fill the [fieldOffsets] field.
   void computeFieldOffsets(int tableTail) {
+    assert(!offsetsComputed);
+    offsetsComputed = true;
     for (var i = 0; i < fieldOffsets.length; i++) {
       int fieldTail = fieldOffsets[i];
-      if (i > lastSetField || fieldTail == missingField) {
-        fieldOffsets[i] = 0;
-      } else {
-        fieldOffsets[i] = tableTail - fieldTail;
-      }
+      fieldOffsets[i] = fieldTail == 0 ? 0 : tableTail - fieldTail + 1;
     }
   }
 
   /// Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
   /// and have at least [numOfUint16] 16-bit words available.
   void output(ByteData buf, int bufOffset) {
+    assert(offsetsComputed);
     // VTable size.
     buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
     bufOffset += 2;
