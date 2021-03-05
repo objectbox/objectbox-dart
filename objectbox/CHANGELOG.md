@@ -1,3 +1,9 @@
+## latest
+
+* Further performance optimizations in our FlatBuffers fork.
+* Avoid empty FFI structs - get rid of "INFO" messages with new Dart SDK v2.12.
+* More internal changes in preparation for null-safety. 
+
 ## 0.12.0 (2021-02-26)
 
 * Recognize `DateTime` entity fields, setting `PropertyType.date` (millisecond storage precision). 
