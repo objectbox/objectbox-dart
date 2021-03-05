@@ -1,4 +1,5 @@
 // ignore_for_file: non_constant_identifier_names
+// ignore_for_file: unused_field      // TEMPORARY, see related commit message
 
 // AUTO GENERATED FILE, DO NOT EDIT.
 //
