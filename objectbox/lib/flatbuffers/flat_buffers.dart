@@ -1209,6 +1209,8 @@ class _VTable {
   static const int _metadataLength = 4;
 
   final Uint32List fieldOffsets;
+  static const missingField = 4294967295; // Uint32 max
+  int lastSetField = -1;
 
   _VTable(int numFields) : fieldOffsets = Uint32List(numFields);
 
@@ -1224,7 +1226,12 @@ class _VTable {
   int get numOfUint16 => 1 + 1 + fieldOffsets.length;
 
   void addField(int field, int offset) {
+    // add missing fields up to the currently set one
+    fieldOffsets.fillRange(lastSetField + 1, field, missingField);
+    assert(offset != missingField); // the assumption we depend on above
+
     fieldOffsets[field] = offset;
+    lastSetField = field;
   }
 
   bool _offsetsMatch(int vt2Start, ByteData buf) {
@@ -1241,8 +1248,11 @@ class _VTable {
   void computeFieldOffsets(int tableTail) {
     for (var i = 0; i < fieldOffsets.length; i++) {
       int fieldTail = fieldOffsets[i];
-      int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
-      fieldOffsets[i] = fieldOffset;
+      if (i > lastSetField || fieldTail == missingField) {
+        fieldOffsets[i] = 0;
+      } else {
+        fieldOffsets[i] = tableTail - fieldTail;
+      }
     }
   }
 
