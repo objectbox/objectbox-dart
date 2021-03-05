@@ -53,6 +53,6 @@ void main() {
     expect(read, isNotNull);
     expect(read /*!*/ .tString, 'foo');
     store2.close();
-    store1.close();
+    env.close();
   });
 }
