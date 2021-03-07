@@ -1,7 +1,7 @@
 import 'dart:ffi' as ffi;
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
-import 'package:objectbox/src/bindings/helpers.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
+import 'package:objectbox/src/native/bindings/helpers.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 

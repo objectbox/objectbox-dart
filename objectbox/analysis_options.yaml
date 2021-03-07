@@ -27,7 +27,8 @@ analyzer:
     - example/**
     - generator/**
     - benchmark/**
-    - lib/src/bindings/objectbox-c.dart
+    - lib/src/modelinfo/enums.dart
+    - lib/src/native/bindings/objectbox-c.dart
     - lib/flatbuffers/** # Not really our code
     - test/objectbox.g.dart # TODO remove exception after #168 is implemented
   strong-mode:

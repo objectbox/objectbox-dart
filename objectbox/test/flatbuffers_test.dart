@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb_upstream;
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/src/bindings/flatbuffers.dart';
+import 'package:objectbox/src/native/bindings/flatbuffers.dart';
 import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
 import 'package:test/test.dart';
 

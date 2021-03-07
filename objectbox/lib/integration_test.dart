@@ -1,7 +1,7 @@
 library integration_test;
 
-import './src/bindings/bindings.dart';
-import './src/bindings/helpers.dart';
+import './src/native/bindings/bindings.dart' as native;
+import './src/native/bindings/helpers.dart' as native;
 import 'internal.dart';
 
 // ignore_for_file: public_member_api_docs
@@ -31,6 +31,6 @@ class IntegrationTest {
     modelInfo.validate();
 
     final model = Model(modelInfo);
-    checkObx(C.model_free(model.ptr));
+    native.checkObx(native.C.model_free(model.ptr));
   }
 }

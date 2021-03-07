@@ -9,7 +9,7 @@ export 'src/annotations.dart';
 export 'src/box.dart' show Box;
 export 'src/common.dart';
 export 'src/observable.dart';
-export 'src/query/query.dart'
+export 'src/query.dart'
     show
         Query,
         QueryBuilder,

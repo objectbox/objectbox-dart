@@ -1,5 +1,4 @@
-import '../bindings/bindings.dart';
-import '../bindings/helpers.dart';
+import 'enums.dart';
 import 'iduid.dart';
 import 'modelentity.dart';
 

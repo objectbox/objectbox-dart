@@ -18,7 +18,7 @@ jobs:
       - name: Check scores
         shell: bash
         run: |
-          if [[ "90" -gt "${{ steps.analysis.outputs.total }}" ]]; then
-            echo "Score is less then 90, please check the analysis report and resolve the issues"
+          if [[ "100" -gt "${{ steps.analysis.outputs.total }}" ]]; then
+            echo "Score is less then 100, please check the analysis report and resolve the issues"
             exit 1
           fi

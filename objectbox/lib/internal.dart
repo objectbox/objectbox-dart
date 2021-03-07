@@ -5,7 +5,7 @@ library objectbox_internal;
 export 'src/fb_readers.dart';
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
-export 'src/query/query.dart'
+export 'src/query.dart'
 // don't export the same things as objectbox.dart to avoid docs conflicts
     hide
         Query,

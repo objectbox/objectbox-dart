@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:io' show Platform;
 
-import '../common.dart';
+import '../../common.dart';
 import 'helpers.dart';
 import 'objectbox-c.dart';
 

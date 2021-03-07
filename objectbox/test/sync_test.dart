@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:objectbox/src/bindings/bindings.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
 import 'package:test/test.dart';
 

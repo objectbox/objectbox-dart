@@ -1,4 +1,5 @@
 export 'entity_definition.dart';
+export 'enums.dart';
 export 'iduid.dart';
 export 'model_definition.dart';
 export 'modelbacklink.dart';

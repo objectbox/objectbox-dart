@@ -4,7 +4,6 @@ import 'lib/objectbox.g.dart';
 import 'package:test/test.dart';
 import '../test_env.dart';
 import '../common.dart';
-import 'package:objectbox/src/bindings/bindings.dart';
 
 void main() {
   TestEnv<A> env;
