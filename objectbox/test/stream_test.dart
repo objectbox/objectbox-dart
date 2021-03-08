@@ -8,9 +8,8 @@ import 'test_env.dart';
 // ignore_for_file: non_constant_identifier_names
 
 void main() {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Box<TestEntity /*!*/ > box;
+  late final TestEnv env;
+  late final Box<TestEntity > box;
 
   setUp(() {
     env = TestEnv('streams');

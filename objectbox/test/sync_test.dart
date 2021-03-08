@@ -15,10 +15,9 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Store store;
-  /*late final*/ TestEnv env2;
+  late final TestEnv env;
+  late final Store store;
+  late final TestEnv env2;
   int serverPort = 9999;
 
   setUp(() {
@@ -95,9 +94,9 @@ void main() {
 
       // But we can still get a handle of the client in the store - we're never
       // completely without an option to close it.
-      SyncClient /*?*/ client = store.syncClient();
+      SyncClient? client = store.syncClient();
       expect(client, isNotNull);
-      expect(client /*!*/ .isClosed(), isFalse);
+      expect(client! .isClosed(), isFalse);
       client.close();
       expect(store.syncClient(), isNull);
     });
@@ -164,11 +163,11 @@ void main() {
     });
 
     group('Sync tests with server', () {
-      /*late final*/ SyncServer server;
+      late final SyncServer server;
       setUp(() async {
         server = SyncServer();
         await server.start();
-        serverPort = server.port /*!*/;
+        serverPort = server.port!;
       });
 
       tearDown(() async {
@@ -185,12 +184,12 @@ void main() {
         int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
         expect(waitUntil(() => env2.box.get(id) != null), isTrue);
 
-        TestEntity /*?*/ read1 = env.box.get(id);
-        TestEntity /*?*/ read2 = env2.box.get(id);
+        TestEntity? read1 = env.box.get(id);
+        TestEntity? read2 = env2.box.get(id);
         expect(read1, isNotNull);
         expect(read2, isNotNull);
-        expect(read1 /*!*/ .id, equals(read2 /*!*/ .id));
-        expect(read1 /*!*/ .tLong, equals(read2 /*!*/ .tLong));
+        expect(read1! .id, equals(read2! .id));
+        expect(read1! .tLong, equals(read2! .tLong));
         client1.close();
         client2.close();
       });
@@ -289,7 +288,7 @@ void main() {
         await client2.completionEvents.first.timeout(defaultTimeout);
         client2.close();
 
-        expect(env2.box.get(id) /*!*/ .tLong, 100);
+        expect(env2.box.get(id)! .tLong, 100);
       });
 
       test('SyncClient listeners: changes', () async {
@@ -357,9 +356,9 @@ void main() {
 
 /// sync-server process wrapper for testing clients
 class SyncServer {
-  /*late final*/ Directory dir;
-  /*late final*/ int port;
-  /*late final*/ Future<Process> process;
+  late final Directory dir;
+  late final int port;
+  late final Future<Process>? process;
 
   static bool isAvailable() {
     // Note: this causes an additional valgrind summary output with a leak.
@@ -403,7 +402,7 @@ class SyncServer {
             break;
           } on SocketException catch (e) {
             // only retry if "connection refused"
-            if (e.osError.errorCode != 111) rethrow;
+            if (e.osError!.errorCode != 111) rethrow;
             await Future<void>.delayed(Duration(milliseconds: 1));
           }
         }
@@ -412,7 +411,7 @@ class SyncServer {
 
   void stop({bool keepDb = false}) async {
     if (process == null) return;
-    final proc = await process /*!*/;
+    final proc = await process!;
     process = null;
     proc.kill(ProcessSignal.sigint);
     final exitCode = await proc.exitCode;
@@ -432,8 +431,8 @@ class SyncServer {
       });
 
   void _deleteDb() {
-    if (dir != null && dir /*!*/ .existsSync()) {
-      dir /*!*/ .deleteSync(recursive: true);
+    if (dir != null && dir! .existsSync()) {
+      dir! .deleteSync(recursive: true);
     }
   }
 }

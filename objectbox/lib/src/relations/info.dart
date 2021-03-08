@@ -23,7 +23,7 @@ class RelInfo<SourceEntityT> {
   final int _id;
 
   // only for backlinks:
-  final ToOne Function(SourceEntityT) /*?*/ _getToOneSourceField;
+  final ToOne Function(SourceEntityT)? _getToOneSourceField;
 
   const RelInfo._(
       this._type, this._id, this._objectId, this._getToOneSourceField);
@@ -52,5 +52,5 @@ class RelInfo<SourceEntityT> {
 
   /// Source field associated with this toOne relation backlink.
   ToOne toOneSourceField(SourceEntityT object) =>
-      _getToOneSourceField /*!*/ (object);
+      _getToOneSourceField! (object);
 }

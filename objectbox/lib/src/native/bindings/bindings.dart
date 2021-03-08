@@ -11,7 +11,7 @@ export 'objectbox-c.dart';
 // ignore_for_file: public_member_api_docs
 
 ObjectBoxC loadObjectBoxLib() {
-  DynamicLibrary /*?*/ lib;
+  DynamicLibrary? lib;
   var libName = 'objectbox';
   if (Platform.isWindows) {
     libName += '.dll';
@@ -45,7 +45,7 @@ ObjectBoxC loadObjectBoxLib() {
   return ObjectBoxC(lib);
 }
 
-ObjectBoxC /*?*/ _cachedBindings;
+ObjectBoxC? _cachedBindings;
 
 ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();
 
@@ -58,7 +58,7 @@ void initializeDartAPI() {
   if (_dartAPIinitialized == null) {
     final errCode = C.dartc_init_api(NativeApi.initializeApiDLData);
     _dartAPIinitialized = (OBX_SUCCESS == errCode);
-    if (!_dartAPIinitialized /*!*/) {
+    if (!_dartAPIinitialized!) {
       _dartAPIinitException = latestNativeError(
           codeIfMissing: errCode,
           dartMsg: "Dart/Flutter SDK you're using is not compatible with "
@@ -70,12 +70,12 @@ void initializeDartAPI() {
   }
 
   if (_dartAPIinitException != null) {
-    throw _dartAPIinitException;
+    throw _dartAPIinitException!;
   }
 }
 
 // null  => not initialized
 // true  => initialized successfully
 // false => failed to initialize - incompatible Dart version
-bool /*?*/ _dartAPIinitialized;
-ObjectBoxException /*?*/ _dartAPIinitException;
+bool? _dartAPIinitialized;
+ObjectBoxException? _dartAPIinitException;

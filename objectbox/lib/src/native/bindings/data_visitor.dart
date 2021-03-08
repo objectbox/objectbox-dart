@@ -51,7 +51,7 @@ int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
 
 /// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
 class DataVisitor {
-  final Pointer<Int64> _idPtr = malloc<Int64>() /*!*/;
+  final Pointer<Int64> _idPtr = malloc<Int64>()!;
 
   Pointer<NativeFunction<obx_data_visitor>> get fn =>
       Pointer.fromFunction(_forwarder, 0);
@@ -59,7 +59,7 @@ class DataVisitor {
   Pointer<Void> get userData => _idPtr.cast<Void>();
 
   DataVisitor(
-      bool Function(Pointer<Uint8> dataPtr, int length) /*?*/ callback) {
+      bool Function(Pointer<Uint8> dataPtr, int length)? callback) {
     // cycle through ids until we find an empty slot
     _lastId++;
     var initialId = _lastId;
@@ -99,7 +99,7 @@ class ObjectCollector<T> extends DataVisitor {
 }
 
 class ObjectCollectorNullable<T> extends DataVisitor {
-  final list = <T /*?*/ >[];
+  final list = <T? >[];
 
   ObjectCollectorNullable(Store store, EntityDefinition<T> entity)
       : super(null) {

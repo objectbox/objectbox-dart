@@ -118,7 +118,7 @@ void main() {
     // checkSameEntities(target, source);
 
     // explicitly clear the allocated memory
-    fbMemset(fb1.bufPtr.cast<Uint8>(), 0, fbData.lengthInBytes);
+    fbMemset!(fb1.bufPtr.cast<Uint8>(), 0, fbData.lengthInBytes);
     // fbData is now cleared as well, it's not a copy
     expect(bytesSum(fbData.buffer.asByteData()), isZero);
 

@@ -15,8 +15,7 @@ class BuilderWithCBuffer {
   final int _initialSize;
   final int _resetIfLargerThan;
 
-  /*late final*/
-  fb.Builder _fbb;
+  late final fb.Builder _fbb;
 
   fb.Builder get fbb => _fbb;
 
@@ -45,7 +44,7 @@ class BuilderWithCBuffer {
 typedef _dart_memset = void Function(Pointer<Uint8>, int, int);
 typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
-_dart_memset /*?*/ fbMemset;
+_dart_memset? fbMemset;
 
 class Allocator extends fb.Allocator {
   // We may, in practice, have only two active allocations: one used and one
@@ -54,7 +53,7 @@ class Allocator extends fb.Allocator {
   final _allocs = List<Pointer<Uint8>>.filled(2, nullptr, growable: false);
 
   // only used for sanity checks:
-  final _data = List<ByteData /*?*/ >.filled(2, null, growable: false);
+  final _data = List<ByteData? >.filled(2, null, growable: false);
 
   // currently used allocator index
   int _index = 0;
@@ -74,9 +73,9 @@ class Allocator extends fb.Allocator {
   ByteData allocate(int size) {
     _capacity = size;
     final index = _flipIndex();
-    _allocs[index] = calloc<Uint8>(size) /*!*/;
+    _allocs[index] = calloc<Uint8>(size)!;
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
-    return _data[index] /*!*/;
+    return _data[index]!;
   }
 
   @override
@@ -121,7 +120,7 @@ class Allocator extends fb.Allocator {
     assert(_data[_index] == data);
     assert(_allocs[_index].address != 0);
 
-    fbMemset /*!*/ (_allocs[_index], 0, data.lengthInBytes);
+    fbMemset! (_allocs[_index], 0, data.lengthInBytes);
   }
 
   void freeAll() {

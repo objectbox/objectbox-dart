@@ -8,9 +8,8 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() async {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Box<TestEntity> box;
+  late final TestEnv env;
+  late final Box<TestEntity> box;
 
   final simpleStringItems = () => <String>[
         'One',
@@ -33,7 +32,7 @@ void main() async {
   if (!asyncCallbacksAvailable()) return;
 
   test('Observe single entity', () async {
-    Completer<void> completer;
+    late Completer<void> completer;
     var expectedEvents = 0;
 
     final stream = env.store.subscribe<TestEntity>();
@@ -67,7 +66,7 @@ void main() async {
   });
 
   test('Observe multiple entities', () async {
-    Completer<void> completer;
+    late Completer<void> completer;
     var expectedEvents = 0;
     var typesUpdates = <Type, int>{}; // number of events per entity type
 
@@ -113,7 +112,7 @@ void main() async {
 
   test('Observer pause/resume', () async {
     final testPauseResume = (Stream stream) async {
-      Completer<void> completer;
+      late Completer<void> completer;
       final subscription = stream.listen((dynamic _) {
         completer.complete();
       });

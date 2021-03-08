@@ -13,58 +13,58 @@ class TestingUnknownAnnotation {
 @Sync()
 class TestEntity {
   @TestingUnknownAnnotation()
-  int /*?*/ id;
+  int? id;
 
   // implicitly determined types
-  String /*?*/ tString;
-  int /*?*/ tLong;
-  double /*?*/ tDouble;
-  bool /*?*/ tBool;
-  DateTime /*?*/ tDate;
+  String? tString;
+  int? tLong;
+  double? tDouble;
+  bool? tBool;
+  DateTime? tDate;
 
   @Transient()
-  int /*?*/ ignore;
+  int? ignore;
 
   @Transient()
-  int /*?*/ omit, disregard;
+  int? omit, disregard;
 
   // explicitly declared types
 
   @Property(type: PropertyType.dateNano)
-  DateTime /*?*/ tDateNano;
+  DateTime? tDateNano;
 
   // OBXPropertyType.Byte | 1 byte
   @Property(type: PropertyType.byte)
-  int /*?*/ tByte;
+  int? tByte;
 
   // OBXPropertyType.Short | 2 bytes
   @Property(type: PropertyType.short)
-  int /*?*/ tShort;
+  int? tShort;
 
   // OBXPropertyType.Char | 1 byte
   @Property(type: PropertyType.char)
-  int /*?*/ tChar;
+  int? tChar;
 
   // OBXPropertyType.Int |  ob: 4 bytes, dart: 8 bytes
   @Property(type: PropertyType.int)
-  int /*?*/ tInt;
+  int? tInt;
 
   // OBXPropertyType.Float | 4 bytes
   @Property(type: PropertyType.float)
-  double /*?*/ tFloat;
+  double? tFloat;
 
   // OBXPropertyType.StringVector
-  List<String> /*?*/ tStrings;
+  List<String>? tStrings;
 
   // OBXPropertyType.ByteVector
   @Property(type: PropertyType.byteVector)
-  List<int> /*?*/ tByteList;
+  List<int>? tByteList;
 
   // OBXPropertyType.ByteVector
-  Int8List /*?*/ tInt8List;
+  Int8List? tInt8List;
 
   // OBXPropertyType.ByteVector
-  Uint8List /*?*/ tUint8List;
+  Uint8List? tUint8List;
 
   TestEntity(
       {this.id,
@@ -108,26 +108,26 @@ class TestEntity {
 
   @Property(type: PropertyType.byte)
   @Unique()
-  int uByte;
+  int? uByte;
 
   @Property(type: PropertyType.short)
   @Unique()
-  int uShort;
+  int? uShort;
 
   @Property(type: PropertyType.char)
   @Unique()
-  int uChar;
+  int? uChar;
 
   @Property(type: PropertyType.int)
   @Unique()
-  int uInt;
+  int? uInt;
 
   // implicitly determined types
   @Unique()
-  String uString;
+  String? uString;
 
   @Unique()
-  int uLong;
+  int? uLong;
 
   TestEntity.unique({
     this.uString,
@@ -140,26 +140,26 @@ class TestEntity {
 
   @Property(type: PropertyType.byte)
   @Index()
-  int iByte;
+  int? iByte;
 
   @Property(type: PropertyType.short)
   @Index()
-  int iShort;
+  int? iShort;
 
   @Property(type: PropertyType.char)
   @Index()
-  int iChar;
+  int? iChar;
 
   @Property(type: PropertyType.int)
   @Index()
-  int iInt;
+  int? iInt;
 
   // implicitly determined types
   @Index()
-  String iString;
+  String? iString;
 
   @Index()
-  int iLong;
+  int? iLong;
 
   TestEntity.index({
     this.iString,
@@ -173,20 +173,20 @@ class TestEntity {
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();
 
-  final relManyA = ToMany<RelatedEntityA>();
+  final relManyA = ToMany<RelatedEntityA?>();
 }
 
 @Entity()
 @Sync()
 class RelatedEntityA {
-  int id;
+  int? id;
 
-  int tInt;
-  bool tBool;
+  int? tInt;
+  bool? tBool;
   final relB = ToOne<RelatedEntityB>();
 
   @Backlink('relManyA')
-  final testEntities = ToMany<TestEntity>();
+  final testEntities = ToMany<TestEntity?>();
 
   RelatedEntityA({this.id, this.tInt, this.tBool});
 }
@@ -194,15 +194,15 @@ class RelatedEntityA {
 @Entity()
 @Sync()
 class RelatedEntityB {
-  int id;
+  int? id;
 
-  String tString;
-  double tDouble;
+  String? tString;
+  double? tDouble;
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();
 
   @Backlink()
-  final testEntities = ToMany<TestEntity>();
+  final testEntities = ToMany<TestEntity?>();
 
   RelatedEntityB({this.id, this.tString, this.tDouble});
 }

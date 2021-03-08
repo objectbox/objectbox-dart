@@ -23,8 +23,8 @@ bool checkObxSuccess(int code) {
   return true;
 }
 
-Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> /*?*/ ptr,
-    [String /*?*/ dartMsg]) {
+Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
+    [String? dartMsg]) {
   if (ptr == null || ptr.address == 0) {
     throw latestNativeError(dartMsg: dartMsg);
   }
@@ -32,7 +32,7 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T> /*?*/ ptr,
 }
 
 ObjectBoxException latestNativeError(
-    {String /*?*/ dartMsg, int codeIfMissing = OBX_ERROR_UNKNOWN}) {
+    {String? dartMsg, int codeIfMissing = OBX_ERROR_UNKNOWN}) {
   final code = C.last_error_code();
   final text = cString(C.last_error_message());
 
@@ -55,21 +55,19 @@ class CursorHelper<T> {
   final Store _store;
   final Pointer<OBX_cursor> ptr;
 
-  /*late final*/
-  Pointer<Pointer<Void>> dataPtrPtr;
+  late final Pointer<Pointer<Void>> dataPtrPtr;
 
-  /*late final*/
-  Pointer<IntPtr> sizePtr;
+  late final Pointer<IntPtr> sizePtr;
 
   bool _closed = false;
 
   CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
-      {/*required*/ bool isWrite})
+      {/*required*/ required bool isWrite})
       : ptr = checkObxPtr(
             C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {
-      dataPtrPtr = malloc()/*!*/;
-      sizePtr = malloc()/*!*/;
+      dataPtrPtr = malloc()!;
+      sizePtr = malloc()!;
     }
   }
 
@@ -86,7 +84,7 @@ class CursorHelper<T> {
     checkObx(C.cursor_close(ptr));
   }
 
-  T /*?*/ get(int id) {
+  T? get(int id) {
     final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
@@ -98,7 +96,7 @@ T withNativeBytes<T>(
     Uint8List data, T Function(Pointer<Void> ptr, int size) fn) {
   final size = data.length;
   assert(size == data.lengthInBytes);
-  final ptr = malloc<Uint8>(size) /*!*/;
+  final ptr = malloc<Uint8>(size)!;
   try {
     ptr.asTypedList(size).setAll(0, data); // copies `data` to `ptr`
     return fn(ptr.cast<Void>(), size);

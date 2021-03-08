@@ -51,7 +51,7 @@ void main() {
     expect(id, 1);
     final read = store2.box<TestEntity>().get(id);
     expect(read, isNotNull);
-    expect(read /*!*/ .tString, 'foo');
+    expect(read! .tString, 'foo');
     store2.close();
     env.close();
   });

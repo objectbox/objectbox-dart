@@ -10,11 +10,9 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Store store;
-  /*late final*/
-  Box<TestEntity> box;
+  late final TestEnv env;
+  late final Store store;
+  late final Box<TestEntity> box;
 
   final simpleItems = () => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
       .map((s) => TestEntity(tString: s))
@@ -32,7 +30,7 @@ void main() {
     final box1 = store.box<TestEntity>();
     expect(box1.isEmpty(), isTrue);
     int putId = env.box.put(TestEntity(tString: 'Hello'));
-    expect(box1.get(putId).tString, equals('Hello'));
+    expect(box1.get(putId)!.tString, equals('Hello'));
 
     // All accesses to a box for a given entity return the same instance.
     expect(box1, equals(store.box<TestEntity>()));
@@ -54,7 +52,7 @@ void main() {
         tByteList: [1, 99, -54],
         tUint8List: Uint8List.fromList([2, 50, 78]),
         tInt8List: Int8List.fromList([-16, 20, 43])));
-    final TestEntity item = box.get(putId) /*!*/;
+    final TestEntity item = box.get(putId)!;
     expect(item.id, equals(putId));
     expect(item.tString, equals('Hello'));
     expect(item.tStrings, equals(['foo', 'bar']));
@@ -69,7 +67,7 @@ void main() {
 
   test('.put() and box.get() keep Unicode characters', () {
     final String text = '😄你好';
-    final TestEntity inst = box.get(box.put(TestEntity(tString: text))) /*!*/;
+    final TestEntity inst = box.get(box.put(TestEntity(tString: text)))!;
     expect(inst.tString, equals(text));
   });
 
@@ -77,7 +75,7 @@ void main() {
     final int putId1 = box.put(TestEntity(tString: 'One'));
     final int putId2 = box.put(TestEntity(tString: 'Two')..id = putId1);
     expect(putId2, equals(putId1));
-    final TestEntity item = box.get(putId2) /*!*/;
+    final TestEntity item = box.get(putId2)!;
     expect(item.tString, equals('Two'));
   });
 
@@ -132,7 +130,7 @@ void main() {
     expect(ids.length, equals(items.length));
     for (var i = 0; i < items.length; ++i) {
       expect(items[i].id, equals(ids[i])); // IDs on the objects are updated
-      expect(box.get(ids[i]) /*!*/ .tString, equals(items[i].tString));
+      expect(box.get(ids[i])! .tString, equals(items[i].tString));
     }
   });
 
@@ -146,17 +144,17 @@ void main() {
     box.put(TestEntity(tString: largeString));
     box.put(TestEntity(tString: largeString));
 
-    List<TestEntity> items = box.getAll();
+    List<TestEntity?> items = box.getAll();
     expect(items.length, 2);
-    expect(items[0].tString, largeString);
-    expect(items[1].tString, largeString);
+    expect(items[0]!.tString, largeString);
+    expect(items[1]!.tString, largeString);
 
     box.put(TestEntity(tString: largeString));
 
     items = box.getMany([1, 2]);
     expect(items.length, 2);
-    expect(items[0] /*!*/ .tString, largeString);
-    expect(items[1] /*!*/ .tString, largeString);
+    expect(items[0]! .tString, largeString);
+    expect(items[1]! .tString, largeString);
   });
 
   test('.getMany correctly handles non-existent items', () {
@@ -167,12 +165,12 @@ void main() {
     while (ids.indexWhere((id) => id == otherId) != -1) {
       ++otherId;
     }
-    final List<TestEntity /*?*/ > fetchedItems =
+    final List<TestEntity? > fetchedItems =
         box.getMany([ids[0], otherId, ids[1]]);
     expect(fetchedItems.length, equals(3));
-    expect(fetchedItems[0] /*!*/ .tString, equals('One'));
+    expect(fetchedItems[0]! .tString, equals('One'));
     expect(fetchedItems[1], isNull);
-    expect(fetchedItems[2] /*!*/ .tString, equals('Two'));
+    expect(fetchedItems[2]! .tString, equals('Two'));
   });
 
   test('.getMany result list fixed vs growable', () {
@@ -205,17 +203,17 @@ void main() {
     ];
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
-    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0] /*!*/ .tChar, equals(int8Min));
-    expect(fetchedItems[1] /*!*/ .tChar, equals(int8Max));
-    expect(fetchedItems[2] /*!*/ .tByte, equals(int8Min));
-    expect(fetchedItems[3] /*!*/ .tByte, equals(int8Max));
-    expect(fetchedItems[4] /*!*/ .tShort, equals(int16Min));
-    expect(fetchedItems[5] /*!*/ .tShort, equals(int16Max));
-    expect(fetchedItems[6] /*!*/ .tInt, equals(int32Min));
-    expect(fetchedItems[7] /*!*/ .tInt, equals(int32Max));
-    expect(fetchedItems[8] /*!*/ .tLong, equals(int64Min));
-    expect(fetchedItems[9] /*!*/ .tLong, equals(int64Max));
+    final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0]! .tChar, equals(int8Min));
+    expect(fetchedItems[1]! .tChar, equals(int8Max));
+    expect(fetchedItems[2]! .tByte, equals(int8Min));
+    expect(fetchedItems[3]! .tByte, equals(int8Max));
+    expect(fetchedItems[4]! .tShort, equals(int16Min));
+    expect(fetchedItems[5]! .tShort, equals(int16Max));
+    expect(fetchedItems[6]! .tInt, equals(int32Min));
+    expect(fetchedItems[7]! .tInt, equals(int32Max));
+    expect(fetchedItems[8]! .tLong, equals(int64Min));
+    expect(fetchedItems[9]! .tLong, equals(int64Max));
   });
 
   test('special floating point values are handled correctly', () {
@@ -239,12 +237,12 @@ void main() {
       ...valsFloat.map((n) => TestEntity(tFloat: n)).toList(),
       ...valsDouble.map((n) => TestEntity(tDouble: n)).toList()
     ];
-    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
+    final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
     List<double> fetchedVals = [];
     for (var i = 0; i < fetchedItems.length; i++) {
       fetchedVals.add(i < valsFloat.length
-          ? fetchedItems[i] /*!*/ .tFloat /*!*/
-          : fetchedItems[i] /*!*/ .tDouble /*!*/);
+          ? fetchedItems[i]! .tFloat!
+          : fetchedItems[i]! .tDouble!);
     }
 
     for (var i = 0; i < fetchedVals.length; i++) {
@@ -265,22 +263,22 @@ void main() {
       TestEntity(tLong: 10),
       TestEntity(tString: 'Hello')
     ];
-    final List<TestEntity> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0] /*!*/ .id, isNotNull);
-    expect(fetchedItems[0] /*!*/ .tLong, isNull);
-    expect(fetchedItems[0] /*!*/ .tString, isNull);
-    expect(fetchedItems[0] /*!*/ .tBool, isNull);
-    expect(fetchedItems[0] /*!*/ .tDouble, isNull);
-    expect(fetchedItems[1] /*!*/ .id, isNotNull);
-    expect(fetchedItems[1] /*!*/ .tLong, isNotNull);
-    expect(fetchedItems[1] /*!*/ .tString, isNull);
-    expect(fetchedItems[1] /*!*/ .tBool, isNull);
-    expect(fetchedItems[1] /*!*/ .tDouble, isNull);
-    expect(fetchedItems[2] /*!*/ .id, isNotNull);
-    expect(fetchedItems[2] /*!*/ .tLong, isNull);
-    expect(fetchedItems[2] /*!*/ .tString, isNotNull);
-    expect(fetchedItems[2] /*!*/ .tBool, isNull);
-    expect(fetchedItems[2] /*!*/ .tDouble, isNull);
+    final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
+    expect(fetchedItems[0]! .id, isNotNull);
+    expect(fetchedItems[0]! .tLong, isNull);
+    expect(fetchedItems[0]! .tString, isNull);
+    expect(fetchedItems[0]! .tBool, isNull);
+    expect(fetchedItems[0]! .tDouble, isNull);
+    expect(fetchedItems[1]! .id, isNotNull);
+    expect(fetchedItems[1]! .tLong, isNotNull);
+    expect(fetchedItems[1]! .tString, isNull);
+    expect(fetchedItems[1]! .tBool, isNull);
+    expect(fetchedItems[1]! .tDouble, isNull);
+    expect(fetchedItems[2]! .id, isNotNull);
+    expect(fetchedItems[2]! .tLong, isNull);
+    expect(fetchedItems[2]! .tString, isNotNull);
+    expect(fetchedItems[2]! .tBool, isNull);
+    expect(fetchedItems[2]! .tDouble, isNull);
   });
 
   test('all types are handled correctly', () {
@@ -294,17 +292,17 @@ void main() {
         tChar: 'x'.codeUnitAt(0),
         tInt: 789012,
         tFloat: -2.71);
-    final fetchedItem = box.get(box.put(item)) /*!*/;
+    final fetchedItem = box.get(box.put(item))!;
     expect(fetchedItem.tString, equals('Hello'));
     expect(fetchedItem.tLong, equals(1234));
     expect(
-        (fetchedItem.tDouble /*!*/ - 3.14159).abs(), lessThan(0.000000000001));
+        (fetchedItem.tDouble! - 3.14159).abs(), lessThan(0.000000000001));
     expect(fetchedItem.tBool, equals(true));
     expect(fetchedItem.tByte, equals(123));
     expect(fetchedItem.tShort, equals(-4567));
     expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
     expect(fetchedItem.tInt, equals(789012));
-    expect((fetchedItem.tFloat /*!*/ - (-2.71)).abs(), lessThan(0.0000001));
+    expect((fetchedItem.tFloat! - (-2.71)).abs(), lessThan(0.0000001));
   });
 
   test('.count() works', () {
@@ -377,7 +375,7 @@ void main() {
     expect(box.count(), equals(4));
 
     // verify the right items were removed
-    final List<int /*?*/ > remainingIds =
+    final List<int? > remainingIds =
         box.getAll().map((o) => o.id).toList();
     expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
   });
@@ -484,13 +482,13 @@ void main() {
 
     {
       // first, test some assumptions the code generator makes
-      final millis = object.tDate.millisecondsSinceEpoch;
+      final millis = object.tDate!.millisecondsSinceEpoch;
       final time1 = DateTime.fromMillisecondsSinceEpoch(millis);
-      expect(object.tDate.difference(time1).inMilliseconds, equals(0));
+      expect(object.tDate!.difference(time1).inMilliseconds, equals(0));
 
-      final nanos = object.tDateNano.microsecondsSinceEpoch * 1000;
+      final nanos = object.tDateNano!.microsecondsSinceEpoch * 1000;
       final time2 = DateTime.fromMicrosecondsSinceEpoch((nanos / 1000).round());
-      expect(object.tDateNano.difference(time2).inMicroseconds, equals(0));
+      expect(object.tDateNano!.difference(time2).inMicroseconds, equals(0));
     }
 
     box.putMany([object, TestEntity()]);
@@ -498,7 +496,7 @@ void main() {
 
     // DateTime has microsecond precision in dart but is stored in ObjectBox
     // with millisecond precision so allow a sub-millisecond difference.
-    expect(items[0].tDate.difference(object.tDate).inMilliseconds, 0);
+    expect(items[0].tDate!.difference(object.tDate!).inMilliseconds, 0);
 
     expect(items[0].tDateNano, object.tDateNano);
     expect(items[1].tDate, isNull);

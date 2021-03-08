@@ -9,9 +9,8 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Box<TestEntity> box;
+  late final TestEnv env;
+  late final Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query_property');
@@ -129,10 +128,10 @@ void main() {
     final query = box.query((tLong < 100)).build();
     final all = box.getAll();
 
-    final sumByte = all.map((s) => s.tByte).toList().fold(0, _add);
-    final sumShort = all.map((s) => s.tShort).toList().fold(0, _add);
-    final sumInt = all.map((s) => s.tInt).toList().fold(0, _add);
-    final sumLong = all.map((s) => s.tLong).toList().fold(0, _add);
+    final sumByte = all.map((s) => s.tByte).toList().fold(0, _add as int Function(int, int?));
+    final sumShort = all.map((s) => s.tShort).toList().fold(0, _add as int Function(int, int?));
+    final sumInt = all.map((s) => s.tInt).toList().fold(0, _add as int Function(int, int?));
+    final sumLong = all.map((s) => s.tLong).toList().fold(0, _add as int Function(int, int?));
 
     expect(_propQueryExecInt(query, tByte, _pqSumInt), sumByte);
     expect(_propQueryExecInt(query, tShort, _pqSumInt), sumShort);
@@ -187,8 +186,8 @@ void main() {
 
     final all = box.getAll();
 
-    final sumFloat = all.map((s) => s.tFloat).toList().fold(0.0, _add);
-    final sumDouble = all.map((s) => s.tDouble).toList().fold(0.0, _add);
+    final sumFloat = all.map((s) => s.tFloat).toList().fold(0.0, _add as double Function(double, double?));
+    final sumDouble = all.map((s) => s.tDouble).toList().fold(0.0, _add as double Function(double, double?));
 
     expect(_propQueryExecDouble(query, tFloat, _pqSumDouble), sumFloat);
     expect(_propQueryExecDouble(query, tDouble, _pqSumDouble), sumDouble);

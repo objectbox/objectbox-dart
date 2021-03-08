@@ -8,7 +8,7 @@
 ///  * [IDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#ids)
 ///  * [UIDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#uids)
 class IdUid {
-  /*late*/ int _id, _uid;
+  late int _id, _uid;
 
   int get id => _id;
 
@@ -33,7 +33,7 @@ class IdUid {
     uid = newUid;
   }
 
-  IdUid.fromString(String /*?*/ str) {
+  IdUid.fromString(String? str) {
     if (str == null || str == '' || str == '0:0') {
       _id = 0;
       _uid = 0;

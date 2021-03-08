@@ -12,11 +12,11 @@ import 'store.dart';
 /// Simple wrapper used below in ObservableStore to reduce code duplication.
 /// Contains shared code for single-entity observer and the generic/global one.
 class _Observer<StreamValueType> {
-  /*late final*/ StreamController<StreamValueType> controller;
-  Pointer<OBX_observer> /*?*/ _cObserver;
-  ReceivePort /*?*/ receivePort;
+  late final StreamController<StreamValueType> controller;
+  Pointer<OBX_observer>? _cObserver;
+  ReceivePort? receivePort;
 
-  int get nativePort => receivePort /*!*/ .sendPort.nativePort;
+  int get nativePort => receivePort! .sendPort.nativePort;
 
   set cObserver(Pointer<OBX_observer> value) {
     _cObserver = checkObxPtr(value, 'observer initialization failed');
@@ -39,12 +39,12 @@ class _Observer<StreamValueType> {
   void stop() {
     _debugLog('stopped');
     if (_cObserver != null) {
-      checkObx(C.observer_close(_cObserver));
+      checkObx(C.observer_close(_cObserver!));
       _cObserver = null;
     }
 
     if (receivePort != null) {
-      receivePort.close();
+      receivePort!.close();
       receivePort = null;
     }
   }
@@ -106,7 +106,7 @@ extension ObservableStore on Store {
             return;
           }
 
-          (entityIds as Uint32List).forEach((int entityId) {
+          entityIds.forEach((int entityId) {
             if (entityId is! int) {
               observer.controller.addError(Exception(
                   'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));

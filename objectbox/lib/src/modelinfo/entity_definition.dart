@@ -15,19 +15,19 @@ class EntityDefinition<T> {
   final ModelEntity model;
   final int Function(T, fb.Builder) objectToFB;
   final T Function(Store, Uint8List) objectFromFB;
-  final int /*?*/ Function(T) getId;
+  final int? Function(T) getId;
   final void Function(T, int) setId;
   final List<ToOne> Function(T) toOneRelations;
   final Map<RelInfo, ToMany> Function(T) toManyRelations;
 
   const EntityDefinition(
-      {/*required*/ this.model,
-      /*required*/ this.objectToFB,
-      /*required*/ this.objectFromFB,
-      /*required*/ this.getId,
-      /*required*/ this.setId,
-      /*required*/ this.toOneRelations,
-      /*required*/ this.toManyRelations});
+      {/*required*/ required this.model,
+      /*required*/ required this.objectToFB,
+      /*required*/ required this.objectFromFB,
+      /*required*/ required this.getId,
+      /*required*/ required this.setId,
+      /*required*/ required this.toOneRelations,
+      /*required*/ required this.toManyRelations});
 
   Type type() => T;
 }

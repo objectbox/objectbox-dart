@@ -20,13 +20,13 @@ class Version {
 /// ObjectBox native exception wrapper.
 class ObjectBoxException implements Exception {
   /// Dart message related to this native error.
-  final String /*?*/ dartMsg;
+  final String? dartMsg;
 
   /// Native error code.
   final int nativeCode;
 
   /// Native error message.
-  final String /*?*/ nativeMsg;
+  final String? nativeMsg;
 
   /// Create a native exception.
   ObjectBoxException({this.dartMsg, this.nativeCode = 0, this.nativeMsg});
@@ -35,11 +35,11 @@ class ObjectBoxException implements Exception {
   String toString() {
     var result = 'ObjectBoxException: ';
     if (dartMsg != null) {
-      result += dartMsg /*!*/;
+      result += dartMsg!;
       if (nativeCode != 0 || nativeMsg != null) result += ': ';
     }
     if (nativeCode != 0) result += '$nativeCode ';
-    if (nativeMsg != null) result += nativeMsg /*!*/;
+    if (nativeMsg != null) result += nativeMsg!;
     return result.trimRight();
   }
 }

@@ -85,16 +85,16 @@ class Model {
           _cModel, name.cast(), prop.type, prop.id.id, prop.id.uid));
 
       if (prop.isRelation) {
-        var relTarget = prop.relationTarget /*!*/ .toNativeUtf8();
+        var relTarget = prop.relationTarget! .toNativeUtf8();
         try {
           _check(C.model_property_relation(_cModel, relTarget.cast(),
-              prop.indexId /*!*/ .id, prop.indexId /*!*/ .uid));
+              prop.indexId! .id, prop.indexId! .uid));
         } finally {
           calloc.free(relTarget);
         }
       } else if (prop.indexId != null) {
         _check(C.model_property_index_id(
-            _cModel, prop.indexId.id, prop.indexId.uid));
+            _cModel, prop.indexId!.id, prop.indexId!.uid));
       }
     } finally {
       calloc.free(name);

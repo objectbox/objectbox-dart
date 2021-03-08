@@ -19,7 +19,7 @@ void main() {
     final isolate = await Isolate.spawn(echoIsolate, receivePort.sendPort);
 
     var sendPortCompleter = Completer<SendPort>();
-    Completer responseCompleter;
+    late Completer responseCompleter;
     receivePort.listen((dynamic data) {
       if (data is SendPort) {
         sendPortCompleter.complete(data);
@@ -53,7 +53,7 @@ void main() {
         await Isolate.spawn(createDataIsolate, receivePort.sendPort);
 
     final sendPortCompleter = Completer<SendPort>();
-    Completer<dynamic> responseCompleter;
+    late Completer<dynamic> responseCompleter;
     receivePort.listen((dynamic data) {
       if (data is SendPort) {
         sendPortCompleter.complete(data);
@@ -80,7 +80,7 @@ void main() {
       // check simple box operations
       expect(env.box.isEmpty(), isTrue);
       expect(await call(['put', 'Foo']), equals(1)); // returns inserted id = 1
-      expect(env.box.get(1).tString, equals('Foo'));
+      expect(env.box.get(1)!.tString, equals('Foo'));
     }
 
     {
@@ -126,12 +126,12 @@ void createDataIsolate(SendPort sendPort) async {
   // Send the port where the main isolate can contact us
   sendPort.send(port.sendPort);
 
-  Store /*?*/ store;
+  Store? store;
   // Listen for messages
   await for (final msg in port) {
     if (store == null) {
       // first message data is Store's C pointer address
-      store = Store.fromReference(getObjectBoxModel(), msg as ByteData /*!*/);
+      store = Store.fromReference(getObjectBoxModel(), msg as ByteData);
       sendPort.send('store set');
     } else {
       print('Isolate received: $msg');
