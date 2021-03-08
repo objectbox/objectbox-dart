@@ -36,11 +36,11 @@ dependency_overrides:
 ffigen:
   name: 'ObjectBoxC'
   description: 'Bindings to ObjectBox C-API'
-  output: 'lib/src/bindings/objectbox-c.dart'
+  output: 'lib/src/native/bindings/objectbox-c.dart'
   headers:
     entry-points:
-      - 'lib/src/bindings/objectbox.h'
-      - 'lib/src/bindings/objectbox-dart.h'
+      - 'lib/src/native/bindings/objectbox.h'
+      - 'lib/src/native/bindings/objectbox-dart.h'
     include-directives:
       - '**objectbox*.h'
   functions:
