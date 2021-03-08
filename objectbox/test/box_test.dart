@@ -488,12 +488,9 @@ void main() {
       final time1 = DateTime.fromMillisecondsSinceEpoch(millis);
       expect(object.tDate.difference(time1).inMilliseconds, equals(0));
 
-      // TODO this is flaky
-      //      Expected: <0>
-      //      Actual: <1>
-      // final nanos = object.tDateNano.microsecondsSinceEpoch * 1000;
-      // final time2 = DateTime.fromMicrosecondsSinceEpoch((nanos / 1000).floor());
-      //  expect(object.tDateNano.difference(time2).inMicroseconds, equals(0));
+      final nanos = object.tDateNano.microsecondsSinceEpoch * 1000;
+      final time2 = DateTime.fromMicrosecondsSinceEpoch((nanos / 1000).round());
+      expect(object.tDateNano.difference(time2).inMicroseconds, equals(0));
     }
 
     box.putMany([object, TestEntity()]);

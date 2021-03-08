@@ -173,7 +173,7 @@ class CodeChunks {
         } else if (p.type == OBXPropertyType.DateNano) {
           return '''{
              final value = ${readField()};
-             object.${propertyFieldName(p)} = value == null ? null : DateTime.fromMicrosecondsSinceEpoch((value / 1000).floor());
+             object.${propertyFieldName(p)} = value == null ? null : DateTime.fromMicrosecondsSinceEpoch((value / 1000).round());
            }''';
         } else {
           throw InvalidGenerationSourceError(
