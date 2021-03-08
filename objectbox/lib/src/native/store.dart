@@ -48,10 +48,7 @@ class Store {
   ///
   /// See our examples for more details.
   Store(this._defs,
-      {String? directory,
-      int? maxDBSizeInKB,
-      int? fileMode,
-      int? maxReaders})
+      {String? directory, int? maxDBSizeInKB, int? fileMode, int? maxReaders})
       : _weak = false {
     var model = Model(_defs.model);
 
@@ -90,10 +87,9 @@ class Store {
       // 10199 = OBX_ERROR_STORAGE_GENERAL
       if (e.nativeCode == 10199 &&
           e.nativeMsg != null &&
-          e.nativeMsg! .contains('Dir does not exist')) {
+          e.nativeMsg!.contains('Dir does not exist')) {
         // 13 = permissions denied, 30 = read-only filesystem
-        if (e.nativeMsg! .endsWith(' (13)') ||
-            e.nativeMsg! .endsWith(' (30)')) {
+        if (e.nativeMsg!.endsWith(' (13)') || e.nativeMsg!.endsWith(' (30)')) {
           final msg = e.nativeMsg! +
               ' - this usually indicates a problem with permissions; '
                   "if you're using Flutter you may need to use "
@@ -192,7 +188,7 @@ class Store {
     if (!_boxes.containsKey(T)) {
       return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
     }
-    return _boxes[T] as Box<T >;
+    return _boxes[T] as Box<T>;
   }
 
   EntityDefinition<T> _entityDef<T>() {
@@ -200,7 +196,7 @@ class Store {
     if (binding == null) {
       throw ArgumentError('Unknown entity type ' + T.toString());
     }
-    return binding! as EntityDefinition<T>;
+    return binding as EntityDefinition<T>;
   }
 
   /// Executes a given function inside a transaction. Returns [fn]'s result.

@@ -8,8 +8,8 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() async {
-  late final TestEnv env;
-  late final Box<TestEntity> box;
+  late TestEnv env;
+  late Box<TestEntity> box;
 
   final simpleStringItems = () => <String>[
         'One',
@@ -25,9 +25,7 @@ void main() async {
     box = env.box;
   });
 
-  tearDown(() {
-    env.close();
-  });
+  tearDown(() => env.close());
 
   if (!asyncCallbacksAvailable()) return;
 
@@ -76,10 +74,7 @@ void main() async {
       print('Entity updated: $entityType');
       expectedEvents--;
 
-      if (typesUpdates[entityType] == null) {
-        typesUpdates[entityType] = 0;
-      }
-      typesUpdates[entityType]++;
+      typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0);
 
       if (expectedEvents == 0) {
         completer.complete();

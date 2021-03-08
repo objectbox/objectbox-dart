@@ -25,7 +25,7 @@ class ModelProperty {
     if (value == null || value.isEmpty) {
       throw Exception('name must not be null or an empty string');
     }
-    _name = value!;
+    _name = value;
   }
 
   int get type => _type;
@@ -34,7 +34,7 @@ class ModelProperty {
     if (value == null || value < 0) {
       throw Exception('type must be defined and may not be < 0');
     }
-    _type = value!;
+    _type = value;
   }
 
   int get flags => _flags;
@@ -43,7 +43,7 @@ class ModelProperty {
     if (value == null || value < 0) {
       throw Exception('flags must be defined and may not be < 0');
     }
-    _flags = value!;
+    _flags = value;
   }
 
   IdUid? get indexId => _indexId;
@@ -54,7 +54,7 @@ class ModelProperty {
         throw Exception('indexId must contain valid ID & UID');
       }
     }
-    _indexId = value!;
+    _indexId = value;
   }
 
   ModelProperty(this.id, String? name, int? type,
@@ -84,7 +84,7 @@ class ModelProperty {
     ret['name'] = name;
     ret['type'] = type;
     if (flags != 0) ret['flags'] = flags;
-    if (indexId != null) ret['indexId'] = indexId! .toString();
+    if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
     if (!forModelJson && dartFieldType != null) {
       ret['dartFieldType'] = dartFieldType;

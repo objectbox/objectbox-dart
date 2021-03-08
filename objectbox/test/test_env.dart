@@ -17,12 +17,12 @@ class TestEnv {
 
   TestEnv._(this.dir, this.store);
 
-  Box<TestEntity > get box => store.box();
+  Box<TestEntity> get box => store.box();
 
   void close() {
     store.close();
-    if (dir != null && dir! .existsSync()) {
-      dir! .deleteSync(recursive: true);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
     }
   }
 }

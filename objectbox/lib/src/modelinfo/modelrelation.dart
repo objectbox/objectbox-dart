@@ -18,18 +18,16 @@ class ModelRelation {
     if (value == null || value.isEmpty) {
       throw Exception('name must not be null or an empty string');
     }
-    _name = value!;
+    _name = value;
   }
 
   IdUid get targetId => _targetId;
 
   set targetId(IdUid? value) {
-    if (value != null) {
-      if (value.id == 0 || value.uid == 0) {
-        throw Exception('targetId must contain valid ID & UID');
-      }
+    if (value == null || value.id == 0 || value.uid == 0) {
+      throw Exception('targetId must contain valid ID & UID');
     }
-    _targetId = value!;
+    _targetId = value;
   }
 
   String? get targetName => _targetName;
@@ -38,11 +36,10 @@ class ModelRelation {
     if (value == null || value.isEmpty) {
       throw Exception('targetName must not be null or an empty string');
     }
-    _targetName = value!;
+    _targetName = value;
   }
 
-  ModelRelation(this.id, String? name,
-      {String? targetId, String? targetName}) {
+  ModelRelation(this.id, String? name, {String? targetId, String? targetName}) {
     this.name = name;
     if (targetId != null) this.targetId = IdUid.fromString(targetId);
     if (targetName != null) this.targetName = targetName;
@@ -57,7 +54,7 @@ class ModelRelation {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
-    if (targetId != null) ret['targetId'] = targetId.toString();
+    ret['targetId'] = targetId.toString();
     if (!forModelJson && targetName != null) ret['targetName'] = targetName;
     return ret;
   }

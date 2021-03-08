@@ -40,7 +40,7 @@ class IdUid {
       return;
     }
 
-    var spl = str.split(':');
+    final spl = str.split(':');
     if (spl.length != 2) {
       throw Exception(
           'IdUid has invalid format, wrong number of columns: $str');

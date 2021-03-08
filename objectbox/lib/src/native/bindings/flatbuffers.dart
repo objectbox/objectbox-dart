@@ -53,7 +53,7 @@ class Allocator extends fb.Allocator {
   final _allocs = List<Pointer<Uint8>>.filled(2, nullptr, growable: false);
 
   // only used for sanity checks:
-  final _data = List<ByteData? >.filled(2, null, growable: false);
+  final _data = List<ByteData?>.filled(2, null, growable: false);
 
   // currently used allocator index
   int _index = 0;
@@ -73,7 +73,7 @@ class Allocator extends fb.Allocator {
   ByteData allocate(int size) {
     _capacity = size;
     final index = _flipIndex();
-    _allocs[index] = calloc<Uint8>(size)!;
+    _allocs[index] = calloc<Uint8>(size);
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
     return _data[index]!;
   }
@@ -120,7 +120,7 @@ class Allocator extends fb.Allocator {
     assert(_data[_index] == data);
     assert(_allocs[_index].address != 0);
 
-    fbMemset! (_allocs[_index], 0, data.lengthInBytes);
+    fbMemset!(_allocs[_index], 0, data.lengthInBytes);
   }
 
   void freeAll() {

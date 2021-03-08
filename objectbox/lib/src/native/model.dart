@@ -19,21 +19,12 @@ class Model {
     try {
       model.entities.forEach(addEntity);
 
-      // set last entity id
       C.model_last_entity_id(
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
-
-      // set last relation id
-      if (model.lastRelationId != null) {
-        C.model_last_relation_id(
-            _cModel, model.lastRelationId.id, model.lastRelationId.uid);
-      }
-
-      // set last index id
-      if (model.lastIndexId != null) {
-        C.model_last_index_id(
-            _cModel, model.lastIndexId.id, model.lastIndexId.uid);
-      }
+      C.model_last_relation_id(
+          _cModel, model.lastRelationId.id, model.lastRelationId.uid);
+      C.model_last_index_id(
+          _cModel, model.lastIndexId.id, model.lastIndexId.uid);
     } catch (e) {
       C.model_free(_cModel);
       rethrow;
@@ -71,7 +62,6 @@ class Model {
     // add all properties
     entity.properties.forEach(addProperty);
 
-    // set last property id
     _check(C.model_entity_last_property_id(
         _cModel, entity.lastPropertyId.id, entity.lastPropertyId.uid));
 
@@ -85,10 +75,10 @@ class Model {
           _cModel, name.cast(), prop.type, prop.id.id, prop.id.uid));
 
       if (prop.isRelation) {
-        var relTarget = prop.relationTarget! .toNativeUtf8();
+        var relTarget = prop.relationTarget!.toNativeUtf8();
         try {
-          _check(C.model_property_relation(_cModel, relTarget.cast(),
-              prop.indexId! .id, prop.indexId! .uid));
+          _check(C.model_property_relation(
+              _cModel, relTarget.cast(), prop.indexId!.id, prop.indexId!.uid));
         } finally {
           calloc.free(relTarget);
         }

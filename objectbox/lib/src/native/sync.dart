@@ -130,7 +130,7 @@ class SyncChange {
 class SyncClient {
   final Store _store;
 
-  late final Pointer<OBX_sync> _cSync;
+  late Pointer<OBX_sync> _cSync;
 
   /// The low-level pointer to this box.
   Pointer<OBX_sync> get ptr => (_cSync.address != 0)
@@ -270,7 +270,7 @@ class SyncClient {
   ///   2) the result follows transaction view semantics, thus it may not always
   ///      match the actual value.
   int outgoingMessageCount({int limit = 0}) {
-    final count = malloc<Uint64>()!;
+    final count = malloc<Uint64>();
     try {
       checkObx(C.sync_outgoing_message_count(ptr, limit, count));
       return count.value;
@@ -501,7 +501,7 @@ class _SyncListenerGroup<StreamValueType> {
 
       // Start the native listener.
       final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
-      if (cListener == null || cListener == nullptr) {
+      if (cListener == nullptr) {
         hasError = true;
       } else {
         _cListeners.add(cListener);
@@ -552,18 +552,10 @@ class Sync {
   /// Create a Sync annotation, enabling synchronization for an entity.
   const Sync();
 
-  static late final bool _syncAvailable;
+  static late final bool _syncAvailable = C.sync_available();
 
   /// Returns true if the loaded ObjectBox native library supports Sync.
-  static bool isAvailable() {
-    // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_sync_available() exists.
-    try {
-      _syncAvailable ??= C.sync_available();
-    } catch (_) {
-      _syncAvailable = false;
-    }
-    return _syncAvailable;
-  }
+  static bool isAvailable() => _syncAvailable;
 
   /// Creates a sync client associated with the given store and configures it
   /// with the given options. This does not initiate any connection attempts

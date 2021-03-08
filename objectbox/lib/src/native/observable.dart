@@ -16,7 +16,7 @@ class _Observer<StreamValueType> {
   Pointer<OBX_observer>? _cObserver;
   ReceivePort? receivePort;
 
-  int get nativePort => receivePort! .sendPort.nativePort;
+  int get nativePort => receivePort!.sendPort.nativePort;
 
   set cObserver(Pointer<OBX_observer> value) {
     _cObserver = checkObxPtr(value, 'observer initialization failed');

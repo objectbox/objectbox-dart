@@ -43,6 +43,8 @@ import 'info.dart';
 /// student.teachers.applyToDb(); // or store.box<Student>().put(student);
 /// ```
 class ToMany<EntityT> extends Object with ListMixin<EntityT> {
+  bool _attached = false;
+
   late final Store _store;
 
   /// Standard direction: target box; backlinks: source box.
@@ -127,7 +129,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// "remove": increment = -1
   void _track(EntityT object, int increment) {
     if (_counts.containsKey(object)) {
-      _counts[object] += increment;
+      _counts[object] = _counts[object]! + increment;
     } else {
       _counts[object] = increment;
     }
@@ -206,6 +208,14 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   void _setRelInfo(Store store, RelInfo rel, Box otherBox) {
+    if (_attached) {
+      if (_store != store) {
+        throw ArgumentError.value(
+            store, 'store', 'Relation already attached to a different store');
+      }
+      return;
+    }
+    _attached = true;
     _store = store;
     _box = store.box<EntityT>();
     _entity = InternalStoreAccess.entityDef<EntityT>(_store);
@@ -232,7 +242,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   void _verifyAttached() {
-    if (_store == null) {
+    if (!_attached) {
       throw Exception('ToMany relation field not initialized. '
           "Don't call applyToDb() on new objects, use box.put() instead.");
     }

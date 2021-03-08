@@ -44,6 +44,8 @@ import '../store.dart';
 /// order.customer.targetId = 0
 /// ```
 class ToOne<EntityT> {
+  bool _attached = false;
+
   late final Store _store;
 
   late final Box<EntityT> _box;
@@ -56,7 +58,7 @@ class ToOne<EntityT> {
   EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
       _verifyAttached();
-      final object = _box! .get(_value._id);
+      final object = _box.get(_value._id);
       _value = (object == null)
           ? _ToOneValue<EntityT>.unresolvable(_value._id)
           : _ToOneValue<EntityT>.stored(_value._id, object);
@@ -105,7 +107,7 @@ class ToOne<EntityT> {
         id == _getId(_value._object!)) {
       // Optimization for targetId being set from box.put(sourceObject)
       // after entity.setId(object, newID) was already called on the new target.
-      _value = _ToOneValue<EntityT >.stored(id, _value._object!);
+      _value = _ToOneValue<EntityT>.stored(id, _value._object!);
     } else if (_value._state != _ToOneState.unknown && id == _value._id) {
       return;
     } else {
@@ -123,13 +125,18 @@ class ToOne<EntityT> {
   /// which is a very unusual operation because you've just assigned the
   /// [target] so you should know it's ID.
   void attach(Store store) {
-    if (_store == store) return;
+    if (_attached) {
+      if (_store != store) {
+        throw ArgumentError.value(
+            store, 'store', 'Relation already attached to a different store');
+      }
+      return;
+    }
+    _attached = true;
     _store = store;
     _box = store.box<EntityT>();
     _entity = InternalStoreAccess.entityDef<EntityT>(_store);
   }
-
-  bool get _attached => _store != null;
 
   void _verifyAttached() {
     if (!_attached) {

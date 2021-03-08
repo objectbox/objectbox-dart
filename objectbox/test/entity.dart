@@ -84,7 +84,7 @@ class TestEntity {
       this.ignore});
 
   TestEntity.filled({
-    this.id,
+    this.id = 1,
     this.tString = 'Foo',
     this.tBool = true,
     this.tByte = 42,
@@ -173,7 +173,7 @@ class TestEntity {
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();
 
-  final relManyA = ToMany<RelatedEntityA?>();
+  final relManyA = ToMany<RelatedEntityA>();
 }
 
 @Entity()
@@ -186,7 +186,7 @@ class RelatedEntityA {
   final relB = ToOne<RelatedEntityB>();
 
   @Backlink('relManyA')
-  final testEntities = ToMany<TestEntity?>();
+  final testEntities = ToMany<TestEntity>();
 
   RelatedEntityA({this.id, this.tInt, this.tBool});
 }
@@ -202,7 +202,7 @@ class RelatedEntityB {
   final relB = ToOne<RelatedEntityB>();
 
   @Backlink()
-  final testEntities = ToMany<TestEntity?>();
+  final testEntities = ToMany<TestEntity>();
 
   RelatedEntityB({this.id, this.tString, this.tDouble});
 }

@@ -9,13 +9,15 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() {
-  late final TestEnv env;
-  late final Box<TestEntity> box;
+  late TestEnv env;
+  late Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query_property');
     box = env.box;
   });
+
+  tearDown(() => env.close());
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = () => integers
@@ -128,10 +130,10 @@ void main() {
     final query = box.query((tLong < 100)).build();
     final all = box.getAll();
 
-    final sumByte = all.map((s) => s.tByte).toList().fold(0, _add as int Function(int, int?));
-    final sumShort = all.map((s) => s.tShort).toList().fold(0, _add as int Function(int, int?));
-    final sumInt = all.map((s) => s.tInt).toList().fold(0, _add as int Function(int, int?));
-    final sumLong = all.map((s) => s.tLong).toList().fold(0, _add as int Function(int, int?));
+    final sumByte = all.map((s) => s.tByte!).toList().fold(0, _add);
+    final sumShort = all.map((s) => s.tShort!).toList().fold(0, _add);
+    final sumInt = all.map((s) => s.tInt!).toList().fold(0, _add);
+    final sumLong = all.map((s) => s.tLong!).toList().fold(0, _add);
 
     expect(_propQueryExecInt(query, tByte, _pqSumInt), sumByte);
     expect(_propQueryExecInt(query, tShort, _pqSumInt), sumShort);
@@ -147,10 +149,10 @@ void main() {
     final query = box.query((tLong < 100)).build();
     final all = box.getAll();
 
-    final minByte = all.map((s) => s.tByte).toList().reduce(min);
-    final minShort = all.map((s) => s.tShort).toList().reduce(min);
-    final minInt = all.map((s) => s.tInt).toList().reduce(min);
-    final minLong = all.map((s) => s.tLong).toList().reduce(min);
+    final minByte = all.map((s) => s.tByte!).toList().reduce(min);
+    final minShort = all.map((s) => s.tShort!).toList().reduce(min);
+    final minInt = all.map((s) => s.tInt!).toList().reduce(min);
+    final minLong = all.map((s) => s.tLong!).toList().reduce(min);
 
     expect(_propQueryExecInt(query, tByte, _pqMinInt), minByte);
     expect(_propQueryExecInt(query, tShort, _pqMinInt), minShort);
@@ -166,10 +168,10 @@ void main() {
     final query = box.query((tLong < 100)).build();
     final all = box.getAll();
 
-    final maxByte = all.map((s) => s.tByte).toList().reduce(max);
-    final maxShort = all.map((s) => s.tShort).toList().reduce(max);
-    final maxInt = all.map((s) => s.tInt).toList().reduce(max);
-    final maxLong = all.map((s) => s.tLong).toList().reduce(max);
+    final maxByte = all.map((s) => s.tByte!).toList().reduce(max);
+    final maxShort = all.map((s) => s.tShort!).toList().reduce(max);
+    final maxInt = all.map((s) => s.tInt!).toList().reduce(max);
+    final maxLong = all.map((s) => s.tLong!).toList().reduce(max);
 
     expect(_propQueryExecInt(query, tByte, _pqMaxInt), maxByte);
     expect(_propQueryExecInt(query, tShort, _pqMaxInt), maxShort);
@@ -186,8 +188,8 @@ void main() {
 
     final all = box.getAll();
 
-    final sumFloat = all.map((s) => s.tFloat).toList().fold(0.0, _add as double Function(double, double?));
-    final sumDouble = all.map((s) => s.tDouble).toList().fold(0.0, _add as double Function(double, double?));
+    final sumFloat = all.map((s) => s.tFloat!).toList().fold(0.0, _add);
+    final sumDouble = all.map((s) => s.tDouble!).toList().fold(0.0, _add);
 
     expect(_propQueryExecDouble(query, tFloat, _pqSumDouble), sumFloat);
     expect(_propQueryExecDouble(query, tDouble, _pqSumDouble), sumDouble);
@@ -202,8 +204,8 @@ void main() {
 
     final all = box.getAll();
 
-    final minFloat = all.map((s) => s.tFloat).toList().reduce(min);
-    final minDouble = all.map((s) => s.tDouble).toList().reduce(min);
+    final minFloat = all.map((s) => s.tFloat!).toList().reduce(min);
+    final minDouble = all.map((s) => s.tDouble!).toList().reduce(min);
 
     expect(_propQueryExecDouble(query, tFloat, _pqMinDouble), minFloat);
     expect(_propQueryExecDouble(query, tDouble, _pqMinDouble), minDouble);
@@ -217,8 +219,8 @@ void main() {
     final query = box.query((tFloat > -10.0).or(tDouble > -10.0)).build();
     final all = box.getAll();
 
-    final maxFloat = all.map((s) => s.tFloat).toList().reduce(max);
-    final maxDouble = all.map((s) => s.tDouble).toList().reduce(max);
+    final maxFloat = all.map((s) => s.tFloat!).toList().reduce(max);
+    final maxDouble = all.map((s) => s.tDouble!).toList().reduce(max);
 
     expect(_propQueryExecDouble(query, tFloat, _pqMaxDouble), maxFloat);
     expect(_propQueryExecDouble(query, tDouble, _pqMaxDouble), maxDouble);
@@ -455,10 +457,6 @@ void main() {
         5);
     queryString.close();
     query.close();
-  });
-
-  tearDown(() {
-    env.close();
   });
 }
 

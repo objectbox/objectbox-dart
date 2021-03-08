@@ -10,9 +10,9 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  late final TestEnv env;
-  late final Store store;
-  late final Box<TestEntity> box;
+  late TestEnv env;
+  late Store store;
+  late Box<TestEntity> box;
 
   final simpleItems = () => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
       .map((s) => TestEntity(tString: s))
@@ -24,7 +24,7 @@ void main() {
     store = env.store;
   });
 
-  tearDown(() => env?.close());
+  tearDown(() => env.close());
 
   test('store box vending', () {
     final box1 = store.box<TestEntity>();
@@ -130,7 +130,7 @@ void main() {
     expect(ids.length, equals(items.length));
     for (var i = 0; i < items.length; ++i) {
       expect(items[i].id, equals(ids[i])); // IDs on the objects are updated
-      expect(box.get(ids[i])! .tString, equals(items[i].tString));
+      expect(box.get(ids[i])!.tString, equals(items[i].tString));
     }
   });
 
@@ -153,8 +153,8 @@ void main() {
 
     items = box.getMany([1, 2]);
     expect(items.length, 2);
-    expect(items[0]! .tString, largeString);
-    expect(items[1]! .tString, largeString);
+    expect(items[0]!.tString, largeString);
+    expect(items[1]!.tString, largeString);
   });
 
   test('.getMany correctly handles non-existent items', () {
@@ -165,12 +165,12 @@ void main() {
     while (ids.indexWhere((id) => id == otherId) != -1) {
       ++otherId;
     }
-    final List<TestEntity? > fetchedItems =
+    final List<TestEntity?> fetchedItems =
         box.getMany([ids[0], otherId, ids[1]]);
     expect(fetchedItems.length, equals(3));
-    expect(fetchedItems[0]! .tString, equals('One'));
+    expect(fetchedItems[0]!.tString, equals('One'));
     expect(fetchedItems[1], isNull);
-    expect(fetchedItems[2]! .tString, equals('Two'));
+    expect(fetchedItems[2]!.tString, equals('Two'));
   });
 
   test('.getMany result list fixed vs growable', () {
@@ -204,16 +204,16 @@ void main() {
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
     final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0]! .tChar, equals(int8Min));
-    expect(fetchedItems[1]! .tChar, equals(int8Max));
-    expect(fetchedItems[2]! .tByte, equals(int8Min));
-    expect(fetchedItems[3]! .tByte, equals(int8Max));
-    expect(fetchedItems[4]! .tShort, equals(int16Min));
-    expect(fetchedItems[5]! .tShort, equals(int16Max));
-    expect(fetchedItems[6]! .tInt, equals(int32Min));
-    expect(fetchedItems[7]! .tInt, equals(int32Max));
-    expect(fetchedItems[8]! .tLong, equals(int64Min));
-    expect(fetchedItems[9]! .tLong, equals(int64Max));
+    expect(fetchedItems[0]!.tChar, equals(int8Min));
+    expect(fetchedItems[1]!.tChar, equals(int8Max));
+    expect(fetchedItems[2]!.tByte, equals(int8Min));
+    expect(fetchedItems[3]!.tByte, equals(int8Max));
+    expect(fetchedItems[4]!.tShort, equals(int16Min));
+    expect(fetchedItems[5]!.tShort, equals(int16Max));
+    expect(fetchedItems[6]!.tInt, equals(int32Min));
+    expect(fetchedItems[7]!.tInt, equals(int32Max));
+    expect(fetchedItems[8]!.tLong, equals(int64Min));
+    expect(fetchedItems[9]!.tLong, equals(int64Max));
   });
 
   test('special floating point values are handled correctly', () {
@@ -241,8 +241,8 @@ void main() {
     List<double> fetchedVals = [];
     for (var i = 0; i < fetchedItems.length; i++) {
       fetchedVals.add(i < valsFloat.length
-          ? fetchedItems[i]! .tFloat!
-          : fetchedItems[i]! .tDouble!);
+          ? fetchedItems[i]!.tFloat!
+          : fetchedItems[i]!.tDouble!);
     }
 
     for (var i = 0; i < fetchedVals.length; i++) {
@@ -264,21 +264,21 @@ void main() {
       TestEntity(tString: 'Hello')
     ];
     final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0]! .id, isNotNull);
-    expect(fetchedItems[0]! .tLong, isNull);
-    expect(fetchedItems[0]! .tString, isNull);
-    expect(fetchedItems[0]! .tBool, isNull);
-    expect(fetchedItems[0]! .tDouble, isNull);
-    expect(fetchedItems[1]! .id, isNotNull);
-    expect(fetchedItems[1]! .tLong, isNotNull);
-    expect(fetchedItems[1]! .tString, isNull);
-    expect(fetchedItems[1]! .tBool, isNull);
-    expect(fetchedItems[1]! .tDouble, isNull);
-    expect(fetchedItems[2]! .id, isNotNull);
-    expect(fetchedItems[2]! .tLong, isNull);
-    expect(fetchedItems[2]! .tString, isNotNull);
-    expect(fetchedItems[2]! .tBool, isNull);
-    expect(fetchedItems[2]! .tDouble, isNull);
+    expect(fetchedItems[0]!.id, isNotNull);
+    expect(fetchedItems[0]!.tLong, isNull);
+    expect(fetchedItems[0]!.tString, isNull);
+    expect(fetchedItems[0]!.tBool, isNull);
+    expect(fetchedItems[0]!.tDouble, isNull);
+    expect(fetchedItems[1]!.id, isNotNull);
+    expect(fetchedItems[1]!.tLong, isNotNull);
+    expect(fetchedItems[1]!.tString, isNull);
+    expect(fetchedItems[1]!.tBool, isNull);
+    expect(fetchedItems[1]!.tDouble, isNull);
+    expect(fetchedItems[2]!.id, isNotNull);
+    expect(fetchedItems[2]!.tLong, isNull);
+    expect(fetchedItems[2]!.tString, isNotNull);
+    expect(fetchedItems[2]!.tBool, isNull);
+    expect(fetchedItems[2]!.tDouble, isNull);
   });
 
   test('all types are handled correctly', () {
@@ -295,8 +295,7 @@ void main() {
     final fetchedItem = box.get(box.put(item))!;
     expect(fetchedItem.tString, equals('Hello'));
     expect(fetchedItem.tLong, equals(1234));
-    expect(
-        (fetchedItem.tDouble! - 3.14159).abs(), lessThan(0.000000000001));
+    expect((fetchedItem.tDouble! - 3.14159).abs(), lessThan(0.000000000001));
     expect(fetchedItem.tBool, equals(true));
     expect(fetchedItem.tByte, equals(123));
     expect(fetchedItem.tShort, equals(-4567));
@@ -375,8 +374,7 @@ void main() {
     expect(box.count(), equals(4));
 
     // verify the right items were removed
-    final List<int? > remainingIds =
-        box.getAll().map((o) => o.id).toList();
+    final List<int?> remainingIds = box.getAll().map((o) => o.id).toList();
     expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
   });
 
@@ -430,7 +428,7 @@ void main() {
   test('recursive read in write transaction', () {
     int count = store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
-      return store.runInTransaction(TxMode.read, () => box.count());
+      return store.runInTransaction(TxMode.read, box.count);
     });
     expect(count, equals(6));
   });

@@ -66,8 +66,9 @@ class Box<T> {
         return OBXPutMode.INSERT;
       case PutMode.update:
         return OBXPutMode.UPDATE;
+      default:
+        throw Exception('Invalid put mode ' + mode.toString());
     }
-    throw Exception('Invalid put mode ' + mode.toString());
   }
 
   /// Puts the given Object in the box (aka persisting it).
@@ -170,9 +171,8 @@ class Box<T> {
   /// the location of its ID in [ids]. Non-existent IDs become null.
   ///
   /// Pass growableResult: true for the resulting list to be growable.
-  List<T? > getMany(List<int> ids, {bool growableResult = false}) {
-    final result =
-        List<T? >.filled(ids.length, null, growable: growableResult);
+  List<T?> getMany(List<int> ids, {bool growableResult = false}) {
+    final result = List<T?>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
     final tx = Transaction(_store, TxMode.read);
     try {
@@ -212,7 +212,7 @@ class Box<T> {
   /// Returns the count of all stored Objects in this box.
   /// If [limit] is not zero, stops counting at the given limit.
   int count({int limit = 0}) {
-    final count = malloc<Uint64>()!;
+    final count = malloc<Uint64>();
     try {
       checkObx(C.box_count(_cBox, limit, count));
       return count.value;
@@ -223,7 +223,7 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = malloc<Uint8>()!;
+    final isEmpty = malloc<Uint8>();
     try {
       checkObx(C.box_is_empty(_cBox, isEmpty));
       return isEmpty.value == 1;
@@ -234,7 +234,7 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = malloc<Uint8>()!;
+    final contains = malloc<Uint8>();
     try {
       checkObx(C.box_contains(_cBox, id, contains));
       return contains.value == 1;
@@ -245,7 +245,7 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids].
   bool containsMany(List<int> ids) {
-    final contains = malloc<Uint8>()!;
+    final contains = malloc<Uint8>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_contains_many(_cBox, ptr, contains));
@@ -267,7 +267,7 @@ class Box<T> {
 
   /// Removes (deletes) by ID, returning a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
-    final countRemoved = malloc<Uint64>()!;
+    final countRemoved = malloc<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_remove_many(_cBox, ptr, countRemoved));
@@ -280,7 +280,7 @@ class Box<T> {
 
   /// Removes (deletes) ALL Objects in a single transaction.
   int removeAll() {
-    final removedItems = malloc<Uint64>()!;
+    final removedItems = malloc<Uint64>();
     try {
       checkObx(C.box_remove_all(_cBox, removedItems));
       return removedItems.value;

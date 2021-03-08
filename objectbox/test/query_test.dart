@@ -8,13 +8,14 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  late final TestEnv env;
-  late final Box<TestEntity> box;
+  late TestEnv env;
+  late Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query');
     box = env.box;
   });
+  tearDown(() => env.close());
 
   test('Query with no conditions, and order as desc ints', () {
     box.putMany(<TestEntity>[
@@ -530,9 +531,5 @@ void main() {
             ' AND tUint8List < byte[1]{0x08}\n'
             ' AND tUint8List <= byte[4]{0x090A0B0C})'));
     q.close();
-  });
-
-  tearDown(() {
-    env.close();
   });
 }

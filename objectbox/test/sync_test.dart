@@ -15,9 +15,9 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  late final TestEnv env;
-  late final Store store;
-  late final TestEnv env2;
+  late TestEnv env;
+  late Store store;
+  late TestEnv env2;
   int serverPort = 9999;
 
   setUp(() {
@@ -27,8 +27,8 @@ void main() {
   });
 
   tearDown(() {
-    env?.close();
-    env2?.close();
+    env.close();
+    env2.close();
   });
 
   // lambda to easily create clients in the test below
@@ -96,7 +96,7 @@ void main() {
       // completely without an option to close it.
       SyncClient? client = store.syncClient();
       expect(client, isNotNull);
-      expect(client! .isClosed(), isFalse);
+      expect(client!.isClosed(), isFalse);
       client.close();
       expect(store.syncClient(), isNull);
     });
@@ -163,16 +163,16 @@ void main() {
     });
 
     group('Sync tests with server', () {
-      late final SyncServer server;
+      late SyncServer server;
       setUp(() async {
         server = SyncServer();
-        await server.start();
+        server.start();
         serverPort = server.port!;
       });
 
       tearDown(() async {
         print('Waiting for the server to stop');
-        await server.stop();
+        server.stop();
         print('Server has stopped');
       });
 
@@ -188,8 +188,8 @@ void main() {
         TestEntity? read2 = env2.box.get(id);
         expect(read1, isNotNull);
         expect(read2, isNotNull);
-        expect(read1! .id, equals(read2! .id));
-        expect(read1! .tLong, equals(read2! .tLong));
+        expect(read1!.id, equals(read2!.id));
+        expect(read1.tLong, equals(read2.tLong));
         client1.close();
         client2.close();
       });
@@ -215,7 +215,7 @@ void main() {
 
         await streamSub2.cancel();
 
-        await server.stop(keepDb: true);
+        server.stop(keepDb: true);
 
         expect(
             waitUntil(() => client.state() == SyncState.disconnected), isTrue);
@@ -227,7 +227,7 @@ void main() {
               SyncConnectionEvent.disconnected
             ]));
 
-        await server.start(keepDb: true);
+        server.start(keepDb: true);
         await server.online();
 
         expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
@@ -288,7 +288,7 @@ void main() {
         await client2.completionEvents.first.timeout(defaultTimeout);
         client2.close();
 
-        expect(env2.box.get(id)! .tLong, 100);
+        expect(env2.box.get(id)!.tLong, 100);
       });
 
       test('SyncClient listeners: changes', () async {
@@ -356,9 +356,9 @@ void main() {
 
 /// sync-server process wrapper for testing clients
 class SyncServer {
-  late final Directory dir;
-  late final int port;
-  late final Future<Process>? process;
+  Directory? dir;
+  int? port;
+  Future<Process>? process;
 
   static bool isAvailable() {
     // Note: this causes an additional valgrind summary output with a leak.
@@ -384,7 +384,7 @@ class SyncServer {
 
     process = Process.start('sync-server', [
       '--unsecured-no-authentication',
-      '--db-directory=${dir.path}',
+      '--db-directory=${dir!.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
       '--bind=ws://127.0.0.1:$port',
       '--browser-bind=http://127.0.0.1:${await _getUnusedPort()}'
@@ -398,7 +398,7 @@ class SyncServer {
         final httpClient = HttpClient();
         while (true) {
           try {
-            await httpClient.get('127.0.0.1', port, '');
+            await httpClient.get('127.0.0.1', port!, '');
             break;
           } on SocketException catch (e) {
             // only retry if "connection refused"
@@ -431,8 +431,8 @@ class SyncServer {
       });
 
   void _deleteDb() {
-    if (dir != null && dir! .existsSync()) {
-      dir! .deleteSync(recursive: true);
+    if (dir != null && dir!.existsSync()) {
+      dir!.deleteSync(recursive: true);
     }
   }
 }

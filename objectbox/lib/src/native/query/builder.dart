@@ -75,7 +75,7 @@ class _QueryBuilder<T> {
 
   void _applyCondition() {
     if (_queryCondition != null &&
-        0 == _queryCondition! ._apply(this, isRoot: true)) {
+        0 == _queryCondition!._apply(this, isRoot: true)) {
       _throwExceptionIfNecessary();
     }
   }

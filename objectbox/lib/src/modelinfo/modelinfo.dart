@@ -71,7 +71,7 @@ class ModelInfo {
     }
     if (modelVersion > _maxModelVersion) {
       throw Exception(
-          'the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
+          'the loaded model has been created with a newer generator version $modelVersion, while the maximum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
     }
 
     var lastEntityIdFound = false;
@@ -102,12 +102,12 @@ class ModelInfo {
       var lastRelationIdFound = false;
       for (final e in entities) {
         for (final r in e.relations) {
-          if (lastRelationId! .id < r.id.id) {
+          if (lastRelationId.id < r.id.id) {
             throw Exception(
                 "lastRelationId $lastRelationId is lower than the one of relation '${r.name}' with id ${r.id}");
           }
-          if (lastRelationId! .id == r.id.id) {
-            if (lastRelationId! .uid != r.id.uid) {
+          if (lastRelationId.id == r.id.id) {
+            if (lastRelationId.uid != r.id.uid) {
               throw Exception(
                   "lastRelationId $lastRelationId does not match relation '${r.name}' with id ${r.id}");
             }
@@ -124,7 +124,7 @@ class ModelInfo {
     }
   }
 
-  // Note: this function is used when generting objectbox-model.json as well as
+  // Note: this function is used when generating objectbox-model.json as well as
   // for model persistence in build_runner cache files.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};

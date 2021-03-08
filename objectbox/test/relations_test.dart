@@ -6,15 +6,13 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() {
-  late final TestEnv env;
+  late TestEnv env;
 
   setUp(() {
     env = TestEnv('relations');
   });
 
-  tearDown(() {
-    env?.close();
-  });
+  tearDown(() => env.close());
 
   test('to-one put', () {
     final src = TestEntity(tString: 'Hello');
@@ -61,7 +59,7 @@ void main() {
     readRelARelBRelA.target = readRelA.target;
     expect(readRelARelBRelA.hasValue, isTrue);
     expect(readRelARelBRelA.targetId, readRelA.targetId);
-    env.store.box<RelatedEntityB?>().put(readRelARelB.target);
+    env.store.box<RelatedEntityB>().put(readRelARelB.target!);
 
     read = env.box.get(1)!;
     readRelA = read.relA;
@@ -71,7 +69,7 @@ void main() {
 
     // remove a relation, using [targetId]
     readRelARelB.targetId = 0;
-    env.store.box<RelatedEntityA?>().put(readRelA.target);
+    env.store.box<RelatedEntityA>().put(readRelA.target!);
     read = env.box.get(1)!;
     readRelA = read.relA;
     readRelARelB = readRelA.target!.relB;
@@ -230,7 +228,7 @@ void main() {
       src = env.box.get(1);
       check(src!.relManyA, items: [1, 2, 3], added: [], removed: []);
 
-      src!.relManyA.removeWhere((e) => e!.tInt == 2);
+      src!.relManyA.removeWhere((e) => e.tInt == 2);
       check(src!.relManyA, items: [1, 3], added: [], removed: [2]);
       env.box.put(src!);
 
@@ -274,7 +272,7 @@ void main() {
       src1.relManyA.add(RelatedEntityA(tInt: 5));
       final src2 = TestEntity(tString: 'bar');
       src2.relManyA.add(RelatedEntityA(tInt: 10));
-      src2.relManyA[0]!.relB.target = RelatedEntityB(tString: 'deep');
+      src2.relManyA[0].relB.target = RelatedEntityB(tString: 'deep');
       env.box.putMany([src1, src2]);
 
       {
@@ -302,7 +300,7 @@ void main() {
   });
 
   group('to-one backlink', () {
-    late Box<RelatedEntityB > boxB;
+    late Box<RelatedEntityB> boxB;
     setUp(() {
       boxB = env.store.box();
       env.box.put(TestEntity(tString: 'foo')
@@ -332,7 +330,7 @@ void main() {
       b[1]!.testEntities.add(env.box.get(1)!); // foo
       expect(
           b[1]!.testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
-      b[1]!.testEntities.removeWhere((e) => e!.tString == 'bar');
+      b[1]!.testEntities.removeWhere((e) => e.tString == 'bar');
       expect(b[1]!.testEntities.map(strings), sameAsList(['foo', 'bar2']));
       boxB.put(b[1]!);
       b[1] = boxB.get(b[1]!.id!);
@@ -341,11 +339,11 @@ void main() {
       // Insert a new target, already with some "source" entities pointing to it.
       var newB = RelatedEntityB();
       expect(newB.testEntities.length, isZero);
-      newB.testEntities.add(env.box.get(1)); // foo
+      newB.testEntities.add(env.box.get(1)!); // foo
       newB.testEntities.add(TestEntity(tString: 'newly created from B'));
       boxB.put(newB);
-      expect(newB.testEntities[0]!.id, 1);
-      expect(newB.testEntities[1]!.id, 4);
+      expect(newB.testEntities[0].id, 1);
+      expect(newB.testEntities[1].id, 4);
 
       expect(env.box.get(4)!.tString, equals('newly created from B'));
       newB = boxB.get(newB.id!)!;
@@ -376,7 +374,7 @@ void main() {
           TestEntity(tString: 'foo')..relManyA.add(RelatedEntityA(tInt: 1)));
       env.box.put(
           TestEntity(tString: 'bar')..relManyA.add(RelatedEntityA(tInt: 2)));
-      env.box.put(TestEntity(tString: 'bar2')..relManyA.add(boxA.get(2)));
+      env.box.put(TestEntity(tString: 'bar2')..relManyA.add(boxA.get(2)!));
 
       boxA.put(RelatedEntityA()..tInt = 3); // not referenced
     });
@@ -396,10 +394,10 @@ void main() {
       expect(a[2]!.testEntities.length, isZero);
 
       // Update an existing target.
-      a[1]!.testEntities.add(env.box.get(1)); // foo
+      a[1]!.testEntities.add(env.box.get(1)!); // foo
       expect(
           a[1]!.testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
-      a[1]!.testEntities.removeWhere((e) => e!.tString == 'bar');
+      a[1]!.testEntities.removeWhere((e) => e.tString == 'bar');
       expect(a[1]!.testEntities.map(strings), sameAsList(['foo', 'bar2']));
       boxA.put(a[1]);
       a[1] = boxA.get(a[1]!.id!);
@@ -408,11 +406,11 @@ void main() {
       // Insert a new target with some "source" entities pointing to it.
       var newA = RelatedEntityA(tInt: 4);
       expect(newA.testEntities.length, isZero);
-      newA.testEntities.add(env.box.get(1)); // foo
+      newA.testEntities.add(env.box.get(1)!); // foo
       newA.testEntities.add(TestEntity(tString: 'newly created from A'));
       boxA.put(newA);
-      expect(newA.testEntities[0]!.id, 1);
-      expect(newA.testEntities[1]!.id, 4);
+      expect(newA.testEntities[0].id, 1);
+      expect(newA.testEntities[1].id, 4);
 
       expect(env.box.get(4)!.tString, equals('newly created from A'));
       newA = boxA.get(newA.id!)!;
@@ -439,7 +437,9 @@ void main() {
 int toInt(dynamic e) => e.tInt as int;
 
 void check<E>(ToMany<E> rel,
-    {required List<int> items, required List<int> added, required List<int> removed}) {
+    {required List<int> items,
+    required List<int> added,
+    required List<int> removed}) {
   final relT = InternalToManyTestAccess(rel);
   expect(relT.items.map(toInt), unorderedEquals(items));
   expect(relT.added.map(toInt), unorderedEquals(added));

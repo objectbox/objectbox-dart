@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -55,6 +54,7 @@ class CursorHelper<T> {
   final Store _store;
   final Pointer<OBX_cursor> ptr;
 
+  final bool _isWrite;
   late final Pointer<Pointer<Void>> dataPtrPtr;
 
   late final Pointer<IntPtr> sizePtr;
@@ -64,10 +64,11 @@ class CursorHelper<T> {
   CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
       {required bool isWrite})
       : ptr = checkObxPtr(
-            C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
-    if (!isWrite) {
-      dataPtrPtr = malloc()!;
-      sizePtr = malloc()!;
+            C.cursor(txn, _entity.model.id.id), 'failed to create cursor'),
+        _isWrite = isWrite {
+    if (!_isWrite) {
+      dataPtrPtr = malloc();
+      sizePtr = malloc();
     }
   }
 
@@ -79,8 +80,10 @@ class CursorHelper<T> {
   void close() {
     if (_closed) return;
     _closed = true;
-    if (dataPtrPtr != null) malloc.free(dataPtrPtr);
-    if (sizePtr != null) malloc.free(sizePtr);
+    if (!_isWrite) {
+      malloc.free(dataPtrPtr);
+      malloc.free(sizePtr);
+    }
     checkObx(C.cursor_close(ptr));
   }
 
@@ -96,7 +99,7 @@ T withNativeBytes<T>(
     Uint8List data, T Function(Pointer<Void> ptr, int size) fn) {
   final size = data.length;
   assert(size == data.lengthInBytes);
-  final ptr = malloc<Uint8>(size)!;
+  final ptr = malloc<Uint8>(size);
   try {
     ptr.asTypedList(size).setAll(0, data); // copies `data` to `ptr`
     return fn(ptr.cast<Void>(), size);

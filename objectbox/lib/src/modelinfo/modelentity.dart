@@ -26,7 +26,7 @@ class ModelEntity {
     if (value == null || value.isEmpty) {
       throw Exception('name must not be null or an empty string');
     }
-    _name = value!;
+    _name = value;
   }
 
   int get flags => _flags;
@@ -35,13 +35,13 @@ class ModelEntity {
     if (value == null || value < 0) {
       throw Exception('flags must be defined and may not be < 0');
     }
-    _flags = value!;
+    _flags = value;
   }
 
   ModelProperty get idProperty {
     _idProperty ??= _properties.singleWhere(
         (ModelProperty prop) => prop.hasFlag(OBXPropertyFlags.ID),
-        orElse: (() => throw Exception('idProperty is null')) as ModelProperty Function()?);
+        orElse: (() => throw Exception('idProperty is null')));
     return _idProperty!;
   }
 
@@ -87,8 +87,7 @@ class ModelEntity {
     if (check) validate();
 
     _idProperty =
-        properties.firstWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
-    if (check && idProperty == null) throw Exception('idProperty is null');
+        properties.singleWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
   }
 
   void validate() {
@@ -104,12 +103,12 @@ class ModelEntity {
           throw Exception(
               "property '${p.name}' with id ${p.id} has incorrect parent entity reference");
         }
-        if (lastPropertyId! .id < p.id.id) {
+        if (lastPropertyId.id < p.id.id) {
           throw Exception(
               "lastPropertyId $lastPropertyId is lower than the one of property '${p.name}' with id ${p.id}");
         }
-        if (lastPropertyId! .id == p.id.id) {
-          if (lastPropertyId! .uid != p.id.uid) {
+        if (lastPropertyId.id == p.id.id) {
+          if (lastPropertyId.uid != p.id.uid) {
             throw Exception(
                 "lastPropertyId $lastPropertyId does not match property '${p.name}' with id ${p.id}");
           }
@@ -118,7 +117,7 @@ class ModelEntity {
       }
 
       if (!lastPropertyIdFound &&
-          !model.retiredPropertyUids.contains(lastPropertyId! .uid)) {
+          !model.retiredPropertyUids.contains(lastPropertyId.uid)) {
         throw Exception(
             'lastPropertyId $lastPropertyId does not match any property');
       }
@@ -196,7 +195,7 @@ class ModelEntity {
     model.retiredPropertyUids.add(prop.id.uid);
 
     if (prop.indexId != null) {
-      model.retiredIndexUids.add(prop.indexId! .uid);
+      model.retiredIndexUids.add(prop.indexId!.uid);
     }
   }
 
