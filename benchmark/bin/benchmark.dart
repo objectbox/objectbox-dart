@@ -25,11 +25,8 @@ void main(List<String> arguments) {
   print('running $runs times with $count objects in $dbDir');
 
   if (dbDir.existsSync()) {
-    print('deleting existing DB files in $dbDir');
-    final dbFilesGlob = Glob(dbDir.path + '/*.mdb');
-    for (var dbFile in dbFilesGlob.listSync()) {
-      dbFile.deleteSync();
-    }
+    print('deleting existing DB directory $dbDir');
+    dbDir.deleteSync(recursive: true);
   }
 
   final bench = Executor(dbDir);

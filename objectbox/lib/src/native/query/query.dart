@@ -3,7 +3,7 @@ library query;
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' show allocate, free, Utf8;
+import 'package:ffi/ffi.dart';
 
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
@@ -351,12 +351,12 @@ class _StringCondition extends _PropertyCondition<String> {
 
   int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
-    final cStr = Utf8.toUtf8(_value).cast<Int8>();
+    final cStr = _value.toNativeUtf8();
     try {
-      return func(
-          builder._cBuilder, _property._propertyId, cStr, _caseSensitive);
+      return func(builder._cBuilder, _property._propertyId, cStr.cast(),
+          _caseSensitive);
     } finally {
-      free(cStr);
+      malloc.free(cStr);
     }
   }
 
@@ -401,18 +401,18 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
   int _inside(_QueryBuilder builder) {
     final func = C.qb_in_strings;
     final listLength = _value.length;
-    final arrayOfCStrings = allocate<Pointer<Int8>>(count: listLength);
+    final arrayOfCStrings = malloc<Pointer<Int8>>(listLength);
     try {
       for (var i = 0; i < _value.length; i++) {
-        arrayOfCStrings[i] = Utf8.toUtf8(_value[i]).cast<Int8>();
+        arrayOfCStrings[i] = _value[i].toNativeUtf8().cast<Int8>();
       }
       return func(builder._cBuilder, _property._propertyId, arrayOfCStrings,
           listLength, _caseSensitive);
     } finally {
       for (var i = 0; i < _value.length; i++) {
-        free(arrayOfCStrings.elementAt(i).value);
+        malloc.free(arrayOfCStrings.elementAt(i).value);
       }
-      free(arrayOfCStrings);
+      malloc.free(arrayOfCStrings);
     }
   }
 
@@ -466,10 +466,10 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
 
   int _opList<T extends NativeType>(
       _QueryBuilder builder,
+      Pointer<T> listPtr,
       int Function(Pointer<OBX_query_builder>, int, Pointer<T>, int) func,
       void Function(Pointer<T>, int, int) setIndex) {
     final length = _value.length;
-    final listPtr = allocate<T>(count: length);
     try {
       for (var i = 0; i < length; i++) {
         // Error: The operator '[]=' isn't defined for the type 'Pointer<T>
@@ -478,7 +478,7 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
       }
       return func(builder._cBuilder, _property._propertyId, listPtr, length);
     } finally {
-      free(listPtr);
+      malloc.free(listPtr);
     }
   }
 
@@ -494,9 +494,11 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
       case _ConditionOp.inside:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList(builder, C.qb_in_int32s, opListSetIndexInt32);
+            return _opList(builder, malloc<Int32>(_value.length),
+                C.qb_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList(builder, C.qb_in_int64s, opListSetIndexInt64);
+            return _opList(builder, malloc<Int64>(_value.length),
+                C.qb_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -504,9 +506,11 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
       case _ConditionOp.notIn:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList(builder, C.qb_not_in_int32s, opListSetIndexInt32);
+            return _opList(builder, malloc<Int32>(_value.length),
+                C.qb_not_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList(builder, C.qb_not_in_int64s, opListSetIndexInt64);
+            return _opList(builder, malloc<Int64>(_value.length),
+                C.qb_not_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
         }
@@ -597,7 +601,7 @@ class _ConditionGroup extends Condition {
       return _conditions[0]._apply(builder, isRoot: isRoot);
     }
 
-    final intArrayPtr = allocate<Int32>(count: size);
+    final intArrayPtr = malloc<Int32>(size);
     try {
       for (var i = 0; i < size; ++i) {
         final cid = _conditions[i]._apply(builder, isRoot: false);
@@ -617,7 +621,7 @@ class _ConditionGroup extends Condition {
 
       return _func(builder._cBuilder, intArrayPtr, size);
     } finally {
-      free(intArrayPtr);
+      malloc.free(intArrayPtr);
     }
   }
 }
@@ -673,23 +677,23 @@ class Query<T> {
 
   /// Returns the number of matching Objects.
   int count() {
-    final ptr = allocate<Uint64>();
+    final ptr = malloc<Uint64>();
     try {
       checkObx(C.query_count(_cQuery, ptr));
       return ptr.value;
     } finally {
-      free(ptr);
+      malloc.free(ptr);
     }
   }
 
   /// Returns the number of removed Objects.
   int remove() {
-    final ptr = allocate<Uint64>();
+    final ptr = malloc<Uint64>();
     try {
       checkObx(C.query_remove(_cQuery, ptr));
       return ptr.value;
     } finally {
-      free(ptr);
+      malloc.free(ptr);
     }
   }
 

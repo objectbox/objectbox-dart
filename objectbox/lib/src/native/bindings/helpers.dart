@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -46,14 +47,8 @@ ObjectBoxException latestNativeError(
       dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
 }
 
-String cString(Pointer<Int8> charPtr) {
-  // Utf8.fromUtf8 segfaults when called on nullptr
-  if (charPtr.address == 0) {
-    return '';
-  }
-
-  return Utf8.fromUtf8(charPtr.cast<Utf8>());
-}
+String cString(Pointer<Int8> charPtr) =>
+    charPtr.address == 0 ? '' : charPtr.cast<Utf8>().toDartString();
 
 class CursorHelper<T> {
   final EntityDefinition<T> _entity;
@@ -73,8 +68,8 @@ class CursorHelper<T> {
       : ptr = checkObxPtr(
             C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {
-      dataPtrPtr = allocate();
-      sizePtr = allocate();
+      dataPtrPtr = malloc();
+      sizePtr = malloc();
     }
   }
 
@@ -86,8 +81,8 @@ class CursorHelper<T> {
   void close() {
     if (_closed) return;
     _closed = true;
-    if (dataPtrPtr != null) free(dataPtrPtr);
-    if (sizePtr != null) free(sizePtr);
+    if (dataPtrPtr != null) malloc.free(dataPtrPtr);
+    if (sizePtr != null) malloc.free(sizePtr);
     checkObx(C.cursor_close(ptr));
   }
 
@@ -103,11 +98,11 @@ T withNativeBytes<T>(
     Uint8List data, T Function(Pointer<Void> ptr, int size) fn) {
   final size = data.length;
   assert(size == data.lengthInBytes);
-  final ptr = allocate<Uint8>(count: size);
+  final ptr = malloc<Uint8>(size);
   try {
     ptr.asTypedList(size).setAll(0, data); // copies `data` to `ptr`
     return fn(ptr.cast<Void>(), size);
   } finally {
-    free(ptr);
+    malloc.free(ptr);
   }
 }

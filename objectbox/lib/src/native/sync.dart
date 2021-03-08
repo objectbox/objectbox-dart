@@ -147,13 +147,13 @@ class SyncClient {
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
+    final cServerUri = serverUri.toNativeUtf8();
     try {
       _cSync = checkObxPtr(
-          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri),
+          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri.cast()),
           'failed to create sync client');
     } finally {
-      free(cServerUri);
+      malloc.free(cServerUri);
     }
 
     setCredentials(creds);
@@ -271,12 +271,12 @@ class SyncClient {
   ///   2) the result follows transaction view semantics, thus it may not always
   ///      match the actual value.
   int outgoingMessageCount({int limit = 0}) {
-    final count = allocate<Uint64>();
+    final count = malloc<Uint64>();
     try {
       checkObx(C.sync_outgoing_message_count(ptr, limit, count));
       return count.value;
     } finally {
-      free(count);
+      malloc.free(count);
     }
   }
 

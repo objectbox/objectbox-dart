@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show allocate, free;
+import 'package:ffi/ffi.dart';
 
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
@@ -212,47 +212,47 @@ class Box<T> {
   /// Returns the count of all stored Objects in this box.
   /// If [limit] is not zero, stops counting at the given limit.
   int count({int limit = 0}) {
-    final count = allocate<Uint64>();
+    final count = malloc<Uint64>();
     try {
       checkObx(C.box_count(_cBox, limit, count));
       return count.value;
     } finally {
-      free(count);
+      malloc.free(count);
     }
   }
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = allocate<Uint8>();
+    final isEmpty = malloc<Uint8>();
     try {
       checkObx(C.box_is_empty(_cBox, isEmpty));
       return isEmpty.value == 1;
     } finally {
-      free(isEmpty);
+      malloc.free(isEmpty);
     }
   }
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = allocate<Uint8>();
+    final contains = malloc<Uint8>();
     try {
       checkObx(C.box_contains(_cBox, id, contains));
       return contains.value == 1;
     } finally {
-      free(contains);
+      malloc.free(contains);
     }
   }
 
   /// Returns true if this box contains objects with all of the given [ids].
   bool containsMany(List<int> ids) {
-    final contains = allocate<Uint8>();
+    final contains = malloc<Uint8>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_contains_many(_cBox, ptr, contains));
         return contains.value == 1;
       });
     } finally {
-      free(contains);
+      malloc.free(contains);
     }
   }
 
@@ -267,25 +267,25 @@ class Box<T> {
 
   /// Removes (deletes) by ID, returning a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
-    final countRemoved = allocate<Uint64>();
+    final countRemoved = malloc<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_remove_many(_cBox, ptr, countRemoved));
         return countRemoved.value;
       });
     } finally {
-      free(countRemoved);
+      malloc.free(countRemoved);
     }
   }
 
   /// Removes (deletes) ALL Objects in a single transaction.
   int removeAll() {
-    final removedItems = allocate<Uint64>();
+    final removedItems = malloc<Uint64>();
     try {
       checkObx(C.box_remove_all(_cBox, removedItems));
       return removedItems.value;
     } finally {
-      free(removedItems);
+      malloc.free(removedItems);
     }
   }
 

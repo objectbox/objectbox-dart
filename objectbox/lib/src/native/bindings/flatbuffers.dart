@@ -2,7 +2,7 @@ import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' as f;
+import 'package:ffi/ffi.dart';
 
 import '../../../flatbuffers/flat_buffers.dart' as fb;
 
@@ -74,7 +74,7 @@ class Allocator extends fb.Allocator {
   ByteData allocate(int size) {
     _capacity = size;
     final index = _flipIndex();
-    _allocs[index] = f.allocate<Uint8>(count: size);
+    _allocs[index] = malloc<Uint8>(size);
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
     return _data[index] /*!*/;
   }
@@ -86,7 +86,7 @@ class Allocator extends fb.Allocator {
     // only used for sanity checks:
     assert(_data[index] == data);
 
-    f.free(_allocs[index]);
+    malloc.free(_allocs[index]);
     _allocs[index] = nullptr;
   }
 
@@ -123,7 +123,7 @@ class Allocator extends fb.Allocator {
   }
 
   void freeAll() {
-    if (_allocs[0].address != 0) f.free(_allocs[0]);
-    if (_allocs[1].address != 0) f.free(_allocs[1]);
+    if (_allocs[0].address != 0) malloc.free(_allocs[0]);
+    if (_allocs[1].address != 0) malloc.free(_allocs[1]);
   }
 }

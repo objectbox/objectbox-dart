@@ -62,11 +62,11 @@ class Store {
     try {
       checkObx(C.opt_model(opt, model.ptr));
       if (directory != null && directory.isNotEmpty) {
-        var cStr = Utf8.toUtf8(directory).cast<Int8>();
+        var cStr = directory.toNativeUtf8();
         try {
-          checkObx(C.opt_directory(opt, cStr));
+          checkObx(C.opt_directory(opt, cStr.cast()));
         } finally {
-          free(cStr);
+          malloc.free(cStr);
         }
       }
       if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {

@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show allocate, free, Utf8;
+import 'package:ffi/ffi.dart';
 
 import 'bindings.dart';
 
@@ -10,12 +10,12 @@ import 'bindings.dart';
 /// Execute the given function, managing the resources consistently
 R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
   // allocate a temporary structure
-  final ptr = allocate<OBX_id_array>();
+  final ptr = malloc<OBX_id_array>();
 
   // fill it with data
   final array = ptr.ref;
   array.count = items.length;
-  array.ids = allocate<Uint64>(count: items.length);
+  array.ids = malloc<Uint64>(items.length);
   for (var i = 0; i < items.length; ++i) {
     array.ids[i] = items[i];
   }
@@ -24,22 +24,15 @@ R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
   try {
     return fn(ptr);
   } finally {
-    free(array.ids);
-    free(ptr);
+    malloc.free(array.ids);
+    malloc.free(ptr);
   }
 }
 
-class OBX_string_array_wrapper {
-  final Pointer<OBX_string_array> _cPtr;
-
-  OBX_string_array_wrapper(this._cPtr);
-
-  List<String> items() {
-    final cArray = _cPtr.ref;
-    final list = <String>[];
-    for (var i = 0; i < cArray.count; i++) {
-      list.add(Utf8.fromUtf8(cArray.items.elementAt(i).value.cast<Utf8>()));
-    }
-    return list;
+extension NativeStringArrayAccess on Pointer<OBX_string_array> {
+  List<String> toDartStrings() {
+    final cArray = ref;
+    final items = cArray.items.cast<Pointer<Utf8>>();
+    return List<String>.generate(cArray.count, (i) => items[i].toDartString());
   }
 }
