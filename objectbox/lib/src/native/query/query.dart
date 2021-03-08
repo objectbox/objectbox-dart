@@ -57,17 +57,17 @@ class QueryProperty {
 
 class QueryStringProperty extends QueryProperty {
   QueryStringProperty(
-      {/*required*/ required int entityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int entityId,
+      required int propertyId,
+      required int obxType})
       : super(entityId, propertyId, obxType);
 
   Condition _op(String p, _ConditionOp cop,
-          {/*required*/ required bool caseSensitive}) =>
+          {required bool caseSensitive}) =>
       _StringCondition(cop, this, p, null, caseSensitive: caseSensitive);
 
   Condition _opList(List<String> list, _ConditionOp cop,
-          {/*required*/ required bool caseSensitive}) =>
+          {required bool caseSensitive}) =>
       _StringListCondition(cop, this, list, caseSensitive: caseSensitive);
 
   Condition equals(String p, {bool caseSensitive = false}) =>
@@ -120,9 +120,9 @@ class QueryStringProperty extends QueryProperty {
 
 class QueryByteVectorProperty extends QueryProperty {
   QueryByteVectorProperty(
-      {/*required*/ required int entityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int entityId,
+      required int propertyId,
+      required int obxType})
       : super(entityId, propertyId, obxType);
 
   Condition _op(List<int> val, _ConditionOp cop) =>
@@ -141,9 +141,9 @@ class QueryByteVectorProperty extends QueryProperty {
 
 class QueryIntegerProperty extends QueryProperty {
   QueryIntegerProperty(
-      {/*required*/ required int entityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int entityId,
+      required int propertyId,
+      required int obxType})
       : super(entityId, propertyId, obxType);
 
   Condition _op(int p, _ConditionOp cop) => _IntegerCondition(cop, this, p, 0);
@@ -176,9 +176,9 @@ class QueryIntegerProperty extends QueryProperty {
 
 class QueryDoubleProperty extends QueryProperty {
   QueryDoubleProperty(
-      {/*required*/ required int entityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int entityId,
+      required int propertyId,
+      required int obxType})
       : super(entityId, propertyId, obxType);
 
   Condition _op(_ConditionOp op, double p1, double? p2) =>
@@ -208,9 +208,9 @@ class QueryDoubleProperty extends QueryProperty {
 
 class QueryBooleanProperty extends QueryProperty {
   QueryBooleanProperty(
-      {/*required*/ required int entityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int entityId,
+      required int propertyId,
+      required int obxType})
       : super(entityId, propertyId, obxType);
 
   // ignore: avoid_positional_boolean_parameters
@@ -224,9 +224,9 @@ class QueryBooleanProperty extends QueryProperty {
 
 class QueryStringVectorProperty extends QueryProperty {
   QueryStringVectorProperty(
-      {/*required*/ required int entityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int entityId,
+      required int propertyId,
+      required int obxType})
       : super(entityId, propertyId, obxType);
 
   Condition contains(String p, {bool caseSensitive = false}) =>
@@ -238,10 +238,10 @@ class QueryRelationProperty<Source, Target> extends QueryIntegerProperty {
   final int _targetEntityId;
 
   QueryRelationProperty(
-      {/*required*/ required int sourceEntityId,
-      /*required*/ required int targetEntityId,
-      /*required*/ required int propertyId,
-      /*required*/ required int obxType})
+      {required int sourceEntityId,
+      required int targetEntityId,
+      required int propertyId,
+      required int obxType})
       : _targetEntityId = targetEntityId,
         super(
             entityId: sourceEntityId, propertyId: propertyId, obxType: obxType);
@@ -253,9 +253,9 @@ class QueryRelationMany<Source, Target> {
   final int _relationId;
 
   QueryRelationMany(
-      {/*required*/ required int sourceEntityId,
-      /*required*/ required int targetEntityId,
-      /*required*/ required int relationId})
+      {required int sourceEntityId,
+      required int targetEntityId,
+      required int relationId})
       : _entityId = sourceEntityId,
         _targetEntityId = targetEntityId,
         _relationId = relationId;
@@ -308,7 +308,7 @@ abstract class Condition {
 
   Condition orAny(List<Condition> rh) => _ConditionGroupAny([this, ...rh]);
 
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot});
+  int _apply(_QueryBuilder builder, {required bool isRoot});
 }
 
 class _NullCondition extends Condition {
@@ -318,7 +318,7 @@ class _NullCondition extends Condition {
   _NullCondition(this._op, this._property);
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.isNull:
         return C.qb_null(builder._cBuilder, _property._propertyId);
@@ -345,7 +345,7 @@ class _StringCondition extends _PropertyCondition<String> {
 
   _StringCondition(
       _ConditionOp op, QueryProperty prop, String value, String? value2,
-      {/*required*/ required bool caseSensitive})
+      {required bool caseSensitive})
       : _caseSensitive = caseSensitive,
         super(op, prop, value, value2);
 
@@ -361,7 +361,7 @@ class _StringCondition extends _PropertyCondition<String> {
   }
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.eq:
         return _op1(builder, C.qb_equals_string);
@@ -394,7 +394,7 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
   final bool _caseSensitive;
 
   _StringListCondition(_ConditionOp op, QueryProperty prop, List<String> value,
-      {/*required*/ required bool caseSensitive})
+      {required bool caseSensitive})
       : _caseSensitive = caseSensitive,
         super(op, prop, value);
 
@@ -417,7 +417,7 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
   }
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.inside:
         return _inside(builder); // bindings.obx_qb_string_in
@@ -437,7 +437,7 @@ class _IntegerCondition extends _PropertyCondition<int> {
       func(builder._cBuilder, _property._propertyId, _value);
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.eq:
         return _op1(builder, C.qb_equals_int);
@@ -489,7 +489,7 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
       list[i] = val;
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.inside:
         switch (_property._type) {
@@ -530,7 +530,7 @@ class _DoubleCondition extends _PropertyCondition<double> {
   }
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.gt:
         return C.qb_greater_than_double(
@@ -567,7 +567,7 @@ class _ByteVectorCondition extends _PropertyCondition<Uint8List> {
               func(builder._cBuilder, _property._propertyId, ptr, size));
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.eq:
         return _op1(builder, C.qb_equals_bytes);
@@ -592,7 +592,7 @@ class _ConditionGroup extends Condition {
   _ConditionGroup(this._conditions, this._func);
 
   @override
-  int _apply(_QueryBuilder builder, {/*required*/ required bool isRoot}) {
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
     final size = _conditions.length;
 
     if (size == 0) {

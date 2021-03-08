@@ -62,7 +62,7 @@ class CursorHelper<T> {
   bool _closed = false;
 
   CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
-      {/*required*/ required bool isWrite})
+      {required bool isWrite})
       : ptr = checkObxPtr(
             C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {

@@ -21,13 +21,13 @@ class EntityDefinition<T> {
   final Map<RelInfo, ToMany> Function(T) toManyRelations;
 
   const EntityDefinition(
-      {/*required*/ required this.model,
-      /*required*/ required this.objectToFB,
-      /*required*/ required this.objectFromFB,
-      /*required*/ required this.getId,
-      /*required*/ required this.setId,
-      /*required*/ required this.toOneRelations,
-      /*required*/ required this.toManyRelations});
+      {required this.model,
+      required this.objectToFB,
+      required this.objectFromFB,
+      required this.getId,
+      required this.setId,
+      required this.toOneRelations,
+      required this.toManyRelations});
 
   Type type() => T;
 }

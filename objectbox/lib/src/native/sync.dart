@@ -254,7 +254,7 @@ class SyncClient {
   /// Additionally, you can subscribe for future pushes from the server, to let
   /// it send us future updates as they come in.
   /// Call [cancelUpdates()] to stop the updates.
-  bool requestUpdates({/*required*/ required bool subscribeForFuturePushes}) =>
+  bool requestUpdates({required bool subscribeForFuturePushes}) =>
       checkObxSuccess(C.sync_updates_request(ptr, subscribeForFuturePushes));
 
   /// Cancel updates from the server so that it will stop sending updates.
