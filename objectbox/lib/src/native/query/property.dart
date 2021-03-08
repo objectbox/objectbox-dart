@@ -107,8 +107,8 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
       case OBXPropertyType.Bool:
       case OBXPropertyType.Byte:
       case OBXPropertyType.Char: // Int8
-        var cDefault = replaceNullWith == null ? null : malloc<Int8>() /*!*/;
-        if (replaceNullWith != null) cDefault.value = replaceNullWith;
+        var cDefault = replaceNullWith == null ? null : malloc<Int8>() /*!*/
+          ..value = replaceNullWith;
         return _find(
             C.query_prop_find_int8s,
             cDefault,
@@ -116,8 +116,8 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.int8_array_free);
       case OBXPropertyType.Short: // Int16
-        var cDefault = replaceNullWith == null ? null : malloc<Int16>() /*!*/;
-        if (replaceNullWith != null) cDefault.value = replaceNullWith;
+        var cDefault = replaceNullWith == null ? null : malloc<Int16>() /*!*/
+          ..value = replaceNullWith;
         return _find(
             C.query_prop_find_int16s,
             cDefault,
@@ -125,8 +125,8 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.int16_array_free);
       case OBXPropertyType.Int: // Int32
-        var cDefault = replaceNullWith == null ? null : malloc<Int32>() /*!*/;
-        if (replaceNullWith != null) cDefault.value = replaceNullWith;
+        var cDefault = replaceNullWith == null ? null : malloc<Int32>() /*!*/
+          ..value = replaceNullWith;
         return _find(
             C.query_prop_find_int32s,
             cDefault,
@@ -134,8 +134,8 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.int32_array_free);
       case OBXPropertyType.Long: // Int64
-        var cDefault = replaceNullWith == null ? null : malloc<Int64>() /*!*/;
-        if (replaceNullWith != null) cDefault.value = replaceNullWith;
+        var cDefault = replaceNullWith == null ? null : malloc<Int64>() /*!*/
+          ..value = replaceNullWith;
         return _find(
             C.query_prop_find_int64s,
             cDefault,
@@ -179,8 +179,8 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
   List<double> find({double /*?*/ replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Float:
-        var cDefault = replaceNullWith == null ? null : malloc<Float>() /*!*/;
-        if (replaceNullWith != null) cDefault.value = replaceNullWith;
+        var cDefault = replaceNullWith == null ? null : malloc<Float>() /*!*/
+          ..value = replaceNullWith;
         return _find(
             C.query_prop_find_floats,
             cDefault,
@@ -188,8 +188,8 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.float_array_free);
       case OBXPropertyType.Double:
-        var cDefault = replaceNullWith == null ? null : malloc<Double>() /*!*/;
-        if (replaceNullWith != null) cDefault.value = replaceNullWith;
+        var cDefault = replaceNullWith == null ? null : malloc<Double>() /*!*/
+          ..value = replaceNullWith;
         return _find(
             C.query_prop_find_doubles,
             cDefault,
@@ -229,8 +229,8 @@ class StringPropertyQuery extends PropertyQuery<String> {
 
   @override
   List<String> find({String /*?*/ replaceNullWith}) {
-    final cDefault =
-        replaceNullWith == null ? nullptr : replaceNullWith.toNativeUtf8();
+    var cDefault =
+        replaceNullWith == null ? null : replaceNullWith.toNativeUtf8();
 
     return _find(
         C.query_prop_find_strings,
