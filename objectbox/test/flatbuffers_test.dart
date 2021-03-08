@@ -73,7 +73,7 @@ void main() {
     expect(bytesSum(buf1), isZero);
     expect(bytesSum(buf2), 1);
 
-    allocator.clear(buf2, true);
+    allocator.clear(buf2, false);
     expect(bytesSum(buf2), isZero);
 
     allocator.deallocate(buf1);
