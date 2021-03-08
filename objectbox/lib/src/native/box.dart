@@ -78,7 +78,7 @@ class Box<T> {
   /// If the object with given was already in the box, it will be overwritten.
   ///
   /// Performance note: consider [putMany] to put several objects at once.
-  int put(T object, {PutMode mode = PutMode.put}) {
+  int put(T/*!*/ object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       final tx = Transaction(_store, TxMode.write);
       try {
@@ -188,7 +188,7 @@ class Box<T> {
   }
 
   /// Returns all stored objects in this Box.
-  List<T> getAll() {
+  List<T/*!*/> getAll() {
     final tx = Transaction(_store, TxMode.read);
     try {
       final cursor = tx.cursor(_entity);
@@ -327,7 +327,7 @@ class InternalBoxAccess {
 
   /// Put the object in a given transaction.
   static int put<EntityT>(
-          Box<EntityT> box, EntityT object, PutMode mode, Transaction tx) =>
+          Box<EntityT> box, EntityT object, PutMode mode, Transaction/*?*/ tx) =>
       box._put(object, mode, tx);
 
   /// Put a standalone relation.
