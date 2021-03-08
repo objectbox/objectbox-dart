@@ -51,7 +51,7 @@ int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
 
 /// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
 class DataVisitor {
-  final Pointer<Int64> _idPtr = malloc<Int64>();
+  final Pointer<Int64> _idPtr = malloc<Int64>() /*!*/;
 
   Pointer<NativeFunction<obx_data_visitor>> get fn =>
       Pointer.fromFunction(_forwarder, 0);

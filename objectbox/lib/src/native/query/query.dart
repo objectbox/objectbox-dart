@@ -401,7 +401,7 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
   int _inside(_QueryBuilder builder) {
     final func = C.qb_in_strings;
     final listLength = _value.length;
-    final arrayOfCStrings = malloc<Pointer<Int8>>(listLength);
+    final arrayOfCStrings = malloc<Pointer<Int8>>(listLength) /*!*/;
     try {
       for (var i = 0; i < _value.length; i++) {
         arrayOfCStrings[i] = _value[i].toNativeUtf8().cast<Int8>();
@@ -494,10 +494,10 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
       case _ConditionOp.inside:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList(builder, malloc<Int32>(_value.length),
+            return _opList(builder, malloc<Int32>(_value.length) /*!*/,
                 C.qb_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList(builder, malloc<Int64>(_value.length),
+            return _opList(builder, malloc<Int64>(_value.length) /*!*/,
                 C.qb_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
@@ -506,10 +506,10 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
       case _ConditionOp.notIn:
         switch (_property._type) {
           case OBXPropertyType.Int:
-            return _opList(builder, malloc<Int32>(_value.length),
+            return _opList(builder, malloc<Int32>(_value.length) /*!*/,
                 C.qb_not_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
-            return _opList(builder, malloc<Int64>(_value.length),
+            return _opList(builder, malloc<Int64>(_value.length) /*!*/,
                 C.qb_not_in_int64s, opListSetIndexInt64);
           default:
             throw Exception('Unsupported type for IN: ${_property._type}');
@@ -601,7 +601,7 @@ class _ConditionGroup extends Condition {
       return _conditions[0]._apply(builder, isRoot: isRoot);
     }
 
-    final intArrayPtr = malloc<Int32>(size);
+    final intArrayPtr = malloc<Int32>(size) /*!*/;
     try {
       for (var i = 0; i < size; ++i) {
         final cid = _conditions[i]._apply(builder, isRoot: false);
@@ -677,7 +677,7 @@ class Query<T> {
 
   /// Returns the number of matching Objects.
   int count() {
-    final ptr = malloc<Uint64>();
+    final ptr = malloc<Uint64>() /*!*/;
     try {
       checkObx(C.query_count(_cQuery, ptr));
       return ptr.value;
@@ -688,7 +688,7 @@ class Query<T> {
 
   /// Returns the number of removed Objects.
   int remove() {
-    final ptr = malloc<Uint64>();
+    final ptr = malloc<Uint64>() /*!*/;
     try {
       checkObx(C.query_remove(_cQuery, ptr));
       return ptr.value;

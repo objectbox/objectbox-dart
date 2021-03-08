@@ -271,7 +271,7 @@ class SyncClient {
   ///   2) the result follows transaction view semantics, thus it may not always
   ///      match the actual value.
   int outgoingMessageCount({int limit = 0}) {
-    final count = malloc<Uint64>();
+    final count = malloc<Uint64>() /*!*/;
     try {
       checkObx(C.sync_outgoing_message_count(ptr, limit, count));
       return count.value;

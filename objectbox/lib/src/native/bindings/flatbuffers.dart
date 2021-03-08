@@ -74,7 +74,7 @@ class Allocator extends fb.Allocator {
   ByteData allocate(int size) {
     _capacity = size;
     final index = _flipIndex();
-    _allocs[index] = calloc<Uint8>(size);
+    _allocs[index] = calloc<Uint8>(size) /*!*/;
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
     return _data[index] /*!*/;
   }

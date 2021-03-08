@@ -10,12 +10,12 @@ import 'bindings.dart';
 /// Execute the given function, managing the resources consistently
 R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
   // allocate a temporary structure
-  final ptr = malloc<OBX_id_array>();
+  final ptr = malloc<OBX_id_array>() /*!*/;
 
   // fill it with data
   final array = ptr.ref;
   array.count = items.length;
-  array.ids = malloc<Uint64>(items.length);
+  array.ids = malloc<Uint64>(items.length) /*!*/;
   for (var i = 0; i < items.length; ++i) {
     array.ids[i] = items[i];
   }

@@ -68,8 +68,8 @@ class CursorHelper<T> {
       : ptr = checkObxPtr(
             C.cursor(txn, _entity.model.id.id), 'failed to create cursor') {
     if (!isWrite) {
-      dataPtrPtr = malloc();
-      sizePtr = malloc();
+      dataPtrPtr = malloc()/*!*/;
+      sizePtr = malloc()/*!*/;
     }
   }
 
@@ -98,7 +98,7 @@ T withNativeBytes<T>(
     Uint8List data, T Function(Pointer<Void> ptr, int size) fn) {
   final size = data.length;
   assert(size == data.lengthInBytes);
-  final ptr = malloc<Uint8>(size);
+  final ptr = malloc<Uint8>(size) /*!*/;
   try {
     ptr.asTypedList(size).setAll(0, data); // copies `data` to `ptr`
     return fn(ptr.cast<Void>(), size);
