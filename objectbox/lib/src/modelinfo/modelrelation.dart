@@ -54,7 +54,7 @@ class ModelRelation {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
-    if (_targetId != null )ret['targetId'] = _targetId.toString();
+    if (_targetId != null) ret['targetId'] = _targetId.toString();
     if (!forModelJson && _targetName != null) ret['targetName'] = _targetName;
     return ret;
   }

@@ -78,7 +78,7 @@ void main() {
 
     // remove a relation, using [target]
     read.relA.target = null;
-    env.store.box<TestEntity?>().put(read);
+    env.store.box<TestEntity>().put(read);
     read = env.box.get(1)!;
     expect(read.relA.target, isNull);
     expect(read.relA.targetId, isZero);
@@ -367,7 +367,7 @@ void main() {
   });
 
   group('to-many backlink', () {
-    late Box<RelatedEntityA?> boxA;
+    late Box<RelatedEntityA> boxA;
     setUp(() {
       boxA = env.store.box();
       env.box.put(
@@ -381,27 +381,27 @@ void main() {
 
     test('put and get', () {
       final a = boxA.getAll();
-      expect(a[0]!.id, 1);
-      expect(a[0]!.tInt, 1);
-      expect(a[1]!.id, 2);
-      expect(a[1]!.tInt, 2);
-      expect(a[2]!.id, 3);
-      expect(a[2]!.tInt, 3);
+      expect(a[0].id, 1);
+      expect(a[0].tInt, 1);
+      expect(a[1].id, 2);
+      expect(a[1].tInt, 2);
+      expect(a[2].id, 3);
+      expect(a[2].tInt, 3);
 
       final strings = (TestEntity? e) => e!.tString;
-      expect(a[0]!.testEntities.map(strings), sameAsList(['foo']));
-      expect(a[1]!.testEntities.map(strings), sameAsList(['bar', 'bar2']));
-      expect(a[2]!.testEntities.length, isZero);
+      expect(a[0].testEntities.map(strings), sameAsList(['foo']));
+      expect(a[1].testEntities.map(strings), sameAsList(['bar', 'bar2']));
+      expect(a[2].testEntities.length, isZero);
 
       // Update an existing target.
-      a[1]!.testEntities.add(env.box.get(1)!); // foo
+      a[1].testEntities.add(env.box.get(1)!); // foo
       expect(
-          a[1]!.testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
-      a[1]!.testEntities.removeWhere((e) => e.tString == 'bar');
-      expect(a[1]!.testEntities.map(strings), sameAsList(['foo', 'bar2']));
+          a[1].testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
+      a[1].testEntities.removeWhere((e) => e.tString == 'bar');
+      expect(a[1].testEntities.map(strings), sameAsList(['foo', 'bar2']));
       boxA.put(a[1]);
-      a[1] = boxA.get(a[1]!.id!);
-      expect(a[1]!.testEntities.map(strings), sameAsList(['foo', 'bar2']));
+      a[1] = boxA.get(a[1].id!)!;
+      expect(a[1].testEntities.map(strings), sameAsList(['foo', 'bar2']));
 
       // Insert a new target with some "source" entities pointing to it.
       var newA = RelatedEntityA(tInt: 4);
@@ -428,7 +428,7 @@ void main() {
       final query = qb.build();
       final a = query.find();
       expect(a.length, 1);
-      expect(a.first!.tInt, 2);
+      expect(a.first.tInt, 2);
       query.close();
     });
   });

@@ -2,7 +2,7 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class C {
-  int id;
+  int? id;
 
   C();
 }

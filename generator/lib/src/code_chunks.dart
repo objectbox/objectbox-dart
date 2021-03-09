@@ -60,6 +60,9 @@ class CodeChunks {
     return property.name;
   }
 
+  static String propertyFieldAccess(ModelProperty p, String suffixIfNullable) =>
+      propertyFieldName(p) + (p.isNullable ? suffixIfNullable : '');
+
   static int propertyFlatBuffersSlot(ModelProperty property) =>
       property.id.id - 1;
 
@@ -86,16 +89,21 @@ class CodeChunks {
     final offsets = <int, String>{};
     final offsetsCode = entity.properties.map((ModelProperty p) {
       final offsetVar = 'offset${propertyFieldName(p)}';
-      final fieldName = 'object.${propertyFieldName(p)}';
-      final nullIfNull = 'final $offsetVar = $fieldName == null ? null';
+      var fieldName = 'object.${propertyFieldName(p)}';
       offsets[p.id.id] = offsetVar; // see default case in the switch
+
+      var assignment = 'final $offsetVar = ';
+      if (p.isNullable) {
+        assignment += '$fieldName == null ? null : ';
+        fieldName += '!';
+      }
       switch (p.type) {
         case OBXPropertyType.String:
-          return '$nullIfNull : fbb.writeString($fieldName);';
+          return '$assignment fbb.writeString($fieldName);';
         case OBXPropertyType.StringVector:
-          return '$nullIfNull : fbb.writeList($fieldName.map(fbb.writeString).toList(growable: false));';
+          return '$assignment fbb.writeList($fieldName.map(fbb.writeString).toList(growable: false));';
         case OBXPropertyType.ByteVector:
-          return '$nullIfNull : fbb.writeListInt8($fieldName);';
+          return '$assignment fbb.writeListInt8($fieldName);';
         default:
           offsets.remove(p.id.id);
           return null;
@@ -111,15 +119,19 @@ class CodeChunks {
         var accessorSuffix = '';
         if (p == entity.idProperty) {
           // ID must always be present in the flatbuffer
-          accessorSuffix = ' ?? 0';
+          if (p.isNullable) accessorSuffix = ' ?? 0';
         } else if (p.isRelation) {
           accessorSuffix = '.targetId';
         } else if (p.dartFieldType == 'DateTime') {
           if (p.type == OBXPropertyType.Date) {
-            accessorSuffix = '?.millisecondsSinceEpoch';
+            if (p.isNullable) accessorSuffix = '?';
+            accessorSuffix += '.millisecondsSinceEpoch';
           } else if (p.type == OBXPropertyType.DateNano) {
-            accessorSuffix =
-                ' == null ? null : object.${propertyFieldName(p)}.microsecondsSinceEpoch * 1000';
+            if (p.isNullable) {
+              accessorSuffix =
+                  ' == null ? null : object.${propertyFieldName(p)}!';
+            }
+            accessorSuffix += '.microsecondsSinceEpoch * 1000';
           }
         }
         return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
@@ -131,7 +143,7 @@ class CodeChunks {
       fbb.startTable(${entity.lastPropertyId.id + 1});
       ${propsCode.join('\n')}
       fbb.finish(fbb.endTable());
-      return object.${propertyFieldName(entity.idProperty)} ?? 0;
+      return object.${propertyFieldAccess(entity.idProperty, ' ?? 0')};
     }''';
   }
 
@@ -210,7 +222,7 @@ class CodeChunks {
       ']';
 
   static String relInfo(ModelEntity entity, ModelRelation rel) =>
-      'RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldName(entity.idProperty)})';
+      'RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
 
   static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
     final srcEntity = entity.model.findEntityByName(bl.srcEntity);
@@ -238,17 +250,17 @@ class CodeChunks {
     } else {
       srcProp = srcEntity!.findPropertyByName(bl.srcField);
       if (srcProp == null) {
-        srcRel = srcEntity.relations
-            .firstWhereOrNull((r) => r.name == bl.srcField);
+        srcRel =
+            srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
       }
     }
 
     if (srcRel != null) {
       return 'RelInfo<${srcEntity.name}>.toManyBacklink('
-          '${srcRel.id.id}, object.${propertyFieldName(entity.idProperty)})';
+          '${srcRel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
     } else if (srcProp != null) {
       return 'RelInfo<${srcEntity.name}>.toOneBacklink('
-          '${srcProp.id.id}, object.${propertyFieldName(entity.idProperty)}, '
+          '${srcProp.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')}, '
           '(${srcEntity.name} srcObject) => srcObject.${propertyFieldName(srcProp)})';
     } else {
       throw InvalidGenerationSourceError(

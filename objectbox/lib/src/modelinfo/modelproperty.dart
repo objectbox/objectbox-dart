@@ -94,6 +94,9 @@ class ModelProperty {
 
   bool hasFlag(int flag) => (flags & flag) == flag;
 
+  // TODO use dartFieldType
+  bool get isNullable => true;
+
   bool hasIndexFlag() =>
       hasFlag(OBXPropertyFlags.INDEXED) ||
       hasFlag(OBXPropertyFlags.INDEX_HASH) ||

@@ -3,28 +3,28 @@ import 'objectbox.g.dart';
 
 @Entity()
 class A {
-  int id;
+  int? id;
 
   @Index()
-  int indexed;
+  int? indexed;
 
   @Unique()
-  String unique;
+  String? unique;
 
   @Unique()
   @Index(type: IndexType.value)
-  String uniqueValue;
+  String? uniqueValue;
 
   @Unique()
   @Index(type: IndexType.hash)
-  String uniqueHash;
+  String? uniqueHash;
 
   @Unique()
   @Index(type: IndexType.hash64)
-  String uniqueHash64;
+  String? uniqueHash64;
 
   @Unique()
-  int uid;
+  int? uid;
 
   A();
 }

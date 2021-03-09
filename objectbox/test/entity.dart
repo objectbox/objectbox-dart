@@ -206,3 +206,67 @@ class RelatedEntityB {
 
   RelatedEntityB({this.id, this.tString, this.tDouble});
 }
+
+
+
+@Entity()
+class TestEntityNonRel {
+  int? id;
+
+  String? tString;
+  int? tLong;
+  double? tDouble;
+  bool? tBool;
+  DateTime? tDate;
+
+  @Property(type: PropertyType.dateNano)
+  DateTime? tDateNano;
+
+  @Property(type: PropertyType.byte)
+  int? tByte;
+
+  @Property(type: PropertyType.short)
+  int? tShort;
+
+  @Property(type: PropertyType.char)
+  int? tChar;
+
+  @Property(type: PropertyType.int)
+  int? tInt;
+
+  @Property(type: PropertyType.float)
+  double? tFloat;
+
+  // OBXPropertyType.StringVector
+  List<String>? tStrings;
+
+  // OBXPropertyType.ByteVector
+  @Property(type: PropertyType.byteVector)
+  List<int>? tByteList;
+
+  // OBXPropertyType.ByteVector
+  Int8List? tInt8List;
+
+  // OBXPropertyType.ByteVector
+  Uint8List? tUint8List;
+
+  TestEntityNonRel();
+
+  TestEntityNonRel.filled({
+    this.id = 1,
+    this.tString = 'Foo',
+    this.tBool = true,
+    this.tByte = 42,
+    this.tChar = 24,
+    this.tShort = 1234,
+    this.tInt = 123456789,
+    this.tLong = 123456789123456789,
+    this.tFloat = 4.5,
+    this.tDouble = 2.3,
+  }) {
+    tStrings = ['foo', 'bar'];
+    tByteList = [1, 2, 3];
+    tInt8List = Int8List.fromList([-4, 5, 6]);
+    tUint8List = Uint8List.fromList([7, 8, 9]);
+  }
+}

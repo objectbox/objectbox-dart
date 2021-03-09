@@ -81,7 +81,7 @@ void main() {
   });
 
   // Note: only checks content initialized by TestEntity.filled
-  void checkSameEntities(TestEntity a, TestEntity b) {
+  void checkSameEntities(TestEntityNonRel a, TestEntityNonRel b) {
     expect(a.tString, b.tString);
     expect(a.tBool, b.tBool);
     expect(a.tByte, b.tByte);
@@ -100,10 +100,10 @@ void main() {
   test('generated code', () {
     final env = TestEnv('fb');
 
-    final binding = getObjectBoxModel().bindings[TestEntity]
-        as EntityDefinition<TestEntity>;
+    final binding = getObjectBoxModel().bindings[TestEntityNonRel]
+        as EntityDefinition<TestEntityNonRel>;
 
-    final source = TestEntity.filled();
+    final source = TestEntityNonRel.filled();
 
     final fb1 = BuilderWithCBuffer();
     binding.objectToFB(source, fb1.fbb);
@@ -127,7 +127,8 @@ void main() {
     checkSameEntities(target, source);
 
     // must be empty after reading again
-    checkSameEntities(binding.objectFromFB(env.store, fbData), TestEntity());
+    checkSameEntities(
+        binding.objectFromFB(env.store, fbData), TestEntityNonRel());
 
     // note: accessing fbData after fb1.clear() is illegal (memory is freed)
     fb1.clear();

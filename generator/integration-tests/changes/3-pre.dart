@@ -10,21 +10,21 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class A {
-  int id;
+  int? id;
 
-  String text1;
+  String? text1;
 
   @Property(uid: 1003)
-  String renamed;
+  String? renamed;
 
   A();
 }
 
 @Entity(uid: 2000)
 class Renamed {
-  int id;
+  int? id;
 
-  bool value;
+  bool? value;
 
   Renamed();
 }

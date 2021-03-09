@@ -50,7 +50,7 @@ void main() {
     expect(boxB.count(), 0);
 
     {
-      final object = boxA.get(1);
+      final object = boxA.get(1)!;
       expect(object.text1, 'foo');
       expect(object.text2, isNull);
     }

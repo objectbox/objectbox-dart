@@ -6,7 +6,7 @@ import '../test_env.dart';
 import '../common.dart';
 
 void main() {
-  TestEnv<A> env;
+  late TestEnv<A> env;
   final jsonModel = readModelJson('lib');
   final defs = getObjectBoxModel();
   final model = defs.model;
