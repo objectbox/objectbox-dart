@@ -8,7 +8,7 @@ class ModelRelation {
 
   late String _name;
 
-  late IdUid _targetId;
+  IdUid? _targetId;
 
   String? _targetName;
 
@@ -21,7 +21,7 @@ class ModelRelation {
     _name = value;
   }
 
-  IdUid get targetId => _targetId;
+  IdUid get targetId => _targetId!;
 
   set targetId(IdUid? value) {
     if (value == null || value.id == 0 || value.uid == 0) {
@@ -30,7 +30,7 @@ class ModelRelation {
     _targetId = value;
   }
 
-  String? get targetName => _targetName;
+  String get targetName => _targetName!;
 
   set targetName(String? value) {
     if (value == null || value.isEmpty) {
@@ -54,12 +54,12 @@ class ModelRelation {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
-    ret['targetId'] = targetId.toString();
-    if (!forModelJson && targetName != null) ret['targetName'] = targetName;
+    if (_targetId != null )ret['targetId'] = _targetId.toString();
+    if (!forModelJson && _targetName != null) ret['targetName'] = _targetName;
     return ret;
   }
 
   @override
   String toString() =>
-      'standalone relation $name($id) relTarget: $targetName($targetId)';
+      'standalone relation $name($id) relTarget: $_targetName($_targetId)';
 }

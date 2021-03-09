@@ -6,8 +6,8 @@ export 'package:objectbox/internal.dart';
 
 class TestEnv<Entity> {
   static final dir = Directory('testdata');
-  Store store;
-  Box<Entity> box;
+  late final Store store;
+  late final Box<Entity> box;
 
   TestEnv(ModelDefinition defs) {
     if (dir.existsSync()) dir.deleteSync(recursive: true);

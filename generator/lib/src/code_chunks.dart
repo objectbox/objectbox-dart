@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
@@ -34,7 +35,7 @@ class CodeChunks {
   static String entityBinding(ModelEntity entity) {
     final name = entity.name;
     return '''
-      EntityDefinition<${name}>(
+      EntityDefinition<$name>(
         model: model.getEntityByUid(${entity.id.uid}),
         toOneRelations: ($name object) => ${toOneRelations(entity)},
         toManyRelations: ($name object) => ${toManyRelations(entity)},
@@ -137,9 +138,9 @@ class CodeChunks {
   static String objectFromFB(ModelEntity entity) {
     var lines = <String>[];
     lines.addAll(entity.properties.map((ModelProperty p) {
-      String fbReader;
+      String? fbReader;
       var readField = () =>
-          '${fbReader}.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
+          '$fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
       switch (p.type) {
         case OBXPropertyType.ByteVector:
           if (['Int8List', 'Uint8List'].contains(p.dartFieldType)) {
@@ -215,11 +216,11 @@ class CodeChunks {
     final srcEntity = entity.model.findEntityByName(bl.srcEntity);
 
     // either of these will be set, based on the source field that matches
-    ModelRelation srcRel;
-    ModelProperty srcProp;
+    ModelRelation? srcRel;
+    ModelProperty? srcProp;
 
     if (bl.srcField.isEmpty) {
-      final matchingProps = srcEntity.properties
+      final matchingProps = srcEntity!.properties
           .where((p) => p.isRelation && p.relationTarget == entity.name);
       final matchingRels =
           srcEntity.relations.where((r) => r.targetId == entity.id);
@@ -235,10 +236,10 @@ class CodeChunks {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity.findPropertyByName(bl.srcField);
+      srcProp = srcEntity!.findPropertyByName(bl.srcField);
       if (srcProp == null) {
         srcRel = srcEntity.relations
-            .firstWhere((r) => r.name == bl.srcField, orElse: () => null);
+            .firstWhereOrNull((r) => r.name == bl.srcField);
       }
     }
 
@@ -305,14 +306,14 @@ class CodeChunks {
           break;
         default:
           throw InvalidGenerationSourceError(
-              'Unsupported property type (${prop.type}): ${entity.name}.${name}');
+              'Unsupported property type (${prop.type}): ${entity.name}.$name');
       }
 
       var propCode =
           'static final ${propertyFieldName(prop)} = Query${fieldType}Property';
       if (prop.isRelation) {
         propCode += '<${entity.name}, ${prop.relationTarget}>'
-            '(targetEntityId: ${entity.model.findEntityByName(prop.relationTarget).id.id}, '
+            '(targetEntityId: ${entity.model.findEntityByName(prop.relationTarget!)!.id.id}, '
             'sourceEntityId:';
       } else {
         propCode += '(entityId:';
@@ -324,7 +325,7 @@ class CodeChunks {
 
     for (var rel in entity.relations) {
       final targetEntityName =
-          entity.model.findEntityByUid(rel.targetId.uid).name;
+          entity.model.findEntityByUid(rel.targetId.uid)!.name;
       ret.add(
           'static final ${rel.name} = QueryRelationMany<${entity.name}, $targetEntityName>'
           '(sourceEntityId:${entity.id.id}, targetEntityId:${rel.targetId.id}, relationId:${rel.id.id});');
