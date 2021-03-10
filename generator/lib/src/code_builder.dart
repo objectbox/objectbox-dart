@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:objectbox/internal.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:source_gen/source_gen.dart';
+
 import 'entity_resolver.dart';
 import 'code_chunks.dart';
 
@@ -127,6 +130,16 @@ class CodeBuilder extends Builder {
           'Entity ${entity.name}(${entity.id}) not found in the code, removing from the model');
       model.removeEntity(entity);
     });
+
+    // finally, update relation targets, now that all entities are resolved
+    model.entities.forEach((entity) => entity.relations.forEach((rel) {
+          final targetEntity = model.findEntityByName(rel.targetName);
+          if (targetEntity == null) {
+            throw InvalidGenerationSourceError(
+                "entity ${entity.name} relation ${rel.name}: cannot find target entity '${rel.targetName}");
+          }
+          rel.targetId = targetEntity.id;
+        }));
   }
 
   void mergeProperty(ModelEntity entityInModel, ModelProperty prop) {
@@ -159,8 +172,7 @@ class CodeBuilder extends Builder {
     }
 
     relInModel.name = rel.name;
-    relInModel.targetId =
-        entityInModel.model.findEntityByName(rel.targetName).id;
+    relInModel.targetName = rel.targetName;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
