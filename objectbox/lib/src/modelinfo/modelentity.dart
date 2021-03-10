@@ -173,8 +173,7 @@ class ModelEntity {
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {
-    var id = 1;
-    if (properties.isNotEmpty) id = lastPropertyId.id + 1;
+    final id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }
@@ -225,8 +224,7 @@ class ModelEntity {
   }
 
   ModelRelation createRelation(String name, [int uid = 0]) {
-    var id = 1;
-    if (relations.isNotEmpty) id = model.lastRelationId.id + 1;
+    final id = model.lastRelationId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }
