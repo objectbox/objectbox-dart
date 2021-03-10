@@ -20,6 +20,8 @@ class ModelEntity {
   ModelProperty? _idProperty;
   final ModelInfo? _model;
 
+  late List<String> constructorParams;
+
   String get name => _name;
 
   set name(String? value) {
@@ -84,6 +86,12 @@ class ModelEntity {
       }
     }
 
+    if (data['constructorParams'] != null) {
+      constructorParams = (data['constructorParams'] as List<dynamic>)
+          .map((dynamic e) => e as String)
+          .toList(growable: false);
+    }
+
     if (check) validate();
 
     _idProperty =
@@ -143,6 +151,7 @@ class ModelEntity {
         relations.map((r) => r.toMap(forModelJson: forModelJson)).toList();
     if (!forModelJson) {
       ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
+      ret['constructorParams'] = constructorParams;
     }
     return ret;
   }

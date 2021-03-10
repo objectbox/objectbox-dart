@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart';
@@ -69,7 +70,10 @@ class EntityResolver extends Builder {
 
     log.info(entity);
 
+    entity.constructorParams = constructorParams(findConstructor(element));
+
     // getters, ... (anything else?)
+    // TODO are these also final fields? we can now store those if they're among constructor params
     final readOnlyFields = <String>{};
     for (var f in element.accessors) {
       if (f.isGetter && f.correspondingSetter == null) {
@@ -196,7 +200,9 @@ class EntityResolver extends Builder {
         processAnnotationIndexUnique(f, fieldType, element, prop);
 
         if (propUid != null) prop.id.uid = propUid;
-        prop.dartFieldType = f.type.element!.name; // for code generation
+        // for code generation
+        prop.dartFieldType =
+            f.type.element!.name! + (isNullable(f.type) ? '?' : '');
         entity.properties.add(prop);
       }
     }
@@ -349,4 +355,33 @@ class EntityResolver extends Builder {
 
   bool isToManyRelationField(FieldElement f) =>
       f.type.element!.name == 'ToMany';
+
+  bool isNullable(DartType type) =>
+      type.nullabilitySuffix == NullabilitySuffix.star ||
+      type.nullabilitySuffix == NullabilitySuffix.question;
+
+  // Find an unnamed constructor we can use to initialize
+  ConstructorElement? findConstructor(ClassElement entity) {
+    final index = entity.constructors.indexWhere((c) => c.name.isEmpty);
+    return index >= 0 ? entity.constructors[index] : null;
+  }
+
+  List<String> constructorParams(ConstructorElement? constructor) {
+    if (constructor == null) return List.empty();
+    return constructor.parameters.map((param) {
+      var info = param.name;
+      if (param.isRequiredPositional) info += ' positional';
+      if (param.isOptionalPositional) info += ' optional';
+      if (param.isNamed) info += ' named';
+      return info;
+    }).toList(growable: false);
+  }
+
+// TODO do we need this?
+// To support apps that don't yet use null-safety (depend on an older SDK),
+// we generate code without null-safety operators.
+// bool nullSafetyEnabled(Element element) {
+//   final sdk = element.library!.languageVersion.effective;
+//   return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
+// }
 }

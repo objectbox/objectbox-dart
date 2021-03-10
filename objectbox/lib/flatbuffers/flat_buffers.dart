@@ -930,20 +930,24 @@ abstract class Reader<T> {
   /// Read the value at the given [offset] in [bc].
   T read(BufferContext bc, int offset);
 
-  /// Read the value of the given [field] in the given [object].
-  T? vTableGet(BufferContext object, int offset, int field, [T? defaultValue]) {
+  int _vTableFieldOffset(BufferContext object, int offset, int field) {
     int vTableSOffset = object._getInt32(offset);
     int vTableOffset = offset - vTableSOffset;
     int vTableSize = object._getUint16(vTableOffset);
-    int vTableFieldOffset = field;
-    if (vTableFieldOffset < vTableSize) {
-      int fieldOffsetInObject =
-          object._getUint16(vTableOffset + vTableFieldOffset);
-      if (fieldOffsetInObject != 0) {
-        return read(object, offset + fieldOffsetInObject);
-      }
-    }
-    return defaultValue;
+    if (field >= vTableSize) return 0;
+    return object._getUint16(vTableOffset + field);
+  }
+
+  /// Read the value of the given [field] in the given [object].
+  T? vTableGetNullable(BufferContext object, int offset, int field) {
+    int fieldOffset = _vTableFieldOffset(object, offset, field);
+    return fieldOffset == 0 ? null : read(object, offset + fieldOffset);
+  }
+
+  /// Read the value of the given [field] in the given [object].
+  T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
+    int fieldOffset = _vTableFieldOffset(object, offset, field);
+    return fieldOffset == 0 ? defaultValue : read(object, offset + fieldOffset);
   }
 }
 

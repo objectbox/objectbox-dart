@@ -207,8 +207,6 @@ class RelatedEntityB {
   RelatedEntityB({this.id, this.tString, this.tDouble});
 }
 
-
-
 @Entity()
 class TestEntityNonRel {
   int? id;

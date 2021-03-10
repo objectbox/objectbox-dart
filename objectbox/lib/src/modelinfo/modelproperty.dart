@@ -17,7 +17,7 @@ class ModelProperty {
 
   /// Type used in the source dart code - used by the code generator.
   /// Note: must be included in to/fromMap to be handled `build_runner`.
-  String? dartFieldType;
+  String? _dartFieldType;
 
   String get name => _name;
 
@@ -46,6 +46,16 @@ class ModelProperty {
     _flags = value;
   }
 
+  String get dartFieldType => _dartFieldType!;
+
+  set dartFieldType(String value) => _dartFieldType = value;
+
+  String get fieldType =>
+      _dartFieldType!.replaceFirst('?', '', _dartFieldType!.length - 1);
+
+  bool get fieldIsNullable =>
+      _dartFieldType!.substring(_dartFieldType!.length - 1) == '?';
+
   IdUid? get indexId => _indexId;
 
   set indexId(IdUid? value) {
@@ -61,8 +71,9 @@ class ModelProperty {
       {int flags = 0,
       String? indexId,
       this.entity,
-      this.dartFieldType,
-      this.relationTarget}) {
+      String? dartFieldType,
+      this.relationTarget})
+      : _dartFieldType = dartFieldType {
     this.name = name;
     this.type = type;
     this.flags = flags;
@@ -86,16 +97,13 @@ class ModelProperty {
     if (flags != 0) ret['flags'] = flags;
     if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
-    if (!forModelJson && dartFieldType != null) {
-      ret['dartFieldType'] = dartFieldType;
+    if (!forModelJson && _dartFieldType != null) {
+      ret['dartFieldType'] = _dartFieldType;
     }
     return ret;
   }
 
   bool hasFlag(int flag) => (flags & flag) == flag;
-
-  // TODO use dartFieldType
-  bool get isNullable => true;
 
   bool hasIndexFlag() =>
       hasFlag(OBXPropertyFlags.INDEXED) ||
