@@ -1,3 +1,7 @@
+## latest
+
+* Null-safety pre-release.
+
 ## 0.12.1 (2021-03-05)
 
 * Further performance optimizations in our FlatBuffers fork.
