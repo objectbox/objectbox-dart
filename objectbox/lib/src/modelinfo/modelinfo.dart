@@ -182,8 +182,7 @@ class ModelInfo {
   }
 
   ModelEntity createEntity(String name, [int uid = 0]) {
-    var id = 1;
-    if (entities.isNotEmpty) id = lastEntityId.id + 1;
+    final id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }
@@ -233,7 +232,7 @@ class ModelInfo {
   }
 
   IdUid createIndexId() {
-    var id = lastIndexId.isEmpty ? 1 : lastIndexId.id + 1;
+    final id = lastIndexId.id + 1;
     lastIndexId = IdUid(id, generateUid());
     return lastIndexId;
   }
