@@ -71,6 +71,12 @@ class EntityResolver extends Builder {
     log.info(entity);
 
     entity.constructorParams = constructorParams(findConstructor(element));
+    entity.nullSafetyEnabled = nullSafetyEnabled(element);
+    if (!entity.nullSafetyEnabled) {
+      log.warning(
+          "Entity ${entity.name} is in a library/application that doesn't use null-safety"
+          ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12');
+    }
 
     // getters, ... (anything else?)
     // TODO are these also final fields? we can now store those if they're among constructor params
@@ -377,11 +383,10 @@ class EntityResolver extends Builder {
     }).toList(growable: false);
   }
 
-// TODO do we need this?
-// To support apps that don't yet use null-safety (depend on an older SDK),
-// we generate code without null-safety operators.
-// bool nullSafetyEnabled(Element element) {
-//   final sdk = element.library!.languageVersion.effective;
-//   return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
-// }
+  // To support apps that don't yet use null-safety (depend on an older SDK),
+  // we generate code without null-safety operators.
+  bool nullSafetyEnabled(Element element) {
+    final sdk = element.library!.languageVersion.effective;
+    return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
+  }
 }

@@ -22,6 +22,9 @@ class ModelEntity {
 
   late List<String> constructorParams;
 
+  // whether the library this entity is defined in uses null safety
+  bool nullSafetyEnabled = true;
+
   String get name => _name;
 
   set name(String? value) {
@@ -65,7 +68,8 @@ class ModelEntity {
       {ModelInfo? model, bool check = true})
       : _model = model,
         id = IdUid.fromString(data['id'] as String?),
-        lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?) {
+        lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?),
+        nullSafetyEnabled = data['nullSafetyEnabled'] as bool? ?? true {
     name = data['name'] as String?;
     flags = data['flags'] as int? ?? 0;
 
@@ -152,6 +156,7 @@ class ModelEntity {
     if (!forModelJson) {
       ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
       ret['constructorParams'] = constructorParams;
+      ret['nullSafetyEnabled'] = nullSafetyEnabled;
     }
     return ret;
   }

@@ -79,8 +79,12 @@ class CodeChunks {
     }
   }
 
-  static String propertyFieldAccess(ModelProperty p, String suffixIfNullable) =>
-      propertyFieldName(p) + (p.fieldIsNullable ? suffixIfNullable : '');
+  static String propertyFieldAccess(ModelProperty p, String suffixIfNullable) {
+    if (!p.entity!.nullSafetyEnabled && suffixIfNullable == '!') {
+      suffixIfNullable = '';
+    }
+    return propertyFieldName(p) + (p.fieldIsNullable ? suffixIfNullable : '');
+  }
 
   static int propertyFlatBuffersSlot(ModelProperty property) =>
       property.id.id - 1;
@@ -114,7 +118,7 @@ class CodeChunks {
       var assignment = 'final $offsetVar = ';
       if (p.fieldIsNullable) {
         assignment += '$fieldName == null ? null : ';
-        fieldName += '!';
+        if (p.entity!.nullSafetyEnabled) fieldName += '!';
       }
       switch (p.type) {
         case OBXPropertyType.String:
@@ -148,7 +152,8 @@ class CodeChunks {
           } else if (p.type == OBXPropertyType.DateNano) {
             if (p.fieldIsNullable) {
               accessorSuffix =
-                  ' == null ? null : object.${propertyFieldName(p)}!';
+                  ' == null ? null : object.${propertyFieldName(p)}';
+              if (p.entity!.nullSafetyEnabled) accessorSuffix += '!';
             }
             accessorSuffix += '.microsecondsSinceEpoch * 1000';
           }
