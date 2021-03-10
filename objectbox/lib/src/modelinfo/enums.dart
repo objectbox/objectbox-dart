@@ -57,8 +57,9 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.DateNano;
     case PropertyType.byteVector:
       return OBXPropertyType.ByteVector;
+    default:
+      throw Exception('Invalid PropertyType: $type');
   }
-  throw Exception('Invalid PropertyType: $type');
 }
 
 /// /// Bit-flags defining the behavior of entities.
