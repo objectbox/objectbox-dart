@@ -15,6 +15,7 @@ dependencies:
   glob: ^2.0.0
   path: ^1.8.0
   dart_style: ^1.3.0
+  collection: ^1.15.0
 
 # NOTE: remove before publishing
 dependency_overrides:

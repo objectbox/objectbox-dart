@@ -5,9 +5,7 @@ homepage: https://objectbox.io
 description: ObjectBox is a super-fast NoSQL ACID compliant object database.
 
 environment:
-  # minimum Dart SDK (also see generator/pubspec.yaml)
-  #   v2.9.0 (Flutter v1.20) for package 'dart:ffi' NativeApi.initializeApiDLData
-  #   v1.12.0 (Flutter v1.26) increases DART_API_DL_MAJOR_VERSION, breaking async-callbacks & observers
+  # minimum Dart SDK (also see generator and flutter_libs)
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
