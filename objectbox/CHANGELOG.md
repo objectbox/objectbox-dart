@@ -1,4 +1,4 @@
-## latest
+## 0.11.2 (2021-03-11)
 
 * Fix `ToMany` relation internal ID assignment, when multiple relations are used.
 * Support `ToMany` relation code generation regardless of order of class definitions.
