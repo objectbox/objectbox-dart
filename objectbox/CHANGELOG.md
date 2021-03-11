@@ -1,3 +1,8 @@
+## latest
+
+* Fix `ToMany` relation internal ID assignment, when multiple relations are used.
+* Support `ToMany` relation code generation regardless of order of class definitions.
+
 ## 0.11.1 (2021-02-26)
 
 * Fix `List<String>` and `List<int>` reading - replace official FlatBuffers lazy reader with a custom (eager) one.
