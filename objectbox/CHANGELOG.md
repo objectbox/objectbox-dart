@@ -1,3 +1,8 @@
+## latest
+
+* Fix `ToMany` relation internal ID assignment, when multiple relations are used.
+* Support `ToMany` relation code generation regardless of order of class definitions. 
+
 ## 0.12.1 (2021-03-05)
 
 * Further performance optimizations in our FlatBuffers fork.
