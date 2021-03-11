@@ -2,6 +2,11 @@
 
 * Null-safety pre-release.
 
+## 0.12.2 (2021-03-11)
+
+* Fix `ToMany` relation internal ID assignment when multiple relations are used.
+* Support `ToMany` relation code generation regardless of order of class definitions.
+
 ## 0.12.1 (2021-03-05)
 
 * Further performance optimizations in our FlatBuffers fork.
@@ -21,6 +26,11 @@
 * Update to objectbox-android v2.9.0
 * Update to objectbox-swift v1.5.0
 * Increase minimum SDK versions: Flutter v1.20 & Dart v2.9. Code generator already required Flutter v1.22 & Dart v2.10. 
+
+## 0.11.2 (2021-03-11)
+
+* Fix `ToMany` relation internal ID assignment when multiple relations are used.
+* Support `ToMany` relation code generation regardless of order of class definitions.
 
 ## 0.11.1 (2021-02-26)
 
