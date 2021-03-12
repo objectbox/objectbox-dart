@@ -33,6 +33,10 @@ import 'bindings.dart';
 ///     visitor.userData, offset, limit);
 ///   visitor.close(); // make sure to close the visitor
 ///   checkObx(err);
+///
+/// TODO do we actually need to go through these hoops?
+/// Why don't we create a `Pointer.fromFunction((...) => ...), 0)` as needed?
+/// Or better yet, create them only once and reuse (where possible)?
 
 int _lastId = 0;
 final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
@@ -49,12 +53,14 @@ int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
   return callback(dataPtr.cast<Uint8>(), size) ? 1 : 0;
 }
 
+final Pointer<NativeFunction<obx_data_visitor>> _forwarderPtr =
+    Pointer.fromFunction(_forwarder, 0);
+
 /// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
 class DataVisitor {
   final Pointer<Int64> _idPtr = malloc<Int64>();
 
-  Pointer<NativeFunction<obx_data_visitor>> get fn =>
-      Pointer.fromFunction(_forwarder, 0);
+  Pointer<NativeFunction<obx_data_visitor>> get fn => _forwarderPtr;
 
   Pointer<Void> get userData => _idPtr.cast<Void>();
 

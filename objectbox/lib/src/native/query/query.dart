@@ -611,7 +611,7 @@ class _ConditionGroupAll extends _ConditionGroup {
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
   final Pointer<OBX_query> _cQuery;
-  final Store store;
+  final Store store; // TODO make private
   final EntityDefinition<T> _entity;
 
   int get entityId => _entity.model.id.id;
@@ -672,15 +672,23 @@ class Query<T> {
   void close() => checkObx(C.query_close(_cQuery));
 
   /// Finds Objects matching the query and returns the first result or null
-  /// if there are no results.
-  /// Warning: this implicitly sets offset=0 & limit=1 and leaves them set.
-  /// In the future, this behaviour will change.
+  /// if there are no results. Note: [offset] and [limit] are respected, if set.
   T? findFirst() {
-    // TODO move to the core to avoid side-effects
-    offset(0);
-    limit(1);
-    final list = find();
-    return (list.isEmpty ? null : list[0]);
+    T? result;
+    final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
+      result = _entity.objectFromFB(store, dataPtr.asTypedList(length));
+      return false; // we only want to visit the first element
+    });
+
+    try {
+      store.runInTransaction(TxMode.read, () {
+        checkObx(C.query_visit(_cQuery, visitor.fn, visitor.userData));
+      });
+    } finally {
+      visitor.close();
+    }
+
+    return result;
   }
 
   /// Finds Objects matching the query and returns their IDs.
