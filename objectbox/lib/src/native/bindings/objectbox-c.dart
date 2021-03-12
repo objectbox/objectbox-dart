@@ -21,7 +21,7 @@ class ObjectBoxC {
           lookup)
       : _lookup = lookup;
 
-  /// /// Return the version of the library as ints. Pointers may be null
+  /// Return the version of the library as ints. Pointers may be null
   void version(
     ffi.Pointer<ffi.Int32> major,
     ffi.Pointer<ffi.Int32> minor,
@@ -38,7 +38,7 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_version>>('obx_version');
   late final _dart_version _version = _version_ptr.asFunction<_dart_version>();
 
-  /// /// Check if the version of the library is equal to or higher than the given version ints.
+  /// Check if the version of the library is equal to or higher than the given version ints.
   bool version_is_at_least(
     int major,
     int minor,
@@ -58,9 +58,9 @@ class ObjectBoxC {
   late final _dart_version_is_at_least _version_is_at_least =
       _version_is_at_least_ptr.asFunction<_dart_version_is_at_least>();
 
-  /// /// Return the version of the library to be printed.
-  /// /// The format may change in any future release; only use for information purposes.
-  /// /// @see obx_version() and obx_version_is_at_least()
+  /// Return the version of the library to be printed.
+  /// The format may change in any future release; only use for information purposes.
+  /// @see obx_version() and obx_version_is_at_least()
   ffi.Pointer<ffi.Int8> version_string() {
     return _version_string();
   }
@@ -70,9 +70,9 @@ class ObjectBoxC {
   late final _dart_version_string _version_string =
       _version_string_ptr.asFunction<_dart_version_string>();
 
-  /// /// Return the version of the ObjectBox core to be printed.
-  /// /// The format may change in any future release; only use for information purposes.
-  /// /// @see obx_version() and obx_version_is_at_least()
+  /// Return the version of the ObjectBox core to be printed.
+  /// The format may change in any future release; only use for information purposes.
+  /// @see obx_version() and obx_version_is_at_least()
   ffi.Pointer<ffi.Int8> version_core_string() {
     return _version_core_string();
   }
@@ -83,7 +83,7 @@ class ObjectBoxC {
   late final _dart_version_core_string _version_core_string =
       _version_core_string_ptr.asFunction<_dart_version_core_string>();
 
-  /// /// Checks whether the given feature is available in the currently loaded library.
+  /// Checks whether the given feature is available in the currently loaded library.
   bool has_feature(
     int feature,
   ) {
@@ -98,8 +98,8 @@ class ObjectBoxC {
   late final _dart_has_feature _has_feature =
       _has_feature_ptr.asFunction<_dart_has_feature>();
 
-  /// /// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
-  /// /// @deprecated use obx_has_feature(OBXFeature_BytesArray) instead
+  /// Check whether functions returning OBX_bytes_array are fully supported (depends on build, invariant during runtime)
+  /// @deprecated use obx_has_feature(OBXFeature_BytesArray) instead
   bool supports_bytes_array() {
     return _supports_bytes_array() != 0;
   }
@@ -110,8 +110,8 @@ class ObjectBoxC {
   late final _dart_supports_bytes_array _supports_bytes_array =
       _supports_bytes_array_ptr.asFunction<_dart_supports_bytes_array>();
 
-  /// /// Check whether time series functions are available in the version of this library
-  /// /// @deprecated use obx_has_feature(OBXFeature_TimeSeries) instead
+  /// Check whether time series functions are available in the version of this library
+  /// @deprecated use obx_has_feature(OBXFeature_TimeSeries) instead
   bool supports_time_series() {
     return _supports_time_series() != 0;
   }
@@ -122,7 +122,7 @@ class ObjectBoxC {
   late final _dart_supports_time_series _supports_time_series =
       _supports_time_series_ptr.asFunction<_dart_supports_time_series>();
 
-  /// /// Delete the store files from the given directory
+  /// Delete the store files from the given directory
   int remove_db_files(
     ffi.Pointer<ffi.Int8> directory,
   ) {
@@ -136,11 +136,11 @@ class ObjectBoxC {
   late final _dart_remove_db_files _remove_db_files =
       _remove_db_files_ptr.asFunction<_dart_remove_db_files>();
 
-  /// /// Return the error status on the current thread and clear the error state.
-  /// /// The buffer returned in out_message is valid only until the next call into ObjectBox.
-  /// /// @param out_error receives the error code; optional: may be NULL
-  /// /// @param out_message receives the pointer to the error messages; optional: may be NULL
-  /// /// @returns true if an error was pending
+  /// Return the error status on the current thread and clear the error state.
+  /// The buffer returned in out_message is valid only until the next call into ObjectBox.
+  /// @param out_error receives the error code; optional: may be NULL
+  /// @param out_message receives the pointer to the error messages; optional: may be NULL
+  /// @returns true if an error was pending
   bool last_error_pop(
     ffi.Pointer<ffi.Int32> out_error,
     ffi.Pointer<ffi.Pointer<ffi.Int8>> out_message,
@@ -157,10 +157,10 @@ class ObjectBoxC {
   late final _dart_last_error_pop _last_error_pop =
       _last_error_pop_ptr.asFunction<_dart_last_error_pop>();
 
-  /// /// The last error raised by an ObjectBox API call on the current thread, or OBX_SUCCESS if no error occurred yet.
-  /// /// Note that API calls do not clear this error code (also true for this method).
-  /// /// Thus, if you receive an error from this, it's usually a good idea to call obx_last_error_clear() to clear the error
-  /// /// state (or use obx_last_error_pop()) for future API calls.
+  /// The last error raised by an ObjectBox API call on the current thread, or OBX_SUCCESS if no error occurred yet.
+  /// Note that API calls do not clear this error code (also true for this method).
+  /// Thus, if you receive an error from this, it's usually a good idea to call obx_last_error_clear() to clear the error
+  /// state (or use obx_last_error_pop()) for future API calls.
   int last_error_code() {
     return _last_error_code();
   }
@@ -170,9 +170,9 @@ class ObjectBoxC {
   late final _dart_last_error_code _last_error_code =
       _last_error_code_ptr.asFunction<_dart_last_error_code>();
 
-  /// /// The error message string attached to the error returned by obx_last_error_code().
-  /// /// Like obx_last_error_code(), this is bound to the current thread, and this call does not clear the error state.
-  /// /// The buffer returned is valid only until the next call into ObjectBox.
+  /// The error message string attached to the error returned by obx_last_error_code().
+  /// Like obx_last_error_code(), this is bound to the current thread, and this call does not clear the error state.
+  /// The buffer returned is valid only until the next call into ObjectBox.
   ffi.Pointer<ffi.Int8> last_error_message() {
     return _last_error_message();
   }
@@ -183,8 +183,8 @@ class ObjectBoxC {
   late final _dart_last_error_message _last_error_message =
       _last_error_message_ptr.asFunction<_dart_last_error_message>();
 
-  /// /// The underlying error for the error returned by obx_last_error_code(). Where obx_last_error_code() may be a generic
-  /// /// error like OBX_ERROR_STORAGE_GENERAL, this will give a further underlying and possibly platform-specific error code.
+  /// The underlying error for the error returned by obx_last_error_code(). Where obx_last_error_code() may be a generic
+  /// error like OBX_ERROR_STORAGE_GENERAL, this will give a further underlying and possibly platform-specific error code.
   int last_error_secondary() {
     return _last_error_secondary();
   }
@@ -195,10 +195,10 @@ class ObjectBoxC {
   late final _dart_last_error_secondary _last_error_secondary =
       _last_error_secondary_ptr.asFunction<_dart_last_error_secondary>();
 
-  /// /// Clear the error state on the current thread; e.g. obx_last_error_code() will now return OBX_SUCCESS.
-  /// /// Note that clearing the error state does not happen automatically;
-  /// /// API calls set the error state when they produce an error, but do not clear it on success.
-  /// /// See also: obx_last_error_pop() to retrieve the error state and clear it.
+  /// Clear the error state on the current thread; e.g. obx_last_error_code() will now return OBX_SUCCESS.
+  /// Note that clearing the error state does not happen automatically;
+  /// API calls set the error state when they produce an error, but do not clear it on success.
+  /// See also: obx_last_error_pop() to retrieve the error state and clear it.
   void last_error_clear() {
     return _last_error_clear();
   }
@@ -208,7 +208,7 @@ class ObjectBoxC {
   late final _dart_last_error_clear _last_error_clear =
       _last_error_clear_ptr.asFunction<_dart_last_error_clear>();
 
-  /// /// Set the last error code and test - reserved for internal use from generated code.
+  /// Set the last error code and test - reserved for internal use from generated code.
   bool last_error_set(
     int code,
     int secondary,
@@ -227,9 +227,9 @@ class ObjectBoxC {
   late final _dart_last_error_set _last_error_set =
       _last_error_set_ptr.asFunction<_dart_last_error_set>();
 
-  /// /// Create an (empty) data meta model which is to be consumed by obx_opt_model().
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details.
-  /// ///               Note that obx_model_* functions handle OBX_model NULL pointers (will indicate an error but not crash).
+  /// Create an (empty) data meta model which is to be consumed by obx_opt_model().
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details.
+  /// Note that obx_model_* functions handle OBX_model NULL pointers (will indicate an error but not crash).
   ffi.Pointer<OBX_model> model() {
     return _model();
   }
@@ -237,8 +237,8 @@ class ObjectBoxC {
   late final _model_ptr = _lookup<ffi.NativeFunction<_c_model>>('obx_model');
   late final _dart_model _model = _model_ptr.asFunction<_dart_model>();
 
-  /// /// Only call when not calling obx_store_open() (which will free it internally)
-  /// /// @param model NULL-able; returns OBX_SUCCESS if model is NULL
+  /// Only call when not calling obx_store_open() (which will free it internally)
+  /// @param model NULL-able; returns OBX_SUCCESS if model is NULL
   int model_free(
     ffi.Pointer<OBX_model> model,
   ) {
@@ -252,9 +252,9 @@ class ObjectBoxC {
   late final _dart_model_free _model_free =
       _model_free_ptr.asFunction<_dart_model_free>();
 
-  /// /// To minimise the amount of error handling code required when building a model, the first error is stored and can be
-  /// /// obtained here. All the obx_model_XXX functions are null operations after the first model error has occurred.
-  /// /// @param model NULL-able; returns OBX_ERROR_ILLEGAL_ARGUMENT if model is NULL
+  /// To minimise the amount of error handling code required when building a model, the first error is stored and can be
+  /// obtained here. All the obx_model_XXX functions are null operations after the first model error has occurred.
+  /// @param model NULL-able; returns OBX_ERROR_ILLEGAL_ARGUMENT if model is NULL
   int model_error_code(
     ffi.Pointer<OBX_model> model,
   ) {
@@ -268,9 +268,9 @@ class ObjectBoxC {
   late final _dart_model_error_code _model_error_code =
       _model_error_code_ptr.asFunction<_dart_model_error_code>();
 
-  /// /// To minimise the amount of error handling code required when building a model, the first error is stored and can be
-  /// /// obtained here. All the obx_model_XXX functions are null operations after the first model error has occurred.
-  /// /// @param model NULL-able; returns NULL if model is NULL
+  /// To minimise the amount of error handling code required when building a model, the first error is stored and can be
+  /// obtained here. All the obx_model_XXX functions are null operations after the first model error has occurred.
+  /// @param model NULL-able; returns NULL if model is NULL
   ffi.Pointer<ffi.Int8> model_error_message(
     ffi.Pointer<OBX_model> model,
   ) {
@@ -285,11 +285,11 @@ class ObjectBoxC {
   late final _dart_model_error_message _model_error_message =
       _model_error_message_ptr.asFunction<_dart_model_error_message>();
 
-  /// /// Starts the definition of a new entity type for the meta data model.
-  /// /// After this, call obx_model_property() to add properties to the entity type.
-  /// /// @param name A human readable name for the entity. Must be unique within the model
-  /// /// @param entity_id Must be unique within this version of the model
-  /// /// @param entity_uid Used to identify entities between versions of the model. Must be globally unique.
+  /// Starts the definition of a new entity type for the meta data model.
+  /// After this, call obx_model_property() to add properties to the entity type.
+  /// @param name A human readable name for the entity. Must be unique within the model
+  /// @param entity_id Must be unique within this version of the model
+  /// @param entity_uid Used to identify entities between versions of the model. Must be globally unique.
   int model_entity(
     ffi.Pointer<OBX_model> model,
     ffi.Pointer<ffi.Int8> name,
@@ -309,7 +309,7 @@ class ObjectBoxC {
   late final _dart_model_entity _model_entity =
       _model_entity_ptr.asFunction<_dart_model_entity>();
 
-  /// /// Refine the definition of the entity declared by the most recent obx_model_entity() call, specifying flags.
+  /// Refine the definition of the entity declared by the most recent obx_model_entity() call, specifying flags.
   int model_entity_flags(
     ffi.Pointer<OBX_model> model,
     int flags,
@@ -326,11 +326,11 @@ class ObjectBoxC {
   late final _dart_model_entity_flags _model_entity_flags =
       _model_entity_flags_ptr.asFunction<_dart_model_entity_flags>();
 
-  /// /// Starts the definition of a new property for the entity type of the last obx_model_entity() call.
-  /// /// @param name A human readable name for the property. Must be unique within the entity
-  /// /// @param type The type of property required
-  /// /// @param property_id Must be unique within the entity
-  /// /// @param property_uid Used to identify properties between versions of the entity. Must be global unique.
+  /// Starts the definition of a new property for the entity type of the last obx_model_entity() call.
+  /// @param name A human readable name for the property. Must be unique within the entity
+  /// @param type The type of property required
+  /// @param property_id Must be unique within the entity
+  /// @param property_uid Used to identify properties between versions of the entity. Must be global unique.
   int model_property(
     ffi.Pointer<OBX_model> model,
     ffi.Pointer<ffi.Int8> name,
@@ -352,7 +352,7 @@ class ObjectBoxC {
   late final _dart_model_property _model_property =
       _model_property_ptr.asFunction<_dart_model_property>();
 
-  /// /// Refine the definition of the property declared by the most recent obx_model_property() call, specifying flags.
+  /// Refine the definition of the property declared by the most recent obx_model_property() call, specifying flags.
   int model_property_flags(
     ffi.Pointer<OBX_model> model,
     int flags,
@@ -369,11 +369,11 @@ class ObjectBoxC {
   late final _dart_model_property_flags _model_property_flags =
       _model_property_flags_ptr.asFunction<_dart_model_property_flags>();
 
-  /// /// Refine the definition of the property declared by the most recent obx_model_property() call, declaring it a
-  /// /// relation.
-  /// /// @param target_entity The name of the entity linked to by the relation
-  /// /// @param index_id Must be unique within this version of the model
-  /// /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+  /// Refine the definition of the property declared by the most recent obx_model_property() call, declaring it a
+  /// relation.
+  /// @param target_entity The name of the entity linked to by the relation
+  /// @param index_id Must be unique within this version of the model
+  /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
   int model_property_relation(
     ffi.Pointer<OBX_model> model,
     ffi.Pointer<ffi.Int8> target_entity,
@@ -394,9 +394,9 @@ class ObjectBoxC {
   late final _dart_model_property_relation _model_property_relation =
       _model_property_relation_ptr.asFunction<_dart_model_property_relation>();
 
-  /// /// Refine the definition of the property declared by the most recent obx_model_property() call, adding an index.
-  /// /// @param index_id Must be unique within this version of the model
-  /// /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+  /// Refine the definition of the property declared by the most recent obx_model_property() call, adding an index.
+  /// @param index_id Must be unique within this version of the model
+  /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
   int model_property_index_id(
     ffi.Pointer<OBX_model> model,
     int index_id,
@@ -415,11 +415,11 @@ class ObjectBoxC {
   late final _dart_model_property_index_id _model_property_index_id =
       _model_property_index_id_ptr.asFunction<_dart_model_property_index_id>();
 
-  /// /// Add a standalone relation between the active entity and the target entity to the model
-  /// /// @param relation_id Must be unique within this version of the model
-  /// /// @param relation_uid Used to identify relations between versions of the model. Must be globally unique.
-  /// /// @param target_id The id of the target entity of the relation
-  /// /// @param target_uid The uid of the target entity of the relation
+  /// Add a standalone relation between the active entity and the target entity to the model
+  /// @param relation_id Must be unique within this version of the model
+  /// @param relation_uid Used to identify relations between versions of the model. Must be globally unique.
+  /// @param target_id The id of the target entity of the relation
+  /// @param target_uid The uid of the target entity of the relation
   int model_relation(
     ffi.Pointer<OBX_model> model,
     int relation_id,
@@ -441,8 +441,8 @@ class ObjectBoxC {
   late final _dart_model_relation _model_relation =
       _model_relation_ptr.asFunction<_dart_model_relation>();
 
-  /// /// Set the highest ever known entity id in the model. Should always be equal to or higher than the
-  /// /// last entity id of the previous version of the model
+  /// Set the highest ever known entity id in the model. Should always be equal to or higher than the
+  /// last entity id of the previous version of the model
   void model_last_entity_id(
     ffi.Pointer<OBX_model> arg0,
     int entity_id,
@@ -461,8 +461,8 @@ class ObjectBoxC {
   late final _dart_model_last_entity_id _model_last_entity_id =
       _model_last_entity_id_ptr.asFunction<_dart_model_last_entity_id>();
 
-  /// /// Set the highest ever known index id in the model. Should always be equal to or higher than the
-  /// /// last index id of the previous version of the model
+  /// Set the highest ever known index id in the model. Should always be equal to or higher than the
+  /// last index id of the previous version of the model
   void model_last_index_id(
     ffi.Pointer<OBX_model> model,
     int index_id,
@@ -481,8 +481,8 @@ class ObjectBoxC {
   late final _dart_model_last_index_id _model_last_index_id =
       _model_last_index_id_ptr.asFunction<_dart_model_last_index_id>();
 
-  /// /// Set the highest every known relation id in the model. Should always be equal to or higher than the
-  /// /// last relation id of the previous version of the model.
+  /// Set the highest every known relation id in the model. Should always be equal to or higher than the
+  /// last relation id of the previous version of the model.
   void model_last_relation_id(
     ffi.Pointer<OBX_model> model,
     int relation_id,
@@ -501,8 +501,8 @@ class ObjectBoxC {
   late final _dart_model_last_relation_id _model_last_relation_id =
       _model_last_relation_id_ptr.asFunction<_dart_model_last_relation_id>();
 
-  /// /// Set the highest ever known property id in the entity. Should always be equal to or higher than the
-  /// /// last property id of the previous version of the entity.
+  /// Set the highest ever known property id in the entity. Should always be equal to or higher than the
+  /// last property id of the previous version of the entity.
   int model_entity_last_property_id(
     ffi.Pointer<OBX_model> model,
     int property_id,
@@ -522,8 +522,8 @@ class ObjectBoxC {
       _model_entity_last_property_id = _model_entity_last_property_id_ptr
           .asFunction<_dart_model_entity_last_property_id>();
 
-  /// /// Create a default set of store options.
-  /// /// @returns NULL on failure, a default set of options on success
+  /// Create a default set of store options.
+  /// @returns NULL on failure, a default set of options on success
   ffi.Pointer<OBX_store_options> opt() {
     return _opt();
   }
@@ -531,7 +531,7 @@ class ObjectBoxC {
   late final _opt_ptr = _lookup<ffi.NativeFunction<_c_opt>>('obx_opt');
   late final _dart_opt _opt = _opt_ptr.asFunction<_dart_opt>();
 
-  /// /// Set the store directory on the options. The default is "objectbox".
+  /// Set the store directory on the options. The default is "objectbox".
   int opt_directory(
     ffi.Pointer<OBX_store_options> opt,
     ffi.Pointer<ffi.Int8> dir,
@@ -547,7 +547,7 @@ class ObjectBoxC {
   late final _dart_opt_directory _opt_directory =
       _opt_directory_ptr.asFunction<_dart_opt_directory>();
 
-  /// /// Set the maximum db size on the options. The default is 1Gb.
+  /// Set the maximum db size on the options. The default is 1Gb.
   void opt_max_db_size_in_kb(
     ffi.Pointer<OBX_store_options> opt,
     int size_in_kb,
@@ -564,7 +564,7 @@ class ObjectBoxC {
   late final _dart_opt_max_db_size_in_kb _opt_max_db_size_in_kb =
       _opt_max_db_size_in_kb_ptr.asFunction<_dart_opt_max_db_size_in_kb>();
 
-  /// /// Set the file mode on the options. The default is 0644 (unix-style)
+  /// Set the file mode on the options. The default is 0644 (unix-style)
   void opt_file_mode(
     ffi.Pointer<OBX_store_options> opt,
     int file_mode,
@@ -580,15 +580,15 @@ class ObjectBoxC {
   late final _dart_opt_file_mode _opt_file_mode =
       _opt_file_mode_ptr.asFunction<_dart_opt_file_mode>();
 
-  /// /// Set the maximum number of readers on the options.
-  /// /// "Readers" are an finite resource for which we need to define a maximum number upfront.
-  /// /// The default value is enough for most apps and usually you can ignore it completely.
-  /// /// However, if you get the OBX_ERROR_MAX_READERS_EXCEEDED error, you should verify your threading.
-  /// /// For each thread, ObjectBox uses multiple readers.
-  /// /// Their number (per thread) depends on number of types, relations, and usage patterns.
-  /// /// Thus, if you are working with many threads (e.g. in a server-like scenario), it can make sense to increase the
-  /// /// maximum number of readers.
-  /// /// Note: The internal default is currently around 120. So when hitting this limit, try values around 200-500.
+  /// Set the maximum number of readers on the options.
+  /// "Readers" are an finite resource for which we need to define a maximum number upfront.
+  /// The default value is enough for most apps and usually you can ignore it completely.
+  /// However, if you get the OBX_ERROR_MAX_READERS_EXCEEDED error, you should verify your threading.
+  /// For each thread, ObjectBox uses multiple readers.
+  /// Their number (per thread) depends on number of types, relations, and usage patterns.
+  /// Thus, if you are working with many threads (e.g. in a server-like scenario), it can make sense to increase the
+  /// maximum number of readers.
+  /// Note: The internal default is currently around 120. So when hitting this limit, try values around 200-500.
   void opt_max_readers(
     ffi.Pointer<OBX_store_options> opt,
     int max_readers,
@@ -604,8 +604,8 @@ class ObjectBoxC {
   late final _dart_opt_max_readers _opt_max_readers =
       _opt_max_readers_ptr.asFunction<_dart_opt_max_readers>();
 
-  /// /// Set the model on the options. The default is no model.
-  /// /// NOTE: the model is always freed by this function, including when an error occurs.
+  /// Set the model on the options. The default is no model.
+  /// NOTE: the model is always freed by this function, including when an error occurs.
   int opt_model(
     ffi.Pointer<OBX_store_options> opt,
     ffi.Pointer<OBX_model> model,
@@ -621,7 +621,7 @@ class ObjectBoxC {
   late final _dart_opt_model _opt_model =
       _opt_model_ptr.asFunction<_dart_opt_model>();
 
-  /// /// Set the model on the options copying the given bytes. The default is no model.
+  /// Set the model on the options copying the given bytes. The default is no model.
   int opt_model_bytes(
     ffi.Pointer<OBX_store_options> opt,
     ffi.Pointer<ffi.Void> bytes,
@@ -639,8 +639,8 @@ class ObjectBoxC {
   late final _dart_opt_model_bytes _opt_model_bytes =
       _opt_model_bytes_ptr.asFunction<_dart_opt_model_bytes>();
 
-  /// /// Like obx_opt_model_bytes BUT WITHOUT copying the given bytes.
-  /// /// Thus, you must keep the bytes available until after the store is created.
+  /// Like obx_opt_model_bytes BUT WITHOUT copying the given bytes.
+  /// Thus, you must keep the bytes available until after the store is created.
   int opt_model_bytes_direct(
     ffi.Pointer<OBX_store_options> opt,
     ffi.Pointer<ffi.Void> bytes,
@@ -659,15 +659,15 @@ class ObjectBoxC {
   late final _dart_opt_model_bytes_direct _opt_model_bytes_direct =
       _opt_model_bytes_direct_ptr.asFunction<_dart_opt_model_bytes_direct>();
 
-  /// /// When the DB is opened initially, ObjectBox can do a consistency check on the given amount of pages.
-  /// /// Reliable file systems already guarantee consistency, so this is primarily meant to deal with unreliable
-  /// /// OSes, file systems, or hardware. Thus, usually a low number (e.g. 1-20) is sufficient and does not impact
-  /// /// startup performance significantly. To completely disable this you can pass 0, but we recommend a setting of
-  /// /// at least 1.
-  /// /// Note: ObjectBox builds upon ACID storage, which guarantees consistency given that the file system is working
-  /// /// correctly (in particular fsync).
-  /// /// @param page_limit limits the number of checked pages (currently defaults to 0, but will be increased in the future)
-  /// /// @param leaf_level enable for visiting leaf pages (defaults to false)
+  /// When the DB is opened initially, ObjectBox can do a consistency check on the given amount of pages.
+  /// Reliable file systems already guarantee consistency, so this is primarily meant to deal with unreliable
+  /// OSes, file systems, or hardware. Thus, usually a low number (e.g. 1-20) is sufficient and does not impact
+  /// startup performance significantly. To completely disable this you can pass 0, but we recommend a setting of
+  /// at least 1.
+  /// Note: ObjectBox builds upon ACID storage, which guarantees consistency given that the file system is working
+  /// correctly (in particular fsync).
+  /// @param page_limit limits the number of checked pages (currently defaults to 0, but will be increased in the future)
+  /// @param leaf_level enable for visiting leaf pages (defaults to false)
   void opt_validate_on_open(
     ffi.Pointer<OBX_store_options> opt,
     int page_limit,
@@ -686,8 +686,8 @@ class ObjectBoxC {
   late final _dart_opt_validate_on_open _opt_validate_on_open =
       _opt_validate_on_open_ptr.asFunction<_dart_opt_validate_on_open>();
 
-  /// /// Don't touch unless you know exactly what you are doing:
-  /// /// Advanced setting typically meant for language bindings (not end users). See OBXPutPaddingMode description.
+  /// Don't touch unless you know exactly what you are doing:
+  /// Advanced setting typically meant for language bindings (not end users). See OBXPutPaddingMode description.
   void opt_put_padding_mode(
     ffi.Pointer<OBX_store_options> opt,
     int mode,
@@ -704,8 +704,8 @@ class ObjectBoxC {
   late final _dart_opt_put_padding_mode _opt_put_padding_mode =
       _opt_put_padding_mode_ptr.asFunction<_dart_opt_put_padding_mode>();
 
-  /// /// Advanced setting meant only for special scenarios: setting to false causes opening the database in a limited,
-  /// /// schema-less mode. If you don't know what this means exactly: ignore this flag. Defaults to true.
+  /// Advanced setting meant only for special scenarios: setting to false causes opening the database in a limited,
+  /// schema-less mode. If you don't know what this means exactly: ignore this flag. Defaults to true.
   void opt_read_schema(
     ffi.Pointer<OBX_store_options> opt,
     bool value,
@@ -721,10 +721,10 @@ class ObjectBoxC {
   late final _dart_opt_read_schema _opt_read_schema =
       _opt_read_schema_ptr.asFunction<_dart_opt_read_schema>();
 
-  /// /// Advanced setting recommended to be used together with read-only mode to ensure no data is lost.
-  /// /// Ignores the latest data snapshot (committed transaction state) and uses the previous snapshot instead.
-  /// /// When used with care (e.g. backup the DB files first), this option may also recover data removed by the latest
-  /// /// transaction. Defaults to false.
+  /// Advanced setting recommended to be used together with read-only mode to ensure no data is lost.
+  /// Ignores the latest data snapshot (committed transaction state) and uses the previous snapshot instead.
+  /// When used with care (e.g. backup the DB files first), this option may also recover data removed by the latest
+  /// transaction. Defaults to false.
   void opt_use_previous_commit(
     ffi.Pointer<OBX_store_options> opt,
     bool value,
@@ -741,7 +741,7 @@ class ObjectBoxC {
   late final _dart_opt_use_previous_commit _opt_use_previous_commit =
       _opt_use_previous_commit_ptr.asFunction<_dart_opt_use_previous_commit>();
 
-  /// /// Open store in read-only mode: no schema update, no write transactions. Defaults to false.
+  /// Open store in read-only mode: no schema update, no write transactions. Defaults to false.
   void opt_read_only(
     ffi.Pointer<OBX_store_options> opt,
     bool value,
@@ -757,7 +757,7 @@ class ObjectBoxC {
   late final _dart_opt_read_only _opt_read_only =
       _opt_read_only_ptr.asFunction<_dart_opt_read_only>();
 
-  /// /// Configure debug logging. Defaults to NONE
+  /// Configure debug logging. Defaults to NONE
   void opt_debug_flags(
     ffi.Pointer<OBX_store_options> opt,
     int flags,
@@ -773,11 +773,11 @@ class ObjectBoxC {
   late final _dart_opt_debug_flags _opt_debug_flags =
       _opt_debug_flags_ptr.asFunction<_dart_opt_debug_flags>();
 
-  /// /// Maximum of async elements in the queue before new elements will be rejected.
-  /// /// Hitting this limit usually hints that async processing cannot keep up;
-  /// /// data is produced at a faster rate than it can be persisted in the background.
-  /// /// In that case, increasing this value is not the only alternative; other values might also optimize throughput.
-  /// /// For example, increasing maxInTxDurationMicros may help too.
+  /// Maximum of async elements in the queue before new elements will be rejected.
+  /// Hitting this limit usually hints that async processing cannot keep up;
+  /// data is produced at a faster rate than it can be persisted in the background.
+  /// In that case, increasing this value is not the only alternative; other values might also optimize throughput.
+  /// For example, increasing maxInTxDurationMicros may help too.
   void opt_async_max_queue_length(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -795,7 +795,7 @@ class ObjectBoxC {
       _opt_async_max_queue_length_ptr
           .asFunction<_dart_opt_async_max_queue_length>();
 
-  /// /// Producers (AsyncTx submitter) is throttled when the queue size hits this
+  /// Producers (AsyncTx submitter) is throttled when the queue size hits this
   void opt_async_throttle_at_queue_length(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -814,7 +814,7 @@ class ObjectBoxC {
       _opt_async_throttle_at_queue_length_ptr
           .asFunction<_dart_opt_async_throttle_at_queue_length>();
 
-  /// /// Sleeping time for throttled producers on each submission
+  /// Sleeping time for throttled producers on each submission
   void opt_async_throttle_micros(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -832,8 +832,8 @@ class ObjectBoxC {
       _opt_async_throttle_micros_ptr
           .asFunction<_dart_opt_async_throttle_micros>();
 
-  /// /// Maximum duration spent in a transaction before AsyncQ enforces a commit.
-  /// /// This becomes relevant if the queue is constantly populated at a high rate.
+  /// Maximum duration spent in a transaction before AsyncQ enforces a commit.
+  /// This becomes relevant if the queue is constantly populated at a high rate.
   void opt_async_max_in_tx_duration(
     ffi.Pointer<OBX_store_options> opt,
     int micros,
@@ -851,8 +851,8 @@ class ObjectBoxC {
       _opt_async_max_in_tx_duration_ptr
           .asFunction<_dart_opt_async_max_in_tx_duration>();
 
-  /// /// Maximum operations performed in a transaction before AsyncQ enforces a commit.
-  /// /// This becomes relevant if the queue is constantly populated at a high rate.
+  /// Maximum operations performed in a transaction before AsyncQ enforces a commit.
+  /// This becomes relevant if the queue is constantly populated at a high rate.
   void opt_async_max_in_tx_operations(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -870,10 +870,10 @@ class ObjectBoxC {
       _opt_async_max_in_tx_operations = _opt_async_max_in_tx_operations_ptr
           .asFunction<_dart_opt_async_max_in_tx_operations>();
 
-  /// /// Before the AsyncQ is triggered by a new element in queue to starts a new run, it delays actually starting the
-  /// /// transaction by this value.
-  /// /// This gives a newly starting producer some time to produce more than one a single operation before AsyncQ starts.
-  /// /// Note: this value should typically be low to keep latency low and prevent accumulating too much operations.
+  /// Before the AsyncQ is triggered by a new element in queue to starts a new run, it delays actually starting the
+  /// transaction by this value.
+  /// This gives a newly starting producer some time to produce more than one a single operation before AsyncQ starts.
+  /// Note: this value should typically be low to keep latency low and prevent accumulating too much operations.
   void opt_async_pre_txn_delay(
     ffi.Pointer<OBX_store_options> opt,
     int delay_micros,
@@ -890,10 +890,10 @@ class ObjectBoxC {
   late final _dart_opt_async_pre_txn_delay _opt_async_pre_txn_delay =
       _opt_async_pre_txn_delay_ptr.asFunction<_dart_opt_async_pre_txn_delay>();
 
-  /// /// Before the AsyncQ is triggered by a new element in queue to starts a new run, it delays actually starting the
-  /// /// transaction by this value.
-  /// /// This gives a newly starting producer some time to produce more than one a single operation before AsyncQ starts.
-  /// /// Note: this value should typically be low to keep latency low and prevent accumulating too much operations.
+  /// Before the AsyncQ is triggered by a new element in queue to starts a new run, it delays actually starting the
+  /// transaction by this value.
+  /// This gives a newly starting producer some time to produce more than one a single operation before AsyncQ starts.
+  /// Note: this value should typically be low to keep latency low and prevent accumulating too much operations.
   void opt_async_pre_txn_delay4(
     ffi.Pointer<OBX_store_options> opt,
     int delay_micros,
@@ -915,9 +915,9 @@ class ObjectBoxC {
       _opt_async_pre_txn_delay4_ptr
           .asFunction<_dart_opt_async_pre_txn_delay4>();
 
-  /// /// Similar to preTxDelay but after a transaction was committed.
-  /// /// One of the purposes is to give other transactions some time to execute.
-  /// /// In combination with preTxDelay this can prolong non-TX batching time if only a few operations are around.
+  /// Similar to preTxDelay but after a transaction was committed.
+  /// One of the purposes is to give other transactions some time to execute.
+  /// In combination with preTxDelay this can prolong non-TX batching time if only a few operations are around.
   void opt_async_post_txn_delay(
     ffi.Pointer<OBX_store_options> opt,
     int delay_micros,
@@ -935,9 +935,9 @@ class ObjectBoxC {
       _opt_async_post_txn_delay_ptr
           .asFunction<_dart_opt_async_post_txn_delay>();
 
-  /// /// Similar to preTxDelay but after a transaction was committed.
-  /// /// One of the purposes is to give other transactions some time to execute.
-  /// /// In combination with preTxDelay this can prolong non-TX batching time if only a few operations are around.
+  /// Similar to preTxDelay but after a transaction was committed.
+  /// One of the purposes is to give other transactions some time to execute.
+  /// In combination with preTxDelay this can prolong non-TX batching time if only a few operations are around.
   void opt_async_post_txn_delay4(
     ffi.Pointer<OBX_store_options> opt,
     int delay_micros,
@@ -959,7 +959,7 @@ class ObjectBoxC {
       _opt_async_post_txn_delay4_ptr
           .asFunction<_dart_opt_async_post_txn_delay4>();
 
-  /// /// Numbers of operations below this value are considered "minor refills"
+  /// Numbers of operations below this value are considered "minor refills"
   void opt_async_minor_refill_threshold(
     ffi.Pointer<OBX_store_options> opt,
     int queue_length,
@@ -977,7 +977,7 @@ class ObjectBoxC {
       _opt_async_minor_refill_threshold = _opt_async_minor_refill_threshold_ptr
           .asFunction<_dart_opt_async_minor_refill_threshold>();
 
-  /// /// If non-zero, this allows "minor refills" with small batches that came in (off by default).
+  /// If non-zero, this allows "minor refills" with small batches that came in (off by default).
   void opt_async_minor_refill_max_count(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -995,7 +995,7 @@ class ObjectBoxC {
       _opt_async_minor_refill_max_count = _opt_async_minor_refill_max_count_ptr
           .asFunction<_dart_opt_async_minor_refill_max_count>();
 
-  /// /// Default value: 10000, set to 0 to deactivate pooling
+  /// Default value: 10000, set to 0 to deactivate pooling
   void opt_async_max_tx_pool_size(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -1013,7 +1013,7 @@ class ObjectBoxC {
       _opt_async_max_tx_pool_size_ptr
           .asFunction<_dart_opt_async_max_tx_pool_size>();
 
-  /// /// Total cache size; default: ~ 0.5 MB
+  /// Total cache size; default: ~ 0.5 MB
   void opt_async_object_bytes_max_cache_size(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -1032,7 +1032,7 @@ class ObjectBoxC {
       _opt_async_object_bytes_max_cache_size_ptr
           .asFunction<_dart_opt_async_object_bytes_max_cache_size>();
 
-  /// /// Maximal size for an object to be cached (only cache smaller ones)
+  /// Maximal size for an object to be cached (only cache smaller ones)
   void opt_async_object_bytes_max_size_to_cache(
     ffi.Pointer<OBX_store_options> opt,
     int value,
@@ -1051,8 +1051,8 @@ class ObjectBoxC {
       _opt_async_object_bytes_max_size_to_cache_ptr
           .asFunction<_dart_opt_async_object_bytes_max_size_to_cache>();
 
-  /// /// Free the options.
-  /// /// Note: Only free *unused* options, obx_store_open() frees the options internally
+  /// Free the options.
+  /// Note: Only free *unused* options, obx_store_open() frees the options internally
   void opt_free(
     ffi.Pointer<OBX_store_options> opt,
   ) {
@@ -1066,9 +1066,9 @@ class ObjectBoxC {
   late final _dart_opt_free _opt_free =
       _opt_free_ptr.asFunction<_dart_opt_free>();
 
-  /// /// Note: the given options are always freed by this function, including when an error occurs.
-  /// /// @param opt required parameter holding the data model (obx_opt_model()) and optional options (see obx_opt_*())
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Note: the given options are always freed by this function, including when an error occurs.
+  /// @param opt required parameter holding the data model (obx_opt_model()) and optional options (see obx_opt_*())
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_store> store_open(
     ffi.Pointer<OBX_store_options> opt,
   ) {
@@ -1082,13 +1082,13 @@ class ObjectBoxC {
   late final _dart_store_open _store_open =
       _store_open_ptr.asFunction<_dart_store_open>();
 
-  /// /// For stores created outside of this C API, e.g. via C++ or Java, this is how you can use it via C too.
-  /// /// Like this, it is OK to use the same store instance (same database) from multiple languages in parallel.
-  /// /// Note: the store's life time will still be managed outside of the C API;
-  /// /// thus ensure that store is not closed while calling any C function on it.
-  /// /// Once you are done with the C specific OBX_store, call obx_store_close() to free any C related resources.
-  /// /// This, however, will not close the "core store".
-  /// /// @param core_store A pointer to the core C++ ObjectStore, or the native JNI handle for a BoxStore.
+  /// For stores created outside of this C API, e.g. via C++ or Java, this is how you can use it via C too.
+  /// Like this, it is OK to use the same store instance (same database) from multiple languages in parallel.
+  /// Note: the store's life time will still be managed outside of the C API;
+  /// thus ensure that store is not closed while calling any C function on it.
+  /// Once you are done with the C specific OBX_store, call obx_store_close() to free any C related resources.
+  /// This, however, will not close the "core store".
+  /// @param core_store A pointer to the core C++ ObjectStore, or the native JNI handle for a BoxStore.
   ffi.Pointer<OBX_store> store_wrap(
     ffi.Pointer<ffi.Void> core_store,
   ) {
@@ -1102,7 +1102,7 @@ class ObjectBoxC {
   late final _dart_store_wrap _store_wrap =
       _store_wrap_ptr.asFunction<_dart_store_wrap>();
 
-  /// /// Look for an entity with the given name in the model and return its Entity ID.
+  /// Look for an entity with the given name in the model and return its Entity ID.
   int store_entity_id(
     ffi.Pointer<OBX_store> store,
     ffi.Pointer<ffi.Int8> entity_name,
@@ -1118,7 +1118,7 @@ class ObjectBoxC {
   late final _dart_store_entity_id _store_entity_id =
       _store_entity_id_ptr.asFunction<_dart_store_entity_id>();
 
-  /// /// Return the property id from the property name or 0 if the name is not found
+  /// Return the property id from the property name or 0 if the name is not found
   int store_entity_property_id(
     ffi.Pointer<OBX_store> store,
     int entity_id,
@@ -1138,9 +1138,9 @@ class ObjectBoxC {
       _store_entity_property_id_ptr
           .asFunction<_dart_store_entity_property_id>();
 
-  /// /// Await for all (including future) async submissions to be completed (the async queue becomes idle for a moment).
-  /// /// @returns true if all submissions were completed or async processing was not started; false if shutting down
-  /// /// @returns false if shutting down or an error occurred
+  /// Await for all (including future) async submissions to be completed (the async queue becomes idle for a moment).
+  /// @returns true if all submissions were completed or async processing was not started; false if shutting down
+  /// @returns false if shutting down or an error occurred
   bool store_await_async_completion(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1157,9 +1157,9 @@ class ObjectBoxC {
       _store_await_async_completion_ptr
           .asFunction<_dart_store_await_async_completion>();
 
-  /// /// Await for previously submitted async operations to be completed (the async queue does not have to become idle).
-  /// /// @returns true if all submissions were completed or async processing was not started
-  /// /// @returns false if shutting down or an error occurred
+  /// Await for previously submitted async operations to be completed (the async queue does not have to become idle).
+  /// @returns true if all submissions were completed or async processing was not started
+  /// @returns false if shutting down or an error occurred
   bool store_await_async_submitted(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1176,7 +1176,7 @@ class ObjectBoxC {
       _store_await_async_submitted_ptr
           .asFunction<_dart_store_await_async_submitted>();
 
-  /// /// Configure debug logging
+  /// Configure debug logging
   int store_debug_flags(
     ffi.Pointer<OBX_store> store,
     int flags,
@@ -1193,8 +1193,8 @@ class ObjectBoxC {
   late final _dart_store_debug_flags _store_debug_flags =
       _store_debug_flags_ptr.asFunction<_dart_store_debug_flags>();
 
-  /// /// @returns true if the store was opened with a previous commit
-  /// /// @see obx_opt_use_previous_commit()
+  /// @returns true if the store was opened with a previous commit
+  /// @see obx_opt_use_previous_commit()
   bool store_opened_with_previous_commit(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1212,7 +1212,7 @@ class ObjectBoxC {
       _store_opened_with_previous_commit_ptr
           .asFunction<_dart_store_opened_with_previous_commit>();
 
-  /// /// @param store may be NULL
+  /// @param store may be NULL
   int store_close(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1226,10 +1226,10 @@ class ObjectBoxC {
   late final _dart_store_close _store_close =
       _store_close_ptr.asFunction<_dart_store_close>();
 
-  /// /// Create a write transaction (read and write).
-  /// /// Transaction creation can be nested (recursive), however only the outermost transaction is relevant on the DB level.
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details; e.g. code
-  /// ///               OBX_ERROR_ILLEGAL_STATE will be set if called when inside a read transaction.
+  /// Create a write transaction (read and write).
+  /// Transaction creation can be nested (recursive), however only the outermost transaction is relevant on the DB level.
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details; e.g. code
+  /// OBX_ERROR_ILLEGAL_STATE will be set if called when inside a read transaction.
   ffi.Pointer<OBX_txn> txn_write(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1243,9 +1243,9 @@ class ObjectBoxC {
   late final _dart_txn_write _txn_write =
       _txn_write_ptr.asFunction<_dart_txn_write>();
 
-  /// /// Create a read transaction (read only).
-  /// /// Transaction creation can be nested (recursive), however only the outermost transaction is relevant on the DB level.
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Create a read transaction (read only).
+  /// Transaction creation can be nested (recursive), however only the outermost transaction is relevant on the DB level.
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_txn> txn_read(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1259,10 +1259,10 @@ class ObjectBoxC {
   late final _dart_txn_read _txn_read =
       _txn_read_ptr.asFunction<_dart_txn_read>();
 
-  /// /// "Finish" this write transaction successfully and close it, performing a commit if this is the top level
-  /// /// transaction and all inner transactions (if any) were also successful (obx_txn_success() was called on them).
-  /// /// Because this also closes the given transaction, the given OBX_txn pointer must not be used afterwards.
-  /// /// @return OBX_ERROR_ILLEGAL_STATE if the given transaction is not a write transaction.
+  /// "Finish" this write transaction successfully and close it, performing a commit if this is the top level
+  /// transaction and all inner transactions (if any) were also successful (obx_txn_success() was called on them).
+  /// Because this also closes the given transaction, the given OBX_txn pointer must not be used afterwards.
+  /// @return OBX_ERROR_ILLEGAL_STATE if the given transaction is not a write transaction.
   int txn_success(
     ffi.Pointer<OBX_txn> txn,
   ) {
@@ -1276,14 +1276,14 @@ class ObjectBoxC {
   late final _dart_txn_success _txn_success =
       _txn_success_ptr.asFunction<_dart_txn_success>();
 
-  /// /// Close (free) the transaction (read or write); the given OBX_txn pointer must not be used afterwards.
-  /// /// While this is the only way to release read transactions, this call is also an alternative to call obx_txn_success()
-  /// /// on write transactions.
-  /// /// In combination with obx_txn_mark_success(), this potentially commits or aborts a write transaction on the DB:
-  /// /// 1) If it's an outermost TX and all (inner) TXs were marked successful, this commits the transaction.
-  /// /// 2) If this transaction was not marked successful, this aborts the transaction (even if it's an inner TX).
-  /// /// If an error is returned (e.g., a commit failed because DB is full), you can assume that the transaction was closed.
-  /// /// @param txn may be NULL
+  /// Close (free) the transaction (read or write); the given OBX_txn pointer must not be used afterwards.
+  /// While this is the only way to release read transactions, this call is also an alternative to call obx_txn_success()
+  /// on write transactions.
+  /// In combination with obx_txn_mark_success(), this potentially commits or aborts a write transaction on the DB:
+  /// 1) If it's an outermost TX and all (inner) TXs were marked successful, this commits the transaction.
+  /// 2) If this transaction was not marked successful, this aborts the transaction (even if it's an inner TX).
+  /// If an error is returned (e.g., a commit failed because DB is full), you can assume that the transaction was closed.
+  /// @param txn may be NULL
   int txn_close(
     ffi.Pointer<OBX_txn> txn,
   ) {
@@ -1297,8 +1297,8 @@ class ObjectBoxC {
   late final _dart_txn_close _txn_close =
       _txn_close_ptr.asFunction<_dart_txn_close>();
 
-  /// /// Abort the underlying transaction immediately and thus frees DB resources.
-  /// /// Only obx_txn_close() is allowed to be called on the transaction after calling this.
+  /// Abort the underlying transaction immediately and thus frees DB resources.
+  /// Only obx_txn_close() is allowed to be called on the transaction after calling this.
   int txn_abort(
     ffi.Pointer<OBX_txn> txn,
   ) {
@@ -1312,9 +1312,9 @@ class ObjectBoxC {
   late final _dart_txn_abort _txn_abort =
       _txn_abort_ptr.asFunction<_dart_txn_abort>();
 
-  /// /// Mark the given write transaction as successful or failed.
-  /// /// You can call this method multiple times with different values before calling obx_txn_close() on the transaction.
-  /// /// @return OBX_ERROR_ILLEGAL_STATE if the given transaction is not a write transaction.
+  /// Mark the given write transaction as successful or failed.
+  /// You can call this method multiple times with different values before calling obx_txn_close() on the transaction.
+  /// @return OBX_ERROR_ILLEGAL_STATE if the given transaction is not a write transaction.
   int txn_mark_success(
     ffi.Pointer<OBX_txn> txn,
     bool wasSuccessful,
@@ -1330,7 +1330,7 @@ class ObjectBoxC {
   late final _dart_txn_mark_success _txn_mark_success =
       _txn_mark_success_ptr.asFunction<_dart_txn_mark_success>();
 
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_cursor> cursor(
     ffi.Pointer<OBX_txn> txn,
     int entity_id,
@@ -1344,7 +1344,7 @@ class ObjectBoxC {
   late final _cursor_ptr = _lookup<ffi.NativeFunction<_c_cursor>>('obx_cursor');
   late final _dart_cursor _cursor = _cursor_ptr.asFunction<_dart_cursor>();
 
-  /// /// @param cursor may be NULL
+  /// @param cursor may be NULL
   int cursor_close(
     ffi.Pointer<OBX_cursor> cursor,
   ) {
@@ -1358,9 +1358,9 @@ class ObjectBoxC {
   late final _dart_cursor_close _cursor_close =
       _cursor_close_ptr.asFunction<_dart_cursor_close>();
 
-  /// /// Call this when putting an object to generate/prepare an ID for it.
-  /// /// @param id_or_zero The ID of the entity. If you pass 0, this will generate a new one.
-  /// /// @seealso obx_box_id_for_put()
+  /// Call this when putting an object to generate/prepare an ID for it.
+  /// @param id_or_zero The ID of the entity. If you pass 0, this will generate a new one.
+  /// @seealso obx_box_id_for_put()
   int cursor_id_for_put(
     ffi.Pointer<OBX_cursor> cursor,
     int id_or_zero,
@@ -1377,10 +1377,10 @@ class ObjectBoxC {
   late final _dart_cursor_id_for_put _cursor_id_for_put =
       _cursor_id_for_put_ptr.asFunction<_dart_cursor_id_for_put>();
 
-  /// /// Puts the given object data using the given ID.
-  /// /// A "put" in ObjectBox follows "insert or update" semantics;
-  /// /// New objects (no pre-existing object for given ID) are inserted while existing objects are replaced/updated.
-  /// /// @param id non-zero
+  /// Puts the given object data using the given ID.
+  /// A "put" in ObjectBox follows "insert or update" semantics;
+  /// New objects (no pre-existing object for given ID) are inserted while existing objects are replaced/updated.
+  /// @param id non-zero
   int cursor_put(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
@@ -1400,12 +1400,12 @@ class ObjectBoxC {
   late final _dart_cursor_put _cursor_put =
       _cursor_put_ptr.asFunction<_dart_cursor_put>();
 
-  /// /// Like put obx_cursor_put(), but takes an additional parameter (4th parameter) for choosing a put mode.
-  /// /// @param id non-zero
-  /// /// @param mode Changes the put semantics to the given mode, e.g. OBXPutMode_INSERT or OBXPutMode_UPDATE.
-  /// /// @returns OBX_SUCCESS if the put operation was successful
-  /// /// @returns OBX_ERROR_ID_ALREADY_EXISTS OBXPutMode_INSERT was used, but an existing object was found using the given ID
-  /// /// @returns OBX_ERROR_ID_NOT_FOUND OBXPutMode_UPDATE was used, but no object was found for the given ID
+  /// Like put obx_cursor_put(), but takes an additional parameter (4th parameter) for choosing a put mode.
+  /// @param id non-zero
+  /// @param mode Changes the put semantics to the given mode, e.g. OBXPutMode_INSERT or OBXPutMode_UPDATE.
+  /// @returns OBX_SUCCESS if the put operation was successful
+  /// @returns OBX_ERROR_ID_ALREADY_EXISTS OBXPutMode_INSERT was used, but an existing object was found using the given ID
+  /// @returns OBX_ERROR_ID_NOT_FOUND OBXPutMode_UPDATE was used, but no object was found for the given ID
   int cursor_put4(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
@@ -1427,11 +1427,11 @@ class ObjectBoxC {
   late final _dart_cursor_put4 _cursor_put4 =
       _cursor_put4_ptr.asFunction<_dart_cursor_put4>();
 
-  /// /// An optimized version of obx_cursor_put() if you can ensure that the given ID is not used yet.
-  /// /// Typically used right after getting a new ID via obx_cursor_id_for_put().
-  /// /// WARNING: using this incorrectly (an object with the given ID already exists) may result in inconsistent data
-  /// /// (e.g. indexes do not get updated).
-  /// /// @param id non-zero
+  /// An optimized version of obx_cursor_put() if you can ensure that the given ID is not used yet.
+  /// Typically used right after getting a new ID via obx_cursor_id_for_put().
+  /// WARNING: using this incorrectly (an object with the given ID already exists) may result in inconsistent data
+  /// (e.g. indexes do not get updated).
+  /// @param id non-zero
   int cursor_put_new(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
@@ -1451,9 +1451,9 @@ class ObjectBoxC {
   late final _dart_cursor_put_new _cursor_put_new =
       _cursor_put_new_ptr.asFunction<_dart_cursor_put_new>();
 
-  /// /// Convenience for obx_cursor_put4() with OBXPutMode_INSERT.
-  /// /// @param id non-zero
-  /// /// @returns OBX_ERROR_ID_ALREADY_EXISTS if an insert fails because of a colliding ID
+  /// Convenience for obx_cursor_put4() with OBXPutMode_INSERT.
+  /// @param id non-zero
+  /// @returns OBX_ERROR_ID_ALREADY_EXISTS if an insert fails because of a colliding ID
   int cursor_insert(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
@@ -1473,9 +1473,9 @@ class ObjectBoxC {
   late final _dart_cursor_insert _cursor_insert =
       _cursor_insert_ptr.asFunction<_dart_cursor_insert>();
 
-  /// /// Convenience for obx_cursor_put4() with OBXPutMode_UPDATE.
-  /// /// @param id non-zero
-  /// /// @returns OBX_ERROR_ID_NOT_FOUND  if an update fails because the given ID does not represent any object
+  /// Convenience for obx_cursor_put4() with OBXPutMode_UPDATE.
+  /// @param id non-zero
+  /// @returns OBX_ERROR_ID_NOT_FOUND  if an update fails because the given ID does not represent any object
   int cursor_update(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
@@ -1495,11 +1495,11 @@ class ObjectBoxC {
   late final _dart_cursor_update _cursor_update =
       _cursor_update_ptr.asFunction<_dart_cursor_update>();
 
-  /// /// FB ID slot must be present; new entities must prepare the slot using the special value OBX_ID_NEW.
-  /// /// Alternatively, you may also pass 0 to indicate a new entity if you are aware that FlatBuffers builders typically
-  /// /// skip zero values by default. Thus, you have to "force" writing the zero in FlatBuffers.
-  /// /// @param data object data, non-const because the ID slot will be written (mutated) for new entites (see above)
-  /// /// @returns id if the object could be put, or 0 in case of an error
+  /// FB ID slot must be present; new entities must prepare the slot using the special value OBX_ID_NEW.
+  /// Alternatively, you may also pass 0 to indicate a new entity if you are aware that FlatBuffers builders typically
+  /// skip zero values by default. Thus, you have to "force" writing the zero in FlatBuffers.
+  /// @param data object data, non-const because the ID slot will be written (mutated) for new entites (see above)
+  /// @returns id if the object could be put, or 0 in case of an error
   int cursor_put_object(
     ffi.Pointer<OBX_cursor> cursor,
     ffi.Pointer<ffi.Void> data,
@@ -1518,7 +1518,7 @@ class ObjectBoxC {
   late final _dart_cursor_put_object _cursor_put_object =
       _cursor_put_object_ptr.asFunction<_dart_cursor_put_object>();
 
-  /// /// @overload obx_id obx_cursor_put_object(OBX_cursor* cursor, void* data, size_t size)
+  /// @overload obx_id obx_cursor_put_object(OBX_cursor* cursor, void* data, size_t size)
   int cursor_put_object4(
     ffi.Pointer<OBX_cursor> cursor,
     ffi.Pointer<ffi.Void> data,
@@ -1558,10 +1558,10 @@ class ObjectBoxC {
   late final _dart_cursor_get _cursor_get =
       _cursor_get_ptr.asFunction<_dart_cursor_get>();
 
-  /// /// Get all objects as bytes.
-  /// /// For larger quantities, it's recommended to iterate using obx_cursor_first and obx_cursor_next.
-  /// /// However, if the calling overhead is high (e.g., for language bindings), this method helps.
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Get all objects as bytes.
+  /// For larger quantities, it's recommended to iterate using obx_cursor_first and obx_cursor_next.
+  /// However, if the calling overhead is high (e.g., for language bindings), this method helps.
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_bytes_array> cursor_get_all(
     ffi.Pointer<OBX_cursor> cursor,
   ) {
@@ -1670,7 +1670,7 @@ class ObjectBoxC {
   late final _dart_cursor_remove_all _cursor_remove_all =
       _cursor_remove_all_ptr.asFunction<_dart_cursor_remove_all>();
 
-  /// /// Count the number of available objects
+  /// Count the number of available objects
   int cursor_count(
     ffi.Pointer<OBX_cursor> cursor,
     ffi.Pointer<ffi.Uint64> count,
@@ -1686,7 +1686,7 @@ class ObjectBoxC {
   late final _dart_cursor_count _cursor_count =
       _cursor_count_ptr.asFunction<_dart_cursor_count>();
 
-  /// /// Count the number of available objects up to the specified maximum
+  /// Count the number of available objects up to the specified maximum
   int cursor_count_max(
     ffi.Pointer<OBX_cursor> cursor,
     int max_count,
@@ -1704,7 +1704,7 @@ class ObjectBoxC {
   late final _dart_cursor_count_max _cursor_count_max =
       _cursor_count_max_ptr.asFunction<_dart_cursor_count_max>();
 
-  /// /// Return true if there is no object available (false if at least one object is available)
+  /// Return true if there is no object available (false if at least one object is available)
   int cursor_is_empty(
     ffi.Pointer<OBX_cursor> cursor,
     ffi.Pointer<ffi.Uint8> out_is_empty,
@@ -1720,7 +1720,7 @@ class ObjectBoxC {
   late final _dart_cursor_is_empty _cursor_is_empty =
       _cursor_is_empty_ptr.asFunction<_dart_cursor_is_empty>();
 
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_bytes_array> cursor_backlinks(
     ffi.Pointer<OBX_cursor> cursor,
     int entity_id,
@@ -1740,7 +1740,7 @@ class ObjectBoxC {
   late final _dart_cursor_backlinks _cursor_backlinks =
       _cursor_backlinks_ptr.asFunction<_dart_cursor_backlinks>();
 
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_id_array> cursor_backlink_ids(
     ffi.Pointer<OBX_cursor> cursor,
     int entity_id,
@@ -1800,7 +1800,7 @@ class ObjectBoxC {
   late final _dart_cursor_rel_remove _cursor_rel_remove =
       _cursor_rel_remove_ptr.asFunction<_dart_cursor_rel_remove>();
 
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_id_array> cursor_rel_ids(
     ffi.Pointer<OBX_cursor> cursor,
     int relation_id,
@@ -1818,12 +1818,12 @@ class ObjectBoxC {
   late final _dart_cursor_rel_ids _cursor_rel_ids =
       _cursor_rel_ids_ptr.asFunction<_dart_cursor_rel_ids>();
 
-  /// /// Time series: get the limits (min/max time values) over all objects
-  /// /// @param out_min_id pointer to receive an output (may be NULL)
-  /// /// @param out_min_value pointer to receive an output (may be NULL)
-  /// /// @param out_max_id pointer to receive an output (may be NULL)
-  /// /// @param out_max_value pointer to receive an output (may be NULL)
-  /// /// @returns OBX_NOT_FOUND if no objects are stored
+  /// Time series: get the limits (min/max time values) over all objects
+  /// @param out_min_id pointer to receive an output (may be NULL)
+  /// @param out_min_value pointer to receive an output (may be NULL)
+  /// @param out_max_id pointer to receive an output (may be NULL)
+  /// @param out_max_value pointer to receive an output (may be NULL)
+  /// @returns OBX_NOT_FOUND if no objects are stored
   int cursor_ts_min_max(
     ffi.Pointer<OBX_cursor> cursor,
     ffi.Pointer<ffi.Uint64> out_min_id,
@@ -1846,12 +1846,12 @@ class ObjectBoxC {
   late final _dart_cursor_ts_min_max _cursor_ts_min_max =
       _cursor_ts_min_max_ptr.asFunction<_dart_cursor_ts_min_max>();
 
-  /// /// Time series: get the limits (min/max time values) over objects within the given time range
-  /// /// @param out_min_id pointer to receive an output (may be NULL)
-  /// /// @param out_min_value pointer to receive an output (may be NULL)
-  /// /// @param out_max_id pointer to receive an output (may be NULL)
-  /// /// @param out_max_value pointer to receive an output (may be NULL)
-  /// /// @returns OBX_NOT_FOUND if no objects are stored in the given range
+  /// Time series: get the limits (min/max time values) over objects within the given time range
+  /// @param out_min_id pointer to receive an output (may be NULL)
+  /// @param out_min_value pointer to receive an output (may be NULL)
+  /// @param out_max_id pointer to receive an output (may be NULL)
+  /// @param out_max_value pointer to receive an output (may be NULL)
+  /// @returns OBX_NOT_FOUND if no objects are stored in the given range
   int cursor_ts_min_max_range(
     ffi.Pointer<OBX_cursor> cursor,
     int range_begin,
@@ -1878,8 +1878,8 @@ class ObjectBoxC {
   late final _dart_cursor_ts_min_max_range _cursor_ts_min_max_range =
       _cursor_ts_min_max_range_ptr.asFunction<_dart_cursor_ts_min_max_range>();
 
-  /// /// Get access to the box for the given entity. A box may be used across threads.
-  /// /// Boxes are shared instances and managed by the store so there's no need to close/free them manually.
+  /// Get access to the box for the given entity. A box may be used across threads.
+  /// Boxes are shared instances and managed by the store so there's no need to close/free them manually.
   ffi.Pointer<OBX_box> box(
     ffi.Pointer<OBX_store> store,
     int entity_id,
@@ -1893,10 +1893,10 @@ class ObjectBoxC {
   late final _box_ptr = _lookup<ffi.NativeFunction<_c_box>>('obx_box');
   late final _dart_box _box = _box_ptr.asFunction<_dart_box>();
 
-  /// /// Get access to the store this box belongs to - utility for when you only have access to the `box` variable but need
-  /// /// some store method, such as starting a transaction.
-  /// /// This doesn't produce a new instance of OBX_store, just gives you back the same pointer you've created this box with.
-  /// /// In other words, don't close the returned store separately.
+  /// Get access to the store this box belongs to - utility for when you only have access to the `box` variable but need
+  /// some store method, such as starting a transaction.
+  /// This doesn't produce a new instance of OBX_store, just gives you back the same pointer you've created this box with.
+  /// In other words, don't close the returned store separately.
   ffi.Pointer<OBX_store> box_store(
     ffi.Pointer<OBX_box> box,
   ) {
@@ -1910,7 +1910,7 @@ class ObjectBoxC {
   late final _dart_box_store _box_store =
       _box_store_ptr.asFunction<_dart_box_store>();
 
-  /// /// Check whether a given object exists in the box.
+  /// Check whether a given object exists in the box.
   int box_contains(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -1928,8 +1928,8 @@ class ObjectBoxC {
   late final _dart_box_contains _box_contains =
       _box_contains_ptr.asFunction<_dart_box_contains>();
 
-  /// /// Check whether this box contains objects with all of the IDs given.
-  /// /// @param out_contains is set to true if all of the IDs are present, otherwise false
+  /// Check whether this box contains objects with all of the IDs given.
+  /// @param out_contains is set to true if all of the IDs are present, otherwise false
   int box_contains_many(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_id_array> ids,
@@ -1948,11 +1948,11 @@ class ObjectBoxC {
   late final _dart_box_contains_many _box_contains_many =
       _box_contains_many_ptr.asFunction<_dart_box_contains_many>();
 
-  /// /// Fetch a single object from the box; must be called inside a (reentrant) transaction.
-  /// /// The exposed data comes directly from the OS to allow zero-copy access, which limits the data lifetime:
-  /// /// \attention The exposed data is only valid as long as the (top) transaction is still active and no write
-  /// /// \attention operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
-  /// /// @returns OBX_ERROR_ILLEGAL_STATE if not inside of an active transaction (see obx_txn_read() and obx_txn_write())
+  /// Fetch a single object from the box; must be called inside a (reentrant) transaction.
+  /// The exposed data comes directly from the OS to allow zero-copy access, which limits the data lifetime:
+  /// \attention The exposed data is only valid as long as the (top) transaction is still active and no write
+  /// \attention operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
+  /// @returns OBX_ERROR_ILLEGAL_STATE if not inside of an active transaction (see obx_txn_read() and obx_txn_write())
   int box_get(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -1971,11 +1971,11 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_box_get>>('obx_box_get');
   late final _dart_box_get _box_get = _box_get_ptr.asFunction<_dart_box_get>();
 
-  /// /// Fetch multiple objects for the given IDs from the box; must be called inside a (reentrant) transaction.
-  /// /// \attention See obx_box_get() for important notes on the limited lifetime of the exposed data.
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details; e.g. code
-  /// ///               OBX_ERROR_ILLEGAL_STATE will be set if not inside of an active transaction
-  /// ///               (see obx_txn_read() and obx_txn_write())
+  /// Fetch multiple objects for the given IDs from the box; must be called inside a (reentrant) transaction.
+  /// \attention See obx_box_get() for important notes on the limited lifetime of the exposed data.
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details; e.g. code
+  /// OBX_ERROR_ILLEGAL_STATE will be set if not inside of an active transaction
+  /// (see obx_txn_read() and obx_txn_write())
   ffi.Pointer<OBX_bytes_array> box_get_many(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_id_array> ids,
@@ -1991,12 +1991,12 @@ class ObjectBoxC {
   late final _dart_box_get_many _box_get_many =
       _box_get_many_ptr.asFunction<_dart_box_get_many>();
 
-  /// /// Fetch all objects from the box; must be called inside a (reentrant) transaction.
-  /// /// NOTE: don't call this in 32 bit mode! Use obx_box_visit_all() instead.
-  /// /// \attention See obx_box_get() for important notes on the limited lifetime of the exposed data.
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details; e.g. code
-  /// ///               OBX_ERROR_ILLEGAL_STATE will be set if not inside of an active transaction
-  /// ///               (see obx_txn_read() and obx_txn_write())
+  /// Fetch all objects from the box; must be called inside a (reentrant) transaction.
+  /// NOTE: don't call this in 32 bit mode! Use obx_box_visit_all() instead.
+  /// \attention See obx_box_get() for important notes on the limited lifetime of the exposed data.
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details; e.g. code
+  /// OBX_ERROR_ILLEGAL_STATE will be set if not inside of an active transaction
+  /// (see obx_txn_read() and obx_txn_write())
   ffi.Pointer<OBX_bytes_array> box_get_all(
     ffi.Pointer<OBX_box> box,
   ) {
@@ -2010,10 +2010,10 @@ class ObjectBoxC {
   late final _dart_box_get_all _box_get_all =
       _box_get_all_ptr.asFunction<_dart_box_get_all>();
 
-  /// /// Read given objects from the database in a single transaction.
-  /// /// Call the visitor() on each object, passing user_data, object data & size as arguments.
-  /// /// The given visitor must return true to keep receiving results, false to cancel.
-  /// /// If an object is not found, the visitor() is still called, passing NULL as data and a 0 as size.
+  /// Read given objects from the database in a single transaction.
+  /// Call the visitor() on each object, passing user_data, object data & size as arguments.
+  /// The given visitor must return true to keep receiving results, false to cancel.
+  /// If an object is not found, the visitor() is still called, passing NULL as data and a 0 as size.
   int box_visit_many(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_id_array> ids,
@@ -2033,9 +2033,9 @@ class ObjectBoxC {
   late final _dart_box_visit_many _box_visit_many =
       _box_visit_many_ptr.asFunction<_dart_box_visit_many>();
 
-  /// /// Read all objects in a single transaction.
-  /// /// Calls the visitor() on each object, passing visitor_arg, object data & size as arguments.
-  /// /// The given visitor must return true to keep receiving results, false to cancel.
+  /// Read all objects in a single transaction.
+  /// Calls the visitor() on each object, passing visitor_arg, object data & size as arguments.
+  /// The given visitor must return true to keep receiving results, false to cancel.
   int box_visit_all(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.NativeFunction<obx_data_visitor>> visitor,
@@ -2053,9 +2053,9 @@ class ObjectBoxC {
   late final _dart_box_visit_all _box_visit_all =
       _box_visit_all_ptr.asFunction<_dart_box_visit_all>();
 
-  /// /// Prepares an ID for insertion: pass in 0 (zero) to reserve a new ID or an existing ID to check/prepare it.
-  /// /// @param id_or_zero The ID of the entity. If you pass 0, this will generate a new one.
-  /// /// @seealso obx_cursor_id_for_put()
+  /// Prepares an ID for insertion: pass in 0 (zero) to reserve a new ID or an existing ID to check/prepare it.
+  /// @param id_or_zero The ID of the entity. If you pass 0, this will generate a new one.
+  /// @seealso obx_cursor_id_for_put()
   int box_id_for_put(
     ffi.Pointer<OBX_box> box,
     int id_or_zero,
@@ -2071,10 +2071,10 @@ class ObjectBoxC {
   late final _dart_box_id_for_put _box_id_for_put =
       _box_id_for_put_ptr.asFunction<_dart_box_id_for_put>();
 
-  /// /// Reserve the given number of (new) IDs for insertion; a bulk version of obx_box_id_for_put().
-  /// /// @param count number of IDs to reserve, max 10000
-  /// /// @param out_first_id the first ID of the sequence as
-  /// /// @returns an error in case the required number of IDs could not be reserved.
+  /// Reserve the given number of (new) IDs for insertion; a bulk version of obx_box_id_for_put().
+  /// @param count number of IDs to reserve, max 10000
+  /// @param out_first_id the first ID of the sequence as
+  /// @returns an error in case the required number of IDs could not be reserved.
   int box_ids_for_put(
     ffi.Pointer<OBX_box> box,
     int count,
@@ -2092,10 +2092,10 @@ class ObjectBoxC {
   late final _dart_box_ids_for_put _box_ids_for_put =
       _box_ids_for_put_ptr.asFunction<_dart_box_ids_for_put>();
 
-  /// /// Put the given object using the given ID synchronously; note that the ID also must match the one present in data.
-  /// /// @param id An ID usually reserved via obx_box_id_for_put().
-  /// /// @see obx_box_put5() to additionally provide a put mode
-  /// /// @see obx_box_put_object() for a variant not requiring reserving IDs
+  /// Put the given object using the given ID synchronously; note that the ID also must match the one present in data.
+  /// @param id An ID usually reserved via obx_box_id_for_put().
+  /// @see obx_box_put5() to additionally provide a put mode
+  /// @see obx_box_put_object() for a variant not requiring reserving IDs
   int box_put(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -2114,9 +2114,9 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_box_put>>('obx_box_put');
   late final _dart_box_put _box_put = _box_put_ptr.asFunction<_dart_box_put>();
 
-  /// /// Convenience for obx_box_put5() with OBXPutMode_INSERT.
-  /// /// @param id non-zero
-  /// /// @returns OBX_ERROR_ID_ALREADY_EXISTS if an insert fails because of a colliding ID
+  /// Convenience for obx_box_put5() with OBXPutMode_INSERT.
+  /// @param id non-zero
+  /// @returns OBX_ERROR_ID_ALREADY_EXISTS if an insert fails because of a colliding ID
   int box_insert(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -2136,9 +2136,9 @@ class ObjectBoxC {
   late final _dart_box_insert _box_insert =
       _box_insert_ptr.asFunction<_dart_box_insert>();
 
-  /// /// Convenience for obx_cursor_put4() with OBXPutMode_UPDATE.
-  /// /// @param id non-zero
-  /// /// @returns OBX_ERROR_ID_NOT_FOUND  if an update fails because the given ID does not represent any object
+  /// Convenience for obx_cursor_put4() with OBXPutMode_UPDATE.
+  /// @param id non-zero
+  /// @returns OBX_ERROR_ID_NOT_FOUND  if an update fails because the given ID does not represent any object
   int box_update(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -2158,10 +2158,10 @@ class ObjectBoxC {
   late final _dart_box_update _box_update =
       _box_update_ptr.asFunction<_dart_box_update>();
 
-  /// /// Put the given object using the given ID synchronously; note that the ID also must match the one present in data.
-  /// /// @param id An ID usually reserved via obx_box_id_for_put().
-  /// /// @see obx_box_put() for standard put mode
-  /// /// @see obx_box_put_object() for a variant not requiring reserving IDs
+  /// Put the given object using the given ID synchronously; note that the ID also must match the one present in data.
+  /// @param id An ID usually reserved via obx_box_id_for_put().
+  /// @see obx_box_put() for standard put mode
+  /// @see obx_box_put_object() for a variant not requiring reserving IDs
   int box_put5(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -2183,9 +2183,9 @@ class ObjectBoxC {
   late final _dart_box_put5 _box_put5 =
       _box_put5_ptr.asFunction<_dart_box_put5>();
 
-  /// /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW.
-  /// /// @param data writable data buffer, which may be updated for the ID
-  /// /// @returns 0 on error
+  /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW.
+  /// @param data writable data buffer, which may be updated for the ID
+  /// @returns 0 on error
   int box_put_object(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Void> data,
@@ -2203,9 +2203,9 @@ class ObjectBoxC {
   late final _dart_box_put_object _box_put_object =
       _box_put_object_ptr.asFunction<_dart_box_put_object>();
 
-  /// /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW
-  /// /// @param data writable data buffer, which may be updated for the ID
-  /// /// @returns 0 on error, e.g. the entity was not put according to OBXPutMode
+  /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW
+  /// @param data writable data buffer, which may be updated for the ID
+  /// @returns 0 on error, e.g. the entity was not put according to OBXPutMode
   int box_put_object4(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Void> data,
@@ -2225,9 +2225,9 @@ class ObjectBoxC {
   late final _dart_box_put_object4 _box_put_object4 =
       _box_put_object4_ptr.asFunction<_dart_box_put_object4>();
 
-  /// /// Put all given objects in the database in a single transaction. If any of the individual objects failed to put,
-  /// /// none are put and an error is returned, equivalent to calling obx_box_put_many5() with fail_on_id_failure=true.
-  /// /// @param ids Previously allocated IDs for the given given objects (e.g. using obx_box_ids_for_put)
+  /// Put all given objects in the database in a single transaction. If any of the individual objects failed to put,
+  /// none are put and an error is returned, equivalent to calling obx_box_put_many5() with fail_on_id_failure=true.
+  /// @param ids Previously allocated IDs for the given given objects (e.g. using obx_box_ids_for_put)
   int box_put_many(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_bytes_array> objects,
@@ -2247,13 +2247,13 @@ class ObjectBoxC {
   late final _dart_box_put_many _box_put_many =
       _box_put_many_ptr.asFunction<_dart_box_put_many>();
 
-  /// /// Like obx_box_put_many(), but with an additional flag indicating how to treat ID failures with OBXPutMode_INSERT and
-  /// /// OBXPutMode_UPDATE.
-  /// /// @param fail_on_id_failure if set to true, an ID failure (OBX_ERROR_ID_ALREADY_EXISTS and OBX_ERROR_ID_NOT_FOUND)
-  /// ///        will fail the transaction, and none of the objects are put/inserted/updated.
-  /// /// Note 1: If this function is run inside a managed TX (created by obx_txn_write()) with fail_on_id_failure=true and
-  /// ///         a failure occurs, the whole outer TX is also aborted.
-  /// /// Note 2: ID failure errors are returned even if fail_on_id_failure=false and the TX wasn't aborted.
+  /// Like obx_box_put_many(), but with an additional flag indicating how to treat ID failures with OBXPutMode_INSERT and
+  /// OBXPutMode_UPDATE.
+  /// @param fail_on_id_failure if set to true, an ID failure (OBX_ERROR_ID_ALREADY_EXISTS and OBX_ERROR_ID_NOT_FOUND)
+  /// will fail the transaction, and none of the objects are put/inserted/updated.
+  /// Note 1: If this function is run inside a managed TX (created by obx_txn_write()) with fail_on_id_failure=true and
+  /// a failure occurs, the whole outer TX is also aborted.
+  /// Note 2: ID failure errors are returned even if fail_on_id_failure=false and the TX wasn't aborted.
   int box_put_many5(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_bytes_array> objects,
@@ -2275,8 +2275,8 @@ class ObjectBoxC {
   late final _dart_box_put_many5 _box_put_many5 =
       _box_put_many5_ptr.asFunction<_dart_box_put_many5>();
 
-  /// /// Remove a single object
-  /// /// will return OBX_NOT_FOUND if an object with the given ID doesn't exist
+  /// Remove a single object
+  /// will return OBX_NOT_FOUND if an object with the given ID doesn't exist
   int box_remove(
     ffi.Pointer<OBX_box> box,
     int id,
@@ -2292,11 +2292,11 @@ class ObjectBoxC {
   late final _dart_box_remove _box_remove =
       _box_remove_ptr.asFunction<_dart_box_remove>();
 
-  /// /// Remove all given objects from the database in a single transaction.
-  /// /// Note that this method will not fail if the object is not found (e.g. already removed).
-  /// /// In case you need to strictly check whether all of the objects exist before removing them,
-  /// /// execute obx_box_contains_ids() and obx_box_remove_ids() inside a single write transaction.
-  /// /// @param out_count Pointer to retrieve the number of removed objects; optional: may be NULL.
+  /// Remove all given objects from the database in a single transaction.
+  /// Note that this method will not fail if the object is not found (e.g. already removed).
+  /// In case you need to strictly check whether all of the objects exist before removing them,
+  /// execute obx_box_contains_ids() and obx_box_remove_ids() inside a single write transaction.
+  /// @param out_count Pointer to retrieve the number of removed objects; optional: may be NULL.
   int box_remove_many(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<OBX_id_array> ids,
@@ -2314,8 +2314,8 @@ class ObjectBoxC {
   late final _dart_box_remove_many _box_remove_many =
       _box_remove_many_ptr.asFunction<_dart_box_remove_many>();
 
-  /// /// Remove all objects and set the out_count the the number of removed objects.
-  /// /// @param out_count Pointer to retrieve the number of removed objects; optional: may be NULL.
+  /// Remove all objects and set the out_count the the number of removed objects.
+  /// @param out_count Pointer to retrieve the number of removed objects; optional: may be NULL.
   int box_remove_all(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Uint64> out_count,
@@ -2331,7 +2331,7 @@ class ObjectBoxC {
   late final _dart_box_remove_all _box_remove_all =
       _box_remove_all_ptr.asFunction<_dart_box_remove_all>();
 
-  /// /// Check whether there are any objects for this entity and updates the out_is_empty accordingly
+  /// Check whether there are any objects for this entity and updates the out_is_empty accordingly
   int box_is_empty(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Uint8> out_is_empty,
@@ -2347,8 +2347,8 @@ class ObjectBoxC {
   late final _dart_box_is_empty _box_is_empty =
       _box_is_empty_ptr.asFunction<_dart_box_is_empty>();
 
-  /// /// Count the number of objects in the box, up to the given maximum.
-  /// /// You can pass limit=0 to count all objects without any limitation.
+  /// Count the number of objects in the box, up to the given maximum.
+  /// You can pass limit=0 to count all objects without any limitation.
   int box_count(
     ffi.Pointer<OBX_box> box,
     int limit,
@@ -2366,11 +2366,11 @@ class ObjectBoxC {
   late final _dart_box_count _box_count =
       _box_count_ptr.asFunction<_dart_box_count>();
 
-  /// /// Fetch IDs of all objects that link back to the given object (ID) using the given relation property (ID).
-  /// /// Note: This method refers to "property based relations" unlike the "stand-alone relations" (see obx_box_rel_*).
-  /// /// @param property_id the relation property, which must belong to the entity type represented by this box
-  /// /// @param id object ID; the object's type is the target of the relation property (typically from another Box)
-  /// /// @returns resulting IDs representing objects in this Box, or NULL in case of an error
+  /// Fetch IDs of all objects that link back to the given object (ID) using the given relation property (ID).
+  /// Note: This method refers to "property based relations" unlike the "stand-alone relations" (see obx_box_rel_*).
+  /// @param property_id the relation property, which must belong to the entity type represented by this box
+  /// @param id object ID; the object's type is the target of the relation property (typically from another Box)
+  /// @returns resulting IDs representing objects in this Box, or NULL in case of an error
   ffi.Pointer<OBX_id_array> box_get_backlink_ids(
     ffi.Pointer<OBX_box> box,
     int property_id,
@@ -2389,10 +2389,10 @@ class ObjectBoxC {
   late final _dart_box_get_backlink_ids _box_get_backlink_ids =
       _box_get_backlink_ids_ptr.asFunction<_dart_box_get_backlink_ids>();
 
-  /// /// Insert a standalone relation entry between two objects.
-  /// /// @param relation_id must be a standalone relation ID with source entity belonging to this box
-  /// /// @param source_id identifies an object from this box
-  /// /// @param target_id identifies an object from the target box (as per the relation definition)
+  /// Insert a standalone relation entry between two objects.
+  /// @param relation_id must be a standalone relation ID with source entity belonging to this box
+  /// @param source_id identifies an object from this box
+  /// @param target_id identifies an object from the target box (as per the relation definition)
   int box_rel_put(
     ffi.Pointer<OBX_box> box,
     int relation_id,
@@ -2412,8 +2412,8 @@ class ObjectBoxC {
   late final _dart_box_rel_put _box_rel_put =
       _box_rel_put_ptr.asFunction<_dart_box_rel_put>();
 
-  /// /// Remove a standalone relation entry between two objects.
-  /// /// See obx_box_rel_put() for parameters documentation.
+  /// Remove a standalone relation entry between two objects.
+  /// See obx_box_rel_put() for parameters documentation.
   int box_rel_remove(
     ffi.Pointer<OBX_box> box,
     int relation_id,
@@ -2433,11 +2433,11 @@ class ObjectBoxC {
   late final _dart_box_rel_remove _box_rel_remove =
       _box_rel_remove_ptr.asFunction<_dart_box_rel_remove>();
 
-  /// /// Fetch IDs of all objects in this Box related to the given object (typically from another Box).
-  /// /// Used for a stand-alone relation and its "regular" direction; this Box represents the target of the relation.
-  /// /// @param relation_id ID of a standalone relation, whose target type matches this Box
-  /// /// @param id object ID of the relation source type (typically from another Box)
-  /// /// @returns resulting IDs representing objects in this Box, or NULL in case of an error
+  /// Fetch IDs of all objects in this Box related to the given object (typically from another Box).
+  /// Used for a stand-alone relation and its "regular" direction; this Box represents the target of the relation.
+  /// @param relation_id ID of a standalone relation, whose target type matches this Box
+  /// @param id object ID of the relation source type (typically from another Box)
+  /// @returns resulting IDs representing objects in this Box, or NULL in case of an error
   ffi.Pointer<OBX_id_array> box_rel_get_ids(
     ffi.Pointer<OBX_box> box,
     int relation_id,
@@ -2455,11 +2455,11 @@ class ObjectBoxC {
   late final _dart_box_rel_get_ids _box_rel_get_ids =
       _box_rel_get_ids_ptr.asFunction<_dart_box_rel_get_ids>();
 
-  /// /// Fetch IDs of all objects in this Box related to the given object (typically from another Box).
-  /// /// Used for a stand-alone relation and its "backlink" direction; this Box represents the source of the relation.
-  /// /// @param relation_id ID of a standalone relation, whose source type matches this Box
-  /// /// @param id object ID of the relation target type (typically from another Box)
-  /// /// @returns resulting IDs representing objects in this Box, or NULL in case of an error
+  /// Fetch IDs of all objects in this Box related to the given object (typically from another Box).
+  /// Used for a stand-alone relation and its "backlink" direction; this Box represents the source of the relation.
+  /// @param relation_id ID of a standalone relation, whose source type matches this Box
+  /// @param id object ID of the relation target type (typically from another Box)
+  /// @returns resulting IDs representing objects in this Box, or NULL in case of an error
   ffi.Pointer<OBX_id_array> box_rel_get_backlink_ids(
     ffi.Pointer<OBX_box> box,
     int relation_id,
@@ -2479,12 +2479,12 @@ class ObjectBoxC {
       _box_rel_get_backlink_ids_ptr
           .asFunction<_dart_box_rel_get_backlink_ids>();
 
-  /// /// Time series: get the limits (min/max time values) over all objects
-  /// /// @param out_min_id pointer to receive an output (may be NULL)
-  /// /// @param out_min_value pointer to receive an output (may be NULL)
-  /// /// @param out_max_id pointer to receive an output (may be NULL)
-  /// /// @param out_max_value pointer to receive an output (may be NULL)
-  /// /// @returns OBX_NOT_FOUND if no objects are stored
+  /// Time series: get the limits (min/max time values) over all objects
+  /// @param out_min_id pointer to receive an output (may be NULL)
+  /// @param out_min_value pointer to receive an output (may be NULL)
+  /// @param out_max_id pointer to receive an output (may be NULL)
+  /// @param out_max_value pointer to receive an output (may be NULL)
+  /// @returns OBX_NOT_FOUND if no objects are stored
   int box_ts_min_max(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Uint64> out_min_id,
@@ -2506,12 +2506,12 @@ class ObjectBoxC {
   late final _dart_box_ts_min_max _box_ts_min_max =
       _box_ts_min_max_ptr.asFunction<_dart_box_ts_min_max>();
 
-  /// /// Time series: get the limits (min/max time values) over objects within the given time range
-  /// /// @param out_min_id pointer to receive an output (may be NULL)
-  /// /// @param out_min_value pointer to receive an output (may be NULL)
-  /// /// @param out_max_id pointer to receive an output (may be NULL)
-  /// /// @param out_max_value pointer to receive an output (may be NULL)
-  /// /// @returns OBX_NOT_FOUND if no objects are stored in the given range
+  /// Time series: get the limits (min/max time values) over objects within the given time range
+  /// @param out_min_id pointer to receive an output (may be NULL)
+  /// @param out_min_value pointer to receive an output (may be NULL)
+  /// @param out_max_id pointer to receive an output (may be NULL)
+  /// @param out_max_value pointer to receive an output (may be NULL)
+  /// @returns OBX_NOT_FOUND if no objects are stored in the given range
   int box_ts_min_max_range(
     ffi.Pointer<OBX_box> box,
     int range_begin,
@@ -2538,7 +2538,7 @@ class ObjectBoxC {
   late final _dart_box_ts_min_max_range _box_ts_min_max_range =
       _box_ts_min_max_range_ptr.asFunction<_dart_box_ts_min_max_range>();
 
-  /// /// Note: DO NOT close this OBX_async; its lifetime is tied to the OBX_box instance.
+  /// Note: DO NOT close this OBX_async; its lifetime is tied to the OBX_box instance.
   ffi.Pointer<OBX_async> async_1(
     ffi.Pointer<OBX_box> box,
   ) {
@@ -2551,7 +2551,7 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_async_1>>('obx_async');
   late final _dart_async_1 _async_1 = _async_1_ptr.asFunction<_dart_async_1>();
 
-  /// /// Put asynchronously with standard put semantics (insert or update).
+  /// Put asynchronously with standard put semantics (insert or update).
   int async_put(
     ffi.Pointer<OBX_async> async_1,
     int id,
@@ -2571,7 +2571,7 @@ class ObjectBoxC {
   late final _dart_async_put _async_put =
       _async_put_ptr.asFunction<_dart_async_put>();
 
-  /// /// Put asynchronously using the given mode.
+  /// Put asynchronously using the given mode.
   int async_put5(
     ffi.Pointer<OBX_async> async_1,
     int id,
@@ -2593,7 +2593,7 @@ class ObjectBoxC {
   late final _dart_async_put5 _async_put5 =
       _async_put5_ptr.asFunction<_dart_async_put5>();
 
-  /// /// Put asynchronously with inserts semantics (won't put if object already exists).
+  /// Put asynchronously with inserts semantics (won't put if object already exists).
   int async_insert(
     ffi.Pointer<OBX_async> async_1,
     int id,
@@ -2613,7 +2613,7 @@ class ObjectBoxC {
   late final _dart_async_insert _async_insert =
       _async_insert_ptr.asFunction<_dart_async_insert>();
 
-  /// /// Put asynchronously with update semantics (won't put if object is not yet present).
+  /// Put asynchronously with update semantics (won't put if object is not yet present).
   int async_update(
     ffi.Pointer<OBX_async> async_1,
     int id,
@@ -2633,9 +2633,9 @@ class ObjectBoxC {
   late final _dart_async_update _async_update =
       _async_update_ptr.asFunction<_dart_async_update>();
 
-  /// /// Reserve an ID, which is returned immediately for future reference, and put asynchronously.
-  /// /// Note: of course, it can NOT be guaranteed that the entity will actually be put successfully in the DB.
-  /// /// @param data the given bytes are mutated to update the contained ID data.
+  /// Reserve an ID, which is returned immediately for future reference, and put asynchronously.
+  /// Note: of course, it can NOT be guaranteed that the entity will actually be put successfully in the DB.
+  /// @param data the given bytes are mutated to update the contained ID data.
   int async_put_object(
     ffi.Pointer<OBX_async> async_1,
     ffi.Pointer<ffi.Void> data,
@@ -2653,9 +2653,9 @@ class ObjectBoxC {
   late final _dart_async_put_object _async_put_object =
       _async_put_object_ptr.asFunction<_dart_async_put_object>();
 
-  /// /// Reserve an ID, which is returned immediately for future reference, and insert asynchronously.
-  /// /// Note: of course, it can NOT be guaranteed that the entity will actually be inserted successfully in the DB.
-  /// /// @param data the given bytes are mutated to update the contained ID data.
+  /// Reserve an ID, which is returned immediately for future reference, and insert asynchronously.
+  /// Note: of course, it can NOT be guaranteed that the entity will actually be inserted successfully in the DB.
+  /// @param data the given bytes are mutated to update the contained ID data.
   int async_insert_object(
     ffi.Pointer<OBX_async> async_1,
     ffi.Pointer<ffi.Void> data,
@@ -2674,7 +2674,7 @@ class ObjectBoxC {
   late final _dart_async_insert_object _async_insert_object =
       _async_insert_object_ptr.asFunction<_dart_async_insert_object>();
 
-  /// /// Remove asynchronously.
+  /// Remove asynchronously.
   int async_remove(
     ffi.Pointer<OBX_async> async_1,
     int id,
@@ -2690,8 +2690,8 @@ class ObjectBoxC {
   late final _dart_async_remove _async_remove =
       _async_remove_ptr.asFunction<_dart_async_remove>();
 
-  /// /// Create a custom OBX_async instance that has to be closed using obx_async_close().
-  /// /// Note: for standard tasks, prefer obx_box_async() giving you a shared instance that does not have to be closed.
+  /// Create a custom OBX_async instance that has to be closed using obx_async_close().
+  /// Note: for standard tasks, prefer obx_box_async() giving you a shared instance that does not have to be closed.
   ffi.Pointer<OBX_async> async_create(
     ffi.Pointer<OBX_box> box,
     int enqueue_timeout_millis,
@@ -2707,8 +2707,8 @@ class ObjectBoxC {
   late final _dart_async_create _async_create =
       _async_create_ptr.asFunction<_dart_async_create>();
 
-  /// /// Close a custom OBX_async instance created with obx_async_create().
-  /// /// @return OBX_ERROR_ILLEGAL_ARGUMENT if you pass the shared instance from obx_box_async()
+  /// Close a custom OBX_async instance created with obx_async_create().
+  /// @return OBX_ERROR_ILLEGAL_ARGUMENT if you pass the shared instance from obx_box_async()
   int async_close(
     ffi.Pointer<OBX_async> async_1,
   ) {
@@ -2722,10 +2722,10 @@ class ObjectBoxC {
   late final _dart_async_close _async_close =
       _async_close_ptr.asFunction<_dart_async_close>();
 
-  /// /// Create a query builder which is used to collect conditions using the obx_qb_* functions.
-  /// /// Once all conditions are applied, use obx_query() to build a OBX_query that is used to actually retrieve data.
-  /// /// Use obx_qb_close() to close (free) the query builder.
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Create a query builder which is used to collect conditions using the obx_qb_* functions.
+  /// Once all conditions are applied, use obx_query() to build a OBX_query that is used to actually retrieve data.
+  /// Use obx_qb_close() to close (free) the query builder.
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_query_builder> query_builder(
     ffi.Pointer<OBX_store> store,
     int entity_id,
@@ -2741,8 +2741,8 @@ class ObjectBoxC {
   late final _dart_query_builder _query_builder =
       _query_builder_ptr.asFunction<_dart_query_builder>();
 
-  /// /// Close the query builder; note that OBX_query objects outlive their builder and thus are not affected by this call.
-  /// /// @param builder may be NULL
+  /// Close the query builder; note that OBX_query objects outlive their builder and thus are not affected by this call.
+  /// @param builder may be NULL
   int qb_close(
     ffi.Pointer<OBX_query_builder> builder,
   ) {
@@ -2756,8 +2756,8 @@ class ObjectBoxC {
   late final _dart_qb_close _qb_close =
       _qb_close_ptr.asFunction<_dart_qb_close>();
 
-  /// /// To minimise the amount of error handling code required when building a query, the first error is stored in the query
-  /// /// and can be obtained here. All the obx_qb_XXX functions are null operations after the first query error has occurred.
+  /// To minimise the amount of error handling code required when building a query, the first error is stored in the query
+  /// and can be obtained here. All the obx_qb_XXX functions are null operations after the first query error has occurred.
   int qb_error_code(
     ffi.Pointer<OBX_query_builder> builder,
   ) {
@@ -2771,8 +2771,8 @@ class ObjectBoxC {
   late final _dart_qb_error_code _qb_error_code =
       _qb_error_code_ptr.asFunction<_dart_qb_error_code>();
 
-  /// /// To minimise the amount of error handling code required when building a query, the first error is stored in the query
-  /// /// and can be obtained here. All the obx_qb_XXX functions are null operations after the first query error has occurred.
+  /// To minimise the amount of error handling code required when building a query, the first error is stored in the query
+  /// and can be obtained here. All the obx_qb_XXX functions are null operations after the first query error has occurred.
   ffi.Pointer<ffi.Int8> qb_error_message(
     ffi.Pointer<OBX_query_builder> builder,
   ) {
@@ -2786,7 +2786,7 @@ class ObjectBoxC {
   late final _dart_qb_error_message _qb_error_message =
       _qb_error_message_ptr.asFunction<_dart_qb_error_message>();
 
-  /// /// Add null check to the query
+  /// Add null check to the query
   int qb_null(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -2801,7 +2801,7 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_qb_null>>('obx_qb_null');
   late final _dart_qb_null _qb_null = _qb_null_ptr.asFunction<_dart_qb_null>();
 
-  /// /// Add not-null check to the query
+  /// Add not-null check to the query
   int qb_not_null(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -2997,7 +2997,7 @@ class ObjectBoxC {
   late final _dart_qb_less_or_equal_string _qb_less_or_equal_string =
       _qb_less_or_equal_string_ptr.asFunction<_dart_qb_less_or_equal_string>();
 
-  /// /// Note that all string values are copied and thus do not need to be maintained by the calling code.
+  /// Note that all string values are copied and thus do not need to be maintained by the calling code.
   int qb_in_strings(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3019,7 +3019,7 @@ class ObjectBoxC {
   late final _dart_qb_in_strings _qb_in_strings =
       _qb_in_strings_ptr.asFunction<_dart_qb_in_strings>();
 
-  /// /// For OBXPropertyType_StringVector - matches if at least one vector item equals the given value.
+  /// For OBXPropertyType_StringVector - matches if at least one vector item equals the given value.
   int qb_any_equals_string(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3165,7 +3165,7 @@ class ObjectBoxC {
   late final _dart_qb_between_2ints _qb_between_2ints =
       _qb_between_2ints_ptr.asFunction<_dart_qb_between_2ints>();
 
-  /// /// Note that all values are copied and thus do not need to be maintained by the calling code.
+  /// Note that all values are copied and thus do not need to be maintained by the calling code.
   int qb_in_int64s(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3185,7 +3185,7 @@ class ObjectBoxC {
   late final _dart_qb_in_int64s _qb_in_int64s =
       _qb_in_int64s_ptr.asFunction<_dart_qb_in_int64s>();
 
-  /// /// Note that all values are copied and thus do not need to be maintained by the calling code.
+  /// Note that all values are copied and thus do not need to be maintained by the calling code.
   int qb_not_in_int64s(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3205,7 +3205,7 @@ class ObjectBoxC {
   late final _dart_qb_not_in_int64s _qb_not_in_int64s =
       _qb_not_in_int64s_ptr.asFunction<_dart_qb_not_in_int64s>();
 
-  /// /// Note that all values are copied and thus do not need to be maintained by the calling code.
+  /// Note that all values are copied and thus do not need to be maintained by the calling code.
   int qb_in_int32s(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3225,7 +3225,7 @@ class ObjectBoxC {
   late final _dart_qb_in_int32s _qb_in_int32s =
       _qb_in_int32s_ptr.asFunction<_dart_qb_in_int32s>();
 
-  /// /// Note that all values are copied and thus do not need to be maintained by the calling code.
+  /// Note that all values are copied and thus do not need to be maintained by the calling code.
   int qb_not_in_int32s(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3438,7 +3438,7 @@ class ObjectBoxC {
   late final _dart_qb_less_or_equal_bytes _qb_less_or_equal_bytes =
       _qb_less_or_equal_bytes_ptr.asFunction<_dart_qb_less_or_equal_bytes>();
 
-  /// /// Combine conditions[] to a new condition using operator AND (all).
+  /// Combine conditions[] to a new condition using operator AND (all).
   int qb_all(
     ffi.Pointer<OBX_query_builder> builder,
     ffi.Pointer<ffi.Int32> conditions,
@@ -3454,7 +3454,7 @@ class ObjectBoxC {
   late final _qb_all_ptr = _lookup<ffi.NativeFunction<_c_qb_all>>('obx_qb_all');
   late final _dart_qb_all _qb_all = _qb_all_ptr.asFunction<_dart_qb_all>();
 
-  /// /// Combine conditions[] to a new condition using operator OR (any).
+  /// Combine conditions[] to a new condition using operator OR (any).
   int qb_any(
     ffi.Pointer<OBX_query_builder> builder,
     ffi.Pointer<ffi.Int32> conditions,
@@ -3470,24 +3470,24 @@ class ObjectBoxC {
   late final _qb_any_ptr = _lookup<ffi.NativeFunction<_c_qb_any>>('obx_qb_any');
   late final _dart_qb_any _qb_any = _qb_any_ptr.asFunction<_dart_qb_any>();
 
-  /// /// Create an alias for the previous condition (the one added just before calling this function).
-  /// /// This is useful when you have a query with multiple conditions of the same property (e.g. height < 20 or height > 50)
-  /// /// and you want to use obx_query_param_* to change the values. Consider the following simplified example.
-  /// /// @example Create a query with two aliased params and set their values later during query execution:
-  /// ///          OBX_query_builder* qb = obx_query_builder(store, entity_id);
-  /// ///          obx_qb_less_than_int(qb, height_prop_id, 0)
-  /// ///          obx_qb_param_alias(qb, "height-lt")
-  /// ///          obx_qb_greater_than_int(qb, height_prop_id, 0)
-  /// ///          obx_qb_param_alias(qb, "height-gt")
-  /// ///          OBX_query* query = obx_query(OBX_query_builder* qb);
-  /// ///          ...
-  /// ///          obx_query_param_alias_int(query, "height-lt", 20)
-  /// ///          obx_query_param_alias_int(query, "height-gt", 50)
-  /// ///          OBX_bytes_array* results = obx_query_find(query)
-  /// ///          obx_query_param_alias_int(query, "height-lt", 100)
-  /// ///          obx_query_param_alias_int(query, "height-gt", 500)
-  /// ///          OBX_bytes_array* results2 = obx_query_find(query)
-  /// /// @param alias any non-empty string
+  /// Create an alias for the previous condition (the one added just before calling this function).
+  /// This is useful when you have a query with multiple conditions of the same property (e.g. height < 20 or height > 50)
+  /// and you want to use obx_query_param_* to change the values. Consider the following simplified example.
+  /// @example Create a query with two aliased params and set their values later during query execution:
+  /// OBX_query_builder* qb = obx_query_builder(store, entity_id);
+  /// obx_qb_less_than_int(qb, height_prop_id, 0)
+  /// obx_qb_param_alias(qb, "height-lt")
+  /// obx_qb_greater_than_int(qb, height_prop_id, 0)
+  /// obx_qb_param_alias(qb, "height-gt")
+  /// OBX_query* query = obx_query(OBX_query_builder* qb);
+  /// ...
+  /// obx_query_param_alias_int(query, "height-lt", 20)
+  /// obx_query_param_alias_int(query, "height-gt", 50)
+  /// OBX_bytes_array* results = obx_query_find(query)
+  /// obx_query_param_alias_int(query, "height-lt", 100)
+  /// obx_query_param_alias_int(query, "height-gt", 500)
+  /// OBX_bytes_array* results2 = obx_query_find(query)
+  /// @param alias any non-empty string
   int qb_param_alias(
     ffi.Pointer<OBX_query_builder> builder,
     ffi.Pointer<ffi.Int8> alias,
@@ -3503,7 +3503,7 @@ class ObjectBoxC {
   late final _dart_qb_param_alias _qb_param_alias =
       _qb_param_alias_ptr.asFunction<_dart_qb_param_alias>();
 
-  /// /// Configures an order of results in the query
+  /// Configures an order of results in the query
   int qb_order(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3521,7 +3521,7 @@ class ObjectBoxC {
   late final _dart_qb_order _qb_order =
       _qb_order_ptr.asFunction<_dart_qb_order>();
 
-  /// /// Create a link based on a property-relation (many-to-one)
+  /// Create a link based on a property-relation (many-to-one)
   ffi.Pointer<OBX_query_builder> qb_link_property(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -3537,7 +3537,7 @@ class ObjectBoxC {
   late final _dart_qb_link_property _qb_link_property =
       _qb_link_property_ptr.asFunction<_dart_qb_link_property>();
 
-  /// /// Create a backlink based on a property-relation used in reverse (one-to-many)
+  /// Create a backlink based on a property-relation used in reverse (one-to-many)
   ffi.Pointer<OBX_query_builder> qb_backlink_property(
     ffi.Pointer<OBX_query_builder> builder,
     int source_entity_id,
@@ -3556,7 +3556,7 @@ class ObjectBoxC {
   late final _dart_qb_backlink_property _qb_backlink_property =
       _qb_backlink_property_ptr.asFunction<_dart_qb_backlink_property>();
 
-  /// /// Create a link based on a standalone relation (many-to-many)
+  /// Create a link based on a standalone relation (many-to-many)
   ffi.Pointer<OBX_query_builder> qb_link_standalone(
     ffi.Pointer<OBX_query_builder> builder,
     int relation_id,
@@ -3573,7 +3573,7 @@ class ObjectBoxC {
   late final _dart_qb_link_standalone _qb_link_standalone =
       _qb_link_standalone_ptr.asFunction<_dart_qb_link_standalone>();
 
-  /// /// Create a backlink based on a standalone relation (many-to-many, reverse direction)
+  /// Create a backlink based on a standalone relation (many-to-many, reverse direction)
   ffi.Pointer<OBX_query_builder> qb_backlink_standalone(
     ffi.Pointer<OBX_query_builder> builder,
     int relation_id,
@@ -3590,15 +3590,15 @@ class ObjectBoxC {
   late final _dart_qb_backlink_standalone _qb_backlink_standalone =
       _qb_backlink_standalone_ptr.asFunction<_dart_qb_backlink_standalone>();
 
-  /// /// Link the (time series) entity type to another entity space using a time point or range defined in the given
-  /// /// linked entity type and properties.
-  /// /// Note: time series functionality must be available to use this.
-  /// /// @param linked_entity_id Entity type that defines a time point or range
-  /// /// @param begin_property_id Property of the linked entity defining a time point or the begin of a time range.
-  /// ///        Must be a date type (e.g. PropertyType_Date or PropertyType_DateNano).
-  /// /// @param end_property_id Optional property of the linked entity defining the end of a time range.
-  /// ///        Pass zero to only define a time point (begin_property_id).
-  /// ///        Must be a date type (e.g. PropertyType_Date or PropertyType_DateNano).
+  /// Link the (time series) entity type to another entity space using a time point or range defined in the given
+  /// linked entity type and properties.
+  /// Note: time series functionality must be available to use this.
+  /// @param linked_entity_id Entity type that defines a time point or range
+  /// @param begin_property_id Property of the linked entity defining a time point or the begin of a time range.
+  /// Must be a date type (e.g. PropertyType_Date or PropertyType_DateNano).
+  /// @param end_property_id Optional property of the linked entity defining the end of a time range.
+  /// Pass zero to only define a time point (begin_property_id).
+  /// Must be a date type (e.g. PropertyType_Date or PropertyType_DateNano).
   ffi.Pointer<OBX_query_builder> qb_link_time(
     ffi.Pointer<OBX_query_builder> builder,
     int linked_entity_id,
@@ -3618,7 +3618,7 @@ class ObjectBoxC {
   late final _dart_qb_link_time _qb_link_time =
       _qb_link_time_ptr.asFunction<_dart_qb_link_time>();
 
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_query> query(
     ffi.Pointer<OBX_query_builder> builder,
   ) {
@@ -3630,7 +3630,7 @@ class ObjectBoxC {
   late final _query_ptr = _lookup<ffi.NativeFunction<_c_query>>('obx_query');
   late final _dart_query _query = _query_ptr.asFunction<_dart_query>();
 
-  /// /// Close the query and free resources.
+  /// Close the query and free resources.
   int query_close(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -3644,7 +3644,7 @@ class ObjectBoxC {
   late final _dart_query_close _query_close =
       _query_close_ptr.asFunction<_dart_query_close>();
 
-  /// /// Create a clone of the given query such that it can be run on a separate thread
+  /// Create a clone of the given query such that it can be run on a separate thread
   ffi.Pointer<OBX_query> query_clone(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -3658,9 +3658,9 @@ class ObjectBoxC {
   late final _dart_query_clone _query_clone =
       _query_clone_ptr.asFunction<_dart_query_clone>();
 
-  /// /// Configure an offset for this query - all methods that support offset will return/process objects starting at this
-  /// /// offset. Example use case: use together with limit to get a slice of the whole result, e.g. for "result paging".
-  /// /// Call with offset=0 to reset to the default behavior, i.e. starting from the first element.
+  /// Configure an offset for this query - all methods that support offset will return/process objects starting at this
+  /// offset. Example use case: use together with limit to get a slice of the whole result, e.g. for "result paging".
+  /// Call with offset=0 to reset to the default behavior, i.e. starting from the first element.
   int query_offset(
     ffi.Pointer<OBX_query> query,
     int offset,
@@ -3676,10 +3676,10 @@ class ObjectBoxC {
   late final _dart_query_offset _query_offset =
       _query_offset_ptr.asFunction<_dart_query_offset>();
 
-  /// /// Configure an offset and a limit for this query - all methods that support an offset/limit will return/process
-  /// /// objects starting at this offset and up to the given limit. Example use case: get a slice of the whole result, e.g.
-  /// /// for "result paging". Call with offset/limit=0 to reset to the default behavior, i.e. starting from the first element
-  /// /// without limit.
+  /// Configure an offset and a limit for this query - all methods that support an offset/limit will return/process
+  /// objects starting at this offset and up to the given limit. Example use case: get a slice of the whole result, e.g.
+  /// for "result paging". Call with offset/limit=0 to reset to the default behavior, i.e. starting from the first element
+  /// without limit.
   int query_offset_limit(
     ffi.Pointer<OBX_query> query,
     int offset,
@@ -3698,9 +3698,9 @@ class ObjectBoxC {
   late final _dart_query_offset_limit _query_offset_limit =
       _query_offset_limit_ptr.asFunction<_dart_query_offset_limit>();
 
-  /// /// Configure a limit for this query - all methods that support limit will return/process only the given number of
-  /// /// objects. Example use case: use together with offset to get a slice of the whole result, e.g. for "result paging".
-  /// /// Call with limit=0 to reset to the default behavior - zero limit means no limit applied.
+  /// Configure a limit for this query - all methods that support limit will return/process only the given number of
+  /// objects. Example use case: use together with offset to get a slice of the whole result, e.g. for "result paging".
+  /// Call with limit=0 to reset to the default behavior - zero limit means no limit applied.
   int query_limit(
     ffi.Pointer<OBX_query> query,
     int limit,
@@ -3716,7 +3716,7 @@ class ObjectBoxC {
   late final _dart_query_limit _query_limit =
       _query_limit_ptr.asFunction<_dart_query_limit>();
 
-  /// /// Find entities matching the query. NOTE: the returned data is only valid as long the transaction is active!
+  /// Find entities matching the query. NOTE: the returned data is only valid as long the transaction is active!
   ffi.Pointer<OBX_bytes_array> query_find(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -3730,7 +3730,7 @@ class ObjectBoxC {
   late final _dart_query_find _query_find =
       _query_find_ptr.asFunction<_dart_query_find>();
 
-  /// /// Walk over matching objects using the given data visitor
+  /// Walk over matching objects using the given data visitor
   int query_visit(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<ffi.NativeFunction<obx_data_visitor>> visitor,
@@ -3748,7 +3748,7 @@ class ObjectBoxC {
   late final _dart_query_visit _query_visit =
       _query_visit_ptr.asFunction<_dart_query_visit>();
 
-  /// /// Return the IDs of all matching objects
+  /// Return the IDs of all matching objects
   ffi.Pointer<OBX_id_array> query_find_ids(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -3762,7 +3762,7 @@ class ObjectBoxC {
   late final _dart_query_find_ids _query_find_ids =
       _query_find_ids_ptr.asFunction<_dart_query_find_ids>();
 
-  /// /// Return the number of matching objects
+  /// Return the number of matching objects
   int query_count(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<ffi.Uint64> out_count,
@@ -3778,7 +3778,7 @@ class ObjectBoxC {
   late final _dart_query_count _query_count =
       _query_count_ptr.asFunction<_dart_query_count>();
 
-  /// /// Remove all matching objects from the database & return the number of deleted objects
+  /// Remove all matching objects from the database & return the number of deleted objects
   int query_remove(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<ffi.Uint64> out_count,
@@ -3794,7 +3794,7 @@ class ObjectBoxC {
   late final _dart_query_remove _query_remove =
       _query_remove_ptr.asFunction<_dart_query_remove>();
 
-  /// /// The returned char* is valid until another call to describe() is made on the query or until the query is freed
+  /// The returned char* is valid until another call to describe() is made on the query or until the query is freed
   ffi.Pointer<ffi.Int8> query_describe(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -3808,7 +3808,7 @@ class ObjectBoxC {
   late final _dart_query_describe _query_describe =
       _query_describe_ptr.asFunction<_dart_query_describe>();
 
-  /// /// The returned char* is valid until another call to describe_params() is made on the query or until the query is freed
+  /// The returned char* is valid until another call to describe_params() is made on the query or until the query is freed
   ffi.Pointer<ffi.Int8> query_describe_params(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -3843,8 +3843,8 @@ class ObjectBoxC {
   late final _dart_query_cursor_visit _query_cursor_visit =
       _query_cursor_visit_ptr.asFunction<_dart_query_cursor_visit>();
 
-  /// /// Find entities matching the query; NOTE: the returned data is only valid as long the transaction is active!
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Find entities matching the query; NOTE: the returned data is only valid as long the transaction is active!
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_bytes_array> query_cursor_find(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<OBX_cursor> cursor,
@@ -3895,7 +3895,7 @@ class ObjectBoxC {
   late final _dart_query_cursor_count _query_cursor_count =
       _query_cursor_count_ptr.asFunction<_dart_query_cursor_count>();
 
-  /// /// Remove (delete!) all matching objects.
+  /// Remove (delete!) all matching objects.
   int query_cursor_remove(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<OBX_cursor> cursor,
@@ -4105,11 +4105,11 @@ class ObjectBoxC {
   late final _dart_query_param_bytes _query_param_bytes =
       _query_param_bytes_ptr.asFunction<_dart_query_param_bytes>();
 
-  /// /// Gets the size of the property type used in a query condition.
-  /// /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
-  /// /// if the language has a bias towards another type (e.g. 64 bit ints).
-  /// /// @returns the size of the underlying property
-  /// /// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
+  /// Gets the size of the property type used in a query condition.
+  /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
+  /// if the language has a bias towards another type (e.g. 64 bit ints).
+  /// @returns the size of the underlying property
+  /// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
   int query_param_get_type_size(
     ffi.Pointer<OBX_query> query,
     int entity_id,
@@ -4309,11 +4309,11 @@ class ObjectBoxC {
   late final _dart_query_param_alias_bytes _query_param_alias_bytes =
       _query_param_alias_bytes_ptr.asFunction<_dart_query_param_alias_bytes>();
 
-  /// /// Gets the size of the property type used in a query condition.
-  /// /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
-  /// /// if the language has a bias towards another type (e.g. 64 bit ints).
-  /// /// @returns the size of the underlying property
-  /// /// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
+  /// Gets the size of the property type used in a query condition.
+  /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
+  /// if the language has a bias towards another type (e.g. 64 bit ints).
+  /// @returns the size of the underlying property
+  /// @returns 0 if it does not have a fixed size (e.g. strings, vectors) or an error occurred
   int query_param_alias_get_type_size(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<ffi.Int8> alias,
@@ -4331,8 +4331,8 @@ class ObjectBoxC {
       _query_param_alias_get_type_size = _query_param_alias_get_type_size_ptr
           .asFunction<_dart_query_param_alias_get_type_size>();
 
-  /// /// Create a "property query" with results referring to single property (not complete objects).
-  /// /// Also provides aggregates like for example obx_query_prop_avg().
+  /// Create a "property query" with results referring to single property (not complete objects).
+  /// Also provides aggregates like for example obx_query_prop_avg().
   ffi.Pointer<OBX_query_prop> query_prop(
     ffi.Pointer<OBX_query> query,
     int property_id,
@@ -4348,7 +4348,7 @@ class ObjectBoxC {
   late final _dart_query_prop _query_prop =
       _query_prop_ptr.asFunction<_dart_query_prop>();
 
-  /// /// Close the property query and release resources.
+  /// Close the property query and release resources.
   int query_prop_close(
     ffi.Pointer<OBX_query_prop> query,
   ) {
@@ -4362,8 +4362,8 @@ class ObjectBoxC {
   late final _dart_query_prop_close _query_prop_close =
       _query_prop_close_ptr.asFunction<_dart_query_prop_close>();
 
-  /// /// Configure the property query to work only on distinct values.
-  /// /// @note not all methods support distinct, those that don't will return an error
+  /// Configure the property query to work only on distinct values.
+  /// @note not all methods support distinct, those that don't will return an error
   int query_prop_distinct(
     ffi.Pointer<OBX_query_prop> query,
     bool distinct,
@@ -4380,9 +4380,9 @@ class ObjectBoxC {
   late final _dart_query_prop_distinct _query_prop_distinct =
       _query_prop_distinct_ptr.asFunction<_dart_query_prop_distinct>();
 
-  /// /// Configure the property query to work only on distinct values.
-  /// /// This version is reserved for string properties and defines the case sensitivity for distinctness.
-  /// /// @note not all methods support distinct, those that don't will return an error
+  /// Configure the property query to work only on distinct values.
+  /// This version is reserved for string properties and defines the case sensitivity for distinctness.
+  /// @note not all methods support distinct, those that don't will return an error
   int query_prop_distinct_case(
     ffi.Pointer<OBX_query_prop> query,
     bool distinct,
@@ -4402,7 +4402,7 @@ class ObjectBoxC {
       _query_prop_distinct_case_ptr
           .asFunction<_dart_query_prop_distinct_case>();
 
-  /// /// Count the number of non-NULL values of the given property across all objects matching the query
+  /// Count the number of non-NULL values of the given property across all objects matching the query
   int query_prop_count(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Uint64> out_count,
@@ -4418,13 +4418,13 @@ class ObjectBoxC {
   late final _dart_query_prop_count _query_prop_count =
       _query_prop_count_ptr.asFunction<_dart_query_prop_count>();
 
-  /// /// Calculate an average value for the given numeric property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_average the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// ///                  E.g. a floating point NaN value will trigger the short cut as the average will be a NaN no matter
-  /// ///                  what values will follow.
+  /// Calculate an average value for the given numeric property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_average the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// E.g. a floating point NaN value will trigger the short cut as the average will be a NaN no matter
+  /// what values will follow.
   int query_prop_avg(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Double> out_average,
@@ -4442,12 +4442,12 @@ class ObjectBoxC {
   late final _dart_query_prop_avg _query_prop_avg =
       _query_prop_avg_ptr.asFunction<_dart_query_prop_avg>();
 
-  /// /// Calculate an average value for the given numeric property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_average the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// /// @returns OBX_ERROR_NUMERIC_OVERFLOW if the result does not fit into an int64_t
+  /// Calculate an average value for the given numeric property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_average the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// @returns OBX_ERROR_NUMERIC_OVERFLOW if the result does not fit into an int64_t
   int query_prop_avg_int(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int64> out_average,
@@ -4466,12 +4466,12 @@ class ObjectBoxC {
   late final _dart_query_prop_avg_int _query_prop_avg_int =
       _query_prop_avg_int_ptr.asFunction<_dart_query_prop_avg_int>();
 
-  /// /// Find the minimum value of the given floating-point property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_minimum the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// ///                  E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
+  /// Find the minimum value of the given floating-point property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_minimum the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
   int query_prop_min(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Double> out_minimum,
@@ -4489,12 +4489,12 @@ class ObjectBoxC {
   late final _dart_query_prop_min _query_prop_min =
       _query_prop_min_ptr.asFunction<_dart_query_prop_min>();
 
-  /// /// Find the maximum value of the given floating-point property across all objects matching the query
-  /// /// @param query the query to run
-  /// /// @param out_maximum the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// ///                  E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
+  /// Find the maximum value of the given floating-point property across all objects matching the query
+  /// @param query the query to run
+  /// @param out_maximum the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
   int query_prop_max(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Double> out_maximum,
@@ -4512,13 +4512,13 @@ class ObjectBoxC {
   late final _dart_query_prop_max _query_prop_max =
       _query_prop_max_ptr.asFunction<_dart_query_prop_max>();
 
-  /// /// Calculate the sum of the given floating-point property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_sum the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// ///                  E.g. a floating point NaN value will trigger the short cut as the average will be a NaN no matter
-  /// ///                  what values will follow.
+  /// Calculate the sum of the given floating-point property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_sum the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// E.g. a floating point NaN value will trigger the short cut as the average will be a NaN no matter
+  /// what values will follow.
   int query_prop_sum(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Double> out_sum,
@@ -4536,12 +4536,12 @@ class ObjectBoxC {
   late final _dart_query_prop_sum _query_prop_sum =
       _query_prop_sum_ptr.asFunction<_dart_query_prop_sum>();
 
-  /// /// Find the minimum value of the given property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_minimum the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// ///                  E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
+  /// Find the minimum value of the given property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_minimum the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
   int query_prop_min_int(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int64> out_minimum,
@@ -4560,12 +4560,12 @@ class ObjectBoxC {
   late final _dart_query_prop_min_int _query_prop_min_int =
       _query_prop_min_int_ptr.asFunction<_dart_query_prop_min_int>();
 
-  /// /// Find the maximum value of the given property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_maximum the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// ///                  E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
+  /// Find the maximum value of the given property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_maximum the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// E.g. if an index is used, it will be set to 0 or -1, instead of the actual count of objects.
   int query_prop_max_int(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int64> out_maximum,
@@ -4584,12 +4584,12 @@ class ObjectBoxC {
   late final _dart_query_prop_max_int _query_prop_max_int =
       _query_prop_max_int_ptr.asFunction<_dart_query_prop_max_int>();
 
-  /// /// Calculate the sum of the given property across all objects matching the query.
-  /// /// @param query the query to run
-  /// /// @param out_sum the result of the query
-  /// /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
-  /// ///                  A negative count indicates that the computation used a short cut and thus the count is incomplete.
-  /// /// @returns OBX_ERROR_NUMERIC_OVERFLOW if the result does not fit into an int64_t
+  /// Calculate the sum of the given property across all objects matching the query.
+  /// @param query the query to run
+  /// @param out_sum the result of the query
+  /// @param out_count (optional, may be NULL) number of objects contributing to the result (counted on the fly).
+  /// A negative count indicates that the computation used a short cut and thus the count is incomplete.
+  /// @returns OBX_ERROR_NUMERIC_OVERFLOW if the result does not fit into an int64_t
   int query_prop_sum_int(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int64> out_sum,
@@ -4608,9 +4608,9 @@ class ObjectBoxC {
   late final _dart_query_prop_sum_int _query_prop_sum_int =
       _query_prop_sum_int_ptr.asFunction<_dart_query_prop_sum_int>();
 
-  /// /// Return an array of strings stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified field are skipped
+  /// Return an array of strings stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified field are skipped
   ffi.Pointer<OBX_string_array> query_prop_find_strings(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int8> value_if_null,
@@ -4627,10 +4627,10 @@ class ObjectBoxC {
   late final _dart_query_prop_find_strings _query_prop_find_strings =
       _query_prop_find_strings_ptr.asFunction<_dart_query_prop_find_strings>();
 
-  /// /// Return an array of ints stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified are skipped
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Return an array of ints stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified are skipped
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_int64_array> query_prop_find_int64s(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int64> value_if_null,
@@ -4647,10 +4647,10 @@ class ObjectBoxC {
   late final _dart_query_prop_find_int64s _query_prop_find_int64s =
       _query_prop_find_int64s_ptr.asFunction<_dart_query_prop_find_int64s>();
 
-  /// /// Return an array of ints stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified are skipped
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Return an array of ints stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified are skipped
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_int32_array> query_prop_find_int32s(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int32> value_if_null,
@@ -4667,10 +4667,10 @@ class ObjectBoxC {
   late final _dart_query_prop_find_int32s _query_prop_find_int32s =
       _query_prop_find_int32s_ptr.asFunction<_dart_query_prop_find_int32s>();
 
-  /// /// Return an array of ints stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified are skipped
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Return an array of ints stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified are skipped
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_int16_array> query_prop_find_int16s(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int16> value_if_null,
@@ -4687,10 +4687,10 @@ class ObjectBoxC {
   late final _dart_query_prop_find_int16s _query_prop_find_int16s =
       _query_prop_find_int16s_ptr.asFunction<_dart_query_prop_find_int16s>();
 
-  /// /// Return an array of ints stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified are skipped
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Return an array of ints stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified are skipped
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_int8_array> query_prop_find_int8s(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Int8> value_if_null,
@@ -4707,10 +4707,10 @@ class ObjectBoxC {
   late final _dart_query_prop_find_int8s _query_prop_find_int8s =
       _query_prop_find_int8s_ptr.asFunction<_dart_query_prop_find_int8s>();
 
-  /// /// Return an array of doubles stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified are skipped
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Return an array of doubles stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified are skipped
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_double_array> query_prop_find_doubles(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Double> value_if_null,
@@ -4727,10 +4727,10 @@ class ObjectBoxC {
   late final _dart_query_prop_find_doubles _query_prop_find_doubles =
       _query_prop_find_doubles_ptr.asFunction<_dart_query_prop_find_doubles>();
 
-  /// /// Return an array of int stored as the given property across all objects matching the query.
-  /// /// @param value_if_null value that should be used in place of NULL values on object fields;
-  /// ///     if value_if_null=NULL is given, objects with NULL values of the specified are skipped
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Return an array of int stored as the given property across all objects matching the query.
+  /// @param value_if_null value that should be used in place of NULL values on object fields;
+  /// if value_if_null=NULL is given, objects with NULL values of the specified are skipped
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_float_array> query_prop_find_floats(
     ffi.Pointer<OBX_query_prop> query,
     ffi.Pointer<ffi.Float> value_if_null,
@@ -4747,18 +4747,18 @@ class ObjectBoxC {
   late final _dart_query_prop_find_floats _query_prop_find_floats =
       _query_prop_find_floats_ptr.asFunction<_dart_query_prop_find_floats>();
 
-  /// /// Create an observer (callback) to be notified about all data changes (for all object types).
-  /// /// The callback is invoked right after a successful commit.
-  /// /// \par Threading note
-  /// /// The given callback is called on the thread issuing the commit for the data change, e.g. via obx_txn_success().
-  /// /// Future versions might change that to a background thread, so be careful with threading assumptions.
-  /// /// Also, it's a usually good idea to make the callback return quickly to let the calling thread continue.
-  /// /// \attention Currently, you can not call any data operations from inside the call back.
-  /// /// \attention More accurately, no transaction may be strated. (This restriction may be removed in a later version.)
-  /// /// @param user_data any value you want to be forwarded to the given observer callback (usually some context info).
-  /// /// @param callback pointer to be called when the observed data changes.
-  /// /// @returns NULL if a illegal locking situation was detected, e.g. called from an observer itself or a
-  /// ///          timeout/deadlock was detected (OBX_ERROR_ILLEGAL_STATE).
+  /// Create an observer (callback) to be notified about all data changes (for all object types).
+  /// The callback is invoked right after a successful commit.
+  /// \par Threading note
+  /// The given callback is called on the thread issuing the commit for the data change, e.g. via obx_txn_success().
+  /// Future versions might change that to a background thread, so be careful with threading assumptions.
+  /// Also, it's a usually good idea to make the callback return quickly to let the calling thread continue.
+  /// \attention Currently, you can not call any data operations from inside the call back.
+  /// \attention More accurately, no transaction may be strated. (This restriction may be removed in a later version.)
+  /// @param user_data any value you want to be forwarded to the given observer callback (usually some context info).
+  /// @param callback pointer to be called when the observed data changes.
+  /// @returns NULL if a illegal locking situation was detected, e.g. called from an observer itself or a
+  /// timeout/deadlock was detected (OBX_ERROR_ILLEGAL_STATE).
   ffi.Pointer<OBX_observer> observe(
     ffi.Pointer<OBX_store> store,
     ffi.Pointer<ffi.NativeFunction<obx_observer>> callback,
@@ -4775,20 +4775,20 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_observe>>('obx_observe');
   late final _dart_observe _observe = _observe_ptr.asFunction<_dart_observe>();
 
-  /// /// Create an observer (callback) to be notified about data changes for a given object type.
-  /// /// The callback is invoked right after a successful commit.
-  /// /// \note  If you intend to observe more than one type, it is more efficient to use obx_observe().
-  /// /// \par Threading note
-  /// /// The given callback is called on the thread issuing the commit for the data change, e.g. via obx_txn_success().
-  /// /// Future versions might change that to a background thread, so be careful with threading assumptions.
-  /// /// Also, it's a usually good idea to make the callback return quickly to let the calling thread continue.
-  /// /// \attention Currently, you can not call any data operations from inside the call back.
-  /// /// \attention More accurately, no transaction may be strated. (This restriction may be removed in a later version.)
-  /// /// @param type_id ID of the object type to be observer.
-  /// /// @param user_data any value you want to be forwarded to the given observer callback (usually some context info).
-  /// /// @param callback pointer to be called when the observed data changes.
-  /// /// @returns NULL if a illegal locking situation was detected, e.g. called from an observer itself or a
-  /// ///          timeout/deadlock was detected (OBX_ERROR_ILLEGAL_STATE).
+  /// Create an observer (callback) to be notified about data changes for a given object type.
+  /// The callback is invoked right after a successful commit.
+  /// \note  If you intend to observe more than one type, it is more efficient to use obx_observe().
+  /// \par Threading note
+  /// The given callback is called on the thread issuing the commit for the data change, e.g. via obx_txn_success().
+  /// Future versions might change that to a background thread, so be careful with threading assumptions.
+  /// Also, it's a usually good idea to make the callback return quickly to let the calling thread continue.
+  /// \attention Currently, you can not call any data operations from inside the call back.
+  /// \attention More accurately, no transaction may be strated. (This restriction may be removed in a later version.)
+  /// @param type_id ID of the object type to be observer.
+  /// @param user_data any value you want to be forwarded to the given observer callback (usually some context info).
+  /// @param callback pointer to be called when the observed data changes.
+  /// @returns NULL if a illegal locking situation was detected, e.g. called from an observer itself or a
+  /// timeout/deadlock was detected (OBX_ERROR_ILLEGAL_STATE).
   ffi.Pointer<OBX_observer> observe_single_type(
     ffi.Pointer<OBX_store> store,
     int type_id,
@@ -4809,10 +4809,10 @@ class ObjectBoxC {
   late final _dart_observe_single_type _observe_single_type =
       _observe_single_type_ptr.asFunction<_dart_observe_single_type>();
 
-  /// /// Free the memory used by the given observer and unsubscribe it from its box or query.
-  /// /// @returns OBX_ERROR_ILLEGAL_STATE if a illegal locking situation was detected, e.g. called from an observer itself
-  /// ///          or a timeout/deadlock was detected. In that case, the caller must try to close again in a valid situation
-  /// ///          not causing lock failures.
+  /// Free the memory used by the given observer and unsubscribe it from its box or query.
+  /// @returns OBX_ERROR_ILLEGAL_STATE if a illegal locking situation was detected, e.g. called from an observer itself
+  /// or a timeout/deadlock was detected. In that case, the caller must try to close again in a valid situation
+  /// not causing lock failures.
   int observer_close(
     ffi.Pointer<OBX_observer> observer,
   ) {
@@ -4839,8 +4839,8 @@ class ObjectBoxC {
   late final _dart_bytes_free _bytes_free =
       _bytes_free_ptr.asFunction<_dart_bytes_free>();
 
-  /// /// Allocate a bytes array struct of the given size, ready for the data to be pushed
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Allocate a bytes array struct of the given size, ready for the data to be pushed
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_bytes_array> bytes_array(
     int count,
   ) {
@@ -4854,7 +4854,7 @@ class ObjectBoxC {
   late final _dart_bytes_array _bytes_array =
       _bytes_array_ptr.asFunction<_dart_bytes_array>();
 
-  /// /// Set the given data as the index in the bytes array. The data is not copied, just referenced through the pointer
+  /// Set the given data as the index in the bytes array. The data is not copied, just referenced through the pointer
   int bytes_array_set(
     ffi.Pointer<OBX_bytes_array> array,
     int index,
@@ -4874,7 +4874,7 @@ class ObjectBoxC {
   late final _dart_bytes_array_set _bytes_array_set =
       _bytes_array_set_ptr.asFunction<_dart_bytes_array_set>();
 
-  /// /// Free the bytes array struct
+  /// Free the bytes array struct
   void bytes_array_free(
     ffi.Pointer<OBX_bytes_array> array,
   ) {
@@ -4888,8 +4888,8 @@ class ObjectBoxC {
   late final _dart_bytes_array_free _bytes_array_free =
       _bytes_array_free_ptr.asFunction<_dart_bytes_array_free>();
 
-  /// /// Create an ID array struct, copying the given IDs as the contents
-  /// /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  /// Create an ID array struct, copying the given IDs as the contents
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_id_array> id_array(
     ffi.Pointer<ffi.Uint64> ids,
     int count,
@@ -4905,7 +4905,7 @@ class ObjectBoxC {
   late final _dart_id_array _id_array =
       _id_array_ptr.asFunction<_dart_id_array>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void id_array_free(
     ffi.Pointer<OBX_id_array> array,
   ) {
@@ -4919,7 +4919,7 @@ class ObjectBoxC {
   late final _dart_id_array_free _id_array_free =
       _id_array_free_ptr.asFunction<_dart_id_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void string_array_free(
     ffi.Pointer<OBX_string_array> array,
   ) {
@@ -4934,7 +4934,7 @@ class ObjectBoxC {
   late final _dart_string_array_free _string_array_free =
       _string_array_free_ptr.asFunction<_dart_string_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void int64_array_free(
     ffi.Pointer<OBX_int64_array> array,
   ) {
@@ -4948,7 +4948,7 @@ class ObjectBoxC {
   late final _dart_int64_array_free _int64_array_free =
       _int64_array_free_ptr.asFunction<_dart_int64_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void int32_array_free(
     ffi.Pointer<OBX_int32_array> array,
   ) {
@@ -4962,7 +4962,7 @@ class ObjectBoxC {
   late final _dart_int32_array_free _int32_array_free =
       _int32_array_free_ptr.asFunction<_dart_int32_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void int16_array_free(
     ffi.Pointer<OBX_int16_array> array,
   ) {
@@ -4976,7 +4976,7 @@ class ObjectBoxC {
   late final _dart_int16_array_free _int16_array_free =
       _int16_array_free_ptr.asFunction<_dart_int16_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void int8_array_free(
     ffi.Pointer<OBX_int8_array> array,
   ) {
@@ -4990,7 +4990,7 @@ class ObjectBoxC {
   late final _dart_int8_array_free _int8_array_free =
       _int8_array_free_ptr.asFunction<_dart_int8_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void double_array_free(
     ffi.Pointer<OBX_double_array> array,
   ) {
@@ -5005,7 +5005,7 @@ class ObjectBoxC {
   late final _dart_double_array_free _double_array_free =
       _double_array_free_ptr.asFunction<_dart_double_array_free>();
 
-  /// /// Free the array struct
+  /// Free the array struct
   void float_array_free(
     ffi.Pointer<OBX_float_array> array,
   ) {
@@ -5019,9 +5019,9 @@ class ObjectBoxC {
   late final _dart_float_array_free _float_array_free =
       _float_array_free_ptr.asFunction<_dart_float_array_free>();
 
-  /// /// Only for Apple platforms: set the prefix to use for mutexes based on POSIX semaphores.
-  /// /// You must supply the application group identifier for sand-boxed macOS apps here; see also:
-  /// /// https://developer.apple.com/library/archive/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html#//apple_ref/doc/uid/TP40011183-CH3-SW24
+  /// Only for Apple platforms: set the prefix to use for mutexes based on POSIX semaphores.
+  /// You must supply the application group identifier for sand-boxed macOS apps here; see also:
+  /// https://developer.apple.com/library/archive/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html#//apple_ref/doc/uid/TP40011183-CH3-SW24
   void posix_sem_prefix_set(
     ffi.Pointer<ffi.Int8> prefix,
   ) {
@@ -5036,10 +5036,10 @@ class ObjectBoxC {
   late final _dart_posix_sem_prefix_set _posix_sem_prefix_set =
       _posix_sem_prefix_set_ptr.asFunction<_dart_posix_sem_prefix_set>();
 
-  /// /// Before calling any of the other sync APIs, ensure that those are actually available.
-  /// /// If the application is linked a non-sync ObjectBox library, this allows you to fail gracefully.
-  /// /// @return true if this library comes with the sync API
-  /// /// @deprecated use obx_has_feature(OBXFeature_Sync)
+  /// Before calling any of the other sync APIs, ensure that those are actually available.
+  /// If the application is linked a non-sync ObjectBox library, this allows you to fail gracefully.
+  /// @return true if this library comes with the sync API
+  /// @deprecated use obx_has_feature(OBXFeature_Sync)
   bool sync_available() {
     return _sync_available() != 0;
   }
@@ -5049,11 +5049,11 @@ class ObjectBoxC {
   late final _dart_sync_available _sync_available =
       _sync_available_ptr.asFunction<_dart_sync_available>();
 
-  /// /// Creates a sync client associated with the given store and sync server URI.
-  /// /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
-  /// /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
-  /// /// By default a sync client automatically receives updates from the server once login succeeded.
-  /// /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
+  /// Creates a sync client associated with the given store and sync server URI.
+  /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
+  /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
+  /// By default a sync client automatically receives updates from the server once login succeeded.
+  /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
   ffi.Pointer<OBX_sync> sync_1(
     ffi.Pointer<OBX_store> store,
     ffi.Pointer<ffi.Int8> server_uri,
@@ -5067,7 +5067,7 @@ class ObjectBoxC {
   late final _sync_1_ptr = _lookup<ffi.NativeFunction<_c_sync_1>>('obx_sync');
   late final _dart_sync_1 _sync_1 = _sync_1_ptr.asFunction<_dart_sync_1>();
 
-  /// /// Stops and closes (deletes) the sync client freeing its resources.
+  /// Stops and closes (deletes) the sync client freeing its resources.
   int sync_close(
     ffi.Pointer<OBX_sync> sync_1,
   ) {
@@ -5081,10 +5081,10 @@ class ObjectBoxC {
   late final _dart_sync_close _sync_close =
       _sync_close_ptr.asFunction<_dart_sync_close>();
 
-  /// /// Sets credentials to authenticate the client with the server.
-  /// /// See OBXSyncCredentialsType for available options.
-  /// /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
-  /// /// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_NONE
+  /// Sets credentials to authenticate the client with the server.
+  /// See OBXSyncCredentialsType for available options.
+  /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
+  /// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_NONE
   int sync_credentials(
     ffi.Pointer<OBX_sync> sync_1,
     int type,
@@ -5104,8 +5104,8 @@ class ObjectBoxC {
   late final _dart_sync_credentials _sync_credentials =
       _sync_credentials_ptr.asFunction<_dart_sync_credentials>();
 
-  /// /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.
-  /// /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the range 1-20
+  /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.
+  /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the range 1-20
   int sync_max_messages_in_flight(
     ffi.Pointer<OBX_sync> sync_1,
     int value,
@@ -5123,8 +5123,8 @@ class ObjectBoxC {
       _sync_max_messages_in_flight_ptr
           .asFunction<_dart_sync_max_messages_in_flight>();
 
-  /// /// Switches operation mode that's initialized after successful login
-  /// /// Must be called before obx_sync_start (returns OBX_ERROR_ILLEGAL_STATE if it was already started)
+  /// Switches operation mode that's initialized after successful login
+  /// Must be called before obx_sync_start (returns OBX_ERROR_ILLEGAL_STATE if it was already started)
   int sync_request_updates_mode(
     ffi.Pointer<OBX_sync> sync_1,
     int mode,
@@ -5142,12 +5142,12 @@ class ObjectBoxC {
       _sync_request_updates_mode_ptr
           .asFunction<_dart_sync_request_updates_mode>();
 
-  /// /// Once the sync client is configured, you can "start" it to initiate synchronization.
-  /// /// This method triggers communication in the background and will return immediately.
-  /// /// If the synchronization destination is reachable, this background thread will connect to the server,
-  /// /// log in (authenticate) and, depending on "update request mode", start syncing data.
-  /// /// If the device, network or server is currently offline, connection attempts will be retried later using
-  /// /// increasing backoff intervals.
+  /// Once the sync client is configured, you can "start" it to initiate synchronization.
+  /// This method triggers communication in the background and will return immediately.
+  /// If the synchronization destination is reachable, this background thread will connect to the server,
+  /// log in (authenticate) and, depending on "update request mode", start syncing data.
+  /// If the device, network or server is currently offline, connection attempts will be retried later using
+  /// increasing backoff intervals.
   int sync_start(
     ffi.Pointer<OBX_sync> sync_1,
   ) {
@@ -5161,7 +5161,7 @@ class ObjectBoxC {
   late final _dart_sync_start _sync_start =
       _sync_start_ptr.asFunction<_dart_sync_start>();
 
-  /// /// Stops this sync client and thus stopping the synchronization. Does nothing if it is already stopped.
+  /// Stops this sync client and thus stopping the synchronization. Does nothing if it is already stopped.
   int sync_stop(
     ffi.Pointer<OBX_sync> sync_1,
   ) {
@@ -5175,7 +5175,7 @@ class ObjectBoxC {
   late final _dart_sync_stop _sync_stop =
       _sync_stop_ptr.asFunction<_dart_sync_stop>();
 
-  /// /// Gets the current state of the sync client (0 on error, e.g. given sync was NULL)
+  /// Gets the current state of the sync client (0 on error, e.g. given sync was NULL)
   int sync_state(
     ffi.Pointer<OBX_sync> sync_1,
   ) {
@@ -5189,14 +5189,14 @@ class ObjectBoxC {
   late final _dart_sync_state _sync_state =
       _sync_state_ptr.asFunction<_dart_sync_state>();
 
-  /// /// Waits for the sync client to get into the given state or until the given timeout is reached.
-  /// /// For an asynchronous alternative, please check the listeners.
-  /// /// @param timeout_millis Must be greater than 0
-  /// /// @returns OBX_SUCCESS if the LOGGED_IN state has been reached within the given timeout
-  /// /// @returns OBX_TIMEOUT if the given timeout was reached before a relevant state change was detected.
-  /// ///          Note: obx_last_error_code() is not set.
-  /// /// @returns OBX_NO_SUCCESS if a state was reached within the given timeout that is unlikely to result in a
-  /// ///          successful login, e.g. "disconnected". Note: obx_last_error_code() is not set.
+  /// Waits for the sync client to get into the given state or until the given timeout is reached.
+  /// For an asynchronous alternative, please check the listeners.
+  /// @param timeout_millis Must be greater than 0
+  /// @returns OBX_SUCCESS if the LOGGED_IN state has been reached within the given timeout
+  /// @returns OBX_TIMEOUT if the given timeout was reached before a relevant state change was detected.
+  /// Note: obx_last_error_code() is not set.
+  /// @returns OBX_NO_SUCCESS if a state was reached within the given timeout that is unlikely to result in a
+  /// successful login, e.g. "disconnected". Note: obx_last_error_code() is not set.
   int sync_wait_for_logged_in_state(
     ffi.Pointer<OBX_sync> sync_1,
     int timeout_millis,
@@ -5214,12 +5214,12 @@ class ObjectBoxC {
       _sync_wait_for_logged_in_state = _sync_wait_for_logged_in_state_ptr
           .asFunction<_dart_sync_wait_for_logged_in_state>();
 
-  /// /// Request updates from the server since we last synced our database.
-  /// /// @param subscribe_for_pushes keep sending us future updates as they come in.
-  /// /// This should only be called in "logged in" state and there are no delivery guarantees given.
-  /// /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
-  /// /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
-  /// ///          Note: obx_last_error_code() is not set.
+  /// Request updates from the server since we last synced our database.
+  /// @param subscribe_for_pushes keep sending us future updates as they come in.
+  /// This should only be called in "logged in" state and there are no delivery guarantees given.
+  /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
+  /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
+  /// Note: obx_last_error_code() is not set.
   int sync_updates_request(
     ffi.Pointer<OBX_sync> sync_1,
     bool subscribe_for_pushes,
@@ -5236,12 +5236,12 @@ class ObjectBoxC {
   late final _dart_sync_updates_request _sync_updates_request =
       _sync_updates_request_ptr.asFunction<_dart_sync_updates_request>();
 
-  /// /// Cancel updates from the server (once received, the server stops sending updates).
-  /// /// The counterpart to obx_sync_updates_request().
-  /// /// This should only be called in "logged in" state and there are no delivery guarantees given.
-  /// /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
-  /// /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
-  /// ///          Note: obx_last_error_code() is not set.
+  /// Cancel updates from the server (once received, the server stops sending updates).
+  /// The counterpart to obx_sync_updates_request().
+  /// This should only be called in "logged in" state and there are no delivery guarantees given.
+  /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
+  /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
+  /// Note: obx_last_error_code() is not set.
   int sync_updates_cancel(
     ffi.Pointer<OBX_sync> sync_1,
   ) {
@@ -5256,11 +5256,11 @@ class ObjectBoxC {
   late final _dart_sync_updates_cancel _sync_updates_cancel =
       _sync_updates_cancel_ptr.asFunction<_dart_sync_updates_cancel>();
 
-  /// /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
-  /// /// @param limit pass 0 to count all messages without any limitation or a lower number that's enough for your app logic.
-  /// /// @note This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
-  /// ///       While this will still be fast, avoid calling this function excessively.
-  /// ///       2) the result follows transaction view semantics, thus it may not always match the actual value.
+  /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
+  /// @param limit pass 0 to count all messages without any limitation or a lower number that's enough for your app logic.
+  /// @note This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
+  /// While this will still be fast, avoid calling this function excessively.
+  /// 2) the result follows transaction view semantics, thus it may not always match the actual value.
   int sync_outgoing_message_count(
     ffi.Pointer<OBX_sync> sync_1,
     int limit,
@@ -5280,12 +5280,12 @@ class ObjectBoxC {
       _sync_outgoing_message_count_ptr
           .asFunction<_dart_sync_outgoing_message_count>();
 
-  /// /// Experimental. This API is likely to be replaced/removed in a future version.
-  /// /// Quickly bring our database up-to-date in a single transaction, without transmitting all the history.
-  /// /// Good for initial sync of new clients.
-  /// /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
-  /// /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
-  /// ///          Note: obx_last_error_code() is not set.
+  /// Experimental. This API is likely to be replaced/removed in a future version.
+  /// Quickly bring our database up-to-date in a single transaction, without transmitting all the history.
+  /// Good for initial sync of new clients.
+  /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
+  /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
+  /// Note: obx_last_error_code() is not set.
   int sync_full(
     ffi.Pointer<OBX_sync> sync_1,
   ) {
@@ -5299,9 +5299,9 @@ class ObjectBoxC {
   late final _dart_sync_full _sync_full =
       _sync_full_ptr.asFunction<_dart_sync_full>();
 
-  /// /// Set or overwrite a previously set 'connect' listener.
-  /// /// @param listener set NULL to reset
-  /// /// @param listener_arg is a pass-through argument passed to the listener
+  /// Set or overwrite a previously set 'connect' listener.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_connect(
     ffi.Pointer<OBX_sync> sync_1,
     ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_connect>> listener,
@@ -5320,9 +5320,9 @@ class ObjectBoxC {
   late final _dart_sync_listener_connect _sync_listener_connect =
       _sync_listener_connect_ptr.asFunction<_dart_sync_listener_connect>();
 
-  /// /// Set or overwrite a previously set 'disconnect' listener.
-  /// /// @param listener set NULL to reset
-  /// /// @param listener_arg is a pass-through argument passed to the listener
+  /// Set or overwrite a previously set 'disconnect' listener.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_disconnect(
     ffi.Pointer<OBX_sync> sync_1,
     ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_disconnect>> listener,
@@ -5342,9 +5342,9 @@ class ObjectBoxC {
       _sync_listener_disconnect_ptr
           .asFunction<_dart_sync_listener_disconnect>();
 
-  /// /// Set or overwrite a previously set 'login' listener.
-  /// /// @param listener set NULL to reset
-  /// /// @param listener_arg is a pass-through argument passed to the listener
+  /// Set or overwrite a previously set 'login' listener.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_login(
     ffi.Pointer<OBX_sync> sync_1,
     ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_login>> listener,
@@ -5363,9 +5363,9 @@ class ObjectBoxC {
   late final _dart_sync_listener_login _sync_listener_login =
       _sync_listener_login_ptr.asFunction<_dart_sync_listener_login>();
 
-  /// /// Set or overwrite a previously set 'login failure' listener.
-  /// /// @param listener set NULL to reset
-  /// /// @param listener_arg is a pass-through argument passed to the listener
+  /// Set or overwrite a previously set 'login failure' listener.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_login_failure(
     ffi.Pointer<OBX_sync> sync_1,
     ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_login_failure>> listener,
@@ -5385,9 +5385,9 @@ class ObjectBoxC {
       _sync_listener_login_failure_ptr
           .asFunction<_dart_sync_listener_login_failure>();
 
-  /// /// Set or overwrite a previously set 'complete' listener - notifies when the latest sync has finished.
-  /// /// @param listener set NULL to reset
-  /// /// @param listener_arg is a pass-through argument passed to the listener
+  /// Set or overwrite a previously set 'complete' listener - notifies when the latest sync has finished.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_complete(
     ffi.Pointer<OBX_sync> sync_1,
     ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_complete>> listener,
@@ -5406,9 +5406,9 @@ class ObjectBoxC {
   late final _dart_sync_listener_complete _sync_listener_complete =
       _sync_listener_complete_ptr.asFunction<_dart_sync_listener_complete>();
 
-  /// /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
-  /// /// @param listener set NULL to reset
-  /// /// @param listener_arg is a pass-through argument passed to the listener
+  /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_change(
     ffi.Pointer<OBX_sync> sync_1,
     ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_change>> listener,
@@ -5427,7 +5427,7 @@ class ObjectBoxC {
   late final _dart_sync_listener_change _sync_listener_change =
       _sync_listener_change_ptr.asFunction<_dart_sync_listener_change>();
 
-  /// /// Initializes Dart API - call before any other obx_dart_* functions.
+  /// Initializes Dart API - call before any other obx_dart_* functions.
   int dartc_init_api(
     ffi.Pointer<ffi.Void> data,
   ) {
@@ -5441,8 +5441,8 @@ class ObjectBoxC {
   late final _dart_dartc_init_api _dartc_init_api =
       _dartc_init_api_ptr.asFunction<_dart_dartc_init_api>();
 
-  /// /// @see obx_observe()
-  /// /// Note: use obx_observer_close() to free unassign the observer and free resources after you're done with it
+  /// @see obx_observe()
+  /// Note: use obx_observer_close() to free unassign the observer and free resources after you're done with it
   ffi.Pointer<OBX_observer> dartc_observe(
     ffi.Pointer<OBX_store> store,
     int native_port,
@@ -5477,7 +5477,7 @@ class ObjectBoxC {
       _dartc_observe_single_type_ptr
           .asFunction<_dart_dartc_observe_single_type>();
 
-  /// /// @param listener may be NULL
+  /// @param listener may be NULL
   int dartc_sync_listener_close(
     ffi.Pointer<OBX_dart_sync_listener> listener,
   ) {
@@ -5510,7 +5510,7 @@ class ObjectBoxC {
       _dartc_sync_listener_connect_ptr
           .asFunction<_dart_dartc_sync_listener_connect>();
 
-  /// /// @see obx_sync_listener_disconnect()
+  /// @see obx_sync_listener_disconnect()
   ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_disconnect(
     ffi.Pointer<OBX_sync> sync_1,
     int native_port,
@@ -5528,7 +5528,7 @@ class ObjectBoxC {
       _dartc_sync_listener_disconnect = _dartc_sync_listener_disconnect_ptr
           .asFunction<_dart_dartc_sync_listener_disconnect>();
 
-  /// /// @see obx_sync_listener_login()
+  /// @see obx_sync_listener_login()
   ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_login(
     ffi.Pointer<OBX_sync> sync_1,
     int native_port,
@@ -5546,7 +5546,7 @@ class ObjectBoxC {
       _dartc_sync_listener_login_ptr
           .asFunction<_dart_dartc_sync_listener_login>();
 
-  /// /// @see obx_sync_listener_login_failure()
+  /// @see obx_sync_listener_login_failure()
   ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_login_failure(
     ffi.Pointer<OBX_sync> sync_1,
     int native_port,
@@ -5565,7 +5565,7 @@ class ObjectBoxC {
       _dartc_sync_listener_login_failure_ptr
           .asFunction<_dart_dartc_sync_listener_login_failure>();
 
-  /// /// @see obx_sync_listener_complete()
+  /// @see obx_sync_listener_complete()
   ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_complete(
     ffi.Pointer<OBX_sync> sync_1,
     int native_port,
@@ -5583,7 +5583,7 @@ class ObjectBoxC {
       _dartc_sync_listener_complete_ptr
           .asFunction<_dart_dartc_sync_listener_complete>();
 
-  /// /// @see obx_sync_listener_change()
+  /// @see obx_sync_listener_change()
   ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_change(
     ffi.Pointer<OBX_sync> sync_1,
     int native_port,
@@ -5603,162 +5603,153 @@ class ObjectBoxC {
 }
 
 abstract class OBXFeature {
-  /// /// Functions that are returning multiple results (e.g. multiple objects) can be only used if this is available.
-  /// /// This is only available for 64-bit OSes and is the opposite of "chunked mode", which forces to consume results
-  /// /// in chunks (e.g. one by one).
-  /// /// Since chunked mode consumes a bit less RAM, ResultArray style functions are typically only preferable if
-  /// /// there's an additional overhead per call, e.g. caused by a higher level language abstraction like CGo.
+  /// Functions that are returning multiple results (e.g. multiple objects) can be only used if this is available.
+  /// This is only available for 64-bit OSes and is the opposite of "chunked mode", which forces to consume results
+  /// in chunks (e.g. one by one).
+  /// Since chunked mode consumes a bit less RAM, ResultArray style functions are typically only preferable if
+  /// there's an additional overhead per call, e.g. caused by a higher level language abstraction like CGo.
   static const int ResultArray = 1;
 
-  /// /// TimeSeries support (date/date-nano companion ID and other time-series functionality).
+  /// TimeSeries support (date/date-nano companion ID and other time-series functionality).
   static const int TimeSeries = 2;
 
-  /// /// Sync client availability. Visit https://objectbox.io/sync for more details.
+  /// Sync client availability. Visit https://objectbox.io/sync for more details.
   static const int Sync = 3;
 
-  /// /// Check whether debug log can be enabled during runtime.
+  /// Check whether debug log can be enabled during runtime.
   static const int DebugLog = 4;
 
-  /// /// HTTP server with a database browser.
+  /// HTTP server with a database browser.
   static const int ObjectBrowser = 5;
 }
 
 abstract class OBXPropertyType {
-  /// ///< 1 byte
+  /// < 1 byte
   static const int Bool = 1;
 
-  /// ///< 1 byte
+  /// < 1 byte
   static const int Byte = 2;
 
-  /// ///< 2 bytes
+  /// < 2 bytes
   static const int Short = 3;
 
-  /// ///< 1 byte
+  /// < 1 byte
   static const int Char = 4;
 
-  /// ///< 4 bytes
+  /// < 4 bytes
   static const int Int = 5;
 
-  /// ///< 8 bytes
+  /// < 8 bytes
   static const int Long = 6;
 
-  /// ///< 4 bytes
+  /// < 4 bytes
   static const int Float = 7;
 
-  /// ///< 8 bytes
+  /// < 8 bytes
   static const int Double = 8;
   static const int String = 9;
 
-  /// ///< Unix timestamp (milliseconds since 1970) in 8 bytes
+  /// < Unix timestamp (milliseconds since 1970) in 8 bytes
   static const int Date = 10;
   static const int Relation = 11;
 
-  /// ///< Unix timestamp (nanoseconds since 1970) in 8 bytes
+  /// < Unix timestamp (nanoseconds since 1970) in 8 bytes
   static const int DateNano = 12;
   static const int ByteVector = 23;
   static const int StringVector = 30;
 }
 
-/// /// Bit-flags defining the behavior of entities.
-/// /// Note: Numbers indicate the bit position
+/// Bit-flags defining the behavior of entities.
+/// Note: Numbers indicate the bit position
 abstract class OBXEntityFlags {
-  /// /// Enable "data synchronization" for this entity type: objects will be synced with other stores over the network.
-  /// /// It's possible to have local-only (non-synced) types and synced types in the same store (schema/data model).
+  /// Enable "data synchronization" for this entity type: objects will be synced with other stores over the network.
+  /// It's possible to have local-only (non-synced) types and synced types in the same store (schema/data model).
   static const int SYNC_ENABLED = 2;
 
-  /// /// Makes object IDs for a synced types (SYNC_ENABLED is set) global.
-  /// /// By default (not using this flag), the 64 bit object IDs have a local scope and are not unique globally.
-  /// /// This flag tells ObjectBox to treat object IDs globally and thus no ID mapping (local <-> global) is performed.
-  /// /// Often this is used with assignable IDs (ID_SELF_ASSIGNABLE property flag is set) and some special ID scheme.
-  /// /// Note: typically you won't do this with automatically assigned IDs, set by the local ObjectBox store.
-  /// ///       Two devices would likely overwrite each other's object during sync as object IDs are prone to collide.
-  /// ///       It might be OK if you can somehow ensure that only a single device will create new IDs.
+  /// Makes object IDs for a synced types (SYNC_ENABLED is set) global.
+  /// By default (not using this flag), the 64 bit object IDs have a local scope and are not unique globally.
+  /// This flag tells ObjectBox to treat object IDs globally and thus no ID mapping (local <-> global) is performed.
+  /// Often this is used with assignable IDs (ID_SELF_ASSIGNABLE property flag is set) and some special ID scheme.
+  /// Note: typically you won't do this with automatically assigned IDs, set by the local ObjectBox store.
+  /// Two devices would likely overwrite each other's object during sync as object IDs are prone to collide.
+  /// It might be OK if you can somehow ensure that only a single device will create new IDs.
   static const int SHARED_GLOBAL_IDS = 4;
 }
 
-/// /// Bit-flags defining the behavior of properties.
-/// /// Note: Numbers indicate the bit position
+/// Bit-flags defining the behavior of properties.
+/// Note: Numbers indicate the bit position
 abstract class OBXPropertyFlags {
-  /// /// 64 bit long property (internally unsigned) representing the ID of the entity.
-  /// /// May be combined with: NON_PRIMITIVE_TYPE, ID_MONOTONIC_SEQUENCE, ID_SELF_ASSIGNABLE.
+  /// 64 bit long property (internally unsigned) representing the ID of the entity.
+  /// May be combined with: NON_PRIMITIVE_TYPE, ID_MONOTONIC_SEQUENCE, ID_SELF_ASSIGNABLE.
   static const int ID = 1;
 
-  /// /// On languages like Java, a non-primitive type is used (aka wrapper types, allowing null)
+  /// On languages like Java, a non-primitive type is used (aka wrapper types, allowing null)
   static const int NON_PRIMITIVE_TYPE = 2;
 
-  /// /// Unused yet
+  /// Unused yet
   static const int NOT_NULL = 4;
   static const int INDEXED = 8;
 
-  /// /// Unused yet
+  /// Unused yet
   static const int RESERVED = 16;
 
-  /// /// Unique index
+  /// Unique index
   static const int UNIQUE = 32;
 
-  /// /// Unused yet: Use a persisted sequence to enforce ID to rise monotonic (no ID reuse)
+  /// Unused yet: Use a persisted sequence to enforce ID to rise monotonic (no ID reuse)
   static const int ID_MONOTONIC_SEQUENCE = 64;
 
-  /// /// Allow IDs to be assigned by the developer
+  /// Allow IDs to be assigned by the developer
   static const int ID_SELF_ASSIGNABLE = 128;
 
-  /// /// Unused yet
+  /// Unused yet
   static const int INDEX_PARTIAL_SKIP_NULL = 256;
 
-  /// /// Used by References for 1) back-references and 2) to clear references to deleted objects (required for ID reuse)
+  /// Used by References for 1) back-references and 2) to clear references to deleted objects (required for ID reuse)
   static const int INDEX_PARTIAL_SKIP_ZERO = 512;
 
-  /// /// Virtual properties may not have a dedicated field in their entity class, e.g. target IDs of to-one relations
+  /// Virtual properties may not have a dedicated field in their entity class, e.g. target IDs of to-one relations
   static const int VIRTUAL = 1024;
 
-  /// /// Index uses a 32 bit hash instead of the value
-  /// /// 32 bits is shorter on disk, runs well on 32 bit systems, and should be OK even with a few collisions
+  /// Index uses a 32 bit hash instead of the value
+  /// 32 bits is shorter on disk, runs well on 32 bit systems, and should be OK even with a few collisions
   static const int INDEX_HASH = 2048;
 
-  /// /// Index uses a 64 bit hash instead of the value
-  /// /// recommended mostly for 64 bit machines with values longer >200 bytes; small values are faster with a 32 bit hash
+  /// Index uses a 64 bit hash instead of the value
+  /// recommended mostly for 64 bit machines with values longer >200 bytes; small values are faster with a 32 bit hash
   static const int INDEX_HASH64 = 4096;
 
-  /// /// The actual type of the variable is unsigned (used in combination with numeric OBXPropertyType_*).
-  /// /// While our default are signed ints, queries & indexes need do know signing info.
-  /// /// Note: Don't combine with ID (IDs are always unsigned internally).
+  /// The actual type of the variable is unsigned (used in combination with numeric OBXPropertyType_*).
+  /// While our default are signed ints, queries & indexes need do know signing info.
+  /// Note: Don't combine with ID (IDs are always unsigned internally).
   static const int UNSIGNED = 8192;
 
-  /// /// By defining an ID companion property, a special ID encoding scheme is activated involving this property.
-  /// ///
-  /// /// For Time Series IDs, a companion property of type Date or DateNano represents the exact timestamp.
+  /// By defining an ID companion property, a special ID encoding scheme is activated involving this property.
+  ///
+  /// For Time Series IDs, a companion property of type Date or DateNano represents the exact timestamp.
   static const int ID_COMPANION = 16384;
 }
 
-/// /// Model represents a database schema and must be provided when opening the store.
-/// /// Model initialization is usually done by language bindings, which automatically build the model based on parsed
-/// /// source code (for examples, see ObjectBox Go or Swift, which also use this C API).
-/// ///
-/// /// For manual creation, these are the basic steps:
-/// /// - define entity types using obx_model_entity() and obx_model_property()
-/// /// - Pass the last ever used IDs with obx_model_last_entity_id(), obx_model_last_index_id(),
-/// ///   obx_model_last_relation_id()
-class OBX_model extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Model represents a database schema and must be provided when opening the store.
+/// Model initialization is usually done by language bindings, which automatically build the model based on parsed
+/// source code (for examples, see ObjectBox Go or Swift, which also use this C API).
+///
+/// For manual creation, these are the basic steps:
+/// - define entity types using obx_model_entity() and obx_model_property()
+/// - Pass the last ever used IDs with obx_model_last_entity_id(), obx_model_last_index_id(),
+/// obx_model_last_relation_id()
+class OBX_model extends ffi.Opaque {}
 
-/// /// Store represents a single database.
-/// /// Once opened using obx_store_open(), it's an entry point to data access APIs such as box, query, cursor, transaction.
-/// /// After your work is done, you must close obx_store_close() to safely release all the handles and avoid data loss.
-/// /// It's possible to have multiple stores open at once, there's no globally shared state.
-class OBX_store extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Store represents a single database.
+/// Once opened using obx_store_open(), it's an entry point to data access APIs such as box, query, cursor, transaction.
+/// After your work is done, you must close obx_store_close() to safely release all the handles and avoid data loss.
+/// It's possible to have multiple stores open at once, there's no globally shared state.
+class OBX_store extends ffi.Opaque {}
 
-/// /// Store options customize the behavior of ObjectBox before opening a store. Options can't be changed once the store is
-/// /// open but of course you can close the store and open it again with the changed options.
-/// /// Some of the notable options are obx_opt_directory() and obx_opt_max_db_size_in_kb().
-class OBX_store_options extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Store options customize the behavior of ObjectBox before opening a store. Options can't be changed once the store is
+/// open but of course you can close the store and open it again with the changed options.
+/// Some of the notable options are obx_opt_directory() and obx_opt_max_db_size_in_kb().
+class OBX_store_options extends ffi.Opaque {}
 
 abstract class OBXDebugFlags {
   static const int LOG_TRANSACTIONS_READ = 1;
@@ -5768,26 +5759,26 @@ abstract class OBXDebugFlags {
   static const int LOG_ASYNC_QUEUE = 16;
 }
 
-/// /// Defines a padding mode for putting data bytes.
-/// /// Depending on how that data is created, this mode may optimize data handling by avoiding copying memory.
-/// /// Internal background: data buffers used by put operations are required to have a size divisible by 4 for an
-/// ///                      efficient data layout.
+/// Defines a padding mode for putting data bytes.
+/// Depending on how that data is created, this mode may optimize data handling by avoiding copying memory.
+/// Internal background: data buffers used by put operations are required to have a size divisible by 4 for an
+/// efficient data layout.
 abstract class OBXPutPaddingMode {
-  /// /// Adds a padding when needed (may require a memory copy): this is the safe option and also the default.
-  /// /// The extra memory copy may impact performance, however this is usually not noticeable.
+  /// Adds a padding when needed (may require a memory copy): this is the safe option and also the default.
+  /// The extra memory copy may impact performance, however this is usually not noticeable.
   static const int PaddingAutomatic = 1;
 
-  /// /// Indicates that data buffers are safe to be extended for padding (adding up to 3 bytes to size is OK).
-  /// /// Typically, it depends on the used FlatBuffers builder; e.g. the official C++ seems to ensure it, but
-  /// /// flatcc (3rd party implementation for plain C) may not.
+  /// Indicates that data buffers are safe to be extended for padding (adding up to 3 bytes to size is OK).
+  /// Typically, it depends on the used FlatBuffers builder; e.g. the official C++ seems to ensure it, but
+  /// flatcc (3rd party implementation for plain C) may not.
   static const int PaddingAllowedByBuffer = 2;
 
-  /// /// The caller ensures that all data bytes are already padded.
-  /// /// ObjectBox will verify the buffer size and returns an error if it's not divisible by 4.
+  /// The caller ensures that all data bytes are already padded.
+  /// ObjectBox will verify the buffer size and returns an error if it's not divisible by 4.
   static const int PaddingByCaller = 3;
 }
 
-/// /// Bytes struct is an input/output wrapper typically used for a single object data (represented as FlatBuffers).
+/// Bytes struct is an input/output wrapper typically used for a single object data (represented as FlatBuffers).
 class OBX_bytes extends ffi.Struct {
   external ffi.Pointer<ffi.Void> data;
 
@@ -5795,7 +5786,7 @@ class OBX_bytes extends ffi.Struct {
   external int size;
 }
 
-/// /// Bytes array struct is an input/output wrapper for multiple FlatBuffers object data representation.
+/// Bytes array struct is an input/output wrapper for multiple FlatBuffers object data representation.
 class OBX_bytes_array extends ffi.Struct {
   external ffi.Pointer<OBX_bytes> bytes;
 
@@ -5803,7 +5794,7 @@ class OBX_bytes_array extends ffi.Struct {
   external int count;
 }
 
-/// /// ID array struct is an input/output wrapper for an array of object IDs.
+/// ID array struct is an input/output wrapper for an array of object IDs.
 class OBX_id_array extends ffi.Struct {
   external ffi.Pointer<ffi.Uint64> ids;
 
@@ -5811,7 +5802,7 @@ class OBX_id_array extends ffi.Struct {
   external int count;
 }
 
-/// /// String array struct is an input/output wrapper for an array of character strings.
+/// String array struct is an input/output wrapper for an array of character strings.
 class OBX_string_array extends ffi.Struct {
   external ffi.Pointer<ffi.Pointer<ffi.Int8>> items;
 
@@ -5819,7 +5810,7 @@ class OBX_string_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Int64 array struct is an input/output wrapper for an array of int64 numbers.
+/// Int64 array struct is an input/output wrapper for an array of int64 numbers.
 class OBX_int64_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int64> items;
 
@@ -5827,7 +5818,7 @@ class OBX_int64_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Int32 array struct is an input/output wrapper for an array of int32 numbers.
+/// Int32 array struct is an input/output wrapper for an array of int32 numbers.
 class OBX_int32_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int32> items;
 
@@ -5835,7 +5826,7 @@ class OBX_int32_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Int16 array struct is an input/output wrapper for an array of int16 numbers.
+/// Int16 array struct is an input/output wrapper for an array of int16 numbers.
 class OBX_int16_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int16> items;
 
@@ -5843,7 +5834,7 @@ class OBX_int16_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Int8 array struct is an input/output wrapper for an array of int8 numbers.
+/// Int8 array struct is an input/output wrapper for an array of int8 numbers.
 class OBX_int8_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int8> items;
 
@@ -5851,7 +5842,7 @@ class OBX_int8_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Double array struct is an input/output wrapper for an array of double precision floating point numbers.
+/// Double array struct is an input/output wrapper for an array of double precision floating point numbers.
 class OBX_double_array extends ffi.Struct {
   external ffi.Pointer<ffi.Double> items;
 
@@ -5859,7 +5850,7 @@ class OBX_double_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Float array struct is an input/output wrapper for an array of single precision floating point numbers.
+/// Float array struct is an input/output wrapper for an array of single precision floating point numbers.
 class OBX_float_array extends ffi.Struct {
   external ffi.Pointer<ffi.Float> items;
 
@@ -5867,107 +5858,80 @@ class OBX_float_array extends ffi.Struct {
   external int count;
 }
 
-/// /// Transaction provides the mean to use explicit database transactions, grouping several operations into a single unit
-/// /// of work that either executes completely or not at all. If you are looking for a more detailed introduction to
-/// /// transactions in general, please consult other resources, e.g., https://en.wikipedia.org/wiki/Database_transaction
-/// ///
-/// /// You may not notice it, but almost all interactions with ObjectBox involve transactions. For example, if you call
-/// /// obx_box_put() a write transaction is used. Also if you call obx_box_count(), a read transaction is used. All of this
-/// /// is done under the hood and transparent to you.
-/// /// However, there are situations where an explicit read transaction is necessary, e.g. obx_box_get(). Also, it’s
-/// /// usually worth learning transaction basics to make your app more consistent and efficient, especially for writes.
-class OBX_txn extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Transaction provides the mean to use explicit database transactions, grouping several operations into a single unit
+/// of work that either executes completely or not at all. If you are looking for a more detailed introduction to
+/// transactions in general, please consult other resources, e.g., https://en.wikipedia.org/wiki/Database_transaction
+///
+/// You may not notice it, but almost all interactions with ObjectBox involve transactions. For example, if you call
+/// obx_box_put() a write transaction is used. Also if you call obx_box_count(), a read transaction is used. All of this
+/// is done under the hood and transparent to you.
+/// However, there are situations where an explicit read transaction is necessary, e.g. obx_box_get(). Also, it’s
+/// usually worth learning transaction basics to make your app more consistent and efficient, especially for writes.
+class OBX_txn extends ffi.Opaque {}
 
-/// /// Cursor provides fine-grained (lower level API) access to the stored objects. Check also the more convenient Box API.
-class OBX_cursor extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Cursor provides fine-grained (lower level API) access to the stored objects. Check also the more convenient Box API.
+class OBX_cursor extends ffi.Opaque {}
 
 abstract class OBXPutMode {
-  /// /// Standard put ("insert or update")
+  /// Standard put ("insert or update")
   static const int PUT = 1;
 
-  /// /// Put succeeds only if the entity does not exist yet.
+  /// Put succeeds only if the entity does not exist yet.
   static const int INSERT = 2;
 
-  /// /// Put succeeds only if the entity already exist.
+  /// Put succeeds only if the entity already exist.
   static const int UPDATE = 3;
 }
 
-/// /// From ObjectBox you vend Box instances to manage your entities. While you can have multiple Box instances of the same
-/// /// type (for the same Entity) "open" at once, it's usually preferable to just use one instance and pass it around.
-/// /// Box operations automatically start an implicit transaction when accessing the database.
-/// /// And because transactions offered by this C API are always reentrant, you can set your own transaction boundary
-/// /// using obx_txn_read() or obx_txn_write(). This is very much encouraged for calling multiple write operations that
-/// /// logically belong together (or for better performance).
-class OBX_box extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// From ObjectBox you vend Box instances to manage your entities. While you can have multiple Box instances of the same
+/// type (for the same Entity) "open" at once, it's usually preferable to just use one instance and pass it around.
+/// Box operations automatically start an implicit transaction when accessing the database.
+/// And because transactions offered by this C API are always reentrant, you can set your own transaction boundary
+/// using obx_txn_read() or obx_txn_write(). This is very much encouraged for calling multiple write operations that
+/// logically belong together (or for better performance).
+class OBX_box extends ffi.Opaque {}
 
-/// /// Created by obx_box_async, used for async operations like obx_async_put.
-class OBX_async extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Created by obx_box_async, used for async operations like obx_async_put.
+class OBX_async extends ffi.Opaque {}
 
-/// /// You use QueryBuilder to specify criteria and create a Query which actually executes the query and returns matching
-/// /// objects.
-class OBX_query_builder extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// You use QueryBuilder to specify criteria and create a Query which actually executes the query and returns matching
+/// objects.
+class OBX_query_builder extends ffi.Opaque {}
 
-/// /// Not really an enum, but binary flags to use across languages
+/// Not really an enum, but binary flags to use across languages
 abstract class OBXOrderFlags {
-  /// /// Reverse the order from ascending (default) to descending.
+  /// Reverse the order from ascending (default) to descending.
   static const int DESCENDING = 1;
 
-  /// /// Sort upper case letters (e.g. "Z") before lower case letters (e.g. "a").
-  /// /// If not specified, the default is case insensitive for ASCII characters.
+  /// Sort upper case letters (e.g. "Z") before lower case letters (e.g. "a").
+  /// If not specified, the default is case insensitive for ASCII characters.
   static const int CASE_SENSITIVE = 2;
 
-  /// /// For scalars only: change the comparison to unsigned (default is signed).
+  /// For scalars only: change the comparison to unsigned (default is signed).
   static const int UNSIGNED = 4;
 
-  /// /// null values will be put last.
-  /// /// If not specified, by default null values will be put first.
+  /// null values will be put last.
+  /// If not specified, by default null values will be put first.
   static const int NULLS_LAST = 8;
 
-  /// /// null values should be treated equal to zero (scalars only).
+  /// null values should be treated equal to zero (scalars only).
   static const int NULLS_ZERO = 16;
 }
 
-/// /// Query holds the information necessary to execute a database query. It's prepared by QueryBuilder and may be reused
-/// /// any number of times. It also supports parametrization before executing, further improving the reusability.
-/// /// Query is NOT thread safe and must only be used from a single thread at the same time. If you prefer to avoid locks,
-/// /// you may want to create clonse using obx_query_clone().
-class OBX_query extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Query holds the information necessary to execute a database query. It's prepared by QueryBuilder and may be reused
+/// any number of times. It also supports parametrization before executing, further improving the reusability.
+/// Query is NOT thread safe and must only be used from a single thread at the same time. If you prefer to avoid locks,
+/// you may want to create clonse using obx_query_clone().
+class OBX_query extends ffi.Opaque {}
 
-/// /// PropertyQuery - getting a single property instead of whole objects. Also provides aggregation over properties.
-class OBX_query_prop extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// PropertyQuery - getting a single property instead of whole objects. Also provides aggregation over properties.
+class OBX_query_prop extends ffi.Opaque {}
 
-/// /// Observers are called back when data has changed in the database.
-/// /// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
-class OBX_observer extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+/// Observers are called back when data has changed in the database.
+/// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
+class OBX_observer extends ffi.Opaque {}
 
-class OBX_sync extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+class OBX_sync extends ffi.Opaque {}
 
 abstract class OBXSyncCredentialsType {
   static const int NONE = 0;
@@ -5976,14 +5940,14 @@ abstract class OBXSyncCredentialsType {
 }
 
 abstract class OBXRequestUpdatesMode {
-  /// /// no updates by default, obx_sync_updates_request() must be called manually
+  /// no updates by default, obx_sync_updates_request() must be called manually
   static const int MANUAL = 0;
 
-  /// /// same as calling obx_sync_updates_request(sync, TRUE)
-  /// /// default mode unless overridden by obx_sync_request_updates_mode
+  /// same as calling obx_sync_updates_request(sync, TRUE)
+  /// default mode unless overridden by obx_sync_request_updates_mode
   static const int AUTO = 1;
 
-  /// /// same as calling obx_sync_updates_request(sync, FALSE)
+  /// same as calling obx_sync_updates_request(sync, FALSE)
   static const int AUTO_NO_PUSHES = 2;
 }
 
@@ -6024,10 +5988,7 @@ class OBX_sync_change_array extends ffi.Struct {
   external int count;
 }
 
-class OBX_dart_sync_listener extends ffi.Struct {
-  @ffi.Int32()
-  external int dummy;
-}
+class OBX_dart_sync_listener extends ffi.Opaque {}
 
 const int OBX_VERSION_MAJOR = 0;
 
