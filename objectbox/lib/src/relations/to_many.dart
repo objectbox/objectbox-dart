@@ -252,8 +252,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 /// Internal only.
 class InternalToManyAccess {
   /// Check whether the relation has any unsaved changes.
-  // TODO enable annotation once meta:1.3.0 is out
-  // @internal
+  @internal
   static bool hasPendingDbChanges(ToMany toMany) => toMany._hasPendingDbChanges;
 
   /// Set relation info.
@@ -262,8 +261,7 @@ class InternalToManyAccess {
 }
 
 /// Internal only.
-// TODO enable annotation once meta:1.3.0 is out
-// @internal
+@internal
 @visibleForTesting
 class InternalToManyTestAccess<EntityT> {
   final ToMany<EntityT> _rel;

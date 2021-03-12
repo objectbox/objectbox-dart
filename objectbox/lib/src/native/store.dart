@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 
 import '../common.dart';
 import '../modelinfo/index.dart';
@@ -223,8 +224,7 @@ class Store {
 }
 
 /// Internal only.
-// TODO enable annotation once meta:1.3.0 is out
-// @internal
+@internal
 class InternalStoreAccess {
   /// Access entity model for the given class (Dart Type).
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();

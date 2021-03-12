@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
@@ -315,8 +316,7 @@ class Box<T> {
 }
 
 /// Internal only.
-// TODO enable annotation once meta:1.3.0 is out
-// @internal
+@internal
 class InternalBoxAccess {
   /// Create a box in the store for the given entity.
   static Box<T> create<T>(Store store, EntityDefinition<T> entity) =>

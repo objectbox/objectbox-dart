@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
@@ -184,6 +186,7 @@ class _ToOneValue<EntityT> {
 }
 
 /// Internal only.
+@internal
 class InternalToOneAccess {
   /// Get access of the relation's target box.
   static Box targetBox(ToOne toOne) {

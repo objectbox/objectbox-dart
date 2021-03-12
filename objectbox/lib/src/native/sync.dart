@@ -576,10 +576,9 @@ class Sync {
 }
 
 /// Tests only.
-// TODO enable annotation once meta:1.3.0 is out
-// @internal
+@internal
 @visibleForTesting
-class InternaSyncTestAccess {
+class InternalSyncTestAccess {
   /// Access credentials internal data representation.
   static Uint8List credentialsData(SyncCredentials creds) => creds._data;
 }

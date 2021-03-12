@@ -1,5 +1,7 @@
 import 'dart:ffi';
 
+import 'package:meta/meta.dart';
+
 import '../modelinfo/entity_definition.dart';
 import '../store.dart';
 import '../transaction.dart';
@@ -8,8 +10,7 @@ import 'bindings/helpers.dart';
 
 // ignore_for_file: public_member_api_docs
 
-// TODO enable annotation once meta:1.3.0 is out
-// @internal
+@internal
 class Transaction {
   final Store _store;
   final bool _isWrite;

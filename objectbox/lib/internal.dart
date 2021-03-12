@@ -2,6 +2,8 @@
 /// Don't import into your own code, use 'objectbox.dart' instead.
 library objectbox_internal;
 
+// ignore_for_file: invalid_export_of_internal_element
+
 export 'src/fb_readers.dart';
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
@@ -20,4 +22,4 @@ export 'src/relations/info.dart';
 export 'src/relations/to_many.dart'
     show InternalToManyAccess, InternalToManyTestAccess;
 export 'src/relations/to_one.dart' show InternalToOneAccess;
-export 'src/sync.dart' show InternaSyncTestAccess;
+export 'src/sync.dart' show InternalSyncTestAccess;

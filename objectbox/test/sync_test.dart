@@ -55,7 +55,7 @@ void main() {
     // an utf-8 encoded json file (i.e. the usual way).
     final str = 'uũú';
     expect(
-        InternaSyncTestAccess.credentialsData(
+        InternalSyncTestAccess.credentialsData(
             SyncCredentials.sharedSecretString(str)),
         equals(Uint8List.fromList([117, 197, 169, 195, 186])));
   });
