@@ -88,28 +88,14 @@ class QueryStringProperty extends QueryProperty {
   Condition notIn(List<String> list, {bool caseSensitive = false}) =>
       _opList(list, _ConditionOp.notIn, caseSensitive: caseSensitive);
 
-  Condition greaterThan(String p,
-      {bool caseSensitive = false,
-      @Deprecated('Use greaterOrEqual() instead') bool withEqual = false}) {
-    if (withEqual) {
-      return greaterOrEqual(p, caseSensitive: caseSensitive);
-    } else {
-      return _op(p, _ConditionOp.gt, caseSensitive: caseSensitive);
-    }
-  }
+  Condition greaterThan(String p, {bool caseSensitive = false}) =>
+      _op(p, _ConditionOp.gt, caseSensitive: caseSensitive);
 
   Condition greaterOrEqual(String p, {bool caseSensitive = false}) =>
       _op(p, _ConditionOp.greaterOrEq, caseSensitive: caseSensitive);
 
-  Condition lessThan(String p,
-      {bool caseSensitive = false,
-      @Deprecated('Use lessOrEqual() instead') bool withEqual = false}) {
-    if (withEqual) {
-      return lessOrEqual(p, caseSensitive: caseSensitive);
-    } else {
-      return _op(p, _ConditionOp.lt, caseSensitive: caseSensitive);
-    }
-  }
+  Condition lessThan(String p, {bool caseSensitive = false}) =>
+      _op(p, _ConditionOp.lt, caseSensitive: caseSensitive);
 
   Condition lessOrEqual(String p, {bool caseSensitive = false}) =>
       _op(p, _ConditionOp.lessOrEq, caseSensitive: caseSensitive);
@@ -701,15 +687,7 @@ class Query<T> {
   }
 
   /// Finds Objects matching the query and returns their IDs.
-  List<int> findIds(
-      {@Deprecated('Use offset() instead') int offset = 0,
-      @Deprecated('Use limit() instead') int limit = 0}) {
-    if (offset > 0) {
-      this.offset(offset);
-    }
-    if (limit > 0) {
-      this.limit(limit);
-    }
+  List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_cQuery), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
@@ -722,24 +700,17 @@ class Query<T> {
   }
 
   /// Finds Objects matching the query.
-  List<T> find(
-      {@Deprecated('Use offset() instead') int offset = 0,
-      @Deprecated('Use limit() instead') int limit = 0}) {
-    if (offset > 0) {
-      this.offset(offset);
-    }
-    if (limit > 0) {
-      this.limit(limit);
-    }
-    return store.runInTransaction(TxMode.read, () {
-      final collector = ObjectCollector<T>(store, _entity);
-      try {
-        checkObx(C.query_visit(_cQuery, collector.fn, collector.userData));
-      } finally {
-        collector.close();
-      }
+  List<T> find() {
+    final collector = ObjectCollector<T>(store, _entity);
+    try {
+      store.runInTransaction(
+          TxMode.read,
+          () => checkObx(
+              C.query_visit(_cQuery, collector.fn, collector.userData)));
       return collector.list;
-    });
+    } finally {
+      collector.close();
+    }
   }
 
   /// For internal testing purposes.
