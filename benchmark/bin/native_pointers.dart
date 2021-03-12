@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show allocate, free;
+import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 // Results:
@@ -34,10 +34,10 @@ class AsTypedList extends BenchmarkBase {
   }
 
   @override
-  void setup() => nativePtr = allocate<Uint8>(count: length);
+  void setup() => nativePtr = malloc<Uint8>(length);
 
   @override
-  void teardown() => free(nativePtr);
+  void teardown() => malloc.free(nativePtr);
 }
 
 class AsTypedListUint64 extends BenchmarkBase {
@@ -54,8 +54,8 @@ class AsTypedListUint64 extends BenchmarkBase {
   }
 
   @override
-  void setup() => nativePtr = allocate<Uint64>(count: length);
+  void setup() => nativePtr = malloc<Uint64>(length);
 
   @override
-  void teardown() => free(nativePtr);
+  void teardown() => malloc.free(nativePtr);
 }

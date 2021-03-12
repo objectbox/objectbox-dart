@@ -8,14 +8,15 @@ import 'test_env.dart';
 // ignore_for_file: non_constant_identifier_names
 
 void main() {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Box<TestEntity /*!*/ > box;
+  late TestEnv env;
+  late Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('streams');
     box = env.box;
   });
+
+  tearDown(() => env.close());
 
   if (!asyncCallbacksAvailable()) return;
 
@@ -132,9 +133,5 @@ void main() {
 
     await subscription1.cancel();
     await subscription2.cancel();
-  });
-
-  tearDown(() {
-    env.close();
   });
 }

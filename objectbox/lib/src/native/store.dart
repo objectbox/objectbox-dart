@@ -17,13 +17,12 @@ import 'sync.dart';
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
 class Store {
-  /*late final*/ Pointer<OBX_store> _cStore;
+  late final Pointer<OBX_store> _cStore;
   final _boxes = <Type, Box>{};
   final ModelDefinition _defs;
   bool _closed = false;
 
-  /*late final*/
-  ByteData _reference;
+  late final ByteData _reference;
 
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
@@ -49,10 +48,7 @@ class Store {
   ///
   /// See our examples for more details.
   Store(this._defs,
-      {String /*?*/ directory,
-      int /*?*/ maxDBSizeInKB,
-      int /*?*/ fileMode,
-      int /*?*/ maxReaders})
+      {String? directory, int? maxDBSizeInKB, int? fileMode, int? maxReaders})
       : _weak = false {
     var model = Model(_defs.model);
 
@@ -62,11 +58,11 @@ class Store {
     try {
       checkObx(C.opt_model(opt, model.ptr));
       if (directory != null && directory.isNotEmpty) {
-        var cStr = Utf8.toUtf8(directory).cast<Int8>();
+        var cStr = directory.toNativeUtf8();
         try {
-          checkObx(C.opt_directory(opt, cStr));
+          checkObx(C.opt_directory(opt, cStr.cast()));
         } finally {
-          free(cStr);
+          malloc.free(cStr);
         }
       }
       if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
@@ -91,11 +87,10 @@ class Store {
       // 10199 = OBX_ERROR_STORAGE_GENERAL
       if (e.nativeCode == 10199 &&
           e.nativeMsg != null &&
-          e.nativeMsg /*!*/ .contains('Dir does not exist')) {
+          e.nativeMsg!.contains('Dir does not exist')) {
         // 13 = permissions denied, 30 = read-only filesystem
-        if (e.nativeMsg /*!*/ .endsWith(' (13)') ||
-            e.nativeMsg /*!*/ .endsWith(' (30)')) {
-          final msg = e.nativeMsg /*!*/ +
+        if (e.nativeMsg!.endsWith(' (13)') || e.nativeMsg!.endsWith(' (30)')) {
+          final msg = e.nativeMsg! +
               ' - this usually indicates a problem with permissions; '
                   "if you're using Flutter you may need to use "
                   'getApplicationDocumentsDirectory() from the path_provider '
@@ -193,7 +188,7 @@ class Store {
     if (!_boxes.containsKey(T)) {
       return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
     }
-    return _boxes[T] as Box<T /*!*/ > /*!*/;
+    return _boxes[T] as Box<T>;
   }
 
   EntityDefinition<T> _entityDef<T>() {
@@ -201,7 +196,7 @@ class Store {
     if (binding == null) {
       throw ArgumentError('Unknown entity type ' + T.toString());
     }
-    return binding /*!*/ as EntityDefinition<T>;
+    return binding as EntityDefinition<T>;
   }
 
   /// Executes a given function inside a transaction. Returns [fn]'s result.
@@ -218,7 +213,7 @@ class Store {
 
   /// Return an existing SyncClient associated with the store or null if not
   /// available. Use [Sync.client()] to create one first.
-  SyncClient /*?*/ syncClient() => syncClientsStorage[this];
+  SyncClient? syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.
   Pointer<OBX_store> get _ptr {

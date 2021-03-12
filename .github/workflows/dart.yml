@@ -26,8 +26,8 @@ jobs:
           - macos-10.15
           - ubuntu-20.04
         dart:
-          - latest
-          - 2.10.0 # currently the lowest fully supported version (i.e. generator + lib)
+          # - latest  # currently same as the lowest supported
+          - 2.12.0  # currently the lowest fully supported version (i.e. generator + lib)
     runs-on: ${{ matrix.os }}
     steps:
       # Note: dart-sdk from flutter doesn't work on linux, see https://github.com/flutter/flutter/issues/74599

@@ -34,10 +34,11 @@ function publish() {
   esac
 }
 
-publish objectbox
 publish generator
 publish flutter_libs
 publish sync_flutter_libs
+publish objectbox
+
 #======================== AFTER publishing==================== #
 
 echo "Restoring pubspec.yaml files from backup pubspec.yaml.original"

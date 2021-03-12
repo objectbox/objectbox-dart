@@ -8,14 +8,14 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  /*late final*/ TestEnv env;
-  /*late final*/
-  Box<TestEntity> box;
+  late TestEnv env;
+  late Box<TestEntity> box;
 
   setUp(() {
     env = TestEnv('query');
     box = env.box;
   });
+  tearDown(() => env.close());
 
   test('Query with no conditions, and order as desc ints', () {
     box.putMany(<TestEntity>[
@@ -42,7 +42,7 @@ void main() {
     final q = box.query(d.between(0.0, 0.2)).build();
 
     expect(q.count(), 1);
-    expect(q.findFirst().ignore, null);
+    expect(q.findFirst()!.ignore, null);
 
     q.close();
   });
@@ -59,7 +59,7 @@ void main() {
 
     final q = box.query(i.equals(1337)).build();
 
-    final result = q.findFirst();
+    final result = q.findFirst()!;
 
     expect(q.count(), 1);
     expect(result.disregard, null);
@@ -251,7 +251,7 @@ void main() {
 
     // paranoia
     [result0, result2, result3].forEach((ids) => ids.forEach((id) {
-          final read = box.get(id);
+          final read = box.get(id)!;
           expect(read, isNotNull);
           expect(read.id, equals(id));
         }));
@@ -285,11 +285,11 @@ void main() {
 
     var q = box.query(c).build();
 
-    expect(q.findFirst().tString, 'test1t');
+    expect(q.findFirst()!.tString, 'test1t');
     q.close();
 
     q = box.query(number.notNull()).build();
-    expect(q.findFirst().tLong, 0);
+    expect(q.findFirst()!.tLong, 0);
     q.close();
   });
 
@@ -531,9 +531,5 @@ void main() {
             ' AND tUint8List < byte[1]{0x08}\n'
             ' AND tUint8List <= byte[4]{0x090A0B0C})'));
     q.close();
-  });
-
-  tearDown(() {
-    env.close();
   });
 }

@@ -10,7 +10,7 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class A {
-  int id;
+  int? id;
 
   A();
 }

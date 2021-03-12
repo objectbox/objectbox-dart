@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/objectbox.dart';
@@ -50,18 +51,16 @@ class EntityResolver extends Builder {
   }
 
   ModelEntity generateForAnnotatedElement(
-      Element elementBare, ConstantReader annotation) {
-    if (elementBare is! ClassElement) {
+      Element element, ConstantReader annotation) {
+    if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
-          "entity ${elementBare.name}: annotated element isn't a class");
+          "entity ${element.name}: annotated element isn't a class");
     }
-
-    var element = elementBare as ClassElement;
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
     final entity = ModelEntity(IdUid.empty(), element.name, null);
     var entityUid = annotation.read('uid');
-    if (entityUid != null && !entityUid.isNull) {
+    if (!entityUid.isNull) {
       entity.id.uid = entityUid.intValue;
     }
 
@@ -71,7 +70,16 @@ class EntityResolver extends Builder {
 
     log.info(entity);
 
+    entity.constructorParams = constructorParams(findConstructor(element));
+    entity.nullSafetyEnabled = nullSafetyEnabled(element);
+    if (!entity.nullSafetyEnabled) {
+      log.warning(
+          "Entity ${entity.name} is in a library/application that doesn't use null-safety"
+          ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12');
+    }
+
     // getters, ... (anything else?)
+    // TODO are these also final fields? we can now store those if they're among constructor params
     final readOnlyFields = <String>{};
     for (var f in element.accessors) {
       if (f.isGetter && f.correspondingSetter == null) {
@@ -92,23 +100,23 @@ class EntityResolver extends Builder {
       }
 
       var isToManyRel = false;
-      int fieldType;
+      int? fieldType;
       var flags = 0;
-      int propUid;
+      int? propUid;
 
       if (_idChecker.hasAnnotationOfExact(f)) {
         flags |= OBXPropertyFlags.ID;
 
         final annotation = _idChecker.firstAnnotationOfExact(f);
-        if (annotation.getField('assignable').toBoolValue()) {
+        if (annotation.getField('assignable')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.ID_SELF_ASSIGNABLE;
         }
       }
 
       if (_propertyChecker.hasAnnotationOfExact(f)) {
         final annotation = _propertyChecker.firstAnnotationOfExact(f);
-        propUid = annotation.getField('uid').toIntValue();
-        fieldType = propertyTypeFromAnnotation(annotation.getField('type'));
+        propUid = annotation.getField('uid')!.toIntValue();
+        fieldType = propertyTypeFromAnnotation(annotation.getField('type')!);
       }
 
       if (fieldType == null) {
@@ -129,12 +137,12 @@ class EntityResolver extends Builder {
           // ob: 8 bytes
           fieldType = OBXPropertyType.Double;
         } else if (dartType.isDartCoreList &&
-            listItemType(dartType).isDartCoreString) {
+            listItemType(dartType)!.isDartCoreString) {
           // List<String>
           fieldType = OBXPropertyType.StringVector;
-        } else if (['Int8List', 'Uint8List'].contains(dartType.element.name)) {
+        } else if (['Int8List', 'Uint8List'].contains(dartType.element!.name)) {
           fieldType = OBXPropertyType.ByteVector;
-        } else if (dartType.element.name == 'DateTime') {
+        } else if (dartType.element!.name == 'DateTime') {
           fieldType = OBXPropertyType.Date;
           log.warning(
               "  DateTime property '${f.name}' in entity '${element.name}' is stored and read using millisecond precision. "
@@ -145,12 +153,12 @@ class EntityResolver extends Builder {
           isToManyRel = true;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '${dartType}'");
+              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '$dartType'");
           continue;
         }
       }
 
-      String relTargetName;
+      String? relTargetName;
       if (isRelationField(f)) {
         if (f.type is! ParameterizedType) {
           log.severe(
@@ -158,7 +166,7 @@ class EntityResolver extends Builder {
           continue;
         }
         relTargetName =
-            (f.type as ParameterizedType).typeArguments[0].element.name;
+            (f.type as ParameterizedType).typeArguments[0].element!.name;
       }
 
       if (_backlinkChecker.hasAnnotationOfExact(f)) {
@@ -169,11 +177,11 @@ class EntityResolver extends Builder {
         }
         final backlinkField = _backlinkChecker
             .firstAnnotationOfExact(f)
-            .getField('to')
-            .toStringValue();
-        final backlink = ModelBacklink(f.name, relTargetName, backlinkField);
+            .getField('to')!
+            .toStringValue()!;
+        final backlink = ModelBacklink(f.name, relTargetName!, backlinkField);
         entity.backlinks.add(backlink);
-        log.info('  ${backlink}');
+        log.info('  $backlink');
       } else if (isToManyRel) {
         // create relation
         final rel =
@@ -181,7 +189,7 @@ class EntityResolver extends Builder {
         if (propUid != null) rel.id.uid = propUid;
         entity.relations.add(rel);
 
-        log.info('  ${rel}');
+        log.info('  $rel');
       } else {
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         final prop = ModelProperty(IdUid.empty(), f.name, fieldType,
@@ -195,17 +203,19 @@ class EntityResolver extends Builder {
         }
 
         // Index and unique annotation.
-        processAnnotationIndexUnique(f, fieldType, elementBare, prop);
+        processAnnotationIndexUnique(f, fieldType, element, prop);
 
         if (propUid != null) prop.id.uid = propUid;
-        prop.dartFieldType = f.type.element.name; // for code generation
+        // for code generation
+        prop.dartFieldType =
+            f.type.element!.name! + (isNullable(f.type) ? '?' : '');
         entity.properties.add(prop);
       }
     }
 
     processIdProperty(entity);
 
-    entity.properties.forEach((p) => log.info('  ${p}'));
+    entity.properties.forEach((p) => log.info('  $p'));
 
     return entity;
   }
@@ -246,12 +256,12 @@ class EntityResolver extends Builder {
   }
 
   void processAnnotationIndexUnique(
-      FieldElement f, int fieldType, Element elementBare, ModelProperty prop) {
-    IndexType indexType;
+      FieldElement f, int? fieldType, Element elementBare, ModelProperty prop) {
+    IndexType? indexType;
 
-    final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
+    final hasIndexAnnotation = _indexChecker.hasAnnotationOfExact(f);
     final hasUniqueAnnotation = _uniqueChecker.hasAnnotationOfExact(f);
-    if (indexAnnotation == null && !hasUniqueAnnotation) return null;
+    if (!hasIndexAnnotation && !hasUniqueAnnotation) return null;
 
     // Throw if property type does not support any index.
     if (fieldType == OBXPropertyType.Float ||
@@ -267,8 +277,10 @@ class EntityResolver extends Builder {
     }
 
     // If available use index type from annotation.
+    final indexAnnotation =
+        hasIndexAnnotation ? _indexChecker.firstAnnotationOfExact(f) : null;
     if (indexAnnotation != null && !indexAnnotation.isNull) {
-      final enumValItem = enumValueItem(indexAnnotation.getField('type'));
+      final enumValItem = enumValueItem(indexAnnotation.getField('type')!);
       if (enumValItem != null) indexType = IndexType.values[enumValItem];
     }
 
@@ -309,7 +321,7 @@ class EntityResolver extends Builder {
     }
   }
 
-  int /*?*/ enumValueItem(DartObject typeField) {
+  int? enumValueItem(DartObject typeField) {
     if (!typeField.isNull) {
       final enumValues = (typeField.type as InterfaceType)
           .element
@@ -329,14 +341,14 @@ class EntityResolver extends Builder {
   }
 
   // find out @Property(type:) field value - its an enum PropertyType
-  int /*?*/ propertyTypeFromAnnotation(DartObject typeField) {
+  int? propertyTypeFromAnnotation(DartObject typeField) {
     final item = enumValueItem(typeField);
     return item == null
         ? null
         : propertyTypeToOBXPropertyType(PropertyType.values[item]);
   }
 
-  DartType /*?*/ listItemType(DartType listType) {
+  DartType? listItemType(DartType listType) {
     final typeArgs =
         listType is ParameterizedType ? listType.typeArguments : [];
     return typeArgs.length == 1 ? typeArgs[0] : null;
@@ -345,7 +357,36 @@ class EntityResolver extends Builder {
   bool isRelationField(FieldElement f) =>
       isToOneRelationField(f) || isToManyRelationField(f);
 
-  bool isToOneRelationField(FieldElement f) => f.type.element.name == 'ToOne';
+  bool isToOneRelationField(FieldElement f) => f.type.element!.name == 'ToOne';
 
-  bool isToManyRelationField(FieldElement f) => f.type.element.name == 'ToMany';
+  bool isToManyRelationField(FieldElement f) =>
+      f.type.element!.name == 'ToMany';
+
+  bool isNullable(DartType type) =>
+      type.nullabilitySuffix == NullabilitySuffix.star ||
+      type.nullabilitySuffix == NullabilitySuffix.question;
+
+  // Find an unnamed constructor we can use to initialize
+  ConstructorElement? findConstructor(ClassElement entity) {
+    final index = entity.constructors.indexWhere((c) => c.name.isEmpty);
+    return index >= 0 ? entity.constructors[index] : null;
+  }
+
+  List<String> constructorParams(ConstructorElement? constructor) {
+    if (constructor == null) return List.empty();
+    return constructor.parameters.map((param) {
+      var info = param.name;
+      if (param.isRequiredPositional) info += ' positional';
+      if (param.isOptionalPositional) info += ' optional';
+      if (param.isNamed) info += ' named';
+      return info;
+    }).toList(growable: false);
+  }
+
+  // To support apps that don't yet use null-safety (depend on an older SDK),
+  // we generate code without null-safety operators.
+  bool nullSafetyEnabled(Element element) {
+    final sdk = element.library!.languageVersion.effective;
+    return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
+  }
 }

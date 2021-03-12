@@ -5,17 +5,17 @@ homepage: https://objectbox.io
 description: ObjectBox binding code generator - finds annotated entities and adds them to the ObjectBox DB model.
 
 environment:
-  # min SDK v2.10.0 (or Flutter v1.22) - there were breaking changes in the analyzer/resolver
-  sdk: ">=2.10.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   objectbox: 0.12.1
   build: ^1.0.0
   source_gen: ^0.9.0
-  analyzer: ">=0.35.0 <0.100.0"
-  glob: ^1.1.0
-  path: ^1.6.0
+  analyzer: ^1.1.0
+  glob: ^2.0.0
+  path: ^1.8.0
   dart_style: ^1.3.0
+  collection: ^1.15.0
 
 # NOTE: remove before publishing
 dependency_overrides:

@@ -44,21 +44,21 @@ import '../store.dart';
 /// order.customer.targetId = 0
 /// ```
 class ToOne<EntityT> {
-  /*late final*/ Store _store;
+  bool _attached = false;
 
-  /*late final*/
-  Box<EntityT> _box;
+  late final Store _store;
 
-  /*late final*/
-  EntityDefinition<EntityT> _entity;
+  late final Box<EntityT> _box;
+
+  late final EntityDefinition<EntityT> _entity;
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
   /// Get target object. If it's the first access, this reads from DB.
-  EntityT /*?*/ get target {
+  EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
       _verifyAttached();
-      final object = _box /*!*/ .get(_value._id);
+      final object = _box.get(_value._id);
       _value = (object == null)
           ? _ToOneValue<EntityT>.unresolvable(_value._id)
           : _ToOneValue<EntityT>.stored(_value._id, object);
@@ -68,7 +68,7 @@ class ToOne<EntityT> {
 
   /// Set relation target object. Note: this does not store the change yet, use
   /// [Box.put()] on the containing (relation source) object.
-  set target(EntityT /*?*/ object) {
+  set target(EntityT? object) {
     if (object == null) {
       _value = _ToOneValue<EntityT>.none();
     } else if (_attached) {
@@ -99,15 +99,15 @@ class ToOne<EntityT> {
 
   /// Set ID of a relation target object. Note: this does not store the change
   /// yet, use [Box.put()] on the containing (relation source) object.
-  set targetId(int /*?*/ id) {
+  set targetId(int? id) {
     id ??= 0;
     if (id == 0) {
       _value = _ToOneValue<EntityT>.none();
     } else if (_value._state == _ToOneState.unstored &&
-        id == _getId(_value._object /*!*/)) {
+        id == _getId(_value._object!)) {
       // Optimization for targetId being set from box.put(sourceObject)
       // after entity.setId(object, newID) was already called on the new target.
-      _value = _ToOneValue<EntityT /*!*/ >.stored(id, _value._object);
+      _value = _ToOneValue<EntityT>.stored(id, _value._object!);
     } else if (_value._state != _ToOneState.unknown && id == _value._id) {
       return;
     } else {
@@ -125,13 +125,18 @@ class ToOne<EntityT> {
   /// which is a very unusual operation because you've just assigned the
   /// [target] so you should know it's ID.
   void attach(Store store) {
-    if (_store == store) return;
+    if (_attached) {
+      if (_store != store) {
+        throw ArgumentError.value(
+            store, 'store', 'Relation already attached to a different store');
+      }
+      return;
+    }
+    _attached = true;
     _store = store;
     _box = store.box<EntityT>();
     _entity = InternalStoreAccess.entityDef<EntityT>(_store);
   }
-
-  bool get _attached => _store != null;
 
   void _verifyAttached() {
     if (!_attached) {
@@ -149,7 +154,7 @@ class ToOne<EntityT> {
 enum _ToOneState { none, unstored, unknown, lazy, stored, unresolvable }
 
 class _ToOneValue<EntityT> {
-  final EntityT /*?*/ _object;
+  final EntityT? _object;
   final int _id;
   final _ToOneState _state;
 
@@ -168,7 +173,7 @@ class _ToOneValue<EntityT> {
   const _ToOneValue.lazy(int id) : this._(_ToOneState.lazy, id, null);
 
   /// Known reference established in the database
-  const _ToOneValue.stored(int id, EntityT /*!*/ object)
+  const _ToOneValue.stored(int id, EntityT object)
       : this._(_ToOneState.stored, id, object);
 
   /// ID set but not present in database

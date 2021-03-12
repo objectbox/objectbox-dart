@@ -19,21 +19,12 @@ class Model {
     try {
       model.entities.forEach(addEntity);
 
-      // set last entity id
       C.model_last_entity_id(
           _cModel, model.lastEntityId.id, model.lastEntityId.uid);
-
-      // set last relation id
-      if (model.lastRelationId != null) {
-        C.model_last_relation_id(
-            _cModel, model.lastRelationId.id, model.lastRelationId.uid);
-      }
-
-      // set last index id
-      if (model.lastIndexId != null) {
-        C.model_last_index_id(
-            _cModel, model.lastIndexId.id, model.lastIndexId.uid);
-      }
+      C.model_last_relation_id(
+          _cModel, model.lastRelationId.id, model.lastRelationId.uid);
+      C.model_last_index_id(
+          _cModel, model.lastIndexId.id, model.lastIndexId.uid);
     } catch (e) {
       C.model_free(_cModel);
       rethrow;
@@ -51,11 +42,11 @@ class Model {
 
   void addEntity(ModelEntity entity) {
     // start entity
-    var name = Utf8.toUtf8(entity.name).cast<Int8>();
+    var name = entity.name.toNativeUtf8();
     try {
-      _check(C.model_entity(_cModel, name, entity.id.id, entity.id.uid));
+      _check(C.model_entity(_cModel, name.cast(), entity.id.id, entity.id.uid));
     } finally {
-      free(name);
+      calloc.free(name);
     }
 
     if (entity.flags != 0) {
@@ -71,7 +62,6 @@ class Model {
     // add all properties
     entity.properties.forEach(addProperty);
 
-    // set last property id
     _check(C.model_entity_last_property_id(
         _cModel, entity.lastPropertyId.id, entity.lastPropertyId.uid));
 
@@ -79,25 +69,25 @@ class Model {
   }
 
   void addProperty(ModelProperty prop) {
-    var name = Utf8.toUtf8(prop.name).cast<Int8>();
+    var name = prop.name.toNativeUtf8();
     try {
-      _check(
-          C.model_property(_cModel, name, prop.type, prop.id.id, prop.id.uid));
+      _check(C.model_property(
+          _cModel, name.cast(), prop.type, prop.id.id, prop.id.uid));
 
       if (prop.isRelation) {
-        var relTarget = Utf8.toUtf8(prop.relationTarget /*!*/).cast<Int8>();
+        var relTarget = prop.relationTarget!.toNativeUtf8();
         try {
-          _check(C.model_property_relation(_cModel, relTarget,
-              prop.indexId /*!*/ .id, prop.indexId /*!*/ .uid));
+          _check(C.model_property_relation(
+              _cModel, relTarget.cast(), prop.indexId!.id, prop.indexId!.uid));
         } finally {
-          free(relTarget);
+          calloc.free(relTarget);
         }
       } else if (prop.indexId != null) {
         _check(C.model_property_index_id(
-            _cModel, prop.indexId.id, prop.indexId.uid));
+            _cModel, prop.indexId!.id, prop.indexId!.uid));
       }
     } finally {
-      free(name);
+      calloc.free(name);
     }
 
     if (prop.flags != 0) {

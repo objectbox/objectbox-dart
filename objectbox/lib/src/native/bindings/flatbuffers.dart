@@ -2,7 +2,7 @@ import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' as f;
+import 'package:ffi/ffi.dart';
 
 import '../../../flatbuffers/flat_buffers.dart' as fb;
 
@@ -15,8 +15,7 @@ class BuilderWithCBuffer {
   final int _initialSize;
   final int _resetIfLargerThan;
 
-  /*late final*/
-  fb.Builder _fbb;
+  late final fb.Builder _fbb;
 
   fb.Builder get fbb => _fbb;
 
@@ -45,7 +44,7 @@ class BuilderWithCBuffer {
 typedef _dart_memset = void Function(Pointer<Uint8>, int, int);
 typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
-_dart_memset /*?*/ fbMemset;
+_dart_memset? fbMemset;
 
 class Allocator extends fb.Allocator {
   // We may, in practice, have only two active allocations: one used and one
@@ -54,7 +53,7 @@ class Allocator extends fb.Allocator {
   final _allocs = List<Pointer<Uint8>>.filled(2, nullptr, growable: false);
 
   // only used for sanity checks:
-  final _data = List<ByteData /*?*/ >.filled(2, null, growable: false);
+  final _data = List<ByteData?>.filled(2, null, growable: false);
 
   // currently used allocator index
   int _index = 0;
@@ -74,9 +73,9 @@ class Allocator extends fb.Allocator {
   ByteData allocate(int size) {
     _capacity = size;
     final index = _flipIndex();
-    _allocs[index] = f.allocate<Uint8>(count: size);
+    _allocs[index] = calloc<Uint8>(size);
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
-    return _data[index] /*!*/;
+    return _data[index]!;
   }
 
   @override
@@ -86,12 +85,14 @@ class Allocator extends fb.Allocator {
     // only used for sanity checks:
     assert(_data[index] == data);
 
-    f.free(_allocs[index]);
+    calloc.free(_allocs[index]);
     _allocs[index] = nullptr;
   }
 
   @override
-  void clear(ByteData data, bool _) {
+  void clear(ByteData data, bool isFresh) {
+    if (isFresh) return; // freshly allocated data is zero-ed out (see [calloc])
+
     if (fbMemset == null) {
       if (Platform.isWindows) {
         try {
@@ -119,11 +120,11 @@ class Allocator extends fb.Allocator {
     assert(_data[_index] == data);
     assert(_allocs[_index].address != 0);
 
-    fbMemset /*!*/ (_allocs[_index], 0, data.lengthInBytes);
+    fbMemset!(_allocs[_index], 0, data.lengthInBytes);
   }
 
   void freeAll() {
-    if (_allocs[0].address != 0) f.free(_allocs[0]);
-    if (_allocs[1].address != 0) f.free(_allocs[1]);
+    if (_allocs[0].address != 0) calloc.free(_allocs[0]);
+    if (_allocs[1].address != 0) calloc.free(_allocs[1]);
   }
 }

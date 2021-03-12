@@ -15,7 +15,7 @@ class Entity {
   /// to identify it even after you change the name and would update the
   /// database accordingly on the next application launch - renaming the stored
   /// Entity instead of creating a new one.
-  final int /*?*/ uid;
+  final int? uid;
 
   /// Create an Entity annotation.
   const Entity({this.uid});
@@ -34,7 +34,7 @@ class Property {
   /// to identify it even after you change the name and would update the
   /// database accordingly on the next application launch - renaming the stored
   /// Property instead of creating a new one.
-  final int /*?*/ uid;
+  final int? uid;
 
   /// Override dart type with an alternative ObjectBox property type.
   ///
@@ -43,7 +43,7 @@ class Property {
   /// Also a dart double can also map to e.g. Float and Double
   ///
   /// The defaults are e.g. Int -> Int64, double -> Float64, bool -> Bool.
-  final PropertyType /*?*/ type;
+  final PropertyType? type;
 
   /// Create an Property annotation.
   const Property({this.type, this.uid});
@@ -141,7 +141,7 @@ class Transient {
 /// properties.
 class Index {
   /// Index type.
-  final IndexType /*?*/ type;
+  final IndexType? type;
 
   /// Create an Index annotation.
   const Index({this.type});

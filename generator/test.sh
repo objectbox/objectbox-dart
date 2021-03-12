@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# TODO enable sound null safety after depependencies are out:
+# Because build_runner >=0.9.1+1 depends on io ^0.3.0 and build_runner <=0.9.1 requires SDK version >=1.9.1 <2.0.0-∞, every version of build_runner requires io ^0.3.0.
+# So, because objectbox_generator_test depends on both build_runner any and io ^1.0.0, version solving failed.
+
 myDir=$(dirname "$0")
 
 function runTestFile() {
@@ -9,7 +13,7 @@ function runTestFile() {
     # execute "N-pre.dart" file if it exists
     if [[ "${1}" != "0" && -f "${1}-pre.dart" ]]; then
       echo "Executing ${1}-pre.dart"
-      dart "${1}-pre.dart"
+      dart --no-sound-null-safety "${1}-pre.dart"
     fi
 
     # build before each step, except for "0.dart"
@@ -18,7 +22,7 @@ function runTestFile() {
       dart pub run build_runner build --verbose
     fi
     echo "Running ${file}"
-    dart test "${file}"
+    dart --no-sound-null-safety test "${file}"
   fi
 }
 

@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:objectbox/internal.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:source_gen/source_gen.dart';
+
 import 'entity_resolver.dart';
 import 'code_chunks.dart';
 
@@ -31,7 +34,7 @@ class CodeBuilder extends Builder {
     final files = <String, List<dynamic>>{};
     final glob = Glob(dir(buildStep) + '/**' + EntityResolver.suffix);
     await for (final input in buildStep.findAssets(glob)) {
-      files[input.path] = json.decode(await buildStep.readAsString(input));
+      files[input.path] = json.decode(await buildStep.readAsString(input))!;
     }
     if (files.isEmpty) return;
 
@@ -127,6 +130,16 @@ class CodeBuilder extends Builder {
           'Entity ${entity.name}(${entity.id}) not found in the code, removing from the model');
       model.removeEntity(entity);
     });
+
+    // finally, update relation targets, now that all entities are resolved
+    model.entities.forEach((entity) => entity.relations.forEach((rel) {
+          final targetEntity = model.findEntityByName(rel.targetName);
+          if (targetEntity == null) {
+            throw InvalidGenerationSourceError(
+                "entity ${entity.name} relation ${rel.name}: cannot find target entity '${rel.targetName}");
+          }
+          rel.targetId = targetEntity.id;
+        }));
   }
 
   void mergeProperty(ModelEntity entityInModel, ModelProperty prop) {
@@ -159,8 +172,7 @@ class CodeBuilder extends Builder {
     }
 
     relInModel.name = rel.name;
-    relInModel.targetId =
-        entityInModel.model.findEntityByName(rel.targetName).id;
+    relInModel.targetName = rel.targetName;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
@@ -176,10 +188,12 @@ class CodeBuilder extends Builder {
 
     entityInModel.name = entity.name;
     entityInModel.flags = entity.flags;
+    entityInModel.nullSafetyEnabled = entity.nullSafetyEnabled;
+    entityInModel.constructorParams = entity.constructorParams;
 
     // here, the entity was found already and entityInModel and entity might differ, i.e. conflicts need to be resolved, so merge all properties first
-    entity.properties.forEach((p) => mergeProperty(entityInModel, p));
-    entity.relations.forEach((r) => mergeRelation(entityInModel, r));
+    entity.properties.forEach((p) => mergeProperty(entityInModel!, p));
+    entity.relations.forEach((r) => mergeRelation(entityInModel!, r));
 
     // then remove all properties not present anymore in entity
     final missingProps = entityInModel.properties
@@ -189,7 +203,7 @@ class CodeBuilder extends Builder {
     missingProps.forEach((p) {
       log.warning(
           'Property ${entity.name}.${p.name}(${p.id}) not found in the code, removing from the model');
-      entityInModel.removeProperty(p);
+      entityInModel!.removeProperty(p);
     });
 
     // then remove all relations not present anymore in entity
@@ -200,7 +214,7 @@ class CodeBuilder extends Builder {
     missingRels.forEach((p) {
       log.warning(
           'Relation ${entity.name}.${p.name}(${p.id}) not found in the code, removing from the model');
-      entityInModel.removeRelation(p);
+      entityInModel!.removeRelation(p);
     });
 
     // Only for code generator, backlinks are not actually in model JSON.

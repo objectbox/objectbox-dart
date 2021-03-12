@@ -6,8 +6,8 @@ export 'other.dart';
 
 @Entity()
 class A {
-  int id;
-  String text;
+  int? id;
+  String? text;
 
   A();
 }
@@ -15,7 +15,7 @@ class A {
 @Entity()
 class B {
   @Id()
-  int identifier;
+  int? identifier;
 
   B();
 }
@@ -23,54 +23,54 @@ class B {
 @Entity()
 @Sync()
 class D {
-  int id;
+  int? id;
 
   D();
 }
 
 @Entity()
 class T {
-  int id;
+  int? id;
 
   // implicit PropertyType.bool
-  bool tBool;
+  bool? tBool;
 
   @Property(type: PropertyType.byte)
-  int tByte;
+  int? tByte;
 
   @Property(type: PropertyType.short)
-  int tShort;
+  int? tShort;
 
   @Property(type: PropertyType.char)
-  int tChar;
+  int? tChar;
 
   @Property(type: PropertyType.int)
-  int tInt;
+  int? tInt;
 
   // implicit PropertyType.long
-  int tLong;
+  int? tLong;
 
   @Property(type: PropertyType.float)
-  double tFloat;
+  double? tFloat;
 
   // implicit PropertyType.double
-  double tDouble;
+  double? tDouble;
 
   // implicitly determined types
-  String tString;
+  String? tString;
 
   @Property(type: PropertyType.date)
-  int tDate;
+  int? tDate;
 
   @Property(type: PropertyType.dateNano)
-  int tDateNano;
+  int? tDateNano;
 
   @Property(type: PropertyType.byteVector)
-  List<int> tListInt; // truncates int to 8-bits
+  List<int>? tListInt; // truncates int to 8-bits
 
-  Int8List tInt8List;
+  Int8List? tInt8List;
 
-  Uint8List tUint8List;
+  Uint8List? tUint8List;
 
-  List<String> tListString;
+  List<String>? tListString;
 }

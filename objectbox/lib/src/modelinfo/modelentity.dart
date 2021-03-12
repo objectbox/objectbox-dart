@@ -11,43 +11,47 @@ import 'modelrelation.dart';
 class ModelEntity {
   IdUid id;
 
-  /*late*/
-  String _name;
+  late String _name;
   IdUid lastPropertyId = IdUid.empty();
   int _flags = 0;
   final _properties = <ModelProperty>[];
   final _relations = <ModelRelation>[];
   final _backlinks = <ModelBacklink>[];
-  ModelProperty /*?*/ _idProperty;
-  final ModelInfo /*?*/ _model;
+  ModelProperty? _idProperty;
+  final ModelInfo? _model;
+
+  late List<String> constructorParams;
+
+  // whether the library this entity is defined in uses null safety
+  bool nullSafetyEnabled = true;
 
   String get name => _name;
 
-  set name(String /*?*/ value) {
+  set name(String? value) {
     if (value == null || value.isEmpty) {
       throw Exception('name must not be null or an empty string');
     }
-    _name = value /*!*/;
+    _name = value;
   }
 
   int get flags => _flags;
 
-  set flags(int /*?*/ value) {
+  set flags(int? value) {
     if (value == null || value < 0) {
       throw Exception('flags must be defined and may not be < 0');
     }
-    _flags = value /*!*/;
+    _flags = value;
   }
 
   ModelProperty get idProperty {
     _idProperty ??= _properties.singleWhere(
         (ModelProperty prop) => prop.hasFlag(OBXPropertyFlags.ID),
-        orElse: () => throw Exception('idProperty is null'));
-    return _idProperty /*!*/;
+        orElse: (() => throw Exception('idProperty is null')));
+    return _idProperty!;
   }
 
   ModelInfo get model =>
-      (_model == null) ? throw Exception('model is null') : _model /*!*/;
+      (_model == null) ? throw Exception('model is null') : _model!;
 
   List<ModelProperty> get properties => _properties;
 
@@ -55,18 +59,19 @@ class ModelEntity {
 
   List<ModelBacklink> get backlinks => _backlinks;
 
-  ModelEntity(this.id, String /*?*/ name, this._model) {
+  ModelEntity(this.id, String? name, this._model) {
     this.name = name;
     validate();
   }
 
   ModelEntity.fromMap(Map<String, dynamic> data,
-      {ModelInfo /*?*/ model, bool check = true})
+      {ModelInfo? model, bool check = true})
       : _model = model,
-        id = IdUid.fromString(data['id'] as String),
-        lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String) {
-    name = data['name'] as String;
-    flags = data['flags'] as int /*?*/ ?? 0;
+        id = IdUid.fromString(data['id'] as String?),
+        lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?),
+        nullSafetyEnabled = data['nullSafetyEnabled'] as bool? ?? true {
+    name = data['name'] as String?;
+    flags = data['flags'] as int? ?? 0;
 
     if (data['properties'] == null) throw Exception('properties is null');
     for (final p in data['properties']) {
@@ -85,11 +90,16 @@ class ModelEntity {
       }
     }
 
+    if (data['constructorParams'] != null) {
+      constructorParams = (data['constructorParams'] as List<dynamic>)
+          .map((dynamic e) => e as String)
+          .toList(growable: false);
+    }
+
     if (check) validate();
 
     _idProperty =
-        properties.firstWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
-    if (check && idProperty == null) throw Exception('idProperty is null');
+        properties.singleWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
   }
 
   void validate() {
@@ -105,12 +115,12 @@ class ModelEntity {
           throw Exception(
               "property '${p.name}' with id ${p.id} has incorrect parent entity reference");
         }
-        if (lastPropertyId /*!*/ .id < p.id.id) {
+        if (lastPropertyId.id < p.id.id) {
           throw Exception(
               "lastPropertyId $lastPropertyId is lower than the one of property '${p.name}' with id ${p.id}");
         }
-        if (lastPropertyId /*!*/ .id == p.id.id) {
-          if (lastPropertyId /*!*/ .uid != p.id.uid) {
+        if (lastPropertyId.id == p.id.id) {
+          if (lastPropertyId.uid != p.id.uid) {
             throw Exception(
                 "lastPropertyId $lastPropertyId does not match property '${p.name}' with id ${p.id}");
           }
@@ -119,7 +129,7 @@ class ModelEntity {
       }
 
       if (!lastPropertyIdFound &&
-          !model.retiredPropertyUids.contains(lastPropertyId /*!*/ .uid)) {
+          !model.retiredPropertyUids.contains(lastPropertyId.uid)) {
         throw Exception(
             'lastPropertyId $lastPropertyId does not match any property');
       }
@@ -145,16 +155,18 @@ class ModelEntity {
         relations.map((r) => r.toMap(forModelJson: forModelJson)).toList();
     if (!forModelJson) {
       ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
+      ret['constructorParams'] = constructorParams;
+      ret['nullSafetyEnabled'] = nullSafetyEnabled;
     }
     return ret;
   }
 
-  ModelProperty /*?*/ _findPropertyByUid(int uid) {
+  ModelProperty? _findPropertyByUid(int uid) {
     final idx = properties.indexWhere((p) => p.id.uid == uid);
     return idx == -1 ? null : properties[idx];
   }
 
-  ModelProperty /*?*/ findPropertyByName(String name) {
+  ModelProperty? findPropertyByName(String name) {
     final found = properties
         .where((p) => p.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -166,15 +178,14 @@ class ModelEntity {
     return found[0];
   }
 
-  ModelProperty /*?*/ findSameProperty(ModelProperty other) {
-    ModelProperty /*?*/ ret;
+  ModelProperty? findSameProperty(ModelProperty other) {
+    ModelProperty? ret;
     if (other.id.uid != 0) ret = _findPropertyByUid(other.id.uid);
     return ret ?? findPropertyByName(other.name);
   }
 
   ModelProperty createProperty(String name, [int uid = 0]) {
-    var id = 1;
-    if (properties.isNotEmpty) id = lastPropertyId.id + 1;
+    final id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }
@@ -197,16 +208,16 @@ class ModelEntity {
     model.retiredPropertyUids.add(prop.id.uid);
 
     if (prop.indexId != null) {
-      model.retiredIndexUids.add(prop.indexId /*!*/ .uid);
+      model.retiredIndexUids.add(prop.indexId!.uid);
     }
   }
 
-  ModelRelation /*?*/ _findRelationByUid(int uid) {
+  ModelRelation? _findRelationByUid(int uid) {
     final idx = relations.indexWhere((p) => p.id.uid == uid);
     return idx == -1 ? null : relations[idx];
   }
 
-  ModelRelation /*?*/ _findRelationByName(String name) {
+  ModelRelation? _findRelationByName(String name) {
     final found = relations
         .where((p) => p.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -218,15 +229,14 @@ class ModelEntity {
     return found[0];
   }
 
-  ModelRelation /*?*/ findSameRelation(ModelRelation other) {
-    ModelRelation /*?*/ ret;
+  ModelRelation? findSameRelation(ModelRelation other) {
+    ModelRelation? ret;
     if (other.id.uid != 0) ret = _findRelationByUid(other.id.uid);
     return ret ?? _findRelationByName(other.name);
   }
 
   ModelRelation createRelation(String name, [int uid = 0]) {
-    var id = 1;
-    if (relations.isNotEmpty) id = model.lastRelationId.id + 1;
+    final id = model.lastRelationId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }

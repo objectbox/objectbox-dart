@@ -6,9 +6,9 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class A {
-  int id;
+  int? id;
 
-  String text1;
+  String? text1;
 
   A();
 }

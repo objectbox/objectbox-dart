@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show allocate, free;
+import 'package:ffi/ffi.dart';
 
 import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
@@ -39,7 +39,7 @@ final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
 
 // Called from C, forwards to the actual callback registered at the given ID.
 int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
-  if (callbackId == null || callbackId.address == 0) {
+  if (callbackId.address == 0) {
     throw Exception(
         'Data-visitor callback issued with NULL user_data (callback ID)');
   }
@@ -51,15 +51,14 @@ int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
 
 /// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
 class DataVisitor {
-  final Pointer<Int64> _idPtr = allocate<Int64>();
+  final Pointer<Int64> _idPtr = malloc<Int64>();
 
   Pointer<NativeFunction<obx_data_visitor>> get fn =>
       Pointer.fromFunction(_forwarder, 0);
 
   Pointer<Void> get userData => _idPtr.cast<Void>();
 
-  DataVisitor(
-      bool Function(Pointer<Uint8> dataPtr, int length) /*?*/ callback) {
+  DataVisitor(bool Function(Pointer<Uint8> dataPtr, int length)? callback) {
     // cycle through ids until we find an empty slot
     _lastId++;
     var initialId = _lastId;
@@ -83,7 +82,7 @@ class DataVisitor {
   void close() {
     // unregister the visitor
     _callbacks.remove(_idPtr.value);
-    free(_idPtr);
+    malloc.free(_idPtr);
   }
 }
 
@@ -99,7 +98,7 @@ class ObjectCollector<T> extends DataVisitor {
 }
 
 class ObjectCollectorNullable<T> extends DataVisitor {
-  final list = <T /*?*/ >[];
+  final list = <T?>[];
 
   ObjectCollectorNullable(Store store, EntityDefinition<T> entity)
       : super(null) {

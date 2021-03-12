@@ -8,7 +8,7 @@
 ///  * [IDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#ids)
 ///  * [UIDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#uids)
 class IdUid {
-  /*late*/ int _id, _uid;
+  late int _id, _uid;
 
   int get id => _id;
 
@@ -33,14 +33,14 @@ class IdUid {
     uid = newUid;
   }
 
-  IdUid.fromString(String /*?*/ str) {
+  IdUid.fromString(String? str) {
     if (str == null || str == '' || str == '0:0') {
       _id = 0;
       _uid = 0;
       return;
     }
 
-    var spl = str.split(':');
+    final spl = str.split(':');
     if (spl.length != 2) {
       throw Exception(
           'IdUid has invalid format, wrong number of columns: $str');

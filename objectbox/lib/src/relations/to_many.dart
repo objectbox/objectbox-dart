@@ -43,22 +43,21 @@ import 'info.dart';
 /// student.teachers.applyToDb(); // or store.box<Student>().put(student);
 /// ```
 class ToMany<EntityT> extends Object with ListMixin<EntityT> {
-  /*late final*/ Store _store;
+  bool _attached = false;
+
+  late final Store _store;
 
   /// Standard direction: target box; backlinks: source box.
-  /*late final*/
-  Box<EntityT> _box;
+  late final Box<EntityT> _box;
 
   /// Standard direction: source box; backlinks: target box.
-  /*late final*/
-  Box _otherBox;
+  late final Box _otherBox;
 
-  /*late final*/
-  EntityDefinition<EntityT> _entity;
+  late final EntityDefinition<EntityT> _entity;
 
-  RelInfo /*?*/ _rel;
+  RelInfo? _rel;
 
-  List<EntityT> /*?*/ __items;
+  List<EntityT>? __items;
   final _counts = <EntityT, int>{};
   final _addedBeforeLoad = <EntityT>[];
 
@@ -120,7 +119,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
   // note: to override, arg must be "Object", same as in the base class.
   @override
-  bool remove(Object /*?*/ element) {
+  bool remove(Object? element) {
     if (!_items.remove(element)) return false;
     if (element != null) _track(element as EntityT, -1);
     return true;
@@ -130,7 +129,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// "remove": increment = -1
   void _track(EntityT object, int increment) {
     if (_counts.containsKey(object)) {
-      _counts[object] += increment;
+      _counts[object] = _counts[object]! + increment;
     } else {
       _counts[object] = increment;
     }
@@ -149,7 +148,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// If this collection contains new objects (with zero IDs),  applyToDb()
   /// will put them on-the-fly. For this to work the source object (the object
   /// owing this ToMany) must be already stored because its ID is required.
-  void applyToDb({PutMode mode = PutMode.put, Transaction /*?*/ tx}) {
+  void applyToDb({PutMode mode = PutMode.put, Transaction? tx}) {
     if (!_hasPendingDbChanges) return;
     _verifyAttached();
 
@@ -157,7 +156,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       throw StateError("Relation info not initialized, can't applyToDb()");
     }
 
-    if (_rel.objectId == 0) {
+    if (_rel!.objectId == 0) {
       // This shouldn't happen but let's be a little paranoid.
       throw Exception(
           "Can't store relation info for the target object with zero ID");
@@ -171,29 +170,29 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         final add = count > 0; // otherwise: remove
         var id = _entity.getId(object) ?? 0;
 
-        switch (_rel.type) {
+        switch (_rel!.type) {
           case RelType.toMany:
             if (add) {
               if (id == 0) id = InternalBoxAccess.put(_box, object, mode, tx);
-              InternalBoxAccess.relPut(_otherBox, _rel.id, _rel.objectId, id);
+              InternalBoxAccess.relPut(_otherBox, _rel!.id, _rel!.objectId, id);
             } else {
               if (id == 0) return;
               InternalBoxAccess.relRemove(
-                  _otherBox, _rel.id, _rel.objectId, id);
+                  _otherBox, _rel!.id, _rel!.objectId, id);
             }
             break;
           case RelType.toOneBacklink:
-            final srcField = _rel.toOneSourceField(object);
-            srcField.targetId = add ? _rel.objectId : null;
+            final srcField = _rel!.toOneSourceField(object);
+            srcField.targetId = add ? _rel!.objectId : null;
             _box.put(object, mode: mode);
             break;
           case RelType.toManyBacklink:
             if (add) {
               if (id == 0) id = InternalBoxAccess.put(_box, object, mode, tx);
-              InternalBoxAccess.relPut(_box, _rel.id, id, _rel.objectId);
+              InternalBoxAccess.relPut(_box, _rel!.id, id, _rel!.objectId);
             } else {
               if (id == 0) return;
-              InternalBoxAccess.relRemove(_box, _rel.id, id, _rel.objectId);
+              InternalBoxAccess.relRemove(_box, _rel!.id, id, _rel!.objectId);
             }
             break;
           default:
@@ -209,6 +208,14 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   void _setRelInfo(Store store, RelInfo rel, Box otherBox) {
+    if (_attached) {
+      if (_store != store) {
+        throw ArgumentError.value(
+            store, 'store', 'Relation already attached to a different store');
+      }
+      return;
+    }
+    _attached = true;
     _store = store;
     _box = store.box<EntityT>();
     _entity = InternalStoreAccess.entityDef<EntityT>(_store);
@@ -225,17 +232,17 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       __items = [];
     } else {
       _verifyAttached();
-      __items = InternalBoxAccess.getRelated(_box, _rel);
+      __items = InternalBoxAccess.getRelated(_box, _rel!);
     }
     if (_addedBeforeLoad.isNotEmpty) {
-      __items.addAll(_addedBeforeLoad);
+      __items!.addAll(_addedBeforeLoad);
       _addedBeforeLoad.clear();
     }
-    return __items /*!*/;
+    return __items!;
   }
 
   void _verifyAttached() {
-    if (_store == null) {
+    if (!_attached) {
       throw Exception('ToMany relation field not initialized. '
           "Don't call applyToDb() on new objects, use box.put() instead.");
     }

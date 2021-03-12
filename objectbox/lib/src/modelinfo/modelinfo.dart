@@ -44,18 +44,18 @@ class ModelInfo {
 
   ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true})
       : entities = [],
-        lastEntityId = IdUid.fromString(data['lastEntityId'] as String),
-        lastIndexId = IdUid.fromString(data['lastIndexId'] as String),
-        lastRelationId = IdUid.fromString(data['lastRelationId'] as String),
-        lastSequenceId = IdUid.fromString(data['lastSequenceId'] as String),
+        lastEntityId = IdUid.fromString(data['lastEntityId'] as String?),
+        lastIndexId = IdUid.fromString(data['lastIndexId'] as String?),
+        lastRelationId = IdUid.fromString(data['lastRelationId'] as String?),
+        lastSequenceId = IdUid.fromString(data['lastSequenceId'] as String?),
         retiredEntityUids = _uids(data['retiredEntityUids']),
         retiredIndexUids = _uids(data['retiredIndexUids']),
         retiredPropertyUids = _uids(data['retiredPropertyUids']),
         retiredRelationUids = _uids(data['retiredRelationUids']),
-        modelVersion = data['modelVersion'] as int ?? 0,
+        modelVersion = data['modelVersion'] as int? ?? 0,
         modelVersionParserMinimum =
-            data['modelVersionParserMinimum'] as int ?? _maxModelVersion,
-        version = data['version'] as int ?? 1 {
+            data['modelVersionParserMinimum'] as int? ?? _maxModelVersion,
+        version = data['version'] as int? ?? 1 {
     if (data['entities'] == null) throw Exception('entities is null');
     for (final e in data['entities']) {
       entities.add(ModelEntity.fromMap(e as Map<String, dynamic>,
@@ -71,7 +71,7 @@ class ModelInfo {
     }
     if (modelVersion > _maxModelVersion) {
       throw Exception(
-          'the loaded model has been created with a newer generator version $modelVersion, while the maximimum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
+          'the loaded model has been created with a newer generator version $modelVersion, while the maximum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
     }
 
     var lastEntityIdFound = false;
@@ -102,12 +102,12 @@ class ModelInfo {
       var lastRelationIdFound = false;
       for (final e in entities) {
         for (final r in e.relations) {
-          if (lastRelationId /*!*/ .id < r.id.id) {
+          if (lastRelationId.id < r.id.id) {
             throw Exception(
                 "lastRelationId $lastRelationId is lower than the one of relation '${r.name}' with id ${r.id}");
           }
-          if (lastRelationId /*!*/ .id == r.id.id) {
-            if (lastRelationId /*!*/ .uid != r.id.uid) {
+          if (lastRelationId.id == r.id.id) {
+            if (lastRelationId.uid != r.id.uid) {
               throw Exception(
                   "lastRelationId $lastRelationId does not match relation '${r.name}' with id ${r.id}");
             }
@@ -124,7 +124,7 @@ class ModelInfo {
     }
   }
 
-  // Note: this function is used when generting objectbox-model.json as well as
+  // Note: this function is used when generating objectbox-model.json as well as
   // for model persistence in build_runner cache files.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
@@ -157,12 +157,12 @@ class ModelInfo {
     return entity;
   }
 
-  ModelEntity /*?*/ findEntityByUid(int uid) {
+  ModelEntity? findEntityByUid(int uid) {
     final idx = entities.indexWhere((e) => e.id.uid == uid);
     return idx < 0 ? null : entities[idx];
   }
 
-  ModelEntity /*?*/ findEntityByName(String name) {
+  ModelEntity? findEntityByName(String name) {
     final found = entities
         .where((e) => e.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -174,15 +174,14 @@ class ModelInfo {
     return found[0];
   }
 
-  ModelEntity /*?*/ findSameEntity(ModelEntity other) {
-    ModelEntity /*?*/ ret;
+  ModelEntity? findSameEntity(ModelEntity other) {
+    ModelEntity? ret;
     if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
     return ret ?? findEntityByName(other.name);
   }
 
   ModelEntity createEntity(String name, [int uid = 0]) {
-    var id = 1;
-    if (entities.isNotEmpty) id = lastEntityId.id + 1;
+    final id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) {
       throw Exception('uid already exists: $uid');
     }
@@ -232,7 +231,7 @@ class ModelInfo {
   }
 
   IdUid createIndexId() {
-    var id = lastIndexId.isEmpty ? 1 : lastIndexId.id + 1;
+    final id = lastIndexId.id + 1;
     lastIndexId = IdUid(id, generateUid());
     return lastIndexId;
   }

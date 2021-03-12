@@ -1,6 +1,6 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart' show allocate, free;
+import 'package:ffi/ffi.dart';
 
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
@@ -66,8 +66,9 @@ class Box<T> {
         return OBXPutMode.INSERT;
       case PutMode.update:
         return OBXPutMode.UPDATE;
+      default:
+        throw Exception('Invalid put mode ' + mode.toString());
     }
-    throw Exception('Invalid put mode ' + mode.toString());
   }
 
   /// Puts the given Object in the box (aka persisting it).
@@ -93,7 +94,7 @@ class Box<T> {
     }
   }
 
-  int _put(T object, PutMode mode, Transaction /*?*/ tx) {
+  int _put(T object, PutMode mode, Transaction? tx) {
     if (_hasRelations) {
       if (tx == null) {
         throw Exception(
@@ -105,7 +106,7 @@ class Box<T> {
     final newId = C.box_put_object4(
         _cBox, _builder.bufPtr, _builder.fbb.size, _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
-    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx /*!*/);
+    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
     _builder.resetIfLarge();
     return id;
   }
@@ -157,7 +158,7 @@ class Box<T> {
 
   /// Retrieves the stored object with the ID [id] from this box's database.
   /// Returns null if an object with the given ID doesn't exist.
-  T /*?*/ get(int id) {
+  T? get(int id) {
     final tx = Transaction(_store, TxMode.read);
     try {
       return tx.cursor(_entity).get(id);
@@ -170,9 +171,8 @@ class Box<T> {
   /// the location of its ID in [ids]. Non-existent IDs become null.
   ///
   /// Pass growableResult: true for the resulting list to be growable.
-  List<T /*?*/ > getMany(List<int> ids, {bool growableResult = false}) {
-    final result =
-        List<T /*?*/ >.filled(ids.length, null, growable: growableResult);
+  List<T?> getMany(List<int> ids, {bool growableResult = false}) {
+    final result = List<T?>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
     final tx = Transaction(_store, TxMode.read);
     try {
@@ -206,53 +206,53 @@ class Box<T> {
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
-  QueryBuilder<T> query([Condition /*?*/ qc]) =>
+  QueryBuilder<T> query([Condition? qc]) =>
       QueryBuilder<T>(_store, _entity, qc);
 
   /// Returns the count of all stored Objects in this box.
   /// If [limit] is not zero, stops counting at the given limit.
   int count({int limit = 0}) {
-    final count = allocate<Uint64>();
+    final count = malloc<Uint64>();
     try {
       checkObx(C.box_count(_cBox, limit, count));
       return count.value;
     } finally {
-      free(count);
+      malloc.free(count);
     }
   }
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = allocate<Uint8>();
+    final isEmpty = malloc<Uint8>();
     try {
       checkObx(C.box_is_empty(_cBox, isEmpty));
       return isEmpty.value == 1;
     } finally {
-      free(isEmpty);
+      malloc.free(isEmpty);
     }
   }
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = allocate<Uint8>();
+    final contains = malloc<Uint8>();
     try {
       checkObx(C.box_contains(_cBox, id, contains));
       return contains.value == 1;
     } finally {
-      free(contains);
+      malloc.free(contains);
     }
   }
 
   /// Returns true if this box contains objects with all of the given [ids].
   bool containsMany(List<int> ids) {
-    final contains = allocate<Uint8>();
+    final contains = malloc<Uint8>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_contains_many(_cBox, ptr, contains));
         return contains.value == 1;
       });
     } finally {
-      free(contains);
+      malloc.free(contains);
     }
   }
 
@@ -267,25 +267,25 @@ class Box<T> {
 
   /// Removes (deletes) by ID, returning a list of IDs of all removed Objects.
   int removeMany(List<int> ids) {
-    final countRemoved = allocate<Uint64>();
+    final countRemoved = malloc<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_remove_many(_cBox, ptr, countRemoved));
         return countRemoved.value;
       });
     } finally {
-      free(countRemoved);
+      malloc.free(countRemoved);
     }
   }
 
   /// Removes (deletes) ALL Objects in a single transaction.
   int removeAll() {
-    final removedItems = allocate<Uint64>();
+    final removedItems = malloc<Uint64>();
     try {
       checkObx(C.box_remove_all(_cBox, removedItems));
       return removedItems.value;
     } finally {
-      free(removedItems);
+      malloc.free(removedItems);
     }
   }
 
@@ -327,7 +327,7 @@ class InternalBoxAccess {
 
   /// Put the object in a given transaction.
   static int put<EntityT>(
-          Box<EntityT> box, EntityT object, PutMode mode, Transaction tx) =>
+          Box<EntityT> box, EntityT object, PutMode mode, Transaction? tx) =>
       box._put(object, mode, tx);
 
   /// Put a standalone relation.

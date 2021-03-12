@@ -130,8 +130,7 @@ class SyncChange {
 class SyncClient {
   final Store _store;
 
-  /*late final*/
-  Pointer<OBX_sync> _cSync;
+  late Pointer<OBX_sync> _cSync;
 
   /// The low-level pointer to this box.
   Pointer<OBX_sync> get ptr => (_cSync.address != 0)
@@ -147,13 +146,13 @@ class SyncClient {
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    final cServerUri = Utf8.toUtf8(serverUri).cast<Int8>();
+    final cServerUri = serverUri.toNativeUtf8();
     try {
       _cSync = checkObxPtr(
-          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri),
+          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri.cast()),
           'failed to create sync client');
     } finally {
-      free(cServerUri);
+      malloc.free(cServerUri);
     }
 
     setCredentials(creds);
@@ -255,7 +254,7 @@ class SyncClient {
   /// Additionally, you can subscribe for future pushes from the server, to let
   /// it send us future updates as they come in.
   /// Call [cancelUpdates()] to stop the updates.
-  bool requestUpdates({/*required*/ bool subscribeForFuturePushes}) =>
+  bool requestUpdates({required bool subscribeForFuturePushes}) =>
       checkObxSuccess(C.sync_updates_request(ptr, subscribeForFuturePushes));
 
   /// Cancel updates from the server so that it will stop sending updates.
@@ -271,16 +270,16 @@ class SyncClient {
   ///   2) the result follows transaction view semantics, thus it may not always
   ///      match the actual value.
   int outgoingMessageCount({int limit = 0}) {
-    final count = allocate<Uint64>();
+    final count = malloc<Uint64>();
     try {
       checkObx(C.sync_outgoing_message_count(ptr, limit, count));
       return count.value;
     } finally {
-      free(count);
+      malloc.free(count);
     }
   }
 
-  _SyncListenerGroup<SyncConnectionEvent> /*?*/ _connectionEvents;
+  _SyncListenerGroup<SyncConnectionEvent>? _connectionEvents;
 
   /// Get a broadcast stream of connection state changes (connect/disconnect).
   ///
@@ -291,22 +290,22 @@ class SyncClient {
       _connectionEvents =
           _SyncListenerGroup<SyncConnectionEvent>('sync-connection');
 
-      _connectionEvents.add(_SyncListenerConfig(
+      _connectionEvents!.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_connect(ptr, nativePort),
           (dynamic _, controller) =>
               controller.add(SyncConnectionEvent.connected)));
 
-      _connectionEvents.add(_SyncListenerConfig(
+      _connectionEvents!.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_disconnect(ptr, nativePort),
           (dynamic _, controller) =>
               controller.add(SyncConnectionEvent.disconnected)));
 
-      _connectionEvents.finish();
+      _connectionEvents!.finish();
     }
-    return _connectionEvents.stream;
+    return _connectionEvents!.stream;
   }
 
-  _SyncListenerGroup<SyncLoginEvent> /*?*/ _loginEvents;
+  _SyncListenerGroup<SyncLoginEvent>? _loginEvents;
 
   /// Get a broadcast stream of login events (success/failure).
   ///
@@ -316,11 +315,11 @@ class SyncClient {
       // Combine events from two C listeners: login & login-failure.
       _loginEvents = _SyncListenerGroup<SyncLoginEvent>('sync-login');
 
-      _loginEvents.add(_SyncListenerConfig(
+      _loginEvents!.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_login(ptr, nativePort),
           (dynamic _, controller) => controller.add(SyncLoginEvent.loggedIn)));
 
-      _loginEvents.add(_SyncListenerConfig(
+      _loginEvents!.add(_SyncListenerConfig(
           (int nativePort) =>
               C.dartc_sync_listener_login_failure(ptr, nativePort),
           (dynamic code, controller) {
@@ -333,12 +332,12 @@ class SyncClient {
         }
       }));
 
-      _loginEvents.finish();
+      _loginEvents!.finish();
     }
-    return _loginEvents.stream;
+    return _loginEvents!.stream;
   }
 
-  _SyncListenerGroup<void> /*?*/ _completionEvents;
+  _SyncListenerGroup<void>? _completionEvents;
 
   /// Get a broadcast stream of sync completion events - when synchronization
   /// of incoming changes has completed.
@@ -348,16 +347,16 @@ class SyncClient {
     if (_completionEvents == null) {
       _completionEvents = _SyncListenerGroup<void>('sync-completion');
 
-      _completionEvents.add(_SyncListenerConfig(
+      _completionEvents!.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_complete(ptr, nativePort),
           (dynamic _, controller) => controller.add(null)));
 
-      _completionEvents.finish();
+      _completionEvents!.finish();
     }
-    return _completionEvents.stream;
+    return _completionEvents!.stream;
   }
 
-  _SyncListenerGroup<List<SyncChange>> /*?*/ _changeEvents;
+  _SyncListenerGroup<List<SyncChange>>? _changeEvents;
 
   /// Get a broadcast stream of incoming synced data changes.
   ///
@@ -373,7 +372,7 @@ class SyncClient {
           (Type entity, EntityDefinition entityDef) =>
               entityTypesById[entityDef.model.id.id] = entity);
 
-      _changeEvents.add(_SyncListenerConfig(
+      _changeEvents!.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_change(ptr, nativePort),
           (dynamic msg, controller) {
         if (msg is! List) {
@@ -382,7 +381,7 @@ class SyncClient {
           return;
         }
 
-        final syncChanges = msg as List;
+        final syncChanges = msg;
 
         // List<SyncChange> is flattened to List<dynamic>, with SyncChange object
         // properties always coming in groups of three (entityId, puts, removals)
@@ -418,18 +417,18 @@ class SyncClient {
           }
 
           changes.add(SyncChange._(
-              entityId as int,
+              entityId,
               entityType,
-              Uint64List.view((putsBytes as Uint8List).buffer).toList(),
-              Uint64List.view((removalsBytes as Uint8List).buffer).toList()));
+              Uint64List.view(putsBytes.buffer).toList(),
+              Uint64List.view(removalsBytes.buffer).toList()));
         }
 
         controller.add(changes);
       }));
 
-      _changeEvents.finish();
+      _changeEvents!.finish();
     }
-    return _changeEvents.stream;
+    return _changeEvents!.stream;
   }
 }
 
@@ -450,8 +449,7 @@ class _SyncListenerGroup<StreamValueType> {
   final String name;
   bool finished = false;
 
-  /*late final*/
-  StreamController<StreamValueType> controller;
+  late final StreamController<StreamValueType> controller;
   final _configs = <_SyncListenerConfig>[];
 
   // currently active native listeners and ports attached to them
@@ -503,7 +501,7 @@ class _SyncListenerGroup<StreamValueType> {
 
       // Start the native listener.
       final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
-      if (cListener == null || cListener == nullptr) {
+      if (cListener == nullptr) {
         hasError = true;
       } else {
         _cListeners.add(cListener);
@@ -554,18 +552,10 @@ class Sync {
   /// Create a Sync annotation, enabling synchronization for an entity.
   const Sync();
 
-  static /*late final*/ bool _syncAvailable;
+  static late final bool _syncAvailable = C.sync_available();
 
   /// Returns true if the loaded ObjectBox native library supports Sync.
-  static bool isAvailable() {
-    // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_sync_available() exists.
-    try {
-      _syncAvailable ??= C.sync_available();
-    } catch (_) {
-      _syncAvailable = false;
-    }
-    return _syncAvailable;
-  }
+  static bool isAvailable() => _syncAvailable;
 
   /// Creates a sync client associated with the given store and configures it
   /// with the given options. This does not initiate any connection attempts

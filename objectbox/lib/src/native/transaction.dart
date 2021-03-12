@@ -18,11 +18,8 @@ class Transaction {
 
   // We have two ways of keeping cursors because we usually need just one.
   // The variable is faster then the map initialization & access.
-  /*late final*/
-  CursorHelper _firstCursor;
-
-  /*late final*/
-  Map<int, CursorHelper> _cursors;
+  CursorHelper? _firstCursor;
+  Map<int, CursorHelper>? _cursors;
 
   Pointer<OBX_txn> get ptr => _cTxn;
 
@@ -61,31 +58,31 @@ class Transaction {
     if (_closed) return;
     _closed = true;
     if (_firstCursor != null) {
-      _firstCursor.close();
-      if (_cursors != null) {
-        _cursors.values.forEach((c) => c.close());
-        _cursors.clear();
-      }
+      _firstCursor!.close();
+      _cursors
+        ?..values.forEach((c) => c.close())
+        ..clear();
     }
     checkObx(C.txn_close(_cTxn));
   }
 
   /// Returns a cursor for the given entity. No need to close it manually.
   /// Note: the cursor may have already been used, don't rely on its state!
-  CursorHelper<T /*!*/ > cursor<T>(EntityDefinition<T> entity) {
+  CursorHelper<T> cursor<T>(EntityDefinition<T> entity) {
     if (_firstCursor == null) {
       return _firstCursor =
           CursorHelper<T>(_store, _cTxn, entity, isWrite: _isWrite);
-    } else if (_firstCursor.entity == entity) {
+    } else if (_firstCursor!.entity == entity) {
       return _firstCursor as CursorHelper<T>;
     }
     _cursors ??= <int, CursorHelper>{};
     final entityId = entity.model.id.id;
-    if (!_cursors.containsKey(entityId)) {
-      _cursors[entityId] =
+    final cursors = _cursors!;
+    if (!cursors.containsKey(entityId)) {
+      cursors[entityId] =
           CursorHelper<T>(_store, _cTxn, entity, isWrite: _isWrite);
     }
-    return _cursors[entityId] as CursorHelper<T /*!*/ > /*!*/;
+    return cursors[entityId] as CursorHelper<T>;
   }
 
   /// Executes a given function inside a transaction.
