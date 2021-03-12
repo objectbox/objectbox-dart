@@ -164,17 +164,13 @@ void main() {
 
     group('Sync tests with server', () {
       late SyncServer server;
+
       setUp(() async {
         server = SyncServer();
-        server.start();
-        serverPort = server.port!;
+        serverPort = await server.start();
       });
 
-      tearDown(() async {
-        print('Waiting for the server to stop');
-        server.stop();
-        print('Server has stopped');
-      });
+      tearDown(() async => await server.stop());
 
       test('SyncClient data sync', () async {
         await server.online();
@@ -215,7 +211,7 @@ void main() {
 
         await streamSub2.cancel();
 
-        server.stop(keepDb: true);
+        await server.stop(keepDb: true);
 
         expect(
             waitUntil(() => client.state() == SyncState.disconnected), isTrue);
@@ -227,7 +223,7 @@ void main() {
               SyncConnectionEvent.disconnected
             ]));
 
-        server.start(keepDb: true);
+        await server.start(keepDb: true);
         await server.online();
 
         expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
@@ -356,9 +352,9 @@ void main() {
 
 /// sync-server process wrapper for testing clients
 class SyncServer {
-  Directory? dir;
-  int? port;
-  Future<Process>? process;
+  Directory? _dir;
+  int? _port;
+  Future<Process>? _process;
 
   static bool isAvailable() {
     // Note: this causes an additional valgrind summary output with a leak.
@@ -376,19 +372,21 @@ class SyncServer {
     }
   }
 
-  void start({bool keepDb = false}) async {
-    port ??= await _getUnusedPort();
+  Future<int> start({bool keepDb = false}) async {
+    _port ??= await _getUnusedPort();
 
-    dir ??= Directory('testdata-sync-server-$port');
+    _dir ??= Directory('testdata-sync-server-$_port');
     if (!keepDb) _deleteDb();
 
-    process = Process.start('sync-server', [
+    _process = Process.start('sync-server', [
       '--unsecured-no-authentication',
-      '--db-directory=${dir!.path}',
+      '--db-directory=${_dir!.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
-      '--bind=ws://127.0.0.1:$port',
+      '--bind=ws://127.0.0.1:$_port',
       '--browser-bind=http://127.0.0.1:${await _getUnusedPort()}'
     ]);
+
+    return _port!;
   }
 
   /// Wait for the server to respond to a simple http request.
@@ -398,7 +396,7 @@ class SyncServer {
         final httpClient = HttpClient();
         while (true) {
           try {
-            await httpClient.get('127.0.0.1', port!, '');
+            await httpClient.get('127.0.0.1', _port!, '');
             break;
           } on SocketException catch (e) {
             // only retry if "connection refused"
@@ -409,10 +407,10 @@ class SyncServer {
         httpClient.close(force: true);
       }).timeout(defaultTimeout);
 
-  void stop({bool keepDb = false}) async {
-    if (process == null) return;
-    final proc = await process!;
-    process = null;
+  Future<void> stop({bool keepDb = false}) async {
+    if (_process == null) return;
+    final proc = await _process!;
+    _process = null;
     proc.kill(ProcessSignal.sigint);
     final exitCode = await proc.exitCode;
     if (exitCode != 0) {
@@ -431,8 +429,8 @@ class SyncServer {
       });
 
   void _deleteDb() {
-    if (dir != null && dir!.existsSync()) {
-      dir!.deleteSync(recursive: true);
+    if (_dir != null && _dir!.existsSync()) {
+      _dir!.deleteSync(recursive: true);
     }
   }
 }
