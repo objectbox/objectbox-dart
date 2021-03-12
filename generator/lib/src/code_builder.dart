@@ -59,17 +59,6 @@ class CodeBuilder extends Builder {
 
   Future<ModelInfo> updateModel(
       List<ModelEntity> entities, BuildStep buildStep) async {
-    {
-      // TODO temporary v0.5 -> v0.6 update - check if the model file exists in the old location
-      final oldJson =
-          AssetId(buildStep.inputId.package, 'objectbox-model.json');
-      if (File(oldJson.path).existsSync()) {
-        throw StateError(''
-            'Found objectbox-model.json in the package root. This is the old behaviour before ObjectBox v0.6\n'
-            'Please move objectbox-model.json to lib/objectbox-model.json and run the build_runner again.\n');
-      }
-    }
-
     // load an existing model or initialize a new one
     ModelInfo model;
     final jsonId =

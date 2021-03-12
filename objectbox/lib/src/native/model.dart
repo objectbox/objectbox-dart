@@ -49,15 +49,7 @@ class Model {
       calloc.free(name);
     }
 
-    if (entity.flags != 0) {
-      // TODO remove try-catch after upgrading to objectbox-c v0.11 where obx_model_entity_flags() exists.
-      try {
-        _check(C.model_entity_flags(_cModel, entity.flags));
-      } on ArgumentError {
-        // flags not supported; don't do anything until objectbox-c v0.11
-        // this should only be used from our test code
-      }
-    }
+    if (entity.flags != 0) _check(C.model_entity_flags(_cModel, entity.flags));
 
     // add all properties
     entity.properties.forEach(addProperty);
