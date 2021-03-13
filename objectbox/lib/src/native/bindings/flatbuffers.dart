@@ -15,7 +15,7 @@ class BuilderWithCBuffer {
   final int _initialSize;
   final int _resetIfLargerThan;
 
-  late final fb.Builder _fbb;
+  late fb.Builder _fbb;
 
   fb.Builder get fbb => _fbb;
 
