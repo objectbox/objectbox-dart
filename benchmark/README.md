@@ -1,6 +1,11 @@
 # ObjectBox (Dart) benchmarks
 
-This package provides quick tools for:
+This package provides micro-benchmarking & profiling tools for:
 
-* benchmarking the overall objectbox-dart binding database performance (CRUD)
-* micro-benchmarking different code versions to pick the fastest implementation
+* database performance (CRUD)
+* different code versions to pick the fastest implementation
+
+These are mostly used to compare effects of changes during development and should be taken with a grain of salt.
+
+Also see the full-application benchmark in https://github.com/objectbox/objectbox-dart-performance 
+which provides a better picture of the potential "real world" performance. 

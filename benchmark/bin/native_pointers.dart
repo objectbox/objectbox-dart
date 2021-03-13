@@ -22,14 +22,14 @@ void main() {
 
 class AsTypedList extends BenchmarkBase {
   final int length;
-  Pointer<Uint8> nativePtr;
+  late final Pointer<Uint8> nativePtr;
 
   AsTypedList(this.length) : super('${AsTypedList}[size=$length]');
 
   @override
   void run() {
     final typedList = nativePtr.asTypedList(length);
-    final data = ByteData.view(typedList.buffer, typedList.offsetInBytes);
+    ByteData.view(typedList.buffer, typedList.offsetInBytes);
     // actually using the data (read flatbuffers) doesn't matter here
   }
 
@@ -42,14 +42,14 @@ class AsTypedList extends BenchmarkBase {
 
 class AsTypedListUint64 extends BenchmarkBase {
   final int length;
-  Pointer<Uint64> nativePtr;
+  late final Pointer<Uint64> nativePtr;
 
   AsTypedListUint64(this.length) : super('${AsTypedListUint64}[size=$length]');
 
   @override
   void run() {
     final typedList = nativePtr.asTypedList(length);
-    final data = ByteData.view(typedList.buffer, typedList.offsetInBytes);
+    ByteData.view(typedList.buffer, typedList.offsetInBytes);
     // actually using the data (read flatbuffers) doesn't matter here
   }
 

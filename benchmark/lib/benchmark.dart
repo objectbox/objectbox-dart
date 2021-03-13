@@ -1,87 +1,72 @@
 import 'dart:io';
 
+import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:objectbox/objectbox.dart';
 
 import 'model.dart';
 import 'objectbox.g.dart';
 
-class Executor {
-  final Store store;
+class Benchmark extends BenchmarkBase {
+  final int iterations;
 
-  /*late final*/
-  Box<TestEntity> box;
+  Benchmark(String name, {int iterations = 1, double coefficient = 1})
+      : iterations = iterations,
+        super(name, emitter: Emitter(iterations, coefficient));
 
-  /// list of runtimes indexed by function name
-  final times = <String, List<Duration>>{};
-
-  Executor(Directory dbDir)
-      : store = Store(getObjectBoxModel(), directory: dbDir.path) {
-    box = Box<TestEntity>(store);
-  }
-
-  void close() => store.close();
-
-  R _track<R>(String fnName, R Function() fn) {
-    final watch = Stopwatch();
-
-    watch.start();
-    final result = fn();
-    watch.stop();
-
-    times[fnName] ??= <Duration>[];
-    times[fnName].add(watch.elapsed);
-    return result;
-  }
-
-  void _print(List<dynamic> varArgs) {
-    print(varArgs.join('\t'));
-  }
-
-  void printTimes([List<String> functions]) {
-    functions ??= times.keys.toList();
-
-    // print the whole data as a table
-    _print(['Function', 'Runs', 'Average ms', 'All times']);
-    for (final fun in functions) {
-      final fnTimes = times[fun];
-
-      final sum = fnTimes.map((d) => d.inMicroseconds).reduce((v, e) => v + e);
-      final avg = sum.toDouble() / fnTimes.length.toDouble() / 1000;
-      final timesCols = fnTimes.map((d) => d.inMicroseconds.toDouble() / 1000);
-      _print([fun, fnTimes.length, avg, ...timesCols]);
+  @override
+  void exercise() {
+    for (var i = 0; i < iterations; i++) {
+      runIteration(i);
     }
   }
 
-  List<TestEntity> prepareData(int count) {
-    return _track('prepareData', () {
-      final result = <TestEntity>[];
-      for (var i = 0; i < count; i++) {
-        result.add(TestEntity.full('Entity #$i', i, i, i.toDouble()));
-      }
-      return result;
-    });
+  @override
+  void run() => runIteration(0);
+
+  void runIteration(int iteration) {}
+}
+
+class Emitter implements ScoreEmitter {
+  static const usInSec = 1000000;
+
+  final int iterations;
+  final double coefficient;
+
+  const Emitter(this.iterations, this.coefficient);
+
+  @override
+  void emit(String testName, double value) {
+    final timePerIter = value / iterations;
+    final timePerUnit = timePerIter * coefficient;
+    print('$testName(Single iteration): ${format(timePerIter)} us.');
+    print('$testName(Time per unit): ${format(timePerUnit)} us.');
+    print('$testName(Runs per second): ${format(usInSec / timePerIter)}.');
+    print('$testName(Units per second): ${format(usInSec / timePerUnit)}.');
   }
 
-  void putMany(List<TestEntity> items) {
-    _track('putMany', () => box.putMany(items));
+  String format(double num) => num.toStringAsFixed(2);
+}
+
+class DbBenchmark extends Benchmark {
+  static final String dbDir = 'benchmark-db';
+  final Store store;
+  late final Box<TestEntity> box;
+
+  DbBenchmark(String name, {int iterations = 1, double coefficient = 1})
+      : store = Store(getObjectBoxModel(), directory: dbDir),
+        super(name, iterations: iterations, coefficient: coefficient) {
+    box = Box<TestEntity>(store);
   }
 
-  void updateAll(List<TestEntity> items) {
-    _track('updateAll', () => box.putMany(items));
-  }
-
-  List<TestEntity> readAll() {
-    return _track('readAll', () => box.getAll());
-  }
-
-  List<TestEntity> readOneByOne(List<int> ids) =>
-      _track('readOneByOne', () => ids.map(box.get).toList(growable: false));
-
-  void removeAll() {
-    _track('removeAll', () => box.removeAll());
-  }
-
-  void changeValues(List<TestEntity> items) {
-    _track('changeValues', () => items.forEach((item) => item.tLong *= 2));
+  @override
+  void teardown() {
+    store.close();
+    final dir = Directory(dbDir);
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
   }
 }
+
+List<TestEntity> prepareTestEntities(int count, {bool assignedIds = false}) =>
+    List<TestEntity>.generate(count,
+        (i) => TestEntity(assignedIds ? i + 1 : 0, 'Entity #$i', i, i, i / 2),
+        growable: false);
