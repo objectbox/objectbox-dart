@@ -17,26 +17,26 @@ class Get extends DbBenchmark {
 }
 
 class GetMany extends DbBenchmark {
-  static final batchSize = 10000;
+  static final count = 10000;
   late final List<int> ids;
 
-  GetMany() : super('${GetMany}', iterations: 1, coefficient: 1 / batchSize);
+  GetMany() : super('${GetMany}', iterations: 1, coefficient: 1 / count);
 
   @override
   void runIteration(int i) => box.getMany(ids);
 
   @override
-  void setup() => ids = box.putMany(prepareTestEntities(batchSize));
+  void setup() => ids = box.putMany(prepareTestEntities(count));
 }
 
 class GetAll extends DbBenchmark {
-  static final batchSize = 10000;
+  static final count = 10000;
 
-  GetAll() : super('${GetAll}', iterations: 1, coefficient: 1 / batchSize);
+  GetAll() : super('${GetAll}', iterations: 1, coefficient: 1 / count);
 
   @override
   void runIteration(int i) => box.getAll();
 
   @override
-  void setup() => box.putMany(prepareTestEntities(batchSize));
+  void setup() => box.putMany(prepareTestEntities(count));
 }

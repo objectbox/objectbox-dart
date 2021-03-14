@@ -14,14 +14,12 @@ class Benchmark extends BenchmarkBase {
         super(name, emitter: Emitter(iterations, coefficient));
 
   @override
-  void exercise() {
-    for (var i = 0; i < iterations; i++) {
-      runIteration(i);
-    }
-  }
+  void exercise() => run();
 
   @override
-  void run() => runIteration(0);
+  void run() {
+    for (var i = 0; i < iterations; i++) runIteration(i);
+  }
 
   void runIteration(int iteration) {}
 }
@@ -38,13 +36,38 @@ class Emitter implements ScoreEmitter {
   void emit(String testName, double value) {
     final timePerIter = value / iterations;
     final timePerUnit = timePerIter * coefficient;
-    print('$testName(Single iteration): ${format(timePerIter)} us.');
-    print('$testName(Time per unit): ${format(timePerUnit)} us.');
-    print('$testName(Runs per second): ${format(usInSec / timePerIter)}.');
-    print('$testName(Units per second): ${format(usInSec / timePerUnit)}.');
+    print('$testName(Single iteration): ${format(timePerIter)} us');
+    print('$testName(Runtime per unit): ${format(timePerUnit)} us');
+    print('$testName(Runs per second):  ${format(usInSec / timePerIter)}');
+    print('$testName(Units per second): ${format(usInSec / timePerUnit)}');
   }
 
-  String format(double num) => num.toStringAsFixed(2);
+  // Simple number formatting, maybe use a lib?
+  // * the smaller the number, the more decimal places it has (one up to four).
+  // * large numbers use thousands separator (defaults to non-breaking space).
+  String format(double num, [String thousandsSeparator = ' ']) {
+    final decimalPoints = num < 1
+        ? 4
+        : num < 10
+            ? 3
+            : num < 100
+                ? 2
+                : num < 1000
+                    ? 1
+                    : 0;
+
+    var str = num.toStringAsFixed(decimalPoints);
+    if (num < 1000) return str;
+
+    // add thousands separators, efficiency doesn't matter here...
+    final digitsReversed = str.split('').reversed.toList(growable: false);
+    str = '';
+    for (var i = 0; i < digitsReversed.length; i++) {
+      if (i > 0 && i % 3 == 0) str = '$thousandsSeparator$str';
+      str = '${digitsReversed[i]}$str';
+    }
+    return str;
+  }
 }
 
 class DbBenchmark extends Benchmark {
