@@ -8,40 +8,35 @@ import 'package:objectbox/objectbox.dart';
 
 import 'objectbox.g.dart';
 
+// ignore_for_file: public_member_api_docs
+
 @Entity()
 class Note {
   int id;
 
   String text;
-  String comment;
-  int date;
+  String? comment;
+  DateTime date;
 
-  Note();
+  Note(this.text, {this.id = 0, this.comment, DateTime? date})
+      : date = date ?? DateTime.now();
 
-  Note.construct(this.text) {
-    date = DateTime.now().millisecondsSinceEpoch;
-    print('constructed date: $date');
-  }
-
-  String get dateFormat => DateFormat('dd.MM.yyyy hh:mm:ss')
-      .format(DateTime.fromMillisecondsSinceEpoch(date));
+  String get dateFormat => DateFormat('dd.MM.yyyy hh:mm:ss').format(date);
 }
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'OB Example',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: MyHomePage(title: 'OB Example'),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'OB Example',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: MyHomePage(title: 'OB Example'),
+      );
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -50,17 +45,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class ViewModel {
-  Store _store;
-  Box<Note> _box;
-  Query<Note> _query;
+  final Store _store;
+  late final Box<Note> _box;
+  late final Query<Note> _query;
 
-  ViewModel(Directory dir) {
-    _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
+  ViewModel(Directory dir)
+      : _store =
+            Store(getObjectBoxModel(), directory: dir.path + '/objectbox') {
     _box = Box<Note>(_store);
-
-    final dateProp = Note_.date;
-
-    _query = _box.query().order(dateProp, flags: Order.descending).build();
+    _query = _box.query().order(Note_.date, flags: Order.descending).build();
   }
 
   void addNote(Note note) => _box.put(note);
@@ -80,12 +73,12 @@ class ViewModel {
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   final _listController = StreamController<List<Note>>(sync: true);
-  Stream<List<Note>> _stream;
-  ViewModel _vm;
+  Stream<List<Note>>? _stream;
+  late final ViewModel _vm;
 
   void _addNote() {
     if (_noteInputController.text.isEmpty) return;
-    _vm.addNote(Note.construct(_noteInputController.text));
+    _vm.addNote(Note(_noteInputController.text));
     _noteInputController.text = '';
   }
 
@@ -112,113 +105,107 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  GestureDetector Function(BuildContext, int) _itemBuilder(List<Note> notes) {
-    return (BuildContext context, int index) {
-      return GestureDetector(
-        onTap: () => _vm.removeNote(notes[index]),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(vertical: 18.0, horizontal: 10.0),
+  GestureDetector Function(BuildContext, int) _itemBuilder(List<Note> notes) =>
+      (BuildContext context, int index) => GestureDetector(
+            onTap: () => _vm.removeNote(notes[index]),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border:
+                            Border(bottom: BorderSide(color: Colors.black12))),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 18.0, horizontal: 10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            notes[index].text,
+                            style: TextStyle(
+                              fontSize: 15.0,
+                            ),
+                            // Provide a Key for the integration test
+                            key: Key('list_item_$index'),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 5.0),
+                            child: Text(
+                              'Added on ${notes[index].dateFormat}',
+                              style: TextStyle(
+                                fontSize: 12.0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Column(children: <Widget>[
+          Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Row(
+              children: <Widget>[
+                Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        notes[index].text,
-                        style: TextStyle(
-                          fontSize: 15.0,
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.0),
+                        child: TextField(
+                          decoration:
+                              InputDecoration(hintText: 'Enter a new note'),
+                          controller: _noteInputController,
+                          onSubmitted: (value) => _addNote(),
+                          // Provide a Key for the integration test
+                          key: Key('input'),
                         ),
-                        // Provide a Key for the integration test
-                        key: Key('list_item_${index}'),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(top: 5.0),
-                        child: Text(
-                          'Added on ${notes[index].dateFormat}',
-                          style: TextStyle(
-                            fontSize: 12.0,
+                        padding: EdgeInsets.only(top: 10.0, right: 10.0),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'Tap a note to remove it',
+                            style: TextStyle(
+                              fontSize: 11.0,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.black12))),
-              ),
+                )
+              ],
             ),
-          ],
-        ),
-      );
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Column(children: <Widget>[
-        Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10.0),
-                      child: TextField(
-                        decoration:
-                            InputDecoration(hintText: 'Enter a new note'),
-                        controller: _noteInputController,
-                        onSubmitted: (value) => _addNote(),
-                        // Provide a Key for the integration test
-                        key: Key('input'),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 10.0, right: 10.0),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'Tap a note to remove it',
-                          style: TextStyle(
-                            fontSize: 11.0,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
           ),
-        ),
-        Expanded(
-            child: StreamBuilder<List<Note>>(
-                stream: _stream,
-                builder: (context, snapshot) {
-                  return ListView.builder(
+          Expanded(
+              child: StreamBuilder<List<Note>>(
+                  stream: _stream,
+                  builder: (context, snapshot) => ListView.builder(
                       shrinkWrap: true,
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
-                      itemCount: snapshot.hasData ? snapshot.data.length : 0,
-                      itemBuilder: _itemBuilder(snapshot.data));
-                }))
-      ]),
-      // We need a separate submit button because flutter_driver integration
-      // test doesn't support submitting a TextField using "enter" key.
-      // See https://github.com/flutter/flutter/issues/9383
-      floatingActionButton: FloatingActionButton(
-        key: Key('submit'),
-        onPressed: _addNote,
-        child: Icon(Icons.add),
-      ),
-    );
-  }
+                      itemCount: snapshot.hasData ? snapshot.data!.length : 0,
+                      itemBuilder: _itemBuilder(snapshot.data ?? []))))
+        ]),
+        // We need a separate submit button because flutter_driver integration
+        // test doesn't support submitting a TextField using "enter" key.
+        // See https://github.com/flutter/flutter/issues/9383
+        floatingActionButton: FloatingActionButton(
+          key: Key('submit'),
+          onPressed: _addNote,
+          child: Icon(Icons.add),
+        ),
+      );
 }

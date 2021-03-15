@@ -9,7 +9,7 @@ void main() {
   final buttonFinder = find.byValueKey('submit');
   final firstItemFinder = find.byValueKey('list_item_0');
 
-  FlutterDriver driver;
+  late FlutterDriver driver;
 
   // Connect to the Flutter driver before running any tests.
   setUpAll(() async {
@@ -17,11 +17,7 @@ void main() {
   });
 
   // Close the connection to the driver after the tests have completed.
-  tearDownAll(() async {
-    if (driver != null) {
-      await driver.close();
-    }
-  });
+  tearDownAll(() async => await driver.close());
 
   test('starts with an empty list', () async {
     await driver.waitForAbsent(firstItemFinder,
