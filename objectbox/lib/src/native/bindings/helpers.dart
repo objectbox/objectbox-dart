@@ -10,18 +10,21 @@ import 'bindings.dart';
 
 // ignore_for_file: public_member_api_docs
 
+@pragma('vm:prefer-inline')
 void checkObx(int code) {
   if (code != OBX_SUCCESS) {
     throw latestNativeError(codeIfMissing: code);
   }
 }
 
+@pragma('vm:prefer-inline')
 bool checkObxSuccess(int code) {
   if (code == OBX_NO_SUCCESS) return false;
   checkObx(code);
   return true;
 }
 
+@pragma('vm:prefer-inline')
 Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
     [String? dartMsg]) {
   if (ptr == null || ptr.address == 0) {
@@ -33,7 +36,7 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
 ObjectBoxException latestNativeError(
     {String? dartMsg, int codeIfMissing = OBX_ERROR_UNKNOWN}) {
   final code = C.last_error_code();
-  final text = cString(C.last_error_message());
+  final text = dartStringFromC(C.last_error_message());
 
   if (code == 0 && text.isEmpty) {
     return ObjectBoxException(
@@ -46,7 +49,8 @@ ObjectBoxException latestNativeError(
       dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
 }
 
-String cString(Pointer<Int8> charPtr) =>
+@pragma('vm:prefer-inline')
+String dartStringFromC(Pointer<Int8> charPtr) =>
     charPtr.address == 0 ? '' : charPtr.cast<Utf8>().toDartString();
 
 class CursorHelper<T> {
@@ -87,6 +91,7 @@ class CursorHelper<T> {
     checkObx(C.cursor_close(ptr));
   }
 
+  @pragma('vm:prefer-inline')
   T? get(int id) {
     final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
     if (code == OBX_NOT_FOUND) return null;
@@ -105,5 +110,35 @@ T withNativeBytes<T>(
     return fn(ptr.cast<Void>(), size);
   } finally {
     malloc.free(ptr);
+  }
+}
+
+/// Execute the given function, managing the resources consistently
+R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
+  // allocate a temporary structure
+  final ptr = malloc<OBX_id_array>();
+
+  // fill it with data
+  final array = ptr.ref;
+  array.count = items.length;
+  array.ids = malloc<Uint64>(items.length);
+  for (var i = 0; i < items.length; ++i) {
+    array.ids[i] = items[i];
+  }
+
+  // call the function with the structure and free afterwards
+  try {
+    return fn(ptr);
+  } finally {
+    malloc.free(array.ids);
+    malloc.free(ptr);
+  }
+}
+
+extension NativeStringArrayAccess on Pointer<OBX_string_array> {
+  List<String> toDartStrings() {
+    final cArray = ref;
+    final items = cArray.items.cast<Pointer<Utf8>>();
+    return List<String>.generate(cArray.count, (i) => items[i].toDartString());
   }
 }

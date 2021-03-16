@@ -32,6 +32,7 @@ class Transaction {
     checkObxPtr(_cTxn, 'failed to create transaction');
   }
 
+  @pragma('vm:prefer-inline')
   void _finish(bool successful) {
     if (_isWrite) {
       try {
@@ -44,17 +45,23 @@ class Transaction {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void commitAndClose() => _finish(true);
 
+  @pragma('vm:prefer-inline')
   void abortAndClose() => _finish(false);
 
+  @pragma('vm:prefer-inline')
   void _mark(bool successful) =>
       checkObx(C.txn_mark_success(_cTxn, successful));
 
+  @pragma('vm:prefer-inline')
   void markSuccessful() => _mark(true);
 
+  @pragma('vm:prefer-inline')
   void markFailed() => _mark(false);
 
+  @pragma('vm:prefer-inline')
   void close() {
     if (_closed) return;
     _closed = true;
@@ -89,6 +96,7 @@ class Transaction {
   /// Executes a given function inside a transaction.
   ///
   /// Returns type of [fn] if [return] is called in [fn].
+  @pragma('vm:prefer-inline')
   static R execute<R>(Store store, TxMode mode, R Function() fn) {
     final tx = Transaction(store, mode);
     try {

@@ -19,6 +19,7 @@ class BuilderWithCBuffer {
 
   fb.Builder get fbb => _fbb;
 
+  @pragma('vm:prefer-inline')
   Pointer<Void> get bufPtr => Pointer<Void>.fromAddress(
       _allocator.bufAddress + _allocator._capacity - _fbb.size);
 
@@ -28,6 +29,7 @@ class BuilderWithCBuffer {
     _fbb = fb.Builder(initialSize: initialSize, allocator: _allocator);
   }
 
+  @pragma('vm:prefer-inline')
   void resetIfLarge() {
     if (_allocator._capacity > _resetIfLargerThan) {
       clear();
@@ -61,12 +63,14 @@ class Allocator extends fb.Allocator {
   // allocated buffer capacity
   int _capacity = 0;
 
+  @pragma('vm:prefer-inline')
   int get bufAddress {
     assert(_allocs[_index].address != 0);
     return _allocs[_index].address;
   }
 
   // flips _index from 0 to 1 (or back), returning the new value
+  @pragma('vm:prefer-inline')
   int _flipIndex() => _index == 0 ? ++_index : --_index;
 
   @override
@@ -89,6 +93,7 @@ class Allocator extends fb.Allocator {
     _allocs[index] = nullptr;
   }
 
+  @pragma('vm:prefer-inline')
   @override
   void clear(ByteData data, bool isFresh) {
     if (isFresh) return; // freshly allocated data is zero-ed out (see [calloc])

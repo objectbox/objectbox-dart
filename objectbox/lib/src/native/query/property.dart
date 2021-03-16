@@ -17,9 +17,7 @@ abstract class PropertyQuery<T> {
   List<T> find({T? replaceNullWith});
 
   /// Close the property query, freeing its resources
-  void close() {
-    checkObx(C.query_prop_close(_cProp));
-  }
+  void close() => checkObx(C.query_prop_close(_cProp));
 
   /// Get the status of "distinct-values" configuration.
   bool get distinct => _distinct;

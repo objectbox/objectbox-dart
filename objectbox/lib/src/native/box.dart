@@ -12,7 +12,6 @@ import '../transaction.dart';
 import 'bindings/bindings.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
-import 'bindings/structs.dart';
 import 'query/query.dart';
 import 'transaction.dart';
 
@@ -60,6 +59,7 @@ class Box<T> {
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
 
   static int _getOBXPutMode(PutMode mode) {
+    // TODO microbenchmark if this is fast or we should just return mode.index+1
     switch (mode) {
       case PutMode.put:
         return OBXPutMode.PUT;
@@ -152,6 +152,7 @@ class Box<T> {
 
   // Checks if native obx_*_put_object() was successful (result is a valid ID).
   // Sets the given ID on the object if previous ID was zero (new object).
+  @pragma('vm:prefer-inline')
   int _handlePutObjectResult(T object, int prevId, int result) {
     if (result == 0) throw latestNativeError(dartMsg: 'object put failed');
     if (prevId == 0) _entity.setId(object, result);
@@ -208,6 +209,7 @@ class Box<T> {
   }
 
   /// Returns a builder to create queries for Object matching supplied criteria.
+  @pragma('vm:prefer-inline')
   QueryBuilder<T> query([Condition? qc]) =>
       QueryBuilder<T>(_store, _entity, qc);
 
@@ -327,11 +329,13 @@ class InternalBoxAccess {
   static void close(Box box) => box._builder.clear();
 
   /// Put the object in a given transaction.
+  @pragma('vm:prefer-inline')
   static int put<EntityT>(
           Box<EntityT> box, EntityT object, PutMode mode, Transaction? tx) =>
       box._put(object, mode, tx);
 
   /// Put a standalone relation.
+  @pragma('vm:prefer-inline')
   static void relPut(
     Box box,
     int relationId,
@@ -341,6 +345,7 @@ class InternalBoxAccess {
       checkObx(C.box_rel_put(box.ptr, relationId, sourceId, targetId));
 
   /// Remove a standalone relation entry between two objects.
+  @pragma('vm:prefer-inline')
   static void relRemove(
     Box box,
     int relationId,

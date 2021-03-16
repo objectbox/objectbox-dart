@@ -12,7 +12,6 @@ import '../../transaction.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
-import '../bindings/structs.dart';
 
 part 'builder.dart';
 
@@ -670,9 +669,7 @@ class Query<T> {
 
   /// Close the query and free resources.
   // TODO Document wrap with closure to fake auto close
-  void close() {
-    checkObx(C.query_close(_cQuery));
-  }
+  void close() => checkObx(C.query_close(_cQuery));
 
   /// Finds Objects matching the query and returns the first result or null
   /// if there are no results.
@@ -714,10 +711,10 @@ class Query<T> {
   }
 
   /// For internal testing purposes.
-  String describe() => cString(C.query_describe(_cQuery));
+  String describe() => dartStringFromC(C.query_describe(_cQuery));
 
   /// For internal testing purposes.
-  String describeParameters() => cString(C.query_describe_params(_cQuery));
+  String describeParameters() => dartStringFromC(C.query_describe_params(_cQuery));
 
   /// Creates a property query for the given property [qp].
   ///

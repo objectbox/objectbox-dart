@@ -133,7 +133,8 @@ class SyncClient {
   late Pointer<OBX_sync> _cSync;
 
   /// The low-level pointer to this box.
-  Pointer<OBX_sync> get ptr => (_cSync.address != 0)
+  @pragma('vm:prefer-inline')
+  Pointer<OBX_sync> get _ptr => (_cSync.address != 0)
       ? _cSync
       : throw Exception('SyncClient already closed');
 
@@ -178,7 +179,7 @@ class SyncClient {
 
   /// Gets the current sync client state.
   SyncState state() {
-    final state = C.sync_state(ptr);
+    final state = C.sync_state(_ptr);
     switch (state) {
       case OBXSyncState.CREATED:
         return SyncState.created;
@@ -202,12 +203,12 @@ class SyncClient {
   /// Configure authentication credentials, depending on your server config.
   void setCredentials(SyncCredentials creds) {
     if (creds._type == OBXSyncCredentialsType.NONE) {
-      checkObx(C.sync_credentials(ptr, creds._type, nullptr, 0));
+      checkObx(C.sync_credentials(_ptr, creds._type, nullptr, 0));
     } else {
       withNativeBytes(
           creds._data,
           (Pointer<Void> credsPtr, int credsSize) => checkObx(
-              C.sync_credentials(ptr, creds._type, credsPtr, credsSize)));
+              C.sync_credentials(_ptr, creds._type, credsPtr, credsSize)));
     }
   }
 
@@ -228,7 +229,7 @@ class SyncClient {
       default:
         throw Exception('Unknown mode argument: ' + mode.toString());
     }
-    checkObx(C.sync_request_updates_mode(ptr, cMode));
+    checkObx(C.sync_request_updates_mode(_ptr, cMode));
   }
 
   /// Once the sync client is configured, you can [start] it to initiate
@@ -241,12 +242,12 @@ class SyncClient {
   /// will be retried later automatically. If you haven't set the credentials in
   /// the options during construction, call [setCredentials()] before [start()].
   void start() {
-    checkObx(C.sync_start(ptr));
+    checkObx(C.sync_start(_ptr));
   }
 
   /// Stops this sync client. Does nothing if it is already stopped.
   void stop() {
-    checkObx(C.sync_stop(ptr));
+    checkObx(C.sync_stop(_ptr));
   }
 
   /// Request updates since we last synchronized our database.
@@ -255,11 +256,11 @@ class SyncClient {
   /// it send us future updates as they come in.
   /// Call [cancelUpdates()] to stop the updates.
   bool requestUpdates({required bool subscribeForFuturePushes}) =>
-      checkObxSuccess(C.sync_updates_request(ptr, subscribeForFuturePushes));
+      checkObxSuccess(C.sync_updates_request(_ptr, subscribeForFuturePushes));
 
   /// Cancel updates from the server so that it will stop sending updates.
   /// See also [requestUpdates()].
-  bool cancelUpdates() => checkObxSuccess(C.sync_updates_cancel(ptr));
+  bool cancelUpdates() => checkObxSuccess(C.sync_updates_cancel(_ptr));
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to
   /// be sent to the server.
@@ -272,7 +273,7 @@ class SyncClient {
   int outgoingMessageCount({int limit = 0}) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.sync_outgoing_message_count(ptr, limit, count));
+      checkObx(C.sync_outgoing_message_count(_ptr, limit, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -291,12 +292,13 @@ class SyncClient {
           _SyncListenerGroup<SyncConnectionEvent>('sync-connection');
 
       _connectionEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_connect(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_connect(_ptr, nativePort),
           (dynamic _, controller) =>
               controller.add(SyncConnectionEvent.connected)));
 
       _connectionEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_disconnect(ptr, nativePort),
+          (int nativePort) =>
+              C.dartc_sync_listener_disconnect(_ptr, nativePort),
           (dynamic _, controller) =>
               controller.add(SyncConnectionEvent.disconnected)));
 
@@ -316,12 +318,12 @@ class SyncClient {
       _loginEvents = _SyncListenerGroup<SyncLoginEvent>('sync-login');
 
       _loginEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_login(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_login(_ptr, nativePort),
           (dynamic _, controller) => controller.add(SyncLoginEvent.loggedIn)));
 
       _loginEvents!.add(_SyncListenerConfig(
           (int nativePort) =>
-              C.dartc_sync_listener_login_failure(ptr, nativePort),
+              C.dartc_sync_listener_login_failure(_ptr, nativePort),
           (dynamic code, controller) {
         // see OBXSyncCode - TODO should we match any other codes?
         switch (code as int) {
@@ -348,7 +350,7 @@ class SyncClient {
       _completionEvents = _SyncListenerGroup<void>('sync-completion');
 
       _completionEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_complete(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_complete(_ptr, nativePort),
           (dynamic _, controller) => controller.add(null)));
 
       _completionEvents!.finish();
@@ -373,7 +375,7 @@ class SyncClient {
               entityTypesById[entityDef.model.id.id] = entity);
 
       _changeEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_change(ptr, nativePort),
+          (int nativePort) => C.dartc_sync_listener_change(_ptr, nativePort),
           (dynamic msg, controller) {
         if (msg is! List) {
           controller.addError(Exception(

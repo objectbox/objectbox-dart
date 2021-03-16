@@ -37,7 +37,7 @@ class Model {
     throw ObjectBoxException(
         dartMsg: 'Model building failed',
         nativeCode: C.model_error_code(_cModel),
-        nativeMsg: cString(C.model_error_message(_cModel)));
+        nativeMsg: dartStringFromC(C.model_error_message(_cModel)));
   }
 
   void addEntity(ModelEntity entity) {

@@ -185,7 +185,13 @@ class Store {
   }
 
   /// Returns a cached Box instance.
+  @pragma('vm:prefer-inline')
   Box<T> box<T>() {
+    /// TODO evaluate performance, maybe we can do better with a fixed-size list
+    /// and using entity IDs as indexes. While that would mean there would be
+    /// "empty" spaces, these shouldn't be common and we can have an "empty" box
+    /// there (to avoid nullable type) - it wouldn't be accessible anyway.
+    /// Alternatively, we can flip this over and let T store the box.
     if (!_boxes.containsKey(T)) {
       return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
     }
@@ -209,6 +215,7 @@ class Store {
   /// that you can perform any number of operations and use objects of multiple
   /// boxes. In addition, you get a consistent (transactional) view on your data
   /// while the transaction is in progress.
+  @pragma('vm:prefer-inline')
   R runInTransaction<R>(TxMode mode, R Function() fn) =>
       Transaction.execute(this, mode, fn);
 
@@ -217,6 +224,7 @@ class Store {
   SyncClient? syncClient() => syncClientsStorage[this];
 
   /// The low-level pointer to this store.
+  @pragma('vm:prefer-inline')
   Pointer<OBX_store> get _ptr {
     if (_closed) throw Exception('Cannot access a closed store pointer');
     return _cStore;
@@ -227,6 +235,7 @@ class Store {
 @internal
 class InternalStoreAccess {
   /// Access entity model for the given class (Dart Type).
+  @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 
   /// Access model definitions
@@ -242,6 +251,7 @@ class InternalStoreAccess {
       store._onClose.remove(key);
 
   /// The low-level pointer to this store.
+  @pragma('vm:prefer-inline')
   static Pointer<OBX_store> ptr(Store store) => store._ptr;
 }
 

@@ -58,14 +58,16 @@ class _QueryBuilder<T> {
     checkObx(C.qb_close(_cBuilder));
   }
 
+  @pragma('vm:prefer-inline')
   void _throwExceptionIfNecessary() {
     if (C.qb_error_code(_cBuilder) != OBX_SUCCESS) {
-      final msg = cString(C.qb_error_message(_cBuilder));
+      final msg = dartStringFromC(C.qb_error_message(_cBuilder));
       throw ObjectBoxException(
           dartMsg: 'Query building failed', nativeMsg: msg);
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _throwIfOtherEntity(int entityId) {
     if (entityId != _entity.model.id.id) {
       throw Exception(
@@ -73,6 +75,7 @@ class _QueryBuilder<T> {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _applyCondition() {
     if (_queryCondition != null &&
         0 == _queryCondition!._apply(this, isRoot: true)) {
