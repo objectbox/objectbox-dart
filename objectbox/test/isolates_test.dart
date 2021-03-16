@@ -99,7 +99,7 @@ void main() {
     isolate.kill();
     receivePort.close();
     env.close();
-  }, skip: asyncCallbacksAvailable() ? null : 'See issue #197');
+  });
 }
 
 // Echoes back any received message.

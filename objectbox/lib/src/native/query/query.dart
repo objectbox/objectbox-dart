@@ -714,7 +714,8 @@ class Query<T> {
   String describe() => dartStringFromC(C.query_describe(_cQuery));
 
   /// For internal testing purposes.
-  String describeParameters() => dartStringFromC(C.query_describe_params(_cQuery));
+  String describeParameters() =>
+      dartStringFromC(C.query_describe_params(_cQuery));
 
   /// Creates a property query for the given property [qp].
   ///

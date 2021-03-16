@@ -27,8 +27,6 @@ void main() async {
 
   tearDown(() => env.close());
 
-  if (!asyncCallbacksAvailable()) return;
-
   test('Observe single entity', () async {
     late Completer<void> completer;
     var expectedEvents = 0;
