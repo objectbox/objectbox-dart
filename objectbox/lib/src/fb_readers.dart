@@ -14,6 +14,7 @@ class EagerListReader<E> extends Reader<List<E>> {
   int get size => 4;
 
   @override
+  @pragma('vm:prefer-inline')
   List<E> read(BufferContext bc, int offset) {
     final listOffset = bc.derefObject(offset);
     final length = bc.buffer.getUint32(listOffset, Endian.little);

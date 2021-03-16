@@ -49,35 +49,48 @@ class BufferContext {
 
   BufferContext._(this._buffer);
 
+  @pragma('vm:prefer-inline')
   int derefObject(int offset) {
     return offset + _getUint32(offset);
   }
 
+  @pragma('vm:prefer-inline')
   Uint8List _asUint8LIst(int offset, int length) =>
       _buffer.buffer.asUint8List(_buffer.offsetInBytes + offset, length);
 
+  @pragma('vm:prefer-inline')
   double _getFloat64(int offset) => _buffer.getFloat64(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   double _getFloat32(int offset) => _buffer.getFloat32(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getInt64(int offset) => _buffer.getInt64(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getInt32(int offset) => _buffer.getInt32(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getInt16(int offset) => _buffer.getInt16(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getInt8(int offset) => _buffer.getInt8(offset);
 
+  @pragma('vm:prefer-inline')
   int _getUint64(int offset) => _buffer.getUint64(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getUint32(int offset) => _buffer.getUint32(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getUint16(int offset) => _buffer.getUint16(offset, Endian.little);
 
+  @pragma('vm:prefer-inline')
   int _getUint8(int offset) => _buffer.getUint8(offset);
 
   /// If the [byteList] is already a [Uint8List] return it.
   /// Otherwise return a [Uint8List] copy of the [byteList].
+  @pragma('vm:prefer-inline')
   static Uint8List _asUint8List(List<int> byteList) {
     if (byteList is Uint8List) {
       return byteList;
@@ -802,6 +815,7 @@ class BoolListReader extends Reader<List<bool>> {
   int get size => _sizeofUint32;
 
   @override
+  @pragma('vm:prefer-inline')
   List<bool> read(BufferContext bc, int offset) =>
       new _FbBoolList(bc, bc.derefObject(offset));
 }
@@ -814,6 +828,7 @@ class BoolReader extends Reader<bool> {
   int get size => _sizeofUint8;
 
   @override
+  @pragma('vm:prefer-inline')
   bool read(BufferContext bc, int offset) => bc._getInt8(offset) != 0;
 }
 
@@ -827,6 +842,7 @@ class Float64ListReader extends Reader<List<double>> {
   int get size => _sizeofFloat64;
 
   @override
+  @pragma('vm:prefer-inline')
   List<double> read(BufferContext bc, int offset) =>
       new _FbFloat64List(bc, bc.derefObject(offset));
 }
@@ -838,6 +854,7 @@ class Float32ListReader extends Reader<List<double>> {
   int get size => _sizeofFloat32;
 
   @override
+  @pragma('vm:prefer-inline')
   List<double> read(BufferContext bc, int offset) =>
       new _FbFloat32List(bc, bc.derefObject(offset));
 }
@@ -849,6 +866,7 @@ class Float64Reader extends Reader<double> {
   int get size => _sizeofFloat64;
 
   @override
+  @pragma('vm:prefer-inline')
   double read(BufferContext bc, int offset) => bc._getFloat64(offset);
 }
 
@@ -859,6 +877,7 @@ class Float32Reader extends Reader<double> {
   int get size => _sizeofFloat32;
 
   @override
+  @pragma('vm:prefer-inline')
   double read(BufferContext bc, int offset) => bc._getFloat32(offset);
 }
 
@@ -868,6 +887,7 @@ class Int64Reader extends Reader<int> {
   int get size => _sizeofInt64;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getInt64(offset);
 }
 
@@ -879,6 +899,7 @@ class Int32Reader extends Reader<int> {
   int get size => _sizeofInt32;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getInt32(offset);
 }
 
@@ -890,6 +911,7 @@ class Int16Reader extends Reader<int> {
   int get size => _sizeofInt16;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getInt16(offset);
 }
 
@@ -901,6 +923,7 @@ class Int8Reader extends Reader<int> {
   int get size => _sizeofInt8;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getInt8(offset);
 }
 
@@ -930,6 +953,7 @@ abstract class Reader<T> {
   /// Read the value at the given [offset] in [bc].
   T read(BufferContext bc, int offset);
 
+  @pragma('vm:prefer-inline')
   int _vTableFieldOffset(BufferContext object, int offset, int field) {
     int vTableSOffset = object._getInt32(offset);
     int vTableOffset = offset - vTableSOffset;
@@ -939,12 +963,14 @@ abstract class Reader<T> {
   }
 
   /// Read the value of the given [field] in the given [object].
+  @pragma('vm:prefer-inline')
   T? vTableGetNullable(BufferContext object, int offset, int field) {
     int fieldOffset = _vTableFieldOffset(object, offset, field);
     return fieldOffset == 0 ? null : read(object, offset + fieldOffset);
   }
 
   /// Read the value of the given [field] in the given [object].
+  @pragma('vm:prefer-inline')
   T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
     int fieldOffset = _vTableFieldOffset(object, offset, field);
     return fieldOffset == 0 ? defaultValue : read(object, offset + fieldOffset);
@@ -959,6 +985,7 @@ class StringReader extends Reader<String> {
   int get size => 4;
 
   @override
+  @pragma('vm:prefer-inline')
   String read(BufferContext bc, int offset) {
     int strOffset = bc.derefObject(offset);
     int length = bc._getUint32(strOffset);
@@ -969,6 +996,7 @@ class StringReader extends Reader<String> {
     return utf8.decode(bytes);
   }
 
+  @pragma('vm:prefer-inline')
   static bool _isLatin(Uint8List bytes) {
     int length = bytes.length;
     for (int i = 0; i < length; i++) {
@@ -1019,6 +1047,7 @@ class Uint32ListReader extends Reader<List<int>> {
   int get size => _sizeofUint32;
 
   @override
+  @pragma('vm:prefer-inline')
   List<int> read(BufferContext bc, int offset) =>
       new _FbUint32List(bc, bc.derefObject(offset));
 }
@@ -1033,6 +1062,7 @@ class Uint64Reader extends Reader<int> {
   int get size => _sizeofUint64;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getUint64(offset);
 }
 
@@ -1044,6 +1074,7 @@ class Uint32Reader extends Reader<int> {
   int get size => _sizeofUint32;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getUint32(offset);
 }
 
@@ -1057,6 +1088,7 @@ class Uint16ListReader extends Reader<List<int>> {
   int get size => _sizeofUint32;
 
   @override
+  @pragma('vm:prefer-inline')
   List<int> read(BufferContext bc, int offset) =>
       new _FbUint16List(bc, bc.derefObject(offset));
 }
@@ -1069,6 +1101,7 @@ class Uint16Reader extends Reader<int> {
   int get size => _sizeofUint16;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getUint16(offset);
 }
 
@@ -1082,6 +1115,7 @@ class Uint8ListReader extends Reader<List<int>> {
   int get size => _sizeofUint32;
 
   @override
+  @pragma('vm:prefer-inline')
   List<int> read(BufferContext bc, int offset) =>
       new _FbUint8List(bc, bc.derefObject(offset));
 }
@@ -1094,6 +1128,7 @@ class Uint8Reader extends Reader<int> {
   int get size => _sizeofUint8;
 
   @override
+  @pragma('vm:prefer-inline')
   int read(BufferContext bc, int offset) => bc._getUint8(offset);
 }
 
@@ -1102,6 +1137,7 @@ class _FbFloat64List extends _FbList<double> {
   _FbFloat64List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   double operator [](int i) {
     return bc._getFloat64(offset + 4 + 8 * i);
   }
@@ -1112,6 +1148,7 @@ class _FbFloat32List extends _FbList<double> {
   _FbFloat32List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   double operator [](int i) {
     return bc._getFloat32(offset + 4 + 4 * i);
   }
@@ -1127,6 +1164,7 @@ class _FbGenericList<E> extends _FbList<E> {
       : super(bp, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   E operator [](int i) {
     _items ??= List<E?>.filled(length, null);
     E? item = _items![i];
@@ -1147,6 +1185,7 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
   _FbList(this.bc, this.offset);
 
   @override
+  @pragma('vm:prefer-inline')
   int get length {
     _length ??= bc._getUint32(offset);
     return _length!;
@@ -1166,6 +1205,7 @@ class _FbUint32List extends _FbList<int> {
   _FbUint32List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   int operator [](int i) {
     return bc._getUint32(offset + 4 + 4 * i);
   }
@@ -1176,6 +1216,7 @@ class _FbUint16List extends _FbList<int> {
   _FbUint16List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   int operator [](int i) {
     return bc._getUint16(offset + 4 + 2 * i);
   }
@@ -1186,6 +1227,7 @@ class _FbUint8List extends _FbList<int> {
   _FbUint8List(BufferContext bc, int offset) : super(bc, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   int operator [](int i) {
     return bc._getUint8(offset + 4 + i);
   }
@@ -1196,6 +1238,7 @@ class _FbBoolList extends _FbList<bool> {
   _FbBoolList(BufferContext bc, int offset) : super(bc, offset);
 
   @override
+  @pragma('vm:prefer-inline')
   bool operator [](int i) {
     return bc._getUint8(offset + 4 + i) == 1 ? true : false;
   }
@@ -1224,6 +1267,7 @@ class _VTable {
 
   int get numOfUint16 => 1 + 1 + fieldOffsets.length;
 
+  @pragma('vm:prefer-inline')
   void addField(int field, int offset) {
     assert(!offsetsComputed);
     // We need to increase the offset by 1 to later (in [computeFieldOffsets])
@@ -1332,6 +1376,7 @@ class DefaultAllocator extends Allocator {
   }
 
   @override
+  @pragma('vm:prefer-inline')
   void clear(ByteData data, bool isFresh) {
     if (isFresh) {
       // nothing to do, ByteData is created all zeroed out
