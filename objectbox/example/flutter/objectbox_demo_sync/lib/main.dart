@@ -51,8 +51,8 @@ class ViewModel {
   late final Query<Note> _query;
 
   ViewModel(Directory dir)
-      : _store =
-            Store(getObjectBoxModel(), directory: dir.path + '/objectbox') {
+      : _store = Store(getObjectBoxModel(),
+            directory: dir.path + '/objectbox-sync') {
     _box = Box<Note>(_store);
     _query = _box.query().order(Note_.date, flags: Order.descending).build();
 
@@ -62,7 +62,7 @@ class ViewModel {
     // 127.0.0.1 is your host PC if an app is run in an iOS simulator.
     final syncServerIp = Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
     final syncClient =
-    Sync.client(_store, 'ws://$syncServerIp:9999', SyncCredentials.none());
+        Sync.client(_store, 'ws://$syncServerIp:9999', SyncCredentials.none());
     syncClient.start();
   }
 
