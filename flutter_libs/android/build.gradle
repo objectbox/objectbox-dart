@@ -10,7 +10,11 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    // https://bintray.com/objectbox/objectbox/io.objectbox%3Aobjectbox-android
-    implementation "io.objectbox:objectbox-android:2.9.0"
+    // https://search.maven.org/search?q=g:io.objectbox%20objectbox-android
+    implementation "io.objectbox:objectbox-android:2.9.1"
 }
