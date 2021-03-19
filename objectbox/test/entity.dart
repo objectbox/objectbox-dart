@@ -135,7 +135,7 @@ class TestEntity {
     this.uShort,
     this.uByte,
     this.uChar,
-  }): tString = '';
+  }) : tString = '';
 
   @Property(type: PropertyType.byte)
   @Index()
@@ -167,7 +167,7 @@ class TestEntity {
     this.iShort,
     this.iByte,
     this.iChar,
-  }): tString = '';
+  }) : tString = '';
 
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();
