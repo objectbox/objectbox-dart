@@ -1,4 +1,4 @@
-## latest
+## 0.13.0 (2021-03-19)
 
 * Null-safety support: both in the library and the generated code.
 * Remove deprecated arguments `offset`, `limit`, `withEqual` from `Query` methods.
