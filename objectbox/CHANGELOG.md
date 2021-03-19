@@ -1,6 +1,12 @@
-## 0.13.0-nullsafety.3 (2021-03-17)
+## latest
 
-* Null-safety pre-release.
+* Null-safety support: both in the library and the generated code.
+* Remove deprecated arguments `offset`, `limit`, `withEqual` from `Query` methods.
+* More performance optimizations, mostly in our FlatBuffers fork.
+* Fix FlatBuffers builder growing.
+* Update to objectbox-c v0.13.0
+* Update to objectbox-android v2.9.1
+* Increase minimum SDK versions: Flutter v2.0 & Dart v2.12.
 
 ## 0.12.2 (2021-03-11)
 
