@@ -10,11 +10,12 @@ set -eu
 #   * have a look at the changed files to see if some call sites need to be updated
 cLibVersion=0.13.0
 os=$(uname)
+cLibArgs="$*"
 
 # if there's no tty this is probably part of a docker build - therefore we install the c-api explicitly
-cLibArgs=
-if [[ "$os" != MINGW* ]] && [[ "$os" != CYGWIN* ]]; then
+if [[ "$os" != MINGW* ]] && [[ "$os" != CYGWIN* ]] && [[ "$cLibArgs" != *"--install"* ]]; then
   tty -s || cLibArgs="${cLibArgs} --install"
 fi
+
 
 bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh) ${cLibArgs} ${cLibVersion}

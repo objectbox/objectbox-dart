@@ -24,19 +24,19 @@ class Person {
 
   String firstName;
   String lastName;
+
+  Person({this.id = 0, required this.firstName, required this.lastName});
 }
 
 // Note: in Flutter you also need to specify a directory, see examples.
 final store = Store(getObjectBoxModel());
 final box = store.box<Person>();
 
-var person = Person()
-  ..firstName = "Joe"
-  ..lastName = "Green";
+var person = Person(firstName: 'Joe', lastName: 'Green');
 
 final id = box.put(person);  // Create
 
-person = box.get(id);        // Read
+person = box.get(id)!;        // Read
 
 person.lastName = "Black";
 box.put(person);             // Update
@@ -86,6 +86,12 @@ dev_dependencies:
 
   ```shell script
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
+  ```
+  
+  To install ObjectBox Sync variant of the native library, pass `--sync` argument to the script:
+  
+  ```shell script
+  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
   ```
 
 * macOS: dart might later complain that it cannot find the `libobjectbox.dylib`. You probably have to unsign the `dart`

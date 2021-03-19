@@ -13,7 +13,7 @@ class TestingUnknownAnnotation {
 @Sync()
 class TestEntity {
   @TestingUnknownAnnotation()
-  int? id;
+  int id = 0;
 
   // implicitly determined types
   String? tString;
@@ -67,8 +67,7 @@ class TestEntity {
   Uint8List? tUint8List;
 
   TestEntity(
-      {this.id,
-      this.tString,
+      {this.tString,
       this.tLong,
       this.tDouble,
       this.tBool,
@@ -101,7 +100,7 @@ class TestEntity {
     tUint8List = Uint8List.fromList([7, 8, 9]);
   }
 
-  TestEntity.ignoredExcept(this.tInt) {
+  TestEntity.ignoredExcept(this.tInt) : tString = '' {
     omit = -1;
     disregard = 1;
   }
@@ -136,7 +135,7 @@ class TestEntity {
     this.uShort,
     this.uByte,
     this.uChar,
-  });
+  }): tString = '';
 
   @Property(type: PropertyType.byte)
   @Index()
@@ -168,7 +167,7 @@ class TestEntity {
     this.iShort,
     this.iByte,
     this.iChar,
-  });
+  }): tString = '';
 
   final relA = ToOne<RelatedEntityA>();
   final relB = ToOne<RelatedEntityB>();

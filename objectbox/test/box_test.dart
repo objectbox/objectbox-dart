@@ -39,7 +39,7 @@ void main() {
 
   test('.put() returns a valid id', () {
     final object = TestEntity(tString: 'Hello');
-    expect(object.id ?? 0, isZero);
+    expect(object.id, isZero);
     int putId = box.put(object);
     expect(putId, greaterThan(0));
     expect(object.id, equals(putId)); // ID on the object is updated
@@ -458,7 +458,7 @@ void main() {
   test('assignable IDs', () {
     // TestEntity.id IS NOT assignable so this must fail
     expect(
-        () => box.put(TestEntity(id: 1)),
+        () => box.put(TestEntity()..id = 1),
         throwsA(predicate((ObjectBoxException e) => e
             .toString()
             .contains('ID is higher or equal to internal ID sequence'))));

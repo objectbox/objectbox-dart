@@ -17,22 +17,22 @@ import 'package:objectbox/objectbox.dart';
 
 @Entity()
 class Note {
-    // Each "Entity" needs a unique integer ID property.
-    // Add `@Id()` annotation if its name isn't "id" (case insensitive).
-    int id;
+  // Each "Entity" needs a unique integer ID property.
+  // Add `@Id()` annotation if its name isn't "id" (case insensitive).
+  int id = 0;
 
-    String text;
+  String? text;
 
-    DateTime date;
+  DateTime date;
 
-    @Transient() // Make this field ignored, not stored in the database.
-    int notPersisted;
+  @Transient() // Make this field ignored, not stored in the database.
+  int? notPersisted;
 
-    // An empty default constructor is needed but you can use optional args.
-    Note({this.text});
+  // An empty default constructor is needed but you can use optional args.
+  Note({this.text, DateTime? date}) : date = date ?? DateTime.now();
 
-    // Note: just for logs in the examples below(), not needed by ObjectBox.
-    toString() => 'Note{id: $id, text: $text}';
+  // Note: just for logs in the examples below(), not needed by ObjectBox.
+  toString() => 'Note{id: $id, text: $text}';
 }
 ```
 
@@ -121,7 +121,7 @@ final box = store.box<Note>();
 final note = Note(text: 'Hello'); // note: note.id is null
 final id = box.put(note);         // note: sets note.id and also returns it
 print('new note got id=${id}, which is the same as note.id=${note.id}');
-print('refetched note: ${box.get(id)}');
+print('re-read note: ${box.get(id)}');
 ```
 
 Queries
@@ -175,7 +175,7 @@ Use "Property Queries" If you're interested only in a single property from an En
 You can access a list of property values across matching objects, or an aggregation.
 
 ```dart
-final query = box.query(Note_.date > 0).build()
+final query = box.query(Note_.date > 0).build();
 
 // Use distinct or caseSensitive to refine results.
 final textQuery = query.stringProperty(Note_.text)
@@ -213,9 +213,8 @@ final sub1 = queryStream.listen((query) {
 
 sub1.cancel();
 
-final stream = query.findStream(limit:5);
-final sub2 = stream.listen((list) {
-  // ...
+final sub2 = queryStream.listen((query) {
+  print(query.find());
 });
 
 // clean up
@@ -245,13 +244,13 @@ Have a look at the following example how a shop database could look like.
 ```dart
 @Entity()
 class Customer {
-  int id;
-  String name;
+  int id = 0;
+  String? name;
 }
 
 @Entity()
 class Order {
-  int id;
+  int id = 0;
 
   final customer = ToOne<Customer>();
   final items = ToMany<Item>();
@@ -259,7 +258,7 @@ class Order {
 
 @Entity()
 class Item {
-  int id;
+  int id = 0;
 }
 ```
 
@@ -291,8 +290,8 @@ Example: Two `Order` objects point to the same `Customer` using a `ToOne`. The b
 ```dart
 @Entity()
 class Customer {
-  int id;
-  String name;
+  int id = 0;
+  String? name;
   
   @Backlink()
   final orders = ToMany<Order>();
@@ -300,7 +299,7 @@ class Customer {
 
 @Entity()
 class Order {
-  int id;
+  int id = 0;
 
   final customer = ToOne<Customer>();
   final items = ToMany<Item>();
@@ -308,7 +307,7 @@ class Order {
 
 @Entity()
 class Item {
-  int id;
+  int id = 0;
 }
 ```
 
@@ -324,13 +323,13 @@ such a backlink to `Item`, so that we can access all `Order`s where this `Item` 
 ```dart
 @Entity()
 class Customer {
-  int id;
-  String name;
+  int id = 0;
+  String? name;
 }
 
 @Entity()
 class Order {
-  int id;
+  int id = 0;
 
   final customer = ToOne<Customer>();
   final items = ToMany<Item>();
@@ -338,7 +337,7 @@ class Order {
 
 @Entity()
 class Item {
-  int id;
+  int id = 0;
   
   @Backlink()
   final orders = ToMany<Order>();
