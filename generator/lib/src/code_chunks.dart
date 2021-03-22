@@ -194,9 +194,9 @@ class CodeChunks {
 
       String? fbReader;
       var readFieldOrNull = () =>
-          '$fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
+          'const $fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
       var readFieldNonNull = ([String? defaultValue]) =>
-          '$fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
+          'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
       var readField =
           () => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
 

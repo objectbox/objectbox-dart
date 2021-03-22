@@ -277,7 +277,7 @@ void main() {
 
         // Note: wait for the client to finish sending to the server.
         // There's currently no other way to recognize this.
-        sleep(Duration(milliseconds: 100));
+        sleep(const Duration(milliseconds: 100));
         client.close();
 
         final client2 = loggedInClient(env2.store);
@@ -401,7 +401,7 @@ class SyncServer {
           } on SocketException catch (e) {
             // only retry if "connection refused"
             if (e.osError!.errorCode != 111) rethrow;
-            await Future<void>.delayed(Duration(milliseconds: 1));
+            await Future<void>.delayed(const Duration(milliseconds: 1));
           }
         }
         httpClient.close(force: true);

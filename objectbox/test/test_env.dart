@@ -35,7 +35,7 @@ bool waitUntil(bool Function() predicate, {Duration timeout = defaultTimeout}) {
   final until = DateTime.now().add(timeout);
 
   while (!(success = predicate()) && until.isAfter(DateTime.now())) {
-    sleep(Duration(milliseconds: 1));
+    sleep(const Duration(milliseconds: 1));
   }
   return success;
 }

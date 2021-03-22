@@ -19,6 +19,8 @@ linter:
     - prefer_relative_imports
     - type_annotate_public_apis
     - prefer_initializing_formals
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
     # - lines_longer_than_80_chars
 
 # exclude standalone packages:
