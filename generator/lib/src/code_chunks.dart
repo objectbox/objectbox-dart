@@ -118,7 +118,7 @@ class CodeChunks {
     // prepare properties that must be defined before the FB table is started
     final offsets = <int, String>{};
     final offsetsCode = entity.properties.map((ModelProperty p) {
-      final offsetVar = 'offset${propertyFieldName(p)}';
+      final offsetVar = '${propertyFieldName(p)}Offset';
       var fieldName = 'object.${propertyFieldName(p)}';
       offsets[p.id.id] = offsetVar; // see default case in the switch
 
@@ -199,6 +199,7 @@ class CodeChunks {
           'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
       var readField =
           () => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
+      final valueVar = '${propertyFieldName(p)}Value';
 
       switch (p.type) {
         case OBXPropertyType.ByteVector:
@@ -208,8 +209,8 @@ class CodeChunks {
             fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
             if (p.fieldIsNullable) {
               preLines.add(
-                  'final val${propertyFieldName(p)} = ${readFieldOrNull()};');
-              return 'val${propertyFieldName(p)} == null ? null : ${p.fieldType}.fromList(val${propertyFieldName(p)})';
+                  'final $valueVar = ${readFieldOrNull()};');
+              return '$valueVar == null ? null : ${p.fieldType}.fromList($valueVar)';
             } else {
               return '${p.fieldType}.fromList(${readFieldNonNull('[]')})';
             }
@@ -229,11 +230,11 @@ class CodeChunks {
       if (p.fieldType == 'DateTime') {
         if (p.fieldIsNullable) {
           preLines
-              .add('final val${propertyFieldName(p)} = ${readFieldOrNull()};');
+              .add('final $valueVar = ${readFieldOrNull()};');
           if (p.type == OBXPropertyType.Date) {
-            return 'val${propertyFieldName(p)} == null ? null : DateTime.fromMillisecondsSinceEpoch(val${propertyFieldName(p)})';
+            return '$valueVar == null ? null : DateTime.fromMillisecondsSinceEpoch($valueVar)';
           } else if (p.type == OBXPropertyType.DateNano) {
-            return 'val${propertyFieldName(p)} == null ? null : DateTime.fromMicrosecondsSinceEpoch((val${propertyFieldName(p)} / 1000).round())';
+            return '$valueVar == null ? null : DateTime.fromMicrosecondsSinceEpoch(($valueVar / 1000).round())';
           }
         } else {
           if (p.type == OBXPropertyType.DateNano) {
