@@ -16,11 +16,13 @@ class CodeChunks {
     
     import 'dart:typed_data';
     
-    import 'package:objectbox/objectbox.dart';
     import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
-    export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
-    import '${imports.join("';\n import '")}';
+    import 'package:objectbox/objectbox.dart';
+    
+    import '${sorted(imports).join("';\n import '")}';
+    
+    export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     
     ModelDefinition getObjectBoxModel() {
       final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap())}, check: false);
@@ -33,6 +35,11 @@ class CodeChunks {
     
     ${model.entities.map((entity) => queryConditionClasses(entity)).join("\n")}
     """;
+
+  static List<T> sorted<T>(List<T> list) {
+    list.sort();
+    return list;
+  }
 
   static String entityBinding(ModelEntity entity) {
     final name = entity.name;
