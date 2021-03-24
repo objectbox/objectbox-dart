@@ -104,20 +104,17 @@ class EntityResolver extends Builder {
       var flags = 0;
       int? propUid;
 
-      if (_idChecker.hasAnnotationOfExact(f)) {
+      _idChecker.runIfMatches(f, (annotation) {
         flags |= OBXPropertyFlags.ID;
-
-        final annotation = _idChecker.firstAnnotationOfExact(f);
         if (annotation.getField('assignable')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.ID_SELF_ASSIGNABLE;
         }
-      }
+      });
 
-      if (_propertyChecker.hasAnnotationOfExact(f)) {
-        final annotation = _propertyChecker.firstAnnotationOfExact(f);
+      _propertyChecker.runIfMatches(f, (annotation) {
         propUid = annotation.getField('uid')!.toIntValue();
         fieldType = propertyTypeFromAnnotation(annotation.getField('type')!);
-      }
+      });
 
       if (fieldType == null) {
         final dartType = f.type;
@@ -169,16 +166,15 @@ class EntityResolver extends Builder {
             (f.type as ParameterizedType).typeArguments[0].element!.name;
       }
 
-      if (_backlinkChecker.hasAnnotationOfExact(f)) {
+      final backlinkAnnotations = _backlinkChecker.annotationsOfExact(f);
+      if (backlinkAnnotations.isNotEmpty) {
         if (!isToManyRel) {
           log.severe(
               '  invalid use of @Backlink() annotation - may only be used on a ToMany<> field');
           continue;
         }
-        final backlinkField = _backlinkChecker
-            .firstAnnotationOfExact(f)
-            .getField('to')!
-            .toStringValue()!;
+        final backlinkField =
+            backlinkAnnotations.first.getField('to')!.toStringValue()!;
         final backlink = ModelBacklink(f.name, relTargetName!, backlinkField);
         entity.backlinks.add(backlink);
         log.info('  $backlink');
@@ -186,7 +182,7 @@ class EntityResolver extends Builder {
         // create relation
         final rel =
             ModelRelation(IdUid.empty(), f.name, targetName: relTargetName);
-        if (propUid != null) rel.id.uid = propUid;
+        if (propUid != null) rel.id.uid = propUid!;
         entity.relations.add(rel);
 
         log.info('  $rel');
@@ -205,7 +201,7 @@ class EntityResolver extends Builder {
         // Index and unique annotation.
         processAnnotationIndexUnique(f, fieldType, element, prop);
 
-        if (propUid != null) prop.id.uid = propUid;
+        if (propUid != null) prop.id.uid = propUid!;
         // for code generation
         prop.dartFieldType =
             f.type.element!.name! + (isNullable(f.type) ? '?' : '');
@@ -388,5 +384,12 @@ class EntityResolver extends Builder {
   bool nullSafetyEnabled(Element element) {
     final sdk = element.library!.languageVersion.effective;
     return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
+  }
+}
+
+extension _TypeCheckerExtensions on TypeChecker {
+  void runIfMatches(Element element, void Function(DartObject) fn) {
+    final annotations = annotationsOfExact(element);
+    if (annotations.isNotEmpty) fn(annotations.first);
   }
 }
