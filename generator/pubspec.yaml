@@ -9,13 +9,13 @@ environment:
 
 dependencies:
   objectbox: 0.13.0
-  build: ^2.0.0
-  source_gen: ^1.0.0
   analyzer: ^1.1.0
+  build: ^2.0.0
+  collection: ^1.15.0
+  dart_style: ^2.0.0
   glob: ^2.0.0
   path: ^1.8.0
-  dart_style: ^2.0.0
-  collection: ^1.15.0
+  source_gen: ^1.0.0
 
 # NOTE: remove before publishing
 dependency_overrides:
