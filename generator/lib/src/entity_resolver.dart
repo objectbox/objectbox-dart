@@ -196,6 +196,9 @@ class EntityResolver extends Builder {
           prop.relationTarget = relTargetName;
           prop.flags |= OBXPropertyFlags.INDEXED;
           prop.flags |= OBXPropertyFlags.INDEX_PARTIAL_SKIP_ZERO;
+
+          // IDs must not be tagged unsigned for compatibility reasons
+          prop.flags &= ~OBXPropertyFlags.UNSIGNED;
         }
 
         // Index and unique annotation.

@@ -208,8 +208,7 @@ class CodeChunks {
             // constructor anyway - there's no Int8List.generate() factory.
             fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
             if (p.fieldIsNullable) {
-              preLines.add(
-                  'final $valueVar = ${readFieldOrNull()};');
+              preLines.add('final $valueVar = ${readFieldOrNull()};');
               return '$valueVar == null ? null : ${p.fieldType}.fromList($valueVar)';
             } else {
               return '${p.fieldType}.fromList(${readFieldNonNull('[]')})';
@@ -229,8 +228,7 @@ class CodeChunks {
       }
       if (p.fieldType == 'DateTime') {
         if (p.fieldIsNullable) {
-          preLines
-              .add('final $valueVar = ${readFieldOrNull()};');
+          preLines.add('final $valueVar = ${readFieldOrNull()};');
           if (p.type == OBXPropertyType.Date) {
             return '$valueVar == null ? null : DateTime.fromMillisecondsSinceEpoch($valueVar)';
           } else if (p.type == OBXPropertyType.DateNano) {
