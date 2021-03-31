@@ -235,9 +235,9 @@ class CodeChunks {
             return '$valueVar == null ? null : DateTime.fromMicrosecondsSinceEpoch(($valueVar / 1000).round())';
           }
         } else {
-          if (p.type == OBXPropertyType.DateNano) {
+          if (p.type == OBXPropertyType.Date) {
             return "DateTime.fromMillisecondsSinceEpoch(${readFieldNonNull('0')})";
-          } else {
+          } else if (p.type == OBXPropertyType.DateNano) {
             return "DateTime.fromMicrosecondsSinceEpoch((${readFieldNonNull('0')} / 1000).round())";
           }
         }
