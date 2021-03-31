@@ -85,7 +85,8 @@ void main() {
       queryFloat.close();
     });
 
-    final queryString = box.query(tString.contains('t')).build();
+    final queryString =
+        box.query(tString.contains('t', caseSensitive: false)).build();
     expect(queryString.count(), 8);
     queryString.close();
 
@@ -235,7 +236,8 @@ void main() {
 
     final queryIntegers = box.query(tLong.lessThan(100)).build();
     final queryFloats = box.query(tDouble.between(-1.0, 1.0)).build();
-    final queryStrings = box.query(tString.endsWith('suffix')).build();
+    final queryStrings =
+        box.query(tString.endsWith('suffix', caseSensitive: false)).build();
 
     final start = [1, 2, 4, 5];
     for (var i = 0; i < tIntegers.length; i++) {
@@ -427,7 +429,8 @@ void main() {
     }
 
     // string
-    final query = box.query(tString.contains('t')).build();
+    final query =
+        box.query(tString.contains('t', caseSensitive: false)).build();
     final queryString = query.property(tString) as StringPropertyQuery;
     expect(queryString.count(), 8);
     expect((queryString..distinct = true).count(), 5);

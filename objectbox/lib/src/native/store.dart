@@ -57,7 +57,7 @@ class Store {
       int? maxDBSizeInKB,
       int? fileMode,
       int? maxReaders,
-      bool queriesCaseSensitiveDefault = false})
+      bool queriesCaseSensitiveDefault = true})
       : _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
     var model = Model(_defs.model);
@@ -155,7 +155,7 @@ class Store {
   ///   }
   /// ```
   Store.fromReference(this._defs, this._reference,
-      {bool queriesCaseSensitiveDefault = false})
+      {bool queriesCaseSensitiveDefault = true})
       // must not close the same native store twice so [_weak]=true
       : _weak = true,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {

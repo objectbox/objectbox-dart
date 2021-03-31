@@ -114,10 +114,10 @@ void main() {
       [q1, q2, q3, q4].forEach((q) => q.close());
     };
     final env1 = TestEnv('query1', queryCaseSensitive: true);
-    final env2 = TestEnv('query1', queryCaseSensitive: false);
+    final env2 = TestEnv('query2', queryCaseSensitive: false);
 
     // current default: case insensitive
-    testCaseSensitivity(env.box, false);
+    testCaseSensitivity(env.box, true);
     testCaseSensitivity(env1.box, true);
     testCaseSensitivity(env2.box, false);
 
@@ -480,21 +480,21 @@ void main() {
         .or(text.equals('World'));
     final q = box.query(c).build();
     final expectedString = [
-      '''((tString ==(i) "Goodbye"''',
+      '''((tString == "Goodbye"''',
       ''' AND tLong == 1337)''',
       ''' OR tLong == 1337''',
-      ''' OR tString ==(i) "Cruel"''',
-      ''' OR tString ==(i) "World")'''
+      ''' OR tString == "Cruel"''',
+      ''' OR tString == "World")'''
     ].join('\n');
     expect(q.describeParameters(), expectedString);
     q.close();
 
     for (var j = 1; j < 20; j++) {
       var tc = text.equals('Goodbye');
-      var expected = ['''tString ==(i) "Goodbye"'''];
+      var expected = ['''tString == "Goodbye"'''];
       for (var i = 0; i < j; i++) {
         tc = tc.and(text.endsWith('ye'));
-        expected.add(''' AND tString ends with(i) "ye"''');
+        expected.add(''' AND tString ends with "ye"''');
       }
       final q = box.query(tc).build();
       expect(q.describeParameters(), '''(${expected.join("\n")})''');
@@ -503,10 +503,10 @@ void main() {
 
     for (var j = 1; j < 20; j++) {
       var tc = text.equals('Goodbye');
-      var expected = ['''tString ==(i) "Goodbye"'''];
+      var expected = ['''tString == "Goodbye"'''];
       for (var i = 0; i < j; i++) {
         tc = tc.or(text.startsWith('Good'));
-        expected.add(''' OR tString starts with(i) "Good"''');
+        expected.add(''' OR tString starts with "Good"''');
       }
       final q = box.query(tc).build();
       expect(q.describeParameters(), '''(${expected.join("\n")})''');
