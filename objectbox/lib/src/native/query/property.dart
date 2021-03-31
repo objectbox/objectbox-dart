@@ -209,13 +209,14 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
 
 /// "Property query" for a string field. Created by [Query.property()].
 class StringPropertyQuery extends PropertyQuery<String> {
-  bool _caseSensitive = false;
+  bool _caseSensitive;
 
-  StringPropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super._(query, propertyId, obxType);
+  StringPropertyQuery._(
+      Store store, Pointer<OBX_query> query, int propertyId, int obxType)
+      : _caseSensitive = InternalStoreAccess.queryCS(store),
+        super._(query, propertyId, obxType);
 
-  /// Set to return case sensitive distinct values.
-  ///
+  /// Use case-sensitive comparison when querying [distinct] values.
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
@@ -229,6 +230,15 @@ class StringPropertyQuery extends PropertyQuery<String> {
   set distinct(bool d) {
     _distinct = d;
     checkObx(C.query_prop_distinct_case(_cProp, d, _caseSensitive));
+  }
+
+  /// Returns the count of non-null values.
+  @override
+  int count() {
+    // native c-api currently doesn't respect case-sensitive with distinct
+    // TODO Remove once this is fixed in all platforms (c-api ^0.13.1)
+    if (_distinct && !_caseSensitive) return find().length;
+    return super.count();
   }
 
   @override

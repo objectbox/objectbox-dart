@@ -763,7 +763,8 @@ class Query<T> {
         qp._type == OBXPropertyType.Double) {
       return DoublePropertyQuery._(_cQuery, qp._propertyId, qp._type) as PQ;
     } else if (OBXPropertyType.String == qp._type) {
-      return StringPropertyQuery._(_cQuery, qp._propertyId, qp._type) as PQ;
+      return StringPropertyQuery._(_store, _cQuery, qp._propertyId, qp._type)
+          as PQ;
     } else {
       throw Exception(
           'Property query: unsupported type (OBXPropertyType: ${qp._type})');

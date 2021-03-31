@@ -32,7 +32,7 @@ void main() {
   final strings = [
     'string',
     'another',
-    'string',
+    'String',
     '1withSuffix',
     '2withSuffix',
     '1withSuffix',
@@ -432,32 +432,39 @@ void main() {
     final query =
         box.query(tString.contains('t', caseSensitive: false)).build();
     final queryString = query.property(tString) as StringPropertyQuery;
+
+    final allStrings = queryString.find()..sort();
+    print('All items: $allStrings');
+
+    final testStringPQ =
+        ({required bool distinct, required bool caseSensitive}) {
+      queryString
+        ..distinct = distinct
+        ..caseSensitive = caseSensitive;
+      final items = queryString.find()..sort();
+
+      final itemsDartMap =
+          allStrings.map((s) => caseSensitive ? s : s.toLowerCase());
+      final itemsDart =
+          (distinct ? itemsDartMap.toSet() : itemsDartMap).toList()..sort();
+
+      expect(items.map((s) => caseSensitive ? s : s.toLowerCase()).toList(),
+          sameAsList(itemsDart));
+      if (queryString.count()!= itemsDart.length) {
+        printOnFailure('$itemsDart');
+        expect(queryString.count(), itemsDart.length);
+      }
+    };
+
     expect(queryString.count(), 8);
-    expect((queryString..distinct = true).count(), 5);
-    expect(
-        (queryString
-              ..distinct = false
-              ..caseSensitive = false)
-            .count(),
-        8);
-    expect(
-        (queryString
-              ..distinct = false
-              ..caseSensitive = true)
-            .count(),
-        8);
-    expect(
-        (queryString
-              ..distinct = true
-              ..caseSensitive = false)
-            .count(),
-        5);
-    expect(
-        (queryString
-              ..distinct = true
-              ..caseSensitive = true)
-            .count(),
-        5);
+
+    // test without setting "caseSensitive" (implies the default TRUE)
+    expect((queryString..distinct = true).count(), 6);
+
+    testStringPQ(distinct: false, caseSensitive: false);
+    testStringPQ(distinct: false, caseSensitive: true);
+    testStringPQ(distinct: true, caseSensitive: false);
+    testStringPQ(distinct: true, caseSensitive: true);
     queryString.close();
     query.close();
   });
