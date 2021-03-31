@@ -108,12 +108,8 @@ class Allocator extends fb.Allocator {
               .lookupFunction<_c_memset, _dart_memset>('memset');
         } catch (_) {
           // fall back if we can't load a native memset()
-          fbMemset = (Pointer<Uint8> ptr, int byte, int size) {
-            final bytes = ptr.cast<Uint8>();
-            for (var i = 0; i < size; i++) {
-              bytes[i] = byte;
-            }
-          };
+          fbMemset = (Pointer<Uint8> ptr, int byte, int size) =>
+              ptr.cast<Uint8>().asTypedList(size).fillRange(0, size, 0);
         }
       } else {
         fbMemset = DynamicLibrary.process()
