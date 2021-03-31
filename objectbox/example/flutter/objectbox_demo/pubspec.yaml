@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^0.1.2
-  path_provider: any
+  path_provider: ^2.0.0
   intl: any
   objectbox: ^0.13.0
   objectbox_flutter_libs: any
