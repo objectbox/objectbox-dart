@@ -6,7 +6,6 @@ import 'dart:typed_data';
 import '../modelinfo/entity_definition.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
-import 'query/query.dart';
 import 'store.dart';
 
 /// Simple wrapper used below in ObservableStore to reduce code duplication.
@@ -128,19 +127,4 @@ extension ObservableStore on Store {
 
     return observer.stream;
   }
-}
-
-/// Streamable adds stream support to queries.
-extension Streamable<T> on Query<T> {
-  /// Create a stream, executing [Query.find()] whenever there's a change to any
-  /// of the objects in the queried Box.
-  /// TODO consider removing, see issue #195
-  Stream<List<T>> findStream() => stream.map((q) => q.find());
-
-  /// The stream gets notified whenever there's a change in any of the objects
-  /// in the queried Box (regardless of the filter conditions).
-  ///
-  /// You can use the given [Query] object to run any of its operation,
-  /// e.g. find(), count(), execute a [property()] query
-  Stream<Query<T>> get stream => store.subscribe<T>().map((_) => this);
 }

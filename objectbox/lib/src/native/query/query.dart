@@ -12,6 +12,7 @@ import '../../transaction.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
+import '../observable.dart';
 
 part 'builder.dart';
 
@@ -611,13 +612,27 @@ class _ConditionGroupAll extends _ConditionGroup {
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
   final Pointer<OBX_query> _cQuery;
-  final Store store; // TODO make private
+  final Store _store;
   final EntityDefinition<T> _entity;
 
   int get entityId => _entity.model.id.id;
 
-  Query._(this.store, Pointer<OBX_query_builder> cBuilder, this._entity)
+  Query._(this._store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(C.query(cBuilder), 'create query');
+
+  /// Create a stream, executing [Query.find()] whenever there's a change to any
+  /// of the objects in the queried Box.
+  /// TODO consider removing, see issue #195
+  @Deprecated('use query.stream instead; '
+      'see https://github.com/objectbox/objectbox-dart/issues/195')
+  Stream<List<T>> findStream() => stream.map((q) => q.find());
+
+  /// The stream gets notified whenever there's a change in any of the objects
+  /// in the queried Box (regardless of the filter conditions).
+  ///
+  /// You can use the given [Query] object to run any of its operation,
+  /// e.g. find(), count(), execute a [property()] query
+  Stream<Query<T>> get stream => _store.subscribe<T>().map((_) => this);
 
   /// Configure an [offset] for this query.
   ///
@@ -676,12 +691,12 @@ class Query<T> {
   T? findFirst() {
     T? result;
     final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-      result = _entity.objectFromFB(store, dataPtr.asTypedList(length));
+      result = _entity.objectFromFB(_store, dataPtr.asTypedList(length));
       return false; // we only want to visit the first element
     });
 
     try {
-      store.runInTransaction(TxMode.read, () {
+      _store.runInTransaction(TxMode.read, () {
         checkObx(C.query_visit(_cQuery, visitor.fn, visitor.userData));
       });
     } finally {
@@ -706,9 +721,9 @@ class Query<T> {
 
   /// Finds Objects matching the query.
   List<T> find() {
-    final collector = ObjectCollector<T>(store, _entity);
+    final collector = ObjectCollector<T>(_store, _entity);
     try {
-      store.runInTransaction(
+      _store.runInTransaction(
           TxMode.read,
           () => checkObx(
               C.query_visit(_cQuery, collector.fn, collector.userData)));
