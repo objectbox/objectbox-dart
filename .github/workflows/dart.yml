@@ -26,15 +26,10 @@ jobs:
           - macos-10.15
           - ubuntu-20.04
         dart:
-          # - latest  # currently same as the lowest supported
+          - latest  # currently same as the lowest supported
           - 2.12.0  # currently the lowest fully supported version (i.e. generator + lib)
     runs-on: ${{ matrix.os }}
     steps:
-      # Note: dart-sdk from flutter doesn't work on linux, see https://github.com/flutter/flutter/issues/74599
-      #      - uses: subosito/flutter-action@v1
-      #        with:
-      #          flutter-version: 1.22.x
-      #      - run: flutter --version
       - uses: cedx/setup-dart@v2
         with:
           version: ${{ matrix.dart }}
@@ -49,7 +44,6 @@ jobs:
           ../tool/pub.sh get
           ../tool/pub.sh run build_runner build
           ../tool/pub.sh run test
-
 
   valgrind:
     runs-on: ubuntu-20.04
@@ -69,3 +63,25 @@ jobs:
           ../tool/pub.sh get
           ../tool/pub.sh run build_runner build
           ./tool/valgrind.sh
+
+  flutter-integration-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2019
+          - macos-10.15
+          - ubuntu-20.04
+        channel:
+          - beta
+          - stable
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: ${{ matrix.channel }}
+      - run: echo $PATH
+      - run: flutter --version
+      - uses: actions/checkout@v2
+      - run: make integration-test
+        working-directory: objectbox
