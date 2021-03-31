@@ -1,3 +1,16 @@
+## latest
+
+* Fix non-nullable Date fields deserialization regression (introduced in v0.13.0) - fields were read as DateNano.
+* Respect string property query distinct `count()` result (was same as case-sensitive).
+* Query `findFirst()` doesn't overwrite `offset` and `limit` anymore.  
+* Change Query string conditions `caseSensitive` default to `true`, previously conditions were case-insensitive by default.
+* Introduce Store constructor argument `queriesCaseSensitiveDefault` allowing to change the default behaviour of `caseSensitive` argument.
+* Store-configured `queriesCaseSensitiveDefault` is now also the default for string property queries when using `distinct = true`.
+* Get around Flutter's Android release build issue by changing the offending code.
+* Remove deprecated APIs from internal plugin interfaces (Flutter build notified about them).  
+* Generator - update dependencies to their null-safe versions
+* Generated code - avoid more linter issues.
+
 ## 0.13.0 (2021-03-19)
 
 * Null-safety support: both in the library and the generated code.
