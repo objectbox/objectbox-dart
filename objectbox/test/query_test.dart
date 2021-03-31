@@ -92,6 +92,39 @@ void main() {
     });
   });
 
+  test('string case-sensitivity', () {
+    final testCaseSensitivity = (Box<TestEntity> box, bool defaultIsTrue) {
+      box.put(TestEntity(tString: 'Hello'));
+      box.put(TestEntity(tString: 'hello'));
+
+      final t = TestEntity_.tString;
+
+      final q1 = box.query(t.startsWith('hello')).build();
+      expect(q1.count(), 1 + (defaultIsTrue ? 0 : 1));
+
+      final q2 = box.query(t.startsWith('hello', caseSensitive: true)).build();
+      expect(q2.count(), 1);
+
+      final q3 = box.query(t.startsWith('Hello', caseSensitive: true)).build();
+      expect(q3.count(), 1);
+
+      final q4 = box.query(t.endsWith('ello', caseSensitive: true)).build();
+      expect(q4.count(), 2);
+
+      [q1, q2, q3, q4].forEach((q) => q.close());
+    };
+    final env1 = TestEnv('query1', queryCaseSensitive: true);
+    final env2 = TestEnv('query1', queryCaseSensitive: false);
+
+    // current default: case insensitive
+    testCaseSensitivity(env.box, false);
+    testCaseSensitivity(env1.box, true);
+    testCaseSensitivity(env2.box, false);
+
+    env1.close();
+    env2.close();
+  });
+
   test('.count doubles and booleans', () {
     box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),

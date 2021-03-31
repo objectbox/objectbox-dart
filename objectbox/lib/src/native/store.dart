@@ -32,6 +32,9 @@ class Store {
   /// whether this store was created from a pointer (won't close in that case)
   final bool _weak;
 
+  /// Default value for string query conditions [caseSensitive] argument.
+  final bool _queriesCaseSensitiveDefault;
+
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file.
   ///
@@ -48,9 +51,15 @@ class Store {
   /// ```
   ///
   /// See our examples for more details.
+  /// TODO have an Options class?
   Store(this._defs,
-      {String? directory, int? maxDBSizeInKB, int? fileMode, int? maxReaders})
-      : _weak = false {
+      {String? directory,
+      int? maxDBSizeInKB,
+      int? fileMode,
+      int? maxReaders,
+      bool queriesCaseSensitiveDefault = false})
+      : _weak = false,
+        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
     var model = Model(_defs.model);
 
     var opt = C.opt();
@@ -145,9 +154,11 @@ class Store {
   ///     ...
   ///   }
   /// ```
-  Store.fromReference(this._defs, this._reference)
-      : _weak = true // must not close the same native store twice
-  {
+  Store.fromReference(this._defs, this._reference,
+      {bool queriesCaseSensitiveDefault = false})
+      // must not close the same native store twice so [_weak]=true
+      : _weak = true,
+        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
     // see [reference] for serialization order
     final readPid = _reference.getUint64(0 * _int64Size);
     if (readPid != pid) {
@@ -253,6 +264,10 @@ class InternalStoreAccess {
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
   static Pointer<OBX_store> ptr(Store store) => store._ptr;
+
+  /// String query case-sensitive default
+  @pragma('vm:prefer-inline')
+  static bool queryCS(Store store) => store._queriesCaseSensitiveDefault;
 }
 
 const _int64Size = 8;

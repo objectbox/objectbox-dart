@@ -60,44 +60,44 @@ class QueryStringProperty extends QueryProperty {
       {required int entityId, required int propertyId, required int obxType})
       : super(entityId, propertyId, obxType);
 
-  Condition _op(String p, _ConditionOp cop, {required bool caseSensitive}) =>
+  Condition _op(String p, _ConditionOp cop, {bool? caseSensitive}) =>
       _StringCondition(cop, this, p, null, caseSensitive: caseSensitive);
 
   Condition _opList(List<String> list, _ConditionOp cop,
-          {required bool caseSensitive}) =>
+          {bool? caseSensitive}) =>
       _StringListCondition(cop, this, list, caseSensitive: caseSensitive);
 
-  Condition equals(String p, {bool caseSensitive = false}) =>
+  Condition equals(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.eq, caseSensitive: caseSensitive);
 
-  Condition notEquals(String p, {bool caseSensitive = false}) =>
+  Condition notEquals(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.notEq, caseSensitive: caseSensitive);
 
-  Condition endsWith(String p, {bool caseSensitive = false}) =>
+  Condition endsWith(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.endsWith, caseSensitive: caseSensitive);
 
-  Condition startsWith(String p, {bool caseSensitive = false}) =>
+  Condition startsWith(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.startsWith, caseSensitive: caseSensitive);
 
-  Condition contains(String p, {bool caseSensitive = false}) =>
+  Condition contains(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.contains, caseSensitive: caseSensitive);
 
-  Condition inside(List<String> list, {bool caseSensitive = false}) =>
+  Condition inside(List<String> list, {bool? caseSensitive}) =>
       _opList(list, _ConditionOp.inside, caseSensitive: caseSensitive);
 
-  Condition notIn(List<String> list, {bool caseSensitive = false}) =>
+  Condition notIn(List<String> list, {bool? caseSensitive}) =>
       _opList(list, _ConditionOp.notIn, caseSensitive: caseSensitive);
 
-  Condition greaterThan(String p, {bool caseSensitive = false}) =>
+  Condition greaterThan(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.gt, caseSensitive: caseSensitive);
 
-  Condition greaterOrEqual(String p, {bool caseSensitive = false}) =>
+  Condition greaterOrEqual(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.greaterOrEq, caseSensitive: caseSensitive);
 
-  Condition lessThan(String p, {bool caseSensitive = false}) =>
+  Condition lessThan(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.lt, caseSensitive: caseSensitive);
 
-  Condition lessOrEqual(String p, {bool caseSensitive = false}) =>
+  Condition lessOrEqual(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.lessOrEq, caseSensitive: caseSensitive);
 }
 
@@ -202,7 +202,7 @@ class QueryStringVectorProperty extends QueryProperty {
       {required int entityId, required int propertyId, required int obxType})
       : super(entityId, propertyId, obxType);
 
-  Condition contains(String p, {bool caseSensitive = false}) =>
+  Condition contains(String p, {bool? caseSensitive}) =>
       _StringCondition(_ConditionOp.contains, this, p, null,
           caseSensitive: caseSensitive);
 }
@@ -314,20 +314,19 @@ abstract class _PropertyCondition<DartType> extends Condition {
 }
 
 class _StringCondition extends _PropertyCondition<String> {
-  final bool _caseSensitive;
+  bool? caseSensitive;
 
   _StringCondition(
       _ConditionOp op, QueryProperty prop, String value, String? value2,
-      {required bool caseSensitive})
-      : _caseSensitive = caseSensitive,
-        super(op, prop, value, value2);
+      {this.caseSensitive})
+      : super(op, prop, value, value2);
 
   int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
     final cStr = _value.toNativeUtf8();
     try {
       return func(builder._cBuilder, _property._propertyId, cStr.cast(),
-          _caseSensitive);
+          caseSensitive ?? InternalStoreAccess.queryCS(builder._store));
     } finally {
       malloc.free(cStr);
     }
@@ -364,12 +363,11 @@ class _StringCondition extends _PropertyCondition<String> {
 }
 
 class _StringListCondition extends _PropertyCondition<List<String>> {
-  final bool _caseSensitive;
+  bool? caseSensitive;
 
   _StringListCondition(_ConditionOp op, QueryProperty prop, List<String> value,
-      {required bool caseSensitive})
-      : _caseSensitive = caseSensitive,
-        super(op, prop, value);
+      {this.caseSensitive})
+      : super(op, prop, value);
 
   int _inside(_QueryBuilder builder) {
     final func = C.qb_in_strings;
@@ -379,8 +377,12 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
       for (var i = 0; i < _value.length; i++) {
         arrayOfCStrings[i] = _value[i].toNativeUtf8().cast<Int8>();
       }
-      return func(builder._cBuilder, _property._propertyId, arrayOfCStrings,
-          listLength, _caseSensitive);
+      return func(
+          builder._cBuilder,
+          _property._propertyId,
+          arrayOfCStrings,
+          listLength,
+          caseSensitive ?? InternalStoreAccess.queryCS(builder._store));
     } finally {
       for (var i = 0; i < _value.length; i++) {
         malloc.free(arrayOfCStrings.elementAt(i).value);

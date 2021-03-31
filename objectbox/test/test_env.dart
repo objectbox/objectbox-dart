@@ -9,10 +9,15 @@ class TestEnv {
   final Directory dir;
   final Store store;
 
-  factory TestEnv(String name) {
+  factory TestEnv(String name, {bool? queryCaseSensitive}) {
     final dir = Directory('testdata-' + name);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
-    return TestEnv._(dir, Store(getObjectBoxModel(), directory: dir.path));
+    final store = queryCaseSensitive == null
+        ? Store(getObjectBoxModel(), directory: dir.path)
+        : Store(getObjectBoxModel(),
+            directory: dir.path,
+            queriesCaseSensitiveDefault: queryCaseSensitive);
+    return TestEnv._(dir, store);
   }
 
   TestEnv._(this.dir, this.store);
