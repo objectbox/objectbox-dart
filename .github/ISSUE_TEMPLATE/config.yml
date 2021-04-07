@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Question
     url: https://stackoverflow.com/questions/tagged/objectbox
-    about: Ask how to do something, or why it isn't working at Stack Overflow.
+    about: Ask at Stack Overflow - how to do something, or why it isn't working.
