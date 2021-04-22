@@ -18,6 +18,14 @@ jobs:
       - name: Test
         run: ./generator/test.sh
 
+  # make sure the init script doesn't stop working - it's not something we usually run during normal development
+  init-script:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v1
+      - run: ./tool/init.sh
+
   lib:
     strategy:
       matrix:
