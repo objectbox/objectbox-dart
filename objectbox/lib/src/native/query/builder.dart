@@ -71,7 +71,7 @@ class _QueryBuilder<T> {
   @pragma('vm:prefer-inline')
   void _throwIfOtherEntity(int entityId) {
     if (entityId != _entity.model.id.id) {
-      throw Exception(
+      throw ArgumentError(
           'Passed a property of another entity: $entityId instead of ${_entity.model.id.id}');
     }
   }

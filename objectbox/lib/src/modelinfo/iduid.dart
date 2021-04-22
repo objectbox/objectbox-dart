@@ -13,18 +13,14 @@ class IdUid {
   int get id => _id;
 
   set id(int id) {
-    if (id < 0 || id > ((1 << 63) - 1)) {
-      throw Exception('id out of bounds: $id');
-    }
+    RangeError.checkValueInInterval(id, 0, ((1 << 63) - 1), 'id');
     _id = id;
   }
 
   int get uid => _uid;
 
   set uid(int uid) {
-    if (uid < 0 || uid > ((1 << 63) - 1)) {
-      throw Exception('uid out of bounds: $uid');
-    }
+    RangeError.checkValueInInterval(uid, 0, ((1 << 63) - 1), 'uid');
     _uid = uid;
   }
 
@@ -42,8 +38,7 @@ class IdUid {
 
     final spl = str.split(':');
     if (spl.length != 2) {
-      throw Exception(
-          'IdUid has invalid format, wrong number of columns: $str');
+      throw ArgumentError.value(str, 'str', 'IdUid has invalid format');
     }
     id = int.parse(spl[0]);
     uid = int.parse(spl[1]);

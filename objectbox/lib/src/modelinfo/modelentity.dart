@@ -29,7 +29,7 @@ class ModelEntity {
 
   set name(String? value) {
     if (value == null || value.isEmpty) {
-      throw Exception('name must not be null or an empty string');
+      throw ArgumentError('name must not be null or an empty string');
     }
     _name = value;
   }
@@ -38,7 +38,7 @@ class ModelEntity {
 
   set flags(int? value) {
     if (value == null || value < 0) {
-      throw Exception('flags must be defined and may not be < 0');
+      throw ArgumentError('flags must be defined and may not be < 0');
     }
     _flags = value;
   }
@@ -46,12 +46,12 @@ class ModelEntity {
   ModelProperty get idProperty {
     _idProperty ??= _properties.singleWhere(
         (ModelProperty prop) => prop.hasFlag(OBXPropertyFlags.ID),
-        orElse: (() => throw Exception('idProperty is null')));
+        orElse: (() => throw StateError('idProperty is null')));
     return _idProperty!;
   }
 
   ModelInfo get model =>
-      (_model == null) ? throw Exception('model is null') : _model!;
+      (_model == null) ? throw StateError('model is null') : _model!;
 
   List<ModelProperty> get properties => _properties;
 
@@ -73,7 +73,7 @@ class ModelEntity {
     name = data['name'] as String?;
     flags = data['flags'] as int? ?? 0;
 
-    if (data['properties'] == null) throw Exception('properties is null');
+    ArgumentError.checkNotNull(data['properties'], "data['properties']");
     for (final p in data['properties']) {
       _properties.add(ModelProperty.fromMap(p as Map<String, dynamic>, this));
     }
@@ -105,23 +105,23 @@ class ModelEntity {
   void validate() {
     if (properties.isEmpty) {
       if (!lastPropertyId.isEmpty) {
-        throw Exception(
+        throw StateError(
             'lastPropertyId is not empty although there are no properties');
       }
     } else {
       var lastPropertyIdFound = false;
       for (final p in properties) {
         if (p.entity != this) {
-          throw Exception(
+          throw StateError(
               "property '${p.name}' with id ${p.id} has incorrect parent entity reference");
         }
         if (lastPropertyId.id < p.id.id) {
-          throw Exception(
+          throw StateError(
               "lastPropertyId $lastPropertyId is lower than the one of property '${p.name}' with id ${p.id}");
         }
         if (lastPropertyId.id == p.id.id) {
           if (lastPropertyId.uid != p.id.uid) {
-            throw Exception(
+            throw StateError(
                 "lastPropertyId $lastPropertyId does not match property '${p.name}' with id ${p.id}");
           }
           lastPropertyIdFound = true;
@@ -130,14 +130,14 @@ class ModelEntity {
 
       if (!lastPropertyIdFound &&
           !model.retiredPropertyUids.contains(lastPropertyId.uid)) {
-        throw Exception(
+        throw StateError(
             'lastPropertyId $lastPropertyId does not match any property');
       }
     }
 
     for (final r in relations) {
       if (r.targetId.isEmpty) {
-        throw Exception(
+        throw StateError(
             "relation '${r.name}' with id ${r.id} has incorrect target entity reference");
       }
     }
@@ -172,7 +172,7 @@ class ModelEntity {
         .toList();
     if (found.isEmpty) return null;
     if (found.length >= 2) {
-      throw Exception(
+      throw StateError(
           'ambiguous property name: $name; please specify a UID in its annotation');
     }
     return found[0];
@@ -187,7 +187,7 @@ class ModelEntity {
   ModelProperty createProperty(String name, [int uid = 0]) {
     final id = lastPropertyId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
-      throw Exception('uid already exists: $uid');
+      throw StateError('uid already exists: $uid');
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
@@ -201,7 +201,7 @@ class ModelEntity {
   void removeProperty(ModelProperty prop) {
     final foundProp = findSameProperty(prop);
     if (foundProp == null) {
-      throw Exception(
+      throw StateError(
           "cannot remove property '${prop.name}' with id ${prop.id}: not found");
     }
     _properties.remove(foundProp);
@@ -223,7 +223,7 @@ class ModelEntity {
         .toList();
     if (found.isEmpty) return null;
     if (found.length >= 2) {
-      throw Exception(
+      throw StateError(
           'ambiguous relation name: $name; please specify a UID in its annotation');
     }
     return found[0];
@@ -238,7 +238,7 @@ class ModelEntity {
   ModelRelation createRelation(String name, [int uid = 0]) {
     final id = model.lastRelationId.id + 1;
     if (uid != 0 && model.containsUid(uid)) {
-      throw Exception('uid already exists: $uid');
+      throw StateError('uid already exists: $uid');
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
@@ -252,7 +252,7 @@ class ModelEntity {
   void removeRelation(ModelRelation rel) {
     final foundRel = findSameRelation(rel);
     if (foundRel == null) {
-      throw Exception(
+      throw StateError(
           "cannot remove relation '${rel.name}' with id ${rel.id}: not found");
     }
     _relations.remove(foundRel);

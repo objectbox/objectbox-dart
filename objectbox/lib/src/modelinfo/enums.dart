@@ -36,7 +36,7 @@ String obxPropertyTypeToString(int type) {
       return 'stringVector';
   }
 
-  throw Exception('Invalid OBXPropertyType: $type');
+  throw ArgumentError.value(type, 'type', 'Invalid OBXPropertyType');
 }
 
 int propertyTypeToOBXPropertyType(PropertyType type) {
@@ -58,7 +58,7 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
     case PropertyType.byteVector:
       return OBXPropertyType.ByteVector;
     default:
-      throw Exception('Invalid PropertyType: $type');
+      throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }
 }
 

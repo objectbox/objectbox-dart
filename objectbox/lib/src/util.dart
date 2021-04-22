@@ -5,4 +5,3 @@ import 'sync.dart';
 
 /// Global internal storage of sync clients - one client per store.
 final Map<Store, SyncClient> syncClientsStorage = {};
-

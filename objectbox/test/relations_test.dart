@@ -29,7 +29,7 @@ void main() {
     expect(
         () => src.relA.targetId,
         throwsA(
-            predicate((Exception e) => e.toString().contains('call attach('))));
+            predicate((StateError e) => e.toString().contains('call attach('))));
     src.relA.attach(env.store);
     expect(src.relA.targetId, isZero);
 

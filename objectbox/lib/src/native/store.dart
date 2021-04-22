@@ -233,7 +233,7 @@ class Store {
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
   Pointer<OBX_store> get _ptr {
-    if (_closed) throw Exception('Cannot access a closed store pointer');
+    if (_closed) throw StateError('Cannot access a closed store pointer');
     return _cStore;
   }
 }

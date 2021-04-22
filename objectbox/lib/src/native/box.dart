@@ -68,7 +68,7 @@ class Box<T> {
       case PutMode.update:
         return OBXPutMode.UPDATE;
       default:
-        throw Exception('Invalid put mode ' + mode.toString());
+        throw ArgumentError.value(mode, 'mode');
     }
   }
 
@@ -98,7 +98,7 @@ class Box<T> {
   int _put(T object, PutMode mode, Transaction? tx) {
     if (_hasRelations) {
       if (tx == null) {
-        throw Exception(
+        throw StateError(
             'Invalid state: can only use _put() on an entity with relations when executing from inside a write transaction.');
       }
       if (_hasToOneRelations) _putToOneRelFields(object, mode, tx);
@@ -373,7 +373,7 @@ class InternalBoxAccess {
           cIdsPtr = C.box_rel_get_backlink_ids(box.ptr, rel.id, rel.objectId);
           break;
         default:
-          throw UnimplementedError();
+          throw UnimplementedError('Invalid relation type ${rel.type}');
       }
       checkObxPtr(cIdsPtr);
       final result = <EntityT>[];

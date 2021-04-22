@@ -142,7 +142,7 @@ class ToOne<EntityT> {
 
   void _verifyAttached() {
     if (!_attached) {
-      throw Exception('ToOne relation field not initialized. '
+      throw StateError('ToOne relation field not initialized. '
           'Make sure to call attach(store) before the first use.');
     }
   }

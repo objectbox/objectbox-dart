@@ -37,7 +37,7 @@ ObjectBoxC loadObjectBoxLib() {
   } else if (Platform.isLinux) {
     libName = 'lib' + libName + '.so';
   } else {
-    throw Exception(
+    throw UnsupportedError(
         'unsupported platform detected: ${Platform.operatingSystem}');
   }
   lib ??= DynamicLibrary.open(libName);

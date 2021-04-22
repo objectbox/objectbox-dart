@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
+import 'package:objectbox/objectbox.dart';
 
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
@@ -158,7 +159,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
     if (_rel!.objectId == 0) {
       // This shouldn't happen but let's be a little paranoid.
-      throw Exception(
+      throw StateError(
           "Can't store relation info for the target object with zero ID");
     }
 
@@ -243,7 +244,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
   void _verifyAttached() {
     if (!_attached) {
-      throw Exception('ToMany relation field not initialized. '
+      throw StateError('ToMany relation field not initialized. '
           "Don't call applyToDb() on new objects, use box.put() instead.");
     }
   }

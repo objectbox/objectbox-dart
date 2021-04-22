@@ -145,7 +145,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.int64_array_free);
       default:
-        throw Exception(
+        throw UnsupportedError(
             'Property query: unsupported type (OBXPropertyType: $_type)');
     }
   }
@@ -201,7 +201,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.double_array_free);
       default:
-        throw Exception(
+        throw UnsupportedError(
             'Property query: unsupported type (OBXPropertyType: $_type)');
     }
   }
