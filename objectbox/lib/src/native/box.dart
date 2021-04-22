@@ -154,7 +154,7 @@ class Box<T> {
   // Sets the given ID on the object if previous ID was zero (new object).
   @pragma('vm:prefer-inline')
   int _handlePutObjectResult(T object, int prevId, int result) {
-    if (result == 0) throw latestNativeError(dartMsg: 'object put failed');
+    if (result == 0) throwLatestNativeError(context: 'object put failed');
     if (prevId == 0) _entity.setId(object, result);
     return result;
   }

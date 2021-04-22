@@ -2,7 +2,6 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-import '../common.dart';
 import '../modelinfo/index.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
@@ -33,11 +32,11 @@ class Model {
 
   void _check(int errorCode) {
     if (errorCode == OBX_SUCCESS) return;
-
-    throw ObjectBoxException(
-        dartMsg: 'Model building failed',
-        nativeCode: C.model_error_code(_cModel),
-        nativeMsg: dartStringFromC(C.model_error_message(_cModel)));
+    ObjectBoxNativeError(
+            C.model_error_code(_cModel),
+            dartStringFromC(C.model_error_message(_cModel)),
+            'Model building failed')
+        .throwMapped();
   }
 
   void addEntity(ModelEntity entity) {

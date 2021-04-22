@@ -512,8 +512,8 @@ class _SyncListenerGroup<StreamValueType> {
 
     if (hasError) {
       try {
-        throw latestNativeError(
-            dartMsg: 'Failed to initialize a sync native listener');
+        throwLatestNativeError(
+            context: 'Failed to initialize a sync native listener');
       } finally {
         _stop();
       }
