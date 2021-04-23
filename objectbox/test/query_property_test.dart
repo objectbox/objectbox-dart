@@ -450,7 +450,7 @@ void main() {
 
       expect(items.map((s) => caseSensitive ? s : s.toLowerCase()).toList(),
           sameAsList(itemsDart));
-      if (queryString.count()!= itemsDart.length) {
+      if (queryString.count() != itemsDart.length) {
         printOnFailure('$itemsDart');
         expect(queryString.count(), itemsDart.length);
       }

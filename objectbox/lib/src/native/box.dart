@@ -31,7 +31,7 @@ enum PutMode {
 /// You get Box instances via [Store.box()] or [Box(Store)].
 ///
 /// For example, if you have User and Order entities, you need two Box objects
-/// to interact with each:
+/// to interact with them:
 /// ```dart
 /// Box<User> userBox = store.box();
 /// Box<Order> orderBox = store.box();
