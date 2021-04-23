@@ -1,118 +1,41 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
-
 import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
 
 // ignore_for_file: public_member_api_docs
 
-/// This file implements C call forwarding using a trampoline approach.
-///
 /// When you want to pass a dart callback to a C function you cannot use lambdas
-/// and instead the callback must be a static function, otherwise
-/// [Pointer.fromFunction()] called with your function won't compile.
-/// Since static functions don't have any state, you must either rely on a
-/// global state or use a "userData" pointer pass-through functionality provided
-/// by a C function.
+/// and instead the callback must be a static function - giving a lambda to
+/// [Pointer.fromFunction()] won't compile:
+///      Error: fromFunction expects a static function as parameter.
+///      dart:ffi only supports calling static Dart functions from native code.
 ///
-/// The DataVisitor class tries to alleviate the burden of managing this and
-/// instead allows using lambdas from user-code, internally mapping the C calls
-/// to the appropriate lambda.
-///
-/// Sample usage:
-///   final results = <T>[];
-///   final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-///     final bytes = dataPtr.asTypedList(length);
-///     results.add(_fbManager.unmarshal(bytes));
-///     return true; // return value usually indicates whether to continue.
-///   });
-///
-///   final err = bindings.obx_query_visit(_cQuery, visitor.fn,
-///     visitor.userData, offset, limit);
-///   visitor.close(); // make sure to close the visitor
-///   checkObx(err);
-///
-/// TODO do we actually need to go through these hoops?
-/// Why don't we create a `Pointer.fromFunction((...) => ...), 0)` as needed?
-/// Or better yet, create them only once and reuse (where possible)?
+/// With Dart being all synchronous and not sharing memory at all within a
+/// single isolate, we can just alter a single global callback variable.
+/// Therefore, let's have a single static function [_forwarder] converted to a
+/// native visitor pointer [_nativeVisitor], calling [_callback] in the end.
 
-int _lastId = 0;
-final _callbacks = <int, bool Function(Pointer<Uint8> dataPtr, int length)>{};
+bool Function(Pointer<Uint8> data, int size) _callback = _callback;
 
-// Called from C, forwards to the actual callback registered at the given ID.
-int _forwarder(Pointer<Void> callbackId, Pointer<Void> dataPtr, int size) {
-  if (callbackId.address == 0) {
-    throw Exception(
-        'Data-visitor callback issued with NULL user_data (callback ID)');
-  }
+int _forwarder(Pointer<Void> _, Pointer<Void> dataPtr, int size) =>
+    _callback(dataPtr.cast<Uint8>(), size) ? 1 : 0;
 
-  final callback = _callbacks[callbackId.cast<Int64>().value];
-  if (callback == null) return 0;
-  return callback(dataPtr.cast<Uint8>(), size) ? 1 : 0;
-}
-
-final Pointer<NativeFunction<obx_data_visitor>> _forwarderPtr =
+final Pointer<NativeFunction<obx_data_visitor>> _nativeVisitor =
     Pointer.fromFunction(_forwarder, 0);
 
-/// A data visitor wrapper/forwarder to be used where obx_data_visitor is expected.
-class DataVisitor {
-  final Pointer<Int64> _idPtr = malloc<Int64>();
-
-  Pointer<NativeFunction<obx_data_visitor>> get fn => _forwarderPtr;
-
-  Pointer<Void> get userData => _idPtr.cast<Void>();
-
-  DataVisitor(bool Function(Pointer<Uint8> dataPtr, int length)? callback) {
-    // cycle through ids until we find an empty slot
-    _lastId++;
-    var initialId = _lastId;
-    while (_callbacks.containsKey(_lastId)) {
-      _lastId++;
-
-      if (initialId == _lastId) {
-        throw Exception(
-            "Data-visitor callbacks queue full - can't allocate another");
-      }
-    }
-    // register the visitor
-    _idPtr.value = _lastId;
-    if (callback != null) _init(callback);
-  }
-
-  void _init(bool Function(Pointer<Uint8> dataPtr, int length) callback) {
-    _callbacks[_idPtr.value] = callback;
-  }
-
-  void close() {
-    // unregister the visitor
-    _callbacks.remove(_idPtr.value);
-    malloc.free(_idPtr);
-  }
+@pragma('vm:prefer-inline')
+Pointer<NativeFunction<obx_data_visitor>> dataVisitor(
+    bool Function(Pointer<Uint8> data, int size) callback) {
+  _callback = callback;
+  return _nativeVisitor;
 }
 
-class ObjectCollector<T> extends DataVisitor {
-  final list = <T>[];
-
-  ObjectCollector(Store store, EntityDefinition<T> entity) : super(null) {
-    _init((Pointer<Uint8> dataPtr, int length) {
-      list.add(entity.objectFromFB(store, dataPtr.asTypedList(length)));
+@pragma('vm:prefer-inline')
+Pointer<NativeFunction<obx_data_visitor>> objectCollector<T>(
+        List<T> list, Store store, EntityDefinition<T> entity) =>
+    dataVisitor((Pointer<Uint8> data, int size) {
+      list.add(entity.objectFromFB(store, data.asTypedList(size)));
       return true;
     });
-  }
-}
-
-class ObjectCollectorNullable<T> extends DataVisitor {
-  final list = <T?>[];
-
-  ObjectCollectorNullable(Store store, EntityDefinition<T> entity)
-      : super(null) {
-    _init((Pointer<Uint8> dataPtr, int length) {
-      list.add(length == 0
-          ? null
-          : entity.objectFromFB(store, dataPtr.asTypedList(length)));
-      return true;
-    });
-  }
-}
