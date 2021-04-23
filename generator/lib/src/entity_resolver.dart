@@ -78,11 +78,17 @@ class EntityResolver extends Builder {
           ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12');
     }
 
-    // getters, ... (anything else?)
-    // TODO are these also final fields? we can now store those if they're among constructor params
+    // Make sure all stored fields are writable when reading object from DB.
+    // Let's filter read-only fields, i.e those that:
+    //   * don't have a setter, and
+    //   * don't have a corresponding argument in the constructor.
+    // Note: `.correspondingSetter == null` is also true for `final` fields.
     final readOnlyFields = <String>{};
     for (var f in element.accessors) {
-      if (f.isGetter && f.correspondingSetter == null) {
+      if (f.isGetter &&
+          f.correspondingSetter == null &&
+          !entity.constructorParams
+              .any((String param) => param.startsWith('${f.name} '))) {
         readOnlyFields.add(f.name);
       }
     }
@@ -96,6 +102,11 @@ class EntityResolver extends Builder {
 
       if (readOnlyFields.contains(f.name) && !isRelationField(f)) {
         log.info('  skipping read-only/getter ${f.name}');
+        continue;
+      }
+
+      if (f.isPrivate) {
+        log.info('  skipping private field ${f.name}');
         continue;
       }
 
@@ -214,6 +225,28 @@ class EntityResolver extends Builder {
 
     processIdProperty(entity);
 
+    // We need to check that the ID field is writable. Otherwise, generated code
+    // for `setId()` won't compile. The only exception is when user uses
+    // self-assigned IDs, then a different setter will be generated - one that
+    // checks the ID being set is already the same, otherwise it must throw.
+    final idField = element.fields
+        .singleWhere((FieldElement f) => f.name == entity.idProperty.name);
+    if (idField.setter == null) {
+      if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE)) {
+        throw InvalidGenerationSourceError(
+            "Entity ${entity.name} has an ID field '${idField.name}' that is "
+            'not assignable (that usually means it is declared final). '
+            "This won't work because ObjectBox needs to be able to assign "
+            'an ID after inserting a new object (if the given ID was zero). '
+            'If you want to assign IDs manually instead, you can annotate the '
+            "field '${idField.name}' with `@Id(assignable: true)`. Otherwise "
+            'please provide a setter or remove the `final` keyword.');
+      } else {
+        // We need to get the information to code generator (code_chunks.dart).
+        entity.idProperty.fieldIsReadOnly = true;
+      }
+    }
+
     entity.properties.forEach((p) => log.info('  $p'));
 
     return entity;
@@ -239,8 +272,8 @@ class EntityResolver extends Builder {
           p.name.toLowerCase() == 'id' && p.type == OBXPropertyType.Long);
       if (candidates.length != 1) {
         throw InvalidGenerationSourceError(
-            'entity ${entity.name}: ID property not found - either define '
-            ' an integer field named ID/id/... (case insensitive) or add '
+            'entity ${entity.name}: ID property not found - either define'
+            ' an integer field named ID/id/... (case insensitive) or add'
             ' @Id annotation to any integer field');
       }
       candidates.first.flags |= OBXPropertyFlags.ID;
