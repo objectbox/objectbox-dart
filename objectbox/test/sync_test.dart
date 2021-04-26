@@ -75,7 +75,7 @@ void main() {
       expect(
           () => createClient(store),
           throwsA(predicate(
-              (Exception e) => e.toString().contains('one sync client'))));
+              (StateError e) => e.toString().contains('one sync client'))));
 
       // But we can have another one after the previous is closed or destroyed.
       expect(c1.isClosed(), isFalse);
@@ -129,8 +129,8 @@ void main() {
       c.close();
       expect(c.isClosed(), isTrue);
 
-      final error = throwsA(predicate(
-          (Exception e) => e.toString().contains('SyncClient already closed')));
+      final error = throwsA(predicate((StateError e) =>
+          e.toString().contains('SyncClient already closed')));
       expect(() => c.start(), error);
       expect(() => c.stop(), error);
       expect(() => c.state(), error);
@@ -344,7 +344,7 @@ void main() {
     test('SyncClient cannot be created when running with non-sync library', () {
       expect(
           () => createClient(store),
-          throwsA(predicate((Exception e) => e.toString().contains(
+          throwsA(predicate((UnsupportedError e) => e.toString().contains(
               'Sync is not available in the loaded ObjectBox runtime library'))));
     });
   }

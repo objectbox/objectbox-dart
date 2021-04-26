@@ -5,7 +5,6 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../../store.dart';
 import '../../transaction.dart';
@@ -298,7 +297,7 @@ class _NullCondition extends Condition {
       case _ConditionOp.notNull:
         return C.qb_not_null(builder._cBuilder, _property._propertyId);
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -357,7 +356,7 @@ class _StringCondition extends _PropertyCondition<String> {
       case _ConditionOp.greaterOrEq:
         return _op1(builder, C.qb_greater_or_equal_string);
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -397,7 +396,7 @@ class _StringListCondition extends _PropertyCondition<List<String>> {
       case _ConditionOp.inside:
         return _inside(builder); // bindings.obx_qb_string_in
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -430,7 +429,7 @@ class _IntegerCondition extends _PropertyCondition<int> {
         return C.qb_between_2ints(
             builder._cBuilder, _property._propertyId, _value, _value2!);
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -475,7 +474,8 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
             return _opList(builder, malloc<Int64>(_value.length),
                 C.qb_in_int64s, opListSetIndexInt64);
           default:
-            throw Exception('Unsupported type for IN: ${_property._type}');
+            throw UnsupportedError(
+                'Unsupported type for IN: ${_property._type}');
         }
       case _ConditionOp.notIn:
         switch (_property._type) {
@@ -486,10 +486,11 @@ class _IntegerListCondition extends _PropertyCondition<List<int>> {
             return _opList(builder, malloc<Int64>(_value.length),
                 C.qb_not_in_int64s, opListSetIndexInt64);
           default:
-            throw Exception('Unsupported type for IN: ${_property._type}');
+            throw UnsupportedError(
+                'Unsupported type for IN: ${_property._type}');
         }
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -521,7 +522,7 @@ class _DoubleCondition extends _PropertyCondition<double> {
         return C.qb_between_2doubles(
             builder._cBuilder, _property._propertyId, _value, _value2!);
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -553,7 +554,7 @@ class _ByteVectorCondition extends _PropertyCondition<Uint8List> {
       case _ConditionOp.greaterOrEq:
         return _op1(builder, C.qb_greater_or_equal_bytes);
       default:
-        throw Exception('Unsupported operation ${_op.toString()}');
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
   }
 }
@@ -580,7 +581,7 @@ class _ConditionGroup extends Condition {
         final cid = _conditions[i]._apply(builder, isRoot: false);
         if (cid == 0) {
           builder._throwExceptionIfNecessary();
-          throw Exception(
+          throw StateError(
               'Failed to create condition ' + _conditions[i].toString());
         }
 
@@ -755,7 +756,7 @@ class Query<T> {
       return StringPropertyQuery._(_store, _cQuery, qp._propertyId, qp._type)
           as PQ;
     } else {
-      throw Exception(
+      throw UnsupportedError(
           'Property query: unsupported type (OBXPropertyType: ${qp._type})');
     }
   }

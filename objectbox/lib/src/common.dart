@@ -17,29 +17,14 @@ class Version {
   String toString() => '$major.$minor.$patch';
 }
 
-/// ObjectBox native exception wrapper.
+/// ObjectBox database exception.
 class ObjectBoxException implements Exception {
-  /// Dart message related to this native error.
-  final String? dartMsg;
+  /// Exception message.
+  final String message;
 
-  /// Native error code.
-  final int nativeCode;
-
-  /// Native error message.
-  final String? nativeMsg;
-
-  /// Create a native exception.
-  ObjectBoxException({this.dartMsg, this.nativeCode = 0, this.nativeMsg});
+  /// Create a new exception.
+  ObjectBoxException(this.message);
 
   @override
-  String toString() {
-    var result = 'ObjectBoxException: ';
-    if (dartMsg != null) {
-      result += dartMsg!;
-      if (nativeCode != 0 || nativeMsg != null) result += ': ';
-    }
-    if (nativeCode != 0) result += '$nativeCode ';
-    if (nativeMsg != null) result += nativeMsg!;
-    return result.trimRight();
-  }
+  String toString() => 'ObjectBoxException: $message';
 }

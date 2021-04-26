@@ -136,13 +136,13 @@ class SyncClient {
   @pragma('vm:prefer-inline')
   Pointer<OBX_sync> get _ptr => (_cSync.address != 0)
       ? _cSync
-      : throw Exception('SyncClient already closed');
+      : throw StateError('SyncClient already closed');
 
   /// Creates a sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
   SyncClient(this._store, String serverUri, SyncCredentials creds) {
     if (!Sync.isAvailable()) {
-      throw Exception(
+      throw UnsupportedError(
           'Sync is not available in the loaded ObjectBox runtime library. '
           'Please visit https://objectbox.io/sync/ for options.');
     }
@@ -227,7 +227,7 @@ class SyncClient {
         cMode = OBXRequestUpdatesMode.AUTO_NO_PUSHES;
         break;
       default:
-        throw Exception('Unknown mode argument: ' + mode.toString());
+        throw ArgumentError.value(mode, 'mode');
     }
     checkObx(C.sync_request_updates_mode(_ptr, cMode));
   }
@@ -512,8 +512,8 @@ class _SyncListenerGroup<StreamValueType> {
 
     if (hasError) {
       try {
-        throw latestNativeError(
-            dartMsg: 'Failed to initialize a sync native listener');
+        throwLatestNativeError(
+            context: 'Failed to initialize a sync native listener');
       } finally {
         _stop();
       }
@@ -554,7 +554,7 @@ class Sync {
   /// Create a Sync annotation, enabling synchronization for an entity.
   const Sync();
 
-  static late final bool _syncAvailable = C.sync_available();
+  static late final bool _syncAvailable = C.has_feature(OBXFeature.Sync);
 
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() => _syncAvailable;
@@ -568,7 +568,7 @@ class Sync {
   static SyncClient client(
       Store store, String serverUri, SyncCredentials creds) {
     if (syncClientsStorage.containsKey(store)) {
-      throw Exception('Only one sync client can be active for a store');
+      throw StateError('Only one sync client can be active for a store');
     }
     final client = SyncClient(store, serverUri, creds);
     syncClientsStorage[store] = client;

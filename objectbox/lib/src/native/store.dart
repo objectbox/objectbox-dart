@@ -95,19 +95,15 @@ class Store {
     } on ObjectBoxException catch (e) {
       // Recognize common problems when trying to open/create a database
       // 10199 = OBX_ERROR_STORAGE_GENERAL
-      if (e.nativeCode == 10199 &&
-          e.nativeMsg != null &&
-          e.nativeMsg!.contains('Dir does not exist')) {
-        // 13 = permissions denied, 30 = read-only filesystem
-        if (e.nativeMsg!.endsWith(' (13)') || e.nativeMsg!.endsWith(' (30)')) {
-          final msg = e.nativeMsg! +
-              ' - this usually indicates a problem with permissions; '
-                  "if you're using Flutter you may need to use "
-                  'getApplicationDocumentsDirectory() from the path_provider '
-                  'package, see example/README.md';
-          throw ObjectBoxException(
-              dartMsg: e.dartMsg, nativeCode: e.nativeCode, nativeMsg: msg);
-        }
+      // 13 = permissions denied, 30 = read-only filesystem
+      if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
+          e.message.contains('Dir does not exist') &&
+          (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
+        throw ObjectBoxException(e.message +
+            ' - this usually indicates a problem with permissions; '
+                "if you're using Flutter you may need to use "
+                'getApplicationDocumentsDirectory() from the path_provider '
+                'package, see example/README.md');
       }
       rethrow;
     }
@@ -237,7 +233,7 @@ class Store {
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
   Pointer<OBX_store> get _ptr {
-    if (_closed) throw Exception('Cannot access a closed store pointer');
+    if (_closed) throw StateError('Cannot access a closed store pointer');
     return _cStore;
   }
 }

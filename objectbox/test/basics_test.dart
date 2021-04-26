@@ -21,8 +21,10 @@ void main() {
     expect(cStore,
         isA<ffi.Pointer>().having((ptr) => ptr.address, 'address', equals(0)));
 
-    final error = latestNativeError();
-    expect(error.nativeMsg, matches('Argument .+ must not be null'));
+    expect(
+        throwLatestNativeError,
+        throwsA(predicate(
+            (ArgumentError e) => e.toString().contains('must not be null'))));
   });
 
   test('model UID generation', () {

@@ -56,7 +56,7 @@ class ModelInfo {
         modelVersionParserMinimum =
             data['modelVersionParserMinimum'] as int? ?? _maxModelVersion,
         version = data['version'] as int? ?? 1 {
-    if (data['entities'] == null) throw Exception('entities is null');
+    ArgumentError.checkNotNull(data['entities'], "data['entities']");
     for (final e in data['entities']) {
       entities.add(ModelEntity.fromMap(e as Map<String, dynamic>,
           model: this, check: check));
@@ -66,28 +66,28 @@ class ModelInfo {
 
   void validate() {
     if (modelVersion < _minModelVersion) {
-      throw Exception(
+      throw StateError(
           'the loaded model is too old: version $modelVersion while the minimum supported is $_minModelVersion, consider upgrading with an older generator or manually');
     }
     if (modelVersion > _maxModelVersion) {
-      throw Exception(
+      throw StateError(
           'the loaded model has been created with a newer generator version $modelVersion, while the maximum supported version is $_maxModelVersion. Please upgrade your toolchain/generator');
     }
 
     var lastEntityIdFound = false;
     for (final e in entities) {
       if (e.model != this) {
-        throw Exception(
+        throw StateError(
             "entity '${e.name}' with id ${e.id} has incorrect parent model reference");
       }
       e.validate();
       if (lastEntityId.id < e.id.id) {
-        throw Exception(
+        throw StateError(
             "lastEntityId $lastEntityId is lower than the one of entity '${e.name}' with id ${e.id}");
       }
       if (lastEntityId.id == e.id.id) {
         if (lastEntityId.uid != e.id.uid) {
-          throw Exception(
+          throw StateError(
               "lastEntityId $lastEntityId does not match entity '${e.name}' with id ${e.id}");
         }
         lastEntityIdFound = true;
@@ -95,7 +95,7 @@ class ModelInfo {
     }
 
     if (!lastEntityIdFound && !retiredEntityUids.contains(lastEntityId.uid)) {
-      throw Exception('lastEntityId $lastEntityId does not match any entity');
+      throw StateError('lastEntityId $lastEntityId does not match any entity');
     }
 
     if (!lastRelationId.isEmpty || hasRelations()) {
@@ -103,12 +103,12 @@ class ModelInfo {
       for (final e in entities) {
         for (final r in e.relations) {
           if (lastRelationId.id < r.id.id) {
-            throw Exception(
+            throw StateError(
                 "lastRelationId $lastRelationId is lower than the one of relation '${r.name}' with id ${r.id}");
           }
           if (lastRelationId.id == r.id.id) {
             if (lastRelationId.uid != r.id.uid) {
-              throw Exception(
+              throw StateError(
                   "lastRelationId $lastRelationId does not match relation '${r.name}' with id ${r.id}");
             }
             lastRelationIdFound = true;
@@ -118,7 +118,7 @@ class ModelInfo {
 
       if (!lastRelationIdFound &&
           !retiredRelationUids.contains(lastRelationId.uid)) {
-        throw Exception(
+        throw StateError(
             'lastRelationId $lastRelationId does not match any standalone relation');
       }
     }
@@ -153,7 +153,7 @@ class ModelInfo {
 
   ModelEntity getEntityByUid(int uid) {
     final entity = findEntityByUid(uid);
-    if (entity == null) throw Exception('entity uid=$uid not found');
+    if (entity == null) throw StateError('entity uid=$uid not found');
     return entity;
   }
 
@@ -168,7 +168,7 @@ class ModelInfo {
         .toList();
     if (found.isEmpty) return null;
     if (found.length >= 2) {
-      throw Exception(
+      throw StateError(
           'ambiguous entity name: $name; please specify a UID in its annotation');
     }
     return found[0];
@@ -183,7 +183,7 @@ class ModelInfo {
   ModelEntity createEntity(String name, [int uid = 0]) {
     final id = lastEntityId.id + 1;
     if (uid != 0 && containsUid(uid)) {
-      throw Exception('uid already exists: $uid');
+      throw StateError('uid already exists: $uid');
     }
     final uniqueUid = uid == 0 ? generateUid() : uid;
 
@@ -196,7 +196,7 @@ class ModelInfo {
   void removeEntity(ModelEntity entity) {
     final foundEntity = findSameEntity(entity);
     if (foundEntity == null) {
-      throw Exception(
+      throw StateError(
           "cannot remove entity '${entity.name}' with id ${entity.id}: not found");
     }
     entities = entities.where((p) => p != foundEntity).toList();
@@ -214,7 +214,7 @@ class ModelInfo {
       if (uid != 0 && !containsUid(uid)) return uid;
     }
 
-    throw Exception('internal error: could not generate a unique UID');
+    throw StateError('internal error: could not generate a unique UID');
   }
 
   bool containsUid(int uid) {

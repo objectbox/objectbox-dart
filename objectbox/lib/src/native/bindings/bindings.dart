@@ -1,7 +1,6 @@
 import 'dart:ffi';
 import 'dart:io' show Platform;
 
-import '../../common.dart';
 import 'helpers.dart';
 import 'objectbox-c.dart';
 
@@ -38,7 +37,7 @@ ObjectBoxC loadObjectBoxLib() {
   } else if (Platform.isLinux) {
     libName = 'lib' + libName + '.so';
   } else {
-    throw Exception(
+    throw UnsupportedError(
         'unsupported platform detected: ${Platform.operatingSystem}');
   }
   lib ??= DynamicLibrary.open(libName);
@@ -55,27 +54,27 @@ ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();
 /// native API isn't available.
 /// See https://github.com/objectbox/objectbox-dart/issues/143
 void initializeDartAPI() {
-  if (_dartAPIinitialized == null) {
+  if (_dartAPIInitialized == 0) {
     final errCode = C.dartc_init_api(NativeApi.initializeApiDLData);
-    _dartAPIinitialized = (OBX_SUCCESS == errCode);
-    if (!_dartAPIinitialized!) {
-      _dartAPIinitException = latestNativeError(
-          codeIfMissing: errCode,
-          dartMsg: "Dart/Flutter SDK you're using is not compatible with "
-              'ObjectBox observers, query streams and Sync event streams. '
-              'Please consider using Flutter v1.20.x or v1.22.x (or Dart v2.10.x). '
-              'See https://github.com/objectbox/objectbox-dart/issues/197 for more details. '
-              'Native exception');
+    _dartAPIInitialized = (OBX_SUCCESS == errCode) ? 1 : -1;
+    if (_dartAPIInitialized == -1) {
+      try {
+        throwLatestNativeError(
+            codeIfMissing: errCode,
+            context: "Dart/Flutter SDK you're using is not compatible with "
+                'ObjectBox observers, query streams and Sync event streams.');
+      } catch (e) {
+        _dartAPIInitException = e;
+        rethrow;
+      }
     }
-  }
-
-  if (_dartAPIinitException != null) {
-    throw _dartAPIinitException!;
+  } else if (_dartAPIInitialized == -1) {
+    throw _dartAPIInitException!;
   }
 }
 
-// null  => not initialized
-// true  => initialized successfully
-// false => failed to initialize - incompatible Dart version
-bool? _dartAPIinitialized;
-ObjectBoxException? _dartAPIinitException;
+// 0  => not initialized
+// 1  => initialized successfully
+// -1 => failed to initialize - incompatible Dart version
+int _dartAPIInitialized = 0;
+Object? _dartAPIInitException;

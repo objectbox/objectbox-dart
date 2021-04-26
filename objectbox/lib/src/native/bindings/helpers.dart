@@ -13,7 +13,7 @@ import 'bindings.dart';
 @pragma('vm:prefer-inline')
 void checkObx(int code) {
   if (code != OBX_SUCCESS) {
-    throw latestNativeError(codeIfMissing: code);
+    throwLatestNativeError(codeIfMissing: code);
   }
 }
 
@@ -26,27 +26,55 @@ bool checkObxSuccess(int code) {
 
 @pragma('vm:prefer-inline')
 Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
-    [String? dartMsg]) {
+    [String? context]) {
   if (ptr == null || ptr.address == 0) {
-    throw latestNativeError(dartMsg: dartMsg);
+    throwLatestNativeError(context: context);
   }
   return ptr;
 }
 
-ObjectBoxException latestNativeError(
-    {String? dartMsg, int codeIfMissing = OBX_ERROR_UNKNOWN}) {
-  final code = C.last_error_code();
-  final text = dartStringFromC(C.last_error_message());
+Never throwLatestNativeError({String? context, int codeIfMissing = 0}) {
+  var code = C.last_error_code();
+  var message = dartStringFromC(C.last_error_message());
 
-  if (code == 0 && text.isEmpty) {
-    return ObjectBoxException(
-        dartMsg: dartMsg,
-        nativeCode: codeIfMissing,
-        nativeMsg: 'unknown native error');
+  if (code == 0 && message.isEmpty) {
+    if (codeIfMissing == 0) {
+      throw ObjectBoxException(context ?? 'unknown error');
+    } else {
+      code = codeIfMissing;
+      message = '$code: Unknown native error';
+    }
   }
 
-  return ObjectBoxException(
-      dartMsg: dartMsg, nativeCode: code, nativeMsg: text);
+  ObjectBoxNativeError(code, message, context).throwMapped();
+}
+
+class ObjectBoxNativeError {
+  final String? context;
+  final int code;
+  final String message;
+
+  ObjectBoxNativeError(this.code, this.message, this.context);
+
+  String get fullMessage =>
+      context == null ? '$code $message' : '$context: $code $message';
+
+  Never throwMapped() {
+    switch (code) {
+      case OBX_ERROR_ILLEGAL_STATE:
+        throw StateError(fullMessage);
+      case OBX_ERROR_ILLEGAL_ARGUMENT:
+      case OBX_ERROR_STD_ILLEGAL_ARGUMENT:
+        throw ArgumentError(fullMessage);
+      case OBX_ERROR_NUMERIC_OVERFLOW:
+      case OBX_ERROR_STD_OUT_OF_RANGE:
+      case OBX_ERROR_STD_RANGE:
+      case OBX_ERROR_STD_OVERFLOW:
+        throw RangeError(fullMessage);
+      default:
+        throw ObjectBoxException(fullMessage);
+    }
+  }
 }
 
 @pragma('vm:prefer-inline')

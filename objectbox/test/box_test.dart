@@ -403,16 +403,13 @@ void main() {
   });
 
   test('failing transactions', () {
-    try {
-      store.runInTransaction(TxMode.write, () {
-        box.putMany(simpleItems());
-        throw Exception('Test exception');
-      });
-    } on Exception {
-      ; //otherwise test fails due to not handling exceptions
-    } finally {
-      expect(box.count(), equals(0));
-    }
+    expect(
+        () => store.runInTransaction(TxMode.write, () {
+              box.putMany(simpleItems());
+              throw 'test-exception';
+            }),
+        throwsA(predicate((e) => e == 'test-exception')));
+    expect(box.count(), equals(0));
   });
 
   test('recursive write in write transaction', () {
@@ -434,16 +431,14 @@ void main() {
   });
 
   test('recursive write in read -> fails during creation', () {
-    try {
-      store.runInTransaction(TxMode.read, () {
-        box.count();
-        return store.runInTransaction(
-            TxMode.write, () => box.putMany(simpleItems()));
-      });
-    } on ObjectBoxException catch (ex) {
-      expect(ex.toString(),
-          startsWith('ObjectBoxException: failed to create transaction'));
-    }
+    expect(
+        () => store.runInTransaction(TxMode.read, () {
+              box.count();
+              return store.runInTransaction(
+                  TxMode.write, () => box.putMany(simpleItems()));
+            }),
+        throwsA(predicate((StateError e) =>
+            e.toString().contains('failed to create transaction'))));
   });
 
   test('failing in recursive txn', () {
@@ -459,7 +454,7 @@ void main() {
     // TestEntity.id IS NOT assignable so this must fail
     expect(
         () => box.put(TestEntity()..id = 1),
-        throwsA(predicate((ObjectBoxException e) => e
+        throwsA(predicate((ArgumentError e) => e
             .toString()
             .contains('ID is higher or equal to internal ID sequence'))));
     expect(box.isEmpty(), isTrue);

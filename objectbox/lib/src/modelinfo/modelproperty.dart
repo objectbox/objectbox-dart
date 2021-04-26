@@ -23,7 +23,7 @@ class ModelProperty {
 
   set name(String? value) {
     if (value == null || value.isEmpty) {
-      throw Exception('name must not be null or an empty string');
+      throw ArgumentError('name must not be null or an empty string');
     }
     _name = value;
   }
@@ -32,7 +32,7 @@ class ModelProperty {
 
   set type(int? value) {
     if (value == null || value < 0) {
-      throw Exception('type must be defined and may not be < 0');
+      throw ArgumentError('type must be defined and may not be < 0');
     }
     _type = value;
   }
@@ -41,7 +41,7 @@ class ModelProperty {
 
   set flags(int? value) {
     if (value == null || value < 0) {
-      throw Exception('flags must be defined and may not be < 0');
+      throw ArgumentError('flags must be defined and may not be < 0');
     }
     _flags = value;
   }
@@ -61,7 +61,7 @@ class ModelProperty {
   set indexId(IdUid? value) {
     if (value != null) {
       if (value.id == 0 || value.uid == 0) {
-        throw Exception('indexId must contain valid ID & UID');
+        throw ArgumentError('indexId must contain valid ID & UID');
       }
     }
     _indexId = value;

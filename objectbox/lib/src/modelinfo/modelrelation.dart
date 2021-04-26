@@ -16,7 +16,7 @@ class ModelRelation {
 
   set name(String? value) {
     if (value == null || value.isEmpty) {
-      throw Exception('name must not be null or an empty string');
+      throw ArgumentError('name must not be null or an empty string');
     }
     _name = value;
   }
@@ -25,7 +25,7 @@ class ModelRelation {
 
   set targetId(IdUid? value) {
     if (value == null || value.id == 0 || value.uid == 0) {
-      throw Exception('targetId must contain valid ID & UID');
+      throw ArgumentError('targetId must contain valid ID & UID');
     }
     _targetId = value;
   }
@@ -34,7 +34,7 @@ class ModelRelation {
 
   set targetName(String? value) {
     if (value == null || value.isEmpty) {
-      throw Exception('targetName must not be null or an empty string');
+      throw ArgumentError('targetName must not be null or an empty string');
     }
     _targetName = value;
   }

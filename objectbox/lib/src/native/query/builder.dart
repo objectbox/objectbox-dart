@@ -60,17 +60,18 @@ class _QueryBuilder<T> {
 
   @pragma('vm:prefer-inline')
   void _throwExceptionIfNecessary() {
-    if (C.qb_error_code(_cBuilder) != OBX_SUCCESS) {
-      final msg = dartStringFromC(C.qb_error_message(_cBuilder));
-      throw ObjectBoxException(
-          dartMsg: 'Query building failed', nativeMsg: msg);
+    final code = C.qb_error_code(_cBuilder);
+    if (code != OBX_SUCCESS) {
+      ObjectBoxNativeError(code, dartStringFromC(C.qb_error_message(_cBuilder)),
+              'Query building failed')
+          .throwMapped();
     }
   }
 
   @pragma('vm:prefer-inline')
   void _throwIfOtherEntity(int entityId) {
     if (entityId != _entity.model.id.id) {
-      throw Exception(
+      throw ArgumentError(
           'Passed a property of another entity: $entityId instead of ${_entity.model.id.id}');
     }
   }
