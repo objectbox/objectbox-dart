@@ -49,7 +49,7 @@ class CodeChunks {
         toOneRelations: ($name object) => ${toOneRelations(entity)},
         toManyRelations: ($name object) => ${toManyRelations(entity)},
         getId: ($name object) => object.${propertyFieldName(entity.idProperty)},
-        setId: ($name object, int id) {object.${propertyFieldName(entity.idProperty)} = id;},
+        setId: ($name object, int id) ${setId(entity)},
         objectToFB: ${objectToFB(entity)},
         objectFromFB: ${objectFromFB(entity)}
       )
@@ -67,6 +67,23 @@ class CodeChunks {
     }
 
     return property.name;
+  }
+
+  static String setId(ModelEntity entity) {
+    if (!entity.idProperty.fieldIsReadOnly) {
+      return '{object.${propertyFieldName(entity.idProperty)} = id;}';
+    }
+    // Note: this is a special case handling read-only IDs with assignable=true.
+    // Such ID must already be set, i.e. it could not have been assigned.
+    return '''{
+      if (object.${propertyFieldName(entity.idProperty)} != id) {
+        throw ArgumentError('Field ${entity.name}.${propertyFieldName(entity.idProperty)} is read-only ' 
+        '(final or getter-only) and it was declared to be self-assigned. '
+        'However, the currently inserted object (.${propertyFieldName(entity.idProperty)}=\${object.${propertyFieldAccess(entity.idProperty, '?')}}) ' 
+        "doesn't match the inserted ID (ID \$id). "
+        'You must assign an ID before calling [box.put()].');
+      }
+    }''';
   }
 
   static String fieldDefaultValue(ModelProperty p) {

@@ -16,6 +16,8 @@ class ModelProperty {
   String? relationTarget;
 
   /// Type used in the source dart code - used by the code generator.
+  /// Starts with [_fieldReadOnlyPrefix] if the field (currently IDs only) is
+  /// read-only. Ends with `?` if the field is nullable.
   /// Note: must be included in to/fromMap to be handled `build_runner`.
   String? _dartFieldType;
 
@@ -50,8 +52,25 @@ class ModelProperty {
 
   set dartFieldType(String value) => _dartFieldType = value;
 
-  String get fieldType =>
-      _dartFieldType!.replaceFirst('?', '', _dartFieldType!.length - 1);
+  // Used to inform about an ID field that is read-only (needed for code-gen).
+  // We're adding this prefix to [_dartFieldType] so that we don't have to do
+  // the whole serialization-deserialization process for yet another field.
+  static const _fieldReadOnlyPrefix = 'READ-ONLY ';
+
+  bool get fieldIsReadOnly => _dartFieldType!.startsWith(_fieldReadOnlyPrefix);
+
+  set fieldIsReadOnly(bool value) {
+    if (fieldIsReadOnly == value) return;
+    if (value) {
+      _dartFieldType = _fieldReadOnlyPrefix + _dartFieldType!;
+    } else {
+      _dartFieldType = _dartFieldType!.substring(_fieldReadOnlyPrefix.length);
+    }
+  }
+
+  String get fieldType => _dartFieldType!
+      .replaceFirst('?', '', _dartFieldType!.length - 1)
+      .replaceFirst(_fieldReadOnlyPrefix, '');
 
   bool get fieldIsNullable =>
       _dartFieldType!.substring(_dartFieldType!.length - 1) == '?';
