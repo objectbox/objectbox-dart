@@ -692,19 +692,13 @@ class Query<T> {
   /// if there are no results. Note: [offset] and [limit] are respected, if set.
   T? findFirst() {
     T? result;
-    final visitor = DataVisitor((Pointer<Uint8> dataPtr, int length) {
-      result = _entity.objectFromFB(_store, dataPtr.asTypedList(length));
+    final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+      result = _entity.objectFromFB(_store, data.asTypedList(size));
       return false; // we only want to visit the first element
     });
-
-    try {
-      _store.runInTransaction(TxMode.read, () {
-        checkObx(C.query_visit(_cQuery, visitor.fn, visitor.userData));
-      });
-    } finally {
-      visitor.close();
-    }
-
+    _store.runInTransaction(TxMode.read, () {
+      checkObx(C.query_visit(_cQuery, visitor, nullptr));
+    });
     return result;
   }
 
@@ -723,16 +717,11 @@ class Query<T> {
 
   /// Finds Objects matching the query.
   List<T> find() {
-    final collector = ObjectCollector<T>(_store, _entity);
-    try {
-      _store.runInTransaction(
-          TxMode.read,
-          () => checkObx(
-              C.query_visit(_cQuery, collector.fn, collector.userData)));
-      return collector.list;
-    } finally {
-      collector.close();
-    }
+    final result = <T>[];
+    final collector = objectCollector(result, _store, _entity);
+    _store.runInTransaction(TxMode.read,
+        () => checkObx(C.query_visit(_cQuery, collector, nullptr)));
+    return result;
   }
 
   /// For internal testing purposes.
