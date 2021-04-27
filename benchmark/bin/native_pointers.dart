@@ -44,7 +44,10 @@ class AsTypedList extends Benchmark {
   void setup() => nativePtr = malloc<Uint8>(length);
 
   @override
-  void teardown() => malloc.free(nativePtr);
+  void teardown() {
+    malloc.free(nativePtr);
+    super.teardown();
+  }
 }
 
 class AsTypedListUint64 extends Benchmark {
@@ -65,5 +68,8 @@ class AsTypedListUint64 extends Benchmark {
   void setup() => nativePtr = malloc<Uint64>(length);
 
   @override
-  void teardown() => malloc.free(nativePtr);
+  void teardown() {
+    malloc.free(nativePtr);
+    super.teardown();
+  }
 }

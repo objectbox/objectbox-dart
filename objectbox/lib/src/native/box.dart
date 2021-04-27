@@ -352,14 +352,23 @@ class _AsyncBoxHelper {
     final port = ReceivePort();
     final newId = C.dartc_async_put_object(_cAsync, port.sendPort.nativePort,
         fbb.bufPtr, fbb.fbb.size, _getOBXPutMode(mode));
-    if (newId == 0) throwLatestNativeError(context: 'object putAsync failed');
+
+    // Zero is returned to indicate an immediate error, object won't be stored.
+    if (newId == 0) {
+      port.close();
+      throwLatestNativeError(context: 'object putAsync failed');
+    }
+
     final completer = Completer<int>();
     port.listen((dynamic message) {
       // Null is sent if the put was successful (there is no error, thus NULL)
       if (message == null) {
         completer.complete(newId);
+      } else if (message is String) {
+        completer.completeError(ObjectBoxException(message));
       } else {
-        completer.completeError(ObjectBoxException(message as String));
+        completer.completeError(ObjectBoxException(
+            'Unknown message type (${message.runtimeType}: $message'));
       }
       port.close();
     });

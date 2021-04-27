@@ -9,6 +9,7 @@ import 'objectbox.g.dart';
 class Benchmark extends BenchmarkBase {
   final int iterations;
   final double coefficient;
+  final watch = Stopwatch();
 
   Benchmark(String name, {this.iterations = 1, this.coefficient = 1})
       : super(name, emitter: Emitter(iterations, coefficient)) {
@@ -16,6 +17,15 @@ class Benchmark extends BenchmarkBase {
     print('$name(iterations):       ${Emitter.format(iterations.toDouble())}');
     print(
         '$name(count):            ${Emitter.format(iterations / coefficient)}');
+    // Measure the total time of the test - if it's too high, you should
+    // decrease the number of iterations. Expected time is between 2 and 3 sec.
+    watch.start();
+  }
+
+  @override
+  void teardown() {
+    final color = watch.elapsedMilliseconds > 3000 ? '\x1B[31m' : '';
+    print('$name(total time taken): $color${watch.elapsed.toString()}\x1B[0m');
   }
 
   @override
@@ -91,6 +101,7 @@ class DbBenchmark extends Benchmark {
     store.close();
     final dir = Directory(dbDir);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
+    super.teardown();
   }
 }
 

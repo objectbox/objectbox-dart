@@ -58,6 +58,17 @@ void main() {
     expect(b.id, equals(await bId));
   });
 
+  test('.putAsync many', () async {
+    final items = List.generate(1000, (i) => TestEntityNonRel.filled(id: 0));
+    final futures = items.map(store.box<TestEntityNonRel>().putAsync).toList();
+    print('${futures.length} futures collected');
+    final ids = await Future.wait(futures);
+    print('${ids.length} futures finished');
+    for (int i = 0; i < items.length; i++) {
+      expect(items[i].id, ids[i]);
+    }
+  });
+
   test('.get() returns the correct item', () {
     final int putId = box.put(TestEntity(
         tString: 'Hello',

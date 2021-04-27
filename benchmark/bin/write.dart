@@ -9,10 +9,11 @@ void main() {
   PutMany().report();
   PutAsync().report();
   PutAsync2().report();
+  PutAsync3().report();
 }
 
 class Put extends DbBenchmark {
-  static const count = 1000;
+  static const count = 100;
   final items = prepareTestEntities(count, assignedIds: true);
 
   Put() : super('${Put}', iterations: count);
@@ -47,24 +48,31 @@ class PutAsync extends DbBenchmark {
       : super('${PutAsync}[wait(map())] ',
             iterations: 1, coefficient: 1 / count);
 
-  // TODO do we still need waiting to call store_await_async_submitted?
   @override
   void runIteration(int i) => Future.wait(items.map(box.putAsync));
 }
 
+// This is slightly different (slower) then the [PutAsync] - all futures are
+// prepared beforehand, only then it starts to wait for them to complete.
 class PutAsync2 extends DbBenchmark {
   final items = prepareTestEntities(count, assignedIds: true);
 
   PutAsync2()
-      : super('${PutAsync2}[map().toList, then wait()] ',
+      : super('${PutAsync2}[wait(map().toList())] ',
             iterations: 1, coefficient: 1 / count);
 
   @override
   void runIteration(int i) {
-    // This is slightly different (slower) then the [PutAsync] - all futures are
-    // prepared beforehand, only then it starts to wait for them to complete.
     final futures = items.map(box.putAsync).toList(growable: false);
     Future.wait(futures);
-    // TODO do we still need waiting to call store_await_async_submitted?
   }
+}
+
+class PutAsync3 extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  PutAsync3() : super('${PutAsync3}[wait(putAsync(i))]', iterations: count);
+
+  @override
+  void runIteration(int i) => Future.wait([box.putAsync(items[i])]);
 }
