@@ -8,10 +8,15 @@ import 'objectbox.g.dart';
 
 class Benchmark extends BenchmarkBase {
   final int iterations;
+  final double coefficient;
 
-  Benchmark(String name, {int iterations = 1, double coefficient = 1})
-      : iterations = iterations,
-        super(name, emitter: Emitter(iterations, coefficient));
+  Benchmark(String name, {this.iterations = 1, this.coefficient = 1})
+      : super(name, emitter: Emitter(iterations, coefficient)) {
+    print('-------------------------------------------------------------');
+    print('$name(iterations):       ${Emitter.format(iterations.toDouble())}');
+    print(
+        '$name(count):            ${Emitter.format(iterations / coefficient)}');
+  }
 
   @override
   void exercise() => run();
@@ -45,7 +50,7 @@ class Emitter implements ScoreEmitter {
   // Simple number formatting, maybe use a lib?
   // * the smaller the number, the more decimal places it has (one up to four).
   // * large numbers use thousands separator (defaults to non-breaking space).
-  String format(double num, [String thousandsSeparator = ' ']) {
+  static String format(double num, [String thousandsSeparator = ' ']) {
     final decimalPoints = num < 1
         ? 4
         : num < 10

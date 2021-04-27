@@ -45,6 +45,19 @@ void main() {
     expect(object.id, equals(putId)); // ID on the object is updated
   });
 
+  test('.putAsync', () async {
+    final a = TestEntityNonRel.filled(id: 0);
+    final b = TestEntityNonRel.filled(id: 0);
+    expect(a.id, isZero);
+    expect(b.id, isZero);
+    Future<int> aId = store.box<TestEntityNonRel>().putAsync(a);
+    Future<int> bId = store.box<TestEntityNonRel>().putAsync(b);
+    expect(await aId, greaterThan(0));
+    expect(await bId, greaterThan(0));
+    expect(a.id, equals(await aId));
+    expect(b.id, equals(await bId));
+  });
+
   test('.get() returns the correct item', () {
     final int putId = box.put(TestEntity(
         tString: 'Hello',

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../common.dart';
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
 import '../relations/to_many.dart';
@@ -43,6 +46,7 @@ class Box<T> {
   final bool _hasToOneRelations;
   final bool _hasToManyRelations;
   final _builder = BuilderWithCBuffer();
+  _AsyncBoxHelper? _async;
 
   /// Create a box for an Entity.
   factory Box(Store store) => store.box();
@@ -57,20 +61,6 @@ class Box<T> {
   }
 
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
-
-  static int _getOBXPutMode(PutMode mode) {
-    // TODO microbenchmark if this is fast or we should just return mode.index+1
-    switch (mode) {
-      case PutMode.put:
-        return OBXPutMode.PUT;
-      case PutMode.insert:
-        return OBXPutMode.INSERT;
-      case PutMode.update:
-        return OBXPutMode.UPDATE;
-      default:
-        throw ArgumentError.value(mode, 'mode');
-    }
-  }
 
   /// Puts the given Object in the box (aka persisting it).
   ///
@@ -93,6 +83,28 @@ class Box<T> {
     } else {
       return _put(object, mode, null);
     }
+  }
+
+  /// Puts the given object in the box (persisting it) asynchronously.
+  /// This operation may fail, if the async queue is too loaded
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async {
+    if (_hasRelations) {
+      throw UnsupportedError('putAsync() is currently not supported on entity '
+          '${T.toString()} because it has relations.');
+    }
+    _async ??= _AsyncBoxHelper(this);
+
+    // Note: we can use the shared flatbuffer object, because:
+    // https://dart.dev/codelabs/async-await#execution-flow-with-async-and-await
+    // > An async function runs synchronously until the first await keyword.
+    // > This means that within an async function body, all synchronous code
+    // > before the first await keyword executes immediately.
+    _builder.fbb.reset();
+    var id = _entity.objectToFB(object, _builder.fbb);
+    final newId = _async!.put(id, _builder, mode);
+    _builder.resetIfLarge(); // reset before `await`
+    if (id == 0) _entity.setId(object, await newId);
+    return newId;
   }
 
   int _put(T object, PutMode mode, Transaction? tx) {
@@ -312,6 +324,46 @@ class Box<T> {
         rel.applyToDb(mode: mode, tx: tx);
       }
     });
+  }
+}
+
+int _getOBXPutMode(PutMode mode) {
+// TODO microbenchmark if this is fast or we should just return mode.index+1
+  switch (mode) {
+    case PutMode.put:
+      return OBXPutMode.PUT;
+    case PutMode.insert:
+      return OBXPutMode.INSERT;
+    case PutMode.update:
+      return OBXPutMode.UPDATE;
+    default:
+      throw ArgumentError.value(mode, 'mode');
+  }
+}
+
+class _AsyncBoxHelper {
+  final Pointer<OBX_async> _cAsync;
+
+  _AsyncBoxHelper(Box box) : _cAsync = C.async_1(box._cBox) {
+    initializeDartAPI();
+  }
+
+  Future<int> put(int id, BuilderWithCBuffer fbb, PutMode mode) async {
+    final port = ReceivePort();
+    final newId = C.dartc_async_put_object(_cAsync, port.sendPort.nativePort,
+        fbb.bufPtr, fbb.fbb.size, _getOBXPutMode(mode));
+    if (newId == 0) throwLatestNativeError(context: 'object putAsync failed');
+    final completer = Completer<int>();
+    port.listen((dynamic message) {
+      // Null is sent if the put was successful (there is no error, thus NULL)
+      if (message == null) {
+        completer.complete(newId);
+      } else {
+        completer.completeError(ObjectBoxException(message as String));
+      }
+      port.close();
+    });
+    return completer.future;
   }
 }
 
