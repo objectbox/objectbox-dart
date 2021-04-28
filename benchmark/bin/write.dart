@@ -10,6 +10,7 @@ void main() {
   PutAsync().report();
   PutAsync2().report();
   PutAsync3().report();
+  PutQueued().report();
 }
 
 class Put extends DbBenchmark {
@@ -75,4 +76,16 @@ class PutAsync3 extends DbBenchmark {
 
   @override
   void runIteration(int i) => Future.wait([box.putAsync(items[i])]);
+}
+
+class PutQueued extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  PutQueued() : super('${PutQueued}', iterations: count);
+
+  @override
+  void run() {
+    items.forEach(box.putQueued);
+    store.awaitAsyncSubmitted();
+  }
 }

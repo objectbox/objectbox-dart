@@ -86,7 +86,18 @@ class Box<T> {
   }
 
   /// Puts the given object in the box (persisting it) asynchronously.
-  /// This operation may fail, if the async queue is too loaded
+  ///
+  /// The returned future completes with an ID of a the object.  If this is a
+  /// new object (its ID property is 0), a new ID will be assigned to the object
+  /// argument, after the returned [Future] completes.
+  ///
+  /// Throws immediately if the async queue is full.
+  /// The returned future may complete with an error (throw) if the put failed
+  /// for another reason, for example a unique constraint violation. In that
+  /// case [object]'s id field remains unchanged (0 if it was a new object).
+  ///
+  /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
+  /// ID immediately, even though the actual database put operation may fail.
   Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async {
     if (_hasRelations) {
       throw UnsupportedError('putAsync() is currently not supported on entity '
@@ -103,7 +114,11 @@ class Box<T> {
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = _async!.put(id, _builder, mode);
     _builder.resetIfLarge(); // reset before `await`
-    if (id == 0) _entity.setId(object, await newId);
+    if (id == 0) {
+      // Note: if the newId future completes with an error, ID isn't set and
+      // this call throws. Consider using `newId.then()` to avoid the throw?
+      _entity.setId(object, await newId);
+    }
     return newId;
   }
 
@@ -356,7 +371,7 @@ class _AsyncBoxHelper {
     // Zero is returned to indicate an immediate error, object won't be stored.
     if (newId == 0) {
       port.close();
-      throwLatestNativeError(context: 'object putAsync failed');
+      throwLatestNativeError(context: 'putAsync failed');
     }
 
     final completer = Completer<int>();

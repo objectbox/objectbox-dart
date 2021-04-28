@@ -46,16 +46,50 @@ void main() {
   });
 
   test('.putAsync', () async {
+    final box = store.box<TestEntityNonRel>();
     final a = TestEntityNonRel.filled(id: 0);
     final b = TestEntityNonRel.filled(id: 0);
-    expect(a.id, isZero);
-    expect(b.id, isZero);
-    Future<int> aId = store.box<TestEntityNonRel>().putAsync(a);
-    Future<int> bId = store.box<TestEntityNonRel>().putAsync(b);
-    expect(await aId, greaterThan(0));
-    expect(await bId, greaterThan(0));
-    expect(a.id, equals(await aId));
-    expect(b.id, equals(await bId));
+    Future<int> aId = box.putAsync(a);
+    expect(a.id, 0);
+    Future<int> bId = box.putAsync(b);
+    expect(b.id, 0);
+    expect(await aId, 1);
+    expect(await bId, 2);
+    expect(a.id, 1);
+    expect(b.id, 2);
+  });
+
+  test('.putAsync failures', () async {
+    final box = store.box<TestEntity2>();
+    expect(
+        () => box
+            .putAsync(TestEntity2(), mode: PutMode.update)
+            .timeout(defaultTimeout),
+        throwsA(predicate(
+            (ArgumentError e) => e.toString().contains('ID is not set'))));
+
+    expect(
+        await box
+            .putAsync(TestEntity2(id: 1), mode: PutMode.insert)
+            .timeout(defaultTimeout),
+        1);
+    expect(
+        () async => await box
+            .putAsync(TestEntity2(id: 5), mode: PutMode.update)
+            .timeout(defaultTimeout),
+        throwsA(predicate((ObjectBoxException e) =>
+            e.toString().contains('object with the given ID not found'))));
+    expect(box.count(), 1);
+
+    expect(
+        () async => await box
+            .putAsync(TestEntity2(id: 1), mode: PutMode.insert)
+            .timeout(defaultTimeout),
+        throwsA(predicate((ObjectBoxException e) =>
+            e.toString().contains('object with the given ID already exists'))));
+
+    // TODO test unique constraint violation and that an insert doesn't assign
+    //      object.id in that case.
   });
 
   test('.putAsync many', () async {
