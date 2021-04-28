@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
-import 'package:objectbox/objectbox.dart';
 
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';

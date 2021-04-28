@@ -10,6 +10,9 @@ import 'bindings/helpers.dart';
 
 // ignore_for_file: public_member_api_docs
 
+/// Represents a native transaction - it is bound to a current thread so never
+/// use with asychcronous code, or more specifically, never `await` before
+/// calling [close].
 @internal
 class Transaction {
   final Store _store;
@@ -98,6 +101,21 @@ class Transaction {
   /// Returns type of [fn] if [return] is called in [fn].
   @pragma('vm:prefer-inline')
   static R execute<R>(Store store, TxMode mode, R Function() fn) {
+    // Whether the function is an `async` function. We can't allow those because
+    // the isolate could be transferred to another thread during execution.
+    // Checking the return value seems like the only thing we can in Dart v2.12.
+    if (fn is Future Function()) {
+      // This is a special case when the given function always throws. Triggered
+      //  in our test code. No need to even start a DB transaction in that case.
+      if (fn is Never Function()) {
+        // WARNING: don't be tempted to just `return fn();` - the code may
+        // execute DB operations which wouldn't be rolled back after the throw.
+        throw UnsupportedError('Given transaction callback always fails.');
+      }
+      throw UnsupportedError(
+          'Executing an "async" function in a transaction is not allowed.');
+    }
+
     final tx = Transaction(store, mode);
     try {
       // In theory, we should only mark successful after the function finishes.

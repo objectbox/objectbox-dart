@@ -406,9 +406,14 @@ void main() {
     expect(
         () => store.runInTransaction(TxMode.write, () {
               box.putMany(simpleItems());
-              throw 'test-exception';
+              // note: we're throwing conditionally (but always true) so that
+              // the return type is not [Never]. See [Transaction.execute()]
+              // testing for the return type to be a [Future]. [Never] is a
+              // base class to everything, so a [Future] is also a [Never].
+              if (box == env.box) throw 'test-exception';
+              return 1;
             }),
-        throwsA(predicate((e) => e == 'test-exception')));
+        throwsA(predicate((String e) => e == 'test-exception')));
     expect(box.count(), equals(0));
   });
 

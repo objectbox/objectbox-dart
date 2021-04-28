@@ -214,7 +214,7 @@ class Store {
   }
 
   /// Executes a given function inside a transaction. Returns [fn]'s result.
-  /// Aborts a transaction or rethrows if there's an exception.
+  /// Aborts a transaction and rethrows on exception or if [fn] is asynchronous.
   ///
   /// A transaction can group several operations into a single unit of work that
   /// either executes completely or not at all.
