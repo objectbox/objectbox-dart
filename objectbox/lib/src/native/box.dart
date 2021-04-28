@@ -122,6 +122,36 @@ class Box<T> {
     return newId;
   }
 
+  /// Schedules the given object to be put later on, by an asynchronous queue.
+  ///
+  /// The actual database put operation may fail even if this function returned
+  /// normally (and even if it returned a new ID for a new object). For example
+  /// if the database put failed because of a unique constraint violation.
+  /// Therefore, you should make sure the data you put is correct and you have
+  /// a fall back in place even if it eventually failed.
+  ///
+  /// Throws immediately if the async queue is full.
+  ///
+  /// See also [putAsync] which returns a [Future] that only completes after an
+  /// actual database put was successful.
+  /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
+  /// until all operations have finished.
+  int putQueued(T object, {PutMode mode = PutMode.put}) {
+    if (_hasRelations) {
+      throw UnsupportedError('putQueued() is currently not supported on entity '
+          '${T.toString()} because it has relations.');
+    }
+    _async ??= _AsyncBoxHelper(this);
+
+    _builder.fbb.reset();
+    var id = _entity.objectToFB(object, _builder.fbb);
+    final newId = C.async_put_object4(_async!._cAsync, _builder.bufPtr,
+        _builder.fbb.size, _getOBXPutMode(mode));
+    id = _handlePutObjectResult(object, id, newId);
+    _builder.resetIfLarge();
+    return newId;
+  }
+
   int _put(T object, PutMode mode, Transaction? tx) {
     if (_hasRelations) {
       if (tx == null) {

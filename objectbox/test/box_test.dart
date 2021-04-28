@@ -103,6 +103,36 @@ void main() {
     }
   });
 
+  test('.putQueued', () {
+    final box = store.box<TestEntityNonRel>();
+    final items = List.generate(1000, (i) => TestEntityNonRel.filled(id: 0));
+    store.awaitAsyncSubmitted();
+    final ids = items.map(box.putQueued).toList();
+    for (int i = 0; i < items.length; i++) {
+      expect(items[i].id, ids[i]);
+    }
+  });
+
+  test('.putQueued failures', () async {
+    expect(
+        () => store
+            .box<TestEntity2>()
+            .putQueued(TestEntity2(), mode: PutMode.update),
+        throwsA(predicate(
+            (ArgumentError e) => e.toString().contains('ID is not set'))));
+
+    expect(
+        () => store
+            .box<TestEntityNonRel>()
+            .putQueued(TestEntityNonRel.filled(id: 5), mode: PutMode.insert),
+        throwsA(predicate((ArgumentError e) =>
+            e.toString().contains('Use ID 0 (zero) to insert new entities'))));
+
+    store.awaitAsyncCompletion();
+    expect(store.box<TestEntity2>().count(), 0);
+    expect(store.box<TestEntityNonRel>().count(), 0);
+  });
+
   test('.get() returns the correct item', () {
     final int putId = box.put(TestEntity(
         tString: 'Hello',

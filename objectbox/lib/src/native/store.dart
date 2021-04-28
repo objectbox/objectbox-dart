@@ -235,6 +235,24 @@ class Store {
   /// available. Use [Sync.client()] to create one first.
   SyncClient? syncClient() => syncClientsStorage[this];
 
+  /// Await for all (including future) async submissions to be completed
+  /// (the async queue becomes idle for a moment).
+  ///
+  /// Returns true if all submissions were completed or async processing was
+  /// not started; false if shutting down (or an internal error occurred).
+  ///
+  /// Use to wait until all puts by [Box.putQueued] have finished.
+  bool awaitAsyncCompletion() => C.store_await_async_submitted(_ptr);
+
+  /// Await for previously submitted async operations to be completed
+  /// (the async queue does not have to become idle).
+  ///
+  /// Returns true if all submissions were completed or async processing was
+  /// not started; false if shutting down (or an internal error occurred).
+  ///
+  /// Use to wait until all puts by [Box.putQueued] have finished.
+  bool awaitAsyncSubmitted() => C.store_await_async_submitted(_ptr);
+
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
   Pointer<OBX_store> get _ptr {
