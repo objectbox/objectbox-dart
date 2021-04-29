@@ -50,7 +50,10 @@ class PutAsync extends DbBenchmark {
             iterations: 1, coefficient: 1 / count);
 
   @override
-  void runIteration(int i) => Future.wait(items.map(box.putAsync));
+  void run() {
+    Future.wait(items.map(box.putAsync));
+    store.awaitAsyncSubmitted();
+  }
 }
 
 // This is slightly different (slower) then the [PutAsync] - all futures are
@@ -63,9 +66,10 @@ class PutAsync2 extends DbBenchmark {
             iterations: 1, coefficient: 1 / count);
 
   @override
-  void runIteration(int i) {
+  void run() {
     final futures = items.map(box.putAsync).toList(growable: false);
     Future.wait(futures);
+    store.awaitAsyncSubmitted();
   }
 }
 
@@ -75,7 +79,10 @@ class PutAsync3 extends DbBenchmark {
   PutAsync3() : super('${PutAsync3}[wait(putAsync(i))]', iterations: count);
 
   @override
-  void runIteration(int i) => Future.wait([box.putAsync(items[i])]);
+  void run() {
+    items.forEach((item) => Future.wait([box.putAsync(item)]));
+    store.awaitAsyncSubmitted();
+  }
 }
 
 class PutQueued extends DbBenchmark {
