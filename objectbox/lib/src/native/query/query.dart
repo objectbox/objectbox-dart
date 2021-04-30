@@ -736,7 +736,10 @@ class Query<T> {
   }
 
   /// Finds Objects matching the query, streaming them while the query executes.
-  Stream<T> stream() {
+  Stream<T> stream() => _stream1();
+
+  /// Stream items by sending full flatbuffers binary as a message.
+  Stream<T> _stream1() {
     initializeDartAPI();
     final port = ReceivePort();
     final cStream = checkObxPtr(
@@ -757,6 +760,57 @@ class Query<T> {
         if (message is Uint8List) {
           try {
             controller.add(_entity.objectFromFB(_store, message));
+            return;
+          } catch (e) {
+            controller.addError(e);
+          }
+        } else if (message is String) {
+          controller.addError(
+              ObjectBoxException('Query stream native exception: $message'));
+        } else if (message != null) {
+          controller.addError(ObjectBoxException(
+              'Query stream received an invalid message type '
+              '(${message.runtimeType}): $message'));
+        }
+        controller.close(); // done
+        close();
+      });
+      return controller.stream;
+    } catch (e) {
+      close();
+      rethrow;
+    }
+  }
+
+  /// Stream items by sending pointers from native code.
+  /// Interestingly this is slower even though it transfers only pointers...
+  /// Probably because of the slowness of `asTypedList()`, see native_pointers.dart benchmark
+  Stream<T> _stream2() {
+    initializeDartAPI();
+    final port = ReceivePort();
+    final cStream = checkObxPtr(
+        C.dartc_query_find_ptr(_cQuery, port.sendPort.nativePort),
+        'query stream');
+
+    var closed = false;
+    final close = () {
+      if (closed) return;
+      closed = true;
+      C.dartc_stream_close(cStream);
+      port.close();
+    };
+
+    try {
+      final controller = StreamController<T>(onCancel: close);
+      port.listen((dynamic message) {
+        // We expect Uint8List for data and NULL when the query has finished.
+        if (message is Uint8List) {
+          try {
+            final int64s = Int64List.view(message.buffer);
+            assert(int64s.length == 2);
+            final data =
+                Pointer<Uint8>.fromAddress(int64s[0]).asTypedList(int64s[1]);
+            controller.add(_entity.objectFromFB(_store, data));
             return;
           } catch (e) {
             controller.addError(e);
