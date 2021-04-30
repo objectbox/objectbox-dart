@@ -95,12 +95,16 @@ class CodeBuilder extends Builder {
         .toList();
 
     var code = CodeChunks.objectboxDart(model, imports);
-    code = DartFormatter().format(code);
 
-    final codeId =
-        AssetId(buildStep.inputId.package, dir(buildStep) + '/' + codeFile);
-    log.info('Generating code: ${codeId.path}');
-    await buildStep.writeAsString(codeId, code);
+    try {
+      code = DartFormatter().format(code);
+    } finally {
+      // Write the code even after a formatter error so it's easier to debug.
+      final codeId =
+          AssetId(buildStep.inputId.package, dir(buildStep) + '/' + codeFile);
+      log.info('Generating code: ${codeId.path}');
+      await buildStep.writeAsString(codeId, code);
+    }
   }
 
   void merge(ModelInfo model, List<ModelEntity> entities) {
