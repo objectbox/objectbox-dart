@@ -79,7 +79,7 @@ class CodeChunks {
       if (object.${propertyFieldName(entity.idProperty)} != id) {
         throw ArgumentError('Field ${entity.name}.${propertyFieldName(entity.idProperty)} is read-only ' 
         '(final or getter-only) and it was declared to be self-assigned. '
-        'However, the currently inserted object (.${propertyFieldName(entity.idProperty)}=\${object.${propertyFieldAccess(entity.idProperty, '?')}}) ' 
+        'However, the currently inserted object (.${propertyFieldName(entity.idProperty)}=\${object.${entity.idProperty}}) ' 
         "doesn't match the inserted ID (ID \$id). "
         'You must assign an ID before calling [box.put()].');
       }
