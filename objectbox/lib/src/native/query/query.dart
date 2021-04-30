@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
+import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
@@ -760,9 +761,13 @@ class Query<T> {
           } catch (e) {
             controller.addError(e);
           }
+        } else if (message is String) {
+          controller.addError(
+              ObjectBoxException('Query stream native exception: $message'));
         } else if (message != null) {
-          controller.addError('Query stream received an invalid message type '
-              '(${message.runtimeType}): $message');
+          controller.addError(ObjectBoxException(
+              'Query stream received an invalid message type '
+              '(${message.runtimeType}): $message'));
         }
         controller.close(); // done
         close();
