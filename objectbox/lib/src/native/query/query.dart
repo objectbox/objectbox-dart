@@ -3,6 +3,7 @@ library query;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:ffi';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
@@ -731,6 +732,46 @@ class Query<T> {
     _store.runInTransaction(
         TxMode.read, () => checkObx(C.query_visit(_ptr, collector, nullptr)));
     return result;
+  }
+
+  /// Finds Objects matching the query, streaming them while the query executes.
+  Stream<T> stream() {
+    initializeDartAPI();
+    final port = ReceivePort();
+    final cStream = checkObxPtr(
+        C.dartc_query_find(_cQuery, port.sendPort.nativePort), 'query stream');
+
+    var closed = false;
+    final close = () {
+      if (closed) return;
+      closed = true;
+      C.dartc_stream_close(cStream);
+      port.close();
+    };
+
+    try {
+      final controller = StreamController<T>(onCancel: close);
+      port.listen((dynamic message) {
+        // We expect Uint8List for data and NULL when the query has finished.
+        if (message is Uint8List) {
+          try {
+            controller.add(_entity.objectFromFB(_store, message));
+            return;
+          } catch (e) {
+            controller.addError(e);
+          }
+        } else if (message != null) {
+          controller.addError('Query stream received an invalid message type '
+              '(${message.runtimeType}): $message');
+        }
+        controller.close(); // done
+        close();
+      });
+      return controller.stream;
+    } catch (e) {
+      close();
+      rethrow;
+    }
   }
 
   /// For internal testing purposes.

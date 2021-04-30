@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -587,5 +590,41 @@ void main() {
             ' AND tUint8List < byte[1]{0x08}\n'
             ' AND tUint8List <= byte[4]{0x090A0B0C})'));
     q.close();
+  });
+
+  test('stream items', () async {
+    const count = 1000;
+    final items = List<TestEntity>.generate(
+        count, (i) => TestEntity.filled(id: 0, tByte: i % 30));
+    box.putMany(items);
+    expect(box.count(), count);
+
+    final query = box.query(TestEntity_.tByte.lessThan(10)).build();
+    final countMatching =
+    items.fold(0, (int c, item) => c + (item.tByte! < 10 ? 1 : 0));
+    expect(query.count(), countMatching);
+
+    final foundIds = query.findIds();
+    final streamed = await query.stream().toList();
+    expect(streamed.length, countMatching);
+    final streamedIds = streamed.map((e) => e.id).toList(growable: false);
+
+    // this is much much slower: expect(streamedIds, sameAsList(foundIds));
+    expect(const ListEquality<int>().equals(streamedIds, foundIds), isTrue);
+
+    // Test subscription cancellation doesn't leave non-freed resources.
+    final streamListenedItems = <TestEntity>{};
+
+    final start = DateTime.now();
+    final subscription = query.stream().listen(streamListenedItems.add);
+    for (int i = 0; i < 10 && streamListenedItems.isEmpty; i++) {
+      await Future<void>.delayed(Duration(milliseconds: i));
+    }
+    print('Received ${streamListenedItems.length} items in '
+        '${DateTime.now().difference(start).inMilliseconds} milliseconds');
+    await subscription.cancel();
+    expect(streamListenedItems.length, isNonZero);
+
+    query.close();
   });
 }
