@@ -45,14 +45,18 @@ class Property {
   /// The defaults are e.g. Int -> Int64, double -> Float64, bool -> Bool.
   final PropertyType? type;
 
-  /// Create an Property annotation.
-  const Property({this.type, this.uid});
+  /// For integer property only: indicate how should values be treated when
+  /// executing queries or creating indexes. Defaults to [true].
+  final bool signed;
+
+  /// Create a Property annotation.
+  const Property({this.type, this.uid, this.signed = true});
 }
 
 /// Specify ObjectBox property storage type explicitly.
 enum PropertyType {
   // dart type=bool, size: 1-byte/8-bits
-  // no need to specify explicitly, just use `bool`
+  // no need to specify explicitly, just use [bool]
   // bool,
 
   /// size: 1-byte/8-bits
@@ -68,18 +72,18 @@ enum PropertyType {
   int,
 
   // dart type=int, size: 8-bytes/64-bits
-  // no need to specify explicitly, just use `int`
+  // no need to specify explicitly, just use [int]
   // long,
 
   /// size: 4-bytes/32-bits
   float,
 
   // dart type=double, size: 8-bytes/64-bits
-  // no need to specify explicitly, just use `double`
+  // no need to specify explicitly, just use [double]
   // double,
 
   // dart type=String
-  // no need to specify explicitly, just use `String`
+  // no need to specify explicitly, just use [String]
   // string,
 
   // Relation, currently not supported
@@ -98,7 +102,7 @@ enum PropertyType {
   byteVector,
 
   // dart type=List<String>
-  // no need to specify explicitly, just use `List<String> `
+  // no need to specify explicitly, just use [List<String>]
   // stringVector
 }
 

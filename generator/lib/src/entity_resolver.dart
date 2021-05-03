@@ -125,6 +125,9 @@ class EntityResolver extends Builder {
       _propertyChecker.runIfMatches(f, (annotation) {
         propUid = annotation.getField('uid')!.toIntValue();
         fieldType = propertyTypeFromAnnotation(annotation.getField('type')!);
+        if (!annotation.getField('signed')!.toBoolValue()!) {
+          flags |= OBXPropertyFlags.UNSIGNED;
+        }
       });
 
       if (fieldType == null) {
