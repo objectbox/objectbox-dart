@@ -58,11 +58,11 @@ class EntityResolver extends Builder {
     }
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
-    final entity = ModelEntity(IdUid.empty(), element.name, null);
-    var entityUid = annotation.read('uid');
-    if (!entityUid.isNull) {
-      entity.id.uid = entityUid.intValue;
-    }
+    final entityUid = annotation.read('uid');
+    final entity = ModelEntity.create(
+        IdUid(0, entityUid.isNull ? 0 : entityUid.intValue),
+        element.name,
+        null);
 
     if (_syncChecker.hasAnnotationOfExact(element)) {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;
@@ -189,20 +189,21 @@ class EntityResolver extends Builder {
         }
         final backlinkField =
             backlinkAnnotations.first.getField('to')!.toStringValue()!;
-        final backlink = ModelBacklink(f.name, relTargetName!, backlinkField);
+        final backlink = ModelBacklink(
+            name: f.name, srcEntity: relTargetName!, srcField: backlinkField);
         entity.backlinks.add(backlink);
         log.info('  $backlink');
       } else if (isToManyRel) {
         // create relation
-        final rel =
-            ModelRelation(IdUid.empty(), f.name, targetName: relTargetName);
-        if (propUid != null) rel.id.uid = propUid!;
+        final rel = ModelRelation.create(IdUid(0, propUid ?? 0), f.name,
+            targetName: relTargetName);
         entity.relations.add(rel);
 
         log.info('  $rel');
       } else {
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
-        final prop = ModelProperty(IdUid.empty(), f.name, fieldType,
+        final prop = ModelProperty.create(
+            IdUid(0, propUid ?? 0), f.name, fieldType,
             flags: flags, entity: entity);
 
         if (fieldType == OBXPropertyType.Relation) {
@@ -218,7 +219,6 @@ class EntityResolver extends Builder {
         // Index and unique annotation.
         processAnnotationIndexUnique(f, fieldType, element, prop);
 
-        if (propUid != null) prop.id.uid = propUid!;
         // for code generation
         prop.dartFieldType =
             f.type.element!.name! + (isNullable(f.type) ? '?' : '');

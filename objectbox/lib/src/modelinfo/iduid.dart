@@ -8,48 +8,34 @@
 ///  * [IDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#ids)
 ///  * [UIDs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#uids)
 class IdUid {
-  late int _id, _uid;
+  final int id, uid;
 
-  int get id => _id;
+  const IdUid(this.id, this.uid);
 
-  set id(int id) {
-    RangeError.checkValueInInterval(id, 0, ((1 << 63) - 1), 'id');
-    _id = id;
-  }
-
-  int get uid => _uid;
-
-  set uid(int uid) {
-    RangeError.checkValueInInterval(uid, 0, ((1 << 63) - 1), 'uid');
-    _uid = uid;
-  }
-
-  IdUid(int newId, int newUid) {
-    id = newId;
-    uid = newUid;
-  }
-
-  IdUid.fromString(String? str) {
+  factory IdUid.fromString(String? str) {
     if (str == null || str == '' || str == '0:0') {
-      _id = 0;
-      _uid = 0;
-      return;
+      return const IdUid.empty();
     }
 
     final spl = str.split(':');
     if (spl.length != 2) {
       throw ArgumentError.value(str, 'str', 'IdUid has invalid format');
     }
-    id = int.parse(spl[0]);
-    uid = int.parse(spl[1]);
+    return IdUid(_parse('id', spl[0]), _parse('uid', spl[1]));
   }
 
-  IdUid.empty()
-      : _id = 0,
-        _uid = 0;
+  const IdUid.empty()
+      : id = 0,
+        uid = 0;
 
-  bool get isEmpty => _id == 0 && _uid == 0;
+  bool get isEmpty => id == 0 && uid == 0;
 
   @override
-  String toString() => '$_id:$_uid';
+  String toString() => '$id:$uid';
+
+  static int _parse(String name, String part) {
+    final value = int.parse(part);
+    RangeError.checkValueInInterval(value, 0, ((1 << 63) - 1), name);
+    return value;
+  }
 }

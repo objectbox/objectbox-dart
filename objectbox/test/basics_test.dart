@@ -28,7 +28,7 @@ void main() {
   });
 
   test('model UID generation', () {
-    final model = ModelInfo();
+    final model = ModelInfo.empty();
     final uid1 = model.generateUid();
     final uid2 = model.generateUid();
     expect(uid1, isNot(equals(uid2)));

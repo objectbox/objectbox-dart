@@ -28,7 +28,21 @@ class ModelInfo {
       retiredRelationUids;
   int modelVersion, modelVersionParserMinimum, version;
 
-  ModelInfo()
+  ModelInfo(
+      {required this.entities,
+      required this.lastEntityId,
+      required this.lastIndexId,
+      required this.lastRelationId,
+      required this.lastSequenceId,
+      required this.retiredEntityUids,
+      required this.retiredIndexUids,
+      required this.retiredPropertyUids,
+      required this.retiredRelationUids,
+      required this.modelVersion,
+      required this.modelVersionParserMinimum,
+      required this.version});
+
+  ModelInfo.empty()
       : entities = [],
         lastEntityId = IdUid.empty(),
         lastIndexId = IdUid.empty(),
@@ -187,7 +201,7 @@ class ModelInfo {
     }
     final uniqueUid = uid == 0 ? generateUid() : uid;
 
-    var entity = ModelEntity(IdUid(id, uniqueUid), name, this);
+    var entity = ModelEntity.create(IdUid(id, uniqueUid), name, this);
     entities.add(entity);
     lastEntityId = entity.id;
     return entity;
