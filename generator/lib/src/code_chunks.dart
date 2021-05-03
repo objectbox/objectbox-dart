@@ -42,9 +42,9 @@ class CodeChunks {
 
   static String defineModel(ModelInfo model) {
     return '''
-    final entities = List<ModelEntity>.unmodifiable([
+    final entities = <ModelEntity>[
       ${model.entities.map(createModelEntity).join(',')}
-    ]);
+    ];
     
     final model = ModelInfo(
       entities: entities,
@@ -73,15 +73,15 @@ class CodeChunks {
       name: '${entity.name}', 
       lastPropertyId: ${createIdUid(entity.lastPropertyId)}, 
       flags: ${entity.flags}, 
-      properties: List<ModelProperty>.unmodifiable([
+      properties: <ModelProperty>[
         ${entity.properties.map(createModelProperty).join(',')}
-      ]), 
-      relations: List<ModelRelation>.unmodifiable([
+      ], 
+      relations: <ModelRelation>[
         ${entity.relations.map(createModelRelation).join(',')}
-      ]), 
-      backlinks: List<ModelBacklink>.unmodifiable([
+      ], 
+      backlinks: <ModelBacklink>[
         ${entity.backlinks.map(createModelBacklink).join(',')}
-      ])
+      ]
     )
     ''';
   }
