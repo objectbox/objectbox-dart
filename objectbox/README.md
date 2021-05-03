@@ -115,19 +115,27 @@ Thanks!
 FAQ
 ---
 
-**Q:** After adding ObjectBox, the size of the APK increased significantly. Why is that?<br />
-**A:** Flutter compresses its native libraries (.so files) by default in the APK.
-ObjectBox instructs the Android build to use uncompressed native libraries instead
-(following the [official Android recommendations](https://developer.android.com/topic/performance/reduce-apk-size#extract-false)).
-This setting affects the Flutter native libraries as well. Thus the now uncompressed Flutter libraries add to the APK size as well;
-we've seen an additional 19 MB for the standard Flutter libraries.
-_This is bad, right?_ Nope, actually uncompressed libraries use **less** storage space on device and have other advantages.
-For details, please review the [official Android recommendations](https://developer.android.com/topic/performance/reduce-apk-size#extract-false)
-and the [ObjectBox FAQ entry](https://docs.objectbox.io/faq#how-much-does-objectbox-add-to-my-apk-size) on this.
-Both links also explain how to force compression using `android:extractNativeLibs="true"`.
+_**Q: After adding ObjectBox, the size of the APK increased significantly. Why is that?**_  
+**A: This is caused by ObjectBox following
+the [official Android recommendations](https://developer.android.com/topic/performance/reduce-apk-size#extract-false)
+for library compression settings**. By default, Flutter apps created from the template have the compression enabled,
+opposite to the recommendation. The setting to disable library compression affects all native libraries in your app, not
+just ObjectBox - with Flutter native libraries now taking up the large portion of the increased APK size. ObjectBox
+library adds about 5.8 MiB uncompressed, and Flutter framework libs increase the uncompressed size by 18.4 MiB.  
+_Q: Should I be worried about the size increase of uncompressed libraries?_  
+A: No, not really - creating uncompressed APK is actually better for users - uses less storage on device and allows for
+smaller updates. Also, App bundles (`.aab`) are not affected and actually show the real size ObjectBox adds. For more
+information about the sizes, see the following table created with ObjectBox v0.14.0 and Flutter v2.0.5 release builds
+(`flutter build apk` and `flutter build appbundle`):
 
-**Q:** Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", does it not support 32-bit devices?<br />
-**A:** No, only 64-bit iOS devices are supported. When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
+| Release           | without ObjectBox | with ObjectBox |    Difference |
+| ----------------- | ----------------: | -------------: | ------------: | 
+| .apk              |         15.39 MiB |      39.60 MiB |    +24.21 MiB |
+| .apk uncompressed |         33.81 MiB |      39.60 MiB |     +5.79 MiB |
+| .aab (App bundle) |         15.39 MiB |      17.58 MiB | **+2.19 MiB** |
+
+_**Q: Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", does it not support 32-bit devices?**_  
+**A: No, only 64-bit iOS devices are supported.** When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
 so we decided to not ship armv7 support. To resolve the build error, in your XCode project
 look under Architectures and replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
 
