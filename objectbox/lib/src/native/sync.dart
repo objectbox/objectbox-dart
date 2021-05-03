@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert' show utf8;
 import 'dart:ffi';
 import 'dart:isolate';
@@ -7,7 +8,6 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
-import '../modelinfo/entity_definition.dart';
 import '../util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
@@ -368,11 +368,7 @@ class SyncClient {
       // This stream combines events from two C listeners: connect & disconnect.
       _changeEvents = _SyncListenerGroup<List<SyncChange>>('sync-change');
 
-      // create a map from Entity ID to Entity type (dart class)
-      final entityTypesById = <int, Type>{};
-      InternalStoreAccess.defs(_store).bindings.forEach(
-          (Type entity, EntityDefinition entityDef) =>
-              entityTypesById[entityDef.model.id.id] = entity);
+      final entityTypesById = InternalStoreAccess.entityTypeById(_store);
 
       _changeEvents!.add(_SyncListenerConfig(
           (int nativePort) => C.dartc_sync_listener_change(_ptr, nativePort),

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
@@ -19,7 +20,7 @@ import 'sync.dart';
 /// getting and putting.
 class Store {
   late final Pointer<OBX_store> _cStore;
-  final _boxes = <Type, Box>{};
+  final _boxes = HashMap<Type, Box>();
   final ModelDefinition _defs;
   bool _closed = false;
 
@@ -247,6 +248,14 @@ class InternalStoreAccess {
 
   /// Access model definitions
   static ModelDefinition defs(Store store) => store._defs;
+
+  // create a map from Entity ID to Entity type (dart class)
+  static Map<int, Type> entityTypeById(Store store) {
+    final result = HashMap<int, Type>();
+    store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
+        result[entityDef.model.id.id] = entity);
+    return result;
+  }
 
   /// Adds a listener to the [store.close()] event.
   static void addCloseListener(
