@@ -57,4 +57,32 @@ void main() {
     store2.close();
     env.close();
   });
+
+  test('transactions', () {
+    final env = TestEnv('basics');
+    expect(TxMode.values.length, 2);
+    TxMode.values.forEach((mode) {
+      // Returned value falls through.
+      expect(env.store.runInTransaction(mode, () => 1), 1);
+
+      // Async callbacks are forbidden.
+      final asyncCallbacks = [
+        () async => null,
+        () => Future<int>.delayed(const Duration(milliseconds: 1)),
+        () => Future<void>.value(),
+      ];
+      asyncCallbacks.forEach((callback) => expect(
+          () => env.store.runInTransaction(mode, callback),
+          throwsA(predicate((UnsupportedError e) => e
+              .toString()
+              .contains('"async" function in a transaction is not allowed')))));
+
+      // Functions that [Never] finish won't be executed at all.
+      expect(
+          () => env.store.runInTransaction(mode, () => throw 'hey there'),
+          throwsA(predicate((UnsupportedError e) => e
+              .toString()
+              .contains('Given transaction callback always fails.'))));
+    });
+  });
 }
