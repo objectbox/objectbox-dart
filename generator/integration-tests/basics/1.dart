@@ -51,5 +51,19 @@ void main() {
     expect(property(model, 'T.tInt8List').type, OBXPropertyType.ByteVector);
     expect(property(model, 'T.tUint8List').type, OBXPropertyType.ByteVector);
     expect(property(model, 'T.tListString').type, OBXPropertyType.StringVector);
+
+    expect(property(model, 'T.id').isSigned, isTrue);
+    expect(property(model, 'T.tByte').isSigned, isTrue);
+    expect(property(model, 'T.tShort').isSigned, isTrue);
+    expect(property(model, 'T.tChar').isSigned, isTrue);
+    expect(property(model, 'T.tInt').isSigned, isTrue);
+    expect(property(model, 'T.tLong').isSigned, isTrue);
+
+    expect(property(model, 'Unsigned.id').isSigned, isTrue);
+    expect(property(model, 'Unsigned.tByte').isSigned, isFalse);
+    expect(property(model, 'Unsigned.tShort').isSigned, isFalse);
+    expect(property(model, 'Unsigned.tChar').isSigned, isFalse);
+    expect(property(model, 'Unsigned.tInt').isSigned, isFalse);
+    expect(property(model, 'Unsigned.tLong').isSigned, isFalse);
   });
 }

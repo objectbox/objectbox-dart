@@ -131,6 +131,8 @@ class ModelProperty {
 
   bool get isRelation => type == OBXPropertyType.Relation;
 
+  bool get isSigned => !hasFlag(OBXPropertyFlags.UNSIGNED);
+
   void removeIndex() {
     if (_indexId != null) {
       entity!.model.retiredIndexUids.add(_indexId!.uid);
@@ -142,6 +144,7 @@ class ModelProperty {
   String toString() {
     var result = 'property $name($id)';
     result += ' type:${obxPropertyTypeToString(type)}';
+    if (!isSigned) result += ' unsigned';
     result += ' flags:$flags';
 
     if (hasIndexFlag()) {

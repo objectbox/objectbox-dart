@@ -54,13 +54,8 @@ void main() {
   final tShort = TestEntity_.tShort;
 
   // OB prohibits aggregate operations on tBool & tChar
-  final tIntegers = [
-    /*tBool, tChar,*/
-    tByte,
-    tShort,
-    tInt,
-    tLong
-  ]; // starts resp. 1, 2, 4, 5
+  final tSignedInts = [tByte, tShort, tLong]; // values start at 1, 2 & 5
+  final tUnsignedInts = [tInt];
 
   final tFloat = TestEntity_.tFloat;
   final tDouble = TestEntity_.tDouble;
@@ -73,9 +68,15 @@ void main() {
     box.putMany(stringList());
     box.putMany(floatList());
 
-    tIntegers.forEach((i) {
+    tSignedInts.forEach((i) {
       final queryInt = box.query(i.greaterThan(0)).build();
       expect(queryInt.count(), 8);
+      queryInt.close();
+    });
+
+    tUnsignedInts.forEach((i) {
+      final queryInt = box.query(i.greaterThan(0)).build();
+      expect(queryInt.count(), 9);
       queryInt.close();
     });
 
@@ -106,7 +107,7 @@ void main() {
 
     final query = box.query(tLong < 2).build();
 
-    tIntegers.forEach((i) {
+    tSignedInts.forEach((i) {
       final qp = query.property(i);
       expect(qp is IntegerPropertyQuery, true);
       qp.close();
@@ -133,7 +134,7 @@ void main() {
 
     final sumByte = all.map((s) => s.tByte!).toList().fold(0, _add);
     final sumShort = all.map((s) => s.tShort!).toList().fold(0, _add);
-    final sumInt = all.map((s) => s.tInt!).toList().fold(0, _add);
+    final sumInt = all.map((s) => toUint32(s.tInt!)).toList().fold(0, _add);
     final sumLong = all.map((s) => s.tLong!).toList().fold(0, _add);
 
     expect(_propQueryExecInt(query, tByte, _pqSumInt), sumByte);
@@ -152,7 +153,7 @@ void main() {
 
     final minByte = all.map((s) => s.tByte!).toList().reduce(min);
     final minShort = all.map((s) => s.tShort!).toList().reduce(min);
-    final minInt = all.map((s) => s.tInt!).toList().reduce(min);
+    final minInt = all.map((s) => toUint32(s.tInt!)).toList().reduce(min);
     final minLong = all.map((s) => s.tLong!).toList().reduce(min);
 
     expect(_propQueryExecInt(query, tByte, _pqMinInt), minByte);
@@ -171,7 +172,7 @@ void main() {
 
     final maxByte = all.map((s) => s.tByte!).toList().reduce(max);
     final maxShort = all.map((s) => s.tShort!).toList().reduce(max);
-    final maxInt = all.map((s) => s.tInt!).toList().reduce(max);
+    final maxInt = all.map((s) => toUint32(s.tInt!)).toList().reduce(max);
     final maxLong = all.map((s) => s.tLong!).toList().reduce(max);
 
     expect(_propQueryExecInt(query, tByte, _pqMaxInt), maxByte);
@@ -239,9 +240,9 @@ void main() {
     final queryStrings =
         box.query(tString.endsWith('suffix', caseSensitive: false)).build();
 
-    final start = [1, 2, 4, 5];
-    for (var i = 0; i < tIntegers.length; i++) {
-      final qp = queryIntegers.property(tIntegers[i]) as IntegerPropertyQuery;
+    final start = [1, 2, 5];
+    for (var i = 0; i < tSignedInts.length; i++) {
+      final qp = queryIntegers.property(tSignedInts[i]) as IntegerPropertyQuery;
 
       final mappedIntegers = integers.map((j) => j + start[i]).toList();
       expect(qp.find(replaceNullWith: -1), mappedIntegers);
@@ -319,6 +320,8 @@ void main() {
 
     // integers
     var intBaseAvg = integers.reduce((a, b) => a + b) / integers.length;
+    var intUnsignedBaseAvg =
+        integers.map(toUint32).reduce((a, b) => a + b) / integers.length;
 
     final qpInteger = (QueryProperty p, double avg) {
       final qp = queryIntegers.integerProperty(p);
@@ -328,7 +331,7 @@ void main() {
 
     qpInteger(tByte, intBaseAvg + 1);
     qpInteger(tLong, intBaseAvg + 5);
-    qpInteger(tInt, intBaseAvg + 4);
+    qpInteger(tInt, intUnsignedBaseAvg + 4);
     qpInteger(tShort, intBaseAvg + 2);
 
     // floats
@@ -408,9 +411,9 @@ void main() {
     box.putMany(floatList());
 
     // int
-    for (var i = 0; i < tIntegers.length; i++) {
-      final query = box.query(tIntegers[i].lessThan(100)).build();
-      final queryInt = query.property(tIntegers[i]);
+    for (var i = 0; i < tSignedInts.length; i++) {
+      final query = box.query(tSignedInts[i].lessThan(100)).build();
+      final queryInt = query.property(tSignedInts[i]);
 
       expect(queryInt.count(), 9);
       expect((queryInt..distinct = true).count(), 7);
@@ -497,6 +500,8 @@ T _propQueryExecDouble<T>(Query query, QueryProperty prop,
     propQuery.close();
   }
 }
+
+int toUint32(int v) => v >= 0 ? v : (1 << 32) + v;
 
 double _pqSumDouble(DoublePropertyQuery propQuery) => propQuery.sum();
 

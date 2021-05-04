@@ -74,3 +74,23 @@ class T {
 
   List<String>? tListString;
 }
+
+@Entity()
+class Unsigned {
+  int? id;
+
+  @Property(type: PropertyType.byte, signed: false)
+  int? tByte;
+
+  @Property(type: PropertyType.short, signed: false)
+  int? tShort;
+
+  @Property(type: PropertyType.char, signed: false)
+  int? tChar;
+
+  @Property(type: PropertyType.int, signed: false)
+  int? tInt;
+
+  @Property(signed: false)
+  int? tLong;
+}
