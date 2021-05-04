@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/src/native/store.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -45,7 +46,7 @@ void main() {
 
   test('Model Entity has sync enabled', () {
     final model = getObjectBoxModel().model;
-    final entity = model.entities.firstWhere((e) => e.name == 'TestEntity');
+    final entity = model.entities.firstWhere((e) => e.name == 'TestEntitySynced');
     expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
@@ -177,15 +178,17 @@ void main() {
         final client1 = loggedInClient(env.store);
         final client2 = loggedInClient(env2.store);
 
-        int id = env.box.put(TestEntity(tLong: Random().nextInt(1 << 32)));
-        expect(waitUntil(() => env2.box.get(id) != null), isTrue);
+        final box = env.store.box<TestEntitySynced>();
+        final box2 = env2.store.box<TestEntitySynced>();
+        int id = box.put(TestEntitySynced(value: Random().nextInt(1 << 32)));
+        expect(waitUntil(() => box2.get(id) != null), isTrue);
 
-        TestEntity? read1 = env.box.get(id);
-        TestEntity? read2 = env2.box.get(id);
+        TestEntitySynced? read1 = box.get(id);
+        TestEntitySynced? read2 = box2.get(id);
         expect(read1, isNotNull);
         expect(read2, isNotNull);
         expect(read1!.id, equals(read2!.id));
-        expect(read1.tLong, equals(read2.tLong));
+        expect(read1.value, equals(read2.value));
         client1.close();
         client2.close();
       });
@@ -272,8 +275,10 @@ void main() {
       test('SyncClient listeners: completion', () async {
         await server.online();
         final client = loggedInClient(store);
-        expect(env.box.isEmpty(), isTrue);
-        int id = env.box.put(TestEntity(tLong: 100));
+        final box = env.store.box<TestEntitySynced>();
+        final box2 = env2.store.box<TestEntitySynced>();
+        expect(box.isEmpty(), isTrue);
+        int id = box.put(TestEntitySynced(value: 100));
 
         // Note: wait for the client to finish sending to the server.
         // There's currently no other way to recognize this.
@@ -284,7 +289,7 @@ void main() {
         await client2.completionEvents.first.timeout(defaultTimeout);
         client2.close();
 
-        expect(env2.box.get(id)!.tLong, 100);
+        expect(box2.get(id)!.value, 100);
       });
 
       test('SyncClient listeners: changes', () async {
@@ -295,39 +300,42 @@ void main() {
         final events = <List<SyncChange>>[];
         client2.changeEvents.listen(events.add);
 
-        expect(env2.box.get(1), isNull);
-
-        env.box.put(TestEntity(tString: 'foo'));
+        expect(env2.store.box<TestEntitySynced>().get(1), isNull);
+        final box = env.store.box<TestEntitySynced>();
+        final box2 = env2.store.box<TestEntitySynced>();
+        box.put(TestEntitySynced(value: 10));
         env.store.runInTransaction(TxMode.write, () {
-          Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
-          env.box.put(TestEntity(tString: 'bar'));
-          env.box.put(TestEntity(tString: 'oof'));
-          env.box.remove(1);
+          Box<TestEntity>(env.store).put(TestEntity()); // not synced
+          box.put(TestEntitySynced(value: 20));
+          box.put(TestEntitySynced(value: 1));
+          box.remove(1);
         });
 
         // wait for the data to be transferred
-        expect(waitUntil(() => env2.box.count() == 2), isTrue);
+        expect(waitUntil(() => box2.count() == 2), isTrue);
 
         // check the events
         await yieldExecution();
         expect(events.length, 2);
 
-        // env.box.put(TestEntity(tString: 'foo'));
+        // box.put(TestEntitySynced(value: 10));
         expect(events[0].length, 1);
-        expect(events[0][0].entity, TestEntity);
-        expect(events[0][0].entityId, 1);
+        expect(events[0][0].entity, TestEntitySynced);
+        expect(events[0][0].entityId,
+            InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
         expect(events[0][0].puts, [1]);
         expect(events[0][0].removals, isEmpty);
 
         // env.store.runInTransaction(TxMode.Write, () {
-        //   Box<TestEntity2>(env.store).put(TestEntity2()); // not synced
-        //   env.box.put(TestEntity(tString: 'bar'));
-        //   env.box.put(TestEntity(tString: 'oof'));
-        //   env.box.remove(1);
+        //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
+        //   box.put(TestEntitySynced(value: 20));
+        //   box.put(TestEntitySynced(value: 1));
+        //   box.remove(1);
         // });
         expect(events[1].length, 1);
-        expect(events[1][0].entity, TestEntity);
-        expect(events[1][0].entityId, 1);
+        expect(events[1][0].entity, TestEntitySynced);
+        expect(events[1][0].entityId,
+            InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
         expect(events[1][0].puts, [2, 3]);
         expect(events[1][0].removals, [1]);
 

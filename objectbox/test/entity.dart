@@ -10,7 +10,6 @@ class TestingUnknownAnnotation {
 
 @Entity()
 @TestingUnknownAnnotation()
-@Sync()
 class TestEntity {
   @TestingUnknownAnnotation()
   int id = 0;
@@ -176,7 +175,6 @@ class TestEntity {
 }
 
 @Entity()
-@Sync()
 class RelatedEntityA {
   int? id;
 
@@ -191,7 +189,6 @@ class RelatedEntityA {
 }
 
 @Entity()
-@Sync()
 class RelatedEntityB {
   int? id;
 
