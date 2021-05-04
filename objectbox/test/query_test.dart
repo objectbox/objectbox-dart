@@ -548,6 +548,21 @@ void main() {
     queryReverseOrder.close();
   });
 
+  test('.order signed/unsigned', () {
+    for (int i = -1; i <= 1; i++) {
+      box.put(TestEntity(tLong: i, tInt: i));
+    }
+
+    final querySigned = box.query().order(TestEntity_.tLong).build();
+    final queryUnsigned = box.query().order(TestEntity_.tInt).build();
+
+    expect(querySigned.findIds(), [1, 2, 3]);
+    expect(queryUnsigned.findIds(), [2, 3, 1]);
+
+    querySigned.close();
+    queryUnsigned.close();
+  });
+
   test('.describeParameters BytesVector', () {
     final q = box
         .query(TestEntity_.tUint8List.equals([1, 2]) &

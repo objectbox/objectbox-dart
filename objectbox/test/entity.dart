@@ -46,7 +46,7 @@ class TestEntity {
   int? tChar;
 
   // OBXPropertyType.Int |  ob: 4 bytes, dart: 8 bytes
-  @Property(type: PropertyType.int)
+  @Property(type: PropertyType.int, signed: false)
   int? tInt;
 
   // OBXPropertyType.Float | 4 bytes
