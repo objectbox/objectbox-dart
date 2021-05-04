@@ -6,9 +6,10 @@ abstract class PropertyQuery<T> {
   final int _type;
   bool _distinct = false;
 
-  PropertyQuery._(Pointer<OBX_query> cQuery, int propertyId, this._type)
-      : _cProp =
-            checkObxPtr(C.query_prop(cQuery, propertyId), 'property query');
+  PropertyQuery._(Pointer<OBX_query> cQuery, ModelProperty property)
+      : _type = property.type,
+        _cProp =
+            checkObxPtr(C.query_prop(cQuery, property.id.id), 'property query');
 
   /// Returns values of this property matching the query.
   ///
@@ -75,8 +76,8 @@ mixin _CommonNumeric<T> on PropertyQuery<T> {
 
 /// "Property query" for an integer field. Created by [Query.property()].
 class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
-  IntegerPropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super._(query, propertyId, obxType);
+  IntegerPropertyQuery._(Pointer<OBX_query> query, ModelProperty property)
+      : super._(query, property);
 
   int _op(
       int Function(Pointer<OBX_query_prop>, Pointer<Int64>, Pointer<Int64>)
@@ -153,8 +154,8 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
 
 /// "Property query" for a double field. Created by [Query.property()].
 class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
-  DoublePropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super._(query, propertyId, obxType);
+  DoublePropertyQuery._(Pointer<OBX_query> query, ModelProperty property)
+      : super._(query, property);
 
   double _op(
       int Function(Pointer<OBX_query_prop>, Pointer<Double>, Pointer<Int64>)
@@ -212,9 +213,8 @@ class StringPropertyQuery extends PropertyQuery<String> {
   bool _caseSensitive;
 
   StringPropertyQuery._(
-      Store store, Pointer<OBX_query> query, int propertyId, int obxType)
-      : _caseSensitive = InternalStoreAccess.queryCS(store),
-        super._(query, propertyId, obxType);
+      Pointer<OBX_query> query, ModelProperty property, this._caseSensitive)
+      : super._(query, property);
 
   /// Use case-sensitive comparison when querying [distinct] values.
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".

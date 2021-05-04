@@ -25,9 +25,8 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
 
   /// Configure how the results are ordered.
   /// Pass a combination of [Order] flags.
-  QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
-    _throwIfOtherEntity(p._entityId);
-    checkObx(C.qb_order(_cBuilder, p._propertyId, flags));
+  QueryBuilder<T> order(QueryProperty<T> p, {int flags = 0}) {
+    checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
     return this;
   }
 }
@@ -84,35 +83,32 @@ class _QueryBuilder<T> {
     }
   }
 
-  _QueryBuilder<TargetEntityT> link<_, TargetEntityT>(
-      QueryRelationProperty<_, TargetEntityT> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._entityId);
-    return _QueryBuilder<TargetEntityT>._link(
-        this, qc, C.qb_link_property(_cBuilder, rel._propertyId));
-  }
+  _QueryBuilder<TargetEntityT> link<TargetEntityT>(
+          QueryRelationProperty<T, TargetEntityT> rel,
+          [Condition? qc]) =>
+      _QueryBuilder<TargetEntityT>._link(
+          this, qc, C.qb_link_property(_cBuilder, rel._model.id.id));
 
-  _QueryBuilder<SourceEntityT> backlink<SourceEntityT, _>(
-      QueryRelationProperty<SourceEntityT, _> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._targetEntityId);
-    return _QueryBuilder<SourceEntityT>._link(this, qc,
-        C.qb_backlink_property(_cBuilder, rel._entityId, rel._propertyId));
-  }
+  _QueryBuilder<SourceEntityT> backlink<SourceEntityT>(
+          QueryRelationProperty<SourceEntityT, T> rel,
+          [Condition? qc]) =>
+      _QueryBuilder<SourceEntityT>._link(
+          this,
+          qc,
+          C.qb_backlink_property(
+              _cBuilder,
+              InternalStoreAccess.entityDef<SourceEntityT>(_store).model.id.id,
+              rel._model.id.id));
 
-  _QueryBuilder<TargetEntityT> linkMany<_, TargetEntityT>(
-      QueryRelationMany<_, TargetEntityT> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._entityId);
-    return _QueryBuilder<TargetEntityT>._link(
-        this, qc, C.qb_link_standalone(_cBuilder, rel._relationId));
-  }
+  _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
+          QueryRelationMany<T, TargetEntityT> rel,
+          [Condition? qc]) =>
+      _QueryBuilder<TargetEntityT>._link(
+          this, qc, C.qb_link_standalone(_cBuilder, rel._model.id.id));
 
-  _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT, _>(
-      QueryRelationMany<SourceEntityT, _> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._targetEntityId);
-    return _QueryBuilder<SourceEntityT>._link(
-        this, qc, C.qb_backlink_standalone(_cBuilder, rel._relationId));
-  }
+  _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT>(
+          QueryRelationMany<SourceEntityT, T> rel,
+          [Condition? qc]) =>
+      _QueryBuilder<SourceEntityT>._link(
+          this, qc, C.qb_backlink_standalone(_cBuilder, rel._model.id.id));
 }

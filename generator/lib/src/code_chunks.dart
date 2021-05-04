@@ -22,6 +22,10 @@ class CodeChunks {
     
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     
+    final _entities = <ModelEntity>[
+      ${model.entities.map(createModelEntity).join(',')}
+    ];
+  
     ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
       
@@ -32,7 +36,7 @@ class CodeChunks {
       return ModelDefinition(model, bindings);
     }
     
-    ${model.entities.map((entity) => queryConditionClasses(entity)).join("\n")}
+    ${model.entities.mapIndexed((i, entity) => "class ${entity.name}_ {${_queryConditionBuilder(i, entity)}}").join("\n")}
     """;
 
   static List<T> sorted<T>(List<T> list) {
@@ -42,12 +46,8 @@ class CodeChunks {
 
   static String defineModel(ModelInfo model) {
     return '''
-    final entities = <ModelEntity>[
-      ${model.entities.map(createModelEntity).join(',')}
-    ];
-    
     final model = ModelInfo(
-      entities: entities,
+      entities: _entities,
       lastEntityId: ${createIdUid(model.lastEntityId)},
       lastIndexId: ${createIdUid(model.lastIndexId)},
       lastRelationId: ${createIdUid(model.lastRelationId)},
@@ -130,7 +130,7 @@ class CodeChunks {
     final name = entity.name;
     return '''
       EntityDefinition<$name>(
-        model: entities[$i],
+        model: _entities[$i],
         toOneRelations: ($name object) => ${toOneRelations(entity)},
         toManyRelations: ($name object) => ${toManyRelations(entity)},
         getId: ($name object) => object.${propertyFieldName(entity.idProperty)},
@@ -490,9 +490,10 @@ class CodeChunks {
           .join(',') +
       '}';
 
-  static String _queryConditionBuilder(ModelEntity entity) {
+  static String _queryConditionBuilder(int i, ModelEntity entity) {
     final ret = <String>[];
-    for (var prop in entity.properties) {
+    for (var p = 0; p < entity.properties.length; p++) {
+      final prop = entity.properties[p];
       final name = prop.name;
 
       // see OBXPropertyType
@@ -532,34 +533,19 @@ class CodeChunks {
       }
 
       var propCode =
-          'static final ${propertyFieldName(prop)} = Query${fieldType}Property';
-      if (prop.isRelation) {
-        propCode += '<${entity.name}, ${prop.relationTarget}>'
-            '(targetEntityId: ${entity.model.findEntityByName(prop.relationTarget!)!.id.id}, '
-            'sourceEntityId:';
-      } else {
-        propCode += '(entityId:';
-      }
-      propCode +=
-          '${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});';
+          'static final ${propertyFieldName(prop)} = Query${fieldType}Property<${entity.name}';
+      if (prop.isRelation) propCode += ', ${prop.relationTarget}';
+      propCode += '>(_entities[$i].properties[$p]);';
       ret.add(propCode);
     }
 
-    for (var rel in entity.relations) {
+    for (var r = 0; r < entity.relations.length; r++) {
+      final rel = entity.relations[r];
       final targetEntityName =
           entity.model.findEntityByUid(rel.targetId.uid)!.name;
-      ret.add(
-          'static final ${rel.name} = QueryRelationMany<${entity.name}, $targetEntityName>'
-          '(sourceEntityId:${entity.id.id}, targetEntityId:${rel.targetId.id}, relationId:${rel.id.id});');
+      ret.add('static final ${rel.name} = QueryRelationMany'
+          '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
     }
     return ret.join();
-  }
-
-  static String queryConditionClasses(ModelEntity entity) {
-    // TODO add entity.id check to throw an error Box if the wrong entity.property is used
-    return '''
-    class ${entity.name}_ {
-    ${_queryConditionBuilder(entity)}
-    }''';
   }
 }
