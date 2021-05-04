@@ -53,7 +53,7 @@ class ViewModel {
       : _store =
             Store(getObjectBoxModel(), directory: dir.path + '/objectbox') {
     _box = Box<Note>(_store);
-    _query = _box.query().order(Note_.date, flags: Order.descending).build();
+    _query = (_box.query()..order(Note_.date, flags: Order.descending)).build();
   }
 
   void addNote(Note note) => _box.put(note);

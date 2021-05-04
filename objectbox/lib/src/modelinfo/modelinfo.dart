@@ -44,10 +44,10 @@ class ModelInfo {
 
   ModelInfo.empty()
       : entities = [],
-        lastEntityId = IdUid.empty(),
-        lastIndexId = IdUid.empty(),
-        lastRelationId = IdUid.empty(),
-        lastSequenceId = IdUid.empty(),
+        lastEntityId = const IdUid.empty(),
+        lastIndexId = const IdUid.empty(),
+        lastRelationId = const IdUid.empty(),
+        lastSequenceId = const IdUid.empty(),
         retiredEntityUids = [],
         retiredIndexUids = [],
         retiredPropertyUids = [],

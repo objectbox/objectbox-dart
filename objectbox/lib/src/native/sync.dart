@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert' show utf8;
 import 'dart:ffi';
 import 'dart:isolate';

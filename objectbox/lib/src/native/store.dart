@@ -249,7 +249,7 @@ class InternalStoreAccess {
   /// Access model definitions
   static ModelDefinition defs(Store store) => store._defs;
 
-  // create a map from Entity ID to Entity type (dart class)
+  /// Create a map from Entity ID to Entity type (dart class).
   static Map<int, Type> entityTypeById(Store store) {
     final result = HashMap<int, Type>();
     store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>

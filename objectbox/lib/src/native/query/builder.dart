@@ -25,10 +25,8 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
 
   /// Configure how the results are ordered.
   /// Pass a combination of [Order] flags.
-  QueryBuilder<T> order(QueryProperty<T> p, {int flags = 0}) {
-    checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
-    return this;
-  }
+  void order(QueryProperty<T> p, {int flags = 0}) =>
+      checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
 }
 
 /// Basic/linked query builder only has limited methods: link()
@@ -64,14 +62,6 @@ class _QueryBuilder<T> {
       ObjectBoxNativeError(code, dartStringFromC(C.qb_error_message(_cBuilder)),
               'Query building failed')
           .throwMapped();
-    }
-  }
-
-  @pragma('vm:prefer-inline')
-  void _throwIfOtherEntity(int entityId) {
-    if (entityId != _entity.model.id.id) {
-      throw ArgumentError(
-          'Passed a property of another entity: $entityId instead of ${_entity.model.id.id}');
     }
   }
 

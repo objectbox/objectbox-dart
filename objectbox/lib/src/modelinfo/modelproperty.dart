@@ -111,7 +111,7 @@ class ModelProperty {
       : _name = name,
         _type = type,
         _flags = flags,
-        _indexId = indexId {}
+        _indexId = indexId;
 
   ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity? entity)
       : this.create(IdUid.fromString(data['id'] as String?),

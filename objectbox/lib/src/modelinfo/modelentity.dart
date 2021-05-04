@@ -12,7 +12,7 @@ class ModelEntity {
   IdUid id;
 
   late String _name;
-  IdUid lastPropertyId = IdUid.empty();
+  IdUid lastPropertyId = const IdUid.empty();
   int _flags = 0;
   final List<ModelProperty> _properties;
   final List<ModelRelation> _relations;

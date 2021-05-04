@@ -22,10 +22,9 @@ void main() {
     final result = <String>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
-    final query = box.query(condition).order(text).build();
-    final queryStream = query.findStream();
-    final subscription = queryStream.listen((list) {
-      final str = list.map((t) => t.tString).toList().join(', ');
+    final query = (box.query(condition)..order(text)).build();
+    final subscription = query.stream.listen((q) {
+      final str = q.find().map((t) => t.tString).toList().join(', ');
       result.add(str);
     });
 
@@ -50,7 +49,7 @@ void main() {
     final result = <int>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
-    final query = box.query(condition).order(text).build();
+    final query = (box.query(condition)..order(text)).build();
     final queryStream = query.stream;
     final subscription = queryStream.listen((query) {
       result.add(query.count());
@@ -83,14 +82,12 @@ void main() {
     var counter1 = 0, counter2 = 0;
 
     final query2 = box2.query().build();
-    final queryStream2 = query2.findStream();
-    final subscription2 = queryStream2.listen((_) {
+    final subscription2 = query2.stream.listen((_) {
       counter2++;
     });
 
     final query1 = box.query().build();
-    final queryStream1 = query1.findStream();
-    final subscription1 = queryStream1.listen((_) {
+    final subscription1 = query1.stream.listen((_) {
       counter1++;
     });
 

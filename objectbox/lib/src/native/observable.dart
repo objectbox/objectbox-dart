@@ -3,7 +3,6 @@ import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import '../modelinfo/entity_definition.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'store.dart';

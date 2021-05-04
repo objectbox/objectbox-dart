@@ -27,7 +27,7 @@ void main() {
     ]);
 
     var query =
-        box.query().order(TestEntity_.tInt, flags: Order.descending).build();
+        (box.query()..order(TestEntity_.tInt, flags: Order.descending)).build();
     final listDesc = query.find();
     query.close();
 
@@ -299,9 +299,9 @@ void main() {
     var q = box.query().build();
     expect(q.find().length, 4);
 
-    expect(q.offset(2).find().map((e) => e.tString), equals(['b', 'c']));
-    expect(q.limit(1).find().map((e) => e.tString), equals(['b']));
-    expect(q.offset(0).find().map((e) => e.tString), equals([null]));
+    expect((q..offset = 2).find().map((e) => e.tString), equals(['b', 'c']));
+    expect((q..limit = 1).find().map((e) => e.tString), equals(['b']));
+    expect((q..offset = 0).find().map((e) => e.tString), equals([null]));
 
     q.close();
   });
@@ -527,16 +527,15 @@ void main() {
 
     final condition = text.notNull();
 
-    final query = box.query(condition).order(text).build();
+    final query = (box.query(condition)..order(text)).build();
     final result1 = query.find().map((e) => e.tString).toList();
 
     expect('Cruel', result1[0]);
     expect('Hello', result1[2]);
     expect('HELLO', result1[3]);
 
-    final queryReverseOrder = box
-        .query(condition)
-        .order(text, flags: Order.descending | Order.caseSensitive)
+    final queryReverseOrder = (box.query(condition)
+          ..order(text, flags: Order.descending | Order.caseSensitive))
         .build();
     final result2 = queryReverseOrder.find().map((e) => e.tString).toList();
 
@@ -553,8 +552,8 @@ void main() {
       box.put(TestEntity(tLong: i, tInt: i));
     }
 
-    final querySigned = box.query().order(TestEntity_.tLong).build();
-    final queryUnsigned = box.query().order(TestEntity_.tInt).build();
+    final querySigned = (box.query()..order(TestEntity_.tLong)).build();
+    final queryUnsigned = (box.query()..order(TestEntity_.tInt)).build();
 
     expect(querySigned.findIds(), [1, 2, 3]);
     expect(queryUnsigned.findIds(), [2, 3, 1]);

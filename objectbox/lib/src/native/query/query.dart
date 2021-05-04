@@ -611,12 +611,8 @@ class Query<T> {
   /// this offset. Example use case: use together with limit to get a slice of
   /// the whole result, e.g. for "result paging".
   ///
-  /// Call with offset=0 to reset to the default behavior,
-  /// i.e. starting from the first element.
-  Query<T> offset(int offset) {
-    checkObx(C.query_offset(_cQuery, offset));
-    return this;
-  }
+  /// Set offset=0 to reset to the default - starting from the first element.
+  set offset(int offset) => checkObx(C.query_offset(_cQuery, offset));
 
   /// Configure a [limit] for this query.
   ///
@@ -624,12 +620,8 @@ class Query<T> {
   /// of Objects. Example use case: use together with offset to get a slice of
   /// the whole result, e.g. for "result paging".
   ///
-  /// Call with limit=0 to reset to the default behavior -
-  /// zero limit means no limit applied.
-  Query<T> limit(int limit) {
-    checkObx(C.query_limit(_cQuery, limit));
-    return this;
-  }
+  /// Set limit=0 to reset to the default behavior - no limit applied.
+  set limit(int limit) => checkObx(C.query_limit(_cQuery, limit));
 
   /// Returns the number of matching Objects.
   int count() {

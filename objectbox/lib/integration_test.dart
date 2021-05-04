@@ -21,8 +21,9 @@ class IntegrationTest {
     // create a model with a single entity and a single property
     final modelInfo = ModelInfo.empty();
     final property = ModelProperty.create(
-        IdUid(1, int64Max - 1), 'id', OBXPropertyType.Long);
-    final entity = ModelEntity.create(IdUid(1, int64Max), 'entity', modelInfo);
+        const IdUid(1, int64Max - 1), 'id', OBXPropertyType.Long);
+    final entity =
+        ModelEntity.create(const IdUid(1, int64Max), 'entity', modelInfo);
     property.entity = entity;
     entity.properties.add(property);
     entity.lastPropertyId = property.id;
