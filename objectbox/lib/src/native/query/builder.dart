@@ -3,7 +3,7 @@ part of query;
 /// Query builder allows creating reusable queries.
 class QueryBuilder<T> extends _QueryBuilder<T> {
   /// Start creating a query.
-  QueryBuilder(Store store, EntityDefinition<T> entity, Condition? qc)
+  QueryBuilder(Store store, EntityDefinition<T> entity, Condition<T>? qc)
       : super(
             store,
             entity,
@@ -33,7 +33,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
 class _QueryBuilder<T> {
   final Store _store;
   final EntityDefinition<T> _entity;
-  final Condition? _queryCondition;
+  final Condition<T>? _queryCondition;
   final Pointer<OBX_query_builder> _cBuilder;
   final _innerQBs = <_QueryBuilder>[];
 
@@ -75,13 +75,13 @@ class _QueryBuilder<T> {
 
   _QueryBuilder<TargetEntityT> link<TargetEntityT>(
           QueryRelationProperty<T, TargetEntityT> rel,
-          [Condition? qc]) =>
+          [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
           this, qc, C.qb_link_property(_cBuilder, rel._model.id.id));
 
   _QueryBuilder<SourceEntityT> backlink<SourceEntityT>(
           QueryRelationProperty<SourceEntityT, T> rel,
-          [Condition? qc]) =>
+          [Condition<SourceEntityT>? qc]) =>
       _QueryBuilder<SourceEntityT>._link(
           this,
           qc,
@@ -92,13 +92,13 @@ class _QueryBuilder<T> {
 
   _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
           QueryRelationMany<T, TargetEntityT> rel,
-          [Condition? qc]) =>
+          [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
           this, qc, C.qb_link_standalone(_cBuilder, rel._model.id.id));
 
   _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT>(
           QueryRelationMany<SourceEntityT, T> rel,
-          [Condition? qc]) =>
+          [Condition<SourceEntityT>? qc]) =>
       _QueryBuilder<SourceEntityT>._link(
           this, qc, C.qb_backlink_standalone(_cBuilder, rel._model.id.id));
 }
