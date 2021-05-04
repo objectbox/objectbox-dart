@@ -43,7 +43,7 @@ class Order {
 }
 
 /// The QueryProperty types allow users to build query conditions on a property.
-class QueryProperty<EntityT> {
+class QueryProperty<EntityT, DartType> {
   final ModelProperty _model;
 
   QueryProperty(this._model);
@@ -53,7 +53,7 @@ class QueryProperty<EntityT> {
   Condition notNull() => _NullCondition(_ConditionOp.notNull, this);
 }
 
-class QueryStringProperty<EntityT> extends QueryProperty<EntityT> {
+class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
   QueryStringProperty(ModelProperty model) : super(model);
 
   Condition _op(String p, _ConditionOp cop, {bool? caseSensitive}) =>
@@ -97,7 +97,7 @@ class QueryStringProperty<EntityT> extends QueryProperty<EntityT> {
       _op(p, _ConditionOp.lessOrEq, caseSensitive: caseSensitive);
 }
 
-class QueryByteVectorProperty<EntityT> extends QueryProperty<EntityT> {
+class QueryByteVectorProperty<EntityT> extends QueryProperty<EntityT, Never> {
   QueryByteVectorProperty(ModelProperty model) : super(model);
 
   Condition _op(List<int> val, _ConditionOp cop) =>
@@ -114,7 +114,7 @@ class QueryByteVectorProperty<EntityT> extends QueryProperty<EntityT> {
   Condition lessOrEqual(List<int> val) => _op(val, _ConditionOp.lessOrEq);
 }
 
-class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT> {
+class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
   QueryIntegerProperty(ModelProperty model) : super(model);
 
   Condition _op(int p, _ConditionOp cop) => _IntegerCondition(cop, this, p, 0);
@@ -145,7 +145,7 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT> {
   Condition notIn(List<int> list) => notInList(list);
 }
 
-class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT> {
+class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   QueryDoubleProperty(ModelProperty model) : super(model);
 
   Condition _op(_ConditionOp op, double p1, double? p2) =>
@@ -173,7 +173,7 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT> {
   Condition operator >(double p) => greaterThan(p);
 }
 
-class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT> {
+class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
   QueryBooleanProperty(ModelProperty model) : super(model);
 
   // ignore: avoid_positional_boolean_parameters
@@ -185,7 +185,8 @@ class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT> {
       _IntegerCondition(_ConditionOp.notEq, this, (p ? 1 : 0));
 }
 
-class QueryStringVectorProperty<EntityT> extends QueryProperty<EntityT> {
+class QueryStringVectorProperty<EntityT>
+    extends QueryProperty<EntityT, List<String>> {
   QueryStringVectorProperty(ModelProperty model) : super(model);
 
   Condition contains(String p, {bool? caseSensitive}) =>
@@ -692,45 +693,19 @@ class Query<T> {
   String describeParameters() =>
       dartStringFromC(C.query_describe_params(_cQuery));
 
-  /// Creates a property query for the given property [qp].
+  /// Use the same query conditions but only return a single property (field).
   ///
-  /// Uses the same conditions as this query, but results only include the values of the given property.
-  /// To obtain results cast the returned [PropertyQuery] to a specific type.
+  /// Note: currently doesn't support [QueryBuilder.order] and always returns
+  /// results in the order defined by the ID property.
   ///
   /// ```dart
-  /// var q = query.property(tInteger) as IntegerPropertyQuery;
-  /// var results = q.find()
+  /// var results = query.property(tInteger).find();
   /// ```
-  ///
-  /// Alternatively call a type-specific function.
-  /// ```dart
-  /// var q = query.integerProperty(tInteger);
-  /// ```
-  PQ property<PQ extends PropertyQuery<dynamic>>(QueryProperty qp) {
-    final type = qp._model.type;
-    if (OBXPropertyType.Bool <= type && type <= OBXPropertyType.Long) {
-      return IntegerPropertyQuery._(_cQuery, qp._model) as PQ;
-    } else if (OBXPropertyType.Float == qp._model.type ||
-        qp._model.type == OBXPropertyType.Double) {
-      return DoublePropertyQuery._(_cQuery, qp._model) as PQ;
-    } else if (OBXPropertyType.String == qp._model.type) {
-      return StringPropertyQuery._(
-          _cQuery, qp._model, InternalStoreAccess.queryCS(_store)) as PQ;
-    } else {
-      throw UnsupportedError(
-          'Property query: unsupported type (OBXPropertyType: ${qp._model.type})');
+  PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
+    final result = PropertyQuery<DartType>._(_cQuery, prop._model);
+    if (prop._model.type == OBXPropertyType.String) {
+      result._caseSensitive = InternalStoreAccess.queryCS(_store);
     }
+    return result;
   }
-
-  /// See [property] for details.
-  IntegerPropertyQuery integerProperty(QueryProperty qp) =>
-      property<IntegerPropertyQuery>(qp);
-
-  /// See [property] for details.
-  DoublePropertyQuery doubleProperty(QueryProperty qp) =>
-      property<DoublePropertyQuery>(qp);
-
-  /// See [property] for details.
-  StringPropertyQuery stringProperty(QueryProperty qp) =>
-      property<StringPropertyQuery>(qp);
 }

@@ -25,7 +25,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
 
   /// Configure how the results are ordered.
   /// Pass a combination of [Order] flags.
-  void order(QueryProperty<T> p, {int flags = 0}) =>
+  void order<_>(QueryProperty<T, _> p, {int flags = 0}) =>
       checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
 }
 
