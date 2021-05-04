@@ -84,5 +84,6 @@ void main() {
               .toString()
               .contains('Given transaction callback always fails.'))));
     });
+    env.close();
   });
 }
