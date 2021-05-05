@@ -1,4 +1,4 @@
-#import "ObjectBoxFlutterPlugin.h"
+#import "ObjectboxSyncFlutterLibsPlugin.h"
 #if __has_include(<objectbox_sync_flutter_libs/objectbox_sync_flutter_libs-Swift.h>)
 #import <objectbox_sync_flutter_libs/objectbox_sync_flutter_libs-Swift.h>
 #else
@@ -8,8 +8,8 @@
 #import "objectbox_sync_flutter_libs-Swift.h"
 #endif
 
-@implementation ObjectBoxFlutterPlugin
+@implementation ObjectboxSyncFlutterLibsPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftObjectBoxFlutterPlugin registerWithRegistrar:registrar];
+  [SwiftObjectboxSyncFlutterLibsPlugin registerWithRegistrar:registrar];
 }
 @end

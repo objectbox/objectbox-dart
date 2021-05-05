@@ -1,4 +1,4 @@
-#import "ObjectBoxFlutterPlugin.h"
+#import "ObjectboxFlutterLibsPlugin.h"
 #if __has_include(<objectbox_flutter_libs/objectbox_flutter_libs-Swift.h>)
 #import <objectbox_flutter_libs/objectbox_flutter_libs-Swift.h>
 #else
@@ -8,8 +8,8 @@
 #import "objectbox_flutter_libs-Swift.h"
 #endif
 
-@implementation ObjectBoxFlutterPlugin
+@implementation ObjectboxFlutterLibsPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  [SwiftObjectBoxFlutterPlugin registerWithRegistrar:registrar];
+  [SwiftObjectboxFlutterLibsPlugin registerWithRegistrar:registrar];
 }
 @end
