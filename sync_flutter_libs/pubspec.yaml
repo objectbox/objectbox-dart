@@ -21,4 +21,9 @@ flutter:
         pluginClass: ObjectboxSyncFlutterLibsPlugin
       ios:
         pluginClass: ObjectboxSyncFlutterLibsPlugin
-
+      linux:
+        pluginClass: ObjectboxSyncFlutterLibsPlugin
+      macos:
+        pluginClass: ObjectboxSyncFlutterLibsPlugin
+      windows:
+        pluginClass: ObjectboxSyncFlutterLibsPlugin

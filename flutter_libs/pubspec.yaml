@@ -21,3 +21,9 @@ flutter:
         pluginClass: ObjectboxFlutterLibsPlugin
       ios:
         pluginClass: ObjectboxFlutterLibsPlugin
+      linux:
+        pluginClass: ObjectboxFlutterLibsPlugin
+      macos:
+        pluginClass: ObjectboxFlutterLibsPlugin
+      windows:
+        pluginClass: ObjectboxFlutterLibsPlugin
