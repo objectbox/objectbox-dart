@@ -35,6 +35,6 @@ dependency_overrides:
     path: ../../../../sync_flutter_libs
 
   # Temporary flutter_driver issue, same as https://github.com/flutter/flutter/issues/77282
-  crypto: ^3.0.0
+  archive: ^3.0.0
   convert: ^3.0.0
-  args: ^2.0.0
+  crypto: ^3.0.0

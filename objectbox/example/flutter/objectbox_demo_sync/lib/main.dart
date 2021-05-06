@@ -83,7 +83,6 @@ class ViewModel {
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   final _listController = StreamController<List<Note>>(sync: true);
-  Stream<List<Note>>? _stream;
   late final ViewModel _vm;
 
   void _addNote() {
@@ -98,7 +97,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     getApplicationDocumentsDirectory().then((dir) {
       _vm = ViewModel(dir);
-      _stream = _listController.stream;
 
       setState(() {});
 
@@ -202,7 +200,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
               child: StreamBuilder<List<Note>>(
-                  stream: _stream,
+                  stream: _listController.stream,
                   builder: (context, snapshot) => ListView.builder(
                       shrinkWrap: true,
                       padding: EdgeInsets.symmetric(horizontal: 20.0),

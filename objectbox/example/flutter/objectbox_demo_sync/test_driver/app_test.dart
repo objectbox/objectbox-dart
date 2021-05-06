@@ -1,3 +1,6 @@
+// Temporary opt out of null-safety, flutter_driver is not null-safe yet
+// @dart = 2.10
+
 import 'package:flutter_driver/flutter_driver.dart';
 import 'package:test/test.dart';
 
@@ -9,7 +12,7 @@ void main() {
   final buttonFinder = find.byValueKey('submit');
   final firstItemFinder = find.byValueKey('list_item_0');
 
-  late FlutterDriver driver;
+  FlutterDriver driver;
 
   // Connect to the Flutter driver before running any tests.
   setUpAll(() async {
@@ -21,7 +24,7 @@ void main() {
 
   test('starts with an empty list', () async {
     await driver.waitForAbsent(firstItemFinder,
-        timeout: Duration(milliseconds: 100));
+        timeout: const Duration(milliseconds: 100));
   });
 
   test('inserted item appears in the list', () async {
