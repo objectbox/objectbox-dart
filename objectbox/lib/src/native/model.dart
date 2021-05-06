@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 
 import '../modelinfo/index.dart';
 import 'bindings/bindings.dart';
@@ -8,6 +9,7 @@ import 'bindings/helpers.dart';
 
 // ignore_for_file: public_member_api_docs
 
+@internal
 class Model {
   final Pointer<OBX_model> _cModel;
 
@@ -41,7 +43,7 @@ class Model {
 
   void addEntity(ModelEntity entity) {
     // start entity
-    var name = entity.name.toNativeUtf8();
+    final name = entity.name.toNativeUtf8();
     try {
       _check(C.model_entity(_cModel, name.cast(), entity.id.id, entity.id.uid));
     } finally {
@@ -60,13 +62,13 @@ class Model {
   }
 
   void addProperty(ModelProperty prop) {
-    var name = prop.name.toNativeUtf8();
+    final name = prop.name.toNativeUtf8();
     try {
       _check(C.model_property(
           _cModel, name.cast(), prop.type, prop.id.id, prop.id.uid));
 
       if (prop.isRelation) {
-        var relTarget = prop.relationTarget!.toNativeUtf8();
+        final relTarget = prop.relationTarget!.toNativeUtf8();
         try {
           _check(C.model_property_relation(
               _cModel, relTarget.cast(), prop.indexId!.id, prop.indexId!.uid));

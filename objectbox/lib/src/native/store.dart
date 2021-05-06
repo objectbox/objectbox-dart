@@ -47,7 +47,7 @@ class Store {
   ///
   /// Or for a Dart app:
   /// ```dart
-  /// var store = Store(getObjectBoxModel());
+  /// final store = Store(getObjectBoxModel());
   /// ```
   ///
   /// See our examples for more details.
@@ -60,15 +60,15 @@ class Store {
       bool queriesCaseSensitiveDefault = true})
       : _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
-    var model = Model(_defs.model);
+    final model = Model(_defs.model);
 
-    var opt = C.opt();
+    final opt = C.opt();
     checkObxPtr(opt, 'failed to create store options');
 
     try {
       checkObx(C.opt_model(opt, model.ptr));
       if (directory != null && directory.isNotEmpty) {
-        var cStr = directory.toNativeUtf8();
+        final cStr = directory.toNativeUtf8();
         try {
           checkObx(C.opt_directory(opt, cStr.cast()));
         } finally {

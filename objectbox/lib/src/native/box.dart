@@ -293,9 +293,6 @@ class Box<T> {
     }
   }
 
-  /// The low-level pointer to this box.
-  Pointer<OBX_box> get ptr => _cBox;
-
   void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
     _entity.toOneRelations(object).forEach((ToOne rel) {
       if (!rel.hasValue) return;
@@ -342,7 +339,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_put(box.ptr, relationId, sourceId, targetId));
+      checkObx(C.box_rel_put(box._cBox, relationId, sourceId, targetId));
 
   /// Remove a standalone relation entry between two objects.
   @pragma('vm:prefer-inline')
@@ -352,7 +349,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_remove(box.ptr, relationId, sourceId, targetId));
+      checkObx(C.box_rel_remove(box._cBox, relationId, sourceId, targetId));
 
   /// Read all objects in this Box related to the given object.
   /// Similar to box.getMany() but loads the OBX_id_array and reads objects
@@ -364,13 +361,13 @@ class InternalBoxAccess {
       Pointer<OBX_id_array> cIdsPtr;
       switch (rel.type) {
         case RelType.toMany:
-          cIdsPtr = C.box_rel_get_ids(box.ptr, rel.id, rel.objectId);
+          cIdsPtr = C.box_rel_get_ids(box._cBox, rel.id, rel.objectId);
           break;
         case RelType.toOneBacklink:
-          cIdsPtr = C.box_get_backlink_ids(box.ptr, rel.id, rel.objectId);
+          cIdsPtr = C.box_get_backlink_ids(box._cBox, rel.id, rel.objectId);
           break;
         case RelType.toManyBacklink:
-          cIdsPtr = C.box_rel_get_backlink_ids(box.ptr, rel.id, rel.objectId);
+          cIdsPtr = C.box_rel_get_backlink_ids(box._cBox, rel.id, rel.objectId);
           break;
         default:
           throw UnimplementedError('Invalid relation type ${rel.type}');
