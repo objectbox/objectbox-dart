@@ -83,11 +83,11 @@ class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
   Condition<EntityT> contains(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.contains, caseSensitive: caseSensitive);
 
-  Condition<EntityT> inside(List<String> list, {bool? caseSensitive}) =>
-      _opList(list, _ConditionOp.inside, caseSensitive: caseSensitive);
+  Condition<EntityT> oneOf(List<String> list, {bool? caseSensitive}) =>
+      _opList(list, _ConditionOp.oneOf, caseSensitive: caseSensitive);
 
-  Condition<EntityT> notIn(List<String> list, {bool? caseSensitive}) =>
-      _opList(list, _ConditionOp.notIn, caseSensitive: caseSensitive);
+  Condition<EntityT> notOneOf(List<String> list, {bool? caseSensitive}) =>
+      _opList(list, _ConditionOp.notOneOf, caseSensitive: caseSensitive);
 
   Condition<EntityT> greaterThan(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.gt, caseSensitive: caseSensitive);
@@ -147,13 +147,10 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
 
   Condition<EntityT> operator >(int p) => greaterThan(p);
 
-  Condition<EntityT> inside(List<int> list) =>
-      _opList(list, _ConditionOp.inside);
+  Condition<EntityT> oneOf(List<int> list) => _opList(list, _ConditionOp.oneOf);
 
-  Condition<EntityT> notInList(List<int> list) =>
-      _opList(list, _ConditionOp.notIn);
-
-  Condition<EntityT> notIn(List<int> list) => notInList(list);
+  Condition<EntityT> notOneOf(List<int> list) =>
+      _opList(list, _ConditionOp.notOneOf);
 }
 
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
@@ -232,8 +229,8 @@ enum _ConditionOp {
   greaterOrEq,
   lt,
   lessOrEq,
-  inside,
-  notIn,
+  oneOf,
+  notOneOf,
   between,
 }
 
@@ -364,7 +361,7 @@ class _StringListCondition<EntityT>
       {this.caseSensitive})
       : super(op, prop, value);
 
-  int _inside(_QueryBuilder builder) {
+  int _oneOf(_QueryBuilder builder) {
     final func = C.qb_in_strings;
     final listLength = _value.length;
     final arrayOfCStrings = malloc<Pointer<Int8>>(listLength);
@@ -389,8 +386,8 @@ class _StringListCondition<EntityT>
   @override
   int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
-      case _ConditionOp.inside:
-        return _inside(builder); // bindings.obx_qb_string_in
+      case _ConditionOp.oneOf:
+        return _oneOf(builder); // bindings.obx_qb_string_in
       default:
         throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
@@ -465,7 +462,7 @@ class _IntegerListCondition<EntityT>
   @override
   int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
-      case _ConditionOp.inside:
+      case _ConditionOp.oneOf:
         switch (_property._model.type) {
           case OBXPropertyType.Int:
             return _opList(builder, malloc<Int32>(_value.length),
@@ -477,7 +474,7 @@ class _IntegerListCondition<EntityT>
             throw UnsupportedError(
                 'Unsupported type for IN: ${_property._model.type}');
         }
-      case _ConditionOp.notIn:
+      case _ConditionOp.notOneOf:
         switch (_property._model.type) {
           case OBXPropertyType.Int:
             return _opList(builder, malloc<Int32>(_value.length),
