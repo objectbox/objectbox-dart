@@ -23,6 +23,28 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     }
   }
 
+  /// Finish building a [Query] creating a stream that issues events whenever
+  /// queried entity changes. Streamed query is persisted between stream events
+  /// and closed when you cancel the subscription.
+  Stream<Query<T>> watch() {
+    final query = build();
+    final entityWatcher = _store.subscribe<T>();
+    late StreamSubscription<void> subscription;
+    late StreamController<Query<T>> controller;
+    final subscribe = () {
+      subscription = entityWatcher.listen((_) => controller.add(query));
+    };
+    controller = StreamController<Query<T>>(
+        onListen: subscribe,
+        onResume: subscribe,
+        onPause: () => subscription.pause(),
+        onCancel: () {
+          subscription.cancel();
+          query.close();
+        });
+    return controller.stream;
+  }
+
   /// Configure how the results are ordered.
   /// Pass a combination of [Order] flags.
   void order<_>(QueryProperty<T, _> p, {int flags = 0}) =>

@@ -203,9 +203,7 @@ Streams can be created from queries.
 Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart).
 
 ```dart
-final query = box.query(condition).build();
-final queryStream = query.stream;
-final sub1 = queryStream.listen((query) {
+final sub1 = box.query(condition).watch().listen((query) {
   print(query.count());
 });
 
@@ -213,7 +211,7 @@ final sub1 = queryStream.listen((query) {
 
 sub1.cancel();
 
-final sub2 = queryStream.listen((query) {
+final sub2 = box.query(condition).watch().listen((query) {
   print(query.find());
 });
 

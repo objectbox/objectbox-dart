@@ -1,5 +1,6 @@
 library query;
 
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -618,28 +619,22 @@ class _ConditionGroupAll<EntityT> extends _ConditionGroup<EntityT> {
 ///
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
+  bool _closed = false;
   final Pointer<OBX_query> _cQuery;
   final Store _store;
   final EntityDefinition<T> _entity;
 
   int get entityId => _entity.model.id.id;
 
+  Pointer<OBX_query> get _ptr {
+    if (_closed) {
+      throw StateError('Query already closed cannot execute any actions');
+    }
+    return _cQuery;
+  }
+
   Query._(this._store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(C.query(cBuilder), 'create query');
-
-  /// Create a stream, executing [Query.find()] whenever there's a change to any
-  /// of the objects in the queried Box.
-  /// TODO consider removing, see issue #195
-  @Deprecated('use query.stream instead; '
-      'see https://github.com/objectbox/objectbox-dart/issues/195')
-  Stream<List<T>> findStream() => stream.map((q) => q.find());
-
-  /// The stream gets notified whenever there's a change in any of the objects
-  /// in the queried Box (regardless of the filter conditions).
-  ///
-  /// You can use the given [Query] object to run any of its operation,
-  /// e.g. find(), count(), execute a [property()] query
-  Stream<Query<T>> get stream => _store.subscribe<T>().map((_) => this);
 
   /// Configure an [offset] for this query.
   ///
@@ -648,7 +643,7 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set offset=0 to reset to the default - starting from the first element.
-  set offset(int offset) => checkObx(C.query_offset(_cQuery, offset));
+  set offset(int offset) => checkObx(C.query_offset(_ptr, offset));
 
   /// Configure a [limit] for this query.
   ///
@@ -657,13 +652,13 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set limit=0 to reset to the default behavior - no limit applied.
-  set limit(int limit) => checkObx(C.query_limit(_cQuery, limit));
+  set limit(int limit) => checkObx(C.query_limit(_ptr, limit));
 
   /// Returns the number of matching Objects.
   int count() {
     final ptr = malloc<Uint64>();
     try {
-      checkObx(C.query_count(_cQuery, ptr));
+      checkObx(C.query_count(_ptr, ptr));
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -674,7 +669,7 @@ class Query<T> {
   int remove() {
     final ptr = malloc<Uint64>();
     try {
-      checkObx(C.query_remove(_cQuery, ptr));
+      checkObx(C.query_remove(_ptr, ptr));
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -682,8 +677,11 @@ class Query<T> {
   }
 
   /// Close the query and free resources.
-  // TODO Document wrap with closure to fake auto close
-  void close() => checkObx(C.query_close(_cQuery));
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    checkObx(C.query_close(_cQuery));
+  }
 
   /// Finds Objects matching the query and returns the first result or null
   /// if there are no results. Note: [offset] and [limit] are respected, if set.
@@ -694,14 +692,14 @@ class Query<T> {
       return false; // we only want to visit the first element
     });
     _store.runInTransaction(TxMode.read, () {
-      checkObx(C.query_visit(_cQuery, visitor, nullptr));
+      checkObx(C.query_visit(_ptr, visitor, nullptr));
     });
     return result;
   }
 
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
-    final idArrayPtr = checkObxPtr(C.query_find_ids(_cQuery), 'find ids');
+    final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
@@ -716,17 +714,16 @@ class Query<T> {
   List<T> find() {
     final result = <T>[];
     final collector = objectCollector(result, _store, _entity);
-    _store.runInTransaction(TxMode.read,
-        () => checkObx(C.query_visit(_cQuery, collector, nullptr)));
+    _store.runInTransaction(
+        TxMode.read, () => checkObx(C.query_visit(_ptr, collector, nullptr)));
     return result;
   }
 
   /// For internal testing purposes.
-  String describe() => dartStringFromC(C.query_describe(_cQuery));
+  String describe() => dartStringFromC(C.query_describe(_ptr));
 
   /// For internal testing purposes.
-  String describeParameters() =>
-      dartStringFromC(C.query_describe_params(_cQuery));
+  String describeParameters() => dartStringFromC(C.query_describe_params(_ptr));
 
   /// Use the same query conditions but only return a single property (field).
   ///
@@ -737,7 +734,7 @@ class Query<T> {
   /// var results = query.property(tInteger).find();
   /// ```
   PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
-    final result = PropertyQuery<DartType>._(_cQuery, prop._model);
+    final result = PropertyQuery<DartType>._(_ptr, prop._model);
     if (prop._model.type == OBXPropertyType.String) {
       result._caseSensitive = InternalStoreAccess.queryCS(_store);
     }
