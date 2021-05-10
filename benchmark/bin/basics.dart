@@ -1,14 +1,19 @@
 import 'dart:collection';
+import 'dart:ffi';
 
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/objectbox.g.dart';
 
 void main() {
   ModelInit().report();
+
   BoxAccessMap().report();
   BoxAccessHashMap().report();
   BoxAccessList().report();
   assert(_boxAccessResult.isNotEmpty);
+
+  DynLibProcess().report();
+  DynLibFile().report();
 }
 
 class ModelInit extends Benchmark {
@@ -16,6 +21,22 @@ class ModelInit extends Benchmark {
 
   @override
   void runIteration(int i) => getObjectBoxModel();
+}
+
+// ~ 21 M/second
+class DynLibProcess extends Benchmark {
+  DynLibProcess() : super('${DynLibProcess}', iterations: 1000);
+
+  @override
+  void runIteration(int i) => DynamicLibrary.process();
+}
+
+// ~ 4 M/second
+class DynLibFile extends Benchmark {
+  DynLibFile() : super('${DynLibFile}', iterations: 1000);
+
+  @override
+  void runIteration(int i) => DynamicLibrary.open('libobjectbox.so');
 }
 
 // Test whether using a map or iterating over a list is faster to access boxes.

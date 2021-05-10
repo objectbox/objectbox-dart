@@ -9,19 +9,20 @@ export 'objectbox-c.dart';
 
 // ignore_for_file: public_member_api_docs
 
-// Tries to use an already loaded objectbox dynamic library. This is the only
-// option for macOS and iOS and should be faster for other platforms as well.
+/// Tries to use an already loaded objectbox dynamic library. This is the only
+/// option for macOS and iOS and is ~5 times faster than loading from file so
+/// it's good to try for other platforms as well.
 ObjectBoxC? _tryObjectBoxLibProcess() {
   // [DynamicLibrary.process()] is not supported on windows, see its docs.
   if (Platform.isWindows) return null;
 
-  final lib = DynamicLibrary.process();
+  ObjectBoxC? obxc;
   try {
-    final obxc = ObjectBoxC(lib);
-    if (_isSupportedVersion(obxc)) {
-      return obxc;
-    }
-  } catch (_) {}
+    obxc = ObjectBoxC(DynamicLibrary.process());
+    _isSupportedVersion(obxc); // may throw in case symbols are not found
+  } catch (_) {
+    // ignore errors (i.e. symbol not found)
+  }
   return null;
 }
 
@@ -46,6 +47,8 @@ ObjectBoxC? _tryObjectBoxLibFile() {
     libName = 'lib' + libName + '-jni.so';
   } else if (Platform.isLinux) {
     libName = 'lib' + libName + '.so';
+  } else {
+    return null;
   }
   lib ??= DynamicLibrary.open(libName);
   return ObjectBoxC(lib);
