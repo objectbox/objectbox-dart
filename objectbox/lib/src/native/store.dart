@@ -20,6 +20,7 @@ import 'sync.dart';
 /// getting and putting.
 class Store {
   late final Pointer<OBX_store> _cStore;
+  HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
   final ModelDefinition _defs;
   bool _closed = false;
@@ -251,10 +252,12 @@ class InternalStoreAccess {
 
   /// Create a map from Entity ID to Entity type (dart class).
   static Map<int, Type> entityTypeById(Store store) {
-    final result = HashMap<int, Type>();
-    store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
-        result[entityDef.model.id.id] = entity);
-    return result;
+    if (store._entityTypeById == null) {
+      store._entityTypeById = HashMap<int, Type>();
+      store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
+          store._entityTypeById![entityDef.model.id.id] = entity);
+    }
+    return store._entityTypeById!;
   }
 
   /// Adds a listener to the [store.close()] event.
