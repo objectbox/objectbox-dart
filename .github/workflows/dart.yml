@@ -90,6 +90,8 @@ jobs:
           channel: ${{ matrix.channel }}
       - run: echo $PATH
       - run: flutter --version
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: sudo apt-get install ninja-build pkg-config libgtk-3-dev
       - uses: actions/checkout@v2
       - run: make integration-test
         working-directory: objectbox

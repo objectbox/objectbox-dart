@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  objectbox_flutter_libs
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)
