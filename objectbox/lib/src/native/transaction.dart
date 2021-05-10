@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:ffi';
 
 import 'package:meta/meta.dart';
@@ -23,7 +24,7 @@ class Transaction {
   // We have two ways of keeping cursors because we usually need just one.
   // The variable is faster then the map initialization & access.
   CursorHelper? _firstCursor;
-  Map<int, CursorHelper>? _cursors;
+  HashMap<int, CursorHelper>? _cursors;
 
   Pointer<OBX_txn> get ptr => _cTxn;
 
@@ -86,7 +87,7 @@ class Transaction {
     } else if (_firstCursor!.entity == entity) {
       return _firstCursor as CursorHelper<T>;
     }
-    _cursors ??= <int, CursorHelper>{};
+    _cursors ??= HashMap<int, CursorHelper>();
     final entityId = entity.model.id.id;
     final cursors = _cursors!;
     if (!cursors.containsKey(entityId)) {

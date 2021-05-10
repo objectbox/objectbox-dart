@@ -27,7 +27,7 @@ void main() {
     ]);
 
     var query =
-        box.query().order(TestEntity_.tInt, flags: Order.descending).build();
+        (box.query()..order(TestEntity_.tInt, flags: Order.descending)).build();
     final listDesc = query.find();
     query.close();
 
@@ -187,7 +187,8 @@ void main() {
     final t = TestEntity_.tString;
     final n = TestEntity_.tLong;
 
-    final checkQueryCount = (int expectedCount, Condition condition) {
+    final checkQueryCount =
+        (int expectedCount, Condition<TestEntity> condition) {
       final query = box.query(condition).build();
       expect(query.count(), expectedCount);
       query.close();
@@ -299,9 +300,9 @@ void main() {
     var q = box.query().build();
     expect(q.find().length, 4);
 
-    expect(q.offset(2).find().map((e) => e.tString), equals(['b', 'c']));
-    expect(q.limit(1).find().map((e) => e.tString), equals(['b']));
-    expect(q.offset(0).find().map((e) => e.tString), equals([null]));
+    expect((q..offset = 2).find().map((e) => e.tString), equals(['b', 'c']));
+    expect((q..limit = 1).find().map((e) => e.tString), equals(['b']));
+    expect((q..offset = 0).find().map((e) => e.tString), equals([null]));
 
     q.close();
   });
@@ -376,18 +377,18 @@ void main() {
     final text = TestEntity_.tString;
     final number = TestEntity_.tLong;
 
-    Condition cond1 = text.equals('Hello') | number.equals(1337);
-    Condition cond2 = text.equals('Hello') | number.equals(1337);
-    Condition cond3 =
+    Condition<TestEntity> cond1 = text.equals('Hello') | number.equals(1337);
+    Condition<TestEntity> cond2 = text.equals('Hello') | number.equals(1337);
+    Condition<TestEntity> cond3 =
         text.equals('What?').and(text.equals('Hello')).or(text.equals('World'));
-    Condition cond4 = text
+    Condition<TestEntity> cond4 = text
         .equals('Goodbye')
         .and(number.equals(1337))
         .or(number.equals(1337))
         .or(text.equals('Cruel'))
         .or(text.equals('World'));
-    Condition cond5 = text.equals('bleh') & number.equals(-1337);
-    Condition cond6 = text.equals('Hello') & number.equals(1337);
+    Condition<TestEntity> cond5 = text.equals('bleh') & number.equals(-1337);
+    Condition<TestEntity> cond6 = text.equals('Hello') & number.equals(1337);
 
     final q1 = box.query(cond1).build();
     final q2 = box.query(cond2).build();
@@ -409,7 +410,7 @@ void main() {
   test('.describe query', () {
     final text = TestEntity_.tString;
     final number = TestEntity_.tLong;
-    Condition c = text
+    Condition<TestEntity> c = text
         .equals('Goodbye')
         .and(number.equals(1337))
         .or(number.equals(1337))
@@ -451,7 +452,7 @@ void main() {
     final n = TestEntity_.id;
     final b = TestEntity_.tBool;
 
-    final check = (Condition condition, String text) {
+    final check = (Condition<TestEntity> condition, String text) {
       final q = box.query(condition).build();
       expect(q.describeParameters(), text);
       q.close();
@@ -472,7 +473,7 @@ void main() {
   test('.describeParameters query', () {
     final text = TestEntity_.tString;
     final number = TestEntity_.tLong;
-    Condition c = text
+    Condition<TestEntity> c = text
         .equals('Goodbye')
         .and(number.equals(1337))
         .or(number.equals(1337))
@@ -527,16 +528,15 @@ void main() {
 
     final condition = text.notNull();
 
-    final query = box.query(condition).order(text).build();
+    final query = (box.query(condition)..order(text)).build();
     final result1 = query.find().map((e) => e.tString).toList();
 
     expect('Cruel', result1[0]);
     expect('Hello', result1[2]);
     expect('HELLO', result1[3]);
 
-    final queryReverseOrder = box
-        .query(condition)
-        .order(text, flags: Order.descending | Order.caseSensitive)
+    final queryReverseOrder = (box.query(condition)
+          ..order(text, flags: Order.descending | Order.caseSensitive))
         .build();
     final result2 = queryReverseOrder.find().map((e) => e.tString).toList();
 
@@ -553,8 +553,8 @@ void main() {
       box.put(TestEntity(tLong: i, tInt: i));
     }
 
-    final querySigned = box.query().order(TestEntity_.tLong).build();
-    final queryUnsigned = box.query().order(TestEntity_.tInt).build();
+    final querySigned = (box.query()..order(TestEntity_.tLong)).build();
+    final queryUnsigned = (box.query()..order(TestEntity_.tInt)).build();
 
     expect(querySigned.findIds(), [1, 2, 3]);
     expect(queryUnsigned.findIds(), [2, 3, 1]);

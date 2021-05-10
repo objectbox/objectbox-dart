@@ -3,7 +3,6 @@ import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import '../modelinfo/entity_definition.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'store.dart';
@@ -87,12 +86,7 @@ extension ObservableStore on Store {
   Stream<Type> subscribeAll() {
     initializeDartAPI();
     final observer = _Observer<Type>();
-
-    // create a map from Entity ID to Entity type (dart class)
-    final entityTypesById = <int, Type>{};
-    InternalStoreAccess.defs(this).bindings.forEach(
-        (Type entity, EntityDefinition entityDef) =>
-            entityTypesById[entityDef.model.id.id] = entity);
+    final entityTypesById = InternalStoreAccess.entityTypeById(this);
 
     observer.init(() {
       // We're listening to a events for all entity types. C-API sends entity ID

@@ -69,7 +69,7 @@ class CodeBuilder extends Builder {
           ModelInfo.fromMap(json.decode(await buildStep.readAsString(jsonId)));
     } else {
       log.warning('Creating model: ${jsonId.path}');
-      model = ModelInfo();
+      model = ModelInfo.empty();
     }
 
     // merge existing model and annotated model that was just read, then write new final model to file

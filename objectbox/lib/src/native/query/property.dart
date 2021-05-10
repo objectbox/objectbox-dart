@@ -1,38 +1,21 @@
 part of query;
 
 /// Property query base.
-abstract class PropertyQuery<T> {
+class PropertyQuery<T> {
   final Pointer<OBX_query_prop> _cProp;
   final int _type;
   bool _distinct = false;
+  bool _caseSensitive = false;
 
-  PropertyQuery._(Pointer<OBX_query> cQuery, int propertyId, this._type)
-      : _cProp =
-            checkObxPtr(C.query_prop(cQuery, propertyId), 'property query');
-
-  /// Returns values of this property matching the query.
-  ///
-  /// Results are in no particular order. Excludes null values.
-  /// Set [replaceNullWith] to return null values as that value.
-  List<T> find({T? replaceNullWith});
+  PropertyQuery._(Pointer<OBX_query> cQuery, ModelProperty property)
+      : _type = property.type,
+        _cProp =
+            checkObxPtr(C.query_prop(cQuery, property.id.id), 'property query');
 
   /// Close the property query, freeing its resources
   void close() => checkObx(C.query_prop_close(_cProp));
 
-  /// Get the status of "distinct-values" configuration.
-  bool get distinct => _distinct;
-
-  /// Set to only return distinct values.
-  ///
-  /// E.g. [1,2,3] instead of [1,1,2,3,3,3].
-  /// Strings default to case-insensitive comparison.
-  set distinct(bool d) {
-    _distinct = d;
-    checkObx(C.query_prop_distinct(_cProp, d));
-  }
-
-  /// Returns the count of non-null values.
-  int count() {
+  int _count() {
     final ptr = malloc<Uint64>();
     try {
       checkObx(C.query_prop_count(_cProp, ptr));
@@ -57,12 +40,8 @@ abstract class PropertyQuery<T> {
       if (cItems != nullptr) listFreeFn(cItems);
     }
   }
-}
 
-/// shared implementation, hence mixin
-mixin _CommonNumeric<T> on PropertyQuery<T> {
-  /// Average value of the property over all objects matching the query.
-  double average() {
+  double _average() {
     final ptr = malloc<Double>();
     try {
       checkObx(C.query_prop_avg(_cProp, ptr, nullptr));
@@ -74,10 +53,7 @@ mixin _CommonNumeric<T> on PropertyQuery<T> {
 }
 
 /// "Property query" for an integer field. Created by [Query.property()].
-class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
-  IntegerPropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super._(query, propertyId, obxType);
-
+extension IntegerPropertyQuery on PropertyQuery<int> {
   int _op(
       int Function(Pointer<OBX_query_prop>, Pointer<Int64>, Pointer<Int64>)
           fn) {
@@ -90,6 +66,24 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
     }
   }
 
+  /// Average value of the property over all objects matching the query.
+  double average() => _average();
+
+  /// Returns the count of non-null values.
+  int count() => _count();
+
+  /// Get the status of "distinct-values" configuration.
+  bool get distinct => _distinct;
+
+  /// Set to only return distinct values.
+  ///
+  /// E.g. [1,2,3] instead of [1,1,2,3,3,3].
+  /// Strings default to case-insensitive comparison.
+  set distinct(bool d) {
+    _distinct = d;
+    checkObx(C.query_prop_distinct(_cProp, d));
+  }
+
   /// Minimum value of the property over all objects matching the query.
   int min() => _op(C.query_prop_min_int);
 
@@ -99,7 +93,10 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
   /// Sum of all property values over objects matching the query.
   int sum() => _op(C.query_prop_sum_int);
 
-  @override
+  /// Returns values of this property matching the query.
+  ///
+  /// Results are in no particular order. Excludes null values unless you
+  /// specify [replaceNullWith].
   List<int> find({int? replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Bool:
@@ -152,10 +149,7 @@ class IntegerPropertyQuery extends PropertyQuery<int> with _CommonNumeric {
 }
 
 /// "Property query" for a double field. Created by [Query.property()].
-class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
-  DoublePropertyQuery._(Pointer<OBX_query> query, int propertyId, int obxType)
-      : super._(query, propertyId, obxType);
-
+extension DoublePropertyQuery on PropertyQuery<double> {
   double _op(
       int Function(Pointer<OBX_query_prop>, Pointer<Double>, Pointer<Int64>)
           fn) {
@@ -168,6 +162,24 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
     }
   }
 
+  /// Average value of the property over all objects matching the query.
+  double average() => _average();
+
+  /// Returns the count of non-null values.
+  int count() => _count();
+
+  /// Get the status of "distinct-values" configuration.
+  bool get distinct => _distinct;
+
+  /// Set to only return distinct values.
+  ///
+  /// E.g. [1,2,3] instead of [1,1,2,3,3,3].
+  /// Strings default to case-insensitive comparison.
+  set distinct(bool d) {
+    _distinct = d;
+    checkObx(C.query_prop_distinct(_cProp, d));
+  }
+
   /// Minimum value of the property over all objects matching the query.
   double min() => _op(C.query_prop_min);
 
@@ -177,7 +189,10 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
   /// Sum of all property values over objects matching the query.
   double sum() => _op(C.query_prop_sum);
 
-  @override
+  /// Returns values of this property matching the query.
+  ///
+  /// Results are in no particular order. Excludes null values unless you
+  /// specify [replaceNullWith].
   List<double> find({double? replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Float:
@@ -208,14 +223,7 @@ class DoublePropertyQuery extends PropertyQuery<double> with _CommonNumeric {
 }
 
 /// "Property query" for a string field. Created by [Query.property()].
-class StringPropertyQuery extends PropertyQuery<String> {
-  bool _caseSensitive;
-
-  StringPropertyQuery._(
-      Store store, Pointer<OBX_query> query, int propertyId, int obxType)
-      : _caseSensitive = InternalStoreAccess.queryCS(store),
-        super._(query, propertyId, obxType);
-
+extension StringPropertyQuery on PropertyQuery<String> {
   /// Use case-sensitive comparison when querying [distinct] values.
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {
@@ -226,22 +234,30 @@ class StringPropertyQuery extends PropertyQuery<String> {
   /// Get status of the case-sensitive configuration.
   bool get caseSensitive => _caseSensitive;
 
-  @override
+  /// Get the status of "distinct-values" configuration.
+  bool get distinct => _distinct;
+
+  /// Set to only return distinct values.
+  ///
+  /// E.g. [foo, bar] instead of [foo, bar, bar, bar, foo].
+  /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
     checkObx(C.query_prop_distinct_case(_cProp, d, _caseSensitive));
   }
 
   /// Returns the count of non-null values.
-  @override
   int count() {
     // native c-api currently doesn't respect case-sensitive with distinct
     // TODO Remove once this is fixed in all platforms (c-api ^0.13.1)
     if (_distinct && !_caseSensitive) return find().length;
-    return super.count();
+    return _count();
   }
 
-  @override
+  /// Returns values of this property matching the query.
+  ///
+  /// Results are in no particular order. Excludes null values unless you
+  /// specify [replaceNullWith].
   List<String> find({String? replaceNullWith}) {
     final cDefault = replaceNullWith == null
         ? null

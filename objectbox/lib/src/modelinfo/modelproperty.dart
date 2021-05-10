@@ -86,7 +86,8 @@ class ModelProperty {
     _indexId = value;
   }
 
-  ModelProperty(this.id, String? name, int? type,
+  // used in code generator
+  ModelProperty.create(this.id, String? name, int? type,
       {int flags = 0,
       String? indexId,
       this.entity,
@@ -99,9 +100,22 @@ class ModelProperty {
     this.indexId = indexId == null ? null : IdUid.fromString(indexId);
   }
 
+  // used in generated code
+  ModelProperty(
+      {required this.id,
+      required String name,
+      required int type,
+      required int flags,
+      IdUid? indexId,
+      this.relationTarget})
+      : _name = name,
+        _type = type,
+        _flags = flags,
+        _indexId = indexId;
+
   ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity? entity)
-      : this(IdUid.fromString(data['id'] as String?), data['name'] as String?,
-            data['type'] as int?,
+      : this.create(IdUid.fromString(data['id'] as String?),
+            data['name'] as String?, data['type'] as int?,
             flags: data['flags'] as int? ?? 0,
             indexId: data['indexId'] as String?,
             entity: entity,

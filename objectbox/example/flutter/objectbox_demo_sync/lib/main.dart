@@ -54,7 +54,7 @@ class ViewModel {
       : _store = Store(getObjectBoxModel(),
             directory: dir.path + '/objectbox-sync') {
     _box = Box<Note>(_store);
-    _query = _box.query().order(Note_.date, flags: Order.descending).build();
+    _query = (_box.query()..order(Note_.date, flags: Order.descending)).build();
 
     // TODO configure actual sync server address and authentication
     // For configuration and docs, see objectbox/lib/src/sync.dart

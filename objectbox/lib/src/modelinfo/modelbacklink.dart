@@ -8,11 +8,14 @@ class ModelBacklink {
 
   final String srcField;
 
-  ModelBacklink(this.name, this.srcEntity, this.srcField);
+  ModelBacklink(
+      {required this.name, required this.srcEntity, required this.srcField});
 
   ModelBacklink.fromMap(Map<String, dynamic> data)
-      : this(data['name'] as String, data['srcEntity'] as String,
-            data['srcField'] as String);
+      : this(
+            name: data['name'] as String,
+            srcEntity: data['srcEntity'] as String,
+            srcField: data['srcField'] as String);
 
   Map<String, String> toMap() =>
       {'name': name, 'srcEntity': srcEntity, 'srcField': srcField};

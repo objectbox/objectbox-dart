@@ -3,7 +3,7 @@ part of query;
 /// Query builder allows creating reusable queries.
 class QueryBuilder<T> extends _QueryBuilder<T> {
   /// Start creating a query.
-  QueryBuilder(Store store, EntityDefinition<T> entity, Condition? qc)
+  QueryBuilder(Store store, EntityDefinition<T> entity, Condition<T>? qc)
       : super(
             store,
             entity,
@@ -25,18 +25,15 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
 
   /// Configure how the results are ordered.
   /// Pass a combination of [Order] flags.
-  QueryBuilder<T> order(QueryProperty p, {int flags = 0}) {
-    _throwIfOtherEntity(p._entityId);
-    checkObx(C.qb_order(_cBuilder, p._propertyId, flags));
-    return this;
-  }
+  void order<_>(QueryProperty<T, _> p, {int flags = 0}) =>
+      checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
 }
 
 /// Basic/linked query builder only has limited methods: link()
 class _QueryBuilder<T> {
   final Store _store;
   final EntityDefinition<T> _entity;
-  final Condition? _queryCondition;
+  final Condition<T>? _queryCondition;
   final Pointer<OBX_query_builder> _cBuilder;
   final _innerQBs = <_QueryBuilder>[];
 
@@ -69,14 +66,6 @@ class _QueryBuilder<T> {
   }
 
   @pragma('vm:prefer-inline')
-  void _throwIfOtherEntity(int entityId) {
-    if (entityId != _entity.model.id.id) {
-      throw ArgumentError(
-          'Passed a property of another entity: $entityId instead of ${_entity.model.id.id}');
-    }
-  }
-
-  @pragma('vm:prefer-inline')
   void _applyCondition() {
     if (_queryCondition != null &&
         0 == _queryCondition!._apply(this, isRoot: true)) {
@@ -84,35 +73,32 @@ class _QueryBuilder<T> {
     }
   }
 
-  _QueryBuilder<TargetEntityT> link<_, TargetEntityT>(
-      QueryRelationProperty<_, TargetEntityT> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._entityId);
-    return _QueryBuilder<TargetEntityT>._link(
-        this, qc, C.qb_link_property(_cBuilder, rel._propertyId));
-  }
+  _QueryBuilder<TargetEntityT> link<TargetEntityT>(
+          QueryRelationProperty<T, TargetEntityT> rel,
+          [Condition<TargetEntityT>? qc]) =>
+      _QueryBuilder<TargetEntityT>._link(
+          this, qc, C.qb_link_property(_cBuilder, rel._model.id.id));
 
-  _QueryBuilder<SourceEntityT> backlink<SourceEntityT, _>(
-      QueryRelationProperty<SourceEntityT, _> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._targetEntityId);
-    return _QueryBuilder<SourceEntityT>._link(this, qc,
-        C.qb_backlink_property(_cBuilder, rel._entityId, rel._propertyId));
-  }
+  _QueryBuilder<SourceEntityT> backlink<SourceEntityT>(
+          QueryRelationProperty<SourceEntityT, T> rel,
+          [Condition<SourceEntityT>? qc]) =>
+      _QueryBuilder<SourceEntityT>._link(
+          this,
+          qc,
+          C.qb_backlink_property(
+              _cBuilder,
+              InternalStoreAccess.entityDef<SourceEntityT>(_store).model.id.id,
+              rel._model.id.id));
 
-  _QueryBuilder<TargetEntityT> linkMany<_, TargetEntityT>(
-      QueryRelationMany<_, TargetEntityT> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._entityId);
-    return _QueryBuilder<TargetEntityT>._link(
-        this, qc, C.qb_link_standalone(_cBuilder, rel._relationId));
-  }
+  _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
+          QueryRelationMany<T, TargetEntityT> rel,
+          [Condition<TargetEntityT>? qc]) =>
+      _QueryBuilder<TargetEntityT>._link(
+          this, qc, C.qb_link_standalone(_cBuilder, rel._model.id.id));
 
-  _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT, _>(
-      QueryRelationMany<SourceEntityT, _> rel,
-      [Condition? qc]) {
-    _throwIfOtherEntity(rel._targetEntityId);
-    return _QueryBuilder<SourceEntityT>._link(
-        this, qc, C.qb_backlink_standalone(_cBuilder, rel._relationId));
-  }
+  _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT>(
+          QueryRelationMany<SourceEntityT, T> rel,
+          [Condition<SourceEntityT>? qc]) =>
+      _QueryBuilder<SourceEntityT>._link(
+          this, qc, C.qb_backlink_standalone(_cBuilder, rel._model.id.id));
 }

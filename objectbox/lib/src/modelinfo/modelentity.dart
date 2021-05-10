@@ -12,11 +12,11 @@ class ModelEntity {
   IdUid id;
 
   late String _name;
-  IdUid lastPropertyId = IdUid.empty();
+  IdUid lastPropertyId = const IdUid.empty();
   int _flags = 0;
-  final _properties = <ModelProperty>[];
-  final _relations = <ModelRelation>[];
-  final _backlinks = <ModelBacklink>[];
+  final List<ModelProperty> _properties;
+  final List<ModelRelation> _relations;
+  final List<ModelBacklink> _backlinks;
   ModelProperty? _idProperty;
   final ModelInfo? _model;
 
@@ -59,17 +59,37 @@ class ModelEntity {
 
   List<ModelBacklink> get backlinks => _backlinks;
 
-  ModelEntity(this.id, String? name, this._model) {
-    this.name = name;
-    validate();
-  }
+  // used in code generator
+  ModelEntity.create(this.id, this._name, this._model)
+      : _properties = [],
+        _relations = [],
+        _backlinks = [];
+
+  // used in generated code
+  ModelEntity(
+      {required this.id,
+      required String name,
+      required this.lastPropertyId,
+      required int flags,
+      required List<ModelProperty> properties,
+      required List<ModelRelation> relations,
+      required List<ModelBacklink> backlinks})
+      : _name = name,
+        _flags = flags,
+        _properties = properties,
+        _relations = relations,
+        _backlinks = backlinks,
+        _model = null;
 
   ModelEntity.fromMap(Map<String, dynamic> data,
       {ModelInfo? model, bool check = true})
       : _model = model,
         id = IdUid.fromString(data['id'] as String?),
         lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?),
-        nullSafetyEnabled = data['nullSafetyEnabled'] as bool? ?? true {
+        nullSafetyEnabled = data['nullSafetyEnabled'] as bool? ?? true,
+        _properties = [],
+        _relations = [],
+        _backlinks = [] {
     name = data['name'] as String?;
     flags = data['flags'] as int? ?? 0;
 
@@ -191,7 +211,8 @@ class ModelEntity {
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    final property = ModelProperty(IdUid(id, uniqueUid), name, 0, entity: this);
+    final property =
+        ModelProperty.create(IdUid(id, uniqueUid), name, 0, entity: this);
     properties.add(property);
     lastPropertyId = property.id;
 
@@ -242,7 +263,7 @@ class ModelEntity {
     }
     final uniqueUid = uid == 0 ? model.generateUid() : uid;
 
-    final relation = ModelRelation(IdUid(id, uniqueUid), name);
+    final relation = ModelRelation.create(IdUid(id, uniqueUid), name);
     relations.add(relation);
     model.lastRelationId = relation.id;
 

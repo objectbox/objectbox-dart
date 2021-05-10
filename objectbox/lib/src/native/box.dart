@@ -210,7 +210,7 @@ class Box<T> {
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   @pragma('vm:prefer-inline')
-  QueryBuilder<T> query([Condition? qc]) =>
+  QueryBuilder<T> query([Condition<T>? qc]) =>
       QueryBuilder<T>(_store, _entity, qc);
 
   /// Returns the count of all stored Objects in this box.

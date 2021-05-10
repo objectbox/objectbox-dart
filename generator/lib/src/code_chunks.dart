@@ -10,8 +10,6 @@ class CodeChunks {
   static String objectboxDart(ModelInfo model, List<String> imports) => """
     // GENERATED CODE - DO NOT MODIFY BY HAND
     
-    // Currently loading model from "JSON" which always encodes with double quotes
-    // ignore_for_file: prefer_single_quotes
     // ignore_for_file: camel_case_types
     
     import 'dart:typed_data';
@@ -24,16 +22,21 @@ class CodeChunks {
     
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
     
+    final _entities = <ModelEntity>[
+      ${model.entities.map(createModelEntity).join(',')}
+    ];
+  
     ModelDefinition getObjectBoxModel() {
-      final model = ModelInfo.fromMap(${JsonEncoder().convert(model.toMap())}, check: false);
+      ${defineModel(model)}
       
-      final bindings = <Type, EntityDefinition>{};
-      ${model.entities.map((entity) => "bindings[${entity.name}] = ${entityBinding(entity)};").join("\n")} 
+      final bindings = <Type, EntityDefinition>{
+        ${model.entities.mapIndexed((i, entity) => "${entity.name}: ${entityBinding(i, entity)}").join(",\n")}
+      };
       
       return ModelDefinition(model, bindings);
     }
     
-    ${model.entities.map((entity) => queryConditionClasses(entity)).join("\n")}
+    ${model.entities.mapIndexed((i, entity) => "class ${entity.name}_ {${_queryConditionBuilder(i, entity)}}").join("\n")}
     """;
 
   static List<T> sorted<T>(List<T> list) {
@@ -41,11 +44,93 @@ class CodeChunks {
     return list;
   }
 
-  static String entityBinding(ModelEntity entity) {
+  static String defineModel(ModelInfo model) {
+    return '''
+    final model = ModelInfo(
+      entities: _entities,
+      lastEntityId: ${createIdUid(model.lastEntityId)},
+      lastIndexId: ${createIdUid(model.lastIndexId)},
+      lastRelationId: ${createIdUid(model.lastRelationId)},
+      lastSequenceId: ${createIdUid(model.lastSequenceId)},
+      retiredEntityUids: const ${model.retiredEntityUids},
+      retiredIndexUids: const ${model.retiredIndexUids},
+      retiredPropertyUids: const ${model.retiredPropertyUids},
+      retiredRelationUids: const ${model.retiredRelationUids},
+      modelVersion: ${model.modelVersion},
+      modelVersionParserMinimum: ${model.modelVersionParserMinimum},
+      version: ${model.version});
+    ''';
+  }
+
+  static String createIdUid(IdUid value) {
+    return 'const IdUid(${value.id}, ${value.uid})';
+  }
+
+  static String createModelEntity(ModelEntity entity) {
+    return '''
+    ModelEntity(
+      id: ${createIdUid(entity.id)}, 
+      name: '${entity.name}', 
+      lastPropertyId: ${createIdUid(entity.lastPropertyId)}, 
+      flags: ${entity.flags}, 
+      properties: <ModelProperty>[
+        ${entity.properties.map(createModelProperty).join(',')}
+      ], 
+      relations: <ModelRelation>[
+        ${entity.relations.map(createModelRelation).join(',')}
+      ], 
+      backlinks: <ModelBacklink>[
+        ${entity.backlinks.map(createModelBacklink).join(',')}
+      ]
+    )
+    ''';
+  }
+
+  static String createModelProperty(ModelProperty property) {
+    var additionalArgs = '';
+    if (property.indexId != null && !property.indexId!.isEmpty) {
+      additionalArgs += ', indexId: ${createIdUid(property.indexId!)}';
+    }
+    if (property.relationTarget != null &&
+        property.relationTarget!.isNotEmpty) {
+      additionalArgs += ", relationTarget: '${property.relationTarget!}'";
+    }
+    return '''
+    ModelProperty(
+      id: ${createIdUid(property.id)}, 
+      name: '${property.name}', 
+      type: ${property.type}, 
+      flags: ${property.flags}
+      $additionalArgs
+    )
+    ''';
+  }
+
+  static String createModelRelation(ModelRelation relation) {
+    return '''
+    ModelRelation(
+      id: ${createIdUid(relation.id)}, 
+      name: '${relation.name}', 
+      targetId: ${createIdUid(relation.targetId)}
+    )
+    ''';
+  }
+
+  static String createModelBacklink(ModelBacklink backlink) {
+    return '''
+    ModelBacklink(
+      name: '${backlink.name}', 
+      srcEntity: '${backlink.srcEntity}', 
+      srcField: '${backlink.srcField}'
+    )
+    ''';
+  }
+
+  static String entityBinding(int i, ModelEntity entity) {
     final name = entity.name;
     return '''
       EntityDefinition<$name>(
-        model: model.getEntityByUid(${entity.id.uid}),
+        model: _entities[$i],
         toOneRelations: ($name object) => ${toOneRelations(entity)},
         toManyRelations: ($name object) => ${toManyRelations(entity)},
         getId: ($name object) => object.${propertyFieldName(entity.idProperty)},
@@ -405,9 +490,10 @@ class CodeChunks {
           .join(',') +
       '}';
 
-  static String _queryConditionBuilder(ModelEntity entity) {
+  static String _queryConditionBuilder(int i, ModelEntity entity) {
     final ret = <String>[];
-    for (var prop in entity.properties) {
+    for (var p = 0; p < entity.properties.length; p++) {
+      final prop = entity.properties[p];
       final name = prop.name;
 
       // see OBXPropertyType
@@ -447,34 +533,19 @@ class CodeChunks {
       }
 
       var propCode =
-          'static final ${propertyFieldName(prop)} = Query${fieldType}Property';
-      if (prop.isRelation) {
-        propCode += '<${entity.name}, ${prop.relationTarget}>'
-            '(targetEntityId: ${entity.model.findEntityByName(prop.relationTarget!)!.id.id}, '
-            'sourceEntityId:';
-      } else {
-        propCode += '(entityId:';
-      }
-      propCode +=
-          '${entity.id.id}, propertyId:${prop.id.id}, obxType:${prop.type});';
+          'static final ${propertyFieldName(prop)} = Query${fieldType}Property<${entity.name}';
+      if (prop.isRelation) propCode += ', ${prop.relationTarget}';
+      propCode += '>(_entities[$i].properties[$p]);';
       ret.add(propCode);
     }
 
-    for (var rel in entity.relations) {
+    for (var r = 0; r < entity.relations.length; r++) {
+      final rel = entity.relations[r];
       final targetEntityName =
           entity.model.findEntityByUid(rel.targetId.uid)!.name;
-      ret.add(
-          'static final ${rel.name} = QueryRelationMany<${entity.name}, $targetEntityName>'
-          '(sourceEntityId:${entity.id.id}, targetEntityId:${rel.targetId.id}, relationId:${rel.id.id});');
+      ret.add('static final ${rel.name} = QueryRelationMany'
+          '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
     }
     return ret.join();
-  }
-
-  static String queryConditionClasses(ModelEntity entity) {
-    // TODO add entity.id check to throw an error Box if the wrong entity.property is used
-    return '''
-    class ${entity.name}_ {
-    ${_queryConditionBuilder(entity)}
-    }''';
   }
 }

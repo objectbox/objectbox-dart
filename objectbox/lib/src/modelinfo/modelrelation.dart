@@ -39,14 +39,23 @@ class ModelRelation {
     _targetName = value;
   }
 
-  ModelRelation(this.id, String? name, {String? targetId, String? targetName}) {
+  // used in code generator
+  ModelRelation.create(this.id, String? name,
+      {String? targetId, String? targetName}) {
     this.name = name;
     if (targetId != null) this.targetId = IdUid.fromString(targetId);
     if (targetName != null) this.targetName = targetName;
   }
 
+  // used in generated code
+  ModelRelation(
+      {required this.id, required String name, required IdUid targetId})
+      : _name = name,
+        _targetId = targetId;
+
   ModelRelation.fromMap(Map<String, dynamic> data)
-      : this(IdUid.fromString(data['id'] as String?), data['name'] as String?,
+      : this.create(
+            IdUid.fromString(data['id'] as String?), data['name'] as String?,
             targetId: data['targetId'] as String?,
             targetName: data['targetName'] as String?);
 
