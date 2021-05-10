@@ -601,7 +601,7 @@ void main() {
 
     final query = box.query(TestEntity_.tByte.lessThan(10)).build();
     final countMatching =
-    items.fold(0, (int c, item) => c + (item.tByte! < 10 ? 1 : 0));
+        items.fold(0, (int c, item) => c + (item.tByte! < 10 ? 1 : 0));
     expect(query.count(), countMatching);
 
     final foundIds = query.findIds();

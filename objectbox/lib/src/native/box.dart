@@ -87,14 +87,16 @@ class Box<T> {
 
   /// Puts the given object in the box (persisting it) asynchronously.
   ///
-  /// The returned future completes with an ID of a the object.  If this is a
-  /// new object (its ID property is 0), a new ID will be assigned to the object
+  /// The returned future completes with an ID of the object. If it is a new
+  /// object (its ID property is 0), a new ID will be assigned to the object
   /// argument, after the returned [Future] completes.
   ///
-  /// Throws immediately if the async queue is full.
-  /// The returned future may complete with an error (throw) if the put failed
+  /// In extreme scenarios (e.g. having hundreds of thousands async operations
+  /// per second), this may fail as internal queues fill up if the disk can't
+  /// keep up. However, this should not be a concern for typical apps.
+  /// The returned future may also complete with an error if the put failed
   /// for another reason, for example a unique constraint violation. In that
-  /// case [object]'s id field remains unchanged (0 if it was a new object).
+  /// case the [object]'s id field remains unchanged (0 if it was a new object).
   ///
   /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
   /// ID immediately, even though the actual database put operation may fail.
@@ -115,8 +117,7 @@ class Box<T> {
     final newId = _async!.put(id, _builder, mode);
     _builder.resetIfLarge(); // reset before `await`
     if (id == 0) {
-      // Note: if the newId future completes with an error, ID isn't set and
-      // this call throws. Consider using `newId.then()` to avoid the throw?
+      // Note: if the newId future completes with an error, ID isn't set.
       _entity.setId(object, await newId);
     }
     return newId;
@@ -130,7 +131,9 @@ class Box<T> {
   /// Therefore, you should make sure the data you put is correct and you have
   /// a fall back in place even if it eventually failed.
   ///
-  /// Throws immediately if the async queue is full.
+  /// In extreme scenarios (e.g. having hundreds of thousands async operations
+  /// per second), this may fail as internal queues fill up if the disk can't
+  /// keep up. However, this should not be a concern for typical apps.
   ///
   /// See also [putAsync] which returns a [Future] that only completes after an
   /// actual database put was successful.
@@ -398,13 +401,18 @@ class _AsyncBoxHelper {
     final newId = C.dartc_async_put_object(_cAsync, port.sendPort.nativePort,
         fbb.bufPtr, fbb.fbb.size, _getOBXPutMode(mode));
 
+    final completer = Completer<int>();
+
     // Zero is returned to indicate an immediate error, object won't be stored.
     if (newId == 0) {
       port.close();
-      throwLatestNativeError(context: 'putAsync failed');
+      try {
+        throwLatestNativeError(context: 'putAsync failed');
+      } catch (e) {
+        completer.completeError(e);
+      }
     }
 
-    final completer = Completer<int>();
     port.listen((dynamic message) {
       // Null is sent if the put was successful (there is no error, thus NULL)
       if (message == null) {

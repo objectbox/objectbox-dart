@@ -88,8 +88,21 @@ void main() {
         throwsA(predicate((ObjectBoxException e) =>
             e.toString().contains('object with the given ID already exists'))));
 
-    // TODO test unique constraint violation and that an insert doesn't assign
-    //      object.id in that case.
+    {
+      // check unique constraint violation behavior
+      await box.putAsync(TestEntity2()..value = 42);
+      final object = TestEntity2()..value = 42;
+      final future = box.putAsync(object);
+      expect(
+          future,
+          throwsA(predicate((ObjectBoxException e) =>
+              e.toString().contains('Unique constraint'))));
+      // paranoia, should already have waited on the above [expect()]
+      try {
+        await future;
+      } catch (_) {}
+      expect(object.id, isNull); // ID must remain unassigned
+    }
   });
 
   test('.putAsync many', () async {
@@ -106,11 +119,12 @@ void main() {
   test('.putQueued', () {
     final box = store.box<TestEntityNonRel>();
     final items = List.generate(1000, (i) => TestEntityNonRel.filled(id: 0));
-    store.awaitAsyncSubmitted();
     final ids = items.map(box.putQueued).toList();
     for (int i = 0; i < items.length; i++) {
       expect(items[i].id, ids[i]);
     }
+    store.awaitAsyncSubmitted();
+    expect(box.count(), 1000);
   });
 
   test('.putQueued failures', () async {

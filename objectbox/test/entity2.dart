@@ -6,6 +6,9 @@ class TestEntity2 {
   @Id(assignable: true)
   int? id;
 
+  @Unique()
+  int? value;
+
   TestEntity2({this.id});
 }
 
