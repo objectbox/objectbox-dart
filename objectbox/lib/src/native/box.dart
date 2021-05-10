@@ -100,28 +100,33 @@ class Box<T> {
   ///
   /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
   /// ID immediately, even though the actual database put operation may fail.
-  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async {
-    if (_hasRelations) {
-      throw UnsupportedError('putAsync() is currently not supported on entity '
-          '${T.toString()} because it has relations.');
-    }
-    _async ??= _AsyncBoxHelper(this);
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+      // Wrap with [Future.sync] to avoid mixing sync and async errors.
+      // Note: doesn't seem to decrease performance at all.
+      // https://dart.dev/guides/libraries/futures-error-handling#potential-problem-accidentally-mixing-synchronous-and-asynchronous-errors
+      Future.sync(() async {
+        if (_hasRelations) {
+          throw UnsupportedError(
+              'putAsync() is currently not supported on entity '
+              '${T.toString()} because it has relations.');
+        }
+        _async ??= _AsyncBoxHelper(this);
 
-    // Note: we can use the shared flatbuffer object, because:
-    // https://dart.dev/codelabs/async-await#execution-flow-with-async-and-await
-    // > An async function runs synchronously until the first await keyword.
-    // > This means that within an async function body, all synchronous code
-    // > before the first await keyword executes immediately.
-    _builder.fbb.reset();
-    var id = _entity.objectToFB(object, _builder.fbb);
-    final newId = _async!.put(id, _builder, mode);
-    _builder.resetIfLarge(); // reset before `await`
-    if (id == 0) {
-      // Note: if the newId future completes with an error, ID isn't set.
-      _entity.setId(object, await newId);
-    }
-    return newId;
-  }
+        // Note: we can use the shared flatbuffer object, because:
+        // https://dart.dev/codelabs/async-await#execution-flow-with-async-and-await
+        // > An async function runs synchronously until the first await keyword.
+        // > This means that within an async function body, all synchronous code
+        // > before the first await keyword executes immediately.
+        _builder.fbb.reset();
+        var id = _entity.objectToFB(object, _builder.fbb);
+        final newId = _async!.put(id, _builder, mode);
+        _builder.resetIfLarge(); // reset before `await`
+        if (id == 0) {
+          // Note: if the newId future completes with an error, ID isn't set.
+          _entity.setId(object, await newId);
+        }
+        return newId;
+      });
 
   /// Schedules the given object to be put later on, by an asynchronous queue.
   ///
