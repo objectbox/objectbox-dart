@@ -83,9 +83,9 @@ extension ObservableStore on Store {
   /// The stream receives an event whenever any data changes in the database.
   /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
-  Stream<Type> subscribeAll() {
+  Stream<List<Type>> subscribeAll() {
     initializeDartAPI();
-    final observer = _Observer<Type>();
+    final observer = _Observer<List<Type>>();
     final entityTypesById = InternalStoreAccess.entityTypeById(this);
 
     observer.init(() {
@@ -99,7 +99,9 @@ extension ObservableStore on Store {
             return;
           }
 
-          entityIds.forEach((int entityId) {
+          final entities = List<Type>.filled(entityIds.length, Null);
+          for (var i = 0; i < entityIds.length; i++) {
+            final entityId = entityIds[i];
             if (entityId is! int) {
               observer.controller.addError(Exception(
                   'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
@@ -111,9 +113,10 @@ extension ObservableStore on Store {
               observer.controller.addError(Exception(
                   'Received data change notification for an unknown entity ID $entityId'));
             } else {
-              observer.controller.add(entityType);
+              entities[i] = entityType;
             }
-          });
+          }
+          observer.controller.add(entities);
         });
       observer.cObserver =
           C.dartc_observe(InternalStoreAccess.ptr(this), observer.nativePort);

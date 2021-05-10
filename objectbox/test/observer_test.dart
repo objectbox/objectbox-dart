@@ -68,11 +68,12 @@ void main() async {
 
     final stream = env.store.subscribeAll();
 
-    final subscription = stream.listen((entityType) {
-      print('Entity updated: $entityType');
+    final subscription = stream.listen((List<Type> entityTypes) {
+      print('Entities updated: $entityTypes');
       expectedEvents--;
 
-      typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0);
+      entityTypes.forEach((entityType) =>
+          typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0));
 
       if (expectedEvents == 0) {
         completer.complete();

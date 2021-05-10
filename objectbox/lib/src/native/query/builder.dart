@@ -27,12 +27,18 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
   /// queried entity changes. Streamed query is persisted between stream events
   /// and closed when you cancel the subscription.
   Stream<Query<T>> watch() {
+    final queriedEntities = HashSet<Type>();
+    _fillQueriedEntities(queriedEntities);
     final query = build();
-    final entityWatcher = _store.subscribe<T>();
+    final entityWatcher = _store.subscribeAll();
     late StreamSubscription<void> subscription;
     late StreamController<Query<T>> controller;
     final subscribe = () {
-      subscription = entityWatcher.listen((_) => controller.add(query));
+      subscription = entityWatcher.listen((List<Type> entityTypes) {
+        if (entityTypes.any(queriedEntities.contains)) {
+          controller.add(query);
+        }
+      });
     };
     controller = StreamController<Query<T>>(
         onListen: subscribe,
@@ -70,6 +76,11 @@ class _QueryBuilder<T> {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
     _applyCondition();
     srcQB._innerQBs.add(this);
+  }
+
+  void _fillQueriedEntities(Set<Type> outEntities) {
+    outEntities.add(T);
+    _innerQBs.forEach((qb) => qb._fillQueriedEntities(outEntities));
   }
 
   void _close() {
