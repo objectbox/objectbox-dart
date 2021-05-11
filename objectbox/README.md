@@ -36,7 +36,7 @@ var person = Person(firstName: 'Joe', lastName: 'Green');
 
 final id = box.put(person);  // Create
 
-person = box.get(id)!;        // Read
+person = box.get(id)!;       // Read
 
 person.lastName = "Black";
 box.put(person);             // Update
@@ -48,14 +48,14 @@ final query = box.query(Person_.firstName.startsWith('J')).build();
 final people = query.find();  // find() returns List<Person>
 ```
 
-Head over to [examples](objectbox/example/README.md) for more.
+Head over to [examples](example/README.md) for more.
 
 Getting started
 ---------------
 
 Add the following dependencies to start using ObjectBox and code generator.
 
-### Flutter mobile apps
+### Flutter 
 
 ```yaml
 dependencies:
@@ -70,18 +70,18 @@ dev_dependencies:
 * Install the packages: `flutter pub get`
 * XCode/iOS: under Architectures replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
 
-### Dart CLI apps or Flutter desktop apps
+### Dart Native
 
 ```yaml
 dependencies:
   objectbox: ^0.14.0
 
 dev_dependencies:
-  build_runner: ^1.0.0
+  build_runner: ^2.0.0
   objectbox_generator: any
 ```
 
-* Install the packages: `(flutter|dart) pub get`
+* Install the packages: `dart pub get`
 * Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide (use "Git bash" on Windows):
 
   ```shell script
@@ -93,11 +93,6 @@ dev_dependencies:
   ```shell script
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
   ```
-
-* macOS: dart might later complain that it cannot find the `libobjectbox.dylib`. You probably have to unsign the `dart`
-  binary - see [this dart issue](https://github.com/dart-lang/sdk/issues/38314#issuecomment-534102841) for details.
-
-* Windows: copy the downloaded `lib/objectbox.dll` to `C:\Windows\System32\` (requires admin privileges).
 
 Help wanted
 -----------

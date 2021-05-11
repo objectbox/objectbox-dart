@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^0.1.2
+  cupertino_icons: any
   path_provider: ^2.0.0
   intl: any
   objectbox: ^0.14.0
@@ -17,7 +17,7 @@ dependencies:
 
 dev_dependencies:
   objectbox_generator: any
-  build_runner: ^1.0.0
+  build_runner: any
   flutter_driver:
     sdk: flutter
   test: any
