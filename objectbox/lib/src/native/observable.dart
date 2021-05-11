@@ -59,6 +59,12 @@ extension ObservableStore on Store {
   /// changed or deleted. Make sure to cancel() the subscription after you're
   /// done with it to avoid hanging change listeners.
   Stream<void> watch<EntityT>() {
+    if (_entityChanges != null) {
+      return _entityChanges!
+          .where((List<Type> entities) => entities.contains(EntityT))
+          .map((_) {});
+    }
+
     final observer = _Observer<void>();
     final entityId = InternalStoreAccess.entityDef<EntityT>(this).model.id.id;
 
