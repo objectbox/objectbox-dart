@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/model.dart';
@@ -15,18 +13,19 @@ class SetupSingle extends DbBenchmark {
 
   @override
   void runIteration(int i) async {
-    final sub = store.subscribe<TestEntity>().listen((event) {});
+    final sub = store.watch<TestEntity>().listen((event) {});
     await sub.cancel();
   }
 }
 
-// ~175k per second
+// ~175k per second with the original [Store.watchAll()]
+// ~240k per second with [Store.entityChanges]
 class SetupMulti extends DbBenchmark {
   SetupMulti() : super('${SetupMulti}');
 
   @override
   void runIteration(int i) async {
-    final sub = store.subscribeAll().listen((event) {});
+    final sub = store.entityChanges.listen((event) {});
     await sub.cancel();
   }
 }

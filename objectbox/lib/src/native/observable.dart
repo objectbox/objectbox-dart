@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -28,9 +29,12 @@ class _Observer<StreamValueType> {
   }
 
   // start() is called whenever user starts listen()-ing to the stream
-  void init(void Function() start) {
-    controller = StreamController<StreamValueType>(
-        onListen: start, onPause: stop, onResume: start, onCancel: stop);
+  void init(void Function() start, {bool broadcast = false}) {
+    controller = broadcast
+        ? StreamController<StreamValueType>.broadcast(
+            onListen: start, onCancel: stop)
+        : StreamController<StreamValueType>(
+            onListen: start, onPause: stop, onResume: start, onCancel: stop);
   }
 
   // stop() is called when the stream subscription is paused or canceled
@@ -47,6 +51,7 @@ class _Observer<StreamValueType> {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _debugLog(String message) {
     // print('Observer=${_cObserver?.address} $message');
   }
@@ -61,7 +66,7 @@ extension ObservableStore on Store {
   /// The stream receives an event whenever an object of EntityT is created or
   /// changed or deleted. Make sure to cancel() the subscription after you're
   /// done with it to avoid hanging change listeners.
-  Stream<void> subscribe<EntityT>() {
+  Stream<void> watch<EntityT>() {
     final observer = _Observer<void>();
     final entityId = InternalStoreAccess.entityDef<EntityT>(this).model.id.id;
 
@@ -78,17 +83,17 @@ extension ObservableStore on Store {
     return observer.stream;
   }
 
-  /// Create a stream to data changes on all Entity types.
+  /// Create a stream (normal or broadcast) to data changes on all Entity types.
   ///
   /// The stream receives an event whenever any data changes in the database.
   /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
-  Stream<List<Type>> subscribeAll() {
+  Stream<List<Type>> _watchAll({bool broadcast = false}) {
     initializeDartAPI();
     final observer = _Observer<List<Type>>();
     final entityTypesById = InternalStoreAccess.entityTypeById(this);
 
-    observer.init(() {
+    final start = () {
       // We're listening to a events for all entity types. C-API sends entity ID
       // and we must map it to a dart type (class) corresponding to that entity.
       observer.receivePort = ReceivePort()
@@ -120,8 +125,23 @@ extension ObservableStore on Store {
         });
       observer.cObserver =
           C.dartc_observe(InternalStoreAccess.ptr(this), observer.nativePort);
-    });
+    };
+
+    observer.init(start, broadcast: broadcast);
 
     return observer.stream;
   }
+
+  /// Returns a broadcast stream to data changes on all Entity types.
+  ///
+  /// The stream receives an event whenever any data changes in the database.
+  /// Make sure to cancel() the subscription after you're done with it to avoid
+  /// hanging change listeners.
+  Stream<List<Type>> get entityChanges {
+    final stream = _singletonChangesStream[this];
+    if (stream != null) return stream;
+    return _singletonChangesStream[this] = _watchAll(broadcast: true);
+  }
 }
+
+final _singletonChangesStream = HashMap<Store, Stream<List<Type>>>();

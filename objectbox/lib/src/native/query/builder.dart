@@ -30,11 +30,10 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     final queriedEntities = HashSet<Type>();
     _fillQueriedEntities(queriedEntities);
     final query = build();
-    final entityWatcher = _store.subscribeAll();
     late StreamSubscription<void> subscription;
     late StreamController<Query<T>> controller;
     final subscribe = () {
-      subscription = entityWatcher.listen((List<Type> entityTypes) {
+      subscription = _store.entityChanges.listen((List<Type> entityTypes) {
         if (entityTypes.any(queriedEntities.contains)) {
           controller.add(query);
         }
