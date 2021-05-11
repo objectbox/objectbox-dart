@@ -1,12 +1,4 @@
-import 'dart:async';
-import 'dart:collection';
-import 'dart:ffi';
-import 'dart:isolate';
-import 'dart:typed_data';
-
-import 'bindings/bindings.dart';
-import 'bindings/helpers.dart';
-import 'store.dart';
+part of store;
 
 /// Simple wrapper used below in ObservableStore to reduce code duplication.
 /// Contains shared code for single-entity observer and the generic/global one.
@@ -137,11 +129,6 @@ extension ObservableStore on Store {
   /// The stream receives an event whenever any data changes in the database.
   /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
-  Stream<List<Type>> get entityChanges {
-    final stream = _singletonChangesStream[this];
-    if (stream != null) return stream;
-    return _singletonChangesStream[this] = _watchAll(broadcast: true);
-  }
+  Stream<List<Type>> get entityChanges =>
+      _entityChanges ??= _watchAll(broadcast: true);
 }
-
-final _singletonChangesStream = HashMap<Store, Stream<List<Type>>>();

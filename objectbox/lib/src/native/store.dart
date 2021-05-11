@@ -1,6 +1,10 @@
+library store;
+
+import 'dart:async';
 import 'dart:collection';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
@@ -16,6 +20,8 @@ import 'box.dart';
 import 'model.dart';
 import 'sync.dart';
 
+part 'observable.dart';
+
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
 class Store {
@@ -24,6 +30,7 @@ class Store {
   final _boxes = HashMap<Type, Box>();
   final ModelDefinition _defs;
   bool _closed = false;
+  Stream<List<Type>>? _entityChanges;
 
   late final ByteData _reference;
 

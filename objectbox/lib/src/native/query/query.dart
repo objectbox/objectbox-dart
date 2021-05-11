@@ -15,7 +15,6 @@ import '../../transaction.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
-import '../observable.dart';
 
 part 'builder.dart';
 

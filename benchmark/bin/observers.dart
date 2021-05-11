@@ -7,7 +7,7 @@ void main() {
   SetupMulti().report();
 }
 
-// ~190k per second
+// ~200k per second
 class SetupSingle extends DbBenchmark {
   SetupSingle() : super('${SetupSingle}');
 
