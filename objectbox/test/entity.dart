@@ -12,6 +12,7 @@ class TestingUnknownAnnotation {
 @TestingUnknownAnnotation()
 class TestEntity {
   @TestingUnknownAnnotation()
+  @Id(assignable: true)
   int id = 0;
 
   // implicitly determined types
