@@ -71,6 +71,8 @@ class ObjectBoxNativeError {
       case OBX_ERROR_STD_RANGE:
       case OBX_ERROR_STD_OVERFLOW:
         throw RangeError(fullMessage);
+      case OBX_ERROR_UNIQUE_VIOLATED:
+        throw UniqueViolationException(fullMessage);
       default:
         throw ObjectBoxException(fullMessage);
     }

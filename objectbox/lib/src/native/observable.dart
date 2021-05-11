@@ -103,7 +103,7 @@ extension ObservableStore on Store {
     // and we must map it to a dart type (class) corresponding to that entity.
     observer.receivePort.listen((dynamic entityIds) {
       if (entityIds is! Uint32List) {
-        observer.controller.addError(Exception(
+        observer.controller.addError(ObjectBoxException(
             'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
         return;
       }
@@ -112,14 +112,14 @@ extension ObservableStore on Store {
       for (var i = 0; i < entityIds.length; i++) {
         final entityId = entityIds[i];
         if (entityId is! int) {
-          observer.controller.addError(Exception(
+          observer.controller.addError(ObjectBoxException(
               'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
           return;
         }
 
         final entityType = entityTypesById[entityId];
         if (entityType == null) {
-          observer.controller.addError(Exception(
+          observer.controller.addError(ObjectBoxException(
               'Received data change notification for an unknown entity ID $entityId'));
         } else {
           entities[i] = entityType;

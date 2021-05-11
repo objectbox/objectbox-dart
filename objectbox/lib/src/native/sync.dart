@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../common.dart';
 import '../util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
@@ -373,7 +374,7 @@ class SyncClient {
           (int nativePort) => C.dartc_sync_listener_change(_ptr, nativePort),
           (dynamic msg, controller) {
         if (msg is! List) {
-          controller.addError(Exception(
+          controller.addError(ObjectBoxException(
               'Received invalid data type from the core notification: (${msg.runtimeType}) $msg'));
           return;
         }
@@ -384,7 +385,7 @@ class SyncClient {
         // properties always coming in groups of three (entityId, puts, removals)
         const numProperties = 3;
         if (syncChanges.length % numProperties != 0) {
-          controller.addError(Exception(
+          controller.addError(ObjectBoxException(
               'Received invalid list length from the core notification: (${syncChanges.runtimeType}) $syncChanges'));
           return;
         }
@@ -397,7 +398,7 @@ class SyncClient {
 
           final entityType = entityTypesById[entityId];
           if (entityType == null) {
-            controller.addError(Exception(
+            controller.addError(ObjectBoxException(
                 'Received sync change notification for an unknown entity ID $entityId'));
             return;
           }
@@ -405,7 +406,7 @@ class SyncClient {
           if (entityId is! int ||
               putsBytes is! Uint8List ||
               removalsBytes is! Uint8List) {
-            controller.addError(Exception(
+            controller.addError(ObjectBoxException(
                 'Received invalid list items format from the core notification at i=$i: '
                 'entityId = (${entityId.runtimeType}) $entityId; '
                 'putsBytes = (${putsBytes.runtimeType}) $putsBytes; '

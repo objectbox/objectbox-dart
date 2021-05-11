@@ -28,3 +28,9 @@ class ObjectBoxException implements Exception {
   @override
   String toString() => 'ObjectBoxException: $message';
 }
+
+/// A unique constraint would have been violated by this database operation.
+class UniqueViolationException extends ObjectBoxException {
+  /// Create a new exception.
+  UniqueViolationException(String message) : super(message);
+}

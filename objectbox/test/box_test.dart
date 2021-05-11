@@ -87,7 +87,7 @@ void main() {
 
     expect(
         () => box.putMany([u1, again]),
-        throwsA(predicate((ObjectBoxException e) =>
+        throwsA(predicate((UniqueViolationException e) =>
             e.toString().contains('same property value already exists'))));
   });
 
