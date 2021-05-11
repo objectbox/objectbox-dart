@@ -5,9 +5,9 @@ part of store;
 class _Observer<StreamValueType> {
   late final StreamController<StreamValueType> controller;
   Pointer<OBX_observer>? _cObserver;
-  ReceivePort? receivePort;
+  final receivePort = ReceivePort();
 
-  int get nativePort => receivePort!.sendPort.nativePort;
+  int get nativePort => receivePort.sendPort.nativePort;
 
   set cObserver(Pointer<OBX_observer> value) {
     _cObserver = checkObxPtr(value, 'observer initialization failed');
@@ -26,21 +26,29 @@ class _Observer<StreamValueType> {
         ? StreamController<StreamValueType>.broadcast(
             onListen: start, onCancel: stop)
         : StreamController<StreamValueType>(
-            onListen: start, onPause: stop, onResume: start, onCancel: stop);
+            onListen: start,
+            onPause: stop,
+            onResume: start,
+            onCancel: () {
+              stop();
+              close();
+            });
   }
 
   // stop() is called when the stream subscription is paused or canceled
+  @pragma('vm:prefer-inline')
   void stop() {
     _debugLog('stopped');
     if (_cObserver != null) {
       checkObx(C.observer_close(_cObserver!));
       _cObserver = null;
     }
+  }
 
-    if (receivePort != null) {
-      receivePort!.close();
-      receivePort = null;
-    }
+  @pragma('vm:prefer-inline')
+  void close() {
+    _debugLog('closed');
+    receivePort.close();
   }
 
   @pragma('vm:prefer-inline')
@@ -66,16 +74,16 @@ extension ObservableStore on Store {
     }
 
     final observer = _Observer<void>();
-    final entityId = InternalStoreAccess.entityDef<EntityT>(this).model.id.id;
+    final entityId = _entityDef<EntityT>().model.id.id;
+
+    // We're listening to events on single entity so there's no argument.
+    // Ideally, controller.add() would work but it doesn't, even though we're
+    // using StreamController<Void> so the argument type is `void`.
+    observer.receivePort.listen((dynamic _) => observer.controller.add(null));
 
     observer.init(() {
-      // We're listening to events on single entity so there's no argument.
-      // Ideally, controller.add() would work but it doesn't, even though we're
-      // using StreamController<Void> so the argument type is `void`.
-      observer.receivePort = ReceivePort()
-        ..listen((dynamic _) => observer.controller.add(null));
-      observer.cObserver = C.dartc_observe_single_type(
-          InternalStoreAccess.ptr(this), entityId, observer.nativePort);
+      observer.cObserver =
+          C.dartc_observe_single_type(_ptr, entityId, observer.nativePort);
     });
 
     return observer.stream;
@@ -91,41 +99,42 @@ extension ObservableStore on Store {
     final observer = _Observer<List<Type>>();
     final entityTypesById = InternalStoreAccess.entityTypeById(this);
 
-    final start = () {
-      // We're listening to a events for all entity types. C-API sends entity ID
-      // and we must map it to a dart type (class) corresponding to that entity.
-      observer.receivePort = ReceivePort()
-        ..listen((dynamic entityIds) {
-          if (entityIds is! Uint32List) {
-            observer.controller.addError(Exception(
-                'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
-            return;
-          }
+    // We're listening to a events for all entity types. C-API sends entity ID
+    // and we must map it to a dart type (class) corresponding to that entity.
+    observer.receivePort.listen((dynamic entityIds) {
+      if (entityIds is! Uint32List) {
+        observer.controller.addError(Exception(
+            'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
+        return;
+      }
 
-          final entities = List<Type>.filled(entityIds.length, Null);
-          for (var i = 0; i < entityIds.length; i++) {
-            final entityId = entityIds[i];
-            if (entityId is! int) {
-              observer.controller.addError(Exception(
-                  'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
-              return;
-            }
+      final entities = List<Type>.filled(entityIds.length, Null);
+      for (var i = 0; i < entityIds.length; i++) {
+        final entityId = entityIds[i];
+        if (entityId is! int) {
+          observer.controller.addError(Exception(
+              'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
+          return;
+        }
 
-            final entityType = entityTypesById[entityId];
-            if (entityType == null) {
-              observer.controller.addError(Exception(
-                  'Received data change notification for an unknown entity ID $entityId'));
-            } else {
-              entities[i] = entityType;
-            }
-          }
-          observer.controller.add(entities);
-        });
-      observer.cObserver =
-          C.dartc_observe(InternalStoreAccess.ptr(this), observer.nativePort);
-    };
+        final entityType = entityTypesById[entityId];
+        if (entityType == null) {
+          observer.controller.addError(Exception(
+              'Received data change notification for an unknown entity ID $entityId'));
+        } else {
+          entities[i] = entityType;
+        }
+      }
+      observer.controller.add(entities);
+    });
 
-    observer.init(start, broadcast: broadcast);
+    observer.init(() {
+      observer.cObserver = C.dartc_observe(_ptr, observer.nativePort);
+    }, broadcast: broadcast);
+
+    if (broadcast) {
+      _onClose[observer] = observer.close;
+    }
 
     return observer.stream;
   }

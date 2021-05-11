@@ -5,13 +5,15 @@ import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/model.dart';
 
 void main() {
-  SetupSingle().report();
+  SetupSingle()
+  .report();
   SetupSingleBasedOnMulti().report();
   SetupMulti().report();
   SetupMultiExisting().report();
 }
 
 // ~200k per second
+// ~165k with ReceivePort reuse (see this commit)
 class SetupSingle extends DbBenchmark {
   SetupSingle() : super('${SetupSingle}');
 
@@ -23,6 +25,7 @@ class SetupSingle extends DbBenchmark {
 }
 
 // ~400k per second
+// ~370k with ReceivePort reuse (see this commit)
 class SetupSingleBasedOnMulti extends DbBenchmark {
   late StreamSubscription multiSub;
 
@@ -50,6 +53,7 @@ class SetupSingleBasedOnMulti extends DbBenchmark {
 
 // ~175k per second with the original [Store.watchAll()]
 // ~240k per second with [Store.entityChanges]
+// ~610k with ReceivePort reuse (see this commit)
 class SetupMulti extends DbBenchmark {
   SetupMulti() : super('${SetupMulti}');
 
@@ -61,6 +65,7 @@ class SetupMulti extends DbBenchmark {
 }
 
 // ~650k per second
+// ~615k with ReceivePort reuse (see this commit)
 class SetupMultiExisting extends DbBenchmark {
   late StreamSubscription multiSub;
 
