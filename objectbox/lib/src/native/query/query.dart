@@ -628,7 +628,7 @@ class Query<T> {
 
   Pointer<OBX_query> get _ptr {
     if (_closed) {
-      throw StateError('Query already closed cannot execute any actions');
+      throw StateError('Query already closed, cannot execute any actions');
     }
     return _cQuery;
   }

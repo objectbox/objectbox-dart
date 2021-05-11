@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -68,6 +70,38 @@ void main() {
     expect(result, [1, 3]);
 
     await subscription.cancel();
+  });
+
+  test('trigger immediately', () async {
+    var completer = Completer<void>();
+    final sub1 = box.query().watch(triggerImmediately: true).listen((query) {
+      expect(query.count(), 0);
+      completer.complete();
+    });
+    await completer.future.timeout(defaultTimeout);
+    await sub1.cancel();
+
+    // If no triggerImmediately passed, then it mustn't trigger without changes.
+    completer = Completer<void>();
+    final sub2 = box.query().watch().listen((query) => completer.complete());
+    expect(
+        completer.future.timeout(const Duration(milliseconds: 100)),
+        throwsA(predicate((TimeoutException e) =>
+            e.toString().contains('Future not completed'))));
+    await sub2.cancel();
+  });
+
+  test('can only use query during listen()', () async {
+    final query = await box
+        .query()
+        .watch(triggerImmediately: true)
+        .first
+        .timeout(defaultTimeout);
+
+    expect(
+        query.count,
+        throwsA(predicate(
+            (StateError e) => e.toString().contains('Query already closed'))));
   });
 
   test(
