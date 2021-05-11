@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/model.dart';
 
 void main() {
   SetupSingle().report();
+  SetupSingleBasedOnMulti().report();
   SetupMulti().report();
+  SetupMultiExisting().report();
 }
 
 // ~200k per second
@@ -18,6 +22,32 @@ class SetupSingle extends DbBenchmark {
   }
 }
 
+// ~400k per second
+class SetupSingleBasedOnMulti extends DbBenchmark {
+  late StreamSubscription multiSub;
+
+  SetupSingleBasedOnMulti() : super('${SetupSingleBasedOnMulti}');
+
+  @override
+  void runIteration(int i) async {
+    final sub = store.watch<TestEntity>().listen((event) {});
+    await sub.cancel();
+  }
+
+  @override
+  void setup() {
+    // see implementation - prepares a stream beforehand
+    multiSub = store.entityChanges.listen((event) { });
+    super.setup();
+  }
+
+  @override
+  void teardown() {
+    multiSub.cancel();
+    super.teardown();
+  }
+}
+
 // ~175k per second with the original [Store.watchAll()]
 // ~240k per second with [Store.entityChanges]
 class SetupMulti extends DbBenchmark {
@@ -27,5 +57,31 @@ class SetupMulti extends DbBenchmark {
   void runIteration(int i) async {
     final sub = store.entityChanges.listen((event) {});
     await sub.cancel();
+  }
+}
+
+// ~650k per second
+class SetupMultiExisting extends DbBenchmark {
+  late StreamSubscription multiSub;
+
+  SetupMultiExisting() : super('${SetupMultiExisting}');
+
+  @override
+  void runIteration(int i) async {
+    final sub = store.entityChanges.listen((event) {});
+    await sub.cancel();
+  }
+
+  @override
+  void setup() {
+    // see implementation - prepares a stream beforehand
+    multiSub = store.entityChanges.listen((event) { });
+    super.setup();
+  }
+
+  @override
+  void teardown() {
+    multiSub.cancel();
+    super.teardown();
   }
 }
