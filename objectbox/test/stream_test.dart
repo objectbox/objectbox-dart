@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -22,8 +24,8 @@ void main() {
     final result = <String>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
-    final query = (box.query(condition)..order(text)).build();
-    final subscription = query.stream.listen((q) {
+    final queryStream = (box.query(condition)..order(text)).watch();
+    final subscription = queryStream.listen((q) {
       final str = q.find().map((t) => t.tString).toList().join(', ');
       result.add(str);
     });
@@ -42,15 +44,13 @@ void main() {
     expect(result, ['Hello world', 'for now, Goodbye, Hello world']);
 
     await subscription.cancel();
-    query.close();
   });
 
   test('Subscribe to stream of query', () async {
     final result = <int>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
-    final query = (box.query(condition)..order(text)).build();
-    final queryStream = query.stream;
+    final queryStream = (box.query(condition)..order(text)).watch();
     final subscription = queryStream.listen((query) {
       result.add(query.count());
     });
@@ -70,7 +70,38 @@ void main() {
     expect(result, [1, 3]);
 
     await subscription.cancel();
-    query.close();
+  });
+
+  test('trigger immediately', () async {
+    var completer = Completer<void>();
+    final sub1 = box.query().watch(triggerImmediately: true).listen((query) {
+      expect(query.count(), 0);
+      completer.complete();
+    });
+    await completer.future.timeout(defaultTimeout);
+    await sub1.cancel();
+
+    // If no triggerImmediately passed, then it mustn't trigger without changes.
+    completer = Completer<void>();
+    final sub2 = box.query().watch().listen((query) => completer.complete());
+    expect(
+        completer.future.timeout(const Duration(milliseconds: 100)),
+        throwsA(predicate((TimeoutException e) =>
+            e.toString().contains('Future not completed'))));
+    await sub2.cancel();
+  });
+
+  test('can only use query during listen()', () async {
+    final query = await box
+        .query()
+        .watch(triggerImmediately: true)
+        .first
+        .timeout(defaultTimeout);
+
+    expect(
+        query.count,
+        throwsA(predicate(
+            (StateError e) => e.toString().contains('Query already closed'))));
   });
 
   test(
@@ -81,13 +112,11 @@ void main() {
 
     var counter1 = 0, counter2 = 0;
 
-    final query2 = box2.query().build();
-    final subscription2 = query2.stream.listen((_) {
+    final subscription2 = box2.query().watch().listen((_) {
       counter2++;
     });
 
-    final query1 = box.query().build();
-    final subscription1 = query1.stream.listen((_) {
+    final subscription1 = box.query().watch().listen((_) {
       counter1++;
     });
 
@@ -122,9 +151,6 @@ void main() {
     await yieldExecution();
     expect(counter1, 2);
     expect(counter2, 2);
-
-    query1.close();
-    query2.close();
 
     await subscription1.cancel();
     await subscription2.cancel();

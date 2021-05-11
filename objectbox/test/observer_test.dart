@@ -31,7 +31,7 @@ void main() async {
     late Completer<void> completer;
     var expectedEvents = 0;
 
-    final stream = env.store.subscribe<TestEntity>();
+    final stream = env.store.watch<TestEntity>();
     final subscription = stream.listen((_) {
       print('TestEntity updated');
       expectedEvents--;
@@ -66,13 +66,13 @@ void main() async {
     var expectedEvents = 0;
     var typesUpdates = <Type, int>{}; // number of events per entity type
 
-    final stream = env.store.subscribeAll();
-
-    final subscription = stream.listen((entityType) {
-      print('Entity updated: $entityType');
+    final subscription =
+        env.store.entityChanges.listen((List<Type> entityTypes) {
+      print('Entities updated: $entityTypes');
       expectedEvents--;
 
-      typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0);
+      entityTypes.forEach((entityType) =>
+          typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0));
 
       if (expectedEvents == 0) {
         completer.complete();
@@ -136,7 +136,7 @@ void main() async {
           throwsA(isA<TimeoutException>()));
     };
 
-    await testPauseResume(env.store.subscribe<TestEntity>());
-    await testPauseResume(env.store.subscribeAll());
+    await testPauseResume(env.store.watch<TestEntity>());
+    await testPauseResume(env.store.entityChanges);
   });
 }

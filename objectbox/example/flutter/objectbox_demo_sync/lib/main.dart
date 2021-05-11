@@ -48,13 +48,14 @@ class MyHomePage extends StatefulWidget {
 class ViewModel {
   final Store _store;
   late final Box<Note> _box;
-  late final Query<Note> _query;
+  late final Stream<Query<Note>> _queryStream;
 
   ViewModel(Directory dir)
       : _store = Store(getObjectBoxModel(),
             directory: dir.path + '/objectbox-sync') {
     _box = Box<Note>(_store);
-    _query = (_box.query()..order(Note_.date, flags: Order.descending)).build();
+    final qBuilder = _box.query()..order(Note_.date, flags: Order.descending);
+    _queryStream = qBuilder.watch(triggerImmediately: true);
 
     // TODO configure actual sync server address and authentication
     // For configuration and docs, see objectbox/lib/src/sync.dart
@@ -70,12 +71,7 @@ class ViewModel {
 
   void removeNote(Note note) => _box.remove(note.id);
 
-  Stream<List<Note>> get queryStream => _query.findStream();
-
-  List<Note> get allNotes => _query.find();
-
   void dispose() {
-    _query.close();
     _store.close();
   }
 }
@@ -100,8 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       setState(() {});
 
-      _listController.add(_vm.allNotes);
-      _listController.addStream(_vm.queryStream);
+      _listController.addStream(_vm._queryStream.map((q) => q.find()));
     });
   }
 

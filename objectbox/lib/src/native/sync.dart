@@ -536,6 +536,7 @@ class _SyncListenerGroup<StreamValueType> {
     _debugLog('stopped');
   }
 
+  @pragma('vm:prefer-inline')
   void _debugLog(String message) {
     // print('Listener ${name}: $message');
   }

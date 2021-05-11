@@ -23,6 +23,38 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     }
   }
 
+  /// Finish building a [Query] creating a stream that issues events whenever
+  /// queried entity changes. Streamed query is persisted between stream events
+  /// and closed when you cancel the subscription.
+  ///
+  /// if you pass TRUE as the [triggerImmediately] argument, a single stream
+  /// event will be sent immediately after subscription. You can use this to get
+  /// access to the query object before any data changes.
+  Stream<Query<T>> watch({bool triggerImmediately = false}) {
+    final queriedEntities = HashSet<Type>();
+    _fillQueriedEntities(queriedEntities);
+    final query = build();
+    late StreamSubscription<void> subscription;
+    late StreamController<Query<T>> controller;
+    final subscribe = () {
+      subscription = _store.entityChanges.listen((List<Type> entityTypes) {
+        if (entityTypes.any(queriedEntities.contains)) {
+          controller.add(query);
+        }
+      });
+    };
+    controller = StreamController<Query<T>>(
+        onListen: subscribe,
+        onResume: subscribe,
+        onPause: () => subscription.pause(),
+        onCancel: () {
+          subscription.cancel();
+          query.close();
+        });
+    if (triggerImmediately) controller.add(query);
+    return controller.stream;
+  }
+
   /// Configure how the results are ordered.
   /// Pass a combination of [Order] flags.
   void order<_>(QueryProperty<T, _> p, {int flags = 0}) =>
@@ -48,6 +80,11 @@ class _QueryBuilder<T> {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
     _applyCondition();
     srcQB._innerQBs.add(this);
+  }
+
+  void _fillQueriedEntities(Set<Type> outEntities) {
+    outEntities.add(T);
+    _innerQBs.forEach((qb) => qb._fillQueriedEntities(outEntities));
   }
 
   void _close() {

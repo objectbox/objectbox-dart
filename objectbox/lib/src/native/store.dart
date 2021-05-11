@@ -1,6 +1,10 @@
+library store;
+
+import 'dart:async';
 import 'dart:collection';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
@@ -16,13 +20,17 @@ import 'box.dart';
 import 'model.dart';
 import 'sync.dart';
 
+part 'observable.dart';
+
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
 class Store {
   late final Pointer<OBX_store> _cStore;
+  HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
   final ModelDefinition _defs;
   bool _closed = false;
+  Stream<List<Type>>? _entityChanges;
 
   late final ByteData _reference;
 
@@ -251,10 +259,12 @@ class InternalStoreAccess {
 
   /// Create a map from Entity ID to Entity type (dart class).
   static Map<int, Type> entityTypeById(Store store) {
-    final result = HashMap<int, Type>();
-    store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
-        result[entityDef.model.id.id] = entity);
-    return result;
+    if (store._entityTypeById == null) {
+      store._entityTypeById = HashMap<int, Type>();
+      store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
+          store._entityTypeById![entityDef.model.id.id] = entity);
+    }
+    return store._entityTypeById!;
   }
 
   /// Adds a listener to the [store.close()] event.
