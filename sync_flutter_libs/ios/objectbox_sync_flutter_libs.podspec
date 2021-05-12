@@ -17,7 +17,7 @@ Pod::Spec.new do |s|
   s.dependency 'Flutter'
   s.dependency 'ObjectBox', '1.5.0-sync-rc6'
 
-  # Flutter.framework does not contain a i386 or arm46. Only x86_64 simulators are supported.
+  # Flutter.framework does not contain a i386 or arm64. Only x86_64 simulators are supported.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
 
   s.swift_version = '5.3'
