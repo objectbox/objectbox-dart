@@ -3,7 +3,18 @@ name: Code analysis
 on: [push, pull_request]
 
 jobs:
-  lint:
+  analyze:
+    runs-on: ubuntu-20.04
+    container:
+      image: google/dart:latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: dart run build_runner build
+        working-directory: objectbox
+      - run: dart analyze
+        working-directory: objectbox
+
+  pana:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

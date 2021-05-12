@@ -25,6 +25,9 @@ linter:
 
 # exclude standalone packages:
 analyzer:
+  errors:
+    public_member_api_docs: error
+    type_annotate_public_apis: error
   exclude:
     - example/**
     - generator/**
