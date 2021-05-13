@@ -8,6 +8,7 @@ import 'objectbox-c.dart';
 export 'objectbox-c.dart';
 
 // ignore_for_file: public_member_api_docs
+// ignore_for_file: non_constant_identifier_names
 
 /// Tries to use an already loaded objectbox dynamic library. This is the only
 /// option for macOS and iOS and is ~5 times faster than loading from file so
@@ -18,7 +19,8 @@ ObjectBoxC? _tryObjectBoxLibProcess() {
 
   ObjectBoxC? obxc;
   try {
-    obxc = ObjectBoxC(DynamicLibrary.process());
+    _lib = DynamicLibrary.process();
+    obxc = ObjectBoxC(_lib!);
     _isSupportedVersion(obxc); // may throw in case symbols are not found
   } catch (_) {
     // ignore errors (i.e. symbol not found)
@@ -27,19 +29,19 @@ ObjectBoxC? _tryObjectBoxLibProcess() {
 }
 
 ObjectBoxC? _tryObjectBoxLibFile() {
-  DynamicLibrary? lib;
+  _lib = null;
   var libName = 'objectbox';
   if (Platform.isWindows) {
     libName += '.dll';
     try {
-      lib = DynamicLibrary.open(libName);
+      _lib = DynamicLibrary.open(libName);
     } on ArgumentError {
       libName = 'lib/' + libName;
     }
   } else if (Platform.isMacOS) {
     libName = 'lib' + libName + '.dylib';
     try {
-      lib = DynamicLibrary.open(libName);
+      _lib = DynamicLibrary.open(libName);
     } on ArgumentError {
       libName = '/usr/local/lib/' + libName;
     }
@@ -50,8 +52,8 @@ ObjectBoxC? _tryObjectBoxLibFile() {
   } else {
     return null;
   }
-  lib ??= DynamicLibrary.open(libName);
-  return ObjectBoxC(lib);
+  _lib ??= DynamicLibrary.open(libName);
+  return ObjectBoxC(_lib!);
 }
 
 bool _isSupportedVersion(ObjectBoxC obxc) => obxc.version_is_at_least(
@@ -77,9 +79,8 @@ ObjectBoxC loadObjectBoxLib() {
   return obxc;
 }
 
-ObjectBoxC? _cachedBindings;
-
-ObjectBoxC get C => _cachedBindings ??= loadObjectBoxLib();
+DynamicLibrary? _lib;
+late final ObjectBoxC C = loadObjectBoxLib();
 
 /// Init DartAPI in C for async callbacks.
 ///
@@ -111,3 +112,12 @@ void initializeDartAPI() {
 // -1 => failed to initialize - incompatible Dart version
 int _dartAPIInitialized = 0;
 Object? _dartAPIInitException;
+
+/// A couple of native functions we need as callbacks to pass back to native.
+/// Unfortunately, ffigen keeps those private.
+typedef _native_close = Int32 Function(Pointer<Void> ptr);
+
+late final native_query_close =
+    _lib!.lookup<NativeFunction<_native_close>>('obx_query_close');
+late final native_query_prop_close =
+    _lib!.lookup<NativeFunction<_native_close>>('obx_query_prop_close');

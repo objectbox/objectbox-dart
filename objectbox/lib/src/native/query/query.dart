@@ -618,6 +618,7 @@ class _ConditionGroupAll<EntityT> extends _ConditionGroup<EntityT> {
 class Query<T> {
   bool _closed = false;
   final Pointer<OBX_query> _cQuery;
+  late final Pointer<OBX_dart_finalizer> _cFinalizer;
   final Store _store;
   final EntityDefinition<T> _entity;
 
@@ -631,7 +632,17 @@ class Query<T> {
   }
 
   Query._(this._store, Pointer<OBX_query_builder> cBuilder, this._entity)
-      : _cQuery = checkObxPtr(C.query(cBuilder), 'create query');
+      : _cQuery = checkObxPtr(C.query(cBuilder), 'create query') {
+    initializeDartAPI();
+
+    // Keep the finalizer so we can detach it when close() is called manually.
+    _cFinalizer =
+        C.dartc_attach_finalizer(this, native_query_close, _cQuery.cast(), 256);
+    if (_cFinalizer == nullptr) {
+      close();
+      throwLatestNativeError();
+    }
+  }
 
   /// Configure an [offset] for this query.
   ///
@@ -675,9 +686,15 @@ class Query<T> {
 
   /// Close the query and free resources.
   void close() {
-    if (_closed) return;
-    _closed = true;
-    checkObx(C.query_close(_cQuery));
+    if (!_closed) {
+      _closed = true;
+      var err = 0;
+      if (_cFinalizer != nullptr) {
+        err = C.dartc_detach_finalizer(_cFinalizer, this);
+      }
+      checkObx(C.query_close(_cQuery));
+      checkObx(err);
+    }
   }
 
   /// Finds Objects matching the query and returns the first result or null

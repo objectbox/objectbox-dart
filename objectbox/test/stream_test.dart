@@ -91,17 +91,17 @@ void main() {
     await sub2.cancel();
   });
 
-  test('can only use query during listen()', () async {
+  test('can use query after subscription is canceled', () async {
+    // This subscribes, gets the first element and cancels immediately.
+    // We're testing that if user keeps the query instance, they can use it
+    // later. This is only possible because of query auto-close with finalizers.
     final query = await box
         .query()
         .watch(triggerImmediately: true)
         .first
         .timeout(defaultTimeout);
 
-    expect(
-        query.count,
-        throwsA(predicate(
-            (StateError e) => e.toString().contains('Query already closed'))));
+    expect(query.count(), 0);
   });
 
   test(

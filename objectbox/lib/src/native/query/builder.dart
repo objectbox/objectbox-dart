@@ -47,10 +47,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
         onListen: subscribe,
         onResume: subscribe,
         onPause: () => subscription.pause(),
-        onCancel: () {
-          subscription.cancel();
-          query.close();
-        });
+        onCancel: () => subscription.cancel());
     if (triggerImmediately) controller.add(query);
     return controller.stream;
   }

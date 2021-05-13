@@ -3,6 +3,8 @@
 This is a 1.0 release candidate - we encourage everyone to try it out and provide any last-minute feedback,
 especially to new/changed APIs.
 
+* Query now supports auto-closing. You can still call `close()` manually if you want to free native resources sooner  
+  than they would be by Dart's garbage collector, but it's not mandatory anymore.
 * Change the "meta-model" fields to provide completely type-safe query building.
   Conditions you specify are now checked at compile time to match the queried entity.
 * Make property queries fully typed, `PropertyQuery.find()` now returns the appropriate `List<...>` type without casts.
