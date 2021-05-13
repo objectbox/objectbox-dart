@@ -247,12 +247,7 @@ extension StringPropertyQuery on PropertyQuery<String> {
   }
 
   /// Returns the count of non-null values.
-  int count() {
-    // native c-api currently doesn't respect case-sensitive with distinct
-    // TODO Remove once this is fixed in all platforms (c-api ^0.13.1)
-    if (_distinct && !_caseSensitive) return find().length;
-    return _count();
-  }
+  int count() => _count();
 
   /// Returns values of this property matching the query.
   ///

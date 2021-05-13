@@ -203,11 +203,7 @@ class Store {
   /// Returns a cached Box instance.
   @pragma('vm:prefer-inline')
   Box<T> box<T>() {
-    /// TODO evaluate performance, maybe we can do better with a fixed-size list
-    /// and using entity IDs as indexes. While that would mean there would be
-    /// "empty" spaces, these shouldn't be common and we can have an "empty" box
-    /// there (to avoid nullable type) - it wouldn't be accessible anyway.
-    /// Alternatively, we can flip this over and let T store the box.
+    /// Note: see benchmark/bin/basics.dart BoxAccess* - HashMap is the winner.
     if (!_boxes.containsKey(T)) {
       return _boxes[T] = InternalBoxAccess.create<T>(this, _entityDef());
     }

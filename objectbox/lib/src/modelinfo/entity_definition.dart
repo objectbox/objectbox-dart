@@ -10,7 +10,6 @@ import 'modelentity.dart';
 // ignore_for_file: public_member_api_docs
 
 /// Used by the generated code as a container for model loading callables
-/// TODO change to an abstract class?
 class EntityDefinition<T> {
   final ModelEntity model;
   final int Function(T, fb.Builder) objectToFB;
