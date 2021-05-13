@@ -19,8 +19,10 @@ ObjectBox is a super-fast database storing Dart objects locally.
 Getting started
 ---------------
 
-To start using ObjectBox in your Dart/Flutter app, head over to [pub.dev](https://pub.dev/packages/objectbox) or
-the [main ObjectBox package README.md](objectbox/README.md) for user-centric getting started guides.
+To start using ObjectBox in your Dart/Flutter app, head over to
+* [ObjectBox on pub.dev](https://pub.dev/packages/objectbox) or
+* the [Getting started guide](https://docs.objectbox.io/getting-started) or
+* the [main ObjectBox package README.md](objectbox/README.md).
 
 If you'd like to contribute to the package as a developer, hack around, or just have a look at the code, you can instead
 clone/check out this repository and run `./tool/init.sh` to regenerate code and get you started. Make sure to have a
