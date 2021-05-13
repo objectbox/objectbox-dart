@@ -456,9 +456,10 @@ void main() {
   });
 
   test('assignable IDs', () {
-    // TestEntity.id IS NOT assignable so this must fail
+    // RelatedEntityA.id IS NOT assignable so this must fail
+    final box = env.store.box<RelatedEntityA>();
     expect(
-        () => box.put(TestEntity()..id = 1),
+        () => box.put(RelatedEntityA()..id = 1),
         throwsA(predicate((ArgumentError e) => e
             .toString()
             .contains('ID is higher or equal to internal ID sequence'))));
