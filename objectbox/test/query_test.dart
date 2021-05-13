@@ -216,14 +216,14 @@ void main() {
     final text = TestEntity_.tString;
     final number = TestEntity_.tLong;
 
-    final qs0 = box.query(text.inside(['meh'])).build();
-    final qs1 = box.query(text.inside(['bleh'])).build();
-    final qs2 = box.query(text.inside(['meh', 'bleh'])).build();
+    final qs0 = box.query(text.oneOf(['meh'])).build();
+    final qs1 = box.query(text.oneOf(['bleh'])).build();
+    final qs2 = box.query(text.oneOf(['meh', 'bleh'])).build();
     final qs3 = box.query(text.contains('eh')).build();
 
-    final qn0 = box.query(number.inside([1])).build();
-    final qn1 = box.query(number.inside([1337])).build();
-    final qn2 = box.query(number.inside([1, 1337])).build();
+    final qn0 = box.query(number.oneOf([1])).build();
+    final qn1 = box.query(number.oneOf([1337])).build();
+    final qn2 = box.query(number.oneOf([1, 1337])).build();
 
     expect(qs0.count(), 1);
     expect(qs1.count(), 2);
