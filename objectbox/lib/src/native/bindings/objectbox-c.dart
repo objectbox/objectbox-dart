@@ -2185,7 +2185,7 @@ class ObjectBoxC {
 
   /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW.
   /// @param data writable data buffer, which may be updated for the ID
-  /// @returns 0 on error
+  /// @returns id if the object could be put, or 0 in case of an error
   int box_put_object(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Void> data,
@@ -2205,7 +2205,7 @@ class ObjectBoxC {
 
   /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW
   /// @param data writable data buffer, which may be updated for the ID
-  /// @returns 0 on error, e.g. the entity was not put according to OBXPutMode
+  /// @returns id if the object, or 0 in case of an error, e.g. the entity was not put according to OBXPutMode
   int box_put_object4(
     ffi.Pointer<OBX_box> box,
     ffi.Pointer<ffi.Void> data,
@@ -2636,6 +2636,7 @@ class ObjectBoxC {
   /// Reserve an ID, which is returned immediately for future reference, and put asynchronously.
   /// Note: of course, it can NOT be guaranteed that the entity will actually be put successfully in the DB.
   /// @param data the given bytes are mutated to update the contained ID data.
+  /// @returns id of the new object, 0 on error
   int async_put_object(
     ffi.Pointer<OBX_async> async_1,
     ffi.Pointer<ffi.Void> data,
@@ -2653,9 +2654,33 @@ class ObjectBoxC {
   late final _dart_async_put_object _async_put_object =
       _async_put_object_ptr.asFunction<_dart_async_put_object>();
 
+  /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW
+  /// @param data writable data buffer, which may be updated for the ID
+  /// @returns id of the new object, 0 on error, e.g. the entity can't be put according to OBXPutMode
+  int async_put_object4(
+    ffi.Pointer<OBX_async> async_1,
+    ffi.Pointer<ffi.Void> data,
+    int size,
+    int mode,
+  ) {
+    return _async_put_object4(
+      async_1,
+      data,
+      size,
+      mode,
+    );
+  }
+
+  late final _async_put_object4_ptr =
+      _lookup<ffi.NativeFunction<_c_async_put_object4>>(
+          'obx_async_put_object4');
+  late final _dart_async_put_object4 _async_put_object4 =
+      _async_put_object4_ptr.asFunction<_dart_async_put_object4>();
+
   /// Reserve an ID, which is returned immediately for future reference, and insert asynchronously.
   /// Note: of course, it can NOT be guaranteed that the entity will actually be inserted successfully in the DB.
   /// @param data the given bytes are mutated to update the contained ID data.
+  /// @returns id of the new object, 0 on error
   int async_insert_object(
     ffi.Pointer<OBX_async> async_1,
     ffi.Pointer<ffi.Void> data,
@@ -3729,6 +3754,53 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<_c_query_find>>('obx_query_find');
   late final _dart_query_find _query_find =
       _query_find_ptr.asFunction<_dart_query_find>();
+
+  /// Find the first object matching the query.
+  /// @returns OBX_NOT_FOUND if no object matches.
+  /// The exposed data comes directly from the OS to allow zero-copy access, which limits the data lifetime:
+  /// @warning Currently ignores offset, taking the the first matching element.
+  /// @attention The exposed data is only valid as long as the (top) transaction is still active and no write
+  /// operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
+  int query_find_first(
+    ffi.Pointer<OBX_query> query,
+    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.IntPtr> size,
+  ) {
+    return _query_find_first(
+      query,
+      data,
+      size,
+    );
+  }
+
+  late final _query_find_first_ptr =
+      _lookup<ffi.NativeFunction<_c_query_find_first>>('obx_query_find_first');
+  late final _dart_query_find_first _query_find_first =
+      _query_find_first_ptr.asFunction<_dart_query_find_first>();
+
+  /// Find the only object matching the query.
+  /// @returns OBX_NOT_FOUND if no object matches, an error if there are multiple objects matching the query.
+  /// The exposed data comes directly from the OS to allow zero-copy access, which limits the data lifetime:
+  /// @warning Currently ignores offset and limit, considering all matching elements.
+  /// @attention The exposed data is only valid as long as the (top) transaction is still active and no write
+  /// operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
+  int query_find_unique(
+    ffi.Pointer<OBX_query> query,
+    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.IntPtr> size,
+  ) {
+    return _query_find_unique(
+      query,
+      data,
+      size,
+    );
+  }
+
+  late final _query_find_unique_ptr =
+      _lookup<ffi.NativeFunction<_c_query_find_unique>>(
+          'obx_query_find_unique');
+  late final _dart_query_find_unique _query_find_unique =
+      _query_find_unique_ptr.asFunction<_dart_query_find_unique>();
 
   /// Walk over matching objects using the given data visitor
   int query_visit(
@@ -5123,6 +5195,45 @@ class ObjectBoxC {
       _sync_max_messages_in_flight_ptr
           .asFunction<_dart_sync_max_messages_in_flight>();
 
+  /// Sets the interval in which the client sends "heartbeat" messages to the server, keeping the connection alive.
+  /// To detect disconnects early on the client side, you can also use heartbeats with a smaller interval.
+  /// Use with caution, setting a low value (i.e. sending heartbeat very often) may cause an excessive network usage
+  /// as well as high server load (with many clients).
+  /// @param interval_ms interval in milliseconds; the default is 25 minutes (1 500 000 milliseconds),
+  /// which is also the allowed maximum.
+  /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the allowed range, e.g. larger than the maximum (1 500 000).
+  int sync_heartbeat_interval(
+    ffi.Pointer<OBX_sync> sync_1,
+    int interval_ms,
+  ) {
+    return _sync_heartbeat_interval(
+      sync_1,
+      interval_ms,
+    );
+  }
+
+  late final _sync_heartbeat_interval_ptr =
+      _lookup<ffi.NativeFunction<_c_sync_heartbeat_interval>>(
+          'obx_sync_heartbeat_interval');
+  late final _dart_sync_heartbeat_interval _sync_heartbeat_interval =
+      _sync_heartbeat_interval_ptr.asFunction<_dart_sync_heartbeat_interval>();
+
+  /// Triggers the heartbeat sending immediately.
+  /// @see obx_sync_heartbeat_interval()
+  int sync_send_heartbeat(
+    ffi.Pointer<OBX_sync> sync_1,
+  ) {
+    return _sync_send_heartbeat(
+      sync_1,
+    );
+  }
+
+  late final _sync_send_heartbeat_ptr =
+      _lookup<ffi.NativeFunction<_c_sync_send_heartbeat>>(
+          'obx_sync_send_heartbeat');
+  late final _dart_sync_send_heartbeat _sync_send_heartbeat =
+      _sync_send_heartbeat_ptr.asFunction<_dart_sync_send_heartbeat>();
+
   /// Switches operation mode that's initialized after successful login
   /// Must be called before obx_sync_start (returns OBX_ERROR_ILLEGAL_STATE if it was already started)
   int sync_request_updates_mode(
@@ -5299,6 +5410,43 @@ class ObjectBoxC {
   late final _dart_sync_full _sync_full =
       _sync_full_ptr.asFunction<_dart_sync_full>();
 
+  /// Estimates the current server timestamp based on the last known server time and local steady clock.
+  /// @param out_timestamp_ns - unix timestamp in nanoseconds - may be set to zero if the last server's time is unknown.
+  int sync_server_time(
+    ffi.Pointer<OBX_sync> sync_1,
+    ffi.Pointer<ffi.Int64> out_timestamp_ns,
+  ) {
+    return _sync_server_time(
+      sync_1,
+      out_timestamp_ns,
+    );
+  }
+
+  late final _sync_server_time_ptr =
+      _lookup<ffi.NativeFunction<_c_sync_server_time>>('obx_sync_server_time');
+  late final _dart_sync_server_time _sync_server_time =
+      _sync_server_time_ptr.asFunction<_dart_sync_server_time>();
+
+  /// Returns the estimated difference between the server time and the local timestamp.
+  /// Equivalent to calculating obx_sync_server_time() - "current time" (nanos since epoch).
+  /// @param out_diff_ns time difference in nanoseconds; e.g. positive if server time is ahead of local time.
+  /// Set to 0 if there has not been a server contact yet and thus the server's time is unknown.
+  int sync_server_time_diff(
+    ffi.Pointer<OBX_sync> sync_1,
+    ffi.Pointer<ffi.Int64> out_diff_ns,
+  ) {
+    return _sync_server_time_diff(
+      sync_1,
+      out_diff_ns,
+    );
+  }
+
+  late final _sync_server_time_diff_ptr =
+      _lookup<ffi.NativeFunction<_c_sync_server_time_diff>>(
+          'obx_sync_server_time_diff');
+  late final _dart_sync_server_time_diff _sync_server_time_diff =
+      _sync_server_time_diff_ptr.asFunction<_dart_sync_server_time_diff>();
+
   /// Set or overwrite a previously set 'connect' listener.
   /// @param listener set NULL to reset
   /// @param listener_arg is a pass-through argument passed to the listener
@@ -5426,6 +5574,28 @@ class ObjectBoxC {
           'obx_sync_listener_change');
   late final _dart_sync_listener_change _sync_listener_change =
       _sync_listener_change_ptr.asFunction<_dart_sync_listener_change>();
+
+  /// Set or overwrite a previously set 'serverTime' listener - provides current time updates from the sync-server.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
+  void sync_listener_server_time(
+    ffi.Pointer<OBX_sync> sync_1,
+    ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_server_time>> listener,
+    ffi.Pointer<ffi.Void> listener_arg,
+  ) {
+    return _sync_listener_server_time(
+      sync_1,
+      listener,
+      listener_arg,
+    );
+  }
+
+  late final _sync_listener_server_time_ptr =
+      _lookup<ffi.NativeFunction<_c_sync_listener_server_time>>(
+          'obx_sync_listener_server_time');
+  late final _dart_sync_listener_server_time _sync_listener_server_time =
+      _sync_listener_server_time_ptr
+          .asFunction<_dart_sync_listener_server_time>();
 
   /// Initializes Dart API - call before any other obx_dart_* functions.
   int dartc_init_api(
@@ -5600,6 +5770,137 @@ class ObjectBoxC {
   late final _dart_dartc_sync_listener_change _dartc_sync_listener_change =
       _dartc_sync_listener_change_ptr
           .asFunction<_dart_dartc_sync_listener_change>();
+
+  /// @see obx_sync_listener_server_time()
+  ffi.Pointer<OBX_dart_sync_listener> dartc_sync_listener_server_time(
+    ffi.Pointer<OBX_sync> sync_1,
+    int native_port,
+  ) {
+    return _dartc_sync_listener_server_time(
+      sync_1,
+      native_port,
+    );
+  }
+
+  late final _dartc_sync_listener_server_time_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_sync_listener_server_time>>(
+          'obx_dart_sync_listener_server_time');
+  late final _dart_dartc_sync_listener_server_time
+      _dartc_sync_listener_server_time = _dartc_sync_listener_server_time_ptr
+          .asFunction<_dart_dartc_sync_listener_server_time>();
+
+  /// @see obx_async_put_object()
+  int dartc_async_put_object(
+    ffi.Pointer<OBX_async> async_1,
+    int native_port,
+    ffi.Pointer<ffi.Void> data,
+    int size,
+    int mode,
+  ) {
+    return _dartc_async_put_object(
+      async_1,
+      native_port,
+      data,
+      size,
+      mode,
+    );
+  }
+
+  late final _dartc_async_put_object_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_async_put_object>>(
+          'obx_dart_async_put_object');
+  late final _dart_dartc_async_put_object _dartc_async_put_object =
+      _dartc_async_put_object_ptr.asFunction<_dart_dartc_async_put_object>();
+
+  int dartc_stream_close(
+    ffi.Pointer<OBX_dart_stream> stream,
+  ) {
+    return _dartc_stream_close(
+      stream,
+    );
+  }
+
+  late final _dartc_stream_close_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_stream_close>>(
+          'obx_dart_stream_close');
+  late final _dart_dartc_stream_close _dartc_stream_close =
+      _dartc_stream_close_ptr.asFunction<_dart_dartc_stream_close>();
+
+  /// @see obx_dart_stream_query_find
+  ffi.Pointer<OBX_dart_stream> dartc_query_find(
+    ffi.Pointer<OBX_query> query,
+    int native_port,
+  ) {
+    return _dartc_query_find(
+      query,
+      native_port,
+    );
+  }
+
+  late final _dartc_query_find_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_query_find>>('obx_dart_query_find');
+  late final _dart_dartc_query_find _dartc_query_find =
+      _dartc_query_find_ptr.asFunction<_dart_dartc_query_find>();
+
+  ffi.Pointer<OBX_dart_stream> dartc_query_find_ptr(
+    ffi.Pointer<OBX_query> query,
+    int native_port,
+  ) {
+    return _dartc_query_find_ptr_1(
+      query,
+      native_port,
+    );
+  }
+
+  late final _dartc_query_find_ptr_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_query_find_ptr>>(
+          'obx_dart_query_find_ptr');
+  late final _dart_dartc_query_find_ptr _dartc_query_find_ptr_1 =
+      _dartc_query_find_ptr_ptr.asFunction<_dart_dartc_query_find_ptr>();
+
+  /// Attaches a finalizer (destructor) to be called when the given object is garbage-collected.
+  /// @param dart_object marks the object owning the native pointer
+  /// @param native_object is the native pointer to be freed
+  /// @param closer is the function that frees native_object
+  /// @param native_object_size is an allocated size estimate - can be used by a the Dart garbage collector to prioritize
+  /// @return a finalizer freed automatically when the GC finalizer runs (or manually by obx_dart_detach_finalizer())
+  /// @return NULL if the finalizer couldn't be attached, in which case the caller is responsible for running the closer
+  ffi.Pointer<OBX_dart_finalizer> dartc_attach_finalizer(
+    Object dart_object,
+    ffi.Pointer<ffi.NativeFunction<obx_dart_closer>> closer,
+    ffi.Pointer<ffi.Void> native_object,
+    int native_object_size,
+  ) {
+    return _dartc_attach_finalizer(
+      dart_object,
+      closer,
+      native_object,
+      native_object_size,
+    );
+  }
+
+  late final _dartc_attach_finalizer_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_attach_finalizer>>(
+          'obx_dart_attach_finalizer');
+  late final _dart_dartc_attach_finalizer _dartc_attach_finalizer =
+      _dartc_attach_finalizer_ptr.asFunction<_dart_dartc_attach_finalizer>();
+
+  /// Detach the finalizer preliminarily, without executing its "closer"
+  int dartc_detach_finalizer(
+    ffi.Pointer<OBX_dart_finalizer> finalizer,
+    Object dart_object,
+  ) {
+    return _dartc_detach_finalizer(
+      finalizer,
+      dart_object,
+    );
+  }
+
+  late final _dartc_detach_finalizer_ptr =
+      _lookup<ffi.NativeFunction<_c_dartc_detach_finalizer>>(
+          'obx_dart_detach_finalizer');
+  late final _dart_dartc_detach_finalizer _dartc_detach_finalizer =
+      _dartc_detach_finalizer_ptr.asFunction<_dart_dartc_detach_finalizer>();
 }
 
 abstract class OBXFeature {
@@ -5621,6 +5922,9 @@ abstract class OBXFeature {
 
   /// HTTP server with a database browser.
   static const int ObjectBrowser = 5;
+
+  /// Trees & GraphQL support
+  static const int Trees = 6;
 }
 
 abstract class OBXPropertyType {
@@ -5934,9 +6238,9 @@ class OBX_observer extends ffi.Opaque {}
 class OBX_sync extends ffi.Opaque {}
 
 abstract class OBXSyncCredentialsType {
-  static const int NONE = 0;
-  static const int SHARED_SECRET = 1;
-  static const int GOOGLE_AUTH = 2;
+  static const int NONE = 1;
+  static const int SHARED_SECRET = 2;
+  static const int GOOGLE_AUTH = 3;
 }
 
 abstract class OBXRequestUpdatesMode {
@@ -5990,9 +6294,13 @@ class OBX_sync_change_array extends ffi.Struct {
 
 class OBX_dart_sync_listener extends ffi.Opaque {}
 
+class OBX_dart_stream extends ffi.Opaque {}
+
+class OBX_dart_finalizer extends ffi.Opaque {}
+
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 12;
+const int OBX_VERSION_MINOR = 14;
 
 const int OBX_VERSION_PATCH = 0;
 
@@ -7578,6 +7886,20 @@ typedef _dart_async_put_object = int Function(
   int size,
 );
 
+typedef _c_async_put_object4 = ffi.Uint64 Function(
+  ffi.Pointer<OBX_async> async_1,
+  ffi.Pointer<ffi.Void> data,
+  ffi.IntPtr size,
+  ffi.Int32 mode,
+);
+
+typedef _dart_async_put_object4 = int Function(
+  ffi.Pointer<OBX_async> async_1,
+  ffi.Pointer<ffi.Void> data,
+  int size,
+  int mode,
+);
+
 typedef _c_async_insert_object = ffi.Uint64 Function(
   ffi.Pointer<OBX_async> async_1,
   ffi.Pointer<ffi.Void> data,
@@ -8266,6 +8588,30 @@ typedef _c_query_find = ffi.Pointer<OBX_bytes_array> Function(
 
 typedef _dart_query_find = ffi.Pointer<OBX_bytes_array> Function(
   ffi.Pointer<OBX_query> query,
+);
+
+typedef _c_query_find_first = ffi.Int32 Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.IntPtr> size,
+);
+
+typedef _dart_query_find_first = int Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.IntPtr> size,
+);
+
+typedef _c_query_find_unique = ffi.Int32 Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.IntPtr> size,
+);
+
+typedef _dart_query_find_unique = int Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _c_query_visit = ffi.Int32 Function(
@@ -9088,6 +9434,24 @@ typedef _dart_sync_max_messages_in_flight = int Function(
   int value,
 );
 
+typedef _c_sync_heartbeat_interval = ffi.Int32 Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Uint64 interval_ms,
+);
+
+typedef _dart_sync_heartbeat_interval = int Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int interval_ms,
+);
+
+typedef _c_sync_send_heartbeat = ffi.Int32 Function(
+  ffi.Pointer<OBX_sync> sync_1,
+);
+
+typedef _dart_sync_send_heartbeat = int Function(
+  ffi.Pointer<OBX_sync> sync_1,
+);
+
 typedef _c_sync_request_updates_mode = ffi.Int32 Function(
   ffi.Pointer<OBX_sync> sync_1,
   ffi.Int32 mode,
@@ -9168,6 +9532,26 @@ typedef _c_sync_full = ffi.Int32 Function(
 
 typedef _dart_sync_full = int Function(
   ffi.Pointer<OBX_sync> sync_1,
+);
+
+typedef _c_sync_server_time = ffi.Int32 Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Pointer<ffi.Int64> out_timestamp_ns,
+);
+
+typedef _dart_sync_server_time = int Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Pointer<ffi.Int64> out_timestamp_ns,
+);
+
+typedef _c_sync_server_time_diff = ffi.Int32 Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Pointer<ffi.Int64> out_diff_ns,
+);
+
+typedef _dart_sync_server_time_diff = int Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Pointer<ffi.Int64> out_diff_ns,
 );
 
 typedef OBX_sync_listener_connect = ffi.Void Function(
@@ -9265,6 +9649,23 @@ typedef _c_sync_listener_change = ffi.Void Function(
 typedef _dart_sync_listener_change = void Function(
   ffi.Pointer<OBX_sync> sync_1,
   ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_change>> listener,
+  ffi.Pointer<ffi.Void> listener_arg,
+);
+
+typedef OBX_sync_listener_server_time = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Int64,
+);
+
+typedef _c_sync_listener_server_time = ffi.Void Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_server_time>> listener,
+  ffi.Pointer<ffi.Void> listener_arg,
+);
+
+typedef _dart_sync_listener_server_time = void Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Pointer<ffi.NativeFunction<OBX_sync_listener_server_time>> listener,
   ffi.Pointer<ffi.Void> listener_arg,
 );
 
@@ -9376,4 +9777,88 @@ typedef _dart_dartc_sync_listener_change = ffi.Pointer<OBX_dart_sync_listener>
     Function(
   ffi.Pointer<OBX_sync> sync_1,
   int native_port,
+);
+
+typedef _c_dartc_sync_listener_server_time = ffi.Pointer<OBX_dart_sync_listener>
+    Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_sync_listener_server_time
+    = ffi.Pointer<OBX_dart_sync_listener> Function(
+  ffi.Pointer<OBX_sync> sync_1,
+  int native_port,
+);
+
+typedef _c_dartc_async_put_object = ffi.Uint64 Function(
+  ffi.Pointer<OBX_async> async_1,
+  ffi.Int64 native_port,
+  ffi.Pointer<ffi.Void> data,
+  ffi.IntPtr size,
+  ffi.Int32 mode,
+);
+
+typedef _dart_dartc_async_put_object = int Function(
+  ffi.Pointer<OBX_async> async_1,
+  int native_port,
+  ffi.Pointer<ffi.Void> data,
+  int size,
+  int mode,
+);
+
+typedef _c_dartc_stream_close = ffi.Int32 Function(
+  ffi.Pointer<OBX_dart_stream> stream,
+);
+
+typedef _dart_dartc_stream_close = int Function(
+  ffi.Pointer<OBX_dart_stream> stream,
+);
+
+typedef _c_dartc_query_find = ffi.Pointer<OBX_dart_stream> Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_query_find = ffi.Pointer<OBX_dart_stream> Function(
+  ffi.Pointer<OBX_query> query,
+  int native_port,
+);
+
+typedef _c_dartc_query_find_ptr = ffi.Pointer<OBX_dart_stream> Function(
+  ffi.Pointer<OBX_query> query,
+  ffi.Int64 native_port,
+);
+
+typedef _dart_dartc_query_find_ptr = ffi.Pointer<OBX_dart_stream> Function(
+  ffi.Pointer<OBX_query> query,
+  int native_port,
+);
+
+typedef obx_dart_closer = ffi.Int32 Function(
+  ffi.Pointer<ffi.Void>,
+);
+
+typedef _c_dartc_attach_finalizer = ffi.Pointer<OBX_dart_finalizer> Function(
+  ffi.Handle dart_object,
+  ffi.Pointer<ffi.NativeFunction<obx_dart_closer>> closer,
+  ffi.Pointer<ffi.Void> native_object,
+  ffi.IntPtr native_object_size,
+);
+
+typedef _dart_dartc_attach_finalizer = ffi.Pointer<OBX_dart_finalizer> Function(
+  Object dart_object,
+  ffi.Pointer<ffi.NativeFunction<obx_dart_closer>> closer,
+  ffi.Pointer<ffi.Void> native_object,
+  int native_object_size,
+);
+
+typedef _c_dartc_detach_finalizer = ffi.Int32 Function(
+  ffi.Pointer<OBX_dart_finalizer> finalizer,
+  ffi.Handle dart_object,
+);
+
+typedef _dart_dartc_detach_finalizer = int Function(
+  ffi.Pointer<OBX_dart_finalizer> finalizer,
+  Object dart_object,
 );

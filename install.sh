@@ -8,7 +8,7 @@ set -eu
 #   * update lib/src/bindings/objectbox.h
 #   * execute pub run ffigen
 #   * have a look at the changed files to see if some call sites need to be updated
-cLibVersion=0.13.0
+cLibVersion=0.14.0
 os=$(uname)
 cLibArgs="$*"
 
