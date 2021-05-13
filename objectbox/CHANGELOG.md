@@ -1,15 +1,16 @@
 ## latest
 
-This is a 1.0 release candidate - we encourage everyone to try it out and provide any last-minute feedback,
-especially to new/changed APIs.
+This is a 1.0 release candidate - please try it out and give us any last-minute feedback, especially to new and changed APIs.
 
-* Query now supports auto-closing. You can still call `close()` manually if you want to free native resources sooner  
+* New Box `putAsync()` returning a `Future` and `putQueued()` for asynchronous writes.
+* Query now supports auto-closing. You can still call `close()` manually if you want to free native resources sooner 
   than they would be by Dart's garbage collector, but it's not mandatory anymore.
 * Change the "meta-model" fields to provide completely type-safe query building.
   Conditions you specify are now checked at compile time to match the queried entity.
 * Make property queries fully typed, `PropertyQuery.find()` now returns the appropriate `List<...>` type without casts.
+* Query conditions `inside()` renamed to `oneOf()`, `notIn()` and `notInList()` renamed to `notOneOf()`.
 * Query `stream` and `findStream()` are replaced by `QueryBuilder.watch()`, i.e. `box.query(...).watch()`.
-* Query conditions `inside()` renamed to `oneOf()`, `notIn()` and `notInList()` renamed to `notOneOf()`.  
+* New Query `stream()` to stream objects all the while the query is executed in the background.
 * Store `subscribe<EntityType>()` renamed to `watch()`.
 * Store `subscribeAll()` replaced by a shared broadcast stream `entityChanges`.
 * Entities can now contain `final` fields and they're properly stored/loaded (must be constructor params).

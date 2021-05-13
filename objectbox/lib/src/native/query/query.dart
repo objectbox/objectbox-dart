@@ -736,6 +736,9 @@ class Query<T> {
   }
 
   /// Finds Objects matching the query, streaming them while the query executes.
+  ///
+  /// Note: make sure you evaluate performance in your use case - streams come
+  /// with an overhead so a plain [find()] is usually faster.
   Stream<T> stream() => _stream1();
 
   /// Stream items by sending full flatbuffers binary as a message.
