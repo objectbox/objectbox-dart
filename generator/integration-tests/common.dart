@@ -18,17 +18,21 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
 
   test('unique UIDs', () {
     // collect UIDs on all entities and properties
-    // TODO relations, indexes
     final allUIDs = defs.model.entities
         .map((entity) => <int>[]
           ..add(entity.id.uid)
-          ..addAll(entity.properties.map((prop) => prop.id.uid)))
+          ..addAll(entity.properties.map((prop) => prop.id.uid))
+          ..addAll(entity.properties
+              .where((prop) => prop.hasIndexFlag())
+              .map((prop) => prop.id.uid))
+          ..addAll(entity.relations.map((rel) => rel.id.uid)))
         .reduce((List<int> a, List<int> b) => a + b);
 
     expect(allUIDs.toSet().length, allUIDs.length);
   });
 
   final testLastId = (IdUid last, Iterable<IdUid> all, Iterable<int> retired) {
+    if (last.isEmpty) return;
     var amongAll = false;
     for (final current in all) {
       if (current.id == last.id) {
@@ -59,15 +63,28 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
         jsonModel.retiredEntityUids);
   });
 
-  // TODO when indexes are available
-//  test('lastIndexId', () {
-//    testLastId(defs.model.lastIndexId, defs.model.entities.map((el) => ...), jsonModel.retiredIndexUids);
-//  });
+  test('lastIndexId', () {
+    testLastId(
+        defs.model.lastIndexId,
+        defs.model.entities
+            .map((ModelEntity e) => e.properties
+                .where((p) => p.hasIndexFlag())
+                .map((el) => el.id)
+                .toList())
+            .reduce((List<IdUid> a, List<IdUid> b) => a + b),
+        jsonModel.retiredIndexUids);
+    testLastId(defs.model.lastIndexId, defs.model.entities.map((el) => el.id),
+        jsonModel.retiredIndexUids);
+  });
 
-  // TODO when relations are available
-//  test('lastRelationId', () {
-//    testLastId(defs.model.lastRelationId, defs.model.entities.map((el) => ...), jsonModel.retiredRelationUids);
-//  });
+  test('lastRelationId', () {
+    testLastId(
+        defs.model.lastRelationId,
+        defs.model.entities
+            .map((ModelEntity e) => e.relations.map((el) => el.id).toList())
+            .reduce((List<IdUid> a, List<IdUid> b) => a + b),
+        jsonModel.retiredRelationUids);
+  });
 }
 
 ModelEntity entity(ModelInfo model, String name) {
