@@ -1,3 +1,24 @@
+## latest
+
+This is a 1.0 release candidate - we encourage everyone to try it out and provide any last-minute feedback,
+especially to new/changed APIs.
+
+* Change the "meta-model" fields to provide completely type-safe query building.
+  Conditions you specify are now checked at compile time to match the queried entity.
+* Make property queries fully typed, `PropertyQuery.find()` now returns the appropriate `List<...>` type without casts.
+* Query `stream` and `findStream()` are replaced by `QueryBuilder.watch()`, i.e. `box.query(...).watch()`.
+* Query conditions `inside()` renamed to `oneOf()`, `notIn()` and `notInList()` renamed to `notOneOf()`.  
+* Store `subscribe<EntityType>()` renamed to `watch()`.
+* Store `subscribeAll()` replaced by a shared broadcast stream `entityChanges`.
+* Entities can now contain `final` fields and they're properly stored/loaded (must be constructor params).
+* Flutter desktop - native library is now downloaded automatically, same as for mobile platforms.
+* Follow exception-vs-error throwing conventions - throwing errors when it's a permanent developer-caused error. Namely,
+  there's a new `UniqueViolationException` thrown when an object you're trying to `put()` would violate a `Unique()` index.
+* Even higher than usual amount of internal optimizations and improvements.
+* Update to objectbox-c v0.14.0.
+* Update to objectbox-swift v1.6.0.
+* Update to objectbox-android v2.9.2-RC.
+
 ## 0.14.0 (2021-04-01)
 
 * Fix non-nullable `DateTime` fields deserialization regression (introduced in v0.13.0) - fields were read as nanosecond instead of millisecond timestamp.
