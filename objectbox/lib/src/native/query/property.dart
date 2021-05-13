@@ -3,17 +3,36 @@ part of query;
 /// Property query base.
 class PropertyQuery<T> {
   final Pointer<OBX_query_prop> _cProp;
+  late final Pointer<OBX_dart_finalizer> _cFinalizer;
+  bool _closed = false;
   final int _type;
   bool _distinct = false;
   bool _caseSensitive = false;
 
   PropertyQuery._(Pointer<OBX_query> cQuery, ModelProperty property)
       : _type = property.type,
-        _cProp =
-            checkObxPtr(C.query_prop(cQuery, property.id.id), 'property query');
+        _cProp = checkObxPtr(
+            C.query_prop(cQuery, property.id.id), 'property query') {
+    _cFinalizer = C.dartc_attach_finalizer(
+        this, native_query_prop_close, _cProp.cast(), 64);
+    if (_cFinalizer == nullptr) {
+      close();
+      throwLatestNativeError();
+    }
+  }
 
   /// Close the property query, freeing its resources
-  void close() => checkObx(C.query_prop_close(_cProp));
+  void close() {
+    if (!_closed) {
+      _closed = true;
+      var err = 0;
+      if (_cFinalizer != nullptr) {
+        err = C.dartc_detach_finalizer(_cFinalizer, this);
+      }
+      checkObx(C.query_prop_close(_cProp));
+      checkObx(err);
+    }
+  }
 
   int _count() {
     final ptr = malloc<Uint64>();

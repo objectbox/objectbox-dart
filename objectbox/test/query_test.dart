@@ -17,6 +17,14 @@ void main() {
   });
   tearDown(() => env.close());
 
+  test('Query auto-close', () {
+    // Finalizer is executed after the query object goes out of scope.
+    // Note: only caught by valgrind - I've tested that it actually catches
+    // when the finalizer assignment was disabled. Now, this will only fail in
+    // CI when running valgrind.sh - if finalizer won't work properly.
+    box.query().build().find();
+  });
+
   test('Query with no conditions, and order as desc ints', () {
     box.putMany(<TestEntity>[
       TestEntity(tInt: 0),

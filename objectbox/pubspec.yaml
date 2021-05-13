@@ -21,7 +21,7 @@ dev_dependencies:
   objectbox_generator: any
   pedantic: ^1.11.0
   test: ^1.16.5
-  ffigen: ^2.2.2
+  ffigen: ^2.4.2
   # No null-safety compatible version yet and we only need it in tests.
   # flat_buffers: 1.12.0
 
