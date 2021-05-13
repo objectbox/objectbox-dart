@@ -197,27 +197,33 @@ dateQuery.close();
 query.close();
 ```
 
-### Query streams
+### Reactive queries
 
-Streams can be created from queries.
-Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart).
+You can create a reactive query to get notified any time queried entity types change.
 
 ```dart
-final sub1 = box.query(condition).watch().listen((query) {
+Stream<Query<Note>> watchedQuery = box.query(condition).watch();
+final sub1 = watchedQuery.listen((Query<Note> query) {
+  // This gets triggered any there are changes to the queried entity types.
+  // You can call any query method here, for example:
   print(query.count());
-});
-
-// box.put() creates some data ...
-
-sub1.cancel();
-
-final sub2 = box.query(condition).watch().listen((query) {
   print(query.find());
 });
-
-// clean up
-sub2.cancel();
+...
+sub1.cancel(); // cancel the subscription after you're done
 ```
+
+Similarly to the previous example but with an initial event immediately after you start listening:
+```dart
+Stream<Query<Note>> watchedQuery = box.query(condition).watch();
+final sub1 = watchedQuery.listen((Query<Note> query) {
+  // This gets triggered once right away and then after queried entity types changes.
+});
+...
+sub1.cancel(); // cancel the subscription after you're done
+```
+
+> Note: Dart Streams can be extended with [rxdart](https://github.com/ReactiveX/rxdart).
 
 Relations
 ---------

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../common.dart';
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
 import '../relations/to_many.dart';
@@ -43,6 +46,7 @@ class Box<T> {
   final bool _hasToOneRelations;
   final bool _hasToManyRelations;
   final _builder = BuilderWithCBuffer();
+  _AsyncBoxHelper? _async;
 
   /// Create a box for an Entity.
   factory Box(Store store) => store.box();
@@ -57,20 +61,6 @@ class Box<T> {
   }
 
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
-
-  static int _getOBXPutMode(PutMode mode) {
-    // TODO microbenchmark if this is fast or we should just return mode.index+1
-    switch (mode) {
-      case PutMode.put:
-        return OBXPutMode.PUT;
-      case PutMode.insert:
-        return OBXPutMode.INSERT;
-      case PutMode.update:
-        return OBXPutMode.UPDATE;
-      default:
-        throw ArgumentError.value(mode, 'mode');
-    }
-  }
 
   /// Puts the given Object in the box (aka persisting it).
   ///
@@ -93,6 +83,81 @@ class Box<T> {
     } else {
       return _put(object, mode, null);
     }
+  }
+
+  /// Puts the given object in the box (persisting it) asynchronously.
+  ///
+  /// The returned future completes with an ID of the object. If it is a new
+  /// object (its ID property is 0), a new ID will be assigned to the object
+  /// argument, after the returned [Future] completes.
+  ///
+  /// In extreme scenarios (e.g. having hundreds of thousands async operations
+  /// per second), this may fail as internal queues fill up if the disk can't
+  /// keep up. However, this should not be a concern for typical apps.
+  /// The returned future may also complete with an error if the put failed
+  /// for another reason, for example a unique constraint violation. In that
+  /// case the [object]'s id field remains unchanged (0 if it was a new object).
+  ///
+  /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
+  /// ID immediately, even though the actual database put operation may fail.
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+      // Wrap with [Future.sync] to avoid mixing sync and async errors.
+      // Note: doesn't seem to decrease performance at all.
+      // https://dart.dev/guides/libraries/futures-error-handling#potential-problem-accidentally-mixing-synchronous-and-asynchronous-errors
+      Future.sync(() async {
+        if (_hasRelations) {
+          throw UnsupportedError(
+              'putAsync() is currently not supported on entity '
+              '${T.toString()} because it has relations.');
+        }
+        _async ??= _AsyncBoxHelper(this);
+
+        // Note: we can use the shared flatbuffer object, because:
+        // https://dart.dev/codelabs/async-await#execution-flow-with-async-and-await
+        // > An async function runs synchronously until the first await keyword.
+        // > This means that within an async function body, all synchronous code
+        // > before the first await keyword executes immediately.
+        _builder.fbb.reset();
+        var id = _entity.objectToFB(object, _builder.fbb);
+        final newId = _async!.put(id, _builder, mode);
+        _builder.resetIfLarge(); // reset before `await`
+        if (id == 0) {
+          // Note: if the newId future completes with an error, ID isn't set.
+          _entity.setId(object, await newId);
+        }
+        return newId;
+      });
+
+  /// Schedules the given object to be put later on, by an asynchronous queue.
+  ///
+  /// The actual database put operation may fail even if this function returned
+  /// normally (and even if it returned a new ID for a new object). For example
+  /// if the database put failed because of a unique constraint violation.
+  /// Therefore, you should make sure the data you put is correct and you have
+  /// a fall back in place even if it eventually failed.
+  ///
+  /// In extreme scenarios (e.g. having hundreds of thousands async operations
+  /// per second), this may fail as internal queues fill up if the disk can't
+  /// keep up. However, this should not be a concern for typical apps.
+  ///
+  /// See also [putAsync] which returns a [Future] that only completes after an
+  /// actual database put was successful.
+  /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
+  /// until all operations have finished.
+  int putQueued(T object, {PutMode mode = PutMode.put}) {
+    if (_hasRelations) {
+      throw UnsupportedError('putQueued() is currently not supported on entity '
+          '${T.toString()} because it has relations.');
+    }
+    _async ??= _AsyncBoxHelper(this);
+
+    _builder.fbb.reset();
+    var id = _entity.objectToFB(object, _builder.fbb);
+    final newId = C.async_put_object4(_async!._cAsync, _builder.bufPtr,
+        _builder.fbb.size, _getOBXPutMode(mode));
+    id = _handlePutObjectResult(object, id, newId);
+    _builder.resetIfLarge();
+    return newId;
   }
 
   int _put(T object, PutMode mode, Transaction? tx) {
@@ -312,6 +377,62 @@ class Box<T> {
         rel.applyToDb(mode: mode, tx: tx);
       }
     });
+  }
+}
+
+int _getOBXPutMode(PutMode mode) {
+// TODO microbenchmark if this is fast or we should just return mode.index+1
+  switch (mode) {
+    case PutMode.put:
+      return OBXPutMode.PUT;
+    case PutMode.insert:
+      return OBXPutMode.INSERT;
+    case PutMode.update:
+      return OBXPutMode.UPDATE;
+    default:
+      throw ArgumentError.value(mode, 'mode');
+  }
+}
+
+class _AsyncBoxHelper {
+  final Pointer<OBX_async> _cAsync;
+
+  _AsyncBoxHelper(Box box) : _cAsync = C.async_1(box._cBox) {
+    initializeDartAPI();
+  }
+
+  Future<int> put(int id, BuilderWithCBuffer fbb, PutMode mode) async {
+    final port = ReceivePort();
+    final newId = C.dartc_async_put_object(_cAsync, port.sendPort.nativePort,
+        fbb.bufPtr, fbb.fbb.size, _getOBXPutMode(mode));
+
+    final completer = Completer<int>();
+
+    // Zero is returned to indicate an immediate error, object won't be stored.
+    if (newId == 0) {
+      port.close();
+      try {
+        throwLatestNativeError(context: 'putAsync failed');
+      } catch (e) {
+        completer.completeError(e);
+      }
+    }
+
+    port.listen((dynamic message) {
+      // Null is sent if the put was successful (there is no error, thus NULL)
+      if (message == null) {
+        completer.complete(newId);
+      } else if (message is String) {
+        completer.completeError(message.startsWith('Unique constraint')
+            ? UniqueViolationException(message)
+            : ObjectBoxException(message));
+      } else {
+        completer.completeError(ObjectBoxException(
+            'Unknown message type (${message.runtimeType}: $message'));
+      }
+      port.close();
+    });
+    return completer.future;
   }
 }
 
