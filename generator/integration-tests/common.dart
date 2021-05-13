@@ -24,7 +24,7 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
           ..addAll(entity.properties.map((prop) => prop.id.uid))
           ..addAll(entity.properties
               .where((prop) => prop.hasIndexFlag())
-              .map((prop) => prop.id.uid))
+              .map((prop) => prop.indexId!.uid))
           ..addAll(entity.relations.map((rel) => rel.id.uid)))
         .reduce((List<int> a, List<int> b) => a + b);
 
@@ -69,11 +69,9 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
         defs.model.entities
             .map((ModelEntity e) => e.properties
                 .where((p) => p.hasIndexFlag())
-                .map((el) => el.id)
+                .map((p) => p.indexId!)
                 .toList())
             .reduce((List<IdUid> a, List<IdUid> b) => a + b),
-        jsonModel.retiredIndexUids);
-    testLastId(defs.model.lastIndexId, defs.model.entities.map((el) => el.id),
         jsonModel.retiredIndexUids);
   });
 
@@ -81,7 +79,7 @@ commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
     testLastId(
         defs.model.lastRelationId,
         defs.model.entities
-            .map((ModelEntity e) => e.relations.map((el) => el.id).toList())
+            .map((ModelEntity e) => e.relations.map((r) => r.id).toList())
             .reduce((List<IdUid> a, List<IdUid> b) => a + b),
         jsonModel.retiredRelationUids);
   });

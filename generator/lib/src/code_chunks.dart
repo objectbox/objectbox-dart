@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:build/build.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:objectbox/internal.dart';
@@ -26,6 +24,7 @@ class CodeChunks {
       ${model.entities.map(createModelEntity).join(',')}
     ];
   
+    /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel()) 
     ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
       
@@ -36,7 +35,7 @@ class CodeChunks {
       return ModelDefinition(model, bindings);
     }
     
-    ${model.entities.mapIndexed((i, entity) => "class ${entity.name}_ {${_queryConditionBuilder(i, entity)}}").join("\n")}
+    ${model.entities.mapIndexed(_metaClass).join("\n")}
     """;
 
   static List<T> sorted<T>(List<T> list) {
@@ -490,8 +489,8 @@ class CodeChunks {
           .join(',') +
       '}';
 
-  static String _queryConditionBuilder(int i, ModelEntity entity) {
-    final ret = <String>[];
+  static String _metaClass(int i, ModelEntity entity) {
+    final fields = <String>[];
     for (var p = 0; p < entity.properties.length; p++) {
       final prop = entity.properties[p];
       final name = prop.name;
@@ -536,16 +535,20 @@ class CodeChunks {
           'static final ${propertyFieldName(prop)} = Query${fieldType}Property<${entity.name}';
       if (prop.isRelation) propCode += ', ${prop.relationTarget}';
       propCode += '>(_entities[$i].properties[$p]);';
-      ret.add(propCode);
+      fields.add(propCode);
     }
 
     for (var r = 0; r < entity.relations.length; r++) {
       final rel = entity.relations[r];
       final targetEntityName =
           entity.model.findEntityByUid(rel.targetId.uid)!.name;
-      ret.add('static final ${rel.name} = QueryRelationMany'
+      fields.add('static final ${rel.name} = QueryRelationMany'
           '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
     }
-    return ret.join();
+
+    return '''
+    /// [${entity.name}] entity fields to define ObjectBox queries. 
+    class ${entity.name}_ {${fields.join()}}
+    ''';
   }
 }
