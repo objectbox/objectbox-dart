@@ -10,12 +10,11 @@ Pod::Spec.new do |s|
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
   s.platform         = :ios, '11.0'
-
-  s.source = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source           = { :path => '.' }
+  s.source_files     = 'Classes/**/*'
 
   s.dependency 'Flutter'
-  s.dependency 'ObjectBox', '1.5.0-rc2'
+  s.dependency 'ObjectBox', '1.6.0'
 
   # Flutter.framework does not contain a i386 or arm64. Only x86_64 simulators are supported.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
