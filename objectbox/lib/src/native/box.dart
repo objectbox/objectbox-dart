@@ -423,7 +423,9 @@ class _AsyncBoxHelper {
       if (message == null) {
         completer.complete(newId);
       } else if (message is String) {
-        completer.completeError(ObjectBoxException(message));
+        completer.completeError(message.startsWith('Unique constraint')
+            ? UniqueViolationException(message)
+            : ObjectBoxException(message));
       } else {
         completer.completeError(ObjectBoxException(
             'Unknown message type (${message.runtimeType}: $message'));

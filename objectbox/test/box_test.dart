@@ -95,12 +95,14 @@ void main() {
       final future = box.putAsync(object);
       expect(
           future,
-          throwsA(predicate((ObjectBoxException e) =>
+          throwsA(predicate((UniqueViolationException e) =>
               e.toString().contains('Unique constraint'))));
-      // paranoia, should already have waited on the above [expect()]
+
       try {
+        // paranoia, should already have waited on the above [expect()]
         await future;
       } catch (_) {}
+
       expect(object.id, isNull); // ID must remain unassigned
     }
   });
