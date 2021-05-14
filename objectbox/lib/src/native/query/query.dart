@@ -19,7 +19,6 @@ import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 
 part 'builder.dart';
-
 part 'property.dart';
 
 // ignore_for_file: public_member_api_docs
@@ -704,7 +703,8 @@ class Query<T> {
   T? findFirst() {
     T? result;
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
-      result = _entity.objectFromFB(_store, data.asTypedList(size));
+      result = _entity.objectFromFB(
+          _store, InternalStoreAccess.reader(_store).access(data, size));
       return false; // we only want to visit the first element
     });
     _store.runInTransaction(TxMode.read, () {
@@ -762,7 +762,8 @@ class Query<T> {
         // We expect Uint8List for data and NULL when the query has finished.
         if (message is Uint8List) {
           try {
-            controller.add(_entity.objectFromFB(_store, message));
+            controller.add(
+                _entity.objectFromFB(_store, ByteData.view(message.buffer)));
             return;
           } catch (e) {
             controller.addError(e);

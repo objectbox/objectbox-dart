@@ -15,6 +15,7 @@ import '../modelinfo/index.dart';
 import '../transaction.dart';
 import '../util.dart';
 import 'bindings/bindings.dart';
+import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'box.dart';
 import 'model.dart';
@@ -31,6 +32,7 @@ class Store {
   final ModelDefinition _defs;
   bool _closed = false;
   Stream<List<Type>>? _entityChanges;
+  final _reader = ReaderWithCBuffer();
 
   late final ByteData _reference;
 
@@ -198,6 +200,7 @@ class Store {
     _onClose.clear();
 
     if (!_weak) checkObx(C.store_close(_cStore));
+    _reader.clear();
   }
 
   /// Returns a cached Box instance.
@@ -297,6 +300,10 @@ class InternalStoreAccess {
   /// String query case-sensitive default
   @pragma('vm:prefer-inline')
   static bool queryCS(Store store) => store._queriesCaseSensitiveDefault;
+
+  /// The low-level pointer to this store.
+  @pragma('vm:prefer-inline')
+  static ReaderWithCBuffer reader(Store store) => store._reader;
 }
 
 const _int64Size = 8;

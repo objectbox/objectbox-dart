@@ -1,11 +1,12 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
 // Note: upstream flatbuffers currently doesn't have a null-safe version
 // import 'package:flat_buffers/flat_buffers.dart' as fb_upstream;
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/flatbuffers.dart';
-import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
+import 'package:objectbox/src/native/bindings/nativemem.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -107,7 +108,8 @@ void main() {
 
     final fb1 = BuilderWithCBuffer();
     binding.objectToFB(source, fb1.fbb);
-    final fbData = fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size);
+    final fbData = ByteData.view(
+        fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size).buffer);
 
     // must have the same content after reading back
     final target = binding.objectFromFB(env.store, fbData);
@@ -118,7 +120,7 @@ void main() {
     // checkSameEntities(target, source);
 
     // explicitly clear the allocated memory
-    fbMemset!(fb1.bufPtr.cast<Uint8>(), 0, fbData.lengthInBytes);
+    memset(fb1.bufPtr.cast<Uint8>(), 0, fbData.lengthInBytes);
     // fbData is now cleared as well, it's not a copy
     expect(bytesSum(fbData.buffer.asByteData()), isZero);
 

@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:objectbox/src/native/bindings/flatbuffers.dart';
 
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
@@ -87,6 +88,7 @@ class CursorHelper<T> {
   final EntityDefinition<T> _entity;
   final Store _store;
   final Pointer<OBX_cursor> ptr;
+  late final ReaderWithCBuffer _reader = InternalStoreAccess.reader(_store);
 
   final bool _isWrite;
   late final Pointer<Pointer<Void>> dataPtrPtr;
@@ -106,8 +108,8 @@ class CursorHelper<T> {
     }
   }
 
-  Uint8List get readData =>
-      dataPtrPtr.value.cast<Uint8>().asTypedList(sizePtr.value);
+  ByteData get readData =>
+      _reader.access(dataPtrPtr.value.cast(), sizePtr.value);
 
   EntityDefinition<T> get entity => _entity;
 
