@@ -126,7 +126,7 @@ ObjectBox v0.14.0 and Flutter v2.0.5 release builds (using the [recommended](htt
 `flutter build apk --split-per-abi` to build APKs for each ABI):
 
 | Release                                   | without ObjectBox |            with ObjectBox |    difference |
-| ----------------------------------------- | ----------------: | ------------------------: | ------------: | 
+| ----------------------------------------- | ----------------: | ------------------------: | ------------: |
 | APK (default compressed, arm64-v8a)       |           5.5 MiB |       6.0 MiB<sup>1</sup> |      +0.5 MiB |
 | APK (uncompressed, arm64-v8a)<sup>2</sup> |          12.0 MiB |                  13.5 MiB |  **+1.5 MiB** |
 | Fat APK (uncompressed, all ABIs)          |          33.8 MiB |                  39.6 MiB |      +5.8 MiB |
