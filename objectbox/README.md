@@ -148,8 +148,8 @@ look under Architectures and replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCH
 See also
 ---------
 
-* [Changelog](objectbox/CHANGELOG.md)
-* [Contribution guidelines](CONTRIBUTING.md)
+* [Changelog](CHANGELOG.md)
+* [Contribution guidelines](../CONTRIBUTING.md)
 
 License
 -------
