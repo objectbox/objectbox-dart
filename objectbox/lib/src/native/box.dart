@@ -424,12 +424,10 @@ class _AsyncBoxHelper {
         if (message == null) {
           completer.complete(newId);
         } else if (message is String) {
-          print('Received string error message: $message');
           completer.completeError(message.startsWith('Unique constraint')
               ? UniqueViolationException(message)
               : ObjectBoxException(message));
         } else {
-          print('Received other error message: $message');
           completer.completeError(ObjectBoxException(
               'Unknown message type (${message.runtimeType}: $message'));
         }
