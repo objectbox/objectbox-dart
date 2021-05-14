@@ -59,7 +59,7 @@ Add the following dependencies to start using ObjectBox and code generator.
 
 ```yaml
 dependencies:
-  objectbox: ^0.14.0
+  objectbox: ^0.15.0
   objectbox_flutter_libs: any
 
 dev_dependencies:
@@ -75,7 +75,7 @@ dev_dependencies:
 
 ```yaml
 dependencies:
-  objectbox: ^0.14.0
+  objectbox: ^0.15.0
 
 dev_dependencies:
   build_runner: ^2.0.0
@@ -125,7 +125,7 @@ of your app smaller. For more information about the sizes, see the following tab
 ObjectBox v0.14.0 and Flutter v2.0.5 release builds (using the [recommended](https://flutter.dev/docs/deployment/android#build-an-apk)
 `flutter build apk --split-per-abi` to build APKs for each ABI):
 
-| Release                                   | without ObjectBox |            with ObjectBox |    Difference |
+| Release                                   | without ObjectBox |            with ObjectBox |    difference |
 | ----------------------------------------- | ----------------: | ------------------------: | ------------: | 
 | APK (default compressed, arm64-v8a)       |           5.5 MiB |       6.0 MiB<sup>1</sup> |      +0.5 MiB |
 | APK (uncompressed, arm64-v8a)<sup>2</sup> |          12.0 MiB |                  13.5 MiB |  **+1.5 MiB** |
