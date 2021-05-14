@@ -4,16 +4,16 @@ import 'dart:ffi';
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/objectbox.g.dart';
 
-void main() {
-  ModelInit().report();
+void main() async {
+  await ModelInit().report();
 
-  BoxAccessMap().report();
-  BoxAccessHashMap().report();
-  BoxAccessList().report();
+  await BoxAccessMap().report();
+  await BoxAccessHashMap().report();
+  await BoxAccessList().report();
   assert(_boxAccessResult.isNotEmpty);
 
-  DynLibProcess().report();
-  DynLibFile().report();
+  await DynLibProcess().report();
+  await DynLibFile().report();
 }
 
 class ModelInit extends Benchmark {
@@ -87,7 +87,7 @@ class BoxAccessHashMap extends Benchmark {
 class BoxAccessList extends Benchmark {
   final boxIndexes = List<Type>.from(_types, growable: false);
   final boxValues =
-  List<String>.from(_types.map((t) => t.toString()), growable: false);
+      List<String>.from(_types.map((t) => t.toString()), growable: false);
 
   BoxAccessList() : super('${BoxAccessList}', iterations: 10000);
 

@@ -3,14 +3,14 @@ import 'package:objectbox_benchmark/objectbox.g.dart';
 
 const count = 10000;
 
-void main() {
-  Put().report();
-  PutInTx().report();
-  PutMany().report();
-  PutAsync().report();
-  PutAsync2().report();
-  PutAsync3().report();
-  PutQueued().report();
+void main() async {
+  await Put().report();
+  await PutInTx().report();
+  await PutMany().report();
+  await PutAsync().report();
+  await PutAsync2().report();
+  await PutAsync3().report();
+  await PutQueued().report();
 }
 
 class Put extends DbBenchmark {
@@ -50,7 +50,7 @@ class PutAsync extends DbBenchmark {
             iterations: 1, coefficient: 1 / count);
 
   @override
-  void run() async => await Future.wait(items.map(box.putAsync));
+  Future<void> run() async => await Future.wait(items.map(box.putAsync));
 }
 
 // This is slightly different (slower) then the [PutAsync] - all futures are
@@ -63,7 +63,7 @@ class PutAsync2 extends DbBenchmark {
             iterations: 1, coefficient: 1 / count);
 
   @override
-  void run() async {
+  Future<void> run() async {
     final futures = items.map(box.putAsync).toList(growable: false);
     await Future.wait(futures);
     store.awaitAsyncSubmitted();
@@ -76,7 +76,7 @@ class PutAsync3 extends DbBenchmark {
   PutAsync3() : super('${PutAsync3}[wait(putAsync(i))]', iterations: count);
 
   @override
-  void run() {
+  Future<void> run() async {
     items.forEach((item) async => await box.putAsync(item));
     store.awaitAsyncSubmitted();
   }
@@ -88,7 +88,7 @@ class PutQueued extends DbBenchmark {
   PutQueued() : super('${PutQueued}', iterations: count);
 
   @override
-  void run() {
+  Future<void> run() async {
     items.forEach(box.putQueued);
     store.awaitAsyncSubmitted();
   }

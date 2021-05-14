@@ -1,9 +1,9 @@
 import 'package:objectbox_benchmark/benchmark.dart';
 
-void main() {
-  Get().report();
-  GetMany().report();
-  GetAll().report();
+void main() async {
+  await Get().report();
+  await GetMany().report();
+  await GetAll().report();
 }
 
 class Get extends DbBenchmark {

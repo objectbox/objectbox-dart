@@ -4,17 +4,18 @@ import 'package:objectbox_benchmark/objectbox.g.dart';
 
 const count = 10000;
 
-void main() {
-  QueryFind().report();
-  QueryFindIds().report();
-  QueryStream().report();
+void main() async {
+  await QueryFind().report();
+  await QueryFindIds().report();
+  await QueryStream().report();
 }
 
 class QueryBenchmark extends DbBenchmark {
+  static const expectedCount = count / 5;
   late final Query<TestEntity> query;
 
   QueryBenchmark(String name)
-      : super(name, iterations: 1, coefficient: 1 / count);
+      : super(name, iterations: 1, coefficient: 1 / expectedCount);
 
   @override
   void setup() {
@@ -25,9 +26,9 @@ class QueryBenchmark extends DbBenchmark {
             .or(TestEntity_.tInt.greaterThan(count - (count / 10).floor())))
         .build();
 
-    if (query.count() != count / 5) {
+    if (query.count() != expectedCount) {
       throw Exception('Unexpected number of query results '
-          '${query.count()} vs expected ${count / 5}');
+          '${query.count()} vs expected $expectedCount');
     }
   }
 
@@ -42,19 +43,22 @@ class QueryFind extends QueryBenchmark {
   QueryFind() : super('${QueryFind}');
 
   @override
-  void run() => query.find();
+  Future<void> run() async {
+    query.find();
+    return Future.value();
+  }
 }
 
 class QueryFindIds extends QueryBenchmark {
   QueryFindIds() : super('${QueryFindIds}');
 
   @override
-  void run() => query.findIds();
+  Future<void> run() async => query.findIds();
 }
 
 class QueryStream extends QueryBenchmark {
   QueryStream() : super('${QueryStream}');
 
   @override
-  void run() async => await Future.wait([query.stream().toList()]);
+  Future<void> run() async => await query.stream().toList();
 }

@@ -4,12 +4,11 @@ import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/model.dart';
 
-void main() {
-  SetupSingle()
-  .report();
-  SetupSingleBasedOnMulti().report();
-  SetupMulti().report();
-  SetupMultiExisting().report();
+void main() async {
+  await SetupSingle().report();
+  await SetupSingleBasedOnMulti().report();
+  await SetupMulti().report();
+  await SetupMultiExisting().report();
 }
 
 // ~200k per second
@@ -40,7 +39,7 @@ class SetupSingleBasedOnMulti extends DbBenchmark {
   @override
   void setup() {
     // see implementation - prepares a stream beforehand
-    multiSub = store.entityChanges.listen((event) { });
+    multiSub = store.entityChanges.listen((event) {});
     super.setup();
   }
 
@@ -80,7 +79,7 @@ class SetupMultiExisting extends DbBenchmark {
   @override
   void setup() {
     // see implementation - prepares a stream beforehand
-    multiSub = store.entityChanges.listen((event) { });
+    multiSub = store.entityChanges.listen((event) {});
     super.setup();
   }
 

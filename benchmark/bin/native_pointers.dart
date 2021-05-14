@@ -1,5 +1,5 @@
-import 'dart:typed_data';
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
@@ -18,12 +18,12 @@ import 'package:objectbox_benchmark/benchmark.dart';
 // A quick profiling session shows .asTypedList() taking about 90% of the time,
 // which is consistent with profiling objectbox-dart Box.read().
 
-void main() {
+void main() async {
   final sizeInBytes = 256;
-  AsTypedList(sizeInBytes).report();
+  await AsTypedList(sizeInBytes).report();
 
   // just checking if using a larger underlying type would help with anything
-  AsTypedListUint64((sizeInBytes / 8).floor()).report();
+  await AsTypedListUint64((sizeInBytes / 8).floor()).report();
 }
 
 class AsTypedList extends Benchmark {

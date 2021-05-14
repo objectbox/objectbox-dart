@@ -1,4 +1,3 @@
-import 'dart:cli';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
@@ -17,9 +16,10 @@ class Benchmark {
   Benchmark(this.name, {this.iterations = 1, this.coefficient = 1})
       : emitter = Emitter(iterations, coefficient) {
     print('-------------------------------------------------------------');
-    print('$name(iterations):       ${Emitter._format(iterations.toDouble())}');
-    print(
-        '$name(count):            ${Emitter._format(iterations / coefficient)}');
+    print('$name(iterations):       ' +
+        Emitter._format(iterations.toDouble(), decimalPoints: 0));
+    print('$name(count):            ' +
+        Emitter._format(iterations / coefficient));
     // Measure the total time of the test - if it's too high, you should
     // decrease the number of iterations. Expected time is between 2 and 3 sec.
     watch.start();
@@ -30,15 +30,20 @@ class Benchmark {
 
   @mustCallSuper
   void teardown() {
-    final color = watch.elapsedMilliseconds > 3000 ? '\x1B[31m' : '';
-    print('$name(total time taken): $color${watch.elapsed.toString()}\x1B[0m');
+    final millis = watch.elapsedMilliseconds;
+    final color = millis > 3000 ? '\x1B[31m' : '';
+    print('$name(total time taken): '
+        '$color${Emitter._format(millis.toDouble(), suffix: ' ms')}\x1B[0m');
   }
 
-  void run() async {
+  Future<void> run() async {
     for (var i = 0; i < iterations; i++) runIteration(i);
+    return Future.value();
   }
 
-  void runIteration(int iteration) async {}
+  void runIteration(int iteration) {
+    throw UnimplementedError('Please override runIteration() or run()');
+  }
 
   // Runs [f] for at least [minimumMillis] milliseconds.
   static Future<double> _measureFor(Function f, int minimumMillis) async {
@@ -67,8 +72,8 @@ class Benchmark {
   }
 
   @nonVirtual
-  void report() {
-    emitter.emit(name, waitFor(_measure()));
+  Future<void> report() async {
+    emitter.emit(name, await _measure());
   }
 }
 
@@ -83,8 +88,10 @@ class Emitter {
   void emit(String testName, double value) {
     final timePerIter = value / iterations;
     final timePerUnit = timePerIter * coefficient;
-    print('$testName(Single iteration): ${_format(timePerIter)} us');
-    print('$testName(Runtime per unit): ${_format(timePerUnit)} us');
+    print(
+        '$testName(Single iteration): ${_format(timePerIter, suffix: ' us')}');
+    print(
+        '$testName(Runtime per unit): ${_format(timePerUnit, suffix: ' us')}');
     print('$testName(Runs per second):  ${_format(usInSec / timePerIter)}');
     print('$testName(Units per second): ${_format(usInSec / timePerUnit)}');
   }
@@ -92,8 +99,11 @@ class Emitter {
   // Simple number formatting, maybe use a lib?
   // * the smaller the number, the more decimal places it has (one up to four).
   // * large numbers use thousands separator (defaults to non-breaking space).
-  static String _format(double num, [String thousandsSeparator = ' ']) {
-    final decimalPoints = num < 1
+  static String _format(double num,
+      {String thousandsSeparator = ' ',
+      int? decimalPoints,
+      String suffix = ''}) {
+    decimalPoints ??= num < 1
         ? 4
         : num < 10
             ? 3
@@ -104,15 +114,17 @@ class Emitter {
                     : 0;
 
     var str = num.toStringAsFixed(decimalPoints);
-    if (num < 1000) return str;
-
-    // add thousands separators, efficiency doesn't matter here...
-    final digitsReversed = str.split('').reversed.toList(growable: false);
-    str = '';
-    for (var i = 0; i < digitsReversed.length; i++) {
-      if (i > 0 && i % 3 == 0) str = '$thousandsSeparator$str';
-      str = '${digitsReversed[i]}$str';
+    if (num >= 1000) {
+      // add thousands separators, efficiency doesn't matter here...
+      final digitsReversed = str.split('').reversed.toList(growable: false);
+      str = '';
+      for (var i = 0; i < digitsReversed.length; i++) {
+        if (i > 0 && i % 3 == 0) str = '$thousandsSeparator$str';
+        str = '${digitsReversed[i]}$str';
+      }
     }
+    str += suffix;
+    while (str.length < 10) str = ' $str';
     return str;
   }
 }
