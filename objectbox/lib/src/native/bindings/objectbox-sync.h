@@ -150,7 +150,7 @@ obx_err obx_sync_close(OBX_sync* sync);
 /// See OBXSyncCredentialsType for available options.
 /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
 /// @param data may be NULL, i.e. in combination with OBXSyncCredentialsType_NONE
-obx_err obx_sync_credentials(OBX_sync* sync, OBXSyncCredentialsType type, const void* data, size_t size);
+obx_err obx_sync_credentials(OBX_sync* sync, OBXSyncCredentialsType type, const uint8_t* data, size_t size);
 
 /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.
 /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the range 1-20

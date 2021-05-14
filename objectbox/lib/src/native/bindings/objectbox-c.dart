@@ -1384,7 +1384,7 @@ class ObjectBoxC {
   int cursor_put(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _cursor_put(
@@ -1409,7 +1409,7 @@ class ObjectBoxC {
   int cursor_put4(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
     int mode,
   ) {
@@ -1435,7 +1435,7 @@ class ObjectBoxC {
   int cursor_put_new(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _cursor_put_new(
@@ -1457,7 +1457,7 @@ class ObjectBoxC {
   int cursor_insert(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _cursor_insert(
@@ -1479,7 +1479,7 @@ class ObjectBoxC {
   int cursor_update(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _cursor_update(
@@ -1542,7 +1542,7 @@ class ObjectBoxC {
   int cursor_get(
     ffi.Pointer<OBX_cursor> cursor,
     int id,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _cursor_get(
@@ -1577,7 +1577,7 @@ class ObjectBoxC {
 
   int cursor_first(
     ffi.Pointer<OBX_cursor> cursor,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _cursor_first(
@@ -1594,7 +1594,7 @@ class ObjectBoxC {
 
   int cursor_next(
     ffi.Pointer<OBX_cursor> cursor,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _cursor_next(
@@ -1626,7 +1626,7 @@ class ObjectBoxC {
 
   int cursor_current(
     ffi.Pointer<OBX_cursor> cursor,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _cursor_current(
@@ -1956,7 +1956,7 @@ class ObjectBoxC {
   int box_get(
     ffi.Pointer<OBX_box> box,
     int id,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _box_get(
@@ -2099,7 +2099,7 @@ class ObjectBoxC {
   int box_put(
     ffi.Pointer<OBX_box> box,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _box_put(
@@ -2120,7 +2120,7 @@ class ObjectBoxC {
   int box_insert(
     ffi.Pointer<OBX_box> box,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _box_insert(
@@ -2142,7 +2142,7 @@ class ObjectBoxC {
   int box_update(
     ffi.Pointer<OBX_box> box,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _box_update(
@@ -2165,7 +2165,7 @@ class ObjectBoxC {
   int box_put5(
     ffi.Pointer<OBX_box> box,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
     int mode,
   ) {
@@ -2555,7 +2555,7 @@ class ObjectBoxC {
   int async_put(
     ffi.Pointer<OBX_async> async_1,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _async_put(
@@ -2575,7 +2575,7 @@ class ObjectBoxC {
   int async_put5(
     ffi.Pointer<OBX_async> async_1,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
     int mode,
   ) {
@@ -2597,7 +2597,7 @@ class ObjectBoxC {
   int async_insert(
     ffi.Pointer<OBX_async> async_1,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _async_insert(
@@ -2617,7 +2617,7 @@ class ObjectBoxC {
   int async_update(
     ffi.Pointer<OBX_async> async_1,
     int id,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _async_update(
@@ -3366,7 +3366,7 @@ class ObjectBoxC {
   int qb_equals_bytes(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _qb_equals_bytes(
@@ -3385,7 +3385,7 @@ class ObjectBoxC {
   int qb_greater_than_bytes(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _qb_greater_than_bytes(
@@ -3405,7 +3405,7 @@ class ObjectBoxC {
   int qb_greater_or_equal_bytes(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _qb_greater_or_equal_bytes(
@@ -3426,7 +3426,7 @@ class ObjectBoxC {
   int qb_less_than_bytes(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _qb_less_than_bytes(
@@ -3446,7 +3446,7 @@ class ObjectBoxC {
   int qb_less_or_equal_bytes(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _qb_less_or_equal_bytes(
@@ -3763,7 +3763,7 @@ class ObjectBoxC {
   /// operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
   int query_find_first(
     ffi.Pointer<OBX_query> query,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _query_find_first(
@@ -3786,7 +3786,7 @@ class ObjectBoxC {
   /// operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
   int query_find_unique(
     ffi.Pointer<OBX_query> query,
-    ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
     ffi.Pointer<ffi.IntPtr> size,
   ) {
     return _query_find_unique(
@@ -4159,7 +4159,7 @@ class ObjectBoxC {
     ffi.Pointer<OBX_query> query,
     int entity_id,
     int property_id,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _query_param_bytes(
@@ -4364,7 +4364,7 @@ class ObjectBoxC {
   int query_param_alias_bytes(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<ffi.Int8> alias,
-    ffi.Pointer<ffi.Void> value,
+    ffi.Pointer<ffi.Uint8> value,
     int size,
   ) {
     return _query_param_alias_bytes(
@@ -4930,7 +4930,7 @@ class ObjectBoxC {
   int bytes_array_set(
     ffi.Pointer<OBX_bytes_array> array,
     int index,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _bytes_array_set(
@@ -5160,7 +5160,7 @@ class ObjectBoxC {
   int sync_credentials(
     ffi.Pointer<OBX_sync> sync_1,
     int type,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _sync_credentials(
@@ -7095,21 +7095,21 @@ typedef _dart_cursor_id_for_put = int Function(
 typedef _c_cursor_put = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_cursor_put = int Function(
   ffi.Pointer<OBX_cursor> cursor,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_cursor_put4 = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
   ffi.Int32 mode,
 );
@@ -7117,7 +7117,7 @@ typedef _c_cursor_put4 = ffi.Int32 Function(
 typedef _dart_cursor_put4 = int Function(
   ffi.Pointer<OBX_cursor> cursor,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
   int mode,
 );
@@ -7125,42 +7125,42 @@ typedef _dart_cursor_put4 = int Function(
 typedef _c_cursor_put_new = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_cursor_put_new = int Function(
   ffi.Pointer<OBX_cursor> cursor,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_cursor_insert = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_cursor_insert = int Function(
   ffi.Pointer<OBX_cursor> cursor,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_cursor_update = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_cursor_update = int Function(
   ffi.Pointer<OBX_cursor> cursor,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
@@ -7193,14 +7193,14 @@ typedef _dart_cursor_put_object4 = int Function(
 typedef _c_cursor_get = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_cursor_get = int Function(
   ffi.Pointer<OBX_cursor> cursor,
   int id,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
@@ -7214,25 +7214,25 @@ typedef _dart_cursor_get_all = ffi.Pointer<OBX_bytes_array> Function(
 
 typedef _c_cursor_first = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_cursor_first = int Function(
   ffi.Pointer<OBX_cursor> cursor,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _c_cursor_next = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_cursor_next = int Function(
   ffi.Pointer<OBX_cursor> cursor,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
@@ -7248,13 +7248,13 @@ typedef _dart_cursor_seek = int Function(
 
 typedef _c_cursor_current = ffi.Int32 Function(
   ffi.Pointer<OBX_cursor> cursor,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_cursor_current = int Function(
   ffi.Pointer<OBX_cursor> cursor,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
@@ -7457,14 +7457,14 @@ typedef _dart_box_contains_many = int Function(
 typedef _c_box_get = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_box_get = int Function(
   ffi.Pointer<OBX_box> box,
   int id,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
@@ -7543,49 +7543,49 @@ typedef _dart_box_ids_for_put = int Function(
 typedef _c_box_put = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_box_put = int Function(
   ffi.Pointer<OBX_box> box,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_box_insert = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_box_insert = int Function(
   ffi.Pointer<OBX_box> box,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_box_update = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_box_update = int Function(
   ffi.Pointer<OBX_box> box,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_box_put5 = ffi.Int32 Function(
   ffi.Pointer<OBX_box> box,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
   ffi.Int32 mode,
 );
@@ -7593,7 +7593,7 @@ typedef _c_box_put5 = ffi.Int32 Function(
 typedef _dart_box_put5 = int Function(
   ffi.Pointer<OBX_box> box,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
   int mode,
 );
@@ -7819,21 +7819,21 @@ typedef _dart_async_1 = ffi.Pointer<OBX_async> Function(
 typedef _c_async_put = ffi.Int32 Function(
   ffi.Pointer<OBX_async> async_1,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_async_put = int Function(
   ffi.Pointer<OBX_async> async_1,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_async_put5 = ffi.Int32 Function(
   ffi.Pointer<OBX_async> async_1,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
   ffi.Int32 mode,
 );
@@ -7841,7 +7841,7 @@ typedef _c_async_put5 = ffi.Int32 Function(
 typedef _dart_async_put5 = int Function(
   ffi.Pointer<OBX_async> async_1,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
   int mode,
 );
@@ -7849,28 +7849,28 @@ typedef _dart_async_put5 = int Function(
 typedef _c_async_insert = ffi.Int32 Function(
   ffi.Pointer<OBX_async> async_1,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_async_insert = int Function(
   ffi.Pointer<OBX_async> async_1,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
 typedef _c_async_update = ffi.Int32 Function(
   ffi.Pointer<OBX_async> async_1,
   ffi.Uint64 id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_async_update = int Function(
   ffi.Pointer<OBX_async> async_1,
   int id,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
@@ -8357,70 +8357,70 @@ typedef _dart_qb_between_2doubles = int Function(
 typedef _c_qb_equals_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
 typedef _dart_qb_equals_bytes = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
 typedef _c_qb_greater_than_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
 typedef _dart_qb_greater_than_bytes = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
 typedef _c_qb_greater_or_equal_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
 typedef _dart_qb_greater_or_equal_bytes = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
 typedef _c_qb_less_than_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
 typedef _dart_qb_less_than_bytes = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
 typedef _c_qb_less_or_equal_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query_builder> builder,
   ffi.Uint32 property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
 typedef _dart_qb_less_or_equal_bytes = int Function(
   ffi.Pointer<OBX_query_builder> builder,
   int property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
@@ -8592,25 +8592,25 @@ typedef _dart_query_find = ffi.Pointer<OBX_bytes_array> Function(
 
 typedef _c_query_find_first = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_query_find_first = int Function(
   ffi.Pointer<OBX_query> query,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _c_query_find_unique = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
 typedef _dart_query_find_unique = int Function(
   ffi.Pointer<OBX_query> query,
-  ffi.Pointer<ffi.Pointer<ffi.Void>> data,
+  ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
   ffi.Pointer<ffi.IntPtr> size,
 );
 
@@ -8854,7 +8854,7 @@ typedef _c_query_param_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
   ffi.Uint32 entity_id,
   ffi.Uint32 property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
@@ -8862,7 +8862,7 @@ typedef _dart_query_param_bytes = int Function(
   ffi.Pointer<OBX_query> query,
   int entity_id,
   int property_id,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
@@ -8987,14 +8987,14 @@ typedef _dart_query_param_alias_2doubles = int Function(
 typedef _c_query_param_alias_bytes = ffi.Int32 Function(
   ffi.Pointer<OBX_query> query,
   ffi.Pointer<ffi.Int8> alias,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   ffi.IntPtr size,
 );
 
 typedef _dart_query_param_alias_bytes = int Function(
   ffi.Pointer<OBX_query> query,
   ffi.Pointer<ffi.Int8> alias,
-  ffi.Pointer<ffi.Void> value,
+  ffi.Pointer<ffi.Uint8> value,
   int size,
 );
 
@@ -9287,14 +9287,14 @@ typedef _dart_bytes_array = ffi.Pointer<OBX_bytes_array> Function(
 typedef _c_bytes_array_set = ffi.Int32 Function(
   ffi.Pointer<OBX_bytes_array> array,
   ffi.IntPtr index,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_bytes_array_set = int Function(
   ffi.Pointer<OBX_bytes_array> array,
   int index,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 
@@ -9413,14 +9413,14 @@ typedef _dart_sync_close = int Function(
 typedef _c_sync_credentials = ffi.Int32 Function(
   ffi.Pointer<OBX_sync> sync_1,
   ffi.Int32 type,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   ffi.IntPtr size,
 );
 
 typedef _dart_sync_credentials = int Function(
   ffi.Pointer<OBX_sync> sync_1,
   int type,
-  ffi.Pointer<ffi.Void> data,
+  ffi.Pointer<ffi.Uint8> data,
   int size,
 );
 

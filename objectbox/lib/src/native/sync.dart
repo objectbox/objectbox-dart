@@ -207,7 +207,7 @@ class SyncClient {
     } else {
       withNativeBytes(
           creds._data,
-          (Pointer<Void> credsPtr, int credsSize) => checkObx(
+          (Pointer<Uint8> credsPtr, int credsSize) => checkObx(
               C.sync_credentials(_ptr, creds._type, credsPtr, credsSize)));
     }
   }

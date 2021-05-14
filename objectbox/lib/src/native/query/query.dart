@@ -534,11 +534,11 @@ class _ByteVectorCondition<EntityT>
 
   int _op1(
           _QueryBuilder builder,
-          int Function(Pointer<OBX_query_builder>, int, Pointer<Void>, int)
+          int Function(Pointer<OBX_query_builder>, int, Pointer<Uint8>, int)
               func) =>
       withNativeBytes(
           _value,
-          (Pointer<Void> ptr, int size) =>
+              (Pointer<Uint8> ptr, int size) =>
               func(builder._cBuilder, _property._model.id.id, ptr, size));
 
   @override

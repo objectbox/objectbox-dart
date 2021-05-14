@@ -2,12 +2,12 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:objectbox/src/native/bindings/flatbuffers.dart';
 
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
+import 'flatbuffers.dart';
 
 // ignore_for_file: public_member_api_docs
 
@@ -91,7 +91,7 @@ class CursorHelper<T> {
   late final ReaderWithCBuffer _reader = InternalStoreAccess.reader(_store);
 
   final bool _isWrite;
-  late final Pointer<Pointer<Void>> dataPtrPtr;
+  late final Pointer<Pointer<Uint8>> dataPtrPtr;
 
   late final Pointer<IntPtr> sizePtr;
 
@@ -108,8 +108,7 @@ class CursorHelper<T> {
     }
   }
 
-  ByteData get readData =>
-      _reader.access(dataPtrPtr.value.cast(), sizePtr.value);
+  ByteData get readData => _reader.access(dataPtrPtr.value, sizePtr.value);
 
   EntityDefinition<T> get entity => _entity;
 
@@ -133,13 +132,13 @@ class CursorHelper<T> {
 }
 
 T withNativeBytes<T>(
-    Uint8List data, T Function(Pointer<Void> ptr, int size) fn) {
+    Uint8List data, T Function(Pointer<Uint8> ptr, int size) fn) {
   final size = data.length;
   assert(size == data.lengthInBytes);
   final ptr = malloc<Uint8>(size);
   try {
     ptr.asTypedList(size).setAll(0, data); // copies `data` to `ptr`
-    return fn(ptr.cast<Void>(), size);
+    return fn(ptr, size);
   } finally {
     malloc.free(ptr);
   }
