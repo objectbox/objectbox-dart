@@ -531,8 +531,9 @@ class CodeChunks {
               'Unsupported property type (${prop.type}): ${entity.name}.$name');
       }
 
-      var propCode =
-          'static final ${propertyFieldName(prop)} = Query${fieldType}Property<${entity.name}';
+      var propCode = '''
+        /// see [${entity.name}.${propertyFieldName(prop)}]
+        static final ${propertyFieldName(prop)} = Query${fieldType}Property<${entity.name}''';
       if (prop.isRelation) propCode += ', ${prop.relationTarget}';
       propCode += '>(_entities[$i].properties[$p]);';
       fields.add(propCode);
@@ -542,13 +543,15 @@ class CodeChunks {
       final rel = entity.relations[r];
       final targetEntityName =
           entity.model.findEntityByUid(rel.targetId.uid)!.name;
-      fields.add('static final ${rel.name} = QueryRelationMany'
+      fields.add('''
+          /// see [${entity.name}.${rel.name}]
+          static final ${rel.name} = QueryRelationMany'''
           '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
     }
 
     return '''
-    /// [${entity.name}] entity fields to define ObjectBox queries. 
-    class ${entity.name}_ {${fields.join()}}
+      /// [${entity.name}] entity fields to define ObjectBox queries. 
+      class ${entity.name}_ {${fields.join()}}
     ''';
   }
 }
