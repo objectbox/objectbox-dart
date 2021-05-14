@@ -22,10 +22,11 @@ ObjectBoxC? _tryObjectBoxLibProcess() {
     _lib = DynamicLibrary.process();
     obxc = ObjectBoxC(_lib!);
     _isSupportedVersion(obxc); // may throw in case symbols are not found
+    return obxc;
   } catch (_) {
     // ignore errors (i.e. symbol not found)
+    return null;
   }
-  return null;
 }
 
 ObjectBoxC? _tryObjectBoxLibFile() {

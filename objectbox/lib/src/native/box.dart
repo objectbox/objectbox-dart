@@ -419,16 +419,20 @@ class _AsyncBoxHelper {
     }
 
     port.listen((dynamic message) {
-      // Null is sent if the put was successful (there is no error, thus NULL)
-      if (message == null) {
-        completer.complete(newId);
-      } else if (message is String) {
-        completer.completeError(message.startsWith('Unique constraint')
-            ? UniqueViolationException(message)
-            : ObjectBoxException(message));
-      } else {
-        completer.completeError(ObjectBoxException(
-            'Unknown message type (${message.runtimeType}: $message'));
+      if (!completer.isCompleted) {
+        // Null is sent if the put was successful (there is no error, thus NULL)
+        if (message == null) {
+          completer.complete(newId);
+        } else if (message is String) {
+          print('Received string error message: $message');
+          completer.completeError(message.startsWith('Unique constraint')
+              ? UniqueViolationException(message)
+              : ObjectBoxException(message));
+        } else {
+          print('Received other error message: $message');
+          completer.completeError(ObjectBoxException(
+              'Unknown message type (${message.runtimeType}: $message'));
+        }
       }
       port.close();
     });
