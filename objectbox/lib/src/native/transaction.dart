@@ -105,7 +105,7 @@ class Transaction {
     // Whether the function is an `async` function. We can't allow those because
     // the isolate could be transferred to another thread during execution.
     // Checking the return value seems like the only thing we can in Dart v2.12.
-    if (fn is Future Function()) {
+    if (fn is Future Function() && _nullSafetyEnabled) {
       // This is a special case when the given function always throws. Triggered
       //  in our test code. No need to even start a DB transaction in that case.
       if (fn is Never Function()) {
@@ -124,7 +124,17 @@ class Transaction {
       // thus marking before the call allows us to return directly, before an
       // intermediary variable.
       if (tx._isWrite) tx.markSuccessful();
-      return fn();
+      if (_nullSafetyEnabled) {
+        return fn();
+      } else {
+        final result = fn();
+        if (result is Future) {
+          // Let's make sure users change their code not to do use async.
+          throw UnsupportedError(
+              'Executing an "async" function in a transaction is not allowed.');
+        }
+        return result;
+      }
     } catch (ex) {
       if (tx._isWrite) tx.markFailed();
       rethrow;
@@ -133,3 +143,8 @@ class Transaction {
     }
   }
 }
+
+/// True if the package enables null-safety (i.e. depends on SDK 2.12+).
+/// Otherwise, it's we can distinguish at runtime whether a function is async.
+final _nullSafetyEnabled = _nullReturningFn is! Future Function();
+final _nullReturningFn = () => null;
