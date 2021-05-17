@@ -20,6 +20,6 @@ typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 typedef _dart_memcpy = void Function(Pointer<Uint8>, Pointer<Uint8>, int);
 typedef _c_memcpy = Void Function(Pointer<Uint8>, Pointer<Uint8>, IntPtr);
 
-final DynamicLibrary _stdlib = Platform.isWindows
+final DynamicLibrary _stdlib = Platform.isWindows // no .process() on windows
     ? DynamicLibrary.open('vcruntime140.dll') // required by objectbox.dll
     : DynamicLibrary.process();

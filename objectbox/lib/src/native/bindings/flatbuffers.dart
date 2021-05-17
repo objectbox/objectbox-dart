@@ -96,6 +96,8 @@ class Allocator extends fb.Allocator {
     assert(_data[_index] == data);
     assert(_allocs[_index].address != 0);
 
+    // TODO - there are other options to clear the builder, see how other
+    //        FlatBuffer implementations do it.
     memset(_allocs[_index], 0, data.lengthInBytes);
   }
 
@@ -113,7 +115,7 @@ class ReaderWithCBuffer {
   // See /benchmark/bin/native_pointers.dart for the max buffer size where it
   // still makes sense to use memcpy. On Linux, memcpy starts to be slower at
   // about 10-15 KiB. TODO test on other platforms to find an optimal limit.
-  static const _maxBuffer = 5 * 1024;
+  static const _maxBuffer = 4 * 1024;
   final _bufferPtr = malloc<Uint8>(_maxBuffer);
   late final ByteBuffer _buffer = _bufferPtr.asTypedList(_maxBuffer).buffer;
 
