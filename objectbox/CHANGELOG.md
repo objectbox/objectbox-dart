@@ -11,6 +11,7 @@ This is a 1.0 release candidate - please try it out and give us any last-minute 
 * Query conditions `inside()` renamed to `oneOf()`, `notIn()` and `notInList()` renamed to `notOneOf()`.
 * Query `stream` and `findStream()` are replaced by `QueryBuilder.watch()`, i.e. `box.query(...).watch()`.
 * New Query `stream()` to stream objects all the while the query is executed in the background.
+* New Query condition `between()` for integers and IDs.
 * Store `subscribe<EntityType>()` renamed to `watch()`.
 * Store `subscribeAll()` replaced by a shared broadcast stream `entityChanges`.
 * Entities can now contain `final` fields and they're properly stored/loaded (must be constructor params).

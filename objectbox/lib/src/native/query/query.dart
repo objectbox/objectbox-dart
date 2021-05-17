@@ -126,27 +126,30 @@ class QueryByteVectorProperty<EntityT>
 class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
   QueryIntegerProperty(ModelProperty model) : super(model);
 
-  Condition<EntityT> _op(int p, _ConditionOp cop) =>
-      _IntegerCondition<EntityT, int>(cop, this, p, 0);
+  Condition<EntityT> _op(_ConditionOp cop, int p1, [int p2 = 0]) =>
+      _IntegerCondition<EntityT, int>(cop, this, p1, p2);
 
   Condition<EntityT> _opList(List<int> list, _ConditionOp cop) =>
       _IntegerListCondition<EntityT>(cop, this, list);
 
-  Condition<EntityT> equals(int p) => _op(p, _ConditionOp.eq);
+  Condition<EntityT> equals(int p) => _op(_ConditionOp.eq, p);
 
-  Condition<EntityT> notEquals(int p) => _op(p, _ConditionOp.notEq);
+  Condition<EntityT> notEquals(int p) => _op(_ConditionOp.notEq, p);
 
-  Condition<EntityT> greaterThan(int p) => _op(p, _ConditionOp.gt);
+  Condition<EntityT> greaterThan(int p) => _op(_ConditionOp.gt, p);
 
-  Condition<EntityT> greaterOrEqual(int p) => _op(p, _ConditionOp.greaterOrEq);
+  Condition<EntityT> greaterOrEqual(int p) => _op(_ConditionOp.greaterOrEq, p);
 
-  Condition<EntityT> lessThan(int p) => _op(p, _ConditionOp.lt);
+  Condition<EntityT> lessThan(int p) => _op(_ConditionOp.lt, p);
 
-  Condition<EntityT> lessOrEqual(int p) => _op(p, _ConditionOp.lessOrEq);
+  Condition<EntityT> lessOrEqual(int p) => _op(_ConditionOp.lessOrEq, p);
 
   Condition<EntityT> operator <(int p) => lessThan(p);
 
   Condition<EntityT> operator >(int p) => greaterThan(p);
+
+  Condition<EntityT> between(int p1, int p2) =>
+      _op(_ConditionOp.between, p1, p2);
 
   Condition<EntityT> oneOf(List<int> list) => _opList(list, _ConditionOp.oneOf);
 

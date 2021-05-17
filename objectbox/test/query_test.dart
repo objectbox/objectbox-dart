@@ -180,6 +180,18 @@ void main() {
     [q0, qany0, qany1, qany2, qany3, qall0].forEach((q) => q.close());
   });
 
+  test('between ints', () {
+    box.putMany(<TestEntity>[
+      TestEntity(tInt: 1),
+      TestEntity(tInt: 3),
+      TestEntity(tInt: 5),
+      TestEntity(tInt: 7),
+      TestEntity(tInt: 9)
+    ]);
+
+    expect(box.query(TestEntity_.tInt.between(3, 7)).build().count(), 3);
+  });
+
   test('.count matches of `greater` and `less`', () {
     box.putMany(<TestEntity>[
       TestEntity(tLong: 1336, tString: 'mord'),
