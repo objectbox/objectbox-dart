@@ -122,3 +122,13 @@ late final native_query_close =
     _lib!.lookup<NativeFunction<_native_close>>('obx_query_close');
 late final native_query_prop_close =
     _lib!.lookup<NativeFunction<_native_close>>('obx_query_prop_close');
+
+/// Keeps `this` alive until this call, preventing finalizers to run.
+/// Necessary for objects with a finalizer attached because the optimizer may
+/// mark the object as unused (-> GCed -> finalized) even before it's method
+/// finished executing.
+/// See https://github.com/dart-lang/sdk/issues/35770#issuecomment-840398463
+@pragma('vm:never-inline')
+Object reachabilityFence(Object obj) {
+  return obj;
+}
