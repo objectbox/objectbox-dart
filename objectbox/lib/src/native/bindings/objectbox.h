@@ -796,7 +796,7 @@ obx_id obx_cursor_id_for_put(OBX_cursor* cursor, obx_id id_or_zero);
 /// A "put" in ObjectBox follows "insert or update" semantics;
 /// New objects (no pre-existing object for given ID) are inserted while existing objects are replaced/updated.
 /// @param id non-zero
-obx_err obx_cursor_put(OBX_cursor* cursor, obx_id id, const void* data, size_t size);
+obx_err obx_cursor_put(OBX_cursor* cursor, obx_id id, const uint8_t* data, size_t size);
 
 /// Like put obx_cursor_put(), but takes an additional parameter (4th parameter) for choosing a put mode.
 /// @param id non-zero
@@ -804,24 +804,24 @@ obx_err obx_cursor_put(OBX_cursor* cursor, obx_id id, const void* data, size_t s
 /// @returns OBX_SUCCESS if the put operation was successful
 /// @returns OBX_ERROR_ID_ALREADY_EXISTS OBXPutMode_INSERT was used, but an existing object was found using the given ID
 /// @returns OBX_ERROR_ID_NOT_FOUND OBXPutMode_UPDATE was used, but no object was found for the given ID
-obx_err obx_cursor_put4(OBX_cursor* cursor, obx_id id, const void* data, size_t size, OBXPutMode mode);
+obx_err obx_cursor_put4(OBX_cursor* cursor, obx_id id, const uint8_t* data, size_t size, OBXPutMode mode);
 
 /// An optimized version of obx_cursor_put() if you can ensure that the given ID is not used yet.
 /// Typically used right after getting a new ID via obx_cursor_id_for_put().
 /// WARNING: using this incorrectly (an object with the given ID already exists) may result in inconsistent data
 /// (e.g. indexes do not get updated).
 /// @param id non-zero
-obx_err obx_cursor_put_new(OBX_cursor* cursor, obx_id id, const void* data, size_t size);
+obx_err obx_cursor_put_new(OBX_cursor* cursor, obx_id id, const uint8_t* data, size_t size);
 
 /// Convenience for obx_cursor_put4() with OBXPutMode_INSERT.
 /// @param id non-zero
 /// @returns OBX_ERROR_ID_ALREADY_EXISTS if an insert fails because of a colliding ID
-obx_err obx_cursor_insert(OBX_cursor* cursor, obx_id id, const void* data, size_t size);
+obx_err obx_cursor_insert(OBX_cursor* cursor, obx_id id, const uint8_t* data, size_t size);
 
 /// Convenience for obx_cursor_put4() with OBXPutMode_UPDATE.
 /// @param id non-zero
 /// @returns OBX_ERROR_ID_NOT_FOUND  if an update fails because the given ID does not represent any object
-obx_err obx_cursor_update(OBX_cursor* cursor, obx_id id, const void* data, size_t size);
+obx_err obx_cursor_update(OBX_cursor* cursor, obx_id id, const uint8_t* data, size_t size);
 
 /// FB ID slot must be present; new entities must prepare the slot using the special value OBX_ID_NEW.
 /// Alternatively, you may also pass 0 to indicate a new entity if you are aware that FlatBuffers builders typically
@@ -833,7 +833,7 @@ obx_id obx_cursor_put_object(OBX_cursor* cursor, void* data, size_t size);
 /// @overload obx_id obx_cursor_put_object(OBX_cursor* cursor, void* data, size_t size)
 obx_id obx_cursor_put_object4(OBX_cursor* cursor, void* data, size_t size, OBXPutMode mode);
 
-obx_err obx_cursor_get(OBX_cursor* cursor, obx_id id, const void** data, size_t* size);
+obx_err obx_cursor_get(OBX_cursor* cursor, obx_id id, const uint8_t** data, size_t* size);
 
 /// Get all objects as bytes.
 /// For larger quantities, it's recommended to iterate using obx_cursor_first and obx_cursor_next.
@@ -841,13 +841,13 @@ obx_err obx_cursor_get(OBX_cursor* cursor, obx_id id, const void** data, size_t*
 /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
 OBX_bytes_array* obx_cursor_get_all(OBX_cursor* cursor);
 
-obx_err obx_cursor_first(OBX_cursor* cursor, const void** data, size_t* size);
+obx_err obx_cursor_first(OBX_cursor* cursor, const uint8_t** data, size_t* size);
 
-obx_err obx_cursor_next(OBX_cursor* cursor, const void** data, size_t* size);
+obx_err obx_cursor_next(OBX_cursor* cursor, const uint8_t** data, size_t* size);
 
 obx_err obx_cursor_seek(OBX_cursor* cursor, obx_id id);
 
-obx_err obx_cursor_current(OBX_cursor* cursor, const void** data, size_t* size);
+obx_err obx_cursor_current(OBX_cursor* cursor, const uint8_t** data, size_t* size);
 
 obx_err obx_cursor_remove(OBX_cursor* cursor, obx_id id);
 
@@ -933,7 +933,7 @@ obx_err obx_box_contains_many(OBX_box* box, const OBX_id_array* ids, bool* out_c
 /// \attention The exposed data is only valid as long as the (top) transaction is still active and no write
 /// \attention operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
 /// @returns OBX_ERROR_ILLEGAL_STATE if not inside of an active transaction (see obx_txn_read() and obx_txn_write())
-obx_err obx_box_get(OBX_box* box, obx_id id, const void** data, size_t* size);
+obx_err obx_box_get(OBX_box* box, obx_id id, const uint8_t** data, size_t* size);
 
 /// Fetch multiple objects for the given IDs from the box; must be called inside a (reentrant) transaction.
 /// \attention See obx_box_get() for important notes on the limited lifetime of the exposed data.
@@ -976,23 +976,23 @@ obx_err obx_box_ids_for_put(OBX_box* box, uint64_t count, obx_id* out_first_id);
 /// @param id An ID usually reserved via obx_box_id_for_put().
 /// @see obx_box_put5() to additionally provide a put mode
 /// @see obx_box_put_object() for a variant not requiring reserving IDs
-obx_err obx_box_put(OBX_box* box, obx_id id, const void* data, size_t size);
+obx_err obx_box_put(OBX_box* box, obx_id id, const uint8_t* data, size_t size);
 
 /// Convenience for obx_box_put5() with OBXPutMode_INSERT.
 /// @param id non-zero
 /// @returns OBX_ERROR_ID_ALREADY_EXISTS if an insert fails because of a colliding ID
-obx_err obx_box_insert(OBX_box* box, obx_id id, const void* data, size_t size);
+obx_err obx_box_insert(OBX_box* box, obx_id id, const uint8_t* data, size_t size);
 
 /// Convenience for obx_cursor_put4() with OBXPutMode_UPDATE.
 /// @param id non-zero
 /// @returns OBX_ERROR_ID_NOT_FOUND  if an update fails because the given ID does not represent any object
-obx_err obx_box_update(OBX_box* box, obx_id id, const void* data, size_t size);
+obx_err obx_box_update(OBX_box* box, obx_id id, const uint8_t* data, size_t size);
 
 /// Put the given object using the given ID synchronously; note that the ID also must match the one present in data.
 /// @param id An ID usually reserved via obx_box_id_for_put().
 /// @see obx_box_put() for standard put mode
 /// @see obx_box_put_object() for a variant not requiring reserving IDs
-obx_err obx_box_put5(OBX_box* box, obx_id id, const void* data, size_t size, OBXPutMode mode);
+obx_err obx_box_put5(OBX_box* box, obx_id id, const uint8_t* data, size_t size, OBXPutMode mode);
 
 /// FB ID slot must be present in the given data; new entities must have an ID value of zero or OBX_ID_NEW.
 /// @param data writable data buffer, which may be updated for the ID
@@ -1110,16 +1110,16 @@ typedef struct OBX_async OBX_async;
 OBX_async* obx_async(OBX_box* box);
 
 /// Put asynchronously with standard put semantics (insert or update).
-obx_err obx_async_put(OBX_async* async, obx_id id, const void* data, size_t size);
+obx_err obx_async_put(OBX_async* async, obx_id id, const uint8_t* data, size_t size);
 
 /// Put asynchronously using the given mode.
-obx_err obx_async_put5(OBX_async* async, obx_id id, const void* data, size_t size, OBXPutMode mode);
+obx_err obx_async_put5(OBX_async* async, obx_id id, const uint8_t* data, size_t size, OBXPutMode mode);
 
 /// Put asynchronously with inserts semantics (won't put if object already exists).
-obx_err obx_async_insert(OBX_async* async, obx_id id, const void* data, size_t size);
+obx_err obx_async_insert(OBX_async* async, obx_id id, const uint8_t* data, size_t size);
 
 /// Put asynchronously with update semantics (won't put if object is not yet present).
-obx_err obx_async_update(OBX_async* async, obx_id id, const void* data, size_t size);
+obx_err obx_async_update(OBX_async* async, obx_id id, const uint8_t* data, size_t size);
 
 /// Reserve an ID, which is returned immediately for future reference, and put asynchronously.
 /// Note: of course, it can NOT be guaranteed that the entity will actually be put successfully in the DB.
@@ -1284,18 +1284,18 @@ obx_qb_cond obx_qb_between_2doubles(OBX_query_builder* builder, obx_schema_id pr
 
 // Bytes (blob) conditions ---------------------
 
-obx_qb_cond obx_qb_equals_bytes(OBX_query_builder* builder, obx_schema_id property_id, const void* value, size_t size);
+obx_qb_cond obx_qb_equals_bytes(OBX_query_builder* builder, obx_schema_id property_id, const uint8_t* value, size_t size);
 
-obx_qb_cond obx_qb_greater_than_bytes(OBX_query_builder* builder, obx_schema_id property_id, const void* value,
+obx_qb_cond obx_qb_greater_than_bytes(OBX_query_builder* builder, obx_schema_id property_id, const uint8_t* value,
                                       size_t size);
 
-obx_qb_cond obx_qb_greater_or_equal_bytes(OBX_query_builder* builder, obx_schema_id property_id, const void* value,
+obx_qb_cond obx_qb_greater_or_equal_bytes(OBX_query_builder* builder, obx_schema_id property_id, const uint8_t* value,
                                           size_t size);
 
-obx_qb_cond obx_qb_less_than_bytes(OBX_query_builder* builder, obx_schema_id property_id, const void* value,
+obx_qb_cond obx_qb_less_than_bytes(OBX_query_builder* builder, obx_schema_id property_id, const uint8_t* value,
                                    size_t size);
 
-obx_qb_cond obx_qb_less_or_equal_bytes(OBX_query_builder* builder, obx_schema_id property_id, const void* value,
+obx_qb_cond obx_qb_less_or_equal_bytes(OBX_query_builder* builder, obx_schema_id property_id, const uint8_t* value,
                                        size_t size);
 
 /// Combine conditions[] to a new condition using operator AND (all).
@@ -1397,7 +1397,7 @@ OBX_bytes_array* obx_query_find(OBX_query* query);
 /// @warning Currently ignores offset, taking the the first matching element.
 /// @attention The exposed data is only valid as long as the (top) transaction is still active and no write
 ///            operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
-obx_err obx_query_find_first(OBX_query* query, const void** data, size_t* size);
+obx_err obx_query_find_first(OBX_query* query, const uint8_t** data, size_t* size);
 
 /// Find the only object matching the query.
 /// @returns OBX_NOT_FOUND if no object matches, an error if there are multiple objects matching the query.
@@ -1405,7 +1405,7 @@ obx_err obx_query_find_first(OBX_query* query, const void** data, size_t* size);
 /// @warning Currently ignores offset and limit, considering all matching elements.
 /// @attention The exposed data is only valid as long as the (top) transaction is still active and no write
 ///            operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
-obx_err obx_query_find_unique(OBX_query* query, const void** data, size_t* size);
+obx_err obx_query_find_unique(OBX_query* query, const uint8_t** data, size_t* size);
 
 /// Walk over matching objects using the given data visitor
 obx_err obx_query_visit(OBX_query* query, obx_data_visitor* visitor, void* user_data);
@@ -1457,7 +1457,7 @@ obx_err obx_query_param_int32s(OBX_query* query, obx_schema_id entity_id, obx_sc
 obx_err obx_query_param_double(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id, double value);
 obx_err obx_query_param_2doubles(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id, double value_a,
                                  double value_b);
-obx_err obx_query_param_bytes(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id, const void* value,
+obx_err obx_query_param_bytes(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id, const uint8_t* value,
                               size_t size);
 
 /// Gets the size of the property type used in a query condition.
@@ -1479,7 +1479,7 @@ obx_err obx_query_param_alias_int64s(OBX_query* query, const char* alias, const 
 obx_err obx_query_param_alias_int32s(OBX_query* query, const char* alias, const int32_t values[], size_t count);
 obx_err obx_query_param_alias_double(OBX_query* query, const char* alias, double value);
 obx_err obx_query_param_alias_2doubles(OBX_query* query, const char* alias, double value_a, double value_b);
-obx_err obx_query_param_alias_bytes(OBX_query* query, const char* alias, const void* value, size_t size);
+obx_err obx_query_param_alias_bytes(OBX_query* query, const char* alias, const uint8_t* value, size_t size);
 
 /// Gets the size of the property type used in a query condition.
 /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
@@ -1683,7 +1683,7 @@ void obx_bytes_free(OBX_bytes* bytes);
 OBX_bytes_array* obx_bytes_array(size_t count);
 
 /// Set the given data as the index in the bytes array. The data is not copied, just referenced through the pointer
-obx_err obx_bytes_array_set(OBX_bytes_array* array, size_t index, const void* data, size_t size);
+obx_err obx_bytes_array_set(OBX_bytes_array* array, size_t index, const uint8_t* data, size_t size);
 
 /// Free the bytes array struct
 void obx_bytes_array_free(OBX_bytes_array* array);

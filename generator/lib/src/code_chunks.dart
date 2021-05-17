@@ -412,8 +412,8 @@ class CodeChunks {
       }
     });
 
-    return '''(Store store, Uint8List fbData) {
-      final buffer = fb.BufferContext.fromBytes(fbData);
+    return '''(Store store, ByteData fbData) {
+      final buffer = fb.BufferContext(fbData);
       final rootOffset = buffer.derefObject(0);
       ${preLines.join('\n')}
       final object = ${entity.name}(${constructorLines.join(', \n')})${cascadeLines.join('\n')};

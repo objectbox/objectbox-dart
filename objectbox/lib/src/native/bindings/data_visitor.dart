@@ -36,6 +36,7 @@ Pointer<NativeFunction<obx_data_visitor>> dataVisitor(
 Pointer<NativeFunction<obx_data_visitor>> objectCollector<T>(
         List<T> list, Store store, EntityDefinition<T> entity) =>
     dataVisitor((Pointer<Uint8> data, int size) {
-      list.add(entity.objectFromFB(store, data.asTypedList(size)));
+      list.add(entity.objectFromFB(
+          store, InternalStoreAccess.reader(store).access(data, size)));
       return true;
     });

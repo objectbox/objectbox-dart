@@ -36,6 +36,7 @@ ffigen:
   output: 'lib/src/native/bindings/objectbox-c.dart'
   headers:
     entry-points:
+      # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading
       - 'lib/src/native/bindings/objectbox.h'
       - 'lib/src/native/bindings/objectbox-dart.h'
     include-directives:

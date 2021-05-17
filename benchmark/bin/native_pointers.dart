@@ -2,6 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:objectbox/src/native/bindings/nativemem.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 
 // Results (Dart SDK 2.12):
@@ -19,11 +20,13 @@ import 'package:objectbox_benchmark/benchmark.dart';
 // which is consistent with profiling objectbox-dart Box.read().
 
 void main() async {
-  final sizeInBytes = 256;
+  final sizeInBytes = 1024;
   await AsTypedList(sizeInBytes).report();
 
   // just checking if using a larger underlying type would help with anything
-  await AsTypedListUint64((sizeInBytes / 8).floor()).report();
+  // await AsTypedListUint64((sizeInBytes / 8).floor()).report();
+
+  await TypedListMemCopy(sizeInBytes).report();
 }
 
 class AsTypedList extends Benchmark {
@@ -70,6 +73,40 @@ class AsTypedListUint64 extends Benchmark {
   @override
   void teardown() {
     malloc.free(nativePtr);
+    super.teardown();
+  }
+}
+
+class TypedListMemCopy extends Benchmark {
+  final int length;
+  late final Pointer<Uint8> nativePtr;
+  late final Pointer<Uint8> nativePtr2;
+  late final ByteBuffer buffer;
+  late final ByteData data;
+
+  TypedListMemCopy(this.length)
+      : super('${TypedListMemCopy}', iterations: 1000);
+
+  @override
+  void runIteration(int i) {
+    memcpy(nativePtr, nativePtr2, length);
+    ByteData.view(buffer, length);
+    // actually using the data (read flatbuffers) doesn't matter here
+  }
+
+  @override
+  void setup() {
+    nativePtr = malloc<Uint8>(length);
+    nativePtr2 = malloc<Uint8>(length);
+    assert(nativePtr.asTypedList(length).offsetInBytes == 0);
+    buffer = nativePtr.asTypedList(length).buffer;
+    data = ByteData.view(buffer, 0);
+  }
+
+  @override
+  void teardown() {
+    malloc.free(nativePtr);
+    malloc.free(nativePtr2);
     super.teardown();
   }
 }

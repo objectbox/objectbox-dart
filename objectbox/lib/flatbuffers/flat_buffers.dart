@@ -44,10 +44,10 @@ class BufferContext {
   factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
     ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
-    return new BufferContext._(buf);
+    return new BufferContext(buf);
   }
 
-  BufferContext._(this._buffer);
+  BufferContext(this._buffer);
 
   @pragma('vm:prefer-inline')
   int derefObject(int offset) {
@@ -883,6 +883,7 @@ class Float32Reader extends Reader<double> {
 
 class Int64Reader extends Reader<int> {
   const Int64Reader() : super();
+
   @override
   int get size => _sizeofInt64;
 

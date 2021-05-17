@@ -13,7 +13,7 @@ import 'modelentity.dart';
 class EntityDefinition<T> {
   final ModelEntity model;
   final int Function(T, fb.Builder) objectToFB;
-  final T Function(Store, Uint8List) objectFromFB;
+  final T Function(Store, ByteData) objectFromFB;
   final int? Function(T) getId;
   final void Function(T, int) setId;
   final List<ToOne> Function(T) toOneRelations;

@@ -1,10 +1,10 @@
 import 'dart:ffi';
-import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
 import '../../../flatbuffers/flat_buffers.dart' as fb;
+import 'nativemem.dart';
 
 // ignore_for_file: public_member_api_docs
 
@@ -41,12 +41,6 @@ class BuilderWithCBuffer {
 
   Allocator get allocator => _allocator;
 }
-
-// FFI signature
-typedef _dart_memset = void Function(Pointer<Uint8>, int, int);
-typedef _c_memset = Void Function(Pointer<Uint8>, Int32, IntPtr);
-
-_dart_memset? fbMemset;
 
 class Allocator extends fb.Allocator {
   // We may, in practice, have only two active allocations: one used and one
@@ -98,34 +92,46 @@ class Allocator extends fb.Allocator {
   void clear(ByteData data, bool isFresh) {
     if (isFresh) return; // freshly allocated data is zero-ed out (see [calloc])
 
-    if (fbMemset == null) {
-      if (Platform.isWindows) {
-        try {
-          // DynamicLibrary.process() is not available on Windows, let's load a
-          // lib that defines 'memset()' it - should be mscvr100 or mscvrt DLL.
-          // mscvr100.dll is in the frequently installed MSVC Redistributable.
-          fbMemset = DynamicLibrary.open('msvcr100.dll')
-              .lookupFunction<_c_memset, _dart_memset>('memset');
-        } catch (_) {
-          // fall back if we can't load a native memset()
-          fbMemset = (Pointer<Uint8> ptr, int byte, int size) =>
-              ptr.cast<Uint8>().asTypedList(size).fillRange(0, size, byte);
-        }
-      } else {
-        fbMemset = DynamicLibrary.process()
-            .lookupFunction<_c_memset, _dart_memset>('memset');
-      }
-    }
-
     // only used for sanity checks:
     assert(_data[_index] == data);
     assert(_allocs[_index].address != 0);
 
-    fbMemset!(_allocs[_index], 0, data.lengthInBytes);
+    // TODO - there are other options to clear the builder, see how other
+    //        FlatBuffer implementations do it.
+    memset(_allocs[_index], 0, data.lengthInBytes);
   }
 
   void freeAll() {
     if (_allocs[0].address != 0) calloc.free(_allocs[0]);
     if (_allocs[1].address != 0) calloc.free(_allocs[1]);
+  }
+}
+
+/// Implements a native data access wrapper to circumvent Pointer.asTypedList()
+/// slowness. The idea is to reuse the same buffer and rather memcpy the data,
+/// which ends up being faster than calling asTypedList(). Hopefully, we will
+/// be able to remove this if (when) asTypedList() gets optimized in Dart SDK.
+class ReaderWithCBuffer {
+  // See /benchmark/bin/native_pointers.dart for the max buffer size where it
+  // still makes sense to use memcpy. On Linux, memcpy starts to be slower at
+  // about 10-15 KiB. TODO test on other platforms to find an optimal limit.
+  static const _maxBuffer = 4 * 1024;
+  final _bufferPtr = malloc<Uint8>(_maxBuffer);
+  late final ByteBuffer _buffer = _bufferPtr.asTypedList(_maxBuffer).buffer;
+
+  ReaderWithCBuffer() {
+    assert(_bufferPtr.asTypedList(_maxBuffer).offsetInBytes == 0);
+  }
+
+  void clear() => malloc.free(_bufferPtr);
+
+  ByteData access(Pointer<Uint8> dataPtr, int size) {
+    if (size > _maxBuffer) {
+      final uint8List = dataPtr.asTypedList(size);
+      return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
+    } else {
+      memcpy(_bufferPtr, dataPtr, size);
+      return ByteData.view(_buffer, 0, size);
+    }
   }
 }
