@@ -538,7 +538,7 @@ class _ByteVectorCondition<EntityT>
               func) =>
       withNativeBytes(
           _value,
-              (Pointer<Uint8> ptr, int size) =>
+          (Pointer<Uint8> ptr, int size) =>
               func(builder._cBuilder, _property._model.id.id, ptr, size));
 
   @override
@@ -652,7 +652,11 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set offset=0 to reset to the default - starting from the first element.
-  set offset(int offset) => checkObx(C.query_offset(_ptr, offset));
+  set offset(int offset) {
+    final result = checkObx(C.query_offset(_ptr, offset));
+    reachabilityFence(this);
+    return result;
+  }
 
   /// Configure a [limit] for this query.
   ///
@@ -661,13 +665,18 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set limit=0 to reset to the default behavior - no limit applied.
-  set limit(int limit) => checkObx(C.query_limit(_ptr, limit));
+  set limit(int limit) {
+    final result = checkObx(C.query_limit(_ptr, limit));
+    reachabilityFence(this);
+    return result;
+  }
 
   /// Returns the number of matching Objects.
   int count() {
     final ptr = malloc<Uint64>();
     try {
       checkObx(C.query_count(_ptr, ptr));
+      reachabilityFence(this);
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -710,12 +719,14 @@ class Query<T> {
     _store.runInTransaction(TxMode.read, () {
       checkObx(C.query_visit(_ptr, visitor, nullptr));
     });
+    reachabilityFence(this);
     return result;
   }
 
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
+    reachabilityFence(this);
     try {
       final idArray = idArrayPtr.ref;
       return idArray.count == 0
@@ -732,6 +743,7 @@ class Query<T> {
     final collector = objectCollector(result, _store, _entity);
     _store.runInTransaction(
         TxMode.read, () => checkObx(C.query_visit(_ptr, collector, nullptr)));
+    reachabilityFence(this);
     return result;
   }
 
@@ -754,6 +766,7 @@ class Query<T> {
       closed = true;
       C.dartc_stream_close(cStream);
       port.close();
+      reachabilityFence(this);
     };
 
     try {
@@ -838,10 +851,18 @@ class Query<T> {
   // }
 
   /// For internal testing purposes.
-  String describe() => dartStringFromC(C.query_describe(_ptr));
+  String describe() {
+    final result = dartStringFromC(C.query_describe(_ptr));
+    reachabilityFence(this);
+    return result;
+  }
 
   /// For internal testing purposes.
-  String describeParameters() => dartStringFromC(C.query_describe_params(_ptr));
+  String describeParameters() {
+    final result = dartStringFromC(C.query_describe_params(_ptr));
+    reachabilityFence(this);
+    return result;
+  }
 
   /// Use the same query conditions but only return a single property (field).
   ///
@@ -852,7 +873,9 @@ class Query<T> {
   /// var results = query.property(tInteger).find();
   /// ```
   PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
-    final result = PropertyQuery<DartType>._(_ptr, prop._model);
+    final result = PropertyQuery<DartType>._(
+        C.query_prop(_ptr, prop._model.id.id), prop._model.type);
+    reachabilityFence(this);
     if (prop._model.type == OBXPropertyType.String) {
       result._caseSensitive = InternalStoreAccess.queryCS(_store);
     }
