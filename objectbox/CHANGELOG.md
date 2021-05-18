@@ -1,6 +1,4 @@
-## 0.15.0-dev.3 (2021-05-14)
-
-This is a 1.0 release candidate - please try it out and give us any last-minute feedback, especially to new and changed APIs.
+## 1.0.0 (2021-05-18)
 
 * New Box `putAsync()` returning a `Future` and `putQueued()` for asynchronous writes.
 * Query now supports auto-closing. You can still call `close()` manually if you want to free native resources sooner 
