@@ -114,7 +114,6 @@ class SyncChange {
   final int entityId;
 
   /// Entity type this change relates to.
-  /// TODO Maybe use SyncChange<Type> instead?
   final Type entity;
 
   /// List of "put" (inserted/updated) object IDs.

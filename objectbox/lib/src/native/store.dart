@@ -62,7 +62,6 @@ class Store {
   /// ```
   ///
   /// See our examples for more details.
-  /// TODO have an Options class?
   Store(this._defs,
       {String? directory,
       int? maxDBSizeInKB,

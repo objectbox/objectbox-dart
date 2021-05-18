@@ -129,6 +129,4 @@ late final native_query_prop_close =
 /// finished executing.
 /// See https://github.com/dart-lang/sdk/issues/35770#issuecomment-840398463
 @pragma('vm:never-inline')
-Object reachabilityFence(Object obj) {
-  return obj;
-}
+Object reachabilityFence(Object obj) => obj;

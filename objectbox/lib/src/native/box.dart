@@ -380,18 +380,16 @@ class Box<T> {
   }
 }
 
+@pragma('vm:prefer-inline')
+int __getOBXPutMode(PutMode mode) => mode.index + 1;
+
+@pragma('vm:prefer-inline')
 int _getOBXPutMode(PutMode mode) {
-// TODO microbenchmark if this is fast or we should just return mode.index+1
-  switch (mode) {
-    case PutMode.put:
-      return OBXPutMode.PUT;
-    case PutMode.insert:
-      return OBXPutMode.INSERT;
-    case PutMode.update:
-      return OBXPutMode.UPDATE;
-    default:
-      throw ArgumentError.value(mode, 'mode');
-  }
+  assert(__getOBXPutMode(PutMode.put) == OBXPutMode.PUT);
+  assert(__getOBXPutMode(PutMode.insert) == OBXPutMode.INSERT);
+  assert(__getOBXPutMode(PutMode.update) == OBXPutMode.UPDATE);
+  assert(PutMode.values.length == 3);
+  return __getOBXPutMode(mode);
 }
 
 class _AsyncBoxHelper {

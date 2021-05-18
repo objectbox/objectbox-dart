@@ -1,4 +1,3 @@
-// TODO use pub_semver?
 /// Wrapper for a semantic version information.
 class Version {
   /// Major version number.
