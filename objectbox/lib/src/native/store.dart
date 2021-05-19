@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 import '../common.dart';
 import '../modelinfo/index.dart';
@@ -33,6 +34,9 @@ class Store {
   bool _closed = false;
   Stream<List<Type>>? _entityChanges;
   final _reader = ReaderWithCBuffer();
+
+  /// absolute path to the database directory
+  final String _dbDir;
 
   late final ByteData _reference;
 
@@ -69,61 +73,78 @@ class Store {
       int? maxReaders,
       bool queriesCaseSensitiveDefault = true})
       : _weak = false,
-        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
-    final model = Model(_defs.model);
-
-    final opt = C.opt();
-    checkObxPtr(opt, 'failed to create store options');
-
+        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
+        _dbDir = path.context.canonicalize(
+            (directory == null || directory.isEmpty)
+                ? 'objectbox'
+                : directory) {
     try {
-      checkObx(C.opt_model(opt, model.ptr));
-      if (directory != null && directory.isNotEmpty) {
-        final cStr = directory.toNativeUtf8();
-        try {
-          checkObx(C.opt_directory(opt, cStr.cast()));
-        } finally {
-          malloc.free(cStr);
+      if (_openStoreDirectories.contains(_dbDir)) {
+        throw UnsupportedError(
+            'Cannot create multiple Store instances for the same directory. '
+            'Please use a single Store or close() the previous instance before '
+            'opening another one.');
+      }
+      final model = Model(_defs.model);
+
+      final opt = C.opt();
+      checkObxPtr(opt, 'failed to create store options');
+
+      try {
+        checkObx(C.opt_model(opt, model.ptr));
+        if (directory != null && directory.isNotEmpty) {
+          final cStr = directory.toNativeUtf8();
+          try {
+            checkObx(C.opt_directory(opt, cStr.cast()));
+          } finally {
+            malloc.free(cStr);
+          }
         }
+        if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
+          C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
+        }
+        if (fileMode != null && fileMode >= 0) {
+          C.opt_file_mode(opt, fileMode);
+        }
+        if (maxReaders != null && maxReaders > 0) {
+          C.opt_max_readers(opt, maxReaders);
+        }
+      } catch (e) {
+        C.opt_free(opt);
+        rethrow;
       }
-      if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
-        C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
+      _cStore = C.store_open(opt);
+
+      try {
+        checkObxPtr(_cStore, 'failed to create store');
+      } on ObjectBoxException catch (e) {
+        // Recognize common problems when trying to open/create a database
+        // 10199 = OBX_ERROR_STORAGE_GENERAL
+        // 13 = permissions denied, 30 = read-only filesystem
+        if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
+            e.message.contains('Dir does not exist') &&
+            (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
+          throw ObjectBoxException(e.message +
+              ' - this usually indicates a problem with permissions; '
+                  "if you're using Flutter you may need to use "
+                  'getApplicationDocumentsDirectory() from the path_provider '
+                  'package, see example/README.md');
+        }
+        rethrow;
       }
-      if (fileMode != null && fileMode >= 0) {
-        C.opt_file_mode(opt, fileMode);
-      }
-      if (maxReaders != null && maxReaders > 0) {
-        C.opt_max_readers(opt, maxReaders);
-      }
+
+      // Always create _reference, so it can be non-nullable.
+      // Ensure we only try to access the store created in the same process.
+      // Also serves as a simple sanity check/hash.
+      _reference = ByteData(2 * _int64Size);
+      _reference.setUint64(0 * _int64Size, pid);
+      _reference.setUint64(1 * _int64Size, _ptr.address);
+
+      _openStoreDirectories.add(_dbDir);
     } catch (e) {
-      C.opt_free(opt);
+      _reader.clear();
       rethrow;
     }
-    _cStore = C.store_open(opt);
-
-    try {
-      checkObxPtr(_cStore, 'failed to create store');
-    } on ObjectBoxException catch (e) {
-      // Recognize common problems when trying to open/create a database
-      // 10199 = OBX_ERROR_STORAGE_GENERAL
-      // 13 = permissions denied, 30 = read-only filesystem
-      if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
-          e.message.contains('Dir does not exist') &&
-          (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
-        throw ObjectBoxException(e.message +
-            ' - this usually indicates a problem with permissions; '
-                "if you're using Flutter you may need to use "
-                'getApplicationDocumentsDirectory() from the path_provider '
-                'package, see example/README.md');
-      }
-      rethrow;
-    }
-
-    // Always create _reference, so it can be non-nullable.
-    // Ensure we only try to access the store created in the same process.
-    // Also serves as a simple sanity check/hash.
-    _reference = ByteData(2 * _int64Size);
-    _reference.setUint64(0 * _int64Size, pid);
-    _reference.setUint64(1 * _int64Size, _ptr.address);
   }
 
   /// Create a Dart store instance from an existing native store reference.
@@ -164,6 +185,7 @@ class Store {
       {bool queriesCaseSensitiveDefault = true})
       // must not close the same native store twice so [_weak]=true
       : _weak = true,
+        _dbDir = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
     // see [reference] for serialization order
     final readPid = _reference.getUint64(0 * _int64Size);
@@ -198,8 +220,12 @@ class Store {
     _onClose.values.toList(growable: false).forEach((listener) => listener());
     _onClose.clear();
 
-    if (!_weak) checkObx(C.store_close(_cStore));
     _reader.clear();
+
+    if (!_weak) {
+      _openStoreDirectories.remove(_dbDir);
+      checkObx(C.store_close(_cStore));
+    }
   }
 
   /// Returns a cached Box instance.
@@ -306,3 +332,8 @@ class InternalStoreAccess {
 }
 
 const _int64Size = 8;
+
+/// PathSet uses custom equals and hash function to canonically compare paths.
+/// Note: this only works for a single isolate. Core would need to support the
+/// same for the check to work across isolates.
+final _openStoreDirectories = HashSet<String>();
