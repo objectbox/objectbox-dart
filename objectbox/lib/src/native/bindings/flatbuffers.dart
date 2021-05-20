@@ -126,6 +126,7 @@ class ReaderWithCBuffer {
   void clear() => malloc.free(_bufferPtr);
 
   ByteData access(Pointer<Uint8> dataPtr, int size) {
+    return _NativeByteData(dataPtr, size);
     if (size > _maxBuffer) {
       final uint8List = dataPtr.asTypedList(size);
       return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
@@ -134,4 +135,182 @@ class ReaderWithCBuffer {
       return ByteData.view(_buffer, 0, size);
     }
   }
+}
+
+class _NativeByteBuffer implements ByteBuffer {
+  final Pointer<Uint8> _ptr;
+
+  @override
+  final int lengthInBytes;
+
+  _NativeByteBuffer(this._ptr, this.lengthInBytes);
+
+  @override
+  Uint8List asUint8List([int offsetInBytes = 0, int? length]) => _ptr
+      .asTypedList(lengthInBytes)
+      .sublist(offsetInBytes, length == null ? null : offsetInBytes + length);
+
+  @override
+  ByteData asByteData([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Float32List asFloat32List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Float64List asFloat64List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Int16List asInt16List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Int32List asInt32List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Int64List asInt64List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Int8List asInt8List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Uint16List asUint16List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Uint32List asUint32List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Uint64List asUint64List([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+
+  @override
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) =>
+      throw UnimplementedError();
+}
+
+class _NativeByteData implements ByteData {
+  final Pointer<Uint8> _ptr;
+
+  @override
+  late final _NativeByteBuffer buffer = _NativeByteBuffer(_ptr, lengthInBytes);
+
+  @override
+  final int offsetInBytes = 0;
+
+  @override
+  final int elementSizeInBytes = 1;
+
+  @override
+  final int lengthInBytes;
+
+  _NativeByteData(this._ptr, this.lengthInBytes);
+
+  @override
+  void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  double getFloat64(int byteOffset, [Endian endian = Endian.big]) => 0; // TODO
+
+  @override
+  void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  double getFloat32(int byteOffset, [Endian endian = Endian.big]) => 0; // TODO
+
+  @override
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  int getUint64(int byteOffset, [Endian endian = Endian.big]) {
+    assert(endian == Endian.little);
+    return (_ptr[byteOffset + 7] << 56) |
+        (_ptr[byteOffset + 6] << 48) |
+        (_ptr[byteOffset + 5] << 40) |
+        (_ptr[byteOffset + 4] << 32) |
+        (_ptr[byteOffset + 3] << 24) |
+        (_ptr[byteOffset + 2] << 16) |
+        (_ptr[byteOffset + 1] << 8) |
+        _ptr[byteOffset];
+  }
+
+  @override
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  int getInt64(int byteOffset, [Endian endian = Endian.big]) =>
+      getUint64(byteOffset, endian);
+
+  @override
+  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  int getUint32(int byteOffset, [Endian endian = Endian.big]) {
+    assert(endian == Endian.little);
+    return (_ptr[byteOffset + 3] << 24) |
+        (_ptr[byteOffset + 2] << 16) |
+        (_ptr[byteOffset + 1] << 8) |
+        _ptr[byteOffset];
+  }
+
+  @override
+  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  int getInt32(int byteOffset, [Endian endian = Endian.big]) =>
+      getUint32(byteOffset, endian);
+
+  @override
+  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  int getUint16(int byteOffset, [Endian endian = Endian.big]) {
+    assert(endian == Endian.little);
+    return (_ptr[byteOffset + 1] << 8) | _ptr[byteOffset];
+  }
+
+  @override
+  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      throw UnimplementedError();
+
+  @override
+  int getInt16(int byteOffset, [Endian endian = Endian.big]) =>
+      getUint16(byteOffset, endian);
+
+  @override
+  void setUint8(int byteOffset, int value) => throw UnimplementedError();
+
+  @override
+  int getUint8(int byteOffset) => _ptr[byteOffset];
+
+  @override
+  void setInt8(int byteOffset, int value) => throw UnimplementedError();
+
+  @override
+  int getInt8(int byteOffset) => _ptr[byteOffset];
 }

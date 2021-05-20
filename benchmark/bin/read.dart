@@ -1,8 +1,8 @@
 import 'package:objectbox_benchmark/benchmark.dart';
 
 void main() async {
-  await Get().report();
-  await GetMany().report();
+  // await Get().report();
+  // await GetMany().report();
   await GetAll().report();
 }
 
