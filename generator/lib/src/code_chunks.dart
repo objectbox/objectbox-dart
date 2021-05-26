@@ -435,13 +435,18 @@ class CodeChunks {
 
   static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
     final srcEntity = entity.model.findEntityByName(bl.srcEntity);
+    if (srcEntity == null) {
+      throw InvalidGenerationSourceError(
+          'Invalid relation backlink ${entity.name}.${bl.name} '
+          '- source entity ${bl.srcEntity} not found.');
+    }
 
     // either of these will be set, based on the source field that matches
     ModelRelation? srcRel;
     ModelProperty? srcProp;
 
     if (bl.srcField.isEmpty) {
-      final matchingProps = srcEntity!.properties
+      final matchingProps = srcEntity.properties
           .where((p) => p.isRelation && p.relationTarget == entity.name);
       final matchingRels =
           srcEntity.relations.where((r) => r.targetId == entity.id);
@@ -457,7 +462,7 @@ class CodeChunks {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity!.findPropertyByName(bl.srcField);
+      srcProp = srcEntity.findPropertyByName(bl.srcField);
       if (srcProp == null) {
         srcRel =
             srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
