@@ -1,3 +1,6 @@
+## latest
+
+
 ## 1.0.0 (2021-05-18)
 
 * New Box `putAsync()` returning a `Future` and `putQueued()` for asynchronous writes.
