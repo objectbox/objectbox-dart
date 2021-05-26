@@ -1,0 +1,3 @@
+# start with an empty project, without a objectbox-model.json
+objectbox-model.json
+*.freezed.dart

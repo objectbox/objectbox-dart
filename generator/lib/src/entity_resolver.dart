@@ -59,9 +59,12 @@ class EntityResolver extends Builder {
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
     final entityUid = annotation.read('uid');
+    final entityRealClass = annotation.read('realClass');
     final entity = ModelEntity.create(
         IdUid(0, entityUid.isNull ? 0 : entityUid.intValue),
-        element.name,
+        entityRealClass.isNull
+            ? element.name
+            : entityRealClass.typeValue.element!.name!,
         null);
 
     if (_syncChecker.hasAnnotationOfExact(element)) {
