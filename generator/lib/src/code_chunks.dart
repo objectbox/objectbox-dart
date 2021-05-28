@@ -538,9 +538,14 @@ class CodeChunks {
 
       var propCode = '''
         /// see [${entity.name}.${propertyFieldName(prop)}]
-        static final ${propertyFieldName(prop)} = Query${fieldType}Property<${entity.name}''';
-      if (prop.isRelation) propCode += ', ${prop.relationTarget}';
-      propCode += '>(_entities[$i].properties[$p]);';
+        static final ${propertyFieldName(prop)} = ''';
+      if (prop.isRelation) {
+        propCode +=
+            'QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
+      } else {
+        propCode += 'Query${fieldType}Property<${entity.name}>';
+      }
+      propCode += '(_entities[$i].properties[$p]);';
       fields.add(propCode);
     }
 
@@ -550,7 +555,7 @@ class CodeChunks {
           entity.model.findEntityByUid(rel.targetId.uid)!.name;
       fields.add('''
           /// see [${entity.name}.${rel.name}]
-          static final ${rel.name} = QueryRelationMany'''
+          static final ${rel.name} = QueryRelationToMany'''
           '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
     }
 

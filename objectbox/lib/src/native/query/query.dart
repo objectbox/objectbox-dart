@@ -210,15 +210,14 @@ class QueryStringVectorProperty<EntityT>
           caseSensitive: caseSensitive);
 }
 
-class QueryRelationProperty<Source, Target>
-    extends QueryIntegerProperty<Source> {
-  QueryRelationProperty(ModelProperty model) : super(model);
+class QueryRelationToOne<Source, Target> extends QueryIntegerProperty<Source> {
+  QueryRelationToOne(ModelProperty model) : super(model);
 }
 
-class QueryRelationMany<Source, Target> {
+class QueryRelationToMany<Source, Target> {
   final ModelRelation _model;
 
-  QueryRelationMany(this._model);
+  QueryRelationToMany(this._model);
 }
 
 enum _ConditionOp {
