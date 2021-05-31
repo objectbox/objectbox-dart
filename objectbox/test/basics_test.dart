@@ -1,4 +1,6 @@
 import 'dart:ffi' as ffi;
+import 'dart:io';
+
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -85,5 +87,34 @@ void main() {
               .contains('Given transaction callback always fails.'))));
     });
     env.close();
+  });
+
+  test('store multi-open', () {
+    final stores = <Store>[];
+
+    final createStore =
+        (String? dir) => stores.add(Store(getObjectBoxModel(), directory: dir));
+
+    final createMustFail = (String? dir) => expect(
+        () => createStore(dir),
+        throwsA(predicate(
+            (UnsupportedError e) => e.toString().contains('same directory'))));
+
+    createStore(null); // uses directory 'objectbox'
+    createMustFail(null);
+    createMustFail('objectbox');
+
+    Directory.current = 'objectbox';
+    createMustFail('.');
+    createMustFail('../objectbox');
+
+    // restore the directory so other tests won't fail
+    Directory.current = '../';
+
+    stores.forEach((store) => store.close());
+    createStore(null);
+
+    stores.forEach((store) => store.close());
+    Directory('objectbox').deleteSync(recursive: true);
   });
 }
