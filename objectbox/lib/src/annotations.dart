@@ -17,8 +17,21 @@ class Entity {
   /// Entity instead of creating a new one.
   final int? uid;
 
+  /// Actual type this entity represents. ObjectBox will use it instead of the
+  /// `@Entity()`-annotated class's name. For example:
+  /// ```dart
+  /// @freezed
+  /// class Person with _$Person {
+  ///   @Entity(realClass: Person)
+  ///   factory Person(
+  ///       {@Id(assignable: true) required int id,
+  ///       required String name}) = _Person;
+  /// }
+  /// ```
+  final Type? realClass;
+
   /// Create an Entity annotation.
-  const Entity({this.uid});
+  const Entity({this.uid, this.realClass});
 }
 
 /// Property annotation enables you to explicitly configure some details about

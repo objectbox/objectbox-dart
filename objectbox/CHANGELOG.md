@@ -1,5 +1,6 @@
 ## latest
 
+* New `@Entity()` annotation field `type realClass` to support some custom code generators. 
 
 ## 1.0.0 (2021-05-18)
 

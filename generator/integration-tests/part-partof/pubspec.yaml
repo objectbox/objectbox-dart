@@ -1,0 +1,24 @@
+name: objectbox_generator_test
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  objectbox:
+  json_serializable:
+  freezed_annotation:
+
+dev_dependencies:
+  freezed:
+  objectbox_generator:
+  test:
+  build_runner:
+  build_test:
+  io:
+  path:
+
+dependency_overrides:
+  objectbox:
+    path: ../../../objectbox
+  objectbox_generator:
+    path: ../../
