@@ -366,6 +366,15 @@ void main() {
       expect(b[1]!.testEntities.map(strings), sameAsList(['bar2']));
     });
 
+    test('put on ToMany side before loading', () {
+      // Test [ToMany._addedBeforeLoad] field - there was previously an issue
+      // causing the backlinked item to be shown twice in ToMany.
+      final b = RelatedEntityB();
+      b.testEntities.add(TestEntity());
+      boxB.put(b);
+      expect(b.testEntities.length, 1);
+    });
+
     test('query', () {
       final qb = boxB.query();
       qb.backlink(TestEntity_.relB, TestEntity_.tString.startsWith('bar'));

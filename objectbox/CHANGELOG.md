@@ -1,6 +1,7 @@
 ## latest
 
-* New `@Entity()` annotation field `type realClass` to support some custom code generators. 
+* New `@Entity()` annotation field `type realClass` to support some custom code generators.
+* Fix `ToMany` showing duplicate items after adding them before reading the previous list.
 
 ## 1.0.0 (2021-05-18)
 

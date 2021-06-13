@@ -205,6 +205,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     }
 
     _counts.clear();
+    _addedBeforeLoad.clear();
   }
 
   void _setRelInfo(Store store, RelInfo rel, Box otherBox) {
