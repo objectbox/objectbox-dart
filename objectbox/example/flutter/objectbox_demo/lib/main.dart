@@ -50,8 +50,9 @@ class ViewModel {
   late final Stream<Query<Note>> _queryStream;
 
   ViewModel(Directory dir)
-      : _store =
-            Store(getObjectBoxModel(), directory: dir.path + '/objectbox') {
+      : _store = Store(getObjectBoxModel(),
+            directory: dir.path + '/objectbox',
+            macosApplicationGroup: 'objectbox.demo') {
     _box = Box<Note>(_store);
     final qBuilder = _box.query()..order(Note_.date, flags: Order.descending);
     _queryStream = qBuilder.watch(triggerImmediately: true);

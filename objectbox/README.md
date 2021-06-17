@@ -69,6 +69,20 @@ dev_dependencies:
 
 * Install the packages: `flutter pub get`
 * XCode/iOS only: increase the deployment target to iOS 11 and, under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
+* If targeting macOS (creating sandboxed macOS apps): you need to specify an application group.
+  Update all `macos/Runner/*.entitlements` files, adding the following code inside the `<dict>` section. 
+  Change the string value to the `DEVELOPMENT_TEAM` you can find in your Xcode settings, plus an application-specific suffix, for example: 
+  
+  ```xml
+  <key>com.apple.security.application-groups</key>
+  <array>
+    <string>FGDTDLOBXDJ.demo</string>
+  </array>
+  ```
+  
+  Next, in your app code, pass the same string when opening the Store, for example: `Store(getObjectBoxModel(), directory: ..., macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
+  Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
+  20 characters or fewer, including a trailing slash that's added automatically.
 * Sync + Android only: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
 
 ### Dart Native

@@ -71,7 +71,8 @@ class Store {
       int? maxDBSizeInKB,
       int? fileMode,
       int? maxReaders,
-      bool queriesCaseSensitiveDefault = true})
+      bool queriesCaseSensitiveDefault = true,
+      String? macosApplicationGroup})
       : _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         _dbDir = path.context.canonicalize(
@@ -79,6 +80,21 @@ class Store {
                 ? 'objectbox'
                 : directory) {
     try {
+      if (Platform.isMacOS && macosApplicationGroup != null) {
+        if (!macosApplicationGroup.endsWith('/')) {
+          macosApplicationGroup += '/';
+        }
+        if (macosApplicationGroup.length > 20) {
+          ArgumentError.value(macosApplicationGroup, 'macosApplicationGroup',
+              'Must be at most 20 characters long');
+        }
+        final cStr = macosApplicationGroup.toNativeUtf8();
+        try {
+          C.posix_sem_prefix_set(cStr.cast());
+        } finally {
+          malloc.free(cStr);
+        }
+      }
       if (_openStoreDirectories.contains(_dbDir)) {
         throw UnsupportedError(
             'Cannot create multiple Store instances for the same directory. '
