@@ -464,6 +464,18 @@ void main() {
     final read = box.get(1)!;
     root.expectSameAs(read);
   });
+
+  test('cycles', () {
+    final a = RelatedEntityA();
+    final b = RelatedEntityB();
+    a.relB.target = b;
+    b.relA.target = a;
+    env.store.box<RelatedEntityA>().put(a);
+
+    final readB = env.store.box<RelatedEntityB>().get(b.id!)!;
+    expect(a.relB.targetId, readB.id!);
+    expect(readB.relA.target!.id, a.id);
+  });
 }
 
 int toInt(dynamic e) => e.tInt as int;
