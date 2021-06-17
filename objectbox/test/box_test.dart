@@ -610,4 +610,13 @@ void main() {
     expect(items[1].tDate, isNull);
     expect(items[1].tDateNano, isNull);
   });
+
+  test('large-data', () {
+    final numBytes = 1024 * 1024;
+    final str = List.generate(numBytes, (i) => 'A').join();
+    expect(str.length, numBytes);
+    box.put(TestEntity(tString: str));
+    expect(box.get(1)!.tString, str);
+    env.store.close();
+  });
 }

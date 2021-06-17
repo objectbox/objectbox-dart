@@ -102,8 +102,14 @@ class Allocator extends fb.Allocator {
   }
 
   void freeAll() {
-    if (_allocs[0].address != 0) calloc.free(_allocs[0]);
-    if (_allocs[1].address != 0) calloc.free(_allocs[1]);
+    for (var i = 0; i < _allocs.length; i++) {
+      if (_allocs[i].address != 0) {
+        calloc.free(_allocs[i]);
+        _allocs[i] = nullptr;
+      }
+    }
+    _index = 0;
+    _capacity = 0;
   }
 }
 
