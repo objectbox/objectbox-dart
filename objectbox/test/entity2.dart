@@ -21,3 +21,17 @@ class TestEntitySynced {
 
   TestEntitySynced({this.id, this.value});
 }
+
+@Entity()
+class TreeNode {
+  int id = 0;
+
+  final String path; // just to help debugging, not used anywhere
+
+  final parent = ToOne<TreeNode>();
+
+  @Backlink()
+  final children = ToMany<TreeNode>();
+
+  TreeNode(this.path);
+}

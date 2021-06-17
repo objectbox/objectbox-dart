@@ -2,6 +2,7 @@ import 'package:objectbox/src/relations/to_many.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
+import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
@@ -452,6 +453,17 @@ void main() {
       query.close();
     });
   });
+
+  test('trees', () {
+    final box = env.store.box<TreeNode>();
+    final root = TreeNode('R');
+    root.children.addAll([TreeNode('R.1'), TreeNode('R.2')]);
+    root.children[1].children.add(TreeNode('R.2.1'));
+    box.put(root);
+    expect(box.count(), 4);
+    final read = box.get(1)!;
+    root.expectSameAs(read);
+  });
 }
 
 int toInt(dynamic e) => e.tInt as int;
@@ -464,4 +476,17 @@ void check<E>(ToMany<E> rel,
   expect(relT.items.map(toInt), unorderedEquals(items));
   expect(relT.added.map(toInt), unorderedEquals(added));
   expect(relT.removed.map(toInt), unorderedEquals(removed));
+}
+
+extension TreeNodeEquals on TreeNode {
+  void expectSameAs(TreeNode other) {
+    printOnFailure('Comparing tree nodes $path and ${other.path}');
+    expect(id, other.id);
+    expect(path, other.path);
+    expect(parent.targetId, other.parent.targetId);
+    expect(children.length, other.children.length);
+    for (var i = 0; i < children.length; i++) {
+      children[i].expectSameAs(other.children[i]);
+    }
+  }
 }

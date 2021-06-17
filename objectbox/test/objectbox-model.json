@@ -400,10 +400,37 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "8:5511333827289750739",
+      "lastPropertyId": "3:4230259646478779567",
+      "name": "TreeNode",
+      "properties": [
+        {
+          "id": "1:206654251971262697",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2629212247750043790",
+          "name": "path",
+          "type": 9
+        },
+        {
+          "id": "3:4230259646478779567",
+          "name": "parentId",
+          "type": 11,
+          "flags": 520,
+          "indexId": "19:3009172190024929732",
+          "relationTarget": "TreeNode"
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "7:6593746178940714095",
-  "lastIndexId": "18:8736709610628523744",
+  "lastEntityId": "8:5511333827289750739",
+  "lastIndexId": "19:3009172190024929732",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
