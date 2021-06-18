@@ -166,7 +166,15 @@ class Box<T> {
         throw StateError(
             'Invalid state: can only use _put() on an entity with relations when executing from inside a write transaction.');
       }
-      if (_hasToOneRelations) _putToOneRelFields(object, mode, tx);
+      if (_hasToOneRelations) {
+        // In this case, there may be relation cycles so get the ID first.
+        if ((_entity.getId(object) ?? 0) == 0) {
+          final newId = C.box_id_for_put(_cBox, 0);
+          if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
+          _entity.setId(object, newId);
+        }
+        _putToOneRelFields(object, mode, tx);
+      }
     }
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
