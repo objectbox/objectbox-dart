@@ -108,13 +108,13 @@ class _QueryBuilder<T> {
   }
 
   _QueryBuilder<TargetEntityT> link<TargetEntityT>(
-          QueryRelationProperty<T, TargetEntityT> rel,
+          QueryRelationToOne<T, TargetEntityT> rel,
           [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
           this, qc, C.qb_link_property(_cBuilder, rel._model.id.id));
 
   _QueryBuilder<SourceEntityT> backlink<SourceEntityT>(
-          QueryRelationProperty<SourceEntityT, T> rel,
+          QueryRelationToOne<SourceEntityT, T> rel,
           [Condition<SourceEntityT>? qc]) =>
       _QueryBuilder<SourceEntityT>._link(
           this,
@@ -125,13 +125,13 @@ class _QueryBuilder<T> {
               rel._model.id.id));
 
   _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
-          QueryRelationMany<T, TargetEntityT> rel,
+          QueryRelationToMany<T, TargetEntityT> rel,
           [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
           this, qc, C.qb_link_standalone(_cBuilder, rel._model.id.id));
 
   _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT>(
-          QueryRelationMany<SourceEntityT, T> rel,
+          QueryRelationToMany<SourceEntityT, T> rel,
           [Condition<SourceEntityT>? qc]) =>
       _QueryBuilder<SourceEntityT>._link(
           this, qc, C.qb_backlink_standalone(_cBuilder, rel._model.id.id));
