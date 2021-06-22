@@ -52,7 +52,7 @@ class ViewModel {
 
   ViewModel(Directory dir)
       : _store = Store(getObjectBoxModel(),
-            directory: dir.path + '/objectbox',
+            directory: dir.path + '/objectbox-sync',
             macosApplicationGroup: 'objectbox.demo' // replace with a real name
             ) {
     _box = Box<Note>(_store);
