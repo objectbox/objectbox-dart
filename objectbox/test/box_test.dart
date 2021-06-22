@@ -113,7 +113,7 @@ void main() {
   });
 
   test('.putAsync many', () async {
-    final items = List.generate(1000, (i) => TestEntityNonRel.filled(id: 0));
+    final items = List.generate(100, (i) => TestEntityNonRel.filled(id: 0));
     final futures = items.map(store.box<TestEntityNonRel>().putAsync).toList();
     print('${futures.length} futures collected');
     final ids = await Future.wait(futures);
