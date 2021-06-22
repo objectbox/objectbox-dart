@@ -87,8 +87,9 @@ class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
   Condition<EntityT> oneOf(List<String> list, {bool? caseSensitive}) =>
       _opList(list, _ConditionOp.oneOf, caseSensitive: caseSensitive);
 
-  Condition<EntityT> notOneOf(List<String> list, {bool? caseSensitive}) =>
-      _opList(list, _ConditionOp.notOneOf, caseSensitive: caseSensitive);
+  // currently not supported by the C-API
+  // Condition<EntityT> notOneOf(List<String> list, {bool? caseSensitive}) =>
+  //     _opList(list, _ConditionOp.notOneOf, caseSensitive: caseSensitive);
 
   Condition<EntityT> greaterThan(String p, {bool? caseSensitive}) =>
       _op(p, _ConditionOp.gt, caseSensitive: caseSensitive);

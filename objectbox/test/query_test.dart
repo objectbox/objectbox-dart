@@ -217,7 +217,9 @@ void main() {
 
     checkQueryCount(2, b.equals(false));
     checkQueryCount(1, t.greaterThan('more'));
+    checkQueryCount(2, t.greaterOrEqual('more'));
     checkQueryCount(1, t.lessThan('more'));
+    checkQueryCount(2, t.lessOrEqual('more'));
     checkQueryCount(2, d.greaterThan(0.1));
     checkQueryCount(3, d.greaterOrEqual(0.1));
     checkQueryCount(3, d.lessThan(0.3));
@@ -240,10 +242,12 @@ void main() {
     final qs0 = box.query(text.oneOf(['meh'])).build();
     final qs1 = box.query(text.oneOf(['bleh'])).build();
     final qs2 = box.query(text.oneOf(['meh', 'bleh'])).build();
+    // TODO native qb_not_in_strings()
+    //  final qs2 = box.query(text.notOneOf(['oof'])).build();
     final qs3 = box.query(text.contains('eh')).build();
 
     final qn0 = box.query(number.oneOf([1])).build();
-    final qn1 = box.query(number.oneOf([1337])).build();
+    final qn1 = box.query(number.notOneOf([1])).build();
     final qn2 = box.query(number.oneOf([1, 1337])).build();
 
     expect(qs0.count(), 1);
@@ -493,20 +497,37 @@ void main() {
 
   test('.describeParameters query', () {
     final text = TestEntity_.tString;
-    final number = TestEntity_.tLong;
+    final long = TestEntity_.tLong;
+    final int = TestEntity_.tInt;
+    final double = TestEntity_.tDouble;
+    final bool = TestEntity_.tBool;
     Condition<TestEntity> c = text
         .equals('Goodbye')
-        .and(number.equals(1337))
-        .or(number.equals(1337))
+        .and(long.equals(1337))
+        .or(long.notEquals(1337))
+        .or(long > 1337)
+        .or(long < 1337)
+        .or(double > 1.3)
+        .or(double < 1.3)
+        .or(int.oneOf([2]))
+        .or(int.notOneOf([4]))
+        .or(bool.notEquals(true))
         .or(text.equals('Cruel'))
-        .or(text.equals('World'));
+        .or(text.notEquals('World'));
     final q = box.query(c).build();
     final expectedString = [
-      '''((tString == "Goodbye"''',
-      ''' AND tLong == 1337)''',
-      ''' OR tLong == 1337''',
-      ''' OR tString == "Cruel"''',
-      ''' OR tString == "World")'''
+      '((tString == "Goodbye"',
+      ' AND tLong == 1337)',
+      ' OR tLong != 1337',
+      ' OR tLong > 1337',
+      ' OR tLong < 1337',
+      ' OR tDouble > 1.300000',
+      ' OR tDouble < 1.300000',
+      ' OR tInt in [2]',
+      ' OR tInt not in [4]',
+      ' OR tBool != 1',
+      ' OR tString == "Cruel"',
+      ' OR tString != "World")'
     ].join('\n');
     expect(q.describeParameters(), expectedString);
     q.close();
