@@ -2,10 +2,14 @@ import 'package:build/build.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
 class CodeChunks {
-  static String objectboxDart(ModelInfo model, List<String> imports) => """
+  static String objectboxDart(
+          ModelInfo model, List<String> imports, Pubspec? pubspec) {
+    final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
+   return """
     // GENERATED CODE - DO NOT MODIFY BY HAND
     
     // ignore_for_file: camel_case_types
@@ -14,7 +18,7 @@ class CodeChunks {
     
     import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
     import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
-    import 'package:objectbox/objectbox.dart';
+    import 'package:objectbox/objectbox.dart';${pubspec?.obxFlutterImport}
     
     import '${sorted(imports).join("';\n import '")}';
     
@@ -23,13 +27,30 @@ class CodeChunks {
     final _entities = <ModelEntity>[
       ${model.entities.map(createModelEntity).join(',')}
     ];
+    
+    /// Open an ObjectBox store with the model declared in this file.
+    ${obxFlutter ? 'Future<Store>' : 'Store'} openStore(
+        {String? directory,
+        int? maxDBSizeInKB,
+        int? fileMode,
+        int? maxReaders,
+        bool queriesCaseSensitiveDefault = true,
+        String? macosApplicationGroup})${obxFlutter ? ' async' : ''} =>  
+      Store(getObjectBoxModel(),
+        directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
+        maxDBSizeInKB: maxDBSizeInKB,
+        fileMode: fileMode,
+        maxReaders: maxReaders,
+        queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
+        macosApplicationGroup: macosApplicationGroup);
   
     /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel()) 
     ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
       
       final bindings = <Type, EntityDefinition>{
-        ${model.entities.mapIndexed((i, entity) => "${entity.name}: ${entityBinding(i, entity)}").join(",\n")}
+        ${model.entities.mapIndexed((i, entity) => "${entity
+        .name}: ${entityBinding(i, entity)}").join(",\n")}
       };
       
       return ModelDefinition(model, bindings);
@@ -37,6 +58,7 @@ class CodeChunks {
     
     ${model.entities.mapIndexed(_metaClass).join("\n")}
     """;
+  }
 
   static List<T> sorted<T>(List<T> list) {
     list.sort();
@@ -564,4 +586,23 @@ class CodeChunks {
       class ${entity.name}_ {${fields.join()}}
     ''';
   }
+}
+
+extension _Pubspec on Pubspec {
+  static final infixes = ['', '_sync'];
+
+  static String depPackage(String infix) => 'objectbox${infix}_flutter_libs';
+
+  String get obxFlutterImport {
+    for (var i = 0; i < infixes.length; i++) {
+      final dep = depPackage(infixes[i]);
+      if (dependencies[dep] != null) {
+        return "\nimport 'package:$dep/$dep.dart';";
+      }
+    }
+    return '';
+  }
+
+  bool get hasObxFlutterDependency =>
+      infixes.any((infix) => dependencies[depPackage(infix)] != null);
 }

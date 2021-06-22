@@ -1,5 +1,7 @@
 ## latest
 
+* New `openStore()` in the generated code to simplify creating a store instance, especially on Flutter (uses application
+  documents directory as a default). 
 * New `@Entity()` annotation field `type realClass` to support some custom code generators.
 * Rename semi-internal `QueryRelationProperty` to `QueryRelationToOne` and `QueryRelationMany` to `QueryRelationToMany`
   to help users choosing the right link function: `link()`/`linkMany()`.

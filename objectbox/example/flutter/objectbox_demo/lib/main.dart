@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:objectbox/objectbox.dart';
 
 import 'objectbox.g.dart';
@@ -46,15 +44,10 @@ class MyHomePage extends StatefulWidget {
 
 class ViewModel {
   final Store _store;
-  late final Box<Note> _box;
+  final Box<Note> _box;
   late final Stream<Query<Note>> _queryStream;
 
-  ViewModel(Directory dir)
-      : _store = Store(getObjectBoxModel(),
-            directory: dir.path + '/objectbox',
-            macosApplicationGroup: 'objectbox.demo' // replace with a real name
-            ) {
-    _box = Box<Note>(_store);
+  ViewModel(this._store) : _box = Box<Note>(_store) {
     final qBuilder = _box.query()..order(Note_.date, flags: Order.descending);
     _queryStream = qBuilder.watch(triggerImmediately: true);
   }
@@ -83,8 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    getApplicationDocumentsDirectory().then((dir) {
-      _vm = ViewModel(dir);
+    openStore().then((Store store) {
+      _vm = ViewModel(store);
 
       setState(() {});
 

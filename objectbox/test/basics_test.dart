@@ -117,4 +117,10 @@ void main() {
     stores.forEach((store) => store.close());
     Directory('objectbox').deleteSync(recursive: true);
   });
+
+  test('openStore()', () {
+    final store = openStore(directory: 'objectbox');
+    store.close();
+    Directory('objectbox').deleteSync(recursive: true);
+  });
 }

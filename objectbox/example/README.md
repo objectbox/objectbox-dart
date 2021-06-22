@@ -53,13 +53,7 @@ Creating a store
 
 ### Flutter apps
 
-On mobile devices, you should store data in your app documents directory - it stays there even when you close the app.
-
-Use `getApplicationDocumentsDirectory()` from the `path_provider` package to retrieve this directory.
-
 ```dart
-import 'package:path_provider/path_provider.dart';
-
 import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -69,9 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    getApplicationDocumentsDirectory().then((Directory dir) {
-      // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
-      _store = Store(getObjectBoxModel(), directory: dir.path + '/objectbox');
+    // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
+    openStore().then((Store store) {
+      _store = store;
     });
   }
 
@@ -96,7 +90,8 @@ omits the argument to `Store(directory: )`, thus using the default - 'objectbox'
 import 'objectbox.g.dart'; // created by `dart pub run build_runner build`
 
 void main() {
-  final store = Store(getObjectBoxModel()); // Note: getObjectBoxModel() is generated for you in objectbox.g.dart
+  // Store openStore() {...} is defined in the generated objectbox.g.dart
+  final store = openStore();
 
   // your app code ...
 
@@ -114,8 +109,6 @@ Objects are stored using `box.put()` which checks the ID and:
 * or if the object already has an ID, overwrites an object with that ID.
 
 ```dart
-import 'objectbox.g.dart';
-
 final box = store.box<Note>();
 
 final note = Note(text: 'Hello'); // note: note.id is null
