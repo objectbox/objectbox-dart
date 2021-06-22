@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
 import 'entity.dart';
-import 'entity2.dart';
 import 'test_env.dart';
 
 // Tests non-nullable fields
