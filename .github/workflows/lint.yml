@@ -1,6 +1,6 @@
 name: Code analysis
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   analyze:
@@ -33,3 +33,37 @@ jobs:
             echo "Expected score 110, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
             exit 1
           fi
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v2
+      - name: Install ObjectBox C-API
+        run: ./install.sh
+      # Note: only flutter test generates `.lcov` - can't use `dart test`
+      - name: Generage test coverage
+        working-directory: objectbox
+        run: |
+          dart pub get
+          dart pub run build_runner build
+          flutter test --coverage
+      - uses: devmasx/coverage-check-action@v1.2.0
+        with:
+          type: lcov
+          result_path: objectbox/coverage/lcov.info
+          # min_coverage: 90
+          token: ${{ github.token }}
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.301
+      - uses: danielpalme/ReportGenerator-GitHub-Action@4.8.10
+        with:
+          reports: 'objectbox/coverage/lcov.info'
+          targetdir: 'coveragereport'
+          reporttypes: 'HtmlInline' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
+          sourcedirs: 'objectbox'
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: CoverageReport # Artifact name
+          path: coveragereport # Directory containing files to upload
