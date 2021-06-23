@@ -34,6 +34,7 @@ class Store {
   bool _closed = false;
   Stream<List<Type>>? _entityChanges;
   final _reader = ReaderWithCBuffer();
+  Transaction? _tx;
 
   /// absolute path to the database directory
   final String _dbDir;
@@ -263,7 +264,7 @@ class Store {
   }
 
   /// Executes a given function inside a transaction. Returns [fn]'s result.
-  /// Aborts a transaction and rethrows on exception or if [fn] is asynchronous.
+  /// Aborts a transaction and rethrows on exception if [fn] is asynchronous.
   ///
   /// A transaction can group several operations into a single unit of work that
   /// either executes completely or not at all.
@@ -272,8 +273,53 @@ class Store {
   /// boxes. In addition, you get a consistent (transactional) view on your data
   /// while the transaction is in progress.
   @pragma('vm:prefer-inline')
-  R runInTransaction<R>(TxMode mode, R Function() fn) =>
-      Transaction.execute(this, mode, fn);
+  R runInTransaction<R>(TxMode mode, R Function() fn) {
+    // Whether the function is an `async` function. We can't allow those because
+    // the isolate could be transferred to another thread during execution.
+    // Checking the return value seems like the only thing we can in Dart v2.12.
+    if (fn is Future Function() && _nullSafetyEnabled) {
+      // This is a special case when the given function always throws. Triggered
+      //  in our test code. No need to even start a DB transaction in that case.
+      if (fn is Never Function()) {
+        // WARNING: don't be tempted to just `return fn();` - the code may
+        // execute DB operations which wouldn't be rolled back after the throw.
+        throw UnsupportedError('Given transaction callback always fails.');
+      }
+      throw UnsupportedError(
+          'Executing an "async" function in a transaction is not allowed.');
+    }
+
+    return _runInTransaction(mode, (tx) => fn());
+  }
+
+  /// Internal only - bypasses the main checks for async functions, you may
+  /// only pass synchronous callbacks!
+  R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
+    final reused = _tx != null;
+    final tx = reused ? _tx! : Transaction(this, mode);
+    if (reused && tx.mode != TxMode.write && mode == TxMode.write) {
+      throw UnsupportedError(
+          'Cannot start a write transaction inside a read-only transaction.');
+    }
+    try {
+      final result = fn(tx);
+      if (!_nullSafetyEnabled && result is Future) {
+        // Let's make sure users change their code not to use async.
+        throw UnsupportedError(
+            'Executing an "async" function in a transaction is not allowed.');
+      }
+      if (!reused && mode == TxMode.write) tx.markSuccessful();
+      return result;
+    } catch (ex) {
+      if (!reused && mode == TxMode.write) tx.markFailed();
+      rethrow;
+    } finally {
+      if (!reused) {
+        tx.close();
+        _tx = null;
+      }
+    }
+  }
 
   /// Return an existing SyncClient associated with the store or null if not
   /// available. Use [Sync.client()] to create one first.
@@ -315,6 +361,12 @@ class InternalStoreAccess {
   /// Access model definitions
   static ModelDefinition defs(Store store) => store._defs;
 
+  /// Internal helper to reuse a transaction object (and especially cursors).
+  @pragma('vm:prefer-inline')
+  static R runInTransaction<R>(
+          Store store, TxMode mode, R Function(Transaction) fn) =>
+      store._runInTransaction(mode, fn);
+
   /// Create a map from Entity ID to Entity type (dart class).
   static Map<int, Type> entityTypeById(Store store) {
     if (store._entityTypeById == null) {
@@ -353,3 +405,8 @@ const _int64Size = 8;
 /// Note: this only works for a single isolate. Core would need to support the
 /// same for the check to work across isolates.
 final _openStoreDirectories = HashSet<String>();
+
+/// True if the package enables null-safety (i.e. depends on SDK 2.12+).
+/// Otherwise, it's we can distinguish at runtime whether a function is async.
+final _nullSafetyEnabled = _nullReturningFn is! Future Function();
+final _nullReturningFn = () => null;
