@@ -67,6 +67,9 @@ jobs:
           apt install -y valgrind
       - name: Test
         working-directory: objectbox
+        # let tests know we want a faster/shorter version, if available (to prevent timeouts in CI)
+        env:
+          TEST_SHORT: 1
         run: |
           ../tool/pub.sh get
           ../tool/pub.sh run build_runner build

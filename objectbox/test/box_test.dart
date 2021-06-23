@@ -113,7 +113,8 @@ void main() {
   });
 
   test('.putAsync many', () async {
-    final items = List.generate(100, (i) => TestEntityNonRel.filled(id: 0));
+    final items = List.generate(
+        env.short ? 100 : 1000, (i) => TestEntityNonRel.filled(id: 0));
     final futures = items.map(store.box<TestEntityNonRel>().putAsync).toList();
     print('${futures.length} futures collected');
     final ids = await Future.wait(futures);
@@ -125,13 +126,14 @@ void main() {
 
   test('.putQueued', () {
     final box = store.box<TestEntityNonRel>();
-    final items = List.generate(1000, (i) => TestEntityNonRel.filled(id: 0));
+    final items = List.generate(
+        env.short ? 100 : 1000, (i) => TestEntityNonRel.filled(id: 0));
     final ids = items.map(box.putQueued).toList();
     for (int i = 0; i < items.length; i++) {
       expect(items[i].id, ids[i]);
     }
     store.awaitAsyncSubmitted();
-    expect(box.count(), 1000);
+    expect(box.count(), items.length);
   });
 
   test('.putQueued failures', () async {

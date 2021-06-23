@@ -603,7 +603,7 @@ void main() {
   });
 
   test('stream items', () async {
-    const count = 1000;
+    final count = env.short ? 100 : 1000;
     final items = List<TestEntity>.generate(
         count, (i) => TestEntity.filled(id: 0, tByte: i % 30));
     box.putMany(items);
