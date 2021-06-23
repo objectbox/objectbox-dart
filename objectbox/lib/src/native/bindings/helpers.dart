@@ -144,6 +144,23 @@ T withNativeBytes<T>(
   }
 }
 
+T withNativeStrings<T>(
+    List<String> items, T Function(Pointer<Pointer<Int8>> ptr, int size) fn) {
+  final size = items.length;
+  final ptr = malloc<Pointer<Int8>>(size);
+  try {
+    for (var i = 0; i < size; i++) {
+      ptr[i] = items[i].toNativeUtf8().cast();
+    }
+    return fn(ptr, size);
+  } finally {
+    for (var i = 0; i < size; i++) {
+      malloc.free(ptr.elementAt(i).value);
+    }
+    malloc.free(ptr);
+  }
+}
+
 /// Execute the given function, managing the resources consistently
 R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
   // allocate a temporary structure

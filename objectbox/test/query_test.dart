@@ -637,4 +637,67 @@ void main() {
 
     query.close();
   });
+
+  test('set param single', () async {
+    final query = box
+        .query(TestEntity_.tString.equals('') |
+            TestEntity_.tByteList.equals([]) |
+            TestEntity_.tInt.equals(0) |
+            TestEntity_.tDouble.lessThan(0) |
+            TestEntity_.tBool.equals(false))
+        .build();
+    query.param(TestEntity_.tString).value = 'foo';
+    query.param(TestEntity_.tByteList).value = [1, 9];
+    query.param(TestEntity_.tInt).value = 11;
+    query.param(TestEntity_.tDouble).value = 4.6;
+    query.param(TestEntity_.tBool).value = true;
+    expect(
+        query.describeParameters(),
+        [
+          '(tString == "foo"',
+          ' OR tByteList == byte[2]{0x0109}',
+          ' OR tInt == 11',
+          ' OR tDouble < 4.600000',
+          ' OR tBool == 1)',
+        ].join('\n'));
+  });
+
+  test('set two params', () async {
+    final query = box
+        .query(
+            TestEntity_.tInt.between(0, 0) | TestEntity_.tDouble.between(0, 0))
+        .build();
+    query.param(TestEntity_.tInt).twoValues(1, 2);
+    query.param(TestEntity_.tDouble).twoValues(1.2, 3.4);
+    expect(
+        query.describeParameters(),
+        [
+          '(tInt between 1 and 2',
+          ' OR tDouble between 1.200000 and 3.400000)',
+        ].join('\n'));
+  });
+
+  test('set params list', () async {
+    final q1 = box.query(TestEntity_.tString.oneOf([])).build()
+      ..param(TestEntity_.tString).values = ['foo', 'bar'];
+    if (!['tString in ["foo", "bar"]', 'tString in ["bar", "foo"]']
+        .contains(q1.describeParameters())) {
+      fail('Invalid query: ' + q1.describeParameters());
+    }
+
+    final q2 = box.query(TestEntity_.tInt.oneOf([])).build()
+      ..param(TestEntity_.tInt).values = [1, 2];
+
+    if (!['tInt in [1|2]', 'tInt in [2|1]'].contains(q2.describeParameters())) {
+      fail('Invalid query: ' + q2.describeParameters());
+    }
+
+    final q3 = box.query(TestEntity_.tLong.oneOf([])).build()
+      ..param(TestEntity_.tLong).values = [1, 2];
+
+    if (!['tLong in [1|2]', 'tLong in [2|1]']
+        .contains(q3.describeParameters())) {
+      fail('Invalid query: ' + q3.describeParameters());
+    }
+  });
 }

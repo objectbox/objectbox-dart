@@ -16,7 +16,13 @@ export 'src/query.dart'
         PropertyQuery,
         IntegerPropertyQuery,
         DoublePropertyQuery,
-        StringPropertyQuery;
+        StringPropertyQuery,
+        QuerySetParam,
+        QueryParamString,
+        QueryParamBytes,
+        QueryParamInt,
+        QueryParamBool,
+        QueryParamDouble;
 export 'src/relations/to_many.dart' show ToMany;
 export 'src/relations/to_one.dart' show ToOne;
 export 'src/store.dart' show Store, ObservableStore;

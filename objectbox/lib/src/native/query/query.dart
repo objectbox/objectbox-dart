@@ -19,7 +19,10 @@ import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 
 part 'builder.dart';
+
 part 'property.dart';
+
+part 'params.dart';
 
 // ignore_for_file: public_member_api_docs
 
@@ -364,27 +367,14 @@ class _StringListCondition<EntityT>
       {this.caseSensitive})
       : super(op, prop, value);
 
-  int _oneOf(_QueryBuilder builder) {
-    final func = C.qb_in_strings;
-    final listLength = _value.length;
-    final arrayOfCStrings = malloc<Pointer<Int8>>(listLength);
-    try {
-      for (var i = 0; i < _value.length; i++) {
-        arrayOfCStrings[i] = _value[i].toNativeUtf8().cast<Int8>();
-      }
-      return func(
+  int _oneOf(_QueryBuilder builder) => withNativeStrings(
+      _value,
+      (Pointer<Pointer<Int8>> ptr, int size) => C.qb_in_strings(
           builder._cBuilder,
           _property._model.id.id,
-          arrayOfCStrings,
-          listLength,
-          caseSensitive ?? InternalStoreAccess.queryCS(builder._store));
-    } finally {
-      for (var i = 0; i < _value.length; i++) {
-        malloc.free(arrayOfCStrings.elementAt(i).value);
-      }
-      malloc.free(arrayOfCStrings);
-    }
-  }
+          ptr,
+          size,
+          caseSensitive ?? InternalStoreAccess.queryCS(builder._store)));
 
   @override
   int _apply(_QueryBuilder builder, {required bool isRoot}) {
