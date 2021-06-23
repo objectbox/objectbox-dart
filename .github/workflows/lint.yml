@@ -39,20 +39,17 @@ jobs:
     steps:
       - uses: subosito/flutter-action@v1
       - uses: actions/checkout@v2
-      - name: Install ObjectBox C-API
-        run: ./install.sh
-      # Note: only flutter test generates `.lcov` - can't use `dart test`
       - name: Generage test coverage
         working-directory: objectbox
         run: |
-          dart pub get
-          dart pub run build_runner build
-          flutter test --coverage
+          sudo apt-get install lcov
+          make depend
+          make coverage
       - uses: devmasx/coverage-check-action@v1.2.0
         with:
           type: lcov
           result_path: objectbox/coverage/lcov.info
-          # min_coverage: 90
+          min_coverage: 90
           token: ${{ github.token }}
       - uses: actions/setup-dotnet@v1
         with:

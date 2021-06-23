@@ -312,9 +312,6 @@ class InternalStoreAccess {
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 
-  /// Access model definitions
-  static ModelDefinition defs(Store store) => store._defs;
-
   /// Create a map from Entity ID to Entity type (dart class).
   static Map<int, Type> entityTypeById(Store store) {
     if (store._entityTypeById == null) {

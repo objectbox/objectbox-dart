@@ -26,8 +26,6 @@ class Transaction {
   CursorHelper? _firstCursor;
   HashMap<int, CursorHelper>? _cursors;
 
-  Pointer<OBX_txn> get ptr => _cTxn;
-
   Transaction(this._store, TxMode mode)
       : _isWrite = mode == TxMode.write,
         _cTxn = mode == TxMode.write
