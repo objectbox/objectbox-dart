@@ -557,6 +557,28 @@ void main() {
     }
   });
 
+  test('orAny() & andAll()', () {
+    final p = TestEntity_.tInt;
+    expect(
+        box
+            .query((p > 1)
+                .or(p > 2)
+                .orAny([p > 3, p > 4])
+                .and(p < 5)
+                .andAll([p < 6, p < 7]))
+            .build()
+            .describeParameters(),
+        [
+          '((tInt > 1',
+          ' OR tInt > 2',
+          ' OR tInt > 3',
+          ' OR tInt > 4)',
+          ' AND tInt < 5',
+          ' AND tInt < 6',
+          ' AND tInt < 7)',
+        ].join('\n'));
+  });
+
   test('.order queryBuilder', () {
     box.put(TestEntity(tString: 'World'));
     box.put(TestEntity(tString: 'Hello'));

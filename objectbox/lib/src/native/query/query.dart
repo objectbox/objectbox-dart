@@ -19,6 +19,7 @@ import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 
 part 'builder.dart';
+
 part 'property.dart';
 
 // ignore_for_file: public_member_api_docs
@@ -243,32 +244,24 @@ abstract class Condition<EntityT> {
   // using & because && is not overridable
   Condition<EntityT> operator &(Condition<EntityT> rh) => and(rh);
 
-  Condition<EntityT> and(Condition<EntityT> rh) {
-    if (this is _ConditionGroupAll) {
-      // no need for brackets
-      return _ConditionGroupAll<EntityT>(
-          [...(this as _ConditionGroupAll<EntityT>)._conditions, rh]);
-    }
-    return _ConditionGroupAll<EntityT>([this, rh]);
-  }
+  Condition<EntityT> and(Condition<EntityT> rh) => andAll([rh]);
 
   Condition<EntityT> andAll(List<Condition<EntityT>> rh) =>
-      _ConditionGroupAll<EntityT>([this, ...rh]);
+      _ConditionGroupAll<EntityT>((this is _ConditionGroupAll)
+          // no need for brackets when merging same types
+          ? [...(this as _ConditionGroupAll<EntityT>)._conditions, ...rh]
+          : [this, ...rh]);
 
   // using | because || is not overridable
   Condition<EntityT> operator |(Condition<EntityT> rh) => or(rh);
 
-  Condition<EntityT> or(Condition<EntityT> rh) {
-    if (this is _ConditionGroupAny) {
-      // no need for brackets
-      return _ConditionGroupAny<EntityT>(
-          [...(this as _ConditionGroupAny<EntityT>)._conditions, rh]);
-    }
-    return _ConditionGroupAny<EntityT>([this, rh]);
-  }
+  Condition<EntityT> or(Condition<EntityT> rh) => orAny([rh]);
 
   Condition<EntityT> orAny(List<Condition<EntityT>> rh) =>
-      _ConditionGroupAny<EntityT>([this, ...rh]);
+      _ConditionGroupAny<EntityT>((this is _ConditionGroupAny)
+          // no need for brackets when merging same types
+          ? [...(this as _ConditionGroupAny<EntityT>)._conditions, ...rh]
+          : [this, ...rh]);
 
   int _apply(_QueryBuilder builder, {required bool isRoot});
 }
