@@ -144,6 +144,16 @@ T withNativeBytes<T>(
   }
 }
 
+T withNativeString<T>(
+    String str, T Function(Pointer<Int8> cStr) fn) {
+  final cStr = str.toNativeUtf8();
+  try {
+    return fn(cStr.cast());
+  } finally {
+    malloc.free(cStr);
+  }
+}
+
 T withNativeStrings<T>(
     List<String> items, T Function(Pointer<Pointer<Int8>> ptr, int size) fn) {
   final size = items.length;

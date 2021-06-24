@@ -53,121 +53,140 @@ class QueryProperty<EntityT, DartType> {
 
   QueryProperty(this._model);
 
-  Condition<EntityT> isNull() =>
-      _NullCondition<EntityT, DartType>(_ConditionOp.isNull, this);
+  Condition<EntityT> isNull({String? alias}) =>
+      _NullCondition<EntityT, DartType>(_ConditionOp.isNull, this, alias);
 
-  Condition<EntityT> notNull() =>
-      _NullCondition<EntityT, DartType>(_ConditionOp.notNull, this);
+  Condition<EntityT> notNull({String? alias}) =>
+      _NullCondition<EntityT, DartType>(_ConditionOp.notNull, this, alias);
 }
 
 class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
   QueryStringProperty(ModelProperty model) : super(model);
 
-  Condition<EntityT> _op(String p, _ConditionOp cop, {bool? caseSensitive}) =>
-      _StringCondition<EntityT, String>(cop, this, p, null,
-          caseSensitive: caseSensitive);
-
-  Condition<EntityT> _opList(List<String> list, _ConditionOp cop,
+  Condition<EntityT> _op(String p, _ConditionOp cop, String? alias,
           {bool? caseSensitive}) =>
-      _StringListCondition<EntityT>(cop, this, list,
+      _StringCondition<EntityT, String>(cop, this, p, null, alias,
           caseSensitive: caseSensitive);
 
-  Condition<EntityT> equals(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.eq, caseSensitive: caseSensitive);
+  Condition<EntityT> _opList(List<String> list, _ConditionOp cop, String? alias,
+          {bool? caseSensitive}) =>
+      _StringListCondition<EntityT>(cop, this, list, alias,
+          caseSensitive: caseSensitive);
 
-  Condition<EntityT> notEquals(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.notEq, caseSensitive: caseSensitive);
+  Condition<EntityT> equals(String p, {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.eq, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> endsWith(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.endsWith, caseSensitive: caseSensitive);
+  Condition<EntityT> notEquals(String p,
+          {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.notEq, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> startsWith(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.startsWith, caseSensitive: caseSensitive);
+  Condition<EntityT> endsWith(String p, {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.endsWith, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> contains(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.contains, caseSensitive: caseSensitive);
+  Condition<EntityT> startsWith(String p,
+          {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.startsWith, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> oneOf(List<String> list, {bool? caseSensitive}) =>
-      _opList(list, _ConditionOp.oneOf, caseSensitive: caseSensitive);
+  Condition<EntityT> contains(String p, {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.contains, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> notOneOf(List<String> list, {bool? caseSensitive}) =>
-      _opList(list, _ConditionOp.notOneOf, caseSensitive: caseSensitive);
+  Condition<EntityT> oneOf(List<String> list,
+          {bool? caseSensitive, String? alias}) =>
+      _opList(list, _ConditionOp.oneOf, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> greaterThan(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.gt, caseSensitive: caseSensitive);
+  Condition<EntityT> notOneOf(List<String> list,
+          {bool? caseSensitive, String? alias}) =>
+      _opList(list, _ConditionOp.notOneOf, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> greaterOrEqual(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.greaterOrEq, caseSensitive: caseSensitive);
+  Condition<EntityT> greaterThan(String p,
+          {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.gt, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> lessThan(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.lt, caseSensitive: caseSensitive);
+  Condition<EntityT> greaterOrEqual(String p,
+          {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.greaterOrEq, alias, caseSensitive: caseSensitive);
 
-  Condition<EntityT> lessOrEqual(String p, {bool? caseSensitive}) =>
-      _op(p, _ConditionOp.lessOrEq, caseSensitive: caseSensitive);
+  Condition<EntityT> lessThan(String p, {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.lt, alias, caseSensitive: caseSensitive);
+
+  Condition<EntityT> lessOrEqual(String p,
+          {bool? caseSensitive, String? alias}) =>
+      _op(p, _ConditionOp.lessOrEq, alias, caseSensitive: caseSensitive);
 }
 
 class QueryByteVectorProperty<EntityT>
     extends QueryProperty<EntityT, Uint8List> {
   QueryByteVectorProperty(ModelProperty model) : super(model);
 
-  Condition<EntityT> _op(List<int> val, _ConditionOp cop) =>
-      _ByteVectorCondition<EntityT>(cop, this, Uint8List.fromList(val));
+  Condition<EntityT> _op(List<int> val, _ConditionOp cop, String? alias) =>
+      _ByteVectorCondition<EntityT>(cop, this, Uint8List.fromList(val), alias);
 
-  Condition<EntityT> equals(List<int> val) => _op(val, _ConditionOp.eq);
+  Condition<EntityT> equals(List<int> val, {String? alias}) =>
+      _op(val, _ConditionOp.eq, alias);
 
-  Condition<EntityT> greaterThan(List<int> val) => _op(val, _ConditionOp.gt);
+  Condition<EntityT> greaterThan(List<int> val, {String? alias}) =>
+      _op(val, _ConditionOp.gt, alias);
 
-  Condition<EntityT> greaterOrEqual(List<int> val) =>
-      _op(val, _ConditionOp.greaterOrEq);
+  Condition<EntityT> greaterOrEqual(List<int> val, {String? alias}) =>
+      _op(val, _ConditionOp.greaterOrEq, alias);
 
-  Condition<EntityT> lessThan(List<int> val) => _op(val, _ConditionOp.lt);
+  Condition<EntityT> lessThan(List<int> val, {String? alias}) =>
+      _op(val, _ConditionOp.lt, alias);
 
-  Condition<EntityT> lessOrEqual(List<int> val) =>
-      _op(val, _ConditionOp.lessOrEq);
+  Condition<EntityT> lessOrEqual(List<int> val, {String? alias}) =>
+      _op(val, _ConditionOp.lessOrEq, alias);
 }
 
 class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
   QueryIntegerProperty(ModelProperty model) : super(model);
 
-  Condition<EntityT> _op(_ConditionOp cop, int p1, [int p2 = 0]) =>
-      _IntegerCondition<EntityT, int>(cop, this, p1, p2);
+  Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
+      _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
 
-  Condition<EntityT> _opList(List<int> list, _ConditionOp cop) =>
-      _IntegerListCondition<EntityT>(cop, this, list);
+  Condition<EntityT> _opList(List<int> list, _ConditionOp cop, String? alias) =>
+      _IntegerListCondition<EntityT>(cop, this, list, alias);
 
-  Condition<EntityT> equals(int p) => _op(_ConditionOp.eq, p);
+  Condition<EntityT> equals(int p, {String? alias}) =>
+      _op(_ConditionOp.eq, p, 0, alias);
 
-  Condition<EntityT> notEquals(int p) => _op(_ConditionOp.notEq, p);
+  Condition<EntityT> notEquals(int p, {String? alias}) =>
+      _op(_ConditionOp.notEq, p, 0, alias);
 
-  Condition<EntityT> greaterThan(int p) => _op(_ConditionOp.gt, p);
+  Condition<EntityT> greaterThan(int p, {String? alias}) =>
+      _op(_ConditionOp.gt, p, 0, alias);
 
-  Condition<EntityT> greaterOrEqual(int p) => _op(_ConditionOp.greaterOrEq, p);
+  Condition<EntityT> greaterOrEqual(int p, {String? alias}) =>
+      _op(_ConditionOp.greaterOrEq, p, 0, alias);
 
-  Condition<EntityT> lessThan(int p) => _op(_ConditionOp.lt, p);
+  Condition<EntityT> lessThan(int p, {String? alias}) =>
+      _op(_ConditionOp.lt, p, 0, alias);
 
-  Condition<EntityT> lessOrEqual(int p) => _op(_ConditionOp.lessOrEq, p);
+  Condition<EntityT> lessOrEqual(int p, {String? alias}) =>
+      _op(_ConditionOp.lessOrEq, p, 0, alias);
 
   Condition<EntityT> operator <(int p) => lessThan(p);
 
   Condition<EntityT> operator >(int p) => greaterThan(p);
 
-  Condition<EntityT> between(int p1, int p2) =>
-      _op(_ConditionOp.between, p1, p2);
+  Condition<EntityT> between(int p1, int p2, {String? alias}) =>
+      _op(_ConditionOp.between, p1, p2, alias);
 
-  Condition<EntityT> oneOf(List<int> list) => _opList(list, _ConditionOp.oneOf);
+  Condition<EntityT> oneOf(List<int> list, {String? alias}) =>
+      _opList(list, _ConditionOp.oneOf, alias);
 
-  Condition<EntityT> notOneOf(List<int> list) =>
-      _opList(list, _ConditionOp.notOneOf);
+  Condition<EntityT> notOneOf(List<int> list, {String? alias}) =>
+      _opList(list, _ConditionOp.notOneOf, alias);
 }
 
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   QueryDoubleProperty(ModelProperty model) : super(model);
 
-  Condition<EntityT> _op(_ConditionOp op, double p1, double? p2) =>
-      _DoubleCondition<EntityT>(op, this, p1, p2);
+  Condition<EntityT> _op(
+          _ConditionOp op, double p1, double? p2, String? alias) =>
+      _DoubleCondition<EntityT>(op, this, p1, p2, alias);
 
-  Condition<EntityT> between(double p1, double p2) =>
-      _op(_ConditionOp.between, p1, p2);
+  Condition<EntityT> between(double p1, double p2, {String? alias}) =>
+      _op(_ConditionOp.between, p1, p2, alias);
 
   // NOTE: objectbox-c doesn't support double/float equality (because it's a
   // rather peculiar thing). Therefore, we're currently not providing this in
@@ -176,15 +195,17 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   //    _op(_ConditionOp.eq, p);
   // }
 
-  Condition<EntityT> greaterThan(double p) => _op(_ConditionOp.gt, p, null);
+  Condition<EntityT> greaterThan(double p, {String? alias}) =>
+      _op(_ConditionOp.gt, p, 0, alias);
 
-  Condition<EntityT> greaterOrEqual(double p) =>
-      _op(_ConditionOp.greaterOrEq, p, null);
+  Condition<EntityT> greaterOrEqual(double p, {String? alias}) =>
+      _op(_ConditionOp.greaterOrEq, p, null, alias);
 
-  Condition<EntityT> lessThan(double p) => _op(_ConditionOp.lt, p, null);
+  Condition<EntityT> lessThan(double p, {String? alias}) =>
+      _op(_ConditionOp.lt, p, null, alias);
 
-  Condition<EntityT> lessOrEqual(double p) =>
-      _op(_ConditionOp.lessOrEq, p, null);
+  Condition<EntityT> lessOrEqual(double p, {String? alias}) =>
+      _op(_ConditionOp.lessOrEq, p, null, alias);
 
   Condition<EntityT> operator <(double p) => lessThan(p);
 
@@ -195,21 +216,23 @@ class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
   QueryBooleanProperty(ModelProperty model) : super(model);
 
   // ignore: avoid_positional_boolean_parameters
-  Condition<EntityT> equals(bool p) =>
-      _IntegerCondition<EntityT, bool>(_ConditionOp.eq, this, (p ? 1 : 0));
+  Condition<EntityT> equals(bool p, {String? alias}) =>
+      _IntegerCondition<EntityT, bool>(
+          _ConditionOp.eq, this, (p ? 1 : 0), null, alias);
 
   // ignore: avoid_positional_boolean_parameters
-  Condition<EntityT> notEquals(bool p) =>
-      _IntegerCondition<EntityT, bool>(_ConditionOp.notEq, this, (p ? 1 : 0));
+  Condition<EntityT> notEquals(bool p, {String? alias}) =>
+      _IntegerCondition<EntityT, bool>(
+          _ConditionOp.notEq, this, (p ? 1 : 0), null, alias);
 }
 
 class QueryStringVectorProperty<EntityT>
     extends QueryProperty<EntityT, List<String>> {
   QueryStringVectorProperty(ModelProperty model) : super(model);
 
-  Condition<EntityT> contains(String p, {bool? caseSensitive}) =>
+  Condition<EntityT> contains(String p, {bool? caseSensitive, String? alias}) =>
       _StringCondition<EntityT, List<String>>(
-          _ConditionOp.contains, this, p, null,
+          _ConditionOp.contains, this, p, null, alias,
           caseSensitive: caseSensitive);
 }
 
@@ -242,6 +265,10 @@ enum _ConditionOp {
 
 /// A [Query] condition base class.
 abstract class Condition<EntityT> {
+  final String? _alias;
+
+  Condition(this._alias);
+
   // using & because && is not overridable
   Condition<EntityT> operator &(Condition<EntityT> rh) => and(rh);
 
@@ -273,13 +300,23 @@ abstract class Condition<EntityT> {
       _ConditionGroupAny<EntityT>([this, ...rh]);
 
   int _apply(_QueryBuilder builder, {required bool isRoot});
+
+  int _applyFull(_QueryBuilder builder, {required bool isRoot}) {
+    final cid = _apply(builder, isRoot: isRoot);
+    if (cid == 0) builder._throwExceptionIfNecessary();
+    if (_alias != null) {
+      checkObx(withNativeString(_alias!,
+          (Pointer<Int8> cStr) => C.qb_param_alias(builder._cBuilder, cStr)));
+    }
+    return cid;
+  }
 }
 
 class _NullCondition<EntityT, DartType> extends Condition<EntityT> {
   final QueryProperty<EntityT, DartType> _property;
   final _ConditionOp _op;
 
-  _NullCondition(this._op, this._property);
+  _NullCondition(this._op, this._property, String? alias) : super(alias);
 
   @override
   int _apply(_QueryBuilder builder, {required bool isRoot}) {
@@ -302,7 +339,9 @@ abstract class _PropertyCondition<EntityT, PropertyDartType, ValueDartType>
 
   final _ConditionOp _op;
 
-  _PropertyCondition(this._op, this._property, this._value, [this._value2]);
+  _PropertyCondition(
+      this._op, this._property, this._value, this._value2, String? alias)
+      : super(alias);
 }
 
 class _StringCondition<EntityT, PropertyDartType>
@@ -314,8 +353,9 @@ class _StringCondition<EntityT, PropertyDartType>
       QueryProperty<EntityT, PropertyDartType> prop,
       String value,
       String? value2,
+      String? alias,
       {this.caseSensitive})
-      : super(op, prop, value, value2);
+      : super(op, prop, value, value2, alias);
 
   int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
@@ -362,10 +402,10 @@ class _StringListCondition<EntityT>
     extends _PropertyCondition<EntityT, String, List<String>> {
   bool? caseSensitive;
 
-  _StringListCondition(
-      _ConditionOp op, QueryProperty<EntityT, String> prop, List<String> value,
+  _StringListCondition(_ConditionOp op, QueryProperty<EntityT, String> prop,
+      List<String> value, String? alias,
       {this.caseSensitive})
-      : super(op, prop, value);
+      : super(op, prop, value, null, alias);
 
   int _oneOf(_QueryBuilder builder) => withNativeStrings(
       _value,
@@ -390,9 +430,12 @@ class _StringListCondition<EntityT>
 class _IntegerCondition<EntityT, PropertyDartType>
     extends _PropertyCondition<EntityT, PropertyDartType, int> {
   _IntegerCondition(
-      _ConditionOp op, QueryProperty<EntityT, PropertyDartType> prop, int value,
-      [int? value2])
-      : super(op, prop, value, value2);
+      _ConditionOp op,
+      QueryProperty<EntityT, PropertyDartType> prop,
+      int value,
+      int? value2,
+      String? alias)
+      : super(op, prop, value, value2, alias);
 
   int _op1(_QueryBuilder builder,
           int Function(Pointer<OBX_query_builder>, int, int) func) =>
@@ -424,9 +467,9 @@ class _IntegerCondition<EntityT, PropertyDartType>
 
 class _IntegerListCondition<EntityT>
     extends _PropertyCondition<EntityT, int, List<int>> {
-  _IntegerListCondition(
-      _ConditionOp op, QueryProperty<EntityT, int> prop, List<int> value)
-      : super(op, prop, value);
+  _IntegerListCondition(_ConditionOp op, QueryProperty<EntityT, int> prop,
+      List<int> value, String? alias)
+      : super(op, prop, value, null, alias);
 
   int _opList<T extends NativeType>(
       _QueryBuilder builder,
@@ -488,8 +531,8 @@ class _IntegerListCondition<EntityT>
 class _DoubleCondition<EntityT>
     extends _PropertyCondition<EntityT, double, double> {
   _DoubleCondition(_ConditionOp op, QueryProperty<EntityT, double> prop,
-      double value, double? value2)
-      : super(op, prop, value, value2) {
+      double value, double? value2, String? alias)
+      : super(op, prop, value, value2, alias) {
     assert(op != _ConditionOp.eq,
         'Equality operator is not supported on floating point numbers - use between() instead.');
   }
@@ -520,9 +563,9 @@ class _DoubleCondition<EntityT>
 
 class _ByteVectorCondition<EntityT>
     extends _PropertyCondition<EntityT, Uint8List, Uint8List> {
-  _ByteVectorCondition(
-      _ConditionOp op, QueryProperty<EntityT, Uint8List> prop, Uint8List value)
-      : super(op, prop, value);
+  _ByteVectorCondition(_ConditionOp op, QueryProperty<EntityT, Uint8List> prop,
+      Uint8List value, String? alias)
+      : super(op, prop, value, null, alias);
 
   int _op1(
           _QueryBuilder builder,
@@ -556,7 +599,7 @@ class _ConditionGroup<EntityT> extends Condition<EntityT> {
   final List<Condition<EntityT>> _conditions;
   final int Function(Pointer<OBX_query_builder>, Pointer<Int32>, int) _func;
 
-  _ConditionGroup(this._conditions, this._func);
+  _ConditionGroup(this._conditions, this._func) : super(null);
 
   @override
   int _apply(_QueryBuilder builder, {required bool isRoot}) {
@@ -565,13 +608,13 @@ class _ConditionGroup<EntityT> extends Condition<EntityT> {
     if (size == 0) {
       return -1; // -1 instead of 0 which indicates an error
     } else if (size == 1) {
-      return _conditions[0]._apply(builder, isRoot: isRoot);
+      return _conditions[0]._applyFull(builder, isRoot: isRoot);
     }
 
     final intArrayPtr = malloc<Int32>(size);
     try {
       for (var i = 0; i < size; ++i) {
-        final cid = _conditions[i]._apply(builder, isRoot: false);
+        final cid = _conditions[i]._applyFull(builder, isRoot: false);
         if (cid == 0) {
           builder._throwExceptionIfNecessary();
           throw StateError(

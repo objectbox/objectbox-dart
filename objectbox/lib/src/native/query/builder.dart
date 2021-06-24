@@ -100,12 +100,7 @@ class _QueryBuilder<T> {
   }
 
   @pragma('vm:prefer-inline')
-  void _applyCondition() {
-    if (_queryCondition != null &&
-        0 == _queryCondition!._apply(this, isRoot: true)) {
-      _throwExceptionIfNecessary();
-    }
-  }
+  void _applyCondition() => _queryCondition?._applyFull(this, isRoot: true);
 
   _QueryBuilder<TargetEntityT> link<TargetEntityT>(
           QueryRelationToOne<T, TargetEntityT> rel,
