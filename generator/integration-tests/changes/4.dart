@@ -15,12 +15,14 @@ void main() {
     expect(model.entities[0].name, 'A');
     expect(model.entities[0].properties.length, 1);
     expect(model.entities[0].properties[0].name, 'id');
-    expect(model.entities[0].lastPropertyId.toString(), '3:1003');
+    expect(model.entities[0].lastPropertyId.toString(), '4:1004');
+
+    expect(model.entities[0].relations.length, 0);
 
     expect(model.lastEntityId.toString(), '2:2000');
 
     expect(jsonModel.retiredEntityUids.length, 1);
-    expect(jsonModel.retiredPropertyUids.length, 4);
-    expect(jsonModel.retiredIndexUids.length, 0);
+    expect(jsonModel.retiredPropertyUids.length, 5);
+    expect(jsonModel.retiredIndexUids.length, 1);
   });
 }

@@ -16,10 +16,16 @@ void main() {
     expect(model.entities.length, 2);
 
     expect(model.entities[0].name, 'A');
-    expect(model.entities[0].properties.length, 3);
+    expect(model.entities[0].properties.length, 4);
     expect(model.entities[0].properties[0].name, 'id');
     expect(model.entities[0].properties[1].name, 'text1');
     expect(model.entities[0].properties[2].name, 'text2');
+    expect(model.entities[0].properties[3].name, 'relOneId');
+    expect(model.entities[0].properties[3].relationTarget, 'B');
+
+    expect(model.entities[0].relations.length, 1);
+    expect(model.entities[0].relations[0].name, 'relMany');
+    expect(model.entities[0].relations[0].targetId.toString(), '2:2000');
 
     expect(model.entities[1].name, 'B');
     expect(model.entities[1].properties.length, 2);

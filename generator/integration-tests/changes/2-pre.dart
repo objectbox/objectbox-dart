@@ -3,6 +3,8 @@ import 'dart:io';
 void main() {
   // Goals:
   // * add a new property
+  // * add a new to-one relation
+  // * add a new to-many relation
   // * add a new entity
 
   File('lib/entities.dart').writeAsStringSync('''
@@ -16,6 +18,12 @@ class A {
 
   @Property(uid: 1003)
   String? text2;
+
+  @Property(uid: 1004)
+  final relOne = ToOne<B>();
+
+  @Property(uid: 1005)
+  final relMany = ToMany<B>();
 
   A();
 }

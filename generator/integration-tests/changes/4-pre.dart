@@ -3,6 +3,8 @@ import 'dart:io';
 void main() {
   // Goals:
   // * remove a property
+  // * remove a to-one relation
+  // * remove a to-many relation
   // * remove an entity
 
   File('lib/entities.dart').writeAsStringSync('''

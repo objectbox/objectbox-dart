@@ -3,6 +3,8 @@ import 'dart:io';
 void main() {
   // Goals:
   // * rename a property
+  // * rename a to-one relation
+  // * rename a to-many relation
   // * rename an entity
 
   File('lib/entities.dart').writeAsStringSync('''
@@ -16,6 +18,12 @@ class A {
 
   @Property(uid: 1003)
   String? renamed;
+
+  @Property(uid: 1004)
+  final renamedRelOne = ToOne<Renamed>();
+
+  @Property(uid: 1005)
+  final renamedRelMany = ToMany<Renamed>();
 
   A();
 }
