@@ -3,6 +3,8 @@
 * New `@Entity()` annotation field `type realClass` to support some custom code generators.
 * Rename semi-internal `QueryRelationProperty` to `QueryRelationToOne` and `QueryRelationMany` to `QueryRelationToMany`
   to help users choosing the right link function: `link()`/`linkMany()`.
+* Add support for the entity/property/relation rename or reset workflow.
+  See [Data model updates](https://docs.objectbox.io/advanced/data-model-updates) for details.  
 * Fix `ToMany` showing duplicate items after adding them before reading the previous list.
 * Fix invalid native free during store shutdown if large data was inserted (more than 64 kilobytes flatbuffer).
 

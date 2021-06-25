@@ -21,6 +21,9 @@ class ModelProperty {
   /// Note: must be included in to/fromMap to be handled `build_runner`.
   String? _dartFieldType;
 
+  // whether the user requested UID information (started a rename process)
+  final bool uidRequest;
+
   String get name => _name;
 
   set name(String? value) {
@@ -92,7 +95,8 @@ class ModelProperty {
       String? indexId,
       this.entity,
       String? dartFieldType,
-      this.relationTarget})
+      this.relationTarget,
+      this.uidRequest = false})
       : _dartFieldType = dartFieldType {
     this.name = name;
     this.type = type;
@@ -111,7 +115,8 @@ class ModelProperty {
       : _name = name,
         _type = type,
         _flags = flags,
-        _indexId = indexId;
+        _indexId = indexId,
+        uidRequest = false;
 
   ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity? entity)
       : this.create(IdUid.fromString(data['id'] as String?),
@@ -120,7 +125,8 @@ class ModelProperty {
             indexId: data['indexId'] as String?,
             entity: entity,
             dartFieldType: data['dartFieldType'] as String?,
-            relationTarget: data['relationTarget'] as String?);
+            relationTarget: data['relationTarget'] as String?,
+            uidRequest: data['uidRequest'] as bool? ?? false);
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
@@ -132,6 +138,7 @@ class ModelProperty {
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
     if (!forModelJson && _dartFieldType != null) {
       ret['dartFieldType'] = _dartFieldType;
+      ret['uidRequest'] = uidRequest;
     }
     return ret;
   }

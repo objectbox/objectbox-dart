@@ -25,6 +25,9 @@ class ModelEntity {
   // whether the library this entity is defined in uses null safety
   bool nullSafetyEnabled = true;
 
+  // whether the user requested UID information (started a rename process)
+  final bool uidRequest;
+
   String get name => _name;
 
   set name(String? value) {
@@ -60,7 +63,8 @@ class ModelEntity {
   List<ModelBacklink> get backlinks => _backlinks;
 
   // used in code generator
-  ModelEntity.create(this.id, this._name, this._model)
+  ModelEntity.create(this.id, this._name, this._model,
+      {this.uidRequest = false})
       : _properties = [],
         _relations = [],
         _backlinks = [];
@@ -79,7 +83,8 @@ class ModelEntity {
         _properties = properties,
         _relations = relations,
         _backlinks = backlinks,
-        _model = null;
+        _model = null,
+        uidRequest = false;
 
   ModelEntity.fromMap(Map<String, dynamic> data,
       {ModelInfo? model, bool check = true})
@@ -87,6 +92,7 @@ class ModelEntity {
         id = IdUid.fromString(data['id'] as String?),
         lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?),
         nullSafetyEnabled = data['nullSafetyEnabled'] as bool? ?? true,
+        uidRequest = data['uidRequest'] as bool? ?? false,
         _properties = [],
         _relations = [],
         _backlinks = [] {
@@ -177,6 +183,7 @@ class ModelEntity {
       ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
       ret['constructorParams'] = constructorParams;
       ret['nullSafetyEnabled'] = nullSafetyEnabled;
+      ret['uidRequest'] = uidRequest;
     }
     return ret;
   }
@@ -198,11 +205,9 @@ class ModelEntity {
     return found[0];
   }
 
-  ModelProperty? findSameProperty(ModelProperty other) {
-    ModelProperty? ret;
-    if (other.id.uid != 0) ret = _findPropertyByUid(other.id.uid);
-    return ret ?? findPropertyByName(other.name);
-  }
+  ModelProperty? findSameProperty(ModelProperty other) => other.id.uid == 0
+      ? findPropertyByName(other.name)
+      : _findPropertyByUid(other.id.uid);
 
   ModelProperty createProperty(String name, [int uid = 0]) {
     final id = lastPropertyId.id + 1;
@@ -250,11 +255,9 @@ class ModelEntity {
     return found[0];
   }
 
-  ModelRelation? findSameRelation(ModelRelation other) {
-    ModelRelation? ret;
-    if (other.id.uid != 0) ret = _findRelationByUid(other.id.uid);
-    return ret ?? _findRelationByName(other.name);
-  }
+  ModelRelation? findSameRelation(ModelRelation other) => other.id.uid == 0
+      ? _findRelationByName(other.name)
+      : _findRelationByUid(other.id.uid);
 
   ModelRelation createRelation(String name, [int uid = 0]) {
     final id = model.lastRelationId.id + 1;

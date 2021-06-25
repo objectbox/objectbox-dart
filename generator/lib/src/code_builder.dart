@@ -140,8 +140,19 @@ class CodeBuilder extends Builder {
 
     if (propInModel == null) {
       log.info('Found new property ${entityInModel.name}.${prop.name}');
+      if (prop.uidRequest) {
+        throw ArgumentError(
+            'Property ${prop.name} UID is specified explicitly with a zero value on a new property.'
+            "If you're adding a new property, remove the `uid` argument");
+      }
       propInModel = entityInModel.createProperty(prop.name, prop.id.uid);
+    } else if (prop.uidRequest) {
+      handleUidRequest(
+          'Property', prop.name, propInModel.id, entityInModel.model);
     }
+
+    // update the source object so we don't get removed as a missing property
+    prop.id = propInModel.id;
 
     propInModel.name = prop.name;
     propInModel.type = prop.type;
@@ -161,8 +172,19 @@ class CodeBuilder extends Builder {
 
     if (relInModel == null) {
       log.info('Found new relation ${entityInModel.name}.${rel.name}');
+      if (rel.uidRequest) {
+        throw ArgumentError(
+            'Relation ${rel.name} UID is specified explicitly with a zero value on a new relation.'
+            "If you're adding a new rel, remove the `uid` argument");
+      }
       relInModel = entityInModel.createRelation(rel.name, rel.id.uid);
+    } else if (rel.uidRequest) {
+      handleUidRequest(
+          'Property', rel.name, relInModel.id, entityInModel.model);
     }
+
+    // update the source object so we don't get removed as a missing property
+    rel.id = relInModel.id;
 
     relInModel.name = rel.name;
     relInModel.targetName = rel.targetName;
@@ -175,9 +197,19 @@ class CodeBuilder extends Builder {
 
     if (entityInModel == null) {
       log.info('Found new entity ${entity.name}');
+      if (entity.uidRequest) {
+        throw ArgumentError(
+            'Entity ${entity.name} UID is specified explicitly with a zero value on a new entity.'
+            "If you're adding a new entity, remove the `uid` argument");
+      }
       // in case the entity is created (i.e. when its given UID or name that does not yet exist), we are done, as nothing needs to be merged
       entityInModel = modelInfo.createEntity(entity.name, entity.id.uid);
+    } else if (entity.uidRequest) {
+      handleUidRequest('Entity', entity.name, entityInModel.id, modelInfo);
     }
+
+    // update the source object so we don't get removed as a missing entity
+    entity.id = entityInModel.id;
 
     entityInModel.name = entity.name;
     entityInModel.flags = entity.flags;
@@ -216,3 +248,11 @@ class CodeBuilder extends Builder {
     return entityInModel.id;
   }
 }
+
+Never handleUidRequest(
+        String annotationName, String name, IdUid currentId, ModelInfo model) =>
+    throw InvalidGenerationSourceError('''
+    @$annotationName(uid: 0) found on "$name" - you can choose one of the following actions:
+      [Rename] apply the current UID using @$annotationName(uid: ${currentId.uid})
+      [Change/reset] apply a new UID using @$annotationName(uid: ${model.generateUid()})
+''');

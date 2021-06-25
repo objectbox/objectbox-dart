@@ -65,7 +65,8 @@ class EntityResolver extends Builder {
         entityRealClass.isNull
             ? element.name
             : entityRealClass.typeValue.element!.name!,
-        null);
+        null,
+        uidRequest: !entityUid.isNull && entityUid.intValue == 0);
 
     if (_syncChecker.hasAnnotationOfExact(element)) {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;
@@ -199,7 +200,7 @@ class EntityResolver extends Builder {
       } else if (isToManyRel) {
         // create relation
         final rel = ModelRelation.create(IdUid(0, propUid ?? 0), f.name,
-            targetName: relTargetName);
+            targetName: relTargetName, uidRequest: propUid != null && propUid == 0);
         entity.relations.add(rel);
 
         log.info('  $rel');
@@ -207,7 +208,9 @@ class EntityResolver extends Builder {
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         final prop = ModelProperty.create(
             IdUid(0, propUid ?? 0), f.name, fieldType,
-            flags: flags, entity: entity);
+            flags: flags,
+            entity: entity,
+            uidRequest: propUid != null && propUid == 0);
 
         if (fieldType == OBXPropertyType.Relation) {
           prop.name += 'Id';
