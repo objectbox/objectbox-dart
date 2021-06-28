@@ -144,8 +144,7 @@ T withNativeBytes<T>(
   }
 }
 
-T withNativeString<T>(
-    String str, T Function(Pointer<Int8> cStr) fn) {
+T withNativeString<T>(String str, T Function(Pointer<Int8> cStr) fn) {
   final cStr = str.toNativeUtf8();
   try {
     return fn(cStr.cast());

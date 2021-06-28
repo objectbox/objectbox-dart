@@ -358,9 +358,6 @@ class InternalStoreAccess {
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 
-  /// Access model definitions
-  static ModelDefinition defs(Store store) => store._defs;
-
   /// Internal helper to reuse a transaction object (and especially cursors).
   @pragma('vm:prefer-inline')
   static R runInTransaction<R>(

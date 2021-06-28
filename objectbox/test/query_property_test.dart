@@ -424,8 +424,10 @@ void main() {
       final query = box.query(tSignedInts[i].lessThan(100)).build();
       final queryInt = query.property(tSignedInts[i]);
 
+      expect(queryInt.distinct, false);
       expect(queryInt.count(), 9);
       expect((queryInt..distinct = true).count(), 7);
+      expect(queryInt.distinct, true);
       queryInt.close();
       query.close();
     }
@@ -434,8 +436,10 @@ void main() {
     for (var i = 0; i < tFloats.length; i++) {
       final query = box.query(tFloats[i].lessThan(100.0)).build();
       final queryFloat = query.property(tFloats[i]);
+      expect(queryFloat.distinct, false);
       expect(queryFloat.count(), 6);
       expect((queryFloat..distinct = true).count(), 4);
+      expect(queryFloat.distinct, true);
       queryFloat.close();
       query.close();
     }
@@ -471,10 +475,15 @@ void main() {
     expect(queryString.count(), 8);
 
     // test without setting "caseSensitive" (implies the default TRUE)
+    expect(queryString.distinct, false);
     expect((queryString..distinct = true).count(), 6);
+    expect(queryString.distinct, true);
 
+    expect(queryString.caseSensitive, true);
     testStringPQ(distinct: false, caseSensitive: false);
+    expect(queryString.caseSensitive, false);
     testStringPQ(distinct: false, caseSensitive: true);
+    expect(queryString.caseSensitive, true);
     testStringPQ(distinct: true, caseSensitive: false);
     testStringPQ(distinct: true, caseSensitive: true);
     queryString.close();

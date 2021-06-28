@@ -123,4 +123,16 @@ void main() {
     store.close();
     Directory('objectbox').deleteSync(recursive: true);
   });
+
+  test('store options', () {
+    final store = Store(getObjectBoxModel(),
+        directory: 'basics',
+        maxDBSizeInKB: 100,
+        fileMode: int.parse('0666', radix: 8),
+        maxReaders: 5,
+        queriesCaseSensitiveDefault: false,
+        macosApplicationGroup: 'foo-bar');
+    store.close();
+    Directory('basics').deleteSync(recursive: true);
+  });
 }

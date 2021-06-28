@@ -265,3 +265,51 @@ class TestEntityNonRel {
     tUint8List = Uint8List.fromList([7, 8, 9]);
   }
 }
+
+// non-nullable fields
+@Entity()
+class TestEntityNotNull {
+  @Id(assignable: true)
+  int id;
+
+  // implicitly determined types
+  String tString;
+  int tLong;
+  double tDouble;
+  bool tBool;
+  DateTime tDate;
+
+  @Property(type: PropertyType.dateNano)
+  DateTime tDateNano;
+
+  List<String> tStrings;
+
+  // OBXPropertyType.ByteVector
+  @Property(type: PropertyType.byteVector)
+  List<int> tByteList;
+
+  // OBXPropertyType.ByteVector
+  Int8List tInt8List;
+
+  // OBXPropertyType.ByteVector
+  Uint8List tUint8List;
+
+  TestEntityNotNull(
+      {this.id = 0,
+      this.tString = 'Foo',
+      this.tBool = true,
+      this.tLong = 123456789123456789,
+      this.tDouble = 2.3,
+      DateTime? tDate,
+      DateTime? tDateNano,
+      List<String>? tStrings,
+      List<int>? tByteList,
+      Int8List? tInt8List,
+      Uint8List? tUint8List})
+      : tDate = tDate ?? DateTime.now(),
+        tDateNano = tDateNano ?? DateTime.now(),
+        tStrings = tStrings ?? [],
+        tByteList = tByteList ?? [],
+        tInt8List = tInt8List ?? Int8List(0),
+        tUint8List = tUint8List ?? Uint8List(0);
+}
