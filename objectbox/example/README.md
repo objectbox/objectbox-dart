@@ -57,7 +57,7 @@ Creating a store
 import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 
 class _MyHomePageState extends State<MyHomePage> {
-  Store _store;
+  Store? _store;
 
   @override
   void initState() {
