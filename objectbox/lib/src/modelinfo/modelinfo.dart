@@ -188,11 +188,9 @@ class ModelInfo {
     return found[0];
   }
 
-  ModelEntity? findSameEntity(ModelEntity other) {
-    ModelEntity? ret;
-    if (other.id.uid != 0) ret = findEntityByUid(other.id.uid);
-    return ret ?? findEntityByName(other.name);
-  }
+  ModelEntity? findSameEntity(ModelEntity other) => other.id.uid == 0
+      ? findEntityByName(other.name)
+      : findEntityByUid(other.id.uid);
 
   ModelEntity createEntity(String name, [int uid = 0]) {
     final id = lastEntityId.id + 1;

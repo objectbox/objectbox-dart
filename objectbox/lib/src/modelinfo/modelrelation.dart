@@ -12,6 +12,9 @@ class ModelRelation {
 
   String? _targetName;
 
+  // whether the user requested UID information (started a rename process)
+  final bool uidRequest;
+
   String get name => _name;
 
   set name(String? value) {
@@ -41,7 +44,7 @@ class ModelRelation {
 
   // used in code generator
   ModelRelation.create(this.id, String? name,
-      {String? targetId, String? targetName}) {
+      {String? targetId, String? targetName, this.uidRequest = false}) {
     this.name = name;
     if (targetId != null) this.targetId = IdUid.fromString(targetId);
     if (targetName != null) this.targetName = targetName;
@@ -51,20 +54,25 @@ class ModelRelation {
   ModelRelation(
       {required this.id, required String name, required IdUid targetId})
       : _name = name,
-        _targetId = targetId;
+        _targetId = targetId,
+        uidRequest = false;
 
   ModelRelation.fromMap(Map<String, dynamic> data)
       : this.create(
             IdUid.fromString(data['id'] as String?), data['name'] as String?,
             targetId: data['targetId'] as String?,
-            targetName: data['targetName'] as String?);
+            targetName: data['targetName'] as String?,
+            uidRequest: data['uidRequest'] as bool? ?? false);
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
     if (_targetId != null) ret['targetId'] = _targetId.toString();
-    if (!forModelJson && _targetName != null) ret['targetName'] = _targetName;
+    if (!forModelJson) {
+      ret['targetName'] = _targetName;
+      ret['uidRequest'] = uidRequest;
+    }
     return ret;
   }
 
