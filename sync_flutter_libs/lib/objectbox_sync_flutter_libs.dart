@@ -5,5 +5,6 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+/// Returns the default DB dir rooted in the current app's document directory.
 Future<Directory> defaultStoreDirectory() async =>
-    await getApplicationDocumentsDirectory();
+    Directory((await getApplicationDocumentsDirectory()).path + '/objectbox');
