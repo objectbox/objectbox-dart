@@ -72,14 +72,8 @@ class Box<T> {
   /// Performance note: consider [putMany] to put several objects at once.
   int put(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
-      final tx = Transaction(_store, TxMode.write);
-      try {
-        final id = _put(object, mode, tx);
-        tx.markSuccessful();
-        return id;
-      } finally {
-        tx.close();
-      }
+      return InternalStoreAccess.runInTransaction(
+          _store, TxMode.write, (Transaction tx) => _put(object, mode, tx));
     } else {
       return _put(object, mode, null);
     }
@@ -194,8 +188,8 @@ class Box<T> {
 
     final putIds = List<int>.filled(objects.length, 0);
 
-    final tx = Transaction(_store, TxMode.write);
-    try {
+    InternalStoreAccess.runInTransaction(_store, TxMode.write,
+        (Transaction tx) {
       if (_hasToOneRelations) {
         objects.forEach((object) => _putToOneRelFields(object, mode, tx));
       }
@@ -215,10 +209,7 @@ class Box<T> {
         objects.forEach((object) => _putToManyRelFields(object, mode, tx));
       }
       _builder.resetIfLarge();
-      tx.markSuccessful();
-    } finally {
-      tx.close();
-    }
+    });
 
     return putIds;
   }
@@ -234,14 +225,8 @@ class Box<T> {
 
   /// Retrieves the stored object with the ID [id] from this box's database.
   /// Returns null if an object with the given ID doesn't exist.
-  T? get(int id) {
-    final tx = Transaction(_store, TxMode.read);
-    try {
-      return tx.cursor(_entity).get(id);
-    } finally {
-      tx.close();
-    }
-  }
+  T? get(int id) => InternalStoreAccess.runInTransaction(
+      _store, TxMode.read, (Transaction tx) => tx.cursor(_entity).get(id));
 
   /// Returns a list of [ids.length] Objects of type T, each corresponding to
   /// the location of its ID in [ids]. Non-existent IDs become null.
@@ -250,36 +235,31 @@ class Box<T> {
   List<T?> getMany(List<int> ids, {bool growableResult = false}) {
     final result = List<T?>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
-    final tx = Transaction(_store, TxMode.read);
-    try {
+    return InternalStoreAccess.runInTransaction(_store, TxMode.read,
+        (Transaction tx) {
       final cursor = tx.cursor(_entity);
       for (var i = 0; i < ids.length; i++) {
         final object = cursor.get(ids[i]);
         if (object != null) result[i] = object;
       }
       return result;
-    } finally {
-      tx.close();
-    }
+    });
   }
 
   /// Returns all stored objects in this Box.
-  List<T> getAll() {
-    final tx = Transaction(_store, TxMode.read);
-    try {
-      final cursor = tx.cursor(_entity);
-      final result = <T>[];
-      var code = C.cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-      while (code != OBX_NOT_FOUND) {
-        checkObx(code);
-        result.add(_entity.objectFromFB(_store, cursor.readData));
-        code = C.cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-      }
-      return result;
-    } finally {
-      tx.close();
-    }
-  }
+  List<T> getAll() => InternalStoreAccess.runInTransaction(_store, TxMode.read,
+          (Transaction tx) {
+        final cursor = tx.cursor(_entity);
+        final result = <T>[];
+        var code =
+            C.cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
+        while (code != OBX_NOT_FOUND) {
+          checkObx(code);
+          result.add(_entity.objectFromFB(_store, cursor.readData));
+          code = C.cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
+        }
+        return result;
+      });
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   @pragma('vm:prefer-inline')
@@ -484,44 +464,43 @@ class InternalBoxAccess {
   /// Similar to box.getMany() but loads the OBX_id_array and reads objects
   /// in a single Transaction, ensuring consistency. And it's a little more
   /// efficient for not unpacking the id array to a dart list.
-  static List<EntityT> getRelated<EntityT>(Box<EntityT> box, RelInfo rel) {
-    final tx = Transaction(box._store, TxMode.read);
-    try {
-      Pointer<OBX_id_array> cIdsPtr;
-      switch (rel.type) {
-        case RelType.toMany:
-          cIdsPtr = C.box_rel_get_ids(box._cBox, rel.id, rel.objectId);
-          break;
-        case RelType.toOneBacklink:
-          cIdsPtr = C.box_get_backlink_ids(box._cBox, rel.id, rel.objectId);
-          break;
-        case RelType.toManyBacklink:
-          cIdsPtr = C.box_rel_get_backlink_ids(box._cBox, rel.id, rel.objectId);
-          break;
-        default:
-          throw UnimplementedError('Invalid relation type ${rel.type}');
-      }
-      checkObxPtr(cIdsPtr);
-      final result = <EntityT>[];
-      try {
-        final cIds = cIdsPtr.ref;
-        if (cIds.count > 0) {
-          final cursor = tx.cursor(box._entity);
-          for (var i = 0; i < cIds.count; i++) {
-            final code = C.cursor_get(
-                cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
-            if (code != OBX_NOT_FOUND) {
-              checkObx(code);
-              result.add(box._entity.objectFromFB(box._store, cursor.readData));
+  static List<EntityT> getRelated<EntityT>(Box<EntityT> box, RelInfo rel) =>
+      InternalStoreAccess.runInTransaction(box._store, TxMode.read,
+          (Transaction tx) {
+        Pointer<OBX_id_array> cIdsPtr;
+        switch (rel.type) {
+          case RelType.toMany:
+            cIdsPtr = C.box_rel_get_ids(box._cBox, rel.id, rel.objectId);
+            break;
+          case RelType.toOneBacklink:
+            cIdsPtr = C.box_get_backlink_ids(box._cBox, rel.id, rel.objectId);
+            break;
+          case RelType.toManyBacklink:
+            cIdsPtr =
+                C.box_rel_get_backlink_ids(box._cBox, rel.id, rel.objectId);
+            break;
+          default:
+            throw UnimplementedError('Invalid relation type ${rel.type}');
+        }
+        checkObxPtr(cIdsPtr);
+        final result = <EntityT>[];
+        try {
+          final cIds = cIdsPtr.ref;
+          if (cIds.count > 0) {
+            final cursor = tx.cursor(box._entity);
+            for (var i = 0; i < cIds.count; i++) {
+              final code = C.cursor_get(
+                  cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
+              if (code != OBX_NOT_FOUND) {
+                checkObx(code);
+                result
+                    .add(box._entity.objectFromFB(box._store, cursor.readData));
+              }
             }
           }
+        } finally {
+          C.id_array_free(cIdsPtr);
         }
-      } finally {
-        C.id_array_free(cIdsPtr);
-      }
-      return result;
-    } finally {
-      tx.close();
-    }
-  }
+        return result;
+      });
 }

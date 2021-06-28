@@ -621,4 +621,14 @@ void main() {
     expect(box.get(1)!.tString, str);
     env.store.close();
   });
+
+  test(
+      'TX multiple cursors',
+      () => store.runInTransaction(TxMode.write, () {
+            final box2 = store.box<TestEntity2>();
+            box.put(TestEntity());
+            box2.put(TestEntity2());
+            box.get(1);
+            box2.get(1);
+          }));
 }
