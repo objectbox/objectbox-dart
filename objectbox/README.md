@@ -80,7 +80,7 @@ dev_dependencies:
   </array>
   ```
   
-  Next, in your app code, pass the same string when opening the Store, for example: `Store(getObjectBoxModel(), directory: ..., macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
+  Next, in your app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
   Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
   19 characters or fewer.
 * Sync + Android only: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 

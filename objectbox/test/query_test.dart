@@ -637,4 +637,156 @@ void main() {
 
     query.close();
   });
+
+  test('set param single', () async {
+    final query = box
+        .query(TestEntity_.tString.equals('') |
+            TestEntity_.tByteList.equals([]) |
+            TestEntity_.tInt.equals(0) |
+            TestEntity_.tDouble.lessThan(0) |
+            TestEntity_.tBool.equals(false))
+        .build();
+    query
+      ..param(TestEntity_.tString).value = 'foo'
+      ..param(TestEntity_.tByteList).value = [1, 9]
+      ..param(TestEntity_.tInt).value = 11
+      ..param(TestEntity_.tDouble).value = 4.6
+      ..param(TestEntity_.tBool).value = true;
+    expect(
+        query.describeParameters(),
+        [
+          '(tString == "foo"',
+          ' OR tByteList == byte[2]{0x0109}',
+          ' OR tInt == 11',
+          ' OR tDouble < 4.600000',
+          ' OR tBool == 1)',
+        ].join('\n'));
+  });
+
+  test('set two params', () async {
+    final query = box
+        .query(
+            TestEntity_.tInt.between(0, 0) | TestEntity_.tDouble.between(0, 0))
+        .build();
+    query.param(TestEntity_.tInt).twoValues(1, 2);
+    query.param(TestEntity_.tDouble).twoValues(1.2, 3.4);
+    expect(
+        query.describeParameters(),
+        [
+          '(tInt between 1 and 2',
+          ' OR tDouble between 1.200000 and 3.400000)',
+        ].join('\n'));
+  });
+
+  test('set params list', () async {
+    final q1 = box.query(TestEntity_.tString.oneOf([])).build()
+      ..param(TestEntity_.tString).values = ['foo', 'bar'];
+    if (!['tString in ["foo", "bar"]', 'tString in ["bar", "foo"]']
+        .contains(q1.describeParameters())) {
+      fail('Invalid query: ' + q1.describeParameters());
+    }
+
+    final q2 = box.query(TestEntity_.tInt.oneOf([])).build()
+      ..param(TestEntity_.tInt).values = [1, 2];
+
+    if (!['tInt in [1|2]', 'tInt in [2|1]'].contains(q2.describeParameters())) {
+      fail('Invalid query: ' + q2.describeParameters());
+    }
+
+    final q3 = box.query(TestEntity_.tLong.oneOf([])).build()
+      ..param(TestEntity_.tLong).values = [1, 2];
+
+    if (!['tLong in [1|2]', 'tLong in [2|1]']
+        .contains(q3.describeParameters())) {
+      fail('Invalid query: ' + q3.describeParameters());
+    }
+  });
+
+  test('alias - set param single', () async {
+    final query = box
+        .query(TestEntity_.tString.equals('') |
+            TestEntity_.tByteList.equals([]) |
+            TestEntity_.tInt.equals(0) |
+            TestEntity_.tDouble.lessThan(0) |
+            TestEntity_.tBool.equals(false) |
+            TestEntity_.tString.equals('', alias: 'str') |
+            TestEntity_.tByteList.equals([], alias: 'bytes') |
+            TestEntity_.tInt.equals(0, alias: 'int') |
+            TestEntity_.tDouble.lessThan(0, alias: 'double') |
+            TestEntity_.tBool.equals(false, alias: 'bool'))
+        .build();
+    query
+      ..param(TestEntity_.tString, alias: 'str').value = 'foo'
+      ..param(TestEntity_.tByteList, alias: 'bytes').value = [1, 9]
+      ..param(TestEntity_.tInt, alias: 'int').value = 11
+      ..param(TestEntity_.tDouble, alias: 'double').value = 4.6
+      ..param(TestEntity_.tBool, alias: 'bool').value = true;
+    expect(
+        query.describeParameters(),
+        [
+          '(tString == ""',
+          ' OR tByteList == byte[0]""',
+          ' OR tInt == 0',
+          ' OR tDouble < 0.000000',
+          ' OR tBool == 0',
+          ' OR tString == "foo"',
+          ' OR tByteList == byte[2]{0x0109}',
+          ' OR tInt == 11',
+          ' OR tDouble < 4.600000',
+          ' OR tBool == 1)',
+        ].join('\n'));
+  });
+
+  test('alias - set two params', () async {
+    final query = box
+        .query(TestEntity_.tInt.between(0, 0) |
+            TestEntity_.tDouble.between(0, 0) |
+            TestEntity_.tInt.between(0, 0, alias: 'int') |
+            TestEntity_.tDouble.between(0, 0, alias: 'double'))
+        .build();
+    query.param(TestEntity_.tInt, alias: 'int').twoValues(1, 2);
+    query.param(TestEntity_.tDouble, alias: 'double').twoValues(1.2, 3.4);
+    expect(
+        query.describeParameters(),
+        [
+          '(tInt between 0 and 0',
+          ' OR tDouble between 0.000000 and 0.000000',
+          ' OR tInt between 1 and 2',
+          ' OR tDouble between 1.200000 and 3.400000)',
+        ].join('\n'));
+  });
+
+  test('alias - set params list', () async {
+    final q1 = box
+        .query(TestEntity_.tString.oneOf([]) |
+            TestEntity_.tString.oneOf([], alias: 'a'))
+        .build()
+          ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
+    if (!['OR tString in ["foo", "bar"]', 'OR tString in ["bar", "foo"]']
+        .any(q1.describeParameters().contains)) {
+      fail('Invalid query: ' + q1.describeParameters());
+    }
+
+    final q2 = box
+        .query(
+            TestEntity_.tInt.oneOf([]) | TestEntity_.tInt.oneOf([], alias: 'a'))
+        .build()
+          ..param(TestEntity_.tInt, alias: 'a').values = [1, 2];
+
+    if (!['OR tInt in [1|2]', 'OR tInt in [2|1]']
+        .any(q2.describeParameters().contains)) {
+      fail('Invalid query: ' + q2.describeParameters());
+    }
+
+    final q3 = box
+        .query(TestEntity_.tLong.oneOf([]) |
+            TestEntity_.tLong.oneOf([], alias: 'a'))
+        .build()
+          ..param(TestEntity_.tLong, alias: 'a').values = [1, 2];
+
+    if (!['OR tLong in [1|2]', 'OR tLong in [2|1]']
+        .any(q3.describeParameters().contains)) {
+      fail('Invalid query: ' + q3.describeParameters());
+    }
+  });
 }
