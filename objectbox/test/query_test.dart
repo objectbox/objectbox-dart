@@ -646,11 +646,12 @@ void main() {
             TestEntity_.tDouble.lessThan(0) |
             TestEntity_.tBool.equals(false))
         .build();
-    query.param(TestEntity_.tString).value = 'foo';
-    query.param(TestEntity_.tByteList).value = [1, 9];
-    query.param(TestEntity_.tInt).value = 11;
-    query.param(TestEntity_.tDouble).value = 4.6;
-    query.param(TestEntity_.tBool).value = true;
+    query
+      ..param(TestEntity_.tString).value = 'foo'
+      ..param(TestEntity_.tByteList).value = [1, 9]
+      ..param(TestEntity_.tInt).value = 11
+      ..param(TestEntity_.tDouble).value = 4.6
+      ..param(TestEntity_.tBool).value = true;
     expect(
         query.describeParameters(),
         [
@@ -714,11 +715,12 @@ void main() {
             TestEntity_.tDouble.lessThan(0, alias: 'double') |
             TestEntity_.tBool.equals(false, alias: 'bool'))
         .build();
-    query.param(TestEntity_.tString, alias: 'str').value = 'foo';
-    query.param(TestEntity_.tByteList, alias: 'bytes').value = [1, 9];
-    query.param(TestEntity_.tInt, alias: 'int').value = 11;
-    query.param(TestEntity_.tDouble, alias: 'double').value = 4.6;
-    query.param(TestEntity_.tBool, alias: 'bool').value = true;
+    query
+      ..param(TestEntity_.tString, alias: 'str').value = 'foo'
+      ..param(TestEntity_.tByteList, alias: 'bytes').value = [1, 9]
+      ..param(TestEntity_.tInt, alias: 'int').value = 11
+      ..param(TestEntity_.tDouble, alias: 'double').value = 4.6
+      ..param(TestEntity_.tBool, alias: 'bool').value = true;
     expect(
         query.describeParameters(),
         [

@@ -2,7 +2,39 @@ part of query;
 
 /// Adds capabilities to set query parameters
 extension QuerySetParam<EntityT> on Query<EntityT> {
-  /// Allows overwriting a query condition value.
+  /// Allows overwriting a query condition value, making queries reusable.
+  ///
+  /// Example for a property that's used only once in a query (no alias needed):
+  /// ```dart
+  /// class App {
+  ///   // a reusable query
+  ///   late final query = box.query(Person_.name.startsWith('')).build();
+  /// }
+  ///
+  /// // later in app code, reuse the query as many times as you want
+  /// app.query.param(Person_.name).value = 'A';
+  /// final peopleStartingWithA = app.query.find();
+  /// app.query.param(Person_.name).value = 'B';
+  /// final peopleStartingWithB = app.query.find();
+  /// ```
+  ///
+  /// Example for a property used multiple times (requires an [alias] that is
+  /// unique for the whole query):
+  /// ```dart
+  /// class App {
+  ///   // a reusable query
+  ///   late final query = box.query(
+  ///     Person_.name.startsWith('', alias: 'start') &
+  ///     Person_.name.endsWith('', alias: 'end')
+  ///   ).build();
+  /// }
+  ///
+  /// // later in app code, reuse the query as many times as you want
+  /// app.query
+  ///   ..param(Person_.name, alias: 'start').value = 'A'
+  ///   ..param(Person_.name, alias: 'end').value = 'b';
+  /// final people = app.query.find();
+  /// ```
   QueryParam<DartType> param<DartType>(QueryProperty<EntityT, DartType> prop,
           {String? alias}) =>
       QueryParam._(this, prop, alias);

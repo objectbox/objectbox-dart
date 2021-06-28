@@ -3,6 +3,8 @@
 * New `openStore()` in the generated code to simplify creating a store instance, especially on Flutter (uses application
   documents directory as a default). 
 * New `@Entity()` annotation field `type realClass` to support some custom code generators.
+* New `Query.param()` to support reusable queries (changing condition values before execution).
+  See [Reusing queries](https://docs.objectbox.io/queries#reusing-queries-and-parameters) in docs.
 * Rename semi-internal `QueryRelationProperty` to `QueryRelationToOne` and `QueryRelationMany` to `QueryRelationToMany`
   to help users choosing the right link function: `link()`/`linkMany()`.
 * Add support for the entity/property/relation rename or reset workflow.
