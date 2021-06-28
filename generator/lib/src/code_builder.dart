@@ -8,6 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:objectbox/internal.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:source_gen/source_gen.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'entity_resolver.dart';
 import 'code_chunks.dart';
@@ -29,6 +30,13 @@ class CodeBuilder extends Builder {
   @override
   FutureOr<void> build(BuildStep buildStep) async {
     // build() will be called only twice, once for the `lib` directory and once for the `test` directory
+    Pubspec? pubspec;
+    try {
+      final pubspecFile = File(path.join(dir(buildStep), '../pubspec.yaml'));
+      pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
+    } catch (e) {
+      log.info("Couldn't load pubspec.yaml: $e");
+    }
 
     // map from file name to a 'json' representation of entities
     final files = <String, List<dynamic>>{};
@@ -54,7 +62,7 @@ class CodeBuilder extends Builder {
     final model = await updateModel(entities, buildStep);
 
     // generate binding code
-    updateCode(model, files.keys.toList(growable: false), buildStep);
+    updateCode(model, files.keys.toList(growable: false), buildStep, pubspec);
   }
 
   Future<ModelInfo> updateModel(
@@ -85,8 +93,8 @@ class CodeBuilder extends Builder {
     return model;
   }
 
-  void updateCode(
-      ModelInfo model, List<String> infoFiles, BuildStep buildStep) async {
+  void updateCode(ModelInfo model, List<String> infoFiles, BuildStep buildStep,
+      Pubspec? pubspec) async {
     // transform '/lib/path/entity.objectbox.info' to 'path/entity.dart'
     final imports = infoFiles
         .map((file) => file
@@ -94,7 +102,7 @@ class CodeBuilder extends Builder {
             .replaceFirst(dir(buildStep) + '/', ''))
         .toList();
 
-    var code = CodeChunks.objectboxDart(model, imports);
+    var code = CodeChunks.objectboxDart(model, imports, pubspec);
 
     try {
       code = DartFormatter().format(code);

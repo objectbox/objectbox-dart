@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart';
 
 import 'objectbox.g.dart';
 
@@ -52,7 +52,7 @@ class ViewModel {
 
   ViewModel(Directory dir)
       : _store = Store(getObjectBoxModel(),
-            directory: dir.path + '/objectbox-sync',
+            directory: dir.path + '-sync',
             macosApplicationGroup: 'objectbox.demo' // replace with a real name
             ) {
     _box = Box<Note>(_store);
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    getApplicationDocumentsDirectory().then((dir) {
+    defaultStoreDirectory().then((dir) {
       _vm = ViewModel(dir);
 
       setState(() {});
