@@ -268,7 +268,7 @@ class TestEntityNonRel {
 
 // non-nullable fields
 @Entity()
-class TestEntityNN {
+class TestEntityNotNull {
   @Id(assignable: true)
   int id;
 
@@ -294,7 +294,7 @@ class TestEntityNN {
   // OBXPropertyType.ByteVector
   Uint8List tUint8List;
 
-  TestEntityNN(
+  TestEntityNotNull(
       {this.id = 0,
       this.tString = 'Foo',
       this.tBool = true,

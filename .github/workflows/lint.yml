@@ -51,9 +51,6 @@ jobs:
           result_path: objectbox/coverage/lcov.info
           min_coverage: 90
           token: ${{ github.token }}
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 5.0.301
       - uses: danielpalme/ReportGenerator-GitHub-Action@4.8.10
         with:
           reports: 'objectbox/coverage/lcov.info'

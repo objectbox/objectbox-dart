@@ -8,7 +8,7 @@ import 'test_env.dart';
 // Tests non-nullable fields
 void main() {
   late TestEnv env;
-  late Box<TestEntityNN> box;
+  late Box<TestEntityNotNull> box;
 
   setUp(() {
     env = TestEnv('box-nn');
@@ -19,9 +19,9 @@ void main() {
 
   test('CRUD', () {
     final objects = [
-      TestEntityNN(),
-      TestEntityNN(),
-      TestEntityNN(
+      TestEntityNotNull(),
+      TestEntityNotNull(),
+      TestEntityNotNull(
         tStrings: ['list', 'items'],
         tByteList: [14, -50, 44],
         tInt8List: Int8List.fromList([1, 8, -17]),
@@ -47,19 +47,20 @@ void main() {
   });
 
   test('.putAsync', () async {
-    expect(await box.putAsync(TestEntityNN()), 1);
+    expect(await box.putAsync(TestEntityNotNull()), 1);
   });
 
   test('assignable IDs', () {
-    final object = TestEntityNN(id: 2);
+    final object = TestEntityNotNull(id: 2);
     box.put(object);
     expect(object.id, 2);
     final read = box.get(2);
     expect(read, isNotNull);
   });
 
+  // basically the same as in box_test.dart
   test('DateTime field', () {
-    final object = TestEntityNN();
+    final object = TestEntityNotNull();
     object.tDate = DateTime.now();
     object.tDateNano = DateTime.now();
 

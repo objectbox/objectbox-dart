@@ -431,7 +431,7 @@
     {
       "id": "9:5417142555323669520",
       "lastPropertyId": "11:5570918577666931231",
-      "name": "TestEntityNN",
+      "name": "TestEntityNotNull",
       "properties": [
         {
           "id": "1:6910704013108652304",
