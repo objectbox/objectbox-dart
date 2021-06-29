@@ -169,7 +169,6 @@ class Builder {
       Allocator? allocator})
       : _allocator = allocator ?? DefaultAllocator() {
     _buf = _allocator.allocate(initialSize);
-    _allocator.clear(_buf, true);
     if (internStrings == true) {
       _strings = new Map<String, int>();
     }
@@ -465,7 +464,6 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
-    _allocator.clear(_buf, false);
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
@@ -1330,22 +1328,9 @@ abstract class Allocator {
   ByteData reallocateDownward(
       ByteData oldData, int newSize, int inUseBack, int inUseFront) {
     final newData = allocate(newSize);
-    clear(newData, true);
     _copyDownward(oldData, newData, inUseBack, inUseFront);
     deallocate(oldData);
     return newData;
-  }
-
-  /// Clear the allocated data contents.
-  ///
-  /// Param [isFresh] is true if the given data has been freshly allocated,
-  /// depending on the allocator implementation, clearing may be unnecessary.
-  void clear(ByteData data, bool isFresh) {
-    final length = data.lengthInBytes;
-    final length64b = (length / 8).floor();
-    // fillRange iterates over data so it's faster with larger data type
-    if (length64b > 0) data.buffer.asUint64List().fillRange(0, length64b, 0);
-    data.buffer.asUint8List().fillRange(length64b * 8, length % 8, 0);
   }
 
   /// Called by [reallocate] to copy memory from [oldData] to [newData]. Only
@@ -1374,15 +1359,5 @@ class DefaultAllocator extends Allocator {
   @override
   void deallocate(ByteData _) {
     // nothing to do, it's garbage-collected
-  }
-
-  @override
-  @pragma('vm:prefer-inline')
-  void clear(ByteData data, bool isFresh) {
-    if (isFresh) {
-      // nothing to do, ByteData is created all zeroed out
-    } else {
-      super.clear(data, isFresh);
-    }
   }
 }

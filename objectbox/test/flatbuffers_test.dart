@@ -58,29 +58,6 @@ void main() {
   final bytesSum =
       (ByteData data) => data.buffer.asInt8List().reduce((v, e) => v + e);
 
-  test('allocator', () {
-    final allocator = Allocator();
-
-    final buf1 = allocator.allocate(1024);
-    allocator.clear(buf1, true);
-
-    final buf2 = allocator.allocate(1024);
-    allocator.clear(buf2, true);
-
-    expect(bytesSum(buf1), isZero);
-    expect(bytesSum(buf2), isZero);
-
-    buf2.setInt8(42, 1);
-    expect(bytesSum(buf1), isZero);
-    expect(bytesSum(buf2), 1);
-
-    allocator.clear(buf2, false);
-    expect(bytesSum(buf2), isZero);
-
-    allocator.deallocate(buf1);
-    allocator.freeAll();
-  });
-
   // Note: only checks content initialized by TestEntity.filled
   void checkSameEntities(TestEntityNonRel a, TestEntityNonRel b) {
     expect(a.tString, b.tString);

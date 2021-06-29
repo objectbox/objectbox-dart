@@ -71,7 +71,7 @@ class Allocator extends fb.Allocator {
   ByteData allocate(int size) {
     _capacity = size;
     final index = _flipIndex();
-    _allocs[index] = calloc<Uint8>(size);
+    _allocs[index] = malloc<Uint8>(size);
     _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
     return _data[index]!;
   }
@@ -83,28 +83,14 @@ class Allocator extends fb.Allocator {
     // only used for sanity checks:
     assert(_data[index] == data);
 
-    calloc.free(_allocs[index]);
+    malloc.free(_allocs[index]);
     _allocs[index] = nullptr;
-  }
-
-  @pragma('vm:prefer-inline')
-  @override
-  void clear(ByteData data, bool isFresh) {
-    if (isFresh) return; // freshly allocated data is zero-ed out (see [calloc])
-
-    // only used for sanity checks:
-    assert(_data[_index] == data);
-    assert(_allocs[_index].address != 0);
-
-    // TODO - there are other options to clear the builder, see how other
-    //        FlatBuffer implementations do it.
-    memset(_allocs[_index], 0, data.lengthInBytes);
   }
 
   void freeAll() {
     for (var i = 0; i < _allocs.length; i++) {
       if (_allocs[i].address != 0) {
-        calloc.free(_allocs[i]);
+        malloc.free(_allocs[i]);
         _allocs[i] = nullptr;
       }
     }
