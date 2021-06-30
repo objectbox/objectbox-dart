@@ -5,9 +5,9 @@ import 'package:objectbox/objectbox.dart';
 class TestEntity2 {
   @Id(assignable: true)
   int? id;
-
-  @Unique()
-  int? value;
+  //
+  // // @Unique()
+  // int? value;
 
   TestEntity2({this.id});
 }

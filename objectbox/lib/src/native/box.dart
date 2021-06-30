@@ -172,8 +172,15 @@ class Box<T> {
     }
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
+    final data = _builder.bufPtr;
+    print(_builder.fbb.size);
+    // for (int i = 0; i < 5; i++) {
+      print(data.cast<Uint8>().elementAt(4).value);
+    // }
+    // print(data.cast<Uint8>().asTypedList(_builder.fbb.size));
+    return 0;
     final newId = C.box_put_object4(
-        _cBox, _builder.bufPtr, _builder.fbb.size, _getOBXPutMode(mode));
+        _cBox, data, _builder.fbb.size, _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
     if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
     _builder.resetIfLarge();

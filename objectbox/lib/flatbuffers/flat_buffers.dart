@@ -35,6 +35,15 @@ const int _sizeofFloat64 = 8;
 /// struct's fields inline.
 typedef void StructBuilder();
 
+final _captured = List<String>.filled(32, '?');
+
+void capture(int offset, int size) {
+  for (var i = offset; i < offset + size; i++) {
+    _captured[i] = '#';
+  }
+  print(_captured.join());
+}
+
 /// Buffer with data and some context about it.
 class BufferContext {
   final ByteData _buffer;
@@ -184,6 +193,8 @@ class Builder {
     if (value != null && value != def) {
       _prepare(_sizeofUint8, 1);
       _trackField(field);
+      print('set ${_buf.lengthInBytes - _tail} = $value');
+      capture(_buf.lengthInBytes - _tail, 1);
       _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
     }
   }
@@ -378,6 +389,8 @@ class Builder {
         _setUint8AtTail(
             _buf, size - _sizeofUint32 - i, fileIdentifier.codeUnitAt(i));
       }
+    } else {
+      _setUint32AtTail(_buf, size - _sizeofUint32, 0);
     }
     return _buf.buffer.asUint8List(_buf.lengthInBytes - size);
   }
@@ -427,6 +440,8 @@ class Builder {
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putInt8(int value) {
     _prepare(_sizeofInt8, 1);
+    print('set ${_buf.lengthInBytes - _tail} = $value');
+    capture(_buf.lengthInBytes - _tail, 1);
     _buf.setInt8(_buf.lengthInBytes - _tail, value);
   }
 
@@ -459,6 +474,8 @@ class Builder {
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putUint8(int value) {
     _prepare(_sizeofUint8, 1);
+    print('set ${_buf.lengthInBytes - _tail} = $value');
+    capture(_buf.lengthInBytes - _tail, 1);
     _buf.setUint8(_buf.lengthInBytes - _tail, value);
   }
 
@@ -688,8 +705,12 @@ class Builder {
     _setUint32AtTail(_buf, _tail, length);
     int offset = _buf.lengthInBytes - _tail + 4;
     for (int i = 0; i < length; i++) {
+      print('set $offset = ${bytes[i]}');
+      capture(offset, 1);
       _buf.setUint8(offset++, bytes[i]);
     }
+    print('set $offset = 0');
+    capture(offset, 1);
     _buf.setUint8(offset, 0); // trailing zero
     return result;
   }
@@ -739,9 +760,18 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
         int newCapacity = oldCapacity + deltaCapacity;
+        throw 'must not reallocate';
         _buf = _allocator.reallocateDownward(_buf, newCapacity, oldCapacity, 0);
       }
     }
+
+    // zero-out added padding - beware, this "consumes" [alignDelta] variable...
+    while (alignDelta > 0) {
+      capture(_buf.lengthInBytes - _tail - alignDelta, 1);
+      _buf.setInt8(_buf.lengthInBytes - _tail - alignDelta, 0);
+      alignDelta--;
+    }
+
     // Update the tail pointer.
     _tail += bufSize;
   }
@@ -754,51 +784,79 @@ class Builder {
 
   @pragma('vm:prefer-inline')
   static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 7} = $x');
+    capture(_buf.lengthInBytes - tail, 8);
     _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setFloat32AtTail(ByteData _buf, int tail, double x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 3} = $x');
+    capture(_buf.lengthInBytes - tail, 4);
     _buf.setFloat32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setUint64AtTail(ByteData _buf, int tail, int x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 7} = $x');
+    capture(_buf.lengthInBytes - tail, 8);
     _buf.setUint64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setInt64AtTail(ByteData _buf, int tail, int x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 7} = $x');
+    capture(_buf.lengthInBytes - tail, 8);
     _buf.setInt64(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setInt32AtTail(ByteData _buf, int tail, int x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 3} = $x');
+    capture(_buf.lengthInBytes - tail, 4);
     _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setUint32AtTail(ByteData _buf, int tail, int x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 3} = $x');
+    capture(_buf.lengthInBytes - tail, 4);
     _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setInt16AtTail(ByteData _buf, int tail, int x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 1} = $x');
+    capture(_buf.lengthInBytes - tail, 2);
     _buf.setInt16(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setUint16AtTail(ByteData _buf, int tail, int x) {
+    print(
+        'set ${_buf.lengthInBytes - tail}-${_buf.lengthInBytes - tail + 1} = $x');
+    capture(_buf.lengthInBytes - tail, 2);
     _buf.setUint16(_buf.lengthInBytes - tail, x, Endian.little);
   }
 
   @pragma('vm:prefer-inline')
   static void _setInt8AtTail(ByteData _buf, int tail, int x) {
+    print('set ${_buf.lengthInBytes - tail} = $x');
+    capture(_buf.lengthInBytes - tail, 1);
     _buf.setInt8(_buf.lengthInBytes - tail, x);
   }
 
   @pragma('vm:prefer-inline')
   static void _setUint8AtTail(ByteData _buf, int tail, int x) {
+    print('set ${_buf.lengthInBytes - tail} = $x');
+    capture(_buf.lengthInBytes - tail, 1);
     _buf.setUint8(_buf.lengthInBytes - tail, x);
   }
 }
@@ -1301,14 +1359,20 @@ class _VTable {
   void output(ByteData buf, int bufOffset) {
     assert(offsetsComputed);
     // VTable size.
+    print('set $bufOffset-${bufOffset + 1} = ${numOfUint16 * 2}');
+    capture(bufOffset, 2);
     buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
     bufOffset += 2;
     // Table size.
+    print('set $bufOffset-${bufOffset + 1} = $tableSize');
+    capture(bufOffset, 2);
     buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
     for (int i = 0; i < fieldOffsets.length; i++) {
       final fieldOffset = fieldOffsets[i];
+      print('set $bufOffset-${bufOffset + 1} = $fieldOffset');
+      capture(bufOffset, 2);
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
     }
