@@ -16,6 +16,7 @@
 * Fix `ToMany` showing duplicate items after adding them before reading the previous list.
 * Fix invalid native free during store shutdown if large data was inserted (more than 64 kilobytes flatbuffer).
 * FlatBuffers serialization performance improvements.
+* Update to objectbox-android v2.9.2-RC3.
 
 ## 1.0.0 (2021-05-18)
 
