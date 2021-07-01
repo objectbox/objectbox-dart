@@ -30,14 +30,6 @@ class CodeBuilder extends Builder {
   @override
   FutureOr<void> build(BuildStep buildStep) async {
     // build() will be called only twice, once for the `lib` directory and once for the `test` directory
-    Pubspec? pubspec;
-    try {
-      final pubspecFile = File(path.join(dir(buildStep), '../pubspec.yaml'));
-      pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
-    } catch (e) {
-      log.info("Couldn't load pubspec.yaml: $e");
-    }
-
     // map from file name to a 'json' representation of entities
     final files = <String, List<dynamic>>{};
     final glob = Glob(dir(buildStep) + '/**' + EntityResolver.suffix);
@@ -60,6 +52,14 @@ class CodeBuilder extends Builder {
 
     // update the model JSON with the read entities
     final model = await updateModel(entities, buildStep);
+
+    Pubspec? pubspec;
+    try {
+      final pubspecFile = File(path.join(dir(buildStep), '../pubspec.yaml'));
+      pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
+    } catch (e) {
+      log.info("Couldn't load pubspec.yaml: $e");
+    }
 
     // generate binding code
     updateCode(model, files.keys.toList(growable: false), buildStep, pubspec);
