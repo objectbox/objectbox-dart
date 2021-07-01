@@ -148,7 +148,7 @@ class Box<T> {
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.async_put_object4(_async!._cAsync, _builder.bufPtr,
-        _builder.fbb.size, _getOBXPutMode(mode));
+        _builder.fbb.size(), _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
     _builder.resetIfLarge();
     return newId;
@@ -173,7 +173,7 @@ class Box<T> {
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.box_put_object4(
-        _cBox, _builder.bufPtr, _builder.fbb.size, _getOBXPutMode(mode));
+        _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
     if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
     _builder.resetIfLarge();
@@ -201,7 +201,7 @@ class Box<T> {
         _builder.fbb.reset();
         final id = _entity.objectToFB(object, _builder.fbb);
         final newId = C.cursor_put_object4(
-            cursor.ptr, _builder.bufPtr, _builder.fbb.size, cMode);
+            cursor.ptr, _builder.bufPtr, _builder.fbb.size(), cMode);
         putIds[i] = _handlePutObjectResult(object, id, newId);
       }
 
@@ -390,7 +390,7 @@ class _AsyncBoxHelper {
   Future<int> put(int id, BuilderWithCBuffer fbb, PutMode mode) async {
     final port = ReceivePort();
     final newId = C.dartc_async_put_object(_cAsync, port.sendPort.nativePort,
-        fbb.bufPtr, fbb.fbb.size, _getOBXPutMode(mode));
+        fbb.bufPtr, fbb.fbb.size(), _getOBXPutMode(mode));
 
     final completer = Completer<int>();
 

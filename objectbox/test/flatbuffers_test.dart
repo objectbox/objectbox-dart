@@ -34,7 +34,7 @@ void main() {
 
       final fb1 = BuilderWithCBuffer(initialSize: initialSize);
       final list1a = addFbData(fb1.fbb);
-      final list1b = fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size);
+      final list1b = fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size());
 
       // final fb2 = fb_upstream.Builder(initialSize: initialSize);
       // final list2 = addFbDataUpstream(fb2);
@@ -49,7 +49,7 @@ void main() {
       fb1.fbb.reset();
       expect(addFbData(fb1.fbb), equals(list1a));
       expect(
-          fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size), equals(list1b));
+          fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()), equals(list1b));
 
       fb1.clear();
     });
@@ -86,7 +86,7 @@ void main() {
     final fb1 = BuilderWithCBuffer();
     binding.objectToFB(source, fb1.fbb);
     final fbData = ByteData.view(
-        fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size).buffer);
+        fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()).buffer);
 
     // must have the same content after reading back
     final target = binding.objectFromFB(env.store, fbData);

@@ -21,7 +21,7 @@ class BuilderWithCBuffer {
 
   @pragma('vm:prefer-inline')
   Pointer<Void> get bufPtr => Pointer<Void>.fromAddress(
-      _allocator.bufAddress + _allocator._capacity - _fbb.size);
+      _allocator.bufAddress + _allocator._capacity - _fbb.size());
 
   BuilderWithCBuffer({int initialSize = 256, int resetIfLargerThan = 64 * 1024})
       : _initialSize = initialSize,
