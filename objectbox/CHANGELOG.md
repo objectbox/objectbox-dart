@@ -2,15 +2,20 @@
 
 * New `openStore()` in the generated code to simplify creating a store instance, especially on Flutter (uses application
   documents directory as a default). 
-* New `@Entity()` annotation field `type realClass` to support some custom code generators.
+* Add support for Entities used together with some custom code-generators (immutable objects, JSON, ...).
+  See `@Entity(realClass: )` new field and its docs.
 * New `Query.param()` to support reusable queries (changing condition values before execution).
   See [Reusing queries](https://docs.objectbox.io/queries#reusing-queries-and-parameters) in docs.
 * Rename semi-internal `QueryRelationProperty` to `QueryRelationToOne` and `QueryRelationMany` to `QueryRelationToMany`
-  to help users choosing the right link function: `link()`/`linkMany()`.
+  to help users pick the right link function: `link()` vs `linkMany()`.
 * Add support for the entity/property/relation rename or reset workflow.
-  See [Data model updates](https://docs.objectbox.io/advanced/data-model-updates) for details.  
+  See [Data model updates](https://docs.objectbox.io/advanced/data-model-updates) for details.
+* Add support for `ToOne` relation cycles.
+* Enforce you can only open the same database directory once (no multiple parallel Store instances are allowed).
+* Fix `macOS` sandbox database directory permissions (see notes in Flutter-specific "Getting Started" docs).
 * Fix `ToMany` showing duplicate items after adding them before reading the previous list.
 * Fix invalid native free during store shutdown if large data was inserted (more than 64 kilobytes flatbuffer).
+* FlatBuffers serialization performance improvements.
 
 ## 1.0.0 (2021-05-18)
 
