@@ -43,59 +43,57 @@ class BuilderWithCBuffer {
 }
 
 class Allocator extends fb.Allocator {
-  // We may, in practice, have only two active allocations: one used and one
-  // for resizing. Therefore, we use a ring buffer of a fixed size (2).
-  // Note: keep the list fixed-size - those are much faster to index
-  final _allocs = List<Pointer<Uint8>>.filled(2, nullptr, growable: false);
-
-  // only used for sanity checks:
-  final _data = List<ByteData?>.filled(2, null, growable: false);
-
-  // currently used allocator index
-  int _index = 0;
+  Pointer<Uint8>? _ptr;
 
   // allocated buffer capacity
   int _capacity = 0;
 
   @pragma('vm:prefer-inline')
   int get bufAddress {
-    assert(_allocs[_index].address != 0);
-    return _allocs[_index].address;
+    assert(_ptr!.address != 0);
+    return _ptr!.address;
   }
 
-  // flips _index from 0 to 1 (or back), returning the new value
-  @pragma('vm:prefer-inline')
-  int _flipIndex() => _index == 0 ? ++_index : --_index;
+  ByteData get _view => ByteData.view(_ptr!.asTypedList(_capacity).buffer);
 
   @override
   ByteData allocate(int size) {
     _capacity = size;
-    final index = _flipIndex();
-    _allocs[index] = malloc<Uint8>(size);
-    _data[index] = ByteData.view(_allocs[index].asTypedList(size).buffer);
-    return _data[index]!;
+    // FB Builder only calls allocate once
+    assert(_ptr == null);
+    _ptr = malloc<Uint8>(size);
+    return _view;
   }
 
   @override
-  void deallocate(ByteData data) {
-    final index = _index == 0 ? 1 : 0; // get the other index
+  void deallocate(ByteData data) => malloc.free(_ptr!);
 
-    // only used for sanity checks:
-    assert(_data[index] == data);
-
-    malloc.free(_allocs[index]);
-    _allocs[index] = nullptr;
+  @override
+  ByteData reallocateDownward(
+      ByteData oldData, int newSize, int inUseBack, int inUseFront) {
+    assert(inUseFront == 0); // currently unused in FB Builder()
+    final newPtr = malloc<Uint8>(newSize);
+    final oldPtr = _ptr!;
+    if (inUseBack != 0) {
+      memcpy(
+          Pointer<Uint8>.fromAddress(newPtr.address + newSize - inUseBack),
+          Pointer<Uint8>.fromAddress(oldPtr.address + _capacity - inUseBack),
+          inUseBack);
+    }
+    if (inUseFront != 0) {
+      memcpy(newPtr, oldPtr, inUseFront);
+    }
+    _capacity = newSize;
+    _ptr = newPtr;
+    malloc.free(oldPtr);
+    return _view;
   }
 
   void freeAll() {
-    for (var i = 0; i < _allocs.length; i++) {
-      if (_allocs[i].address != 0) {
-        malloc.free(_allocs[i]);
-        _allocs[i] = nullptr;
-      }
+    if (_ptr != null) {
+      malloc.free(_ptr!);
+      _ptr = null;
     }
-    _index = 0;
-    _capacity = 0;
   }
 }
 
