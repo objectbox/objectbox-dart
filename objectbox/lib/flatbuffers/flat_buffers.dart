@@ -41,12 +41,14 @@ class BufferContext {
 
   ByteData get buffer => _buffer;
 
+  /// Create from a FlatBuffer represented by a list of bytes (uint8).
   factory BufferContext.fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
     ByteData buf = new ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
-    return new BufferContext(buf);
+    return BufferContext(buf);
   }
 
+  /// Create from a FlatBuffer represented by ByteData.
   BufferContext(this._buffer);
 
   @pragma('vm:prefer-inline')
@@ -125,16 +127,17 @@ abstract class ObjectBuilder {
 
 /// Class that helps building flat buffers.
 class Builder {
+  bool _finished = false;
+
   final int initialSize;
 
   /// The list of existing VTable(s).
-  //final List<_VTable> _vTables = <_VTable>[];
   final List<int> _vTables = List<int>.filled(16, 0, growable: true)
     ..length = 0;
 
-  late ByteData _buf;
+  ByteData _buf;
 
-  Allocator _allocator;
+  final Allocator _allocator;
 
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
@@ -146,7 +149,7 @@ class Builder {
   int _tail = 0;
 
   /// The location of the end of the current table, measured in bytes from the
-  /// end of [_buf], or `null` if a table is not currently being built.
+  /// end of [_buf].
   int _currentTableEndTail = 0;
 
   _VTable? _currentVTable;
@@ -163,17 +166,18 @@ class Builder {
   /// automatically grow the array if/as needed.  `internStrings`, if set to
   /// true, will cause [writeString] to pool strings in the buffer so that
   /// identical strings will always use the same offset in tables.
-  Builder(
-      {this.initialSize: 1024,
-      bool internStrings = false,
-      Allocator? allocator})
-      : _allocator = allocator ?? DefaultAllocator() {
-    _buf = _allocator.allocate(initialSize);
-    if (internStrings == true) {
+  Builder({
+    this.initialSize: 1024,
+    bool internStrings = false,
+    Allocator allocator = const DefaultAllocator(),
+  })  : _allocator = allocator,
+        _buf = allocator.allocate(initialSize) {
+    if (internStrings) {
       _strings = new Map<String, int>();
     }
   }
 
+  /// Calculate the finished buffer size (aligned).
   int size() => _tail + ((-_tail) & (_maxAlign - 1));
 
   /// Add the [field] with the given boolean [value].  The field is not added if
@@ -323,11 +327,12 @@ class Builder {
     _prepare(_sizeofInt32, 1);
     int tableTail = _tail;
     // Prepare the size of the current table.
-    _currentVTable!.tableSize = tableTail - _currentTableEndTail;
+    final currentVTable = _currentVTable!;
+    currentVTable.tableSize = tableTail - _currentTableEndTail;
     // Prepare the VTable to use for the current table.
     int? vTableTail;
     {
-      _currentVTable!.computeFieldOffsets(tableTail);
+      currentVTable.computeFieldOffsets(tableTail);
       // Try to find an existing compatible VTable.
       // Search backward - more likely to have recently used one
       for (int i = _vTables.length - 1; i >= 0; i--) {
@@ -335,8 +340,8 @@ class Builder {
         final int vt2Start = _buf.lengthInBytes - vt2Offset;
         final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
 
-        if (_currentVTable!._vTableSize == vt2Size &&
-            _currentVTable!._offsetsMatch(vt2Start, _buf)) {
+        if (currentVTable._vTableSize == vt2Size &&
+            currentVTable._offsetsMatch(vt2Start, _buf)) {
           vTableTail = vt2Offset;
           break;
         }
@@ -345,9 +350,9 @@ class Builder {
       if (vTableTail == null) {
         _prepare(_sizeofUint16, _currentVTable!.numOfUint16);
         vTableTail = _tail;
-        _currentVTable!.tail = vTableTail;
-        _currentVTable!.output(_buf, _buf.lengthInBytes - _tail);
-        _vTables.add(_currentVTable!.tail);
+        currentVTable.tail = vTableTail;
+        currentVTable.output(_buf, _buf.lengthInBytes - _tail);
+        _vTables.add(currentVTable.tail);
       }
     }
     // Set the VTable offset.
@@ -357,11 +362,9 @@ class Builder {
     return tableTail;
   }
 
-  /// This method low level method can be used to return a raw piece of the buffer
-  /// after using the the put* methods.
-  ///
-  /// Most clients should prefer calling [finish].
-  Uint8List lowFinish() {
+  /// Returns the finished buffer. You must call [finish] before accessing this.
+  Uint8List get buffer {
+    assert(_finished);
     final finishedSize = size();
     return _buf.buffer
         .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
@@ -372,7 +375,8 @@ class Builder {
   /// written object.  If [fileIdentifier] is specified (and not `null`), it is
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
-  Uint8List finish(int offset, [String? fileIdentifier]) {
+  void finish(int offset, [String? fileIdentifier]) {
+    assert(!_finished);
     final sizeBeforePadding = size();
     final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
     _prepare(max(requiredBytes, _maxAlign), 1);
@@ -391,9 +395,7 @@ class Builder {
         i++) {
       _setUint8AtTail(_buf, i, 0);
     }
-
-    return _buf.buffer
-        .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
+    _finished = true;
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
@@ -478,6 +480,7 @@ class Builder {
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
+    _finished = false;
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
@@ -753,7 +756,7 @@ class Builder {
         int deltaCapacity = desiredNewCapacity - oldCapacity;
         deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
         int newCapacity = oldCapacity + deltaCapacity;
-        _buf = _allocator.reallocateDownward(_buf, newCapacity, _tail, 0);
+        _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
       }
     }
 
@@ -972,13 +975,11 @@ abstract class Reader<T> {
   /// Read the value at the given [offset] in [bc].
   T read(BufferContext bc, int offset);
 
+  /// Read the value of the given [field] in the given [object].
   @pragma('vm:prefer-inline')
-  int _vTableFieldOffset(BufferContext object, int offset, int field) {
-    int vTableSOffset = object._getInt32(offset);
-    int vTableOffset = offset - vTableSOffset;
-    int vTableSize = object._getUint16(vTableOffset);
-    if (field >= vTableSize) return 0;
-    return object._getUint16(vTableOffset + field);
+  T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
+    int fieldOffset = _vTableFieldOffset(object, offset, field);
+    return fieldOffset == 0 ? defaultValue : read(object, offset + fieldOffset);
   }
 
   /// Read the value of the given [field] in the given [object].
@@ -988,11 +989,13 @@ abstract class Reader<T> {
     return fieldOffset == 0 ? null : read(object, offset + fieldOffset);
   }
 
-  /// Read the value of the given [field] in the given [object].
   @pragma('vm:prefer-inline')
-  T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
-    int fieldOffset = _vTableFieldOffset(object, offset, field);
-    return fieldOffset == 0 ? defaultValue : read(object, offset + fieldOffset);
+  int _vTableFieldOffset(BufferContext object, int offset, int field) {
+    int vTableSOffset = object._getInt32(offset);
+    int vTableOffset = offset - vTableSOffset;
+    int vTableSize = object._getUint16(vTableOffset);
+    if (field >= vTableSize) return 0;
+    return object._getUint16(vTableOffset + field);
   }
 }
 
@@ -1335,17 +1338,21 @@ class _VTable {
   }
 }
 
-// Allocator interface. This is flatbuffers-specific - only for [Builder].
+/// The interface that [Builder] uses to allocate buffers for encoding.
 abstract class Allocator {
+  const Allocator();
+
+  /// Allocate a [ByteData] buffer of a given size.
   ByteData allocate(int size);
 
+  /// Free the given [ByteData] buffer previously allocated by [allocate].
   void deallocate(ByteData data);
 
   /// Reallocate [newSize] bytes of memory, replacing the old [oldData]. This
   /// grows downwards, and is intended specifically for use with [Builder].
   /// Params [inUseBack] and [inUseFront] indicate how much of [oldData] is
   /// actually in use at each end, and needs to be copied.
-  ByteData reallocateDownward(
+  ByteData resize(
       ByteData oldData, int newSize, int inUseBack, int inUseFront) {
     final newData = allocate(newSize);
     _copyDownward(oldData, newData, inUseBack, inUseFront);
@@ -1353,7 +1360,7 @@ abstract class Allocator {
     return newData;
   }
 
-  /// Called by [reallocate] to copy memory from [oldData] to [newData]. Only
+  /// Called by [resize] to copy memory from [oldData] to [newData]. Only
   /// memory of size [inUseFront] and [inUseBack] will be copied from the front
   /// and back of the old memory allocation.
   void _copyDownward(
@@ -1373,6 +1380,8 @@ abstract class Allocator {
 }
 
 class DefaultAllocator extends Allocator {
+  const DefaultAllocator();
+
   @override
   ByteData allocate(int size) => ByteData(size);
 

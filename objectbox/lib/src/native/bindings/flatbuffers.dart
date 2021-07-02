@@ -66,12 +66,13 @@ class Allocator extends fb.Allocator {
   }
 
   @override
-  void deallocate(ByteData data) => malloc.free(_ptr!);
+  void deallocate(ByteData data) {
+    assert(false); // never called because [resize()] is overridden
+  }
 
   @override
-  ByteData reallocateDownward(
+  ByteData resize(
       ByteData oldData, int newSize, int inUseBack, int inUseFront) {
-    assert(inUseFront == 0); // currently unused in FB Builder()
     final newPtr = malloc<Uint8>(newSize);
     final oldPtr = _ptr!;
     if (inUseBack != 0) {

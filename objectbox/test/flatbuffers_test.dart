@@ -17,7 +17,8 @@ Uint8List addFbData(fb.Builder fbb) {
   fbb.startTable(2);
   fbb.addInt32(0, 24);
   fbb.addInt64(1, 42);
-  return fbb.finish(fbb.endTable());
+  fbb.finish(fbb.endTable());
+  return fbb.buffer;
 }
 
 // Uint8List addFbDataUpstream(fb_upstream.Builder fbb) {
