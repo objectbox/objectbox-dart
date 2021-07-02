@@ -26,7 +26,11 @@ class BuilderWithCBuffer {
   BuilderWithCBuffer({int initialSize = 256, int resetIfLargerThan = 64 * 1024})
       : _initialSize = initialSize,
         _resetIfLargerThan = resetIfLargerThan {
-    _fbb = fb.Builder(initialSize: initialSize, allocator: _allocator);
+    _fbb = fb.Builder(
+      initialSize: initialSize,
+      allocator: _allocator,
+      deduplicateTables: false, // we always have exactly one table
+    );
   }
 
   @pragma('vm:prefer-inline')

@@ -132,8 +132,9 @@ class Builder {
   final int initialSize;
 
   /// The list of existing VTable(s).
-  final List<int> _vTables = List<int>.filled(16, 0, growable: true)
-    ..length = 0;
+  final List<int> _vTables;
+
+  final bool deduplicateTables;
 
   ByteData _buf;
 
@@ -170,8 +171,10 @@ class Builder {
     this.initialSize: 1024,
     bool internStrings = false,
     Allocator allocator = const DefaultAllocator(),
+    this.deduplicateTables = true,
   })  : _allocator = allocator,
-        _buf = allocator.allocate(initialSize) {
+        _buf = allocator.allocate(initialSize),
+        _vTables = List.empty(growable: deduplicateTables) {
     if (internStrings) {
       _strings = new Map<String, int>();
     }
@@ -333,17 +336,20 @@ class Builder {
     int? vTableTail;
     {
       currentVTable.computeFieldOffsets(tableTail);
-      // Try to find an existing compatible VTable.
-      // Search backward - more likely to have recently used one
-      for (int i = _vTables.length - 1; i >= 0; i--) {
-        final int vt2Offset = _vTables[i];
-        final int vt2Start = _buf.lengthInBytes - vt2Offset;
-        final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
 
-        if (currentVTable._vTableSize == vt2Size &&
-            currentVTable._offsetsMatch(vt2Start, _buf)) {
-          vTableTail = vt2Offset;
-          break;
+      // Try to find an existing compatible VTable.
+      if (deduplicateTables) {
+        // Search backward - more likely to have recently used one
+        for (int i = _vTables.length - 1; i >= 0; i--) {
+          final int vt2Offset = _vTables[i];
+          final int vt2Start = _buf.lengthInBytes - vt2Offset;
+          final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
+
+          if (currentVTable._vTableSize == vt2Size &&
+              currentVTable._offsetsMatch(vt2Start, _buf)) {
+            vTableTail = vt2Offset;
+            break;
+          }
         }
       }
       // Write a new VTable.
@@ -352,7 +358,7 @@ class Builder {
         vTableTail = _tail;
         currentVTable.tail = vTableTail;
         currentVTable.output(_buf, _buf.lengthInBytes - _tail);
-        _vTables.add(currentVTable.tail);
+        if (deduplicateTables) _vTables.add(currentVTable.tail);
       }
     }
     // Set the VTable offset.
@@ -484,7 +490,7 @@ class Builder {
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
-    _vTables.length = 0;
+    if (deduplicateTables) _vTables.clear();
     if (_strings != null) {
       _strings = new Map<String, int>();
     }
@@ -1298,6 +1304,7 @@ class _VTable {
     fieldOffsets[field] = offset + 1;
   }
 
+  @pragma('vm:prefer-inline')
   bool _offsetsMatch(int vt2Start, ByteData buf) {
     assert(offsetsComputed);
     for (int i = 0; i < fieldOffsets.length; i++) {
@@ -1310,6 +1317,7 @@ class _VTable {
   }
 
   /// Fill the [fieldOffsets] field.
+  @pragma('vm:prefer-inline')
   void computeFieldOffsets(int tableTail) {
     assert(!offsetsComputed);
     offsetsComputed = true;
@@ -1321,6 +1329,7 @@ class _VTable {
 
   /// Outputs this VTable to [buf], which is is expected to be aligned to 16-bit
   /// and have at least [numOfUint16] 16-bit words available.
+  @pragma('vm:prefer-inline')
   void output(ByteData buf, int bufOffset) {
     assert(offsetsComputed);
     // VTable size.
