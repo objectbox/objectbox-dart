@@ -1276,8 +1276,8 @@ class _FbBoolList extends _FbList<bool> {
 class _VTable {
   static const int _metadataLength = 4;
 
-  // Note: fieldOffsets start as "tail offsets"+1 and are then transformed to
-  // actual offsets when a table is finished, by calling [computeFieldOffsets].
+  // Note: fieldOffsets start as "tail offsets" and are then transformed by
+  // [computeFieldOffsets()] to actual offsets when a table is finished.
   final Uint32List fieldOffsets;
   static const uint32Max = 4294967295;
   bool offsetsComputed = false;
@@ -1298,10 +1298,9 @@ class _VTable {
   @pragma('vm:prefer-inline')
   void addField(int field, int offset) {
     assert(!offsetsComputed);
-    // We need to increase the offset by 1 to later (in [computeFieldOffsets])
-    // recognize fields that haven't been set (Uint32List initializes to 0s).
+    assert(offset > 0); // it's impossible for field to start at the buffer end
     assert(offset < uint32Max);
-    fieldOffsets[field] = offset + 1;
+    fieldOffsets[field] = offset;
   }
 
   @pragma('vm:prefer-inline')
@@ -1322,8 +1321,9 @@ class _VTable {
     assert(!offsetsComputed);
     offsetsComputed = true;
     for (var i = 0; i < fieldOffsets.length; i++) {
-      int fieldTail = fieldOffsets[i];
-      fieldOffsets[i] = fieldTail == 0 ? 0 : tableTail - fieldTail + 1;
+      if (fieldOffsets[i] != 0) {
+        fieldOffsets[i] = tableTail - fieldOffsets[i];
+      }
     }
   }
 
@@ -1340,8 +1340,7 @@ class _VTable {
     bufOffset += 2;
     // Field offsets.
     for (int i = 0; i < fieldOffsets.length; i++) {
-      final fieldOffset = fieldOffsets[i];
-      buf.setUint16(bufOffset, fieldOffset, Endian.little);
+      buf.setUint16(bufOffset, fieldOffsets[i], Endian.little);
       bufOffset += 2;
     }
   }
