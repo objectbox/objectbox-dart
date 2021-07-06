@@ -1,4 +1,4 @@
-## latest
+## 1.1.0 (2021-07-06)
 
 * New `openStore()` in the generated code to simplify creating a store instance, especially on Flutter (uses application
   documents directory as a default). 
@@ -11,7 +11,7 @@
 * Add support for the entity/property/relation rename or reset workflow.
   See [Data model updates](https://docs.objectbox.io/advanced/data-model-updates) for details.
 * Add support for `ToOne` relation cycles.
-* Enforce you can only open the same database directory once (no multiple parallel Store instances are allowed).
+* Enforce you can only open the same database directory once (multiple parallel `Store` instances are not allowed).
 * Fix `macOS` sandbox database directory permissions (see notes in Flutter-specific "Getting Started" docs).
 * Fix `ToMany` showing duplicate items after adding them before reading the previous list.
 * Fix invalid native free during store shutdown if large data was inserted (more than 64 kilobytes flatbuffer).
