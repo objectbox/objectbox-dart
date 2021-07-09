@@ -1,5 +1,6 @@
 ## latest
 
+* Add support for `Query.param()` on linked entities.
 * Fix generated `openStore()` for apps that don't enable null-safety yet.
 
 ## 1.1.0 (2021-07-06)

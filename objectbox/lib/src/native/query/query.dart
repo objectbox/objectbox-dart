@@ -20,9 +20,9 @@ import '../bindings/helpers.dart';
 
 part 'builder.dart';
 
-part 'property.dart';
-
 part 'params.dart';
+
+part 'property.dart';
 
 // ignore_for_file: public_member_api_docs
 

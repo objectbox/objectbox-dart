@@ -832,4 +832,22 @@ void main() {
       fail('Invalid query: ' + q3.describeParameters());
     }
   });
+
+  test('set param on links', () async {
+    final query = (box.query(TestEntity_.tString.equals(''))
+          ..link(TestEntity_.relB, RelatedEntityB_.tString.equals(''))
+          ..linkMany(TestEntity_.relManyA, RelatedEntityA_.tInt.equals(0)))
+        .build();
+    query
+      ..param(TestEntity_.tString).value = 'foo'
+      ..param(RelatedEntityB_.tString).value = 'bar'
+      ..param(RelatedEntityA_.tInt).value = 11;
+    expect(
+        query.describeParameters(),
+        [
+          'tString == "foo"',
+          '| Link RelatedEntityB via relBId with conditions: tString == "bar"',
+          '| Link RelatedEntityA via standalone Relation 1 (from entity 1 to 4) with conditions: tInt == 11',
+        ].join('\n'));
+  });
 }
