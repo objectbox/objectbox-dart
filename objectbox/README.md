@@ -28,8 +28,7 @@ class Person {
   Person({this.id = 0, required this.firstName, required this.lastName});
 }
 
-// Note: in Flutter you also need to specify a directory, see examples.
-final store = Store(getObjectBoxModel());
+final store = await openStore(); 
 final box = store.box<Person>();
 
 var person = Person(firstName: 'Joe', lastName: 'Green');
@@ -59,7 +58,7 @@ Add the following dependencies to start using ObjectBox and code generator.
 
 ```yaml
 dependencies:
-  objectbox: ^1.1.0
+  objectbox: ^1.1.1
   objectbox_flutter_libs: any
 
 dev_dependencies:
@@ -89,7 +88,7 @@ dev_dependencies:
 
 ```yaml
 dependencies:
-  objectbox: ^1.1.0
+  objectbox: ^1.1.1
 
 dev_dependencies:
   build_runner: ^2.0.0
