@@ -200,7 +200,8 @@ class EntityResolver extends Builder {
       } else if (isToManyRel) {
         // create relation
         final rel = ModelRelation.create(IdUid(0, propUid ?? 0), f.name,
-            targetName: relTargetName, uidRequest: propUid != null && propUid == 0);
+            targetName: relTargetName,
+            uidRequest: propUid != null && propUid == 0);
         entity.relations.add(rel);
 
         log.info('  $rel');

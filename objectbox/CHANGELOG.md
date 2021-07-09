@@ -1,3 +1,7 @@
+## latest
+
+* Fix generated `openStore()` for apps that don't enable null-safety yet.
+
 ## 1.1.0 (2021-07-06)
 
 * New `openStore()` in the generated code to simplify creating a store instance, especially on Flutter (uses application

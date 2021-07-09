@@ -7,9 +7,8 @@ import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
 class CodeChunks {
   static String objectboxDart(
-          ModelInfo model, List<String> imports, Pubspec? pubspec) {
-    final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
-   return """
+          ModelInfo model, List<String> imports, Pubspec? pubspec) =>
+      """
     // GENERATED CODE - DO NOT MODIFY BY HAND
     
     // ignore_for_file: camel_case_types
@@ -29,28 +28,14 @@ class CodeChunks {
     ];
     
     /// Open an ObjectBox store with the model declared in this file.
-    ${obxFlutter ? 'Future<Store>' : 'Store'} openStore(
-        {String? directory,
-        int? maxDBSizeInKB,
-        int? fileMode,
-        int? maxReaders,
-        bool queriesCaseSensitiveDefault = true,
-        String? macosApplicationGroup})${obxFlutter ? ' async' : ''} =>  
-      Store(getObjectBoxModel(),
-        directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
-        maxDBSizeInKB: maxDBSizeInKB,
-        fileMode: fileMode,
-        maxReaders: maxReaders,
-        queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
-        macosApplicationGroup: macosApplicationGroup);
+    ${openStore(model, pubspec)}
   
     /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel()) 
     ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
       
       final bindings = <Type, EntityDefinition>{
-        ${model.entities.mapIndexed((i, entity) => "${entity
-        .name}: ${entityBinding(i, entity)}").join(",\n")}
+        ${model.entities.mapIndexed((i, entity) => "${entity.name}: ${entityBinding(i, entity)}").join(",\n")}
       };
       
       return ModelDefinition(model, bindings);
@@ -58,6 +43,25 @@ class CodeChunks {
     
     ${model.entities.mapIndexed(_metaClass).join("\n")}
     """;
+
+  static String openStore(ModelInfo model, Pubspec? pubspec) {
+    final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
+    final nullableOperator = model.entities.first.nullSafetyEnabled ? '?' : '';
+    return '''${obxFlutter ? 'Future<Store>' : 'Store'} openStore(
+        {String$nullableOperator directory,
+          int$nullableOperator maxDBSizeInKB,
+          int$nullableOperator fileMode,
+          int$nullableOperator maxReaders,
+          bool queriesCaseSensitiveDefault = true,
+          String$nullableOperator macosApplicationGroup})${obxFlutter ? ' async' : ''} =>
+        Store(getObjectBoxModel(),
+            directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
+            maxDBSizeInKB: maxDBSizeInKB,
+            fileMode: fileMode,
+            maxReaders: maxReaders,
+            queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
+            macosApplicationGroup: macosApplicationGroup);
+            ''';
   }
 
   static List<T> sorted<T>(List<T> list) {
