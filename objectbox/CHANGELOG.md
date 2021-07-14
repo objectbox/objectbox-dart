@@ -1,6 +1,7 @@
 ## latest
 
 * Add `Query.findUnique()` to find a single object matching the query.
+* Add data `Browser`, see [docs](https://docs.objectbox.io/data-browser) for more details. 
 
 ## 1.1.1 (2021-07-09)
 

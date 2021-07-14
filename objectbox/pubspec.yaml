@@ -53,7 +53,7 @@ ffigen:
         '[^_]+_(.*)': '$1'
   # add location to standard library imports, e.g. stddef.h
   llvm-lib: '/usr/lib/'
-  compiler-opts: '-I/usr/lib/clang/11.1.0/include'
+  compiler-opts: '-I/usr/lib/clang/12.0.1/include'
   typedef-map:
     'size_t': 'IntPtr'
   preamble: |
