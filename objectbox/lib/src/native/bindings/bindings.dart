@@ -122,6 +122,8 @@ late final native_query_close =
     _lib!.lookup<NativeFunction<_native_close>>('obx_query_close');
 late final native_query_prop_close =
     _lib!.lookup<NativeFunction<_native_close>>('obx_query_prop_close');
+late final native_browser_close =
+    _lib!.lookup<NativeFunction<_native_close>>('obx_browser_close');
 
 /// Keeps `this` alive until this call, preventing finalizers to run.
 /// Necessary for objects with a finalizer attached because the optimizer may
