@@ -748,6 +748,32 @@ class Query<T> {
     return result;
   }
 
+  /// Finds the only object matching the query. Returns null if there are no
+  /// results or throws if there are multiple objects matching.
+  ///
+  /// Note: [offset] and [limit] are respected, if set. Because [limit] affects
+  /// the number of matched objects, make sure you leave it at zero or set it
+  /// higher than one, otherwise the check for non-unique result won't work.
+  T? findUnique() {
+    T? result;
+    Exception? error;
+    final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+      if (result == null) {
+        result = _entity.objectFromFB(
+            _store, InternalStoreAccess.reader(_store).access(data, size));
+      } else {
+        error = UniqueViolationException(
+            'Query findUnique() matched more than one object');
+        return false;
+      }
+      return true;
+    });
+    checkObx(C.query_visit(_ptr, visitor, nullptr));
+    reachabilityFence(this);
+    if (error != null) throw error!;
+    return result;
+  }
+
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');

@@ -1,3 +1,7 @@
+## latest
+
+* Add `Query.findUnique()` to find a single object matching the query.
+
 ## 1.1.1 (2021-07-09)
 
 * Add support for `Query.param()` on linked entities.

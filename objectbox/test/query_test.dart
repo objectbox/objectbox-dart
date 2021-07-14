@@ -352,6 +352,25 @@ void main() {
     q.close();
   });
 
+  test('.findUnique', () {
+    box.put(TestEntity(tLong: 0));
+    box.put(TestEntity(tString: 't1'));
+    box.put(TestEntity(tString: 't2'));
+
+    var query = box.query(TestEntity_.tString.startsWith('t')).build();
+
+    expect(
+        () => query.findUnique(),
+        throwsA(predicate((UniqueViolationException e) =>
+            e.toString().contains('more than one'))));
+
+    query.param(TestEntity_.tString).value = 't2';
+    expect(query.findUnique()!.tString, 't2');
+
+    query.param(TestEntity_.tString).value = 'xyz';
+    expect(query.findUnique(), isNull);
+  });
+
   test('.find works on large arrays', () {
     // This would fail on 32-bit system if objectbox-c obx_supports_bytes_array() wasn't respected
     final length = 10 * 1000;
