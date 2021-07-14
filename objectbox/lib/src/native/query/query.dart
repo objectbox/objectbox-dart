@@ -13,7 +13,6 @@ import '../../modelinfo/entity_definition.dart';
 import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
 import '../../store.dart';
-import '../../transaction.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
@@ -735,8 +734,8 @@ class Query<T> {
     }
   }
 
-  /// Finds Objects matching the query and returns the first result or null
-  /// if there are no results. Note: [offset] and [limit] are respected, if set.
+  /// Finds the first object matching the query. Returns null if there are no
+  /// results. Note: [offset] and [limit] are respected, if set.
   T? findFirst() {
     T? result;
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
@@ -744,9 +743,7 @@ class Query<T> {
           _store, InternalStoreAccess.reader(_store).access(data, size));
       return false; // we only want to visit the first element
     });
-    _store.runInTransaction(TxMode.read, () {
-      checkObx(C.query_visit(_ptr, visitor, nullptr));
-    });
+    checkObx(C.query_visit(_ptr, visitor, nullptr));
     reachabilityFence(this);
     return result;
   }
@@ -769,8 +766,7 @@ class Query<T> {
   List<T> find() {
     final result = <T>[];
     final collector = objectCollector(result, _store, _entity);
-    _store.runInTransaction(
-        TxMode.read, () => checkObx(C.query_visit(_ptr, collector, nullptr)));
+    checkObx(C.query_visit(_ptr, collector, nullptr));
     reachabilityFence(this);
     return result;
   }
