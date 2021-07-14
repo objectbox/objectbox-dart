@@ -114,8 +114,11 @@ typedef enum {
     /// HTTP server with a database browser.
     OBXFeature_ObjectBrowser = 5,
 
-    /// Trees & GraphQL support
-    OBXFeature_Trees = 6,
+    /// Tree & GraphQL support
+    OBXFeature_Tree = 6,
+
+    /// Sync server availability. Visit https://objectbox.io/sync for more details.
+    OBXFeature_SyncServer = 7,
 } OBXFeature;
 
 /// Checks whether the given feature is available in the currently loaded library.
@@ -138,6 +141,10 @@ bool obx_supports_time_series(void);
 
 /// Delete the store files from the given directory
 obx_err obx_remove_db_files(char const* directory);
+
+/// Enable (or disable) debug logging. This requires a version of the library with OBXFeature_DebugLog.
+/// Use obx_has_feature(OBXFeature_DebugLog) to check if the feature is available.
+obx_err obx_debug_log(bool enabled);
 
 //----------------------------------------------
 // Return codes
@@ -163,6 +170,7 @@ obx_err obx_remove_db_files(char const* directory);
 #define OBX_ERROR_ILLEGAL_ARGUMENT 10002
 #define OBX_ERROR_ALLOCATION 10003
 #define OBX_ERROR_NUMERIC_OVERFLOW 10004
+#define OBX_ERROR_FEATURE_NOT_AVAILABLE 10005  ///< Tried to use a special feature that is not part of this lib edition
 #define OBX_ERROR_NO_ERROR_INFO 10097
 #define OBX_ERROR_GENERAL 10098
 #define OBX_ERROR_UNKNOWN 10099
@@ -202,10 +210,6 @@ obx_err obx_remove_db_files(char const* directory);
 
 /// A requested schema object (e.g., an entity or a property) was not found in the schema
 #define OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND 10504
-
-/// Feature specific errors
-#define OBX_ERROR_TIME_SERIES_NOT_AVAILABLE 10601
-#define OBX_ERROR_SYNC_NOT_AVAILABLE 10602
 
 //----------------------------------------------
 // Error info; obx_last_error_*
@@ -639,8 +643,11 @@ void obx_opt_async_post_txn_delay(OBX_store_options* opt, uint32_t delay_micros)
 /// Similar to preTxDelay but after a transaction was committed.
 /// One of the purposes is to give other transactions some time to execute.
 /// In combination with preTxDelay this can prolong non-TX batching time if only a few operations are around.
-void obx_opt_async_post_txn_delay4(OBX_store_options* opt, uint32_t delay_micros, uint32_t delay2_micros,
-                                   size_t min_queue_length_for_delay2);
+/// @param subtract_processing_time If set, delay_micros is interpreted from the start of TX processing.
+///        In other words, the actual delay is delay_micros minus the TX processing time including the commit.
+///        This can make timings more accurate (e.g. when fixed batching interval are given).
+void obx_opt_async_post_txn_delay5(OBX_store_options* opt, uint32_t delay_micros, uint32_t delay2_micros,
+                                   size_t min_queue_length_for_delay2, bool subtract_processing_time);
 
 /// Numbers of operations below this value are considered "minor refills"
 void obx_opt_async_minor_refill_threshold(OBX_store_options* opt, size_t queue_length);
@@ -1719,7 +1726,65 @@ void obx_float_array_free(OBX_float_array* array);
 /// Only for Apple platforms: set the prefix to use for mutexes based on POSIX semaphores.
 /// You must supply the application group identifier for sand-boxed macOS apps here; see also:
 /// https://developer.apple.com/library/archive/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html#//apple_ref/doc/uid/TP40011183-CH3-SW24
-void obx_posix_sem_prefix_set(const char* prefix);
+/// @param prefix must be at most 20 characters long and end with a forward slash '/'.
+obx_err obx_posix_sem_prefix_set(const char* prefix);
+
+//----------------------------------------------
+// Object (data) browser
+//----------------------------------------------
+
+struct OBX_browser_options;
+typedef struct OBX_browser_options OBX_browser_options;
+
+/// Create a default set of browser options.
+/// @returns NULL on failure, a default set of options on success
+OBX_browser_options* obx_browser_opt();
+
+/// Set the store on the options. Default is empty, i.e. multi-store mode.
+/// You can either give an existing (open) OBX_store* or path to directory where a store data is located.
+/// If both params are NULL, a multi-store mode is used (this is also the default if this function isn't called at all).
+obx_err obx_browser_opt_store(OBX_browser_options* opt, OBX_store* store, const char* dir);
+
+/// Set the address and port on which the underlying http-server should server the object browser.
+/// Defaults to "http://127.0.0.1:8081"
+/// @note: you can use for e.g. "http://127.0.0.1:0" for automatic free port assignment - see obx_browser_bound_port().
+obx_err obx_browser_opt_bind(OBX_browser_options* opt, const char* uri);
+
+/// Configure the server to use SSL, with the given certificate.
+/// @param cert_path - the file must be in PEM format, and it must have both private key and certificate (public key).
+obx_err obx_browser_opt_ssl(OBX_browser_options* opt, const char* cert_path);
+
+/// Sets the number of worker threads the http-server uses to serve requests. Default: 4
+obx_err obx_browser_opt_num_threads(OBX_browser_options* opt, size_t num_threads);
+
+/// Disables authentication to make the web app accessible to anyone, e.g. to allow recovery if users have locked
+/// themselves out. Otherwise, if users have been defined, authentication is enforced.
+obx_err obx_browser_opt_unsecured_no_authentication(OBX_browser_options* opt, bool value);
+
+/// Disable user management in the database - this is usually done for local-only database browsers during development.
+obx_err obx_browser_opt_user_management(OBX_browser_options* opt, bool value);
+
+/// Free the options.
+/// Note: Only free *unused* options, obx_browser() frees the options internally
+obx_err obx_browser_opt_free(OBX_browser_options* opt);
+
+/// Object data browser is a web application, exposed over http(s)
+struct OBX_browser;
+typedef struct OBX_browser OBX_browser;
+
+/// Initialize the http-server with the given options.
+/// Note: the given options are always freed by this function, including when an error occurs.
+/// @param opt required parameter holding the options (see obx_browser_opt_*())
+/// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+OBX_browser* obx_browser(OBX_browser_options* options);
+
+/// Returns a port this server listens on. This is especially useful if the port was assigned arbitrarily
+/// (a "0" port was used in the URI given to obx_browser_opt_bind()).
+uint16_t obx_browser_port(OBX_browser* browser);
+
+/// Stop the http-server and free all the resources.
+/// @param browser may be NULL
+obx_err obx_browser_close(OBX_browser* browser);
 
 #ifdef __cplusplus
 }

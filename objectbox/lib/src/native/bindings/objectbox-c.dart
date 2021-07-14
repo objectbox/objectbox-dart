@@ -136,6 +136,21 @@ class ObjectBoxC {
   late final _dart_remove_db_files _remove_db_files =
       _remove_db_files_ptr.asFunction<_dart_remove_db_files>();
 
+  /// Enable (or disable) debug logging. This requires a version of the library with OBXFeature_DebugLog.
+  /// Use obx_has_feature(OBXFeature_DebugLog) to check if the feature is available.
+  int debug_log(
+    bool enabled,
+  ) {
+    return _debug_log(
+      enabled ? 1 : 0,
+    );
+  }
+
+  late final _debug_log_ptr =
+      _lookup<ffi.NativeFunction<_c_debug_log>>('obx_debug_log');
+  late final _dart_debug_log _debug_log =
+      _debug_log_ptr.asFunction<_dart_debug_log>();
+
   /// Return the error status on the current thread and clear the error state.
   /// The buffer returned in out_message is valid only until the next call into ObjectBox.
   /// @param out_error receives the error code; optional: may be NULL
@@ -938,26 +953,31 @@ class ObjectBoxC {
   /// Similar to preTxDelay but after a transaction was committed.
   /// One of the purposes is to give other transactions some time to execute.
   /// In combination with preTxDelay this can prolong non-TX batching time if only a few operations are around.
-  void opt_async_post_txn_delay4(
+  /// @param subtract_processing_time If set, delay_micros is interpreted from the start of TX processing.
+  /// In other words, the actual delay is delay_micros minus the TX processing time including the commit.
+  /// This can make timings more accurate (e.g. when fixed batching interval are given).
+  void opt_async_post_txn_delay5(
     ffi.Pointer<OBX_store_options> opt,
     int delay_micros,
     int delay2_micros,
     int min_queue_length_for_delay2,
+    bool subtract_processing_time,
   ) {
-    return _opt_async_post_txn_delay4(
+    return _opt_async_post_txn_delay5(
       opt,
       delay_micros,
       delay2_micros,
       min_queue_length_for_delay2,
+      subtract_processing_time ? 1 : 0,
     );
   }
 
-  late final _opt_async_post_txn_delay4_ptr =
-      _lookup<ffi.NativeFunction<_c_opt_async_post_txn_delay4>>(
-          'obx_opt_async_post_txn_delay4');
-  late final _dart_opt_async_post_txn_delay4 _opt_async_post_txn_delay4 =
-      _opt_async_post_txn_delay4_ptr
-          .asFunction<_dart_opt_async_post_txn_delay4>();
+  late final _opt_async_post_txn_delay5_ptr =
+      _lookup<ffi.NativeFunction<_c_opt_async_post_txn_delay5>>(
+          'obx_opt_async_post_txn_delay5');
+  late final _dart_opt_async_post_txn_delay5 _opt_async_post_txn_delay5 =
+      _opt_async_post_txn_delay5_ptr
+          .asFunction<_dart_opt_async_post_txn_delay5>();
 
   /// Numbers of operations below this value are considered "minor refills"
   void opt_async_minor_refill_threshold(
@@ -5094,7 +5114,8 @@ class ObjectBoxC {
   /// Only for Apple platforms: set the prefix to use for mutexes based on POSIX semaphores.
   /// You must supply the application group identifier for sand-boxed macOS apps here; see also:
   /// https://developer.apple.com/library/archive/documentation/Security/Conceptual/AppSandboxDesignGuide/AppSandboxInDepth/AppSandboxInDepth.html#//apple_ref/doc/uid/TP40011183-CH3-SW24
-  void posix_sem_prefix_set(
+  /// @param prefix must be at most 20 characters long and end with a forward slash '/'.
+  int posix_sem_prefix_set(
     ffi.Pointer<ffi.Int8> prefix,
   ) {
     return _posix_sem_prefix_set(
@@ -5107,6 +5128,189 @@ class ObjectBoxC {
           'obx_posix_sem_prefix_set');
   late final _dart_posix_sem_prefix_set _posix_sem_prefix_set =
       _posix_sem_prefix_set_ptr.asFunction<_dart_posix_sem_prefix_set>();
+
+  /// Create a default set of browser options.
+  /// @returns NULL on failure, a default set of options on success
+  ffi.Pointer<OBX_browser_options> browser_opt() {
+    return _browser_opt();
+  }
+
+  late final _browser_opt_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt>>('obx_browser_opt');
+  late final _dart_browser_opt _browser_opt =
+      _browser_opt_ptr.asFunction<_dart_browser_opt>();
+
+  /// Set the store on the options. Default is empty, i.e. multi-store mode.
+  /// You can either give an existing (open) OBX_store* or path to directory where a store data is located.
+  /// If both params are NULL, a multi-store mode is used (this is also the default if this function isn't called at all).
+  int browser_opt_store(
+    ffi.Pointer<OBX_browser_options> opt,
+    ffi.Pointer<OBX_store> store,
+    ffi.Pointer<ffi.Int8> dir,
+  ) {
+    return _browser_opt_store(
+      opt,
+      store,
+      dir,
+    );
+  }
+
+  late final _browser_opt_store_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_store>>(
+          'obx_browser_opt_store');
+  late final _dart_browser_opt_store _browser_opt_store =
+      _browser_opt_store_ptr.asFunction<_dart_browser_opt_store>();
+
+  /// Set the address and port on which the underlying http-server should server the object browser.
+  /// Defaults to "http://127.0.0.1:8081"
+  /// @note: you can use for e.g. "http://127.0.0.1:0" for automatic free port assignment - see obx_browser_bound_port().
+  int browser_opt_bind(
+    ffi.Pointer<OBX_browser_options> opt,
+    ffi.Pointer<ffi.Int8> uri,
+  ) {
+    return _browser_opt_bind(
+      opt,
+      uri,
+    );
+  }
+
+  late final _browser_opt_bind_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_bind>>('obx_browser_opt_bind');
+  late final _dart_browser_opt_bind _browser_opt_bind =
+      _browser_opt_bind_ptr.asFunction<_dart_browser_opt_bind>();
+
+  /// Configure the server to use SSL, with the given certificate.
+  /// @param cert_path - the file must be in PEM format, and it must have both private key and certificate (public key).
+  int browser_opt_ssl(
+    ffi.Pointer<OBX_browser_options> opt,
+    ffi.Pointer<ffi.Int8> cert_path,
+  ) {
+    return _browser_opt_ssl(
+      opt,
+      cert_path,
+    );
+  }
+
+  late final _browser_opt_ssl_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_ssl>>('obx_browser_opt_ssl');
+  late final _dart_browser_opt_ssl _browser_opt_ssl =
+      _browser_opt_ssl_ptr.asFunction<_dart_browser_opt_ssl>();
+
+  /// Sets the number of worker threads the http-server uses to serve requests. Default: 4
+  int browser_opt_num_threads(
+    ffi.Pointer<OBX_browser_options> opt,
+    int num_threads,
+  ) {
+    return _browser_opt_num_threads(
+      opt,
+      num_threads,
+    );
+  }
+
+  late final _browser_opt_num_threads_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_num_threads>>(
+          'obx_browser_opt_num_threads');
+  late final _dart_browser_opt_num_threads _browser_opt_num_threads =
+      _browser_opt_num_threads_ptr.asFunction<_dart_browser_opt_num_threads>();
+
+  /// Disables authentication to make the web app accessible to anyone, e.g. to allow recovery if users have locked
+  /// themselves out. Otherwise, if users have been defined, authentication is enforced.
+  int browser_opt_unsecured_no_authentication(
+    ffi.Pointer<OBX_browser_options> opt,
+    bool value,
+  ) {
+    return _browser_opt_unsecured_no_authentication(
+      opt,
+      value ? 1 : 0,
+    );
+  }
+
+  late final _browser_opt_unsecured_no_authentication_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_unsecured_no_authentication>>(
+          'obx_browser_opt_unsecured_no_authentication');
+  late final _dart_browser_opt_unsecured_no_authentication
+      _browser_opt_unsecured_no_authentication =
+      _browser_opt_unsecured_no_authentication_ptr
+          .asFunction<_dart_browser_opt_unsecured_no_authentication>();
+
+  /// Disable user management in the database - this is usually done for local-only database browsers during development.
+  int browser_opt_user_management(
+    ffi.Pointer<OBX_browser_options> opt,
+    bool value,
+  ) {
+    return _browser_opt_user_management(
+      opt,
+      value ? 1 : 0,
+    );
+  }
+
+  late final _browser_opt_user_management_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_user_management>>(
+          'obx_browser_opt_user_management');
+  late final _dart_browser_opt_user_management _browser_opt_user_management =
+      _browser_opt_user_management_ptr
+          .asFunction<_dart_browser_opt_user_management>();
+
+  /// Free the options.
+  /// Note: Only free *unused* options, obx_browser() frees the options internally
+  int browser_opt_free(
+    ffi.Pointer<OBX_browser_options> opt,
+  ) {
+    return _browser_opt_free(
+      opt,
+    );
+  }
+
+  late final _browser_opt_free_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_opt_free>>('obx_browser_opt_free');
+  late final _dart_browser_opt_free _browser_opt_free =
+      _browser_opt_free_ptr.asFunction<_dart_browser_opt_free>();
+
+  /// Initialize the http-server with the given options.
+  /// Note: the given options are always freed by this function, including when an error occurs.
+  /// @param opt required parameter holding the options (see obx_browser_opt_*())
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  ffi.Pointer<OBX_browser> browser(
+    ffi.Pointer<OBX_browser_options> options,
+  ) {
+    return _browser(
+      options,
+    );
+  }
+
+  late final _browser_ptr =
+      _lookup<ffi.NativeFunction<_c_browser>>('obx_browser');
+  late final _dart_browser _browser = _browser_ptr.asFunction<_dart_browser>();
+
+  /// Returns a port this server listens on. This is especially useful if the port was assigned arbitrarily
+  /// (a "0" port was used in the URI given to obx_browser_opt_bind()).
+  int browser_port(
+    ffi.Pointer<OBX_browser> browser,
+  ) {
+    return _browser_port(
+      browser,
+    );
+  }
+
+  late final _browser_port_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_port>>('obx_browser_port');
+  late final _dart_browser_port _browser_port =
+      _browser_port_ptr.asFunction<_dart_browser_port>();
+
+  /// Stop the http-server and free all the resources.
+  /// @param browser may be NULL
+  int browser_close(
+    ffi.Pointer<OBX_browser> browser,
+  ) {
+    return _browser_close(
+      browser,
+    );
+  }
+
+  late final _browser_close_ptr =
+      _lookup<ffi.NativeFunction<_c_browser_close>>('obx_browser_close');
+  late final _dart_browser_close _browser_close =
+      _browser_close_ptr.asFunction<_dart_browser_close>();
 
   /// Before calling any of the other sync APIs, ensure that those are actually available.
   /// If the application is linked a non-sync ObjectBox library, this allows you to fail gracefully.
@@ -5923,8 +6127,11 @@ abstract class OBXFeature {
   /// HTTP server with a database browser.
   static const int ObjectBrowser = 5;
 
-  /// Trees & GraphQL support
-  static const int Trees = 6;
+  /// Tree & GraphQL support
+  static const int Tree = 6;
+
+  /// Sync server availability. Visit https://objectbox.io/sync for more details.
+  static const int SyncServer = 7;
 }
 
 abstract class OBXPropertyType {
@@ -6235,6 +6442,11 @@ class OBX_query_prop extends ffi.Opaque {}
 /// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
 class OBX_observer extends ffi.Opaque {}
 
+class OBX_browser_options extends ffi.Opaque {}
+
+/// Object data browser is a web application, exposed over http(s)
+class OBX_browser extends ffi.Opaque {}
+
 class OBX_sync extends ffi.Opaque {}
 
 abstract class OBXSyncCredentialsType {
@@ -6322,6 +6534,8 @@ const int OBX_ERROR_ALLOCATION = 10003;
 
 const int OBX_ERROR_NUMERIC_OVERFLOW = 10004;
 
+const int OBX_ERROR_FEATURE_NOT_AVAILABLE = 10005;
+
 const int OBX_ERROR_NO_ERROR_INFO = 10097;
 
 const int OBX_ERROR_GENERAL = 10098;
@@ -6371,10 +6585,6 @@ const int OBX_ERROR_FILE_CORRUPT = 10502;
 const int OBX_ERROR_FILE_PAGES_CORRUPT = 10503;
 
 const int OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND = 10504;
-
-const int OBX_ERROR_TIME_SERIES_NOT_AVAILABLE = 10601;
-
-const int OBX_ERROR_SYNC_NOT_AVAILABLE = 10602;
 
 typedef _c_version = ffi.Void Function(
   ffi.Pointer<ffi.Int32> major,
@@ -6430,6 +6640,14 @@ typedef _c_remove_db_files = ffi.Int32 Function(
 
 typedef _dart_remove_db_files = int Function(
   ffi.Pointer<ffi.Int8> directory,
+);
+
+typedef _c_debug_log = ffi.Int32 Function(
+  ffi.Uint8 enabled,
+);
+
+typedef _dart_debug_log = int Function(
+  int enabled,
 );
 
 typedef _c_last_error_pop = ffi.Uint8 Function(
@@ -6862,18 +7080,20 @@ typedef _dart_opt_async_post_txn_delay = void Function(
   int delay_micros,
 );
 
-typedef _c_opt_async_post_txn_delay4 = ffi.Void Function(
+typedef _c_opt_async_post_txn_delay5 = ffi.Void Function(
   ffi.Pointer<OBX_store_options> opt,
   ffi.Uint32 delay_micros,
   ffi.Uint32 delay2_micros,
   ffi.IntPtr min_queue_length_for_delay2,
+  ffi.Uint8 subtract_processing_time,
 );
 
-typedef _dart_opt_async_post_txn_delay4 = void Function(
+typedef _dart_opt_async_post_txn_delay5 = void Function(
   ffi.Pointer<OBX_store_options> opt,
   int delay_micros,
   int delay2_micros,
   int min_queue_length_for_delay2,
+  int subtract_processing_time,
 );
 
 typedef _c_opt_async_minor_refill_threshold = ffi.Void Function(
@@ -9380,12 +9600,110 @@ typedef _dart_float_array_free = void Function(
   ffi.Pointer<OBX_float_array> array,
 );
 
-typedef _c_posix_sem_prefix_set = ffi.Void Function(
+typedef _c_posix_sem_prefix_set = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> prefix,
 );
 
-typedef _dart_posix_sem_prefix_set = void Function(
+typedef _dart_posix_sem_prefix_set = int Function(
   ffi.Pointer<ffi.Int8> prefix,
+);
+
+typedef _c_browser_opt = ffi.Pointer<OBX_browser_options> Function();
+
+typedef _dart_browser_opt = ffi.Pointer<OBX_browser_options> Function();
+
+typedef _c_browser_opt_store = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Pointer<OBX_store> store,
+  ffi.Pointer<ffi.Int8> dir,
+);
+
+typedef _dart_browser_opt_store = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Pointer<OBX_store> store,
+  ffi.Pointer<ffi.Int8> dir,
+);
+
+typedef _c_browser_opt_bind = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Pointer<ffi.Int8> uri,
+);
+
+typedef _dart_browser_opt_bind = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Pointer<ffi.Int8> uri,
+);
+
+typedef _c_browser_opt_ssl = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Pointer<ffi.Int8> cert_path,
+);
+
+typedef _dart_browser_opt_ssl = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Pointer<ffi.Int8> cert_path,
+);
+
+typedef _c_browser_opt_num_threads = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.IntPtr num_threads,
+);
+
+typedef _dart_browser_opt_num_threads = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  int num_threads,
+);
+
+typedef _c_browser_opt_unsecured_no_authentication = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Uint8 value,
+);
+
+typedef _dart_browser_opt_unsecured_no_authentication = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  int value,
+);
+
+typedef _c_browser_opt_user_management = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  ffi.Uint8 value,
+);
+
+typedef _dart_browser_opt_user_management = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+  int value,
+);
+
+typedef _c_browser_opt_free = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser_options> opt,
+);
+
+typedef _dart_browser_opt_free = int Function(
+  ffi.Pointer<OBX_browser_options> opt,
+);
+
+typedef _c_browser = ffi.Pointer<OBX_browser> Function(
+  ffi.Pointer<OBX_browser_options> options,
+);
+
+typedef _dart_browser = ffi.Pointer<OBX_browser> Function(
+  ffi.Pointer<OBX_browser_options> options,
+);
+
+typedef _c_browser_port = ffi.Uint16 Function(
+  ffi.Pointer<OBX_browser> browser,
+);
+
+typedef _dart_browser_port = int Function(
+  ffi.Pointer<OBX_browser> browser,
+);
+
+typedef _c_browser_close = ffi.Int32 Function(
+  ffi.Pointer<OBX_browser> browser,
+);
+
+typedef _dart_browser_close = int Function(
+  ffi.Pointer<OBX_browser> browser,
 );
 
 typedef _c_sync_available = ffi.Uint8 Function();
