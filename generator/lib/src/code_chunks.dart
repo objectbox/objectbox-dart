@@ -341,14 +341,14 @@ class CodeChunks {
               return '${p.fieldType}.fromList(${readFieldNonNull('[]')})';
             }
           } else {
-            fbReader = 'EagerListReader<int>(fb.Int8Reader())';
+            fbReader = 'fb.ListReader<int>(fb.Int8Reader(), lazy: false)';
           }
           break;
         case OBXPropertyType.Relation:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
           return readFieldNonNull('0');
         case OBXPropertyType.StringVector:
-          fbReader = 'EagerListReader<String>(fb.StringReader())';
+          fbReader = 'fb.ListReader<String>(fb.StringReader(), lazy: false)';
           break;
         default:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';

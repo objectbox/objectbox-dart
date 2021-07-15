@@ -4,7 +4,6 @@ library objectbox_internal;
 
 // ignore_for_file: invalid_export_of_internal_element
 
-export 'src/fb_readers.dart';
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
 export 'src/query.dart'
