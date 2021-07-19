@@ -16,6 +16,10 @@ class B {
 
   String text;
   final cs = ToMany<C>();
+
+  @Backlink()
+  final as = ToMany<A>();
+
   B(this.text);
 }
 

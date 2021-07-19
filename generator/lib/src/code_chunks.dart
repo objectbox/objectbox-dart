@@ -508,17 +508,14 @@ class CodeChunks {
     }
   }
 
-  static String toManyRelations(ModelEntity entity) =>
-      '{' +
-      entity.relations
-          .map((ModelRelation rel) =>
-              '${relInfo(entity, rel)}: object.${rel.name}')
-          .join(',') +
-      entity.backlinks
-          .map((ModelBacklink bl) =>
-              '${backlinkRelInfo(entity, bl)}: object.${bl.name}')
-          .join(',') +
-      '}';
+  static String toManyRelations(ModelEntity entity) {
+    final definitions = <String>[];
+    definitions.addAll(entity.relations.map(
+        (ModelRelation rel) => '${relInfo(entity, rel)}: object.${rel.name}'));
+    definitions.addAll(entity.backlinks.map((ModelBacklink bl) =>
+        '${backlinkRelInfo(entity, bl)}: object.${bl.name}'));
+    return '{${definitions.join(',')}}';
+  }
 
   static String _metaClass(int i, ModelEntity entity) {
     final fields = <String>[];

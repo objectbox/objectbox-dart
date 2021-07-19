@@ -1,6 +1,7 @@
 ## latest
 
 * Add `Query.findUnique()` to find a single object matching the query.
+* Fix generator when mixing backlinks and "standard" relations in the same entity (generated code had a syntax error).
 
 ## 1.1.1 (2021-07-09)
 
