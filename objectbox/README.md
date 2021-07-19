@@ -83,6 +83,12 @@ dev_dependencies:
   Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
   19 characters or fewer.
 * Sync + Android only: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
+* In order to run Flutter unit tests locally on your machine, you'll need to install the native ObjectBox library on 
+  your host machine (same as you would if you developed for Dart native, as described in the next section):
+
+  ```shell script
+  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
+  ```
 
 ### Dart Native
 
@@ -111,15 +117,10 @@ dev_dependencies:
 Help wanted
 -----------
 
-ObjectBox Dart is still not on par with other language bindings where ObjectBox is available.
-To bring all the missing features to Dart, we're asking the community to help out. PRs are more than welcome!
-The ObjectBox team will try its best to guide you and answer questions.
-
-### Feedback
-
-Also, please let us know your feedback GitHub issues, either comment on an existing one or open a new one.
-For example, if you experience errors or if you have ideas for how to improve the API.
-Thanks!
+ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
+Either comment on an existing issue or open a new one. For example, if you experience errors or if you have ideas how to
+improve the API. If you'd like to contribute some code: PRs are more than welcome! The ObjectBox team will try its best 
+to guide you and answer questions.
 
 FAQ
 ---
