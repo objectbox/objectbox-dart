@@ -780,9 +780,8 @@ class Query<T> {
     reachabilityFence(this);
     try {
       final idArray = idArrayPtr.ref;
-      return idArray.count == 0
-          ? List<int>.filled(0, 0)
-          : idArray.ids.asTypedList(idArray.count).toList(growable: false);
+      final ids = idArray.ids;
+      return List.generate(idArray.count, (i) => ids[i], growable: false);
     } finally {
       C.id_array_free(idArrayPtr);
     }
