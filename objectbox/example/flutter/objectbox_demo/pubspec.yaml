@@ -13,6 +13,7 @@ dependencies:
   intl: any
   objectbox: ^1.1.1
   objectbox_flutter_libs: any
+  flutter_foreground_task: ^2.0.5+1
 
 dev_dependencies:
   objectbox_generator: any

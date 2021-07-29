@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:intl/intl.dart';
 import 'package:objectbox/objectbox.dart';
 
@@ -50,6 +51,9 @@ class ViewModel {
   ViewModel(this._store) : _box = Box<Note>(_store) {
     final qBuilder = _box.query()..order(Note_.date, flags: Order.descending);
     _queryStream = qBuilder.watch(triggerImmediately: true);
+    _gBox = _box;
+    onStepCount();
+    startForegroundService(steps: 0, yesterdaySteps: 0);
   }
 
   void addNote(Note note) => _box.put(note);
@@ -196,4 +200,85 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Icon(Icons.add),
         ),
       );
+}
+
+Future<void> startForegroundService({
+  required int steps,
+  required int yesterdaySteps,
+}) async {
+  if (await FlutterForegroundTask.isRunningTask) return;
+  await FlutterForegroundTask.init(
+    printDevLog: true,
+    notificationOptions: NotificationOptions(
+      channelId: 'steps',
+      channelName: 'Steps',
+      channelImportance: NotificationChannelImportance.MAX,
+      priority: NotificationPriority.MAX,
+      visibility: NotificationVisibility.VISIBILITY_PUBLIC,
+      iconData: NotificationIconData(
+        name: "stat_name",
+        resType: ResourceType.mipmap,
+        resPrefix: ResourcePrefix.ic,
+      ),
+    ),
+    foregroundTaskOptions: ForegroundTaskOptions(
+      autoRunOnBoot: true,
+    ),
+  );
+  await startPeriodicTask(steps: steps, yesterdaySteps: yesterdaySteps);
+}
+
+Future<void> startPeriodicTask({
+  required int steps,
+  required int yesterdaySteps,
+}) async {
+  await FlutterForegroundTask.start(
+    notificationTitle: "Today: $steps steps",
+    notificationText: 'Yesterday: $yesterdaySteps steps',
+    callback: periodicTaskFun,
+  );
+}
+
+class StepCount {}
+
+Box<Note>? _gBox;
+final _stepCountStream =
+    Stream<StepCount?>.periodic(const Duration(seconds: 10)).asBroadcastStream();
+
+void periodicTaskFun() async {
+  print('periodicTaskFun() called'); // TODO this is never called...
+  StreamSubscription<StepCount?>? streamSubscription;
+  // LocalDataSource? localDataSource;
+  FlutterForegroundTask.initDispatcher((timeStamp) async {
+    if (streamSubscription != null) {
+      return;
+    }
+    streamSubscription = _stepCountStream.listen(
+      (steps) async {
+        try {
+          final items = _gBox?.getAll();
+          print('periodicTaskFun() sub: ${items?.length}');
+          // TODO DB update should happen here (does in the example)
+          await FlutterForegroundTask.update(
+            notificationTitle: "Last: ${items?.last.date}",
+            notificationText: items?.last.comment,
+          );
+        } catch (e) {
+          print(e);
+        }
+      },
+      cancelOnError: true,
+    );
+  }, onDestroy: (timeStamp) async {
+    await streamSubscription?.cancel();
+  });
+}
+
+
+void onStepCount() async {
+  // return;
+  final streamSubscription = _stepCountStream.listen((steps) {
+    final items = _gBox?.getAll();
+    print('onStepCount(): ${items?.length}');
+  }, cancelOnError: true);
 }
