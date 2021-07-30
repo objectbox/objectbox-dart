@@ -1,9 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.objectbox_demo">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:label="objectbox_demo"
         android:icon="@mipmap/ic_launcher">
 
+        <service android:name="com.pravera.flutter_foreground_task.service.ForegroundService" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

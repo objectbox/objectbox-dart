@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -256,6 +257,7 @@ void periodicTaskFun() async {
     streamSubscription = _stepCountStream.listen(
       (steps) async {
         try {
+          print('periodicTaskFun() Isolate: ${Isolate.current.hashCode}   box: $_gBox');
           final items = _gBox?.getAll();
           print('periodicTaskFun() sub: ${items?.length}');
           // TODO DB update should happen here (does in the example)
@@ -279,6 +281,7 @@ void onStepCount() async {
   // return;
   final streamSubscription = _stepCountStream.listen((steps) {
     final items = _gBox?.getAll();
+    print('onStepCount() Isolate: ${Isolate.current.hashCode}   box: $_gBox');
     print('onStepCount(): ${items?.length}');
   }, cancelOnError: true);
 }
