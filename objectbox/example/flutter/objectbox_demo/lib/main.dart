@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -54,7 +56,7 @@ class ViewModel {
     _queryStream = qBuilder.watch(triggerImmediately: true);
     _gBox = _box;
     onStepCount();
-    startForegroundService(steps: 0, yesterdaySteps: 0);
+    startForegroundService(steps: 0, yesterdaySteps: 0, store: _store);
   }
 
   void addNote(Note note) => _box.put(note);
@@ -206,6 +208,7 @@ class _MyHomePageState extends State<MyHomePage> {
 Future<void> startForegroundService({
   required int steps,
   required int yesterdaySteps,
+  required Store store,
 }) async {
   if (await FlutterForegroundTask.isRunningTask) return;
   await FlutterForegroundTask.init(
@@ -226,18 +229,27 @@ Future<void> startForegroundService({
       autoRunOnBoot: true,
     ),
   );
-  await startPeriodicTask(steps: steps, yesterdaySteps: yesterdaySteps);
+  await startPeriodicTask(steps: steps, yesterdaySteps: yesterdaySteps, store: store);
 }
+
+const mainIsolatePortName = 'mainIsolate';
 
 Future<void> startPeriodicTask({
   required int steps,
   required int yesterdaySteps,
+  required Store store,
 }) async {
+  final port = ReceivePort();
+  IsolateNameServer.registerPortWithName(port.sendPort, mainIsolatePortName);
   await FlutterForegroundTask.start(
     notificationTitle: "Today: $steps steps",
     notificationText: 'Yesterday: $yesterdaySteps steps',
     callback: periodicTaskFun,
   );
+  final taskPort = (await port.first) as SendPort;
+  taskPort.send(store.reference);
+  port.close();
+  IsolateNameServer.removePortNameMapping(mainIsolatePortName);
 }
 
 class StepCount {}
@@ -247,6 +259,13 @@ final _stepCountStream =
     Stream<StepCount?>.periodic(const Duration(seconds: 10)).asBroadcastStream();
 
 void periodicTaskFun() async {
+  final port = ReceivePort();
+  IsolateNameServer.lookupPortByName(mainIsolatePortName)!.send(port.sendPort);
+  final storeRef = (await port.first) as ByteData;
+  port.close();
+  final store = Store.fromReference(getObjectBoxModel(), storeRef);
+  final box = store.box<Note>();
+
   print('periodicTaskFun() called'); // TODO this is never called...
   StreamSubscription<StepCount?>? streamSubscription;
   // LocalDataSource? localDataSource;
@@ -257,13 +276,13 @@ void periodicTaskFun() async {
     streamSubscription = _stepCountStream.listen(
       (steps) async {
         try {
-          print('periodicTaskFun() Isolate: ${Isolate.current.hashCode}   box: $_gBox');
-          final items = _gBox?.getAll();
-          print('periodicTaskFun() sub: ${items?.length}');
+          print('periodicTaskFun() Isolate: ${Isolate.current.hashCode}   box: $box');
+          final items = box.getAll();
+          print('periodicTaskFun() sub: ${items.length}');
           // TODO DB update should happen here (does in the example)
           await FlutterForegroundTask.update(
-            notificationTitle: "Last: ${items?.last.date}",
-            notificationText: items?.last.comment,
+            notificationTitle: "Last: ${items.last.date}",
+            notificationText: items.last.comment,
           );
         } catch (e) {
           print(e);
