@@ -40,9 +40,13 @@ class JsonBook {
   @_PersonRelToOneConverter()
   final ToOne<JsonPerson> author;
 
-  JsonBook({required this.author});
+  @_PersonRelToManyConverter()
+  final ToMany<JsonPerson> readers;
 
-  factory JsonBook.fromJson(Map<String, dynamic> json) => _$JsonBookFromJson(json);
+  JsonBook({required this.author, required this.readers});
+
+  factory JsonBook.fromJson(Map<String, dynamic> json) =>
+      _$JsonBookFromJson(json);
 
   Map<String, dynamic> toJson() => _$JsonBookToJson(this);
 }
@@ -57,4 +61,20 @@ class _PersonRelToOneConverter
 
   @override
   Map<String, dynamic>? toJson(ToOne<JsonPerson> rel) => rel.target?.toJson();
+}
+
+class _PersonRelToManyConverter
+    implements JsonConverter<ToMany<JsonPerson>, List<Map<String, dynamic>>?> {
+  const _PersonRelToManyConverter();
+
+  @override
+  ToMany<JsonPerson> fromJson(List<Map<String, dynamic>>? json) =>
+      ToMany<JsonPerson>(
+          items: json == null
+              ? null
+              : json.map((e) => JsonPerson.fromJson(e)).toList());
+
+  @override
+  List<Map<String, dynamic>>? toJson(ToMany<JsonPerson> rel) =>
+      rel.map((JsonPerson obj) => obj.toJson()).toList();
 }

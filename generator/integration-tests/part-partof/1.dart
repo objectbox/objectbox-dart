@@ -19,15 +19,28 @@ void main() {
   group('package:JsonSerializable', () {
     setupTestsFor(JsonEntity(id: 0, str: 'foo', date: DateTime.now()));
     setupRelTestsFor(JsonBook.fromJson({
-      'author': {'name': 'Charles'}
+      'author': {'name': 'Charles'},
+      'readers': [
+        {'name': 'Emily'},
+        {'name': 'Diana'}
+      ]
     }));
   });
 
   group('package:Freezed', () {
     setupTestsFor(FrozenEntity(id: 1, str: 'foo', date: DateTime.now()));
     final author = FrozenPerson(id: 1, name: 'Charles');
+    final readers = [
+      FrozenPerson(id: 2, name: 'Emily'),
+      FrozenPerson(id: 3, name: 'Diana')
+    ];
     setupRelTestsFor(
-        FrozenBook(id: 1, author: ToOne<FrozenPerson>(target: author)), author);
+        FrozenBook(
+            id: 1,
+            author: ToOne(target: author),
+            readers: ToMany(items: readers)),
+        (Store store) =>
+            store.box<FrozenPerson>().putMany([author, ...readers]));
   });
 }
 
@@ -44,23 +57,23 @@ void setupTestsFor<EntityT>(EntityT newObject) {
   });
 }
 
-void setupRelTestsFor<BookEntityT, PersonEntityT>(BookEntityT book,
-    [PersonEntityT? author]) {
+void setupRelTestsFor<BookEntityT>(BookEntityT book,
+    [void Function(Store)? init]) {
   group(BookEntityT.toString(), () {
     late TestEnv<BookEntityT> env;
     setUp(() => env = TestEnv(getObjectBoxModel()));
     tearDown(() => env.close());
 
     test('relations', () {
-      if (author != null) {
-        env.store.box<PersonEntityT>().put(author);
-        (book as dynamic).author.target = author;
-      }
+      if (init != null) init(env.store);
       env.box.put(book);
 
       final bookRead = env.box.get(1)! as dynamic;
       expect(bookRead.author.targetId, 1);
       expect(bookRead.author.target!.name, 'Charles');
+
+      expect(bookRead.readers[0]!.name, 'Emily');
+      expect(bookRead.readers[1]!.name, 'Diana');
     });
   });
 }

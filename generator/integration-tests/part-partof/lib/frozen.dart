@@ -25,5 +25,6 @@ class FrozenBook with _$FrozenBook {
   @Entity(realClass: FrozenBook)
   factory FrozenBook(
       {@Id(assignable: true) required int id,
-      required ToOne<FrozenPerson> author}) = _FrozenBook;
+      required ToOne<FrozenPerson> author,
+      required ToMany<FrozenPerson> readers}) = _FrozenBook;
 }
