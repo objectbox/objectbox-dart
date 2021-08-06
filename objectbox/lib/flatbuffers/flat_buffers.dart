@@ -150,9 +150,9 @@ class Builder {
   })  : _allocator = allocator,
         _buf = allocator.allocate(initialSize),
         _vTables = deduplicateTables ? [] : const [] {
-  if (internStrings) {
-  _strings = <String, int>{};
-  }
+    if (internStrings) {
+      _strings = <String, int>{};
+    }
   }
 
   /// Calculate the finished buffer size (aligned).
@@ -163,193 +163,193 @@ class Builder {
   /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
   /// `0` for `false` and `1` for `true`.
   void addBool(int field, bool? value, [bool? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofUint8, 1);
-  _trackField(field);
-  _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofUint8, 1);
+      _trackField(field);
+      _buf.setInt8(_buf.lengthInBytes - _tail, value ? 1 : 0);
+    }
   }
 
   /// Add the [field] with the given 32-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
   void addInt32(int field, int? value, [int? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofInt32, 1);
-  _trackField(field);
-  _setInt32AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofInt32, 1);
+      _trackField(field);
+      _setInt32AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 32-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
   void addInt16(int field, int? value, [int? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofInt16, 1);
-  _trackField(field);
-  _setInt16AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofInt16, 1);
+      _trackField(field);
+      _setInt16AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 8-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
   void addInt8(int field, int? value, [int? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofInt8, 1);
-  _trackField(field);
-  _setInt8AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofInt8, 1);
+      _trackField(field);
+      _setInt8AtTail(_tail, value);
+    }
   }
 
   void addStruct(int field, int offset) {
-  assert(_inVTable);
-  _trackField(field);
-  _currentVTable!.addField(field, offset);
+    assert(_inVTable);
+    _trackField(field);
+    _currentVTable!.addField(field, offset);
   }
 
   /// Add the [field] referencing an object with the given [offset].
   void addOffset(int field, int? offset) {
-  assert(_inVTable);
-  if (offset != null) {
-  _prepare(_sizeofUint32, 1);
-  _trackField(field);
-  _setUint32AtTail(_tail, _tail - offset);
-  }
+    assert(_inVTable);
+    if (offset != null) {
+      _prepare(_sizeofUint32, 1);
+      _trackField(field);
+      _setUint32AtTail(_tail, _tail - offset);
+    }
   }
 
   /// Add the [field] with the given 32-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint32(int field, int? value, [int? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofUint32, 1);
-  _trackField(field);
-  _setUint32AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofUint32, 1);
+      _trackField(field);
+      _setUint32AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 32-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint16(int field, int? value, [int? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofUint16, 1);
-  _trackField(field);
-  _setUint16AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofUint16, 1);
+      _trackField(field);
+      _setUint16AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 8-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint8(int field, int? value, [int? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofUint8, 1);
-  _trackField(field);
-  _setUint8AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofUint8, 1);
+      _trackField(field);
+      _setUint8AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 32-bit float [value].  The field
   /// is not added if the [value] is equal to [def].
   void addFloat32(int field, double? value, [double? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofFloat32, 1);
-  _trackField(field);
-  _setFloat32AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofFloat32, 1);
+      _trackField(field);
+      _setFloat32AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 64-bit double [value].  The field
   /// is not added if the [value] is equal to [def].
   void addFloat64(int field, double? value, [double? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofFloat64, 1);
-  _trackField(field);
-  _setFloat64AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofFloat64, 1);
+      _trackField(field);
+      _setFloat64AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 64-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addUint64(int field, int? value, [double? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofUint64, 1);
-  _trackField(field);
-  _setUint64AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofUint64, 1);
+      _trackField(field);
+      _setUint64AtTail(_tail, value);
+    }
   }
 
   /// Add the [field] with the given 64-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
   void addInt64(int field, int? value, [double? def]) {
-  assert(_inVTable);
-  if (value != null && value != def) {
-  _prepare(_sizeofInt64, 1);
-  _trackField(field);
-  _setInt64AtTail(_tail, value);
-  }
+    assert(_inVTable);
+    if (value != null && value != def) {
+      _prepare(_sizeofInt64, 1);
+      _trackField(field);
+      _setInt64AtTail(_tail, value);
+    }
   }
 
   /// End the current table and return its offset.
   int endTable() {
-  assert(_inVTable);
-  // Prepare for writing the VTable.
-  _prepare(_sizeofInt32, 1);
-  int tableTail = _tail;
-  // Prepare the size of the current table.
-  final currentVTable = _currentVTable!;
-  currentVTable.tableSize = tableTail - _currentTableEndTail;
-  // Prepare the VTable to use for the current table.
-  int? vTableTail;
-  {
-  currentVTable.computeFieldOffsets(tableTail);
+    assert(_inVTable);
+    // Prepare for writing the VTable.
+    _prepare(_sizeofInt32, 1);
+    int tableTail = _tail;
+    // Prepare the size of the current table.
+    final currentVTable = _currentVTable!;
+    currentVTable.tableSize = tableTail - _currentTableEndTail;
+    // Prepare the VTable to use for the current table.
+    int? vTableTail;
+    {
+      currentVTable.computeFieldOffsets(tableTail);
 
-  // Try to find an existing compatible VTable.
-  if (deduplicateTables) {
-  // Search backward - more likely to have recently used one
-  for (int i = _vTables.length - 1; i >= 0; i--) {
-  final int vt2Offset = _vTables[i];
-  final int vt2Start = _buf.lengthInBytes - vt2Offset;
-  final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
+      // Try to find an existing compatible VTable.
+      if (deduplicateTables) {
+        // Search backward - more likely to have recently used one
+        for (int i = _vTables.length - 1; i >= 0; i--) {
+          final int vt2Offset = _vTables[i];
+          final int vt2Start = _buf.lengthInBytes - vt2Offset;
+          final int vt2Size = _buf.getUint16(vt2Start, Endian.little);
 
-  if (currentVTable._vTableSize == vt2Size &&
-  currentVTable._offsetsMatch(vt2Start, _buf)) {
-  vTableTail = vt2Offset;
-  break;
-  }
-  }
-  }
+          if (currentVTable._vTableSize == vt2Size &&
+              currentVTable._offsetsMatch(vt2Start, _buf)) {
+            vTableTail = vt2Offset;
+            break;
+          }
+        }
+      }
 
-  // Write a new VTable.
-  if (vTableTail == null) {
-  _prepare(_sizeofUint16, _currentVTable!.numOfUint16);
-  vTableTail = _tail;
-  currentVTable.tail = vTableTail;
-  currentVTable.output(_buf, _buf.lengthInBytes - _tail);
-  if (deduplicateTables) _vTables.add(currentVTable.tail);
-  }
-  }
-  // Set the VTable offset.
-  _setInt32AtTail(tableTail, vTableTail - tableTail);
-  // Done with this table.
-  _currentVTable = null;
-  return tableTail;
+      // Write a new VTable.
+      if (vTableTail == null) {
+        _prepare(_sizeofUint16, _currentVTable!.numOfUint16);
+        vTableTail = _tail;
+        currentVTable.tail = vTableTail;
+        currentVTable.output(_buf, _buf.lengthInBytes - _tail);
+        if (deduplicateTables) _vTables.add(currentVTable.tail);
+      }
+    }
+    // Set the VTable offset.
+    _setInt32AtTail(tableTail, vTableTail - tableTail);
+    // Done with this table.
+    _currentVTable = null;
+    return tableTail;
   }
 
   /// Returns the finished buffer. You must call [finish] before accessing this.
   @pragma('vm:prefer-inline')
   Uint8List get buffer {
-  assert(_finished);
-  final finishedSize = size();
-  return _buf.buffer
-      .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
+    assert(_finished);
+    final finishedSize = size();
+    return _buf.buffer
+        .asUint8List(_buf.lengthInBytes - finishedSize, finishedSize);
   }
 
   /// Finish off the creation of the buffer.  The given [offset] is used as the
@@ -358,311 +358,311 @@ class Builder {
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
   void finish(int offset, [String? fileIdentifier]) {
-  final sizeBeforePadding = size();
-  final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
-  _prepare(max(requiredBytes, _maxAlign), 1);
-  final finishedSize = size();
-  _setUint32AtTail(finishedSize, finishedSize - offset);
-  if (fileIdentifier != null) {
-  for (int i = 0; i < 4; i++) {
-  _setUint8AtTail(
-  finishedSize - _sizeofUint32 - i, fileIdentifier.codeUnitAt(i));
-  }
-  }
+    final sizeBeforePadding = size();
+    final requiredBytes = _sizeofUint32 * (fileIdentifier == null ? 1 : 2);
+    _prepare(max(requiredBytes, _maxAlign), 1);
+    final finishedSize = size();
+    _setUint32AtTail(finishedSize, finishedSize - offset);
+    if (fileIdentifier != null) {
+      for (int i = 0; i < 4; i++) {
+        _setUint8AtTail(
+            finishedSize - _sizeofUint32 - i, fileIdentifier.codeUnitAt(i));
+      }
+    }
 
-  // zero out the added padding
-  for (var i = sizeBeforePadding + 1;
-  i <= finishedSize - requiredBytes;
-  i++) {
-  _setUint8AtTail(i, 0);
-  }
-  _finished = true;
+    // zero out the added padding
+    for (var i = sizeBeforePadding + 1;
+        i <= finishedSize - requiredBytes;
+        i++) {
+      _setUint8AtTail(i, 0);
+    }
+    _finished = true;
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putFloat64(double value) {
-  _prepare(_sizeofFloat64, 1);
-  _setFloat32AtTail(_tail, value);
+    _prepare(_sizeofFloat64, 1);
+    _setFloat32AtTail(_tail, value);
   }
 
   /// Writes a Float32 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putFloat32(double value) {
-  _prepare(_sizeofFloat32, 1);
-  _setFloat32AtTail(_tail, value);
+    _prepare(_sizeofFloat32, 1);
+    _setFloat32AtTail(_tail, value);
   }
 
   /// Writes a Int64 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putInt64(int value) {
-  _prepare(_sizeofInt64, 1);
-  _setInt64AtTail(_tail, value);
+    _prepare(_sizeofInt64, 1);
+    _setInt64AtTail(_tail, value);
   }
 
   /// Writes a Uint32 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putInt32(int value) {
-  _prepare(_sizeofInt32, 1);
-  _setInt32AtTail(_tail, value);
+    _prepare(_sizeofInt32, 1);
+    _setInt32AtTail(_tail, value);
   }
 
   /// Writes a Uint16 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putInt16(int value) {
-  _prepare(_sizeofInt16, 1);
-  _setInt16AtTail(_tail, value);
+    _prepare(_sizeofInt16, 1);
+    _setInt16AtTail(_tail, value);
   }
 
   /// Writes a Uint8 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putInt8(int value) {
-  _prepare(_sizeofInt8, 1);
-  _buf.setInt8(_buf.lengthInBytes - _tail, value);
+    _prepare(_sizeofInt8, 1);
+    _buf.setInt8(_buf.lengthInBytes - _tail, value);
   }
 
   /// Writes a Uint64 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putUint64(int value) {
-  _prepare(_sizeofUint64, 1);
-  _setUint64AtTail(_tail, value);
+    _prepare(_sizeofUint64, 1);
+    _setUint64AtTail(_tail, value);
   }
 
   /// Writes a Uint32 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putUint32(int value) {
-  _prepare(_sizeofUint32, 1);
-  _setUint32AtTail(_tail, value);
+    _prepare(_sizeofUint32, 1);
+    _setUint32AtTail(_tail, value);
   }
 
   /// Writes a Uint16 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putUint16(int value) {
-  _prepare(_sizeofUint16, 1);
-  _setUint16AtTail(_tail, value);
+    _prepare(_sizeofUint16, 1);
+    _setUint16AtTail(_tail, value);
   }
 
   /// Writes a Uint8 to the tail of the buffer after preparing space for it.
   ///
   /// Updates the [offset] pointer.  This method is intended for use when writing structs to the buffer.
   void putUint8(int value) {
-  _prepare(_sizeofUint8, 1);
-  _buf.setUint8(_buf.lengthInBytes - _tail, value);
+    _prepare(_sizeofUint8, 1);
+    _buf.setUint8(_buf.lengthInBytes - _tail, value);
   }
 
   /// Reset the builder and make it ready for filling a new buffer.
   void reset() {
-  _finished = false;
-  _maxAlign = 1;
-  _tail = 0;
-  _currentVTable = null;
-  if (deduplicateTables) _vTables.clear();
-  if (_strings != null) {
-  _strings = <String, int>{};
-  }
+    _finished = false;
+    _maxAlign = 1;
+    _tail = 0;
+    _currentVTable = null;
+    if (deduplicateTables) _vTables.clear();
+    if (_strings != null) {
+      _strings = <String, int>{};
+    }
   }
 
   /// Start a new table. Must be finished with [endTable] invocation.
   void startTable(int numFields) {
-  assert(!_inVTable); // Inline tables are not supported.
-  _currentVTable = _VTable(numFields);
-  _currentTableEndTail = _tail;
+    assert(!_inVTable); // Inline tables are not supported.
+    _currentVTable = _VTable(numFields);
+    _currentTableEndTail = _tail;
   }
 
   /// Finish a Struct vector.  Most callers should preferto use [writeListOfStructs].
   ///
   /// Most callers should prefer [writeListOfStructs].
   int endStructVector(int count) {
-  putUint32(count);
-  return _tail;
+    putUint32(count);
+    return _tail;
   }
 
   /// Writes a list of Structs to the buffer, returning the offset
   int writeListOfStructs(List<ObjectBuilder> structBuilders) {
-  assert(!_inVTable);
-  for (int i = structBuilders.length - 1; i >= 0; i--) {
-  structBuilders[i].finish(this);
-  }
-  return endStructVector(structBuilders.length);
+    assert(!_inVTable);
+    for (int i = structBuilders.length - 1; i >= 0; i--) {
+      structBuilders[i].finish(this);
+    }
+    return endStructVector(structBuilders.length);
   }
 
   /// Write the given list of [values].
   int writeList(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1 + values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setUint32AtTail(tail, tail - value);
-  tail -= _sizeofUint32;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1 + values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setUint32AtTail(tail, tail - value);
+      tail -= _sizeofUint32;
+    }
+    return result;
   }
 
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (double value in values) {
-  _setFloat64AtTail(tail, value);
-  tail -= _sizeofFloat64;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (double value in values) {
+      _setFloat64AtTail(tail, value);
+      tail -= _sizeofFloat64;
+    }
+    return result;
   }
 
   /// Write the given list of 32-bit float [values].
   int writeListFloat32(List<double> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofFloat32, 1 + values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (double value in values) {
-  _setFloat32AtTail(tail, value);
-  tail -= _sizeofFloat32;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofFloat32, 1 + values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (double value in values) {
+      _setFloat32AtTail(tail, value);
+      tail -= _sizeofFloat32;
+    }
+    return result;
   }
 
   /// Write the given list of signed 64-bit integer [values].
   int writeListInt64(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setInt64AtTail(tail, value);
-  tail -= _sizeofInt64;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setInt64AtTail(tail, value);
+      tail -= _sizeofInt64;
+    }
+    return result;
   }
 
   /// Write the given list of signed 64-bit integer [values].
   int writeListUint64(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setUint64AtTail(tail, value);
-  tail -= _sizeofUint64;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setUint64AtTail(tail, value);
+      tail -= _sizeofUint64;
+    }
+    return result;
   }
 
   /// Write the given list of signed 32-bit integer [values].
   int writeListInt32(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1 + values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setInt32AtTail(tail, value);
-  tail -= _sizeofInt32;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1 + values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setInt32AtTail(tail, value);
+      tail -= _sizeofInt32;
+    }
+    return result;
   }
 
   /// Write the given list of unsigned 32-bit integer [values].
   int writeListUint32(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1 + values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setUint32AtTail(tail, value);
-  tail -= _sizeofUint32;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1 + values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setUint32AtTail(tail, value);
+      tail -= _sizeofUint32;
+    }
+    return result;
   }
 
   /// Write the given list of signed 16-bit integer [values].
   int writeListInt16(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setInt16AtTail(tail, value);
-  tail -= _sizeofInt16;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setInt16AtTail(tail, value);
+      tail -= _sizeofInt16;
+    }
+    return result;
   }
 
   /// Write the given list of unsigned 16-bit integer [values].
   int writeListUint16(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setUint16AtTail(tail, value);
-  tail -= _sizeofUint16;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1, additionalBytes: 2 * values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setUint16AtTail(tail, value);
+      tail -= _sizeofUint16;
+    }
+    return result;
   }
 
   /// Write the given list of bools as unsigend 8-bit integer [values].
   int writeListBool(List<bool> values) {
-  return writeListUint8(values.map((b) => b ? 1 : 0).toList());
+    return writeListUint8(values.map((b) => b ? 1 : 0).toList());
   }
 
   /// Write the given list of signed 8-bit integer [values].
   int writeListInt8(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1, additionalBytes: values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setInt8AtTail(tail, value);
-  tail -= _sizeofUint8;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1, additionalBytes: values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setInt8AtTail(tail, value);
+      tail -= _sizeofUint8;
+    }
+    return result;
   }
 
   /// Write the given list of unsigned 8-bit integer [values].
   int writeListUint8(List<int> values) {
-  assert(!_inVTable);
-  _prepare(_sizeofUint32, 1, additionalBytes: values.length);
-  final int result = _tail;
-  int tail = _tail;
-  _setUint32AtTail(tail, values.length);
-  tail -= _sizeofUint32;
-  for (int value in values) {
-  _setUint8AtTail(tail, value);
-  tail -= _sizeofUint8;
-  }
-  return result;
+    assert(!_inVTable);
+    _prepare(_sizeofUint32, 1, additionalBytes: values.length);
+    final int result = _tail;
+    int tail = _tail;
+    _setUint32AtTail(tail, values.length);
+    tail -= _sizeofUint32;
+    for (int value in values) {
+      _setUint8AtTail(tail, value);
+      tail -= _sizeofUint8;
+    }
+    return result;
   }
 
   /// Write the given string [value] and return its offset.
@@ -674,59 +674,59 @@ class Builder {
   /// (because there are no-ASCII characters in the string) it falls back and to
   /// the default UTF-16 -> UTF-8 conversion (with slight performance penalty).
   int writeString(String value, {bool asciiOptimization = false}) {
-  assert(!_inVTable);
-  if (_strings != null) {
-  return _strings!
-      .putIfAbsent(value, () => _writeString(value, asciiOptimization));
-  } else {
-  return _writeString(value, asciiOptimization);
-  }
+    assert(!_inVTable);
+    if (_strings != null) {
+      return _strings!
+          .putIfAbsent(value, () => _writeString(value, asciiOptimization));
+    } else {
+      return _writeString(value, asciiOptimization);
+    }
   }
 
   int _writeString(String value, bool asciiOptimization) {
-  if (asciiOptimization) {
-  // [utf8.encode()] is slow (up to at least Dart SDK 2.13). If the given
-  // string is ASCII we can just write it directly, without any conversion.
-  final originalTail = _tail;
-  if (_tryWriteASCIIString(value)) return _tail;
-  // if non-ASCII: reset the output buffer position for [_writeUTFString()]
-  _tail = originalTail;
-  }
-  _writeUTFString(value);
-  return _tail;
+    if (asciiOptimization) {
+      // [utf8.encode()] is slow (up to at least Dart SDK 2.13). If the given
+      // string is ASCII we can just write it directly, without any conversion.
+      final originalTail = _tail;
+      if (_tryWriteASCIIString(value)) return _tail;
+      // if non-ASCII: reset the output buffer position for [_writeUTFString()]
+      _tail = originalTail;
+    }
+    _writeUTFString(value);
+    return _tail;
   }
 
   // Try to write the string as ASCII, return false if there's a non-ascii char.
   @pragma('vm:prefer-inline')
   bool _tryWriteASCIIString(String value) {
-  _prepare(4, 1, additionalBytes: value.length + 1);
-  final length = value.length;
-  var offset = _buf.lengthInBytes - _tail + 4;
-  for (var i = 0; i < length; i++) {
-  // utf16 code unit, e.g. for '†' it's [0x20 0x20], which is 8224 decimal.
-  // ASCII characters go from 0x00 to 0x7F (which is 0 to 127 decimal).
-  final char = value.codeUnitAt(i);
-  if ((char & ~0x7F) != 0) {
-  return false;
-  }
-  _buf.setUint8(offset++, char);
-  }
-  _buf.setUint8(offset, 0); // trailing zero
-  _setUint32AtTail(_tail, value.length);
-  return true;
+    _prepare(4, 1, additionalBytes: value.length + 1);
+    final length = value.length;
+    var offset = _buf.lengthInBytes - _tail + 4;
+    for (var i = 0; i < length; i++) {
+      // utf16 code unit, e.g. for '†' it's [0x20 0x20], which is 8224 decimal.
+      // ASCII characters go from 0x00 to 0x7F (which is 0 to 127 decimal).
+      final char = value.codeUnitAt(i);
+      if ((char & ~0x7F) != 0) {
+        return false;
+      }
+      _buf.setUint8(offset++, char);
+    }
+    _buf.setUint8(offset, 0); // trailing zero
+    _setUint32AtTail(_tail, value.length);
+    return true;
   }
 
   @pragma('vm:prefer-inline')
   void _writeUTFString(String value) {
-  final bytes = utf8.encode(value) as Uint8List;
-  final length = bytes.length;
-  _prepare(4, 1, additionalBytes: length + 1);
-  _setUint32AtTail(_tail, length);
-  var offset = _buf.lengthInBytes - _tail + 4;
-  for (int i = 0; i < length; i++) {
-  _buf.setUint8(offset++, bytes[i]);
-  }
-  _buf.setUint8(offset, 0); // trailing zero
+    final bytes = utf8.encode(value) as Uint8List;
+    final length = bytes.length;
+    _prepare(4, 1, additionalBytes: length + 1);
+    _setUint32AtTail(_tail, length);
+    var offset = _buf.lengthInBytes - _tail + 4;
+    for (int i = 0; i < length; i++) {
+      _buf.setUint8(offset++, bytes[i]);
+    }
+    _buf.setUint8(offset, 0); // trailing zero
   }
 
   /// Used to assert whether a "Table" is currently being built.
@@ -750,7 +750,7 @@ class Builder {
   /// Zero-pads the buffer, which may be required for some struct layouts.
   @pragma('vm:prefer-inline')
   void pad(int howManyBytes) {
-  for (int i = 0; i < howManyBytes; i++) putUint8(0);
+    for (int i = 0; i < howManyBytes; i++) putUint8(0);
   }
 
   /// Prepare for writing the given `count` of scalars of the given `size`.
@@ -758,34 +758,34 @@ class Builder {
   /// tail pointer to point at the allocated space.
   @pragma('vm:prefer-inline')
   void _prepare(int size, int count, {int additionalBytes = 0}) {
-  assert(!_finished);
-  // Update the alignment.
-  if (_maxAlign < size) {
-  _maxAlign = size;
-  }
-  // Prepare amount of required space.
-  int dataSize = size * count + additionalBytes;
-  int alignDelta = (-(_tail + dataSize)) & (size - 1);
-  int bufSize = alignDelta + dataSize;
-  // Ensure that we have the required amount of space.
-      {
-  int oldCapacity = _buf.lengthInBytes;
-  if (_tail + bufSize > oldCapacity) {
-  int desiredNewCapacity = (oldCapacity + bufSize) * 2;
-  int deltaCapacity = desiredNewCapacity - oldCapacity;
-  deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
-  int newCapacity = oldCapacity + deltaCapacity;
-  _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
-  }
-  }
+    assert(!_finished);
+    // Update the alignment.
+    if (_maxAlign < size) {
+      _maxAlign = size;
+    }
+    // Prepare amount of required space.
+    int dataSize = size * count + additionalBytes;
+    int alignDelta = (-(_tail + dataSize)) & (size - 1);
+    int bufSize = alignDelta + dataSize;
+    // Ensure that we have the required amount of space.
+    {
+      int oldCapacity = _buf.lengthInBytes;
+      if (_tail + bufSize > oldCapacity) {
+        int desiredNewCapacity = (oldCapacity + bufSize) * 2;
+        int deltaCapacity = desiredNewCapacity - oldCapacity;
+        deltaCapacity += (-deltaCapacity) & (_maxAlign - 1);
+        int newCapacity = oldCapacity + deltaCapacity;
+        _buf = _allocator.resize(_buf, newCapacity, _tail, 0);
+      }
+    }
 
-  // zero out the added padding
-  for (var i = _tail + 1; i <= _tail + alignDelta; i++) {
-  _setUint8AtTail(i, 0);
-  }
+    // zero out the added padding
+    for (var i = _tail + 1; i <= _tail + alignDelta; i++) {
+      _setUint8AtTail(i, 0);
+    }
 
-  // Update the tail pointer.
-  _tail += bufSize;
+    // Update the tail pointer.
+    _tail += bufSize;
   }
 
   /// Record the offset of the given [field].
@@ -794,43 +794,43 @@ class Builder {
 
   @pragma('vm:prefer-inline')
   void _setFloat64AtTail(int tail, double x) =>
-  _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setFloat64(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setFloat32AtTail(int tail, double x) =>
-  _buf.setFloat32(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setFloat32(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setUint64AtTail(int tail, int x) =>
-  _buf.setUint64(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setUint64(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setInt64AtTail(int tail, int x) =>
-  _buf.setInt64(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setInt64(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setInt32AtTail(int tail, int x) =>
-  _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setInt32(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setUint32AtTail(int tail, int x) =>
-  _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setUint32(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setInt16AtTail(int tail, int x) =>
-  _buf.setInt16(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setInt16(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setUint16AtTail(int tail, int x) =>
-  _buf.setUint16(_buf.lengthInBytes - tail, x, Endian.little);
+      _buf.setUint16(_buf.lengthInBytes - tail, x, Endian.little);
 
   @pragma('vm:prefer-inline')
   void _setInt8AtTail(int tail, int x) =>
-  _buf.setInt8(_buf.lengthInBytes - tail, x);
+      _buf.setInt8(_buf.lengthInBytes - tail, x);
 
   @pragma('vm:prefer-inline')
   void _setUint8AtTail(int tail, int x) =>
-  _buf.setUint8(_buf.lengthInBytes - tail, x);
+      _buf.setUint8(_buf.lengthInBytes - tail, x);
 }
 
 /// Reader of lists of boolean values.
@@ -990,10 +990,10 @@ class ListReader<E> extends Reader<List<E>> {
     return lazy
         ? _FbGenericList<E>(_elementReader, bc, listOffset)
         : List<E>.generate(
-        bc.buffer.getUint32(listOffset, Endian.little),
+            bc.buffer.getUint32(listOffset, Endian.little),
             (int index) => _elementReader.read(
-            bc, listOffset + size + _elementReader.size * index),
-        growable: true);
+                bc, listOffset + size + _elementReader.size * index),
+            growable: true);
   }
 }
 
