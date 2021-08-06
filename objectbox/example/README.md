@@ -68,12 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _store = store;
     });
   }
-
-  @override
-  void dispose() {
-    _store?.close();  // don't forget to close the store
-    super.dispose();
-  }
 }
 ```
 
