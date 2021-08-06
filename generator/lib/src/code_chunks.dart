@@ -6,8 +6,8 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
 class CodeChunks {
-  static String objectboxDart(ModelInfo model, List<String> imports,
-      Pubspec? pubspec) =>
+  static String objectboxDart(
+          ModelInfo model, List<String> imports, Pubspec? pubspec) =>
       """
     // GENERATED CODE - DO NOT MODIFY BY HAND
     
@@ -35,8 +35,7 @@ class CodeChunks {
       ${defineModel(model)}
       
       final bindings = <Type, EntityDefinition>{
-        ${model.entities.mapIndexed((i, entity) => "${entity
-          .name}: ${entityBinding(i, entity)}").join(",\n")}
+        ${model.entities.mapIndexed((i, entity) => "${entity.name}: ${entityBinding(i, entity)}").join(",\n")}
       };
       
       return ModelDefinition(model, bindings);
@@ -54,13 +53,9 @@ class CodeChunks {
           int$nullableOperator fileMode,
           int$nullableOperator maxReaders,
           bool queriesCaseSensitiveDefault = true,
-          String$nullableOperator macosApplicationGroup})${obxFlutter
-        ? ' async'
-        : ''} =>
+          String$nullableOperator macosApplicationGroup})${obxFlutter ? ' async' : ''} =>
         Store(getObjectBoxModel(),
-            directory: directory${obxFlutter
-        ? ' ?? (await defaultStoreDirectory()).path'
-        : ''},
+            directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
             fileMode: fileMode,
             maxReaders: maxReaders,
@@ -192,11 +187,9 @@ class CodeChunks {
     // Such ID must already be set, i.e. it could not have been assigned.
     return '''{
       if (object.${propertyFieldName(entity.idProperty)} != id) {
-        throw ArgumentError('Field ${entity.name}.${propertyFieldName(
-        entity.idProperty)} is read-only ' 
+        throw ArgumentError('Field ${entity.name}.${propertyFieldName(entity.idProperty)} is read-only ' 
         '(final or getter-only) and it was declared to be self-assigned. '
-        'However, the currently inserted object (.${propertyFieldName(
-        entity.idProperty)}=\${object.${propertyFieldName(entity.idProperty)}}) ' 
+        'However, the currently inserted object (.${propertyFieldName(entity.idProperty)}=\${object.${propertyFieldName(entity.idProperty)}}) ' 
         "doesn't match the inserted ID (ID \$id). "
         'You must assign an ID before calling [box.put()].');
       }
@@ -216,8 +209,7 @@ class CodeChunks {
         return '[]';
       default:
         throw InvalidGenerationSourceError(
-            'Cannot figure out default value for field: ${p.fieldType} ${p
-                .name}');
+            'Cannot figure out default value for field: ${p.fieldType} ${p.name}');
     }
   }
 
@@ -294,14 +286,13 @@ class CodeChunks {
           } else if (p.type == OBXPropertyType.DateNano) {
             if (p.fieldIsNullable) {
               accessorSuffix =
-              ' == null ? null : object.${propertyFieldName(p)}';
+                  ' == null ? null : object.${propertyFieldName(p)}';
               if (p.entity!.nullSafetyEnabled) accessorSuffix += '!';
             }
             accessorSuffix += '.microsecondsSinceEpoch * 1000';
           }
         }
-        return 'fbb.add${_propertyFlatBuffersType[p
-            .type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
+        return 'fbb.add${_propertyFlatBuffersType[p.type]}($fbField, object.${propertyFieldName(p)}$accessorSuffix);';
       }
     });
 
@@ -325,16 +316,14 @@ class CodeChunks {
     // property to its index in entity.properties.
     final fieldIndexes = <String, int>{};
     final fieldReaders =
-    entity.properties.mapIndexed((int index, ModelProperty p) {
+        entity.properties.mapIndexed((int index, ModelProperty p) {
       fieldIndexes[propertyFieldName(p)] = index;
 
       String? fbReader;
       var readFieldOrNull = () =>
-      'const $fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(
-          p)})';
+          'const $fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
       var readFieldNonNull = ([String? defaultValue]) =>
-      'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(
-          p)}, ${defaultValue ?? fieldDefaultValue(p)})';
+          'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
       var readField =
           () => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
       final valueVar = '${propertyFieldName(p)}Value';
@@ -347,8 +336,7 @@ class CodeChunks {
             fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
             if (p.fieldIsNullable) {
               preLines.add('final $valueVar = ${readFieldOrNull()};');
-              return '$valueVar == null ? null : ${p
-                  .fieldType}.fromList($valueVar)';
+              return '$valueVar == null ? null : ${p.fieldType}.fromList($valueVar)';
             } else {
               return '${p.fieldType}.fromList(${readFieldNonNull('[]')})';
             }
@@ -375,16 +363,13 @@ class CodeChunks {
           }
         } else {
           if (p.type == OBXPropertyType.Date) {
-            return "DateTime.fromMillisecondsSinceEpoch(${readFieldNonNull(
-                '0')})";
+            return "DateTime.fromMillisecondsSinceEpoch(${readFieldNonNull('0')})";
           } else if (p.type == OBXPropertyType.DateNano) {
-            return "DateTime.fromMicrosecondsSinceEpoch((${readFieldNonNull(
-                '0')} / 1000).round())";
+            return "DateTime.fromMicrosecondsSinceEpoch((${readFieldNonNull('0')} / 1000).round())";
           }
         }
         throw InvalidGenerationSourceError(
-            'Invalid property data type ${p.type} for a DateTime field ${entity
-                .name}.${p.name}');
+            'Invalid property data type ${p.type} for a DateTime field ${entity.name}.${p.name}');
       }
       return readField();
     }).toList(growable: false);
@@ -398,30 +383,32 @@ class CodeChunks {
       final paramDartType = declarationParts[2];
 
       final index = fieldIndexes[paramName];
-      if (index == null) {
+      late String paramValueCode;
+      if (index != null) {
+        paramValueCode = fieldReaders[index];
+        if (entity.properties[index].isRelation) {
+          if (paramDartType.startsWith('ToOne<')) {
+            paramValueCode = 'ToOne(targetId: $paramValueCode)';
+          } else if (paramType == 'optional-named') {
+            log.info('Skipping constructor parameter $paramName on '
+                "'${entity.name}': the matching field is a relation but the type "
+                "isn't - don't know how to initialize this parameter.");
+            return true;
+          }
+        }
+      } else if (paramDartType.startsWith('ToMany<')) {
+        paramValueCode = 'ToMany()';
+      } else {
         // If we can't find a positional param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
-          log.warning("Cannot use the default constructor of '${entity.name}': "
+          throw InvalidGenerationSourceError(
+              "Cannot use the default constructor of '${entity.name}': "
               "don't know how to initialize param $paramName - no such property.");
-          constructorLines.clear();
-          return false;
         } else if (paramType == 'optional') {
           // OK, close the constructor, the rest will be initialized separately.
           return false;
         }
         return true; // continue to the next param
-      }
-
-      var paramValueCode = fieldReaders[index];
-      if (entity.properties[index].isRelation) {
-        if (paramDartType.startsWith('ToOne<')) {
-          paramValueCode = 'ToOne(targetId: ${paramValueCode})';
-        } else if (paramType == 'optional-named') {
-          log.info("Skipping constructor parameter $paramName on "
-              "'${entity.name}': the matching field is a relation but the type "
-              "isn't - don't know how to initialize this parameter.");
-          return true;
-        }
       }
 
       switch (paramType) {
@@ -431,15 +418,16 @@ class CodeChunks {
           break;
         case 'required-named':
         case 'optional-named':
-          constructorLines.add('$paramName: ${paramValueCode}');
+          constructorLines.add('$paramName: $paramValueCode');
           break;
         default:
           throw InvalidGenerationSourceError(
               'Invalid constructor parameter type - internal error');
       }
 
-      // Good, we don't need to set this field anymore
-      fieldReaders[index] = ''; // don't remove - that would mess up indexes
+      // Good, we don't need to set this field anymore.
+      // Don't remove - that would mess up indexes.
+      if (index != null) fieldReaders[index] = '';
 
       return true;
     });
@@ -457,28 +445,23 @@ class CodeChunks {
       if (!p.isRelation) return;
       if (fieldReaders[index].isNotEmpty) {
         postLines.add(
-            'object.${propertyFieldName(
-                p)}.targetId = ${fieldReaders[index]};');
+            'object.${propertyFieldName(p)}.targetId = ${fieldReaders[index]};');
       }
       postLines.add('object.${propertyFieldName(p)}.attach(store);');
     });
 
     postLines.addAll(entity.relations.map((ModelRelation rel) =>
-    'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(
-        entity, rel)}, store.box<${entity.name}>());'));
+        'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());'));
 
     postLines.addAll(entity.backlinks.map((ModelBacklink bl) {
-      return 'InternalToManyAccess.setRelInfo(object.${bl
-          .name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity
-          .name}>());';
+      return 'InternalToManyAccess.setRelInfo(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity.name}>());';
     }));
 
     return '''(Store store, ByteData fbData) {
       final buffer = fb.BufferContext(fbData);
       final rootOffset = buffer.derefObject(0);
       ${preLines.join('\n')}
-      final object = ${entity.name}(${constructorLines.join(
-        ', \n')})${cascadeLines.join('\n')};
+      final object = ${entity.name}(${constructorLines.join(', \n')})${cascadeLines.join('\n')};
       ${postLines.join('\n')}
       return object;
     }''';
@@ -486,22 +469,21 @@ class CodeChunks {
 
   static String toOneRelations(ModelEntity entity) =>
       '[' +
-          entity.properties
-              .where((ModelProperty prop) => prop.isRelation)
-              .map((ModelProperty prop) => 'object.${propertyFieldName(prop)}')
-              .join(',') +
-          ']';
+      entity.properties
+          .where((ModelProperty prop) => prop.isRelation)
+          .map((ModelProperty prop) => 'object.${propertyFieldName(prop)}')
+          .join(',') +
+      ']';
 
   static String relInfo(ModelEntity entity, ModelRelation rel) =>
-      'RelInfo<${entity.name}>.toMany(${rel.id
-          .id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
+      'RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
 
   static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
     final srcEntity = entity.model.findEntityByName(bl.srcEntity);
     if (srcEntity == null) {
       throw InvalidGenerationSourceError(
           'Invalid relation backlink ${entity.name}.${bl.name} '
-              '- source entity ${bl.srcEntity} not found.');
+          '- source entity ${bl.srcEntity} not found.');
     }
 
     // either of these will be set, based on the source field that matches
@@ -512,13 +494,13 @@ class CodeChunks {
       final matchingProps = srcEntity.properties
           .where((p) => p.isRelation && p.relationTarget == entity.name);
       final matchingRels =
-      srcEntity.relations.where((r) => r.targetId == entity.id);
+          srcEntity.relations.where((r) => r.targetId == entity.id);
       final candidatesCount = matchingProps.length + matchingRels.length;
       if (candidatesCount > 1) {
         throw InvalidGenerationSourceError(
             'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
-                ' Matching property: $matchingProps.'
-                ' Matching standalone relations: $matchingRels.');
+            ' Matching property: $matchingProps.'
+            ' Matching standalone relations: $matchingRels.');
       } else if (matchingProps.isNotEmpty) {
         srcProp = matchingProps.first;
       } else if (matchingRels.isNotEmpty) {
@@ -534,14 +516,11 @@ class CodeChunks {
 
     if (srcRel != null) {
       return 'RelInfo<${srcEntity.name}>.toManyBacklink('
-          '${srcRel.id.id}, object.${propertyFieldAccess(
-          entity.idProperty, '!')})';
+          '${srcRel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
     } else if (srcProp != null) {
       return 'RelInfo<${srcEntity.name}>.toOneBacklink('
-          '${srcProp.id.id}, object.${propertyFieldAccess(
-          entity.idProperty, '!')}, '
-          '(${srcEntity.name} srcObject) => srcObject.${propertyFieldName(
-          srcProp)})';
+          '${srcProp.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')}, '
+          '(${srcEntity.name} srcObject) => srcObject.${propertyFieldName(srcProp)})';
     } else {
       throw InvalidGenerationSourceError(
           'Unknown relation backlink source for ${entity.name}.${bl.name}');
@@ -551,10 +530,9 @@ class CodeChunks {
   static String toManyRelations(ModelEntity entity) {
     final definitions = <String>[];
     definitions.addAll(entity.relations.map(
-            (ModelRelation rel) => '${relInfo(entity, rel)}: object.${rel
-            .name}'));
+        (ModelRelation rel) => '${relInfo(entity, rel)}: object.${rel.name}'));
     definitions.addAll(entity.backlinks.map((ModelBacklink bl) =>
-    '${backlinkRelInfo(entity, bl)}: object.${bl.name}'));
+        '${backlinkRelInfo(entity, bl)}: object.${bl.name}'));
     return '{${definitions.join(',')}}';
   }
 
@@ -605,7 +583,7 @@ class CodeChunks {
         static final ${propertyFieldName(prop)} = ''';
       if (prop.isRelation) {
         propCode +=
-        'QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
+            'QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
       } else {
         propCode += 'Query${fieldType}Property<${entity.name}>';
       }

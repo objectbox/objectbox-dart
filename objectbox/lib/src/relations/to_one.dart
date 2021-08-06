@@ -56,7 +56,11 @@ class ToOne<EntityT> {
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
-  /// Create a ToOne relationship. Normally, you don't assign the target yet.
+  /// Create a ToOne relationship.
+  ///
+  /// Normally, you don't assign the target in the constructor but rather use
+  /// the `.target` setter. The option to assign in the constructor is useful
+  /// to initialize objects from an external source, e.g. from JSON.
   ToOne({EntityT? target, int? targetId}) {
     if (targetId != null) {
       if (target != null) {
