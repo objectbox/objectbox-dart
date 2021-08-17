@@ -491,9 +491,38 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "10:8814538095619551454",
+      "lastPropertyId": "4:1497692645133575154",
+      "name": "ThrowingInConverters",
+      "properties": [
+        {
+          "id": "1:4741681947876978320",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4138824249670147679",
+          "name": "throwOnGet",
+          "type": 1
+        },
+        {
+          "id": "3:7057161000152955585",
+          "name": "throwOnPut",
+          "type": 1
+        },
+        {
+          "id": "4:1497692645133575154",
+          "name": "value",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "9:5417142555323669520",
+  "lastEntityId": "10:8814538095619551454",
   "lastIndexId": "19:3009172190024929732",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",

@@ -738,12 +738,18 @@ class Query<T> {
   /// results. Note: [offset] and [limit] are respected, if set.
   T? findFirst() {
     T? result;
+    Object? error;
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
-      result = _entity.objectFromFB(
-          _store, InternalStoreAccess.reader(_store).access(data, size));
+      try {
+        result = _entity.objectFromFB(
+            _store, InternalStoreAccess.reader(_store).access(data, size));
+      } catch (e) {
+        error = e;
+      }
       return false; // we only want to visit the first element
     });
     checkObx(C.query_visit(_ptr, visitor, nullptr));
+    if (error != null) throw error!;
     reachabilityFence(this);
     return result;
   }
@@ -756,17 +762,22 @@ class Query<T> {
   /// higher than one, otherwise the check for non-unique result won't work.
   T? findUnique() {
     T? result;
-    Exception? error;
+    Object? error;
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
       if (result == null) {
-        result = _entity.objectFromFB(
-            _store, InternalStoreAccess.reader(_store).access(data, size));
+        try {
+          result = _entity.objectFromFB(
+              _store, InternalStoreAccess.reader(_store).access(data, size));
+          return true;
+        } catch (e) {
+          error = e;
+          return false;
+        }
       } else {
         error = UniqueViolationException(
             'Query findUnique() matched more than one object');
         return false;
       }
-      return true;
     });
     checkObx(C.query_visit(_ptr, visitor, nullptr));
     reachabilityFence(this);
@@ -790,8 +801,10 @@ class Query<T> {
   /// Finds Objects matching the query.
   List<T> find() {
     final result = <T>[];
-    final collector = objectCollector(result, _store, _entity);
+    final errorWrapper = ObjectCollectorError();
+    final collector = objectCollector(result, _store, _entity, errorWrapper);
     checkObx(C.query_visit(_ptr, collector, nullptr));
+    errorWrapper.throwIfError();
     reachabilityFence(this);
     return result;
   }
