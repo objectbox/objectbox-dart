@@ -490,6 +490,12 @@ class CodeChunks {
     ModelRelation? srcRel;
     ModelProperty? srcProp;
 
+    final throwAmbiguousError = (String prop, String rel) =>
+        throw InvalidGenerationSourceError(
+            'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
+            ' Matching property: $prop.'
+            ' Matching standalone relation: $rel.');
+
     if (bl.srcField.isEmpty) {
       final matchingProps = srcEntity.properties
           .where((p) => p.isRelation && p.relationTarget == entity.name);
@@ -497,20 +503,19 @@ class CodeChunks {
           srcEntity.relations.where((r) => r.targetId == entity.id);
       final candidatesCount = matchingProps.length + matchingRels.length;
       if (candidatesCount > 1) {
-        throw InvalidGenerationSourceError(
-            'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
-            ' Matching property: $matchingProps.'
-            ' Matching standalone relations: $matchingRels.');
+        throwAmbiguousError(matchingProps.toString(), matchingRels.toString());
       } else if (matchingProps.isNotEmpty) {
         srcProp = matchingProps.first;
       } else if (matchingRels.isNotEmpty) {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity.findPropertyByName(bl.srcField);
-      if (srcProp == null) {
-        srcRel =
-            srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
+      srcProp = srcEntity.findPropertyByName(bl.srcField + 'Id');
+      srcRel =
+          srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
+
+      if (srcProp != null && srcRel != null) {
+        throwAmbiguousError(srcProp.toString(), srcRel.toString());
       }
     }
 

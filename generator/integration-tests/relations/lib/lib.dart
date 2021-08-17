@@ -7,6 +7,10 @@ class A {
 
   String text;
   final bs = ToMany<B>();
+
+  @Backlink('a2')
+  final d2s = ToMany<D>();
+
   A(this.text);
 }
 
@@ -29,4 +33,17 @@ class C {
 
   String text;
   C(this.text);
+}
+
+@Entity()
+class D {
+  int id = 0;
+
+  String text;
+
+  final a1 = ToOne<A>();
+
+  final a2 = ToOne<A>();
+
+  D(this.text);
 }
