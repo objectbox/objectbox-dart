@@ -374,36 +374,36 @@ class CodeChunks {
       return readField();
     }).toList(growable: false);
 
-    // add initializers for relations
-    entity.properties.forEachIndexed((int index, ModelProperty p) {
-      if (p.isRelation) {
-        postLines.add(
-            'object.${propertyFieldName(p)}.targetId = ${fieldReaders[index]};'
-            '\n object.${propertyFieldName(p)}.attach(store);');
-      }
-    });
-
-    postLines.addAll(entity.relations.map((ModelRelation rel) =>
-        'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());'));
-
-    postLines.addAll(entity.backlinks.map((ModelBacklink bl) {
-      return 'InternalToManyAccess.setRelInfo(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity.name}>());';
-    }));
-
     // try to initialize as much as possible using the constructor
     entity.constructorParams.forEachWhile((String declaration) {
       // See [EntityResolver.constructorParams()] for the format.
-      final paramName = declaration.split(' ')[0];
-      final paramType = declaration.split(' ')[1];
+      final declarationParts = declaration.split(' ');
+      final paramName = declarationParts[0];
+      final paramType = declarationParts[1];
+      final paramDartType = declarationParts[2];
 
       final index = fieldIndexes[paramName];
-      if (index == null) {
+      late String paramValueCode;
+      if (index != null) {
+        paramValueCode = fieldReaders[index];
+        if (entity.properties[index].isRelation) {
+          if (paramDartType.startsWith('ToOne<')) {
+            paramValueCode = 'ToOne(targetId: $paramValueCode)';
+          } else if (paramType == 'optional-named') {
+            log.info('Skipping constructor parameter $paramName on '
+                "'${entity.name}': the matching field is a relation but the type "
+                "isn't - don't know how to initialize this parameter.");
+            return true;
+          }
+        }
+      } else if (paramDartType.startsWith('ToMany<')) {
+        paramValueCode = 'ToMany()';
+      } else {
         // If we can't find a positional param, we can't use the constructor at all.
-        if (paramType == 'positional') {
-          log.warning("Cannot use the default constructor of '${entity.name}': "
+        if (paramType == 'positional' || paramType == 'required-named') {
+          throw InvalidGenerationSourceError(
+              "Cannot use the default constructor of '${entity.name}': "
               "don't know how to initialize param $paramName - no such property.");
-          constructorLines.clear();
-          return false;
         } else if (paramType == 'optional') {
           // OK, close the constructor, the rest will be initialized separately.
           return false;
@@ -414,18 +414,20 @@ class CodeChunks {
       switch (paramType) {
         case 'positional':
         case 'optional':
-          constructorLines.add(fieldReaders[index]);
+          constructorLines.add(paramValueCode);
           break;
-        case 'named':
-          constructorLines.add('$paramName: ${fieldReaders[index]}');
+        case 'required-named':
+        case 'optional-named':
+          constructorLines.add('$paramName: $paramValueCode');
           break;
         default:
           throw InvalidGenerationSourceError(
               'Invalid constructor parameter type - internal error');
       }
 
-      // Good, we don't need to set this field anymore
-      fieldReaders[index] = ''; // don't remove - that would mess up indexes
+      // Good, we don't need to set this field anymore.
+      // Don't remove - that would mess up indexes.
+      if (index != null) fieldReaders[index] = '';
 
       return true;
     });
@@ -437,6 +439,23 @@ class CodeChunks {
             .add('..${propertyFieldName(entity.properties[index])} = $code');
       }
     });
+
+    // add initializers for relations
+    entity.properties.forEachIndexed((int index, ModelProperty p) {
+      if (!p.isRelation) return;
+      if (fieldReaders[index].isNotEmpty) {
+        postLines.add(
+            'object.${propertyFieldName(p)}.targetId = ${fieldReaders[index]};');
+      }
+      postLines.add('object.${propertyFieldName(p)}.attach(store);');
+    });
+
+    postLines.addAll(entity.relations.map((ModelRelation rel) =>
+        'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());'));
+
+    postLines.addAll(entity.backlinks.map((ModelBacklink bl) {
+      return 'InternalToManyAccess.setRelInfo(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity.name}>());';
+    }));
 
     return '''(Store store, ByteData fbData) {
       final buffer = fb.BufferContext(fbData);

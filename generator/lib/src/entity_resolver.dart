@@ -420,7 +420,10 @@ class EntityResolver extends Builder {
       var info = param.name;
       if (param.isRequiredPositional) info += ' positional';
       if (param.isOptionalPositional) info += ' optional';
-      if (param.isNamed) info += ' named';
+      if (param.isRequiredNamed)
+        info += ' required-named';
+      else if (param.isNamed) info += ' optional-named';
+      info += ' ${param.type}';
       return info;
     }).toList(growable: false);
   }

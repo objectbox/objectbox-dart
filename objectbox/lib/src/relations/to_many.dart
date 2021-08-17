@@ -61,6 +61,20 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   final _counts = <EntityT, int>{};
   final _addedBeforeLoad = <EntityT>[];
 
+  /// Create a ToMany relationship.
+  ///
+  /// Normally, you don't assign items in the constructor but rather use this
+  /// class as a lazy-loaded/saved list. The option to assign in the constructor
+  /// is useful to initialize objects from an external source, e.g. from JSON.
+  /// Setting the items in the constructor bypasses the lazy loading, ignoring
+  /// any relations that are currently stored in the DB for the source object.
+  ToMany({List<EntityT>? items}) {
+    if (items != null) {
+      __items = items;
+      items.forEach(_track);
+    }
+  }
+
   @override
   int get length => _items.length;
 
@@ -105,10 +119,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
   @override
   void addAll(Iterable<EntityT> iterable) {
-    iterable.forEach((element) {
-      ArgumentError.checkNotNull(element, 'iterable element');
-      _track(element, 1);
-    });
+    iterable.forEach(_track);
     if (__items == null) {
       // We don't need to load old data from DB to add new items.
       _addedBeforeLoad.addAll(iterable);
@@ -127,7 +138,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
 
   /// "add":    increment = 1
   /// "remove": increment = -1
-  void _track(EntityT object, int increment) {
+  void _track(EntityT object, [int increment = 1]) {
     if (_counts.containsKey(object)) {
       _counts[object] = _counts[object]! + increment;
     } else {

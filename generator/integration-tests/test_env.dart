@@ -7,13 +7,12 @@ export 'package:objectbox/internal.dart';
 class TestEnv<Entity> {
   static final dir = Directory('testdata');
   late final Store store;
-  late final Box<Entity> box;
+  late final Box<Entity> box = store.box();
 
   TestEnv(ModelDefinition defs) {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
 
     store = Store(defs, directory: dir.path);
-    box = Box<Entity>(store);
   }
 
   void close() {

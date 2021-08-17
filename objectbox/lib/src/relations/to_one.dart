@@ -56,6 +56,25 @@ class ToOne<EntityT> {
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
+  /// Create a ToOne relationship.
+  ///
+  /// Normally, you don't assign the target in the constructor but rather use
+  /// the `.target` setter. The option to assign in the constructor is useful
+  /// to initialize objects from an external source, e.g. from JSON.
+  ToOne({EntityT? target, int? targetId}) {
+    if (targetId != null) {
+      if (target != null) {
+        // May be a user error... and we can't check if (target.id == targetId).
+        throw ArgumentError(
+            'Provide at most one specification of a ToOne relation target: '
+            'either [target] or [targetId] argument');
+      }
+      this.targetId = targetId;
+    } else if (target != null) {
+      this.target = target;
+    }
+  }
+
   /// Get target object. If it's the first access, this reads from DB.
   EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
