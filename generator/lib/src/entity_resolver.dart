@@ -6,8 +6,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -417,14 +417,13 @@ class EntityResolver extends Builder {
   List<String> constructorParams(ConstructorElement? constructor) {
     if (constructor == null) return List.empty();
     return constructor.parameters.map((param) {
-      var info = param.name;
-      if (param.isRequiredPositional) info += ' positional';
-      if (param.isOptionalPositional) info += ' optional';
-      if (param.isRequiredNamed)
-        info += ' required-named';
-      else if (param.isNamed) info += ' optional-named';
-      info += ' ${param.type}';
-      return info;
+      var info = StringBuffer(param.name);
+      if (param.isRequiredPositional) info.write(' positional');
+      if (param.isOptionalPositional) info.write(' optional');
+      if (param.isRequiredNamed) info.write(' required-named');
+      if (param.isOptionalNamed) info.write(' optional-named');
+      info.writeAll([' ', param.type]);
+      return info.toString();
     }).toList(growable: false);
   }
 
