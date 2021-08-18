@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   objectbox: 1.1.1
-  analyzer: ^1.1.0
+  analyzer: '>=1.1.0 <3.0.0'
   build: ^2.0.0
   collection: ^1.15.0
   dart_style: ^2.0.0
