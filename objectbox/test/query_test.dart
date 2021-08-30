@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
+import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
@@ -868,5 +869,19 @@ void main() {
           '| Link RelatedEntityB via relBId with conditions: tString == "bar"',
           '| Link RelatedEntityA via standalone Relation 1 (from entity 1 to 4) with conditions: tInt == 11',
         ].join('\n'));
+  });
+
+  test('throwing in converters', () {
+    late Box<ThrowingInConverters> box = env.store.box();
+
+    box.put(ThrowingInConverters(throwOnGet: true));
+    box.put(ThrowingInConverters());
+
+    final query = box.query().build();
+    expect(query.count(), 2);
+    expect(query.findIds().length, 2);
+
+    expect(query.findFirst, ThrowingInConverters.throwsIn('Setter'));
+    expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
 }

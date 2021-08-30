@@ -34,9 +34,25 @@ Pointer<NativeFunction<obx_data_visitor>> dataVisitor(
 
 @pragma('vm:prefer-inline')
 Pointer<NativeFunction<obx_data_visitor>> objectCollector<T>(
-        List<T> list, Store store, EntityDefinition<T> entity) =>
+        List<T> list,
+        Store store,
+        EntityDefinition<T> entity,
+        ObjectCollectorError outError) =>
     dataVisitor((Pointer<Uint8> data, int size) {
-      list.add(entity.objectFromFB(
-          store, InternalStoreAccess.reader(store).access(data, size)));
-      return true;
+      try {
+        list.add(entity.objectFromFB(
+            store, InternalStoreAccess.reader(store).access(data, size)));
+        return true;
+      } catch (e) {
+        outError.error = e;
+        return false;
+      }
     });
+
+class ObjectCollectorError {
+  Object? error;
+
+  void throwIfError() {
+    if (error != null) throw error!;
+  }
+}

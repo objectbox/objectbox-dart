@@ -1,4 +1,5 @@
 import 'package:objectbox/objectbox.dart';
+import 'package:test/test.dart';
 
 // Testing a model for entities in multiple files is generated properly
 @Entity()
@@ -34,4 +35,25 @@ class TreeNode {
   final children = ToMany<TreeNode>();
 
   TreeNode(this.path);
+}
+
+/// Test how DB operations behave if property converters throw.
+@Entity()
+class ThrowingInConverters {
+  int id = 0;
+
+  final bool throwOnGet;
+  final bool throwOnPut;
+
+  ThrowingInConverters({this.throwOnGet = false, this.throwOnPut = false});
+
+  int get value =>
+      throwOnPut ? throw Exception('Getter invoked, e.g. box.put()') : 1;
+
+  set value(int val) {
+    if (throwOnGet) throw Exception('Setter invoked, e.g. box.get())');
+  }
+
+  static Matcher throwsIn(String op) =>
+      throwsA(predicate((Exception e) => e.toString().contains('$op invoked')));
 }

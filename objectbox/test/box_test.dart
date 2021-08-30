@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:test/test.dart';
+
 import 'entity.dart';
 import 'entity2.dart';
 import 'test_env.dart';
@@ -631,4 +632,27 @@ void main() {
             box.get(1);
             box2.get(1);
           }));
+
+  test('throwing in converters', () {
+    late Box<ThrowingInConverters> box = store.box();
+
+    box.put(ThrowingInConverters());
+    box.put(ThrowingInConverters(throwOnGet: true));
+    expect(() => box.put(ThrowingInConverters(throwOnPut: true)),
+        ThrowingInConverters.throwsIn('Getter'));
+
+    expect(
+        () => box.putMany([
+              ThrowingInConverters(),
+              ThrowingInConverters(),
+              ThrowingInConverters(throwOnPut: true)
+            ]),
+        ThrowingInConverters.throwsIn('Getter'));
+
+    expect(box.count(), 2);
+
+    box.get(1);
+    expect(() => box.get(2), ThrowingInConverters.throwsIn('Setter'));
+    expect(() => box.getAll(), ThrowingInConverters.throwsIn('Setter'));
+  });
 }
