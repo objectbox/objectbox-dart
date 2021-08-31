@@ -1,7 +1,12 @@
 ## latest
 
 * Add `Query.findUnique()` to find a single object matching the query.
+* Add support for relations when using 3rd-party JSON serialization libraries.
 * Fix generator when mixing backlinks and "standard" relations in the same entity (generated code had a syntax error).
+* Fix `@Backlink()` annotation when specifying a `ToOne` relation by field name.
+* Fix `Query.find*()` exception forwarding when a user-provided property converter throws. 
+* Increase supported `analyzer` dependency version to include v2.x major version.
+* Update FlatBuffer dependency to the latest upstream version.
 
 ## 1.1.1 (2021-07-09)
 
