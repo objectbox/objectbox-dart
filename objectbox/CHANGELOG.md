@@ -1,4 +1,4 @@
-## latest
+## 1.2.0 (2021-08-31)
 
 * Add `Query.findUnique()` to find a single object matching the query.
 * Add support for relations when using 3rd-party JSON serialization libraries.

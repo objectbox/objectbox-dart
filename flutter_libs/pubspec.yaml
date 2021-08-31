@@ -1,5 +1,5 @@
 name: objectbox_flutter_libs
-version: 1.1.1
+version: 1.2.0
 repository: https://github.com/objectbox/objectbox-dart
 homepage: https://objectbox.io
 description: ObjectBox is a super-fast NoSQL ACID compliant object database. This package contains flutter runtime libraries for ObjectBox.
@@ -11,7 +11,7 @@ environment:
 dependencies:
   # This is here just to ensure compatibility between objectbox-dart code and the libraries used
   # You should still depend on objectbox directly in your Flutter application.
-  objectbox: 1.1.1
+  objectbox: 1.2.0
   path_provider: ^2.0.0
 
 flutter:
