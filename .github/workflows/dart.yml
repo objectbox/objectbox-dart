@@ -55,16 +55,13 @@ jobs:
 
   valgrind:
     runs-on: ubuntu-20.04
-    container:
-      image: google/dart:latest
     steps:
+      - uses: dart-lang/setup-dart@v1
       - uses: actions/checkout@v1
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Install Valgrind
-        run: |
-          apt update
-          apt install -y valgrind
+        run: ./tool/apt-install.sh valgrind
       - name: Test
         working-directory: objectbox
         # let tests know we want a faster/shorter version, if available (to prevent timeouts in CI)
@@ -93,8 +90,8 @@ jobs:
           channel: ${{ matrix.channel }}
       - run: echo $PATH
       - run: flutter --version
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: sudo apt-get install ninja-build pkg-config libgtk-3-dev
       - uses: actions/checkout@v2
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: ./tool/apt-install.sh ninja-build pkg-config libgtk-3-dev
       - run: make integration-test
         working-directory: objectbox

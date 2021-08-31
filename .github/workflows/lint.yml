@@ -42,7 +42,7 @@ jobs:
       - name: Generage test coverage
         working-directory: objectbox
         run: |
-          sudo apt-get install lcov
+          ../tool/apt-install.sh lcov
           make depend
           make coverage
       - uses: devmasx/coverage-check-action@v1.2.0
