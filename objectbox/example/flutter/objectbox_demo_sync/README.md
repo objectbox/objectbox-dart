@@ -1,6 +1,6 @@
 # objectbox_demo
 
-## Getting Started
+## Getting Started with ObjectBox Sync
 
 This project contains the Flutter version of the main example from the [objectbox-examples](https://github.com/objectbox/objectbox-examples) repository.
 
