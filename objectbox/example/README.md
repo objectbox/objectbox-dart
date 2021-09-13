@@ -37,9 +37,14 @@ class Note {
 }
 ```
 
-To generate ObjectBox binding code for your entities, run `pub run build_runner build`.
-ObjectBox generator will look for all `@Entity` annotations in your `lib` folder and create a single database definition
-`lib/objectbox-model.json` and supporting code in `lib/objectbox.g.dart`.
+To generate ObjectBox binding code for your entities run
+- for Flutter apps `flutter pub run build_runner build` or
+- for Dart CLI apps `dart run build_runner build`.
+
+ObjectBox generator will look for all `@Entity` annotations in your `lib` folder and create
+- a single database definition `lib/objectbox-model.json` and
+- supporting code in `lib/objectbox.g.dart`.
+
 You should commit `objectbox-model.json` into your source control (e.g. git) and add `objectbox.g.dart` to the ignore
 list (e.g. .gitignore), otherwise the build_runner will complain about it being changed each time you pull a change.
 
