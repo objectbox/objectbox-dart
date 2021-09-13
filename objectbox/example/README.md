@@ -23,6 +23,7 @@ class Note {
 
   String? text;
 
+  @Property(type: PropertyType.date) // Store as int in milliseconds
   DateTime date;
 
   @Transient() // Make this field ignored, not stored in the database.
