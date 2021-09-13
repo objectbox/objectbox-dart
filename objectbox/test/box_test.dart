@@ -590,6 +590,9 @@ void main() {
     final object = TestEntity();
     object.tDate = DateTime.now();
     object.tDateNano = DateTime.now();
+    final objectUtc = TestEntity();
+    objectUtc.tDate = object.tDate!.toUtc();
+    objectUtc.tDateNano = object.tDateNano!.toUtc();
 
     {
       // first, test some assumptions the code generator makes
@@ -602,16 +605,21 @@ void main() {
       expect(object.tDateNano!.difference(time2).inMicroseconds, equals(0));
     }
 
-    box.putMany([object, TestEntity()]);
+    box.putMany([object, objectUtc, TestEntity()]);
     final items = box.getAll();
 
     // DateTime has microsecond precision in dart but is stored in ObjectBox
     // with millisecond precision so allow a sub-millisecond difference.
     expect(items[0].tDate!.difference(object.tDate!).inMilliseconds, 0);
+    expect(items[1].tDate!.difference(object.tDate!).inMilliseconds, 0);
+    // DateTime is always restored with local time zone in ObjectBox.
+    expect(items[0].tDate!.isUtc, false);
+    expect(items[1].tDate!.isUtc, false);
 
     expect(items[0].tDateNano, object.tDateNano);
-    expect(items[1].tDate, isNull);
-    expect(items[1].tDateNano, isNull);
+    expect(items[1].tDateNano, object.tDateNano);
+    expect(items[2].tDate, isNull);
+    expect(items[2].tDateNano, isNull);
   });
 
   test('large-data', () {
