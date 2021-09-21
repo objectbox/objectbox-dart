@@ -222,6 +222,7 @@ void main() {
 
     test('put', () {
       expect(src!.relManyA, isNotNull);
+      // Add three
       src!.relManyA.add(RelatedEntityA(tInt: 1));
       src!.relManyA.addAll(
           [RelatedEntityA(tInt: 2), src!.relManyA[0], RelatedEntityA(tInt: 3)]);
@@ -230,6 +231,7 @@ void main() {
       src = env.box.get(1);
       check(src!.relManyA, items: [1, 2, 3], added: [], removed: []);
 
+      // Remove one
       src!.relManyA.removeWhere((e) => e.tInt == 2);
       check(src!.relManyA, items: [1, 3], added: [], removed: [2]);
       env.box.put(src!);
@@ -237,6 +239,7 @@ void main() {
       src = env.box.get(1);
       check(src!.relManyA, items: [1, 3], added: [], removed: []);
 
+      // Add existing again, add new one
       src!.relManyA.add(src!.relManyA[0]);
       src!.relManyA.add(RelatedEntityA(tInt: 4));
       check(src!.relManyA, items: [1, 1, 3, 4], added: [1, 4], removed: []);
@@ -244,6 +247,13 @@ void main() {
 
       src = env.box.get(1);
       check(src!.relManyA, items: [1, 3, 4], added: [], removed: []);
+
+      // Remove one, add one
+      src!.relManyA.removeWhere((element) => element.tInt == 3);
+      src!.relManyA.add(RelatedEntityA(tInt: 5));
+      env.box.put(src!);
+      src = env.box.get(1);
+      check(src!.relManyA, items: [1, 4, 5], added: [], removed: []);
     });
 
     // note: this requires box.attach() in Java/Kotlin, should not here.
