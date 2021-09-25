@@ -2,7 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:objectbox/src/native/bindings/nativemem.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 
 // Results (Dart SDK 2.12):

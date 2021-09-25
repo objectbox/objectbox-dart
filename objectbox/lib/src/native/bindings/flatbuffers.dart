@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 
 import '../../../flatbuffers/flat_buffers.dart' as fb;
-import 'nativemem.dart';
+import 'bindings.dart';
 
 // ignore_for_file: public_member_api_docs
 

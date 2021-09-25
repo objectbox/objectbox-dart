@@ -5,8 +5,8 @@ import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
 // Note: upstream flatbuffers currently doesn't have a null-safe version
 // import 'package:flat_buffers/flat_buffers.dart' as fb_upstream;
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/flatbuffers.dart';
-import 'package:objectbox/src/native/bindings/nativemem.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -29,6 +29,8 @@ Uint8List addFbData(fb.Builder fbb) {
 // }
 
 void main() {
+  loadObjectBoxLib(); // for memset/memcpy
+
   test('custom flatbuffers builder', () {
     [1024, 1].forEach((initialSize) {
       printOnFailure('initialSize=$initialSize');
