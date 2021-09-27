@@ -23,6 +23,11 @@ class ObjectBox {
     final qBuilder = noteBox.query()
       ..order(Note_.date, flags: Order.descending);
     queryStream = qBuilder.watch(triggerImmediately: true);
+
+    // Add some demo data if the box is empty.
+    if (noteBox.isEmpty()) {
+      _putDemoData();
+    }
   }
 
   /// Returns the open Store for this app or throws.
@@ -33,5 +38,14 @@ class ObjectBox {
     } else {
       throw Exception('Store was not initialized on app launch');
     }
+  }
+
+  void _putDemoData() {
+    final demoNotes = [
+      Note('Quickly add a note by writing text and pressing Enter'),
+      Note('Delete notes by tapping on one'),
+      Note('Write a demo app for ObjectBox')
+    ];
+    noteBox.putMany(demoNotes);
   }
 }
