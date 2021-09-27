@@ -59,27 +59,54 @@ Creating a store
 
 ### Flutter apps
 
+For example, open the `Store` in a small helper class like this:
+
 ```dart
 import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 
-class _MyHomePageState extends State<MyHomePage> {
+class ObjectBox {
   Store? _store;
 
-  @override
-  void initState() {
-    super.initState();
-
+  /// Initialize the store.
+  Future<void> init() async {
     // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
-    openStore().then((Store store) {
-      _store = store;
-    });
+    final store = await openStore();
+    _store = store;
+  }
+
+  /// Returns the open Store for this app or throws.
+  Store get store {
+    final store = _store;
+    if (store != null) {
+      return store;
+    } else {
+      throw Exception('Store was not initialized on app launch');
+    }
   }
 }
 ```
 
-See [Flutter: read & write files](https://flutter.dev/docs/cookbook/persistence/reading-writing-files) for more info.
-If you didn't specify this path to ObjectBox, it would try to use a default directory "objectbox" in the current working
-directory, but it doesn't have permissions to write there: `failed to create store: 10199 Dir does not exist: objectbox (30)`.
+The best time to initialize ObjectBox is when your app starts. 
+We suggest to do it in your app's `main()` function:
+
+```dart
+/// Provides access to the ObjectBox Store throughout the app.
+late ObjectBox objectbox;
+
+Future<void> main() async {
+  // This is required so ObjectBox can get the application directory
+  // to store the database in.
+  WidgetsFlutterBinding.ensureInitialized();
+
+  objectbox = ObjectBox();
+  await objectbox.init();
+
+  runApp(MyApp());
+}
+```
+
+Here the `Store` remains open throughout the lifetime of the app, 
+this is typically fine and recommended for most use cases.
 
 ### Dart CLI apps
 
