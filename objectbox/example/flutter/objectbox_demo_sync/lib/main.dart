@@ -15,8 +15,7 @@ Future<void> main() async {
   // to store the database in.
   WidgetsFlutterBinding.ensureInitialized();
 
-  objectbox = ObjectBox();
-  await objectbox.init();
+  objectbox = await ObjectBox.create();
 
   runApp(MyApp());
 }

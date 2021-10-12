@@ -7,9 +7,10 @@ import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 
 /// Provides access to the ObjectBox Store throughout the app.
 ///
-/// Initialized in the apps main function.
+/// Create this in the apps main function.
 class ObjectBox {
-  Store? _store;
+  /// The Store of this app.
+  late final Store store;
 
   /// A Box of notes.
   late final Box<Note> noteBox;
@@ -17,14 +18,7 @@ class ObjectBox {
   /// A stream of all notes ordered by date.
   late final Stream<Query<Note>> queryStream;
 
-  /// Initialize the store.
-  Future<void> init() async {
-    final store = Store(getObjectBoxModel(),
-        directory: (await defaultStoreDirectory()).path + '-sync',
-        macosApplicationGroup: 'objectbox.demo' // replace with a real name
-        );
-    _store = store;
-
+  ObjectBox._create(this.store) {
     noteBox = Box<Note>(store);
     final qBuilder = noteBox.query()
       ..order(Note_.date, flags: Order.descending);
@@ -40,13 +34,12 @@ class ObjectBox {
     syncClient.start();
   }
 
-  /// Returns the open Store for this app or throws.
-  Store get store {
-    final store = _store;
-    if (store != null) {
-      return store;
-    } else {
-      throw Exception('Store was not initialized on app launch');
-    }
+  /// Create an instance of ObjectBox to use throughout the app.
+  static Future<ObjectBox> create() async {
+    final store = Store(getObjectBoxModel(),
+        directory: (await defaultStoreDirectory()).path + '-sync',
+        macosApplicationGroup: 'objectbox.demo' // TODO replace with a real name
+        );
+    return ObjectBox._create(store);
   }
 }
