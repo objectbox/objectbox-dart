@@ -25,19 +25,21 @@ class Note {
   String get dateFormat => DateFormat('dd.MM.yyyy hh:mm:ss').format(date);
 }
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'OB Example (sync)',
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: MyHomePage(title: 'OB Example (sync)'),
+        home: const MyHomePage(title: 'OB Example (sync)'),
       );
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -117,28 +119,28 @@ class _MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 Expanded(
                   child: Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                         border:
                             Border(bottom: BorderSide(color: Colors.black12))),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           vertical: 18.0, horizontal: 10.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
                             notes[index].text,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 15.0,
                             ),
                             // Provide a Key for the integration test
                             key: Key('list_item_$index'),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(top: 5.0),
+                            padding: const EdgeInsets.only(top: 5.0),
                             child: Text(
                               'Added on ${notes[index].dateFormat}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12.0,
                               ),
                             ),
@@ -159,24 +161,24 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         body: Column(children: <Widget>[
           Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(20.0),
             child: Row(
               children: <Widget>[
                 Expanded(
                   child: Column(
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: TextField(
                           decoration:
-                              InputDecoration(hintText: 'Enter a new note'),
+                              const InputDecoration(hintText: 'Enter a new note'),
                           controller: _noteInputController,
                           onSubmitted: (value) => _addNote(),
                           // Provide a Key for the integration test
-                          key: Key('input'),
+                          key: const Key('input'),
                         ),
                       ),
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.only(top: 10.0, right: 10.0),
                         child: Align(
                           alignment: Alignment.centerRight,
@@ -200,7 +202,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   stream: _listController.stream,
                   builder: (context, snapshot) => ListView.builder(
                       shrinkWrap: true,
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       itemCount: snapshot.hasData ? snapshot.data!.length : 0,
                       itemBuilder: _itemBuilder(snapshot.data ?? []))))
         ]),
@@ -208,9 +210,9 @@ class _MyHomePageState extends State<MyHomePage> {
         // test doesn't support submitting a TextField using "enter" key.
         // See https://github.com/flutter/flutter/issues/9383
         floatingActionButton: FloatingActionButton(
-          key: Key('submit'),
+          key: const Key('submit'),
           onPressed: _addNote,
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ),
       );
 }
