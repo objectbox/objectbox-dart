@@ -65,28 +65,23 @@ For example, open the `Store` in a small helper class like this:
 import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 
 class ObjectBox {
-  Store? _store;
-
-  /// Initialize the store.
-  Future<void> init() async {
-    // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
-    final store = await openStore();
-    _store = store;
+  /// The Store of this app.
+  late final Store store;
+  
+  ObjectBox._create(this.store) {
+    // Add any additional setup code, e.g. build queries.
   }
 
-  /// Returns the open Store for this app or throws.
-  Store get store {
-    final store = _store;
-    if (store != null) {
-      return store;
-    } else {
-      throw Exception('Store was not initialized on app launch');
-    }
+  /// Create an instance of ObjectBox to use throughout the app.
+  static Future<ObjectBox> create() async {
+    // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
+    final store = await openStore();
+    return ObjectBox._create(store);
   }
 }
 ```
 
-The best time to initialize ObjectBox is when your app starts. 
+The best time to create the ObjectBox class is when your app starts. 
 We suggest to do it in your app's `main()` function:
 
 ```dart
@@ -98,15 +93,14 @@ Future<void> main() async {
   // to store the database in.
   WidgetsFlutterBinding.ensureInitialized();
 
-  objectbox = ObjectBox();
-  await objectbox.init();
+  objectbox = await ObjectBox.create();
 
   runApp(MyApp());
 }
 ```
 
-Here the `Store` remains open throughout the lifetime of the app, 
-this is typically fine and recommended for most use cases.
+Then the `Store` remains open throughout the lifetime of the app. 
+This is typically fine and recommended for most use cases.
 
 ### Dart CLI apps
 
