@@ -1,31 +1,24 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:objectbox/objectbox.dart';
-import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart';
 
-import 'objectbox.g.dart';
+import 'model.dart';
+import 'objectbox.dart';
 
 // ignore_for_file: public_member_api_docs
 
-@Entity()
-@Sync()
-class Note {
-  int id;
+/// Provides access to the ObjectBox Store throughout the app.
+late ObjectBox objectbox;
 
-  String text;
-  String? comment;
-  DateTime date;
+Future<void> main() async {
+  // This is required so ObjectBox can get the application directory
+  // to store the database in.
+  WidgetsFlutterBinding.ensureInitialized();
 
-  Note(this.text, {this.id = 0, this.comment, DateTime? date})
-      : date = date ?? DateTime.now();
+  objectbox = await ObjectBox.create();
 
-  String get dateFormat => DateFormat('dd.MM.yyyy hh:mm:ss').format(date);
+  runApp(MyApp());
 }
-
-void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -47,47 +40,13 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class ViewModel {
-  final Store _store;
-  late final Box<Note> _box;
-  late final Stream<Query<Note>> _queryStream;
-
-  ViewModel(Directory dir)
-      : _store = Store(getObjectBoxModel(),
-            directory: dir.path + '-sync',
-            macosApplicationGroup: 'objectbox.demo' // replace with a real name
-            ) {
-    _box = Box<Note>(_store);
-    final qBuilder = _box.query()..order(Note_.date, flags: Order.descending);
-    _queryStream = qBuilder.watch(triggerImmediately: true);
-
-    // TODO configure actual sync server address and authentication
-    // For configuration and docs, see objectbox/lib/src/sync.dart
-    // 10.0.2.2 is your host PC if an app is run in an Android emulator.
-    // 127.0.0.1 is your host PC if an app is run in an iOS simulator.
-    final syncServerIp = Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
-    final syncClient =
-        Sync.client(_store, 'ws://$syncServerIp:9999', SyncCredentials.none());
-    syncClient.start();
-  }
-
-  void addNote(Note note) => _box.put(note);
-
-  void removeNote(Note note) => _box.remove(note.id);
-
-  void dispose() {
-    _store.close();
-  }
-}
-
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   final _listController = StreamController<List<Note>>(sync: true);
-  late final ViewModel _vm;
 
   void _addNote() {
     if (_noteInputController.text.isEmpty) return;
-    _vm.addNote(Note(_noteInputController.text));
+    objectbox.noteBox.put(Note(_noteInputController.text));
     _noteInputController.text = '';
   }
 
@@ -95,26 +54,21 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    defaultStoreDirectory().then((dir) {
-      _vm = ViewModel(dir);
+    setState(() {});
 
-      setState(() {});
-
-      _listController.addStream(_vm._queryStream.map((q) => q.find()));
-    });
+    _listController.addStream(objectbox.queryStream.map((q) => q.find()));
   }
 
   @override
   void dispose() {
     _noteInputController.dispose();
     _listController.close();
-    _vm.dispose();
     super.dispose();
   }
 
   GestureDetector Function(BuildContext, int) _itemBuilder(List<Note> notes) =>
       (BuildContext context, int index) => GestureDetector(
-            onTap: () => _vm.removeNote(notes[index]),
+            onTap: () => objectbox.noteBox.remove(notes[index].id),
             child: Row(
               children: <Widget>[
                 Expanded(
