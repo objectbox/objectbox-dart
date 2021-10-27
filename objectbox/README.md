@@ -24,14 +24,15 @@ class Person {
 
   String firstName;
   String lastName;
+  DateTime birthDate;
 
-  Person({this.id = 0, required this.firstName, required this.lastName});
+  Person({this.id = 0, required this.firstName, required this.lastName, required this.birthDate});
 }
 
 final store = await openStore(); 
 final box = store.box<Person>();
 
-var person = Person(firstName: 'Joe', lastName: 'Green');
+var person = Person(firstName: 'Joe', lastName: 'Green', birthDate: DateTime.utc(1989, 11, 9));
 
 final id = box.put(person);  // Create
 
@@ -45,6 +46,12 @@ box.remove(person.id);       // Delete
 // find all people whose name start with letter 'J'
 final query = box.query(Person_.firstName.startsWith('J')).build();
 final people = query.find();  // find() returns List<Person>
+
+// find all people whose has born between 1988 and 1990
+final dateQuery = box.query(
+        Person_.birthDate.between(DateTime.utc(1988, 1, 1), DateTime.utc(1990, 1, 1))
+    ).build();
+final result = query.find();  // find() returns List<Person>
 ```
 
 Head over to [docs](https://docs.objectbox.io/getting-started) and [examples](example/README.md) for more.
