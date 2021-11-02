@@ -1,3 +1,7 @@
+## latest
+
+* Update objectbox-android to `3.0.1`.
+
 ## 1.2.0 (2021-08-31)
 
 * Add `Query.findUnique()` to find a single object matching the query.
