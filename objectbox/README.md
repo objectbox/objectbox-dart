@@ -60,15 +60,17 @@ Add the following dependencies to start using ObjectBox and code generator.
 dependencies:
   objectbox: ^1.2.0
   objectbox_flutter_libs: any
+  # for ObjectBox Sync use this dependency instead:
+  # objectbox_sync_flutter_libs: any
 
 dev_dependencies:
-  build_runner: ^1.0.0
+  build_runner: ^2.0.0
   objectbox_generator: any
 ```
 
 * Install the packages: `flutter pub get`
-* XCode/iOS only: increase the deployment target to iOS 11 and, under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
-* If targeting macOS (creating sandboxed macOS apps): you need to specify an application group.
+* **For Xcode/iOS only**: increase the deployment target to iOS 11 and, under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
+* If you're creating a **sandboxed macOS app**: you need to specify an application group.
   Check all `macos/Runner/*.entitlements` files if they contain a `<dict>` section with correct group ID info. 
   Change the string value to the `DEVELOPMENT_TEAM` you can find in your Xcode settings, plus an application-specific suffix, for example: 
   
@@ -82,7 +84,7 @@ dev_dependencies:
   Next, in your app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
   Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
   19 characters or fewer.
-* Sync + Android only: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
+* **For Sync + Android**: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
 * In order to run Flutter unit tests locally on your machine, you'll need to install the native ObjectBox library on 
   your host machine (same as you would if you developed for Dart native, as described in the next section):
 
