@@ -8,10 +8,24 @@ import 'dart:io';
 final _dart_memset memset =
     _stdlib.lookupFunction<_c_memset, _dart_memset>('memset');
 
+/// If the native memcpy function should not be used.
+///
+/// memcpy is not available to Flutter on iOS 15 simulator,
+/// so use Dart API to copy data via asTypedList (which is much slower but works).
+///
+/// https://github.com/objectbox/objectbox-dart/issues/313
+final isMemcpyNotAvailable = Platform.isIOS;
+final _dart_memcpy _memcpyDart = (dest, src, length) {
+  dest
+      .asTypedList(length)
+      .setAll(0, src.asTypedList(length).getRange(0, length));
+};
+
 /// memcpy (destination, source, num) copies the values of num bytes from the
 /// data pointed to by source to the memory block pointed to by destination.
-final _dart_memcpy memcpy =
-    _stdlib.lookupFunction<_c_memcpy, _dart_memcpy>('memcpy');
+final _dart_memcpy memcpy = isMemcpyNotAvailable
+    ? _memcpyDart
+    : _stdlib.lookupFunction<_c_memcpy, _dart_memcpy>('memcpy');
 
 // FFI signature
 typedef _dart_memset = void Function(Pointer<Uint8>, int, int);

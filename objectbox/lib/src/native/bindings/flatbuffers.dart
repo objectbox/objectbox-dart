@@ -121,7 +121,9 @@ class ReaderWithCBuffer {
   void clear() => malloc.free(_bufferPtr);
 
   ByteData access(Pointer<Uint8> dataPtr, int size) {
-    if (size > _maxBuffer) {
+    // If memcpy is not available, instead of using Dart memcpy implementation,
+    // directly convert to view which is a little faster.
+    if (isMemcpyNotAvailable || size > _maxBuffer) {
       final uint8List = dataPtr.asTypedList(size);
       return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
     } else {
