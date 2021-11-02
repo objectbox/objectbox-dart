@@ -6,6 +6,7 @@ environment:
 dependencies:
   objectbox:
   json_serializable:
+  json_annotation: "^4.3.0"
   freezed_annotation:
 
 dev_dependencies:
