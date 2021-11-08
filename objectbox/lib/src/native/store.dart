@@ -308,16 +308,14 @@ class Store {
         throw UnsupportedError(
             'Executing an "async" function in a transaction is not allowed.');
       }
-      if (!reused && mode == TxMode.write) tx.markSuccessful();
+      if (!reused) tx.successAndClose();
       return result;
     } catch (ex) {
-      if (!reused && mode == TxMode.write) tx.markFailed();
+      // Is a no-op if successAndClose did throw.
+      if (!reused) tx.abortAndClose();
       rethrow;
     } finally {
-      if (!reused) {
-        tx.close();
-        _tx = null;
-      }
+      if (!reused) _tx = null;
     }
   }
 
