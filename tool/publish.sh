@@ -32,7 +32,7 @@ function publish() {
   case $yn in
   [Yy]*)
     cd "${pkg_dir}" || exit 1
-    pub publish --force
+    dart pub publish --force
     ;;
   [Nn]*) ;;
   *) echo "Please answer yes or no." ;;
