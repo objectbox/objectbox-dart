@@ -1,5 +1,10 @@
 . "$(dirname "$0")"/common.sh
 
+# NOTE: This script requires version 3 of yq.
+# E.g. download from https://github.com/mikefarah/yq/releases/tag/3.4.1
+# and temporarily add to PATH for this script:
+# export PATH=$PATH:"/path/to/yq/"
+
 # ======================= BEFORE publishing==================== #
 
 echo "Removing dependency_overrides from all pubspec.yaml files (backup at pubspec.yaml.original)"
