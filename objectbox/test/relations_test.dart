@@ -274,6 +274,37 @@ void main() {
       check(src!.relManyA, items: [1], added: [], removed: []);
     });
 
+    test('applyToDb', () {
+      final entity = src!;
+      expect(entity.relManyA, isNotNull);
+
+      // Put with empty ToMany
+      env.box.put(entity);
+      check(entity.relManyA, items: [], added: [], removed: []);
+
+      // Add one
+      entity.relManyA.add(RelatedEntityA(tInt: 1));
+      entity.relManyA.applyToDb();
+      check(entity.relManyA, items: [1], added: [], removed: []);
+
+      // Remove all
+      entity.relManyA.clear();
+      entity.relManyA.applyToDb();
+      check(entity.relManyA, items: [], added: [], removed: []);
+    });
+
+    test('applyToDb not attached throws', () {
+      final entity = src!;
+      expect(entity.relManyA, isNotNull);
+
+      entity.relManyA.add(RelatedEntityA(tInt: 1));
+      expect(
+          entity.relManyA.applyToDb,
+          throwsA(predicate((StateError e) => e
+              .toString()
+              .contains("ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead."))));
+    });
+
     test("don't load old data when just adding", () {
       expect(src!.relManyA, isNotNull);
       src!.relManyA.add(RelatedEntityA(tInt: 1));

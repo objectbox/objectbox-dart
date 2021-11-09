@@ -1,6 +1,7 @@
 ## latest
 
 * Fix Flutter apps crashing on iOS 15 simulator. #313
+* Fix `ToMany.applyToDb()` not working after putting object with empty `ToMany`.
 * Update objectbox-android to `3.0.1`.
 
 ## 1.2.0 (2021-08-31)
