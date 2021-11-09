@@ -210,9 +210,11 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
             throw UnimplementedError();
         }
       });
-      if (ownedTx) tx.markSuccessful();
-    } finally {
-      if (ownedTx) tx.close();
+      if (ownedTx) tx.successAndClose();
+    } catch (ex) {
+      // Is a no-op if successAndClose did throw.
+      if (ownedTx) tx.abortAndClose();
+      rethrow;
     }
 
     _counts.clear();
