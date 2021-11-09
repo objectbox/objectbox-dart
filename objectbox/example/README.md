@@ -169,18 +169,18 @@ box.query(Note_.text.isNull() | Note_.date > 0).build();
 
 ### Ordering query results
 
-The results from a query can be ordered using the `order` method, e.g.
+The results from a query can be ordered using the `order` method:
 
 ```dart
-final q = box.query(Note_.date > 0)
-  .order(Note_.date)
-  .build();
+final builder = box.query(Note_.date > 0).order(Note_.date);
+final query = builder.build();
 
 // ...
 
-final qt = box.query(Note_.text.notNull())
-  .order(Note_.text, flags: Order.descending | Order.caseSensitive)
-  .build();
+final builder = box.query(Note_.text.notNull())
+  ..order(Note_.text, flags: Order.descending | Order.caseSensitive)
+  ..order(Note_.date);
+final query = builder.build();
 ```
 
 ### Property Queries
