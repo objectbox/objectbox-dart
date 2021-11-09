@@ -16,13 +16,13 @@ ObjectBox is a super-fast Flutter database storing Dart objects locally
 * 📃 **Schema migration** - change your model with confidence.
 * 👥 [**Out-of-the-box Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
-## Getting Started
+## Getting Started 
 
 To start using ObjectBox in your Flutter/Dart app, head over to
 * the [objectbox pub.dev page](https://pub.dev/packages/objectbox) or
 * check out our [Getting Started guide](https://docs.objectbox.io/getting-started).
 
-## Contributing
+## Contributing 
 
 If you'd like to contribute to the package as a developer, hack around, or just have a look at the code, you can 
 clone/check out this repository and run `./tool/init.sh` to regenerate code and get you started. Make sure to have a
@@ -31,7 +31,7 @@ look at the [contribution guidelines](CONTRIBUTING.md) - all contributions are v
 ## Benchmarks
 
 
-### Packages
+## Packages
 
 This repository holds all ObjectBox Dart/Flutter packages as separate directories:
 
