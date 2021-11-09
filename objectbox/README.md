@@ -1,7 +1,6 @@
 ![ObjectBox logo](https://raw.githubusercontent.com/objectbox/objectbox-java/master/logo.png)
 
-Flutter database for Dart-native object persistence
-==========================
+# Flutter database for Dart-native object persistence
 
 ObjectBox is a super-fast Flutter database storing Dart objects locally.
 
@@ -47,15 +46,15 @@ final query = box.query(Person_.firstName.startsWith('J')).build();
 final people = query.find();  // find() returns List<Person>
 ```
 
-Head over to [docs](https://docs.objectbox.io/getting-started) and [examples](example/README.md) for more.
+## Getting Started
 
-Getting started
----------------
+**New:** check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).
 
-Add the following dependencies to start using ObjectBox and code generator.
+Depending on if you are building a Flutter or Dart-only app, follow the steps below to start using ObjectBox.
 
 ### Flutter 
 
+Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
   objectbox: ^1.2.0
@@ -69,10 +68,12 @@ dev_dependencies:
 ```
 
 * Install the packages: `flutter pub get`
-* **For Xcode/iOS only**: increase the deployment target to iOS 11 and, under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
-* If you're creating a **sandboxed macOS app**: you need to specify an application group.
+* **For iOS**: in the Flutter Runner Xcode project
+  * increase the deployment target to at least iOS 11 and, 
+  * under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
+* **For sandboxed macOS apps**: specify an application group.
   Check all `macos/Runner/*.entitlements` files if they contain a `<dict>` section with correct group ID info. 
-  Change the string value to the `DEVELOPMENT_TEAM` you can find in your Xcode settings, plus an application-specific suffix, for example: 
+  Change the string value to the `DEVELOPMENT_TEAM` found in Xcode settings, plus an application-specific suffix, for example: 
   
   ```xml
   <key>com.apple.security.application-groups</key>
@@ -81,19 +82,22 @@ dev_dependencies:
   </array>
   ```
   
-  Next, in your app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
+  Next, in the app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
   Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
   19 characters or fewer.
-* **For Sync + Android**: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
-* In order to run Flutter unit tests locally on your machine, you'll need to install the native ObjectBox library on 
+* **For Sync + Android**: in `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
+* In order to run Flutter unit tests locally on your machine, install the native ObjectBox library on 
   your host machine (same as you would if you developed for Dart native, as described in the next section):
 
   ```shell script
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
   ```
 
+Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
+
 ### Dart Native
 
+Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
   objectbox: ^1.2.0
@@ -116,16 +120,21 @@ dev_dependencies:
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
   ```
 
-Help wanted
------------
+Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
+
+## Help wanted
 
 ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
 Either comment on an existing issue or open a new one. For example, if you experience errors or if you have ideas how to
 improve the API. If you'd like to contribute some code: PRs are more than welcome! The ObjectBox team will try its best 
 to guide you and answer questions.
 
-FAQ
----
+## FAQ
+
+_**Q: Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", are 32-bit iOS devices supported?**_  
+**A: Only 64-bit iOS devices are supported.** When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
+so we decided to not ship armv7 support.
+To resolve the build error, configure Architectures in your Xcode project like described in [Getting Started - Flutter](#flutter).
 
 _**Q: After adding ObjectBox, the size of the APK increased significantly. Why is that?**_  
 **A: This is caused by ObjectBox following
@@ -156,19 +165,12 @@ to override the ObjectBox settings.
 
 <sup>2</sup> This is also about the size an APK generated by Google Play would be when uploading an App Bundle (`flutter build appbundle`).
 
-_**Q: Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", does it not support 32-bit devices?**_  
-**A: No, only 64-bit iOS devices are supported.** When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
-so we decided to not ship armv7 support. To resolve the build error, in your XCode project
-look under Architectures and replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
-
-See also
----------
+## See also
 
 * [Changelog](CHANGELOG.md)
 * [Contribution guidelines](../CONTRIBUTING.md)
 
-License
--------
+## License
 
 ```text
 Copyright 2019-2021 ObjectBox Ltd. All rights reserved.
