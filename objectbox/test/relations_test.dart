@@ -251,9 +251,17 @@ void main() {
       // Remove one, add one
       src!.relManyA.removeWhere((element) => element.tInt == 3);
       src!.relManyA.add(RelatedEntityA(tInt: 5));
+      check(src!.relManyA, items: [1, 4, 5], added: [5], removed: [3]);
       env.box.put(src!);
       src = env.box.get(1);
       check(src!.relManyA, items: [1, 4, 5], added: [], removed: []);
+
+      // Remove all
+      src!.relManyA.clear();
+      check(src!.relManyA, items: [], added: [], removed: [1, 4, 5]);
+      env.box.put(src!);
+      src = env.box.get(1);
+      check(src!.relManyA, items: [], added: [], removed: []);
     });
 
     // note: this requires box.attach() in Java/Kotlin, should not here.
