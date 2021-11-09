@@ -1,6 +1,12 @@
 name: Code analysis
 
-on: [ push, pull_request ]
+# Avoid duplicate builds for pull requests, allow manual trigger.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   analyze:
