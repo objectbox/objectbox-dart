@@ -1,4 +1,6 @@
-![ObjectBox logo](https://raw.githubusercontent.com/objectbox/objectbox-java/master/logo.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" width="400px">
+</p>
 
 # Flutter database for Dart-native object persistence 💙
 
