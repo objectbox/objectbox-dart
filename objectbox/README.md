@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" width="400px">
 </p>
 
-# Flutter database for Dart-native object persistence 💙
+# Flutter database for Dart-native objects 💙
 
 [![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
 
@@ -130,16 +130,16 @@ dev_dependencies:
 
 Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
 
-## Benchmarks
+## Database Performance Benchmarks
 
-We tested CRUD operations (create, read, update, delete). Each test was run multiple times and executed 
+We tested across the four main database operations, CRUD (create, read, update, delete). Each test was run multiple times and executed 
 manually outside of the measured time. Data preparation and evaluation were also done outside of the measured time.
 
 ![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
 
 You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
 
-## Help wanted
+## Help wanted 🤩
 
 ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
 Either comment on an existing issue or open a new one. For example, if you experience errors or if you have ideas how to

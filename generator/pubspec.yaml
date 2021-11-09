@@ -1,5 +1,5 @@
 name: objectbox_generator
-description: ObjectBox binding code generator - finds annotated entities and adds them to the ObjectBox DB model.
+description: ObjectBox Flutter / Dart database binding code generator - finds annotated entities and adds them to the ObjectBox DB model.
 repository: https://github.com/objectbox/objectbox-dart
 homepage: https://objectbox.io
 version: 1.2.0
