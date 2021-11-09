@@ -203,6 +203,43 @@ void main() {
             e.toString().contains('same property value already exists'))));
   });
 
+  test('.put() replaces duplicate values on a unique replace field on insert', () {
+    // insert without conflict
+    box.putMany([
+      TestEntity.uniqueReplace(replaceLong: 1, tString: 'original-1'),
+      TestEntity.uniqueReplace(replaceLong: 2, tString: 'original-2')
+    ]);
+    expect(box.count(), equals(2));
+
+    // insert with conflict, deletes ID 1 and inserts ID 3
+    box.put(TestEntity.uniqueReplace(replaceLong: 1, tString: 'replacement-1'));
+    expect(box.count(), equals(2));
+    final replaced = box.get(3)!;
+    expect(replaced.replaceLong, equals(1));
+    expect(replaced.tString, equals('replacement-1'));
+  });
+
+  test('.put() replaces duplicate values on a unique replace field on update', () {
+    // update without conflict
+    var first = TestEntity.uniqueReplace(replaceLong: 1, tString: 'first');
+    box.put(first);
+    first.replaceLong = 2;
+    box.put(first);
+    expect(box.count(), equals(1));
+    final updated = box.get(1)!;
+    expect(updated.replaceLong, equals(2));
+    expect(updated.tString, 'first');
+
+    // update with conflict, deletes ID 2 and keeps ID 1
+    box.put(TestEntity.uniqueReplace(replaceLong: 1, tString: 'second'));
+    first.replaceLong = 1;
+    box.put(first);
+    expect(box.count(), equals(1));
+    final updated2 = box.get(1)!;
+    expect(updated2.replaceLong, equals(1));
+    expect(updated2.tString, 'first');
+  });
+
   test('.getAll retrieves all items', () {
     final int id1 = box.put(TestEntity(tString: 'One'));
     final int id2 = box.put(TestEntity(tString: 'Two'));
