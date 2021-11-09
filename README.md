@@ -4,7 +4,7 @@
 
 [![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
 
-ObjectBox is a super-fast Flutter database storing Dart objects locally
+Flutter database to store & sync objects across devices with sustainable offline-first approach
 
 * 🏁 **High performance** - improving response rates and enabling real-time applications.
 * 🪂 **ACID compliance** - Atomic, Consistent, Isolated, Durable.
