@@ -11,10 +11,12 @@ Super-fast Flutter database for storing and syncing Dart objects
 * 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.
 * 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
 
+
 * 🔗 **Relations** - object links / relationships are built-in.
 * 💐 **Queries** - filter data as needed, even across relations.
 * 🦮 **Statically typed** - compile time checks & optimizations.
 * 📃 **Schema migration** - change your model with confidence.
+
 
 * 😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
