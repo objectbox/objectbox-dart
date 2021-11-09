@@ -1,20 +1,22 @@
 ![ObjectBox logo](https://raw.githubusercontent.com/objectbox/objectbox-java/master/logo.png)
 
-# Flutter database for Dart-native object persistence
+# Flutter database for Dart-native object persistence 💙
 
 [![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
 
-ObjectBox is a super-fast Flutter database storing Dart objects locally.
+Super-fast Flutter database for storing and syncing Dart objects
 
 * 🏁 **High performance** - improving response rates and enabling real-time applications.
-* 🪂 **ACID compliance** - Atomic, Consistent, Isolated, Durable.
-* 🔗 **Relations** - object links / relationships are built-in.
+* 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.
+* 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.
 * 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
+* 
+* 🔗 **Relations** - object links / relationships are built-in.
 * 💐 **Queries** - filter data as needed, even across relations.
 * 🦮 **Statically typed** - compile time checks & optimizations.
-* 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.
 * 📃 **Schema migration** - change your model with confidence.
-* 👥 [**ObjectBox Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
+
+* 😮[**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
 ## Sneak peek
 
