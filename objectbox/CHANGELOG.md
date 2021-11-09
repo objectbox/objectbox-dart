@@ -1,4 +1,4 @@
-## latest
+## 1.2.1 (2021-11-09)
 
 * Fix Flutter apps crashing on iOS 15 simulator. #313
 * Fix `ToMany.applyToDb()` not working after putting object with empty `ToMany`.
