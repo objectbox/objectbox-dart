@@ -1,9 +1,9 @@
 ![ObjectBox logo](https://raw.githubusercontent.com/objectbox/objectbox-java/master/logo.png)
 
-ObjectBox Dart & Flutter
+Flutter database for Dart-native object persistence
 ==========================
 
-ObjectBox is a super-fast database storing Dart objects locally.
+ObjectBox is a super-fast Flutter database storing Dart objects locally.
 
 * 🏁 **High performance** - improving response rates and enabling real-time applications.
 * 🪂 **ACID compliance** - Atomic, Consistent, Isolated, Durable.
