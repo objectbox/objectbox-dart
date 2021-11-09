@@ -30,9 +30,6 @@ If you'd like to contribute to the package as a developer, hack around, or just 
 clone/check out this repository and run `./tool/init.sh` to regenerate code and get you started. Make sure to have a
 look at the [contribution guidelines](CONTRIBUTING.md) - all contributions are very welcome.
 
-## Benchmarks
-
-
 ## Packages
 
 This repository holds all ObjectBox Dart/Flutter packages as separate directories:

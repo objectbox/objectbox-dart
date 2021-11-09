@@ -130,6 +130,15 @@ dev_dependencies:
 
 Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
 
+## Benchmarks
+
+We tested CRUD operations (create, read, update, delete). Each test was run multiple times and executed 
+manually outside of the measured time. Data preparation and evaluation were also done outside of the measured time.
+
+![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
+
+You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
+
 ## Help wanted
 
 ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
