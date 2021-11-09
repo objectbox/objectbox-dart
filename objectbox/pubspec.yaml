@@ -2,7 +2,7 @@ name: objectbox
 version: 1.2.0
 repository: https://github.com/objectbox/objectbox-dart/tree/main/objectbox
 homepage: https://objectbox.io
-description: ObjectBox is a super-fast NoSQL ACID compliant object database.
+description: Flutter database for super-fast NoSQL ACID compliant object persistence.
 
 environment:
   # minimum Dart SDK (also see generator and flutter_libs)
