@@ -1,6 +1,6 @@
 ![ObjectBox logo](https://raw.githubusercontent.com/objectbox/objectbox-java/master/logo.png)
 
-# Flutter database for Dart-native object persistence 💙
+# Flutter database for fast Dart object persistence 💙
 
 [![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
 
