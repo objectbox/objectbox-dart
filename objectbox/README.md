@@ -78,7 +78,7 @@ dev_dependencies:
 * Install the packages: `flutter pub get`
 * **For iOS**: in the Flutter Runner Xcode project
   * increase the deployment target to at least iOS 11 and, 
-  * under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
+  * under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](https://docs.objectbox.io/faq#on-which-platforms-does-objectbox-run) for details.
 * **For sandboxed macOS apps**: specify an application group.
   Check all `macos/Runner/*.entitlements` files if they contain a `<dict>` section with correct group ID info. 
   Change the string value to the `DEVELOPMENT_TEAM` found in Xcode settings, plus an application-specific suffix, for example: 
@@ -147,11 +147,6 @@ improve the API. If you'd like to contribute some code: PRs are more than welcom
 to guide you and answer questions.
 
 ## FAQ
-
-_**Q: Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", are 32-bit iOS devices supported?**_  
-**A: Only 64-bit iOS devices are supported.** When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
-so we decided to not ship armv7 support.
-To resolve the build error, configure Architectures in your Xcode project like described in [Getting Started - Flutter](#flutter).
 
 _**Q: After adding ObjectBox, the size of the APK increased significantly. Why is that?**_  
 **A: This is caused by ObjectBox following
