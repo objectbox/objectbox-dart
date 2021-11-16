@@ -1,5 +1,8 @@
 ## latest
 
+* Support annotating a single property with `@Unique(onConflict: ConflictStrategy.replace)` to 
+  replace an existing object if a conflict occurs when doing a put. #297
+
 ## 1.2.1 (2021-11-09)
 
 * Fix Flutter apps crashing on iOS 15 simulator. #313

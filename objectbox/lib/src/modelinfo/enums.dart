@@ -122,6 +122,9 @@ abstract class OBXPropertyFlags {
   /// ///
   /// /// For Time Series IDs, a companion property of type Date or DateNano represents the exact timestamp.
   static const int ID_COMPANION = 16384;
+
+  /// Unique on-conflict strategy: the object being put replaces any existing conflicting object (deletes it).
+  static const int UNIQUE_ON_CONFLICT_REPLACE = 32768;
 }
 
 abstract class OBXPropertyType {
