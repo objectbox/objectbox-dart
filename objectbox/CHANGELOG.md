@@ -1,4 +1,4 @@
-## latest
+## 1.3.0 (2021-11-22)
 
 * Support annotating a single property with `@Unique(onConflict: ConflictStrategy.replace)` to 
   replace an existing object if a conflict occurs when doing a put. #297
