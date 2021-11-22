@@ -80,7 +80,11 @@ void main() {
       // check simple box operations
       expect(env.box.isEmpty(), isTrue);
       expect(await call(['put', 'Foo']), equals(1)); // returns inserted id = 1
-      expect(env.box.get(1)!.tString, equals('Foo'));
+      final first = env.box.get(1)!;
+      expect(first.tString, equals('Foo'));
+      final firstReceived = await call(['get', 1]) as TestEntity;
+      expect(firstReceived.id, equals(1));
+      expect(firstReceived.tString, equals('Foo'));
     }
 
     {
@@ -138,18 +142,24 @@ void createDataIsolate(SendPort sendPort) async {
       if (msg is! List) {
         sendPort.send('unknown message type, list expected');
       } else {
-        final data = msg as List<String>;
-        switch (data[0]) {
+        final op = msg[0] as String;
+        switch (op) {
           case 'put':
-            final id = Box<TestEntity>(store).put(TestEntity(tString: data[1]));
+            final tString = msg[1] as String;
+            final id = Box<TestEntity>(store).put(TestEntity(tString: tString));
             sendPort.send(id);
+            break;
+          case 'get':
+            final id = msg[1] as int;
+            final object = store.box<TestEntity>().get(id);
+            sendPort.send(object);
             break;
           case 'close':
             store.close();
             sendPort.send('done');
             break;
           default:
-            sendPort.send('unknown message: $data');
+            sendPort.send('unknown message: $msg');
         }
       }
     }
