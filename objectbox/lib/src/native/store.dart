@@ -164,21 +164,24 @@ class Store {
     }
   }
 
-  /// Create a Dart store instance from an existing native store reference.
+  /// Create a Dart store instance from an existing native store [reference].
+  ///
   /// Use this if you want to access the same store from multiple isolates.
   /// This results in two (or more) isolates having access to the same
   /// underlying native store. Concurrent access is ensured using implicit or
   /// explicit transactions.
+  ///
   /// Note: make sure you don't use store in any of the isolates after the
-  /// original store is closed (by calling [close()]).
+  /// original store is closed (by calling [close]).
   ///
   /// To do this, you'd send the [reference] over a [SendPort], receive
-  /// it in another isolate and pass it to [attach()].
+  /// it in another isolate and pass it to [Store.fromReference].
   ///
-  /// Example (see test/isolates_test.dart for an actual working example)
+  /// Example:
   /// ```dart
+  /// // See test/isolates_test.dart for an actual working example.
   /// // Main isolate:
-  ///   final store =  Store(getObjectBoxModel())
+  ///   final store = Store(getObjectBoxModel())
   ///
   /// ...
   ///
@@ -193,7 +196,7 @@ class Store {
   ///   await for (final msg in port) {
   ///     if (store == null) {
   ///       // first message data is existing Store's reference
-  ///       store = Store.attach(getObjectBoxModel(), msg);
+  ///       store = Store.fromReference(getObjectBoxModel(), msg as ByteData);
   ///     }
   ///     ...
   ///   }
@@ -219,7 +222,7 @@ class Store {
   }
 
   /// Returns a store reference you can use to create a new store instance with
-  /// a single underlying native store. See [Store.attach()] for more details.
+  /// a single underlying native store. See [Store.fromReference] for more details.
   ByteData get reference => _reference;
 
   /// Closes this store.
