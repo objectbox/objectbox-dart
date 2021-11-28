@@ -1,5 +1,7 @@
 ## latest
 
+* Add an option to change code-generator's `output_dir` in `pubspec.yaml`. #341
+
 ## 1.3.0 (2021-11-22)
 
 * Support annotating a single property with `@Unique(onConflict: ConflictStrategy.replace)` to 

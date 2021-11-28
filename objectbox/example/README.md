@@ -52,6 +52,18 @@ list (e.g. .gitignore), otherwise the build_runner will complain about it being 
 > annotations there. This is useful if you need a separate test DB. If you're just writing tests for your own code, you
 > won't have any annotations in the `test` folder so no DB will be created there.
 
+To customize the directory (relative to the package root) where the generated files are written,
+add the following to your `pubspec.yaml`:
+```
+objectbox:
+  # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).
+  output_dir: custom
+  # Or optionally specify the lib and test output folder separately.
+  # output_dir:
+  #   lib: custom
+  #   test: other
+```
+
 Creating a store
 ----------------
 

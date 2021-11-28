@@ -17,6 +17,7 @@ dependencies:
   path: ^1.8.0
   source_gen: ^1.0.0
   pubspec_parse: ^1.0.0
+  yaml: ^3.0.0
 
 # NOTE: remove before publishing
 dependency_overrides:
