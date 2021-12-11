@@ -10,37 +10,37 @@ class CodeChunks {
           ModelInfo model, List<String> imports, Pubspec? pubspec) =>
       """
     // GENERATED CODE - DO NOT MODIFY BY HAND
-    
+
     // ignore_for_file: camel_case_types
-    
+
     import 'dart:typed_data';
-    
-    import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
+
+    import 'package:flat_buffers/flat_buffers.dart' as fb;
     import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
     import 'package:objectbox/objectbox.dart';${pubspec?.obxFlutterImport}
-    
+
     import '${sorted(imports).join("';\n import '")}';
-    
+
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
-    
+
     final _entities = <ModelEntity>[
       ${model.entities.map(createModelEntity).join(',')}
     ];
-    
+
     /// Open an ObjectBox store with the model declared in this file.
     ${openStore(model, pubspec)}
-  
-    /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel()) 
+
+    /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel())
     ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
-      
+
       final bindings = <Type, EntityDefinition>{
         ${model.entities.mapIndexed((i, entity) => "${entity.name}: ${entityBinding(i, entity)}").join(",\n")}
       };
-      
+
       return ModelDefinition(model, bindings);
     }
-    
+
     ${model.entities.mapIndexed(_metaClass).join("\n")}
     """;
 
@@ -94,16 +94,16 @@ class CodeChunks {
   static String createModelEntity(ModelEntity entity) {
     return '''
     ModelEntity(
-      id: ${createIdUid(entity.id)}, 
-      name: '${entity.name}', 
-      lastPropertyId: ${createIdUid(entity.lastPropertyId)}, 
-      flags: ${entity.flags}, 
+      id: ${createIdUid(entity.id)},
+      name: '${entity.name}',
+      lastPropertyId: ${createIdUid(entity.lastPropertyId)},
+      flags: ${entity.flags},
       properties: <ModelProperty>[
         ${entity.properties.map(createModelProperty).join(',')}
-      ], 
+      ],
       relations: <ModelRelation>[
         ${entity.relations.map(createModelRelation).join(',')}
-      ], 
+      ],
       backlinks: <ModelBacklink>[
         ${entity.backlinks.map(createModelBacklink).join(',')}
       ]
@@ -122,9 +122,9 @@ class CodeChunks {
     }
     return '''
     ModelProperty(
-      id: ${createIdUid(property.id)}, 
-      name: '${property.name}', 
-      type: ${property.type}, 
+      id: ${createIdUid(property.id)},
+      name: '${property.name}',
+      type: ${property.type},
       flags: ${property.flags}
       $additionalArgs
     )
@@ -134,8 +134,8 @@ class CodeChunks {
   static String createModelRelation(ModelRelation relation) {
     return '''
     ModelRelation(
-      id: ${createIdUid(relation.id)}, 
-      name: '${relation.name}', 
+      id: ${createIdUid(relation.id)},
+      name: '${relation.name}',
       targetId: ${createIdUid(relation.targetId)}
     )
     ''';
@@ -144,8 +144,8 @@ class CodeChunks {
   static String createModelBacklink(ModelBacklink backlink) {
     return '''
     ModelBacklink(
-      name: '${backlink.name}', 
-      srcEntity: '${backlink.srcEntity}', 
+      name: '${backlink.name}',
+      srcEntity: '${backlink.srcEntity}',
       srcField: '${backlink.srcField}'
     )
     ''';
@@ -187,9 +187,9 @@ class CodeChunks {
     // Such ID must already be set, i.e. it could not have been assigned.
     return '''{
       if (object.${propertyFieldName(entity.idProperty)} != id) {
-        throw ArgumentError('Field ${entity.name}.${propertyFieldName(entity.idProperty)} is read-only ' 
+        throw ArgumentError('Field ${entity.name}.${propertyFieldName(entity.idProperty)} is read-only '
         '(final or getter-only) and it was declared to be self-assigned. '
-        'However, the currently inserted object (.${propertyFieldName(entity.idProperty)}=\${object.${propertyFieldName(entity.idProperty)}}) ' 
+        'However, the currently inserted object (.${propertyFieldName(entity.idProperty)}=\${object.${propertyFieldName(entity.idProperty)}}) '
         "doesn't match the inserted ID (ID \$id). "
         'You must assign an ID before calling [box.put()].');
       }
@@ -348,7 +348,10 @@ class CodeChunks {
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
           return readFieldNonNull('0');
         case OBXPropertyType.StringVector:
-          fbReader = 'fb.ListReader<String>(fb.StringReader(), lazy: false)';
+          // TODO `asciiOptimization: true` is for keeping the same behavior as the previous FB fork.
+          //      Check if it still makes sense with the latest Dart/Flutter.
+          fbReader =
+              'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)';
           break;
         default:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
@@ -607,7 +610,7 @@ class CodeChunks {
     }
 
     return '''
-      /// [${entity.name}] entity fields to define ObjectBox queries. 
+      /// [${entity.name}] entity fields to define ObjectBox queries.
       class ${entity.name}_ {${fields.join()}}
     ''';
   }
