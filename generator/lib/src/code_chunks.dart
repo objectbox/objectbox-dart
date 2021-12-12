@@ -207,6 +207,10 @@ class CodeChunks {
         return "''";
       case 'List':
         return '[]';
+      case 'Int8List':
+        return 'Int8List(0)';
+      case 'Uint8List':
+        return 'Uint8List(0)';
       default:
         throw InvalidGenerationSourceError(
             'Cannot figure out default value for field: ${p.fieldType} ${p.name}');
@@ -331,15 +335,8 @@ class CodeChunks {
       switch (p.type) {
         case OBXPropertyType.ByteVector:
           if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
-            // No need for the eager reader here. We need to call fromList()
-            // constructor anyway - there's no Int8List.generate() factory.
-            fbReader = 'fb.ListReader<int>(fb.Int8Reader())';
-            if (p.fieldIsNullable) {
-              preLines.add('final $valueVar = ${readFieldOrNull()};');
-              return '$valueVar == null ? null : ${p.fieldType}.fromList($valueVar)';
-            } else {
-              return '${p.fieldType}.fromList(${readFieldNonNull('[]')})';
-            }
+            fbReader = 'fb.${p.fieldType}Reader(lazy: false)';
+            return '${readField()} as ${p.fieldType}${p.fieldIsNullable ? "?" : ""}';
           } else {
             fbReader = 'fb.ListReader<int>(fb.Int8Reader(), lazy: false)';
           }
