@@ -1,7 +1,7 @@
 . "$(dirname "$0")"/common.sh
 
-# Note: when you see the process seemingly stuck after printing "All tests passed!", it's because dart2native produced
-#       binaries will wait for any background isolates to finish before stopping the process.
+# Note: when you see the process seemingly stuck after printing "All tests passed!", it's because `dart compile exe`
+#       produced binaries will wait for any background isolates to finish before stopping the process.
 #       For example, the following code has the issue: `HttpClient().get(...)`
 #       while `final httpClient = HttpClient(); httpClient.get(...); httpClient.close(force: true);` works fine.
 
@@ -19,7 +19,7 @@ mkdir -pv "${testDir}"
 function testWithValgrind() {
   echo "Running $1 with valgrind"
   testExe="${testDir}/${1%.*}"
-  dart2native "${root}/test/${1}" --output "${testExe}" --verbose
+  dart compile exe "${root}/test/${1}" --output "${testExe}" --verbose
   valgrind \
     --leak-check=full \
     --error-exitcode=1 \
