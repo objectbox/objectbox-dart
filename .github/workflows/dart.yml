@@ -41,6 +41,8 @@ jobs:
           - ubuntu-20.04
         sdk:
           - stable
+          - 2.14.0
+          - 2.13.0
           - 2.12.0  # currently the lowest fully supported version (i.e. generator + lib)
     runs-on: ${{ matrix.os }}
     steps:
