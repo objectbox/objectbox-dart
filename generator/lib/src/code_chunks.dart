@@ -344,6 +344,11 @@ class CodeChunks {
         case OBXPropertyType.Relation:
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
           return readFieldNonNull('0');
+        case OBXPropertyType.String:
+          // TODO `asciiOptimization: true` is for keeping the same behavior as the previous FB fork.
+          //      Check if it still makes sense with the latest Dart/Flutter.
+          fbReader = 'fb.StringReader(asciiOptimization: true)';
+          break;
         case OBXPropertyType.StringVector:
           // TODO `asciiOptimization: true` is for keeping the same behavior as the previous FB fork.
           //      Check if it still makes sense with the latest Dart/Flutter.
