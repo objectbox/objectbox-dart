@@ -336,7 +336,7 @@ class CodeChunks {
         case OBXPropertyType.ByteVector:
           if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
             fbReader = 'fb.${p.fieldType}Reader(lazy: false)';
-            return '${readField()} as ${p.fieldType}${p.fieldIsNullable ? "?" : ""}';
+            return '${readField()} as ${p.fieldType}${p.fieldIsNullable && p.entity!.nullSafetyEnabled ? "?" : ""}';
           } else {
             fbReader = 'fb.ListReader<int>(fb.Int8Reader(), lazy: false)';
           }
