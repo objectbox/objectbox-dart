@@ -44,6 +44,35 @@ There's also a separate repository benchmarking objectbox (and other databases) 
 [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance). And another one testing and 
 comparing the performance of our FlatBuffers fork vs the upstream version: [flatbuffers-benchmark](https://github.com/objectbox/flatbuffers-benchmark).
 
+Other languages/bindings
+------------------------
+ObjectBox supports multiple platforms and languages.
+Besides JVM based languages like Java and Kotlin, ObjectBox also offers: 
+
+* [ObjectBox Java / Kotlin](https://github.com/objectbox/objectbox-java): runs on Android, desktop, and servers.
+* [ObjectBox Swift](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS (and macOS) 
+* [ObjectBox Go](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications 
+* [ObjectBox C and C++](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects
+
+
+How I help ObjectBox?
+---------------------------
+We're on a mission to bring joy and delight to Mobile app developers.
+We want ObjectBox not only to be the fastest Swift database, but also the swiftiest Swift data persistence, making you enjoy coding with ObjectBox.
+
+To do that, we want your feedback: what do you love? What's amiss? Where do you struggle in everyday app development?
+
+**We're looking forward to receiving your comments and requests:**
+
+- Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues) 
+- Upvote issues you find important by hitting the 👍/+1 reaction button
+- Drop us a line via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
+- ⭐ us, if you like what you see 
+
+Thank you! 🙏
+
+Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
+
 ## License
 
 ```text
