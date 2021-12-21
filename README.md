@@ -8,15 +8,19 @@
 
 Flutter database to store & sync objects across devices with sustainable offline-first approach
 
-* 🏁 **High performance** - improving response rates and enabling real-time applications.
-* 🪂 **ACID compliance** - Atomic, Consistent, Isolated, Durable.
-* 🔗 **Relations** - object links / relationships are built-in.
-* 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
-* 💐 **Queries** - filter data as needed, even across relations.
-* 🦮 **Statically typed** - compile time checks & optimizations.
-* 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.
-* 📃 **Schema migration** - change your model with confidence.
-* 👥 [**Out-of-the-box Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
+🏁 **High performance** on restricted devices, like IoT gateways, micro controllers, ECUs etc.\
+🪂 **Resourceful** with minimal CPU, power and Memory usage for maximum flexibility and sustainability\
+🔗 **Relations:** object links / relationships are built-in\
+💻 **Multiplatform:** Linux, Windows, Android, iOS, macOS
+
+🌱 **Scalable:** handling millions of objects resource-efficiently with ease\
+💐 **Queries:** filter data as needed, even across relations\
+🦮 **Statically typed:** compile time checks & optimizations\
+📃 **Automatic schema migrations:** no update scripts needed
+
+**And much more than just data persistence**\
+👥 **[ObjectBox Sync](https://objectbox.io/sync/):** keeps data in sync between devices and servers\
+🕒 **[ObjectBox TS](https://objectbox.io/time-series-database/):** time series extension for time based data
 
 ## Getting Started 
 
@@ -46,8 +50,7 @@ comparing the performance of our FlatBuffers fork vs the upstream version: [flat
 
 Other languages/bindings
 ------------------------
-ObjectBox supports multiple platforms and languages.
-Besides JVM based languages like Java and Kotlin, ObjectBox also offers: 
+ObjectBox supports multiple platforms and languages: 
 
 * [ObjectBox Java / Kotlin](https://github.com/objectbox/objectbox-java): runs on Android, desktop, and servers.
 * [ObjectBox Swift](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS (and macOS) 
