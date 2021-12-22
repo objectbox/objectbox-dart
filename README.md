@@ -60,10 +60,8 @@ ObjectBox supports multiple platforms and languages:
 
 How I help ObjectBox?
 ---------------------------
-We're on a mission to bring joy and delight to Mobile app developers.
-We want ObjectBox not only to be the fastest Swift database, but also the swiftiest Swift data persistence, making you enjoy coding with ObjectBox.
-
-To do that, we want your feedback: what do you love? What's amiss? Where do you struggle in everyday app development?
+We strive to bring joy to Flutter developers and appreciate all kinds feedback, both positive and negative.
+What do you love? What's amiss? Where do you struggle in everyday app development?
 
 **We're looking forward to receiving your comments and requests:**
 
