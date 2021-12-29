@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import '../../flatbuffers/flat_buffers.dart' as fb;
+import 'package:flat_buffers/flat_buffers.dart' as fb;
+
 import '../relations/info.dart';
 import '../relations/to_many.dart';
 import '../relations/to_one.dart';

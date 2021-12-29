@@ -2,8 +2,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import '../../../flatbuffers/flat_buffers.dart' as fb;
 import 'nativemem.dart';
 
 // ignore_for_file: public_member_api_docs

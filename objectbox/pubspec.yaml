@@ -12,8 +12,7 @@ environment:
 dependencies:
   collection: ^1.15.0
   # take care updating flatbuffers - keep aligned with other bindings
-  # currently using a forked version in lib/flatbuffers, except for tests (see dev_dependencies)
-  # flat_buffers: 1.12.0
+  flat_buffers: 2.0.5
   ffi: ^1.0.0
   meta: ^1.3.0
   path: ^1.8.0
@@ -24,8 +23,6 @@ dev_dependencies:
   pedantic: ^1.11.0
   test: ^1.16.5
   ffigen: ^2.4.2
-  # No null-safety compatible version yet and we only need it in tests.
-  # flat_buffers: 1.12.0
 
 # NOTE: remove before publishing
 dependency_overrides:
