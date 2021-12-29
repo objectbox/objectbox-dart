@@ -309,7 +309,7 @@ void main() {
           Box<TestEntity>(env.store).put(TestEntity()); // not synced
           box.put(TestEntitySynced(value: 20));
           box.put(TestEntitySynced(value: 1));
-          box.remove(1);
+          expect(box.remove(1), isTrue);
         });
 
         // wait for the data to be transferred
@@ -331,7 +331,7 @@ void main() {
         //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
         //   box.put(TestEntitySynced(value: 20));
         //   box.put(TestEntitySynced(value: 1));
-        //   box.remove(1);
+        //   expect(box.remove(1), isTrue);
         // });
         expect(events[1].length, 1);
         expect(events[1][0].entity, TestEntitySynced);

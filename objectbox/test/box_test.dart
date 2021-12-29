@@ -203,7 +203,8 @@ void main() {
             e.toString().contains('same property value already exists'))));
   });
 
-  test('.put() replaces duplicate values on a unique replace field on insert', () {
+  test('.put() replaces duplicate values on a unique replace field on insert',
+      () {
     // insert without conflict
     box.putMany([
       TestEntity.uniqueReplace(replaceLong: 1, tString: 'original-1'),
@@ -219,7 +220,8 @@ void main() {
     expect(replaced.tString, equals('replacement-1'));
   });
 
-  test('.put() replaces duplicate values on a unique replace field on update', () {
+  test('.put() replaces duplicate values on a unique replace field on update',
+      () {
     // update without conflict
     var first = TestEntity.uniqueReplace(replaceLong: 1, tString: 'first');
     box.put(first);
@@ -478,7 +480,7 @@ void main() {
     bool contains = box.contains(id);
     expect(contains, equals(true));
     //check complementary
-    box.remove(id);
+    expect(box.remove(id), equals(true));
     contains = box.contains(id);
     expect(contains, equals(false));
   });
@@ -488,7 +490,7 @@ void main() {
     bool contains = box.containsMany(ids);
     expect(contains, equals(true));
     //check with one missing id
-    box.remove(ids[1]);
+    expect(box.remove(ids[1]), isTrue);
     contains = box.containsMany(ids);
     expect(contains, equals(false));
     //check complementary
@@ -500,12 +502,12 @@ void main() {
   test('.remove(id) works', () {
     final List<int> ids = box.putMany(simpleItems());
     //check if single id remove works
-    expect(box.remove(ids[1]), equals(true));
+    expect(box.remove(ids[1]), isTrue);
     expect(box.count(), equals(5));
     //check what happens if id already deleted -> throws OBJBOXEX 404
     bool success = box.remove(ids[1]);
     expect(box.count(), equals(5));
-    expect(success, equals(false));
+    expect(success, isFalse);
   });
 
   test('.remove() returns false on non-existent item', () {

@@ -198,18 +198,18 @@ void main() {
       rel.removeAt(1);
       check(rel, items: [1, 3], added: [], removed: [2]);
 
-      rel.remove(rel[1]);
+      expect(rel.remove(rel[1]), isTrue);
       check(rel, items: [1], added: [], removed: [2, 3]);
 
       rel.add(TestEntity(tInt: 4));
       check(rel, items: [1, 4], added: [4], removed: [2, 3]);
 
-      rel.remove(rel[1]);
+      expect(rel.remove(rel[1]), isTrue);
       check(rel, items: [1], added: [], removed: [2, 3]);
 
       rel.add(rel[0]);
       check(rel, items: [1, 1], added: [1], removed: [2, 3]);
-      rel.remove(rel[0]);
+      expect(rel.remove(rel[0]), isTrue);
       check(rel, items: [1], added: [], removed: [2, 3]);
     });
   });
