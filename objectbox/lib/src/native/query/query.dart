@@ -137,45 +137,82 @@ class QueryByteVectorProperty<EntityT>
       _op(val, _ConditionOp.lessOrEq, alias);
 }
 
-class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
-  QueryIntegerProperty(ModelProperty model) : super(model);
+mixin _QueryScalarProperty<EntityT, PropertyDartType> {
+  Condition<EntityT> _op(_ConditionOp cop, PropertyDartType p1,
+      PropertyDartType? p2, String? alias);
 
-  Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
-      _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
+  Condition<EntityT> _opList(
+      List<PropertyDartType> list, _ConditionOp cop, String? alias);
 
-  Condition<EntityT> _opList(List<int> list, _ConditionOp cop, String? alias) =>
-      _IntegerListCondition<EntityT>(cop, this, list, alias);
+  Condition<EntityT> equals(PropertyDartType p, {String? alias}) =>
+      _op(_ConditionOp.eq, p, null, alias);
 
-  Condition<EntityT> equals(int p, {String? alias}) =>
-      _op(_ConditionOp.eq, p, 0, alias);
+  Condition<EntityT> notEquals(PropertyDartType p, {String? alias}) =>
+      _op(_ConditionOp.notEq, p, null, alias);
 
-  Condition<EntityT> notEquals(int p, {String? alias}) =>
-      _op(_ConditionOp.notEq, p, 0, alias);
+  Condition<EntityT> greaterThan(PropertyDartType p, {String? alias}) =>
+      _op(_ConditionOp.gt, p, null, alias);
 
-  Condition<EntityT> greaterThan(int p, {String? alias}) =>
-      _op(_ConditionOp.gt, p, 0, alias);
+  Condition<EntityT> greaterOrEqual(PropertyDartType p, {String? alias}) =>
+      _op(_ConditionOp.greaterOrEq, p, null, alias);
 
-  Condition<EntityT> greaterOrEqual(int p, {String? alias}) =>
-      _op(_ConditionOp.greaterOrEq, p, 0, alias);
+  Condition<EntityT> lessThan(PropertyDartType p, {String? alias}) =>
+      _op(_ConditionOp.lt, p, null, alias);
 
-  Condition<EntityT> lessThan(int p, {String? alias}) =>
-      _op(_ConditionOp.lt, p, 0, alias);
+  Condition<EntityT> lessOrEqual(PropertyDartType p, {String? alias}) =>
+      _op(_ConditionOp.lessOrEq, p, null, alias);
 
-  Condition<EntityT> lessOrEqual(int p, {String? alias}) =>
-      _op(_ConditionOp.lessOrEq, p, 0, alias);
+  Condition<EntityT> operator <(PropertyDartType p) => lessThan(p);
 
-  Condition<EntityT> operator <(int p) => lessThan(p);
+  Condition<EntityT> operator >(PropertyDartType p) => greaterThan(p);
 
-  Condition<EntityT> operator >(int p) => greaterThan(p);
-
-  Condition<EntityT> between(int p1, int p2, {String? alias}) =>
+  Condition<EntityT> between(PropertyDartType p1, PropertyDartType p2,
+          {String? alias}) =>
       _op(_ConditionOp.between, p1, p2, alias);
 
-  Condition<EntityT> oneOf(List<int> list, {String? alias}) =>
+  Condition<EntityT> oneOf(List<PropertyDartType> list, {String? alias}) =>
       _opList(list, _ConditionOp.oneOf, alias);
 
-  Condition<EntityT> notOneOf(List<int> list, {String? alias}) =>
+  Condition<EntityT> notOneOf(List<PropertyDartType> list, {String? alias}) =>
       _opList(list, _ConditionOp.notOneOf, alias);
+}
+
+class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int>
+    with _QueryScalarProperty<EntityT, int> {
+  QueryIntegerProperty(ModelProperty model) : super(model);
+
+  @override
+  Condition<EntityT> _op(_ConditionOp cop, int p1, int? p2, String? alias) =>
+      _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
+
+  @override
+  Condition<EntityT> _opList(List<int> list, _ConditionOp cop, String? alias) =>
+      _IntegerListCondition<EntityT, int>(cop, this, list, alias);
+}
+
+class QueryDateProperty<EntityT> extends QueryProperty<EntityT, DateTime>
+    with _QueryScalarProperty<EntityT, DateTime> {
+  final bool _nano;
+
+  QueryDateProperty(ModelProperty model, {required bool isDateNano})
+      : _nano = isDateNano,
+        super(model);
+
+  @pragma('vm:prefer-inline')
+  int _convert(DateTime arg) =>
+      _nano ? arg.microsecondsSinceEpoch * 1000 : arg.millisecondsSinceEpoch;
+
+  @override
+  Condition<EntityT> _op(
+          _ConditionOp cop, DateTime p1, DateTime? p2, String? alias) =>
+      _IntegerCondition<EntityT, DateTime>(
+          cop, this, _convert(p1), p2 == null ? null : _convert(p2), alias);
+
+  @override
+  Condition<EntityT> _opList(
+          List<DateTime> list, _ConditionOp cop, String? alias) =>
+      _IntegerListCondition<EntityT, DateTime>(
+          cop, this, list.map(_convert), alias);
 }
 
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
@@ -457,10 +494,13 @@ class _IntegerCondition<EntityT, PropertyDartType>
   }
 }
 
-class _IntegerListCondition<EntityT>
-    extends _PropertyCondition<EntityT, int, List<int>> {
-  _IntegerListCondition(_ConditionOp op, QueryProperty<EntityT, int> prop,
-      List<int> value, String? alias)
+class _IntegerListCondition<EntityT, PropertyDartType>
+    extends _PropertyCondition<EntityT, PropertyDartType, Iterable<int>> {
+  _IntegerListCondition(
+      _ConditionOp op,
+      QueryProperty<EntityT, PropertyDartType> prop,
+      Iterable<int> value,
+      String? alias)
       : super(op, prop, value, null, alias);
 
   int _opList<T extends NativeType>(
@@ -470,10 +510,11 @@ class _IntegerListCondition<EntityT>
       void Function(Pointer<T>, int, int) setIndex) {
     final length = _value.length;
     try {
-      for (var i = 0; i < length; i++) {
+      var i = 0;
+      for (var v in _value) {
         // Error: The operator '[]=' isn't defined for the type 'Pointer<T>
         // listPtr[i] = _list[i];
-        setIndex(listPtr, i, _value[i]);
+        setIndex(listPtr, i++, v);
       }
       return func(builder._cBuilder, _property._model.id.id, listPtr, length);
     } finally {

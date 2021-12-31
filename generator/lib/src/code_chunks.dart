@@ -548,6 +548,10 @@ class CodeChunks {
 
   static String _metaClass(int i, ModelEntity entity) {
     final fields = <String>[];
+
+    // TODO decide how/when to make the switch - currently using the original behavior.
+    const useDateQueries = false;
+
     for (var p = 0; p < entity.properties.length; p++) {
       final prop = entity.properties[p];
       final name = prop.name;
@@ -570,9 +574,12 @@ class CodeChunks {
         case OBXPropertyType.Char:
         case OBXPropertyType.Int:
         case OBXPropertyType.Long:
+          fieldType = 'Integer';
+          break;
         case OBXPropertyType.Date:
         case OBXPropertyType.DateNano:
-          fieldType = 'Integer';
+          // TODO maybe also take into account if this is an integer or DateTime field in the original entity.
+          fieldType = useDateQueries ? 'Date' : 'Integer';
           break;
         case OBXPropertyType.Relation:
           fieldType = 'Relation';
@@ -597,7 +604,14 @@ class CodeChunks {
       } else {
         propCode += 'Query${fieldType}Property<${entity.name}>';
       }
-      propCode += '(_entities[$i].properties[$p]);';
+      propCode += '(_entities[$i].properties[$p]';
+      if (useDateQueries && prop.type == OBXPropertyType.Date) {
+        propCode += ', isDateNano: false);';
+      } else if (useDateQueries && prop.type == OBXPropertyType.DateNano) {
+        propCode += ', isDateNano: true);';
+      } else {
+        propCode += ');';
+      }
       fields.add(propCode);
     }
 

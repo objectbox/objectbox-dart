@@ -892,11 +892,15 @@ void main() {
     expect(box.count(), count); // just a sanity check
 
     final queries = [
+      // with the old [QueryIntegerProperty]
       box.query(TestEntity_.tDate.between(
           dates[2].millisecondsSinceEpoch, dates[4].millisecondsSinceEpoch)),
       box.query(TestEntity_.tDateNano.between(
           dates[2].microsecondsSinceEpoch * 1000,
           dates[4].microsecondsSinceEpoch * 1000)),
+      // with the new [QueryDateProperty]
+      // box.query(TestEntity_.tDate.between(dates[2], dates[4])),
+      // box.query(TestEntity_.tDateNano.between(dates[2], dates[4])),
     ];
 
     for (var query in queries) {
