@@ -61,6 +61,23 @@ void main() {
     expect(b.id, 2);
   });
 
+  test('assignable ID overwrite', () {
+    final a = TestEntity.filled(id: 1, tString: 'Object A');
+    final b = TestEntity.filled(id: 1, tString: 'Object B');
+    expect(box.put(a), 1);
+    expect(box.put(b), 1);
+    expect(box.count(), 1);
+
+    final query = box.query().build();
+    final items = query.find();
+    expect(items.length, 1);
+    expect(items[0].tString, 'Object B');
+
+    final first = query.findFirst();
+    expect(first, isNotNull);
+    expect(first?.tString, 'Object B');
+  });
+
   test('.putAsync failures', () async {
     final box = store.box<TestEntity2>();
     expect(
