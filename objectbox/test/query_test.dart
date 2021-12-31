@@ -824,7 +824,7 @@ void main() {
         .query(TestEntity_.tString.oneOf([]) |
             TestEntity_.tString.oneOf([], alias: 'a'))
         .build()
-          ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
+      ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
     if (!['OR tString in ["foo", "bar"]', 'OR tString in ["bar", "foo"]']
         .any(q1.describeParameters().contains)) {
       fail('Invalid query: ' + q1.describeParameters());
@@ -834,7 +834,7 @@ void main() {
         .query(
             TestEntity_.tInt.oneOf([]) | TestEntity_.tInt.oneOf([], alias: 'a'))
         .build()
-          ..param(TestEntity_.tInt, alias: 'a').values = [1, 2];
+      ..param(TestEntity_.tInt, alias: 'a').values = [1, 2];
 
     if (!['OR tInt in [1|2]', 'OR tInt in [2|1]']
         .any(q2.describeParameters().contains)) {
@@ -845,7 +845,7 @@ void main() {
         .query(TestEntity_.tLong.oneOf([]) |
             TestEntity_.tLong.oneOf([], alias: 'a'))
         .build()
-          ..param(TestEntity_.tLong, alias: 'a').values = [1, 2];
+      ..param(TestEntity_.tLong, alias: 'a').values = [1, 2];
 
     if (!['OR tLong in [1|2]', 'OR tLong in [2|1]']
         .any(q3.describeParameters().contains)) {

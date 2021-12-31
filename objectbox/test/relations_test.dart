@@ -300,9 +300,8 @@ void main() {
       entity.relManyA.add(RelatedEntityA(tInt: 1));
       expect(
           entity.relManyA.applyToDb,
-          throwsA(predicate((StateError e) => e
-              .toString()
-              .contains("ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead."))));
+          throwsA(predicate((StateError e) => e.toString().contains(
+              "ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead."))));
     });
 
     test("don't load old data when just adding", () {
