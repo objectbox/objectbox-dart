@@ -124,8 +124,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: TextField(
-                          decoration:
-                              const InputDecoration(hintText: 'Enter a new note'),
+                          decoration: const InputDecoration(
+                              hintText: 'Enter a new note'),
                           controller: _noteInputController,
                           onSubmitted: (value) => _addNote(),
                           // Provide a Key for the integration test

@@ -288,28 +288,28 @@ void main() {
           ..distinct = false
           ..caseSensitive = false)
         .find(replaceNullWith: 'meh')
-          ..sort();
+      ..sort();
     expect(resultsNone, defaultResults);
 
     var resultsDC = (stringQuery
           ..distinct = true
           ..caseSensitive = true)
         .find()
-          ..sort();
+      ..sort();
     expect(resultsDC, ['1withSuffix', '2WITHSUFFIX', '2withSuffix']);
 
     var resultsC = (stringQuery
           ..distinct = false
           ..caseSensitive = true)
         .find(replaceNullWith: 'meh')
-          ..sort();
+      ..sort();
     expect(resultsC, defaultResults);
 
     var resultsD = (stringQuery
           ..distinct = true
           ..caseSensitive = false)
         .find()
-          ..sort();
+      ..sort();
     expect(resultsD, ['1withSuffix', '2withSuffix']);
 
     stringQuery.close();

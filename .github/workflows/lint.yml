@@ -19,6 +19,7 @@ jobs:
         working-directory: objectbox
       - run: dart analyze
         working-directory: objectbox
+      - run: dart format --set-exit-if-changed --fix .
 
   pana:
     runs-on: ubuntu-latest
@@ -29,7 +30,6 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           relativePath: objectbox
-
       # You can then use this id to retrieve the outputs in the next steps.
       # The following step shows how to exit the workflow with an error if a score is below 100:
       - name: Check scores
