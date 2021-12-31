@@ -80,7 +80,9 @@ class TestEntity {
       this.tByteList,
       this.tInt8List,
       this.tUint8List,
-      this.ignore});
+      this.ignore,
+      this.tDate,
+      this.tDateNano});
 
   TestEntity.filled({
     this.id = 1,

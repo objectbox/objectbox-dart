@@ -884,4 +884,27 @@ void main() {
     expect(query.findFirst, ThrowingInConverters.throwsIn('Setter'));
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
+
+  test('DateTime', () {
+    const count = 6;
+    final dates = [for (var i = 1; i <= count; i++) DateTime.utc(2000, 1, i)];
+    box.putMany([for (var d in dates) TestEntity(tDate: d, tDateNano: d)]);
+    expect(box.count(), count); // just a sanity check
+
+    final queries = [
+      box.query(TestEntity_.tDate.between(
+          dates[2].millisecondsSinceEpoch, dates[4].millisecondsSinceEpoch)),
+      box.query(TestEntity_.tDateNano.between(
+          dates[2].microsecondsSinceEpoch * 1000,
+          dates[4].microsecondsSinceEpoch * 1000)),
+    ];
+
+    for (var query in queries) {
+      final items = query.build().find();
+      expect(items.length, 3);
+      expect(items[0].tDate!.day, 3);
+      expect(items[1].tDate!.day, 4);
+      expect(items[2].tDate!.day, 5);
+    }
+  });
 }
