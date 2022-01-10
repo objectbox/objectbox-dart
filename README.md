@@ -48,8 +48,8 @@ There's also a separate repository benchmarking objectbox (and other databases) 
 [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance). And another one testing and 
 comparing the performance of our FlatBuffers fork vs the upstream version: [flatbuffers-benchmark](https://github.com/objectbox/flatbuffers-benchmark).
 
-Other languages/bindings
-------------------------
+## Other languages/bindings
+
 ObjectBox supports multiple platforms and languages: 
 
 * [ObjectBox Java / Kotlin](https://github.com/objectbox/objectbox-java): runs on Android, desktop, and servers.
@@ -58,8 +58,8 @@ ObjectBox supports multiple platforms and languages:
 * [ObjectBox C and C++](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects
 
 
-How I help ObjectBox?
----------------------------
+## How can you help ObjectBox?
+
 We strive to bring joy to Flutter developers and appreciate all kinds feedback, both positive and negative.
 What do you love? What's amiss? Where do you struggle in everyday app development?
 
