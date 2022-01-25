@@ -25,7 +25,7 @@ set(objectbox_flutter_libs_bundled_libraries
 
 # ----------------------------------------------------------------------
 
-set(OBJECTBOX_VERSION 0.14.0)
+set(OBJECTBOX_VERSION 0.15.1)
 
 set(OBJECTBOX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${OBJECTBOX_ARCH} MATCHES "AMD64")
