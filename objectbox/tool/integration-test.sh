@@ -22,7 +22,8 @@ if [[ "${GITHUB_ACTIONS:-}" == "" ]]; then
   flutter drive --verbose --target=test_driver/app.dart
 fi
 
-flutter build apk
+# Only test App Bundle build, its the preferred format (and required for new apps on Google Play).
+# flutter build apk
 flutter build appbundle
 
 if [[ "$(uname)" == "Darwin" ]]; then
