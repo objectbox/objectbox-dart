@@ -65,7 +65,7 @@ Depending on if you are building a Flutter or Dart-only app, follow the steps be
 Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^1.2.1
+  objectbox: ^1.3.0
   objectbox_flutter_libs: any
   # for ObjectBox Sync use this dependency instead:
   # objectbox_sync_flutter_libs: any
@@ -108,7 +108,7 @@ Continue with the [examples README](example/README.md) to learn how to create en
 Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^1.2.1
+  objectbox: ^1.3.0
 
 dev_dependencies:
   build_runner: ^2.0.0
