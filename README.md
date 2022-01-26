@@ -6,10 +6,10 @@
 
 [![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
 
-Flutter database to store & sync objects across devices with sustainable offline-first approach
+Flutter database to store & sync objects across devices with a sustainable offline-first approach
 
-🏁 **High performance** on restricted devices, like IoT gateways, micro controllers, ECUs etc.\
-🪂 **Resourceful** with minimal CPU, power and Memory usage for maximum flexibility and sustainability\
+🏁 **High performance** on mobile and restricted devices, like IoT gateways, microcontrollers, ECUs etc.\
+🪂 **Resourceful** with minimal CPU, power and memory usage for maximum flexibility and sustainability\
 🔗 **Relations:** object links / relationships are built-in\
 💻 **Multiplatform:** Linux, Windows, Android, iOS, macOS
 
@@ -22,17 +22,21 @@ Flutter database to store & sync objects across devices with sustainable offline
 👥 **[ObjectBox Sync](https://objectbox.io/sync/):** keeps data in sync between devices and servers\
 🕒 **[ObjectBox TS](https://objectbox.io/time-series-database/):** time series extension for time based data
 
-## Getting Started 
+## Getting Started (in your App)
 
 To start using ObjectBox in your Flutter/Dart app, head over to
-* the [objectbox pub.dev page](https://pub.dev/packages/objectbox) or
-* check out our [Getting Started guide](https://docs.objectbox.io/getting-started).
 
-## Contributing 
+* the [ObjectBox pub.dev page](https://pub.dev/packages/objectbox) or
+* check out our [Getting Started Guide](https://docs.objectbox.io/getting-started).
 
-If you'd like to contribute to the package as a developer, hack around, or just have a look at the code, you can 
-clone/check out this repository and run `./tool/init.sh` to regenerate code and get you started. Make sure to have a
-look at the [contribution guidelines](CONTRIBUTING.md) - all contributions are very welcome.
+## Getting Started with this Repository 
+
+Do you want to check out the ObjectBox code itself? E.g. see in action, run tests, or even contribute code?
+Great! Clone/check out this repository and run this to generate code and get you started quickly:
+
+    ./tool/init.sh
+
+Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
 
 ## Packages
 
@@ -53,21 +57,21 @@ comparing the performance of our FlatBuffers fork vs the upstream version: [flat
 ObjectBox supports multiple platforms and languages: 
 
 * [ObjectBox Java / Kotlin](https://github.com/objectbox/objectbox-java): runs on Android, desktop, and servers.
-* [ObjectBox Swift](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS (and macOS) 
+* [ObjectBox Swift](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS and macOS 
 * [ObjectBox Go](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications 
 * [ObjectBox C and C++](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects
 
 
 ## How can you help ObjectBox?
 
-We strive to bring joy to Flutter developers and appreciate all kinds feedback, both positive and negative.
+We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
 What do you love? What's amiss? Where do you struggle in everyday app development?
 
 **We're looking forward to receiving your comments and requests:**
 
 - Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues) 
 - Upvote issues you find important by hitting the 👍/+1 reaction button
-- Drop us a line via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
+- Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
 - ⭐ us, if you like what you see 
 
 Thank you! 🙏
@@ -77,7 +81,7 @@ Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox
 ## License
 
 ```text
-Copyright 2019-2021 ObjectBox Ltd. All rights reserved.
+Copyright 2019-2022 ObjectBox Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

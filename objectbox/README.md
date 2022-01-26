@@ -158,7 +158,7 @@ See the [FAQ](https://docs.objectbox.io/faq) and [Troubleshooting](https://docs.
 ## License
 
 ```text
-Copyright 2019-2021 ObjectBox Ltd. All rights reserved.
+Copyright 2019-2022 ObjectBox Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
