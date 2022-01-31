@@ -100,6 +100,10 @@ jobs:
         with:
           channel: ${{ matrix.channel }}
           cache: true
+      - uses: actions/setup-java@v2 # macos-10.15 and windows-2019 default to Java 8, but Android Plugin requires 11
+        with:
+          distribution: 'temurin'
+          java-version: '11'
       - run: echo $PATH
       - run: flutter --version
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
