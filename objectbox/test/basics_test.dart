@@ -1,6 +1,8 @@
 import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'dart:isolate';
 
+import 'package:async/async.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -61,6 +63,58 @@ void main() {
     expect(read!.tString, 'foo');
     store2.close();
     env.closeAndDelete();
+  });
+
+  test('store attach fails if same isolate', () {
+    final env = TestEnv('basics');
+    expect(
+        () => Store.attach(getObjectBoxModel(), env.dir.path),
+        throwsA(predicate((UnsupportedError e) =>
+            e.message!.contains('Cannot create multiple Store instances'))));
+    env.closeAndDelete();
+  });
+
+  test('store attach remains open if main store closed', () async {
+    final env = TestEnv('basics');
+    final store1 = env.store;
+    final receivePort = ReceivePort();
+    final received = StreamQueue<dynamic>(receivePort);
+    await Isolate.spawn(storeAttachIsolate,
+        StoreAttachIsolateInit(receivePort.sendPort, env.dir.path));
+    final commandPort = await received.next as SendPort;
+
+    // Check native instance pointer is different.
+    final store2Address = await received.next as int;
+    expect(InternalStoreAccess.ptr(store1).address, isNot(store2Address));
+
+    final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
+    expect(id, 1);
+    // Close original store to test store remains open until all refs closed.
+    store1.close();
+    expect(true, Store.isOpen('testdata-basics'));
+
+    // Read data with attached store.
+    commandPort.send(id);
+    final readtString = await received.next as String?;
+    expect(readtString, isNotNull);
+    expect(readtString, 'foo');
+
+    // Close attached store, should close store completely.
+    commandPort.send(null);
+    await received.next;
+    expect(false, Store.isOpen('testdata-basics'));
+
+    // Dispose StreamQueue.
+    await received.cancel();
+  });
+
+  test('store is open', () {
+    expect(false, Store.isOpen(''));
+    expect(false, Store.isOpen('testdata-basics'));
+    final env = TestEnv('basics');
+    expect(true, Store.isOpen('testdata-basics'));
+    env.closeAndDelete();
+    expect(false, Store.isOpen('testdata-basics'));
   });
 
   test('transactions', () {
@@ -138,4 +192,32 @@ void main() {
     store.close();
     Directory('basics').deleteSync(recursive: true);
   });
+}
+
+class StoreAttachIsolateInit {
+  SendPort sendPort;
+  String path;
+
+  StoreAttachIsolateInit(this.sendPort, this.path);
+}
+
+void storeAttachIsolate(StoreAttachIsolateInit init) async {
+  final store2 = Store.attach(getObjectBoxModel(), init.path);
+
+  final commandPort = ReceivePort();
+  init.sendPort.send(commandPort.sendPort);
+  init.sendPort.send(InternalStoreAccess.ptr(store2).address);
+
+  await for (final message in commandPort) {
+    if (message is int) {
+      final read = store2.box<TestEntity>().get(message);
+      init.sendPort.send(read?.tString);
+    } else if (message == null) {
+      store2.close();
+      init.sendPort.send(null);
+      break;
+    }
+  }
+
+  print('Store attach isolate finished');
 }
