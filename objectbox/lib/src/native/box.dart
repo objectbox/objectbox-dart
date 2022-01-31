@@ -381,6 +381,8 @@ int _getOBXPutMode(PutMode mode) {
   return __getOBXPutMode(mode);
 }
 
+/// Something like an "async box": keeps an OBX_async pointer and offers
+/// functions to handle async messages (e.g. via ReceivePort).
 class _AsyncBoxHelper {
   final Pointer<OBX_async> _cAsync;
 
@@ -388,6 +390,10 @@ class _AsyncBoxHelper {
     initializeDartAPI();
   }
 
+  /// Put the given buffer as an object asynchronously.
+  /// Internally, this depends on the dartc_async_put_object C function,
+  /// which call an obx_async_put function with a callback. The callback sends
+  /// an empty message if successful, or an error string.
   Future<int> put(int id, BuilderWithCBuffer fbb, PutMode mode) async {
     final port = ReceivePort();
     final newId = C.dartc_async_put_object(_cAsync, port.sendPort.nativePort,
