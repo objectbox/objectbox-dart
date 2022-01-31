@@ -1,6 +1,5 @@
-include: package:pedantic/analysis_options.yaml
-# Effective dart has some things we don't use so let's stick with pedantic for now
-# include: package:effective_dart/analysis_options.yaml
+include: package:lints/recommended.yaml
+# https://dart.dev/guides/language/analysis-options
 
 linter:
   # Some additional rules from pub.dev analyzer and package:effective_dart
