@@ -30,6 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
+        with:
+          cache: true
       - run: ./tool/init.sh
 
   lib:
@@ -97,6 +99,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.channel }}
+          cache: true
       - run: echo $PATH
       - run: flutter --version
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
