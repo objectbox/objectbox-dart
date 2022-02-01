@@ -16,7 +16,6 @@ import 'bindings/bindings.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'query/query.dart';
-import 'transaction.dart';
 
 /// Box put (write) mode.
 enum PutMode {

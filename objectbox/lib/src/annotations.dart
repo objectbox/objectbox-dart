@@ -1,4 +1,4 @@
-import 'package:objectbox/objectbox.dart';
+import '../objectbox.dart';
 
 /// Entity annotation is used on a class to let ObjectBox know it should store
 /// it - making the class a "persistable Entity".

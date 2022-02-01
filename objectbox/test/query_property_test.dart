@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
