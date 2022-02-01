@@ -637,6 +637,9 @@ class Store {
 /// Internal only.
 @internal
 class InternalStoreAccess {
+  /// Access model definition.
+  static ModelDefinition modelDefinition(Store store) => store._defs;
+
   /// Access entity model for the given class (Dart Type).
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();

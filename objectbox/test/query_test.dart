@@ -665,7 +665,7 @@ void main() {
     q.close();
   });
 
-  test('stream items', () async {
+  testStream({required bool useIsolateStream}) async {
     final count = env.short ? 100 : 1000;
     final items = List<TestEntity>.generate(
         count, (i) => TestEntity.filled(id: 0, tByte: i % 30));
@@ -678,7 +678,9 @@ void main() {
     expect(query.count(), countMatching);
 
     final foundIds = query.findIds();
-    final streamed = await query.stream().toList();
+    final stream =
+        useIsolateStream ? await query.streamAsync() : query.stream();
+    final streamed = await stream.toList();
     expect(streamed.length, countMatching);
     final streamedIds = streamed.map((e) => e.id).toList(growable: false);
 
@@ -689,7 +691,9 @@ void main() {
     final streamListenedItems = <TestEntity>{};
 
     final start = DateTime.now();
-    final subscription = query.stream().listen(streamListenedItems.add);
+    final subStream =
+        useIsolateStream ? await query.streamAsync() : query.stream();
+    final subscription = subStream.listen(streamListenedItems.add);
     for (int i = 0; i < 10 && streamListenedItems.isEmpty; i++) {
       await Future<void>.delayed(Duration(milliseconds: i));
     }
@@ -699,6 +703,14 @@ void main() {
     expect(streamListenedItems.length, isNonZero);
 
     query.close();
+  }
+
+  test('stream items', () async {
+    await testStream(useIsolateStream: false);
+  });
+
+  test('stream items via isolate', () async {
+    await testStream(useIsolateStream: true);
   });
 
   test('set param single', () async {
