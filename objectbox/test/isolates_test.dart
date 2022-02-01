@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
