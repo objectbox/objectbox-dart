@@ -26,7 +26,7 @@ void main() {
     store = env.store;
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   test('store box vending', () {
     final box1 = store.box<TestEntity>();

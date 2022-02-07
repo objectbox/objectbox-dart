@@ -26,7 +26,7 @@ class TestEnv {
 
   Box<TestEntity> get box => store.box();
 
-  void close() {
+  void closeAndDelete() {
     store.close();
     if (dir.existsSync()) {
       dir.deleteSync(recursive: true);

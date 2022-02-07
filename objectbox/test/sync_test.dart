@@ -28,8 +28,8 @@ void main() {
   });
 
   tearDown(() {
-    env.close();
-    env2.close();
+    env.closeAndDelete();
+    env2.closeAndDelete();
   });
 
   // lambda to easily create clients in the test below
@@ -105,7 +105,7 @@ void main() {
 
     test('SyncClient is closed when a store is closed', () {
       final client = createClient(env2.store);
-      env2.close();
+      env2.closeAndDelete();
       expect(client.isClosed(), isTrue);
     });
 
@@ -114,7 +114,7 @@ void main() {
 
       SyncClient c2 = createClient(env2.store);
       expect(c1, isNot(equals(c2)));
-      env2.close();
+      env2.closeAndDelete();
     });
 
     test('SyncClient states (no server available)', () {

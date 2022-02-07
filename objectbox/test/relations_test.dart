@@ -13,7 +13,7 @@ void main() {
     env = TestEnv('relations');
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   group('ToOne', () {
     test('put', () {

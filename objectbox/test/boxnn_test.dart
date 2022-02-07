@@ -15,7 +15,7 @@ void main() {
     box = env.store.box();
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   test('CRUD', () {
     final objects = [

@@ -100,7 +100,7 @@ void main() {
 
     // note: accessing fbData after fb1.clear() is illegal (memory is freed)
     fb1.clear();
-    env.close();
+    env.closeAndDelete();
 
     // clearing the data must not affect already read objects
     checkSameEntities(target, source);

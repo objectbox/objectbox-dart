@@ -17,7 +17,7 @@ void main() {
     env = TestEnv('query');
     box = env.box;
   });
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   test('Query auto-close', () {
     // Finalizer is executed after the query object goes out of scope.
@@ -131,8 +131,8 @@ void main() {
     testCaseSensitivity(env1.box, true);
     testCaseSensitivity(env2.box, false);
 
-    env1.close();
-    env2.close();
+    env1.closeAndDelete();
+    env2.closeAndDelete();
   });
 
   test('.count doubles and booleans', () {

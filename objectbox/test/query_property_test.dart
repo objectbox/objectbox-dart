@@ -17,7 +17,7 @@ void main() {
     box = env.box;
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = () => integers

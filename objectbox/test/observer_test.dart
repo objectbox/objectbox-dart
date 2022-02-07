@@ -25,7 +25,7 @@ void main() async {
     box = env.box;
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   test('Observe single entity', () async {
     late Completer<void> completer;

@@ -98,7 +98,7 @@ void main() {
 
     isolate.kill();
     receivePort.close();
-    env.close();
+    env.closeAndDelete();
   });
 }
 

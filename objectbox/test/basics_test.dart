@@ -57,7 +57,7 @@ void main() {
     expect(read, isNotNull);
     expect(read!.tString, 'foo');
     store2.close();
-    env.close();
+    env.closeAndDelete();
   });
 
   test('transactions', () {
@@ -86,7 +86,7 @@ void main() {
               .toString()
               .contains('Given transaction callback always fails.'))));
     });
-    env.close();
+    env.closeAndDelete();
   });
 
   test('store multi-open', () {
