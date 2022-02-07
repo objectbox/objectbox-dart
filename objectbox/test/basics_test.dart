@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:isolate';
@@ -192,6 +193,29 @@ void main() {
     store.close();
     Directory('basics').deleteSync(recursive: true);
   });
+
+  test('store_runInIsolatedTx', () async {
+    final env = TestEnv('basics');
+    final id = env.box.put(TestEntity(tString: 'foo'));
+    final futureResult =
+        env.store.runIsolated(TxMode.write, readStringAndRemove, id);
+    print('Count in main isolate: ${env.box.count()}');
+    final x = await futureResult;
+    expect(x, 'foo!');
+    expect(env.box.count(), 0); // Must be removed once awaited
+    env.closeAndDelete();
+  });
+}
+
+String readStringAndRemove(Store store, int id) {
+  var box = store.box<TestEntity>();
+  var testEntity = box.get(id);
+  final result = testEntity!.tString! + '!';
+  print('Result in 2nd isolate: $result');
+  final removed = box.remove(id);
+  print('Removed in 2nd isolate: $removed');
+  print('Count in 2nd isolate after remove: ${box.count()}');
+  return result;
 }
 
 class StoreAttachIsolateInit {

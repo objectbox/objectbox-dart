@@ -382,6 +382,39 @@ class Store {
     return _runInTransaction(mode, (tx) => fn());
   }
 
+  // Isolate entry point must be static or top-level.
+  static void _callFunctionWithStoreInIsolate<P, R>(IsoPass<P, R> isoPass) {
+    final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
+        queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
+    final result = isoPass.runFn(store);
+    store.close();
+    // Note: maybe replace with Isolate.exit once min Dart SDK 2.15.
+    isoPass.resultPort?.send(result);
+  }
+
+  /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
+  /// its own Store and returns the result of callback.
+  ///
+  /// Instances of [callback] must be top-level functions or static methods
+  /// of classes, not closures or instance methods of objects.
+  Future<R> runIsolated<P, R>(
+      TxMode mode, R Function(Store, P) callback, P param) async {
+    final resultPort = ReceivePort();
+    // Await isolate spawn to avoid waiting forever if it fails to spawn.
+    await Isolate.spawn(
+        _callFunctionWithStoreInIsolate,
+        IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
+            resultPort.sendPort, callback, param));
+    // Use Completer to return result so type is not lost.
+    final result = Completer<R>();
+    resultPort.listen((dynamic message) {
+      result.complete(message as R);
+    });
+    await result.future;
+    resultPort.close();
+    return result.future;
+  }
+
   /// Internal only - bypasses the main checks for async functions, you may
   /// only pass synchronous callbacks!
   R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
@@ -495,3 +528,40 @@ final _openStoreDirectories = HashSet<String>();
 /// Otherwise, it's we can distinguish at runtime whether a function is async.
 final _nullSafetyEnabled = _nullReturningFn is! Future Function();
 final _nullReturningFn = () => null;
+
+/// Captures everything required to create a "copy" of a store in an isolate
+/// and run user code.
+@immutable
+class IsoPass<P, R> {
+  ///
+  final ModelDefinition model;
+
+  /// Used to attach to store in separate isolate
+  /// (may be replaced in the future).
+  final String dbDirectoryPath;
+
+  /// Config
+  final bool queriesCaseSensitiveDefault;
+
+  /// Non-void functions can use this port to receive the result
+  final SendPort? resultPort;
+
+  /// Parameter passed to the function
+  final P param;
+
+  /// Function to be called in isolate
+  final R Function(Store, P) fn;
+
+  /// creates everything that needs to be passed to the isolate.
+  const IsoPass(
+      this.model,
+      this.dbDirectoryPath,
+      // ignore: avoid_positional_boolean_parameters
+      this.queriesCaseSensitiveDefault,
+      this.resultPort,
+      this.fn,
+      this.param);
+
+  /// Called inside this class so types are not lost (dynamic instead of P and R).
+  R runFn(Store store) => fn(store, param);
+}
