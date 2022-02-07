@@ -25,6 +25,11 @@ int _forwarder(Pointer<Void> _, Pointer<Void> dataPtr, int size) =>
 final Pointer<NativeFunction<obx_data_visitor>> _nativeVisitor =
     Pointer.fromFunction(_forwarder, 0);
 
+/// The callback for reading data one-by-one.
+///
+/// - [data] is the read data buffer.
+/// - [size] specifies the length of the read data.
+/// - Return true to keep going, false to cancel.
 @pragma('vm:prefer-inline')
 Pointer<NativeFunction<obx_data_visitor>> dataVisitor(
     bool Function(Pointer<Uint8> data, int size) callback) {
