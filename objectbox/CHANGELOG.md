@@ -1,6 +1,7 @@
 ## latest
 
 * Add an option to change code-generator's `output_dir` in `pubspec.yaml`. #341
+* Support ObjectBox Admin for Android apps to browse the database, see our [docs](https://docs.objectbox.io/data-browser) to get started. #148
 * Update: [objectbox-c 0.15.2](https://github.com/objectbox/objectbox-c/releases/tag/v0.15.0).
 * Update: [objectbox-android 3.1.2](https://github.com/objectbox/objectbox-java/releases/tag/V3.1.0).
 * Update: [objectbox-swift 1.7.0](https://github.com/objectbox/objectbox-swift/releases/tag/v1.7.0).

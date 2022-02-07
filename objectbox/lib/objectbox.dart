@@ -6,6 +6,7 @@ library objectbox;
 
 export 'src/annotations.dart';
 export 'src/box.dart' show Box, PutMode;
+export 'src/admin.dart' show Admin;
 export 'src/common.dart';
 export 'src/query.dart'
     show
