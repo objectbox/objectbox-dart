@@ -44,6 +44,9 @@ class Store {
   final _reader = ReaderWithCBuffer();
   Transaction? _tx;
 
+  /// Path to the database directory.
+  final String directoryPath;
+
   /// Absolute path to the database directory, used for open check.
   final String _absoluteDirectoryPath;
 
@@ -88,6 +91,7 @@ class Store {
       String? macosApplicationGroup})
       : _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
+        directoryPath = _safeDirectoryPath(directory),
         _absoluteDirectoryPath =
             path.context.canonicalize(_safeDirectoryPath(directory)) {
     try {
@@ -114,13 +118,11 @@ class Store {
 
       try {
         checkObx(C.opt_model(opt, model.ptr));
-        if (directory != null && directory.isNotEmpty) {
-          final cStr = directory.toNativeUtf8();
-          try {
-            checkObx(C.opt_directory(opt, cStr.cast()));
-          } finally {
-            malloc.free(cStr);
-          }
+        final cStr = directoryPath.toNativeUtf8();
+        try {
+          checkObx(C.opt_directory(opt, cStr.cast()));
+        } finally {
+          malloc.free(cStr);
         }
         if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
           C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
@@ -199,6 +201,7 @@ class Store {
       {bool queriesCaseSensitiveDefault = true})
       // must not close the same native store twice so [_weak]=true
       : _weak = true,
+        directoryPath = '',
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
     // see [reference] for serialization order
@@ -231,6 +234,7 @@ class Store {
       // _weak = false so store can be closed.
       : _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
+        directoryPath = _safeDirectoryPath(directoryPath),
         _absoluteDirectoryPath =
             path.context.canonicalize(_safeDirectoryPath(directoryPath)) {
     try {
@@ -240,12 +244,12 @@ class Store {
       // overlap.
       _checkStoreDirectoryNotOpen();
 
-      final path = _safeDirectoryPath(directoryPath);
-      final pathCStr = path.toNativeUtf8();
+      final pathCStr = this.directoryPath.toNativeUtf8();
       try {
         if (debugLogs) {
           final isOpen = C.store_is_open(pathCStr.cast());
-          print('Attaching to store... path=$path isOpen=$isOpen');
+          print(
+              'Attaching to store... path=${this.directoryPath} isOpen=$isOpen');
         }
         _cStore = C.store_attach(pathCStr.cast());
       } finally {
