@@ -384,7 +384,7 @@ class Store {
 
   // Isolate entry point must be static or top-level.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
-      IsoPass<P, R> isoPass) async {
+      _IsoPass<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
     final result = await isoPass.runFn(store);
@@ -404,7 +404,7 @@ class Store {
     // Await isolate spawn to avoid waiting forever if it fails to spawn.
     await Isolate.spawn(
         _callFunctionWithStoreInIsolate,
-        IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
+        _IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
             resultPort.sendPort, callback, param));
     // Use Completer to return result so type is not lost.
     final result = Completer<R>();
@@ -533,36 +533,34 @@ final _nullReturningFn = () => null;
 /// Captures everything required to create a "copy" of a store in an isolate
 /// and run user code.
 @immutable
-class IsoPass<P, R> {
-  ///
+class _IsoPass<P, R> {
   final ModelDefinition model;
 
   /// Used to attach to store in separate isolate
   /// (may be replaced in the future).
   final String dbDirectoryPath;
 
-  /// Config
   final bool queriesCaseSensitiveDefault;
 
-  /// Non-void functions can use this port to receive the result
+  /// Non-void functions can use this port to receive the result.
   final SendPort? resultPort;
 
-  /// Parameter passed to the function
+  /// Parameter passed to [callback].
   final P param;
 
-  /// Function to be called in isolate
-  final FutureOr<R> Function(Store, P) fn;
+  /// To be called in isolate.
+  final FutureOr<R> Function(Store, P) callback;
 
-  /// creates everything that needs to be passed to the isolate.
-  const IsoPass(
+  const _IsoPass(
       this.model,
       this.dbDirectoryPath,
       // ignore: avoid_positional_boolean_parameters
       this.queriesCaseSensitiveDefault,
       this.resultPort,
-      this.fn,
+      this.callback,
       this.param);
 
-  /// Called inside this class so types are not lost (dynamic instead of P and R).
-  FutureOr<R> runFn(Store store) => fn(store, param);
+  /// Calls [callback] inside this class so types are not lost
+  /// (if called in isolate types would be dynamic instead of P and R).
+  FutureOr<R> runFn(Store store) => callback(store, param);
 }
