@@ -207,7 +207,7 @@ void main() {
   });
 }
 
-String readStringAndRemove(Store store, int id) {
+Future<String> readStringAndRemove(Store store, int id) async {
   var box = store.box<TestEntity>();
   var testEntity = box.get(id);
   final result = testEntity!.tString! + '!';
@@ -215,7 +215,8 @@ String readStringAndRemove(Store store, int id) {
   final removed = box.remove(id);
   print('Removed in 2nd isolate: $removed');
   print('Count in 2nd isolate after remove: ${box.count()}');
-  return result;
+  // Pointless Future to test async functions are supported.
+  return await Future.delayed(const Duration(milliseconds: 10), () => result);
 }
 
 class StoreAttachIsolateInit {

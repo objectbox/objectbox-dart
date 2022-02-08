@@ -383,10 +383,11 @@ class Store {
   }
 
   // Isolate entry point must be static or top-level.
-  static void _callFunctionWithStoreInIsolate<P, R>(IsoPass<P, R> isoPass) {
+  static Future<void> _callFunctionWithStoreInIsolate<P, R>(
+      IsoPass<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
-    final result = isoPass.runFn(store);
+    final result = await isoPass.runFn(store);
     store.close();
     // Note: maybe replace with Isolate.exit once min Dart SDK 2.15.
     isoPass.resultPort?.send(result);
@@ -398,7 +399,7 @@ class Store {
   /// Instances of [callback] must be top-level functions or static methods
   /// of classes, not closures or instance methods of objects.
   Future<R> runIsolated<P, R>(
-      TxMode mode, R Function(Store, P) callback, P param) async {
+      TxMode mode, FutureOr<R> Function(Store, P) callback, P param) async {
     final resultPort = ReceivePort();
     // Await isolate spawn to avoid waiting forever if it fails to spawn.
     await Isolate.spawn(
@@ -550,7 +551,7 @@ class IsoPass<P, R> {
   final P param;
 
   /// Function to be called in isolate
-  final R Function(Store, P) fn;
+  final FutureOr<R> Function(Store, P) fn;
 
   /// creates everything that needs to be passed to the isolate.
   const IsoPass(
@@ -563,5 +564,5 @@ class IsoPass<P, R> {
       this.param);
 
   /// Called inside this class so types are not lost (dynamic instead of P and R).
-  R runFn(Store store) => fn(store, param);
+  FutureOr<R> runFn(Store store) => fn(store, param);
 }
