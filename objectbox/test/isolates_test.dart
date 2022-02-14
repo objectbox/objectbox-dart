@@ -55,6 +55,7 @@ void main() {
   /// Work with a single store across multiple isolates using
   /// the directory path to attach to an existing store.
   test('single store using attach', () async {
+    Store.debugLogs = true;
     await testUsingStoreFromIsolate(storeCreatorAttach, (env) => env.dir.path);
   });
 }
@@ -63,8 +64,10 @@ void main() {
 Store storeCreatorFromRef(dynamic msg) =>
     Store.fromReference(getObjectBoxModel(), msg as ByteData);
 
-Store storeCreatorAttach(dynamic msg) =>
-    Store.attach(getObjectBoxModel(), msg as String);
+Store storeCreatorAttach(dynamic msg) {
+  Store.debugLogs = true;
+  return Store.attach(getObjectBoxModel(), msg as String);
+}
 
 class IsolateInitMessage {
   SendPort sendPort;
@@ -101,6 +104,8 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
 
   // Pass the store to the isolate
   final env = TestEnv('isolates');
+  expect(Store.isOpen('testdata-isolates'), true);
+
   expect(await call(storeRefGetter(env)), equals('store set'));
 
   {

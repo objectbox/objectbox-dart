@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
+import 'package:objectbox/src/native/version.dart';
 import 'package:path/path.dart' as path;
 
 import '../common.dart';
@@ -29,6 +30,10 @@ part 'observable.dart';
 class Store {
   /// Path of the default directory, currently 'objectbox'.
   static const String defaultDirectoryPath = 'objectbox';
+
+  /// Enables a couple of debug logs.
+  /// This meant for tests only; do not enable for releases!
+  static bool debugLogs = false;
 
   late final Pointer<OBX_store> _cStore;
   HashMap<int, Type>? _entityTypeById;
@@ -130,6 +135,11 @@ class Store {
         C.opt_free(opt);
         rethrow;
       }
+      if (debugLogs) {
+        print('Opening store (C lib V${libraryVersion()})... path=$directory'
+            ' isOpen=${isOpen(directory)}');
+      }
+
       _cStore = C.store_open(opt);
 
       _checkStorePointer(_cStore);
@@ -233,12 +243,17 @@ class Store {
       final path = _safeDirectoryPath(directoryPath);
       final pathCStr = path.toNativeUtf8();
       try {
+        if (debugLogs) {
+          final isOpen = C.store_is_open(pathCStr.cast());
+          print('Attaching to store... path=$path isOpen=$isOpen');
+        }
         _cStore = C.store_attach(pathCStr.cast());
       } finally {
         malloc.free(pathCStr);
       }
 
-      _checkStorePointer(_cStore);
+      checkObxPtr(_cStore,
+          'could not attach to the store at given path - please ensure it was opened before');
 
       // Not setting _reference as this is a replacement for obtaining a store
       // via reference.
