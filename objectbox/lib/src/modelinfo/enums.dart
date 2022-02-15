@@ -1,6 +1,8 @@
 // Note: the enums in this file are copied from native/bindings/objectbox-c.dart
 // to avoid package:ffi import which would break compatibility with web.
 
+// ignore_for_file: public_member_api_docs, constant_identifier_names
+
 import '../annotations.dart';
 
 /// Maps [OBXPropertyType] to its string representation (name).

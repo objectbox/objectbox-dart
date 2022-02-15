@@ -116,12 +116,12 @@ Object? _dartAPIInitException;
 
 /// A couple of native functions we need as callbacks to pass back to native.
 /// Unfortunately, ffigen keeps those private.
-typedef _native_close = Int32 Function(Pointer<Void> ptr);
+typedef _NativeClose = Int32 Function(Pointer<Void> ptr);
 
 late final native_query_close =
-    _lib!.lookup<NativeFunction<_native_close>>('obx_query_close');
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_close');
 late final native_query_prop_close =
-    _lib!.lookup<NativeFunction<_native_close>>('obx_query_prop_close');
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_prop_close');
 
 /// Keeps `this` alive until this call, preventing finalizers to run.
 /// Necessary for objects with a finalizer attached because the optimizer may

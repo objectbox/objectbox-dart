@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:test/test.dart';
+
 import 'entity.dart';
 import 'test_env.dart';
 
