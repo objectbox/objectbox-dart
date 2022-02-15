@@ -111,12 +111,6 @@ extension ObservableStore on Store {
       final entities = List<Type>.filled(entityIds.length, Null);
       for (var i = 0; i < entityIds.length; i++) {
         final entityId = entityIds[i];
-        if (entityId is! int) {
-          observer.controller.addError(ObjectBoxException(
-              'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
-          return;
-        }
-
         final entityType = entityTypesById[entityId];
         if (entityType == null) {
           observer.controller.addError(ObjectBoxException(
