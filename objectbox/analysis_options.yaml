@@ -27,13 +27,11 @@ analyzer:
   errors:
     public_member_api_docs: error
     type_annotate_public_apis: error
+  # Note: pana ignores these exclude rules, better add ignore_for_file comments.
   exclude:
     - example/**
     - generator/**
     - benchmark/**
-    - lib/src/modelinfo/enums.dart
-    - lib/src/native/bindings/objectbox-c.dart
-    - lib/flatbuffers/** # Not really our code
   strong-mode:
     implicit-casts: false
     implicit-dynamic: false
