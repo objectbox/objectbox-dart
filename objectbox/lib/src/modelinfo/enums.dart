@@ -1,4 +1,4 @@
-// Note: the enums in this file are copied from native/bindings/objectbox-c.dart
+// Note: the enums in this file are copied from native/bindings/objectbox_c.dart
 // to avoid package:ffi import which would break compatibility with web.
 
 // ignore_for_file: public_member_api_docs, constant_identifier_names

@@ -32,7 +32,7 @@ dependency_overrides:
 ffigen:
   name: 'ObjectBoxC'
   description: 'Bindings to ObjectBox C-API'
-  output: 'lib/src/native/bindings/objectbox-c.dart'
+  output: 'lib/src/native/bindings/objectbox_c.dart'
   headers:
     entry-points:
       # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading

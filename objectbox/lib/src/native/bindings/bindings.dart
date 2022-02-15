@@ -2,10 +2,10 @@ import 'dart:ffi';
 import 'dart:io' show Platform;
 
 import 'helpers.dart';
-import 'objectbox-c.dart';
+import 'objectbox_c.dart';
 
 // let files importing bindings.dart also get all the OBX_* types
-export 'objectbox-c.dart';
+export 'objectbox_c.dart';
 
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: non_constant_identifier_names
