@@ -33,4 +33,6 @@ Download source code of an [objectbox-c release version](https://github.com/obje
 - Execute `dart run ffigen` in the `objectbox` directory. This requires LLVM libraries 
   (see [ffigen docs](https://pub.dev/packages/ffigen#installing-llvm) 
   and the ffigen section in [pubspec.yaml](../objectbox/pubspec.yaml)).
+- Copy/update enums from [objectbox_c.dart](../objectbox/lib/src/native/bindings/objectbox_c.dart) 
+  in [enums.dart](../objectbox/lib/src/modelinfo/enums.dart).
 - Have a look at the changed files to see if some call sites need to be updated.
