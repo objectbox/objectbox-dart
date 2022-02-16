@@ -1,0 +1,65 @@
+stages:
+  - analyze
+  - test
+
+variables:
+  # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
+  #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
+  DART_VERSION: '2.16.1'
+
+# Make PUB_CACHE cacheable in GitLab;
+# see also https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77791/diffs and
+# https://dikman.medium.com/optimising-flutter-ci-by-caching-packages-8a1d537e0b23
+# Requires extending job to set DART_VERSION variable.
+.cache:
+  before_script:
+    - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache" # https://dart.dev/tools/pub/environment-variables
+    - export PATH="$PATH":"$PUB_CACHE/bin"
+  cache:
+    paths:
+      - $CI_PROJECT_DIR/.pub-cache/bin/
+      - $CI_PROJECT_DIR/.pub-cache/global_packages/
+      - $CI_PROJECT_DIR/.pub-cache/hosted/
+    key: "linux-x64-dart-$DART_VERSION-pub-cache"
+
+# Analyzes Dart passes all lints rules and is formatted correctly (required to publish to pub.dev).
+analyze:
+  extends: .cache
+  stage: analyze
+  tags: [ x64, linux, docker ]
+  image: dart:$DART_VERSION
+  script:
+    - cd objectbox
+    - dart run build_runner build
+    - dart analyze
+    - cd ..
+    - dart format --set-exit-if-changed --fix .
+
+# Runs generator integration tests, e.g. ensures generator works as expected.
+test-generator:linux:x64:
+  extends: .cache
+  stage: test
+  tags: [ x64, linux, docker ]
+  image: dart:$DART_VERSION
+  script:
+    - ./install.sh
+    - ./generator/test.sh
+
+.test:
+  extends: .cache
+  stage: test
+  script:
+    - ./install.sh
+    - cd objectbox
+    - dart pub get
+    - dart run build_runner build
+
+test-lib:linux:x64:
+  extends: .test
+  tags: [ x64, linux, docker ]
+  image: dart:$DART_VERSION
+  parallel:
+    matrix:
+      # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
+      #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
+      - DART_VERSION: [ '2.16.1', '2.16.0', '2.15.1', '2.15.0', '2.14.4', '2.13.4' ]
