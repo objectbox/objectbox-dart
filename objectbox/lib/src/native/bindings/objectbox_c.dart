@@ -7001,7 +7001,7 @@ const int OBX_VERSION_MAJOR = 0;
 
 const int OBX_VERSION_MINOR = 15;
 
-const int OBX_VERSION_PATCH = 1;
+const int OBX_VERSION_PATCH = 2;
 
 const int OBX_ID_NEW = -1;
 

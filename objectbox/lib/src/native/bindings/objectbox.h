@@ -51,7 +51,7 @@ extern "C" {
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 0
 #define OBX_VERSION_MINOR 15
-#define OBX_VERSION_PATCH 1  // values >= 100 are reserved for dev releases leading to the next minor/major increase
+#define OBX_VERSION_PATCH 2  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
 // Common types
@@ -693,9 +693,11 @@ OBX_C_API OBX_store* obx_store_open(OBX_store_options* opt);
 OBX_C_API bool obx_store_is_open(const char* path);
 
 /// Attach to a previously opened store matching the path of the DB directory, which was used for opening the store.
-/// The returned store is a new instance (e.g. different pointer value) with its own lifetime and must also be closed.
+/// The returned store is a new instance (e.g. different pointer value) with its own lifetime and must also be closed
+/// via obx_store_close().
 /// The actual underlying store is only closed when the last store OBX_store instance is closed.
 /// @returns nullptr if no open store was found (i.e. not opened before or already closed)
+/// @see obx_store_clone() for "attaching" to a available store instance.
 OBX_C_API OBX_store* obx_store_attach(const char* path);
 
 /// Combines the functionality of obx_store_attach() and obx_store_open() in a thread-safe way.
@@ -705,6 +707,16 @@ OBX_C_API OBX_store* obx_store_attach(const char* path);
 /// @param out_attached (optional) if given a pointer to a flag that telling if the function attached to an existing
 ///        store (true) or a new store was created (false).
 OBX_C_API OBX_store* obx_store_attach_or_open(OBX_store_options* opt, bool check_matching_options, bool* out_attached);
+
+/// Clone a previously opened store; while a store instance is usable from multiple threads, situations may exist
+/// in which cloning a store simplifies the overall lifecycle.
+/// E.g. when a store is used for multiple threads and it may only be fully released once the last thread completes.
+/// The returned store is a new instance (e.g. different pointer value) with its own lifetime and must also be closed
+/// via obx_store_close().
+/// The actual underlying store is only closed when the last store OBX_store instance is closed.
+/// @returns nullptr if the store could not be cloned
+/// @see obx_store_attach() for "cloning" using the store's path.
+OBX_C_API OBX_store* obx_store_clone(OBX_store* store);
 
 /// For stores created outside of this C API, e.g. via C++ or Java, this is how you can use it via C too.
 /// Like this, it is OK to use the same store instance (same database) from multiple languages in parallel.
@@ -968,7 +980,7 @@ OBX_C_API obx_err obx_box_contains_many(OBX_box* box, const OBX_id_array* ids, b
 /// \attention The exposed data is only valid as long as the (top) transaction is still active and no write
 /// \attention operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
 /// @returns OBX_ERROR_ILLEGAL_STATE if not inside of an active transaction (see obx_txn_read() and obx_txn_write())
-OBX_C_API obx_err obx_box_get(OBX_box* box, obx_id id, uint8_t** data, size_t* size);
+OBX_C_API obx_err obx_box_get(OBX_box* box, obx_id id, const uint8_t** data, size_t* size);
 
 /// Fetch multiple objects for the given IDs from the box; must be called inside a (reentrant) transaction.
 /// \attention See obx_box_get() for important notes on the limited lifetime of the exposed data.
