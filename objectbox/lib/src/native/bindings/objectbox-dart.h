@@ -35,55 +35,56 @@ extern "C" {
 //----------------------------------------------
 
 /// Initializes Dart API - call before any other obx_dart_* functions.
-obx_err obx_dart_init_api(void* data);
+OBX_C_API obx_err obx_dart_init_api(void* data);
 
 /// @see obx_observe()
 /// Note: use obx_observer_close() to free unassign the observer and free resources after you're done with it
-OBX_observer* obx_dart_observe(OBX_store* store, int64_t native_port);
+OBX_C_API OBX_observer* obx_dart_observe(OBX_store* store, int64_t native_port);
 
 // @see obx_observe_single_type()
-OBX_observer* obx_dart_observe_single_type(OBX_store* store, obx_schema_id type_id, int64_t native_port);
+OBX_C_API OBX_observer* obx_dart_observe_single_type(OBX_store* store, obx_schema_id type_id, int64_t native_port);
 
 // Note: use OBX_dart_sync_listener_close() to unassign the listener and free native resources
 struct OBX_dart_sync_listener;
 typedef struct OBX_dart_sync_listener OBX_dart_sync_listener;
 
 /// @param listener may be NULL
-obx_err obx_dart_sync_listener_close(OBX_dart_sync_listener* listener);
+OBX_C_API obx_err obx_dart_sync_listener_close(OBX_dart_sync_listener* listener);
 
 // @see obx_sync_listener_connect()
-OBX_dart_sync_listener* obx_dart_sync_listener_connect(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_connect(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_sync_listener_disconnect()
-OBX_dart_sync_listener* obx_dart_sync_listener_disconnect(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_disconnect(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_sync_listener_login()
-OBX_dart_sync_listener* obx_dart_sync_listener_login(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_login(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_sync_listener_login_failure()
-OBX_dart_sync_listener* obx_dart_sync_listener_login_failure(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_login_failure(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_sync_listener_complete()
-OBX_dart_sync_listener* obx_dart_sync_listener_complete(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_complete(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_sync_listener_change()
-OBX_dart_sync_listener* obx_dart_sync_listener_change(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_change(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_sync_listener_server_time()
-OBX_dart_sync_listener* obx_dart_sync_listener_server_time(OBX_sync* sync, int64_t native_port);
+OBX_C_API OBX_dart_sync_listener* obx_dart_sync_listener_server_time(OBX_sync* sync, int64_t native_port);
 
 /// @see obx_async_put_object()
-obx_id obx_dart_async_put_object(OBX_async* async, int64_t native_port, void* data, size_t size, OBXPutMode mode);
+OBX_C_API obx_id obx_dart_async_put_object(OBX_async* async, int64_t native_port, void* data, size_t size,
+                                           OBXPutMode mode);
 
 struct OBX_dart_stream;
 typedef struct OBX_dart_stream OBX_dart_stream;
 
-obx_err obx_dart_stream_close(OBX_dart_stream* stream);
+OBX_C_API obx_err obx_dart_stream_close(OBX_dart_stream* stream);
 
 /// @see obx_dart_stream_query_find
-OBX_dart_stream* obx_dart_query_find(OBX_query* query, int64_t native_port);
+OBX_C_API OBX_dart_stream* obx_dart_query_find(OBX_query* query, int64_t native_port);
 
-OBX_dart_stream* obx_dart_query_find_ptr(OBX_query* query, int64_t native_port);
+OBX_C_API OBX_dart_stream* obx_dart_query_find_ptr(OBX_query* query, int64_t native_port);
 
 struct OBX_dart_finalizer;
 typedef struct OBX_dart_finalizer OBX_dart_finalizer;
@@ -99,11 +100,11 @@ typedef obx_err obx_dart_closer(void* native_object);
 /// @param native_object_size is an allocated size estimate - can be used by a the Dart garbage collector to prioritize
 /// @return a finalizer freed automatically when the GC finalizer runs (or manually by obx_dart_detach_finalizer())
 /// @return NULL if the finalizer couldn't be attached, in which case the caller is responsible for running the closer
-OBX_dart_finalizer* obx_dart_attach_finalizer(Dart_Handle dart_object, obx_dart_closer* closer, void* native_object,
-                                              size_t native_object_size);
+OBX_C_API OBX_dart_finalizer* obx_dart_attach_finalizer(Dart_Handle dart_object, obx_dart_closer* closer,
+                                                        void* native_object, size_t native_object_size);
 
 /// Detach the finalizer preliminarily, without executing its "closer"
-obx_err obx_dart_detach_finalizer(OBX_dart_finalizer* finalizer, Dart_Handle dart_object);
+OBX_C_API obx_err obx_dart_detach_finalizer(OBX_dart_finalizer* finalizer, Dart_Handle dart_object);
 
 #ifdef __cplusplus
 }

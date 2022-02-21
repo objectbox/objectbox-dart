@@ -32,7 +32,7 @@ dependency_overrides:
 ffigen:
   name: 'ObjectBoxC'
   description: 'Bindings to ObjectBox C-API'
-  output: 'lib/src/native/bindings/objectbox-c.dart'
+  output: 'lib/src/native/bindings/objectbox_c.dart'
   headers:
     entry-points:
       # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading
@@ -50,8 +50,9 @@ ffigen:
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
   # add location to standard library imports, e.g. stddef.h
-  llvm-lib: '/usr/lib/'
-  compiler-opts: '-I/usr/lib/clang/11.1.0/include'
+  llvm-path:
+    - '/usr/lib/llvm-12'
+  compiler-opts: '-I/usr/lib/clang/12.0.0/include'
   typedef-map:
     'size_t': 'IntPtr'
   # pana ignores exclude rules in analysis_options.yaml, explicitly add ignore rules.

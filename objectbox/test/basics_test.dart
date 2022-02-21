@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
+import 'package:objectbox/src/native/version.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -12,6 +13,8 @@ import 'objectbox.g.dart';
 import 'test_env.dart';
 
 void main() {
+  print("Testing basics of ObjectBox using C lib V${libraryVersion()}");
+
   // Prior to Dart 2.6, the exception wasn't accessible and may have crashed.
   // Similarly, this occured in Fluter for Linux (desktop).
   // https://github.com/dart-lang/sdk/issues/38141
