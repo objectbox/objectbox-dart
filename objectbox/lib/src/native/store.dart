@@ -399,6 +399,9 @@ class Store {
   ///
   /// Instances of [callback] must be top-level functions or static methods
   /// of classes, not closures or instance methods of objects.
+  ///
+  /// Note: this requires Dart 2.15.0 or newer
+  /// (shipped with Flutter 2.8.0 or newer).
   Future<R> runIsolated<P, R>(
       TxMode mode, FutureOr<R> Function(Store, P) callback, P param) async {
     final resultPort = ReceivePort();

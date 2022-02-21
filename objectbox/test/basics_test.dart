@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:meta/meta.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -200,7 +201,21 @@ void main() {
     final futureResult =
         env.store.runIsolated(TxMode.write, readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
-    final x = await futureResult;
+    final String x;
+    try {
+      x = await futureResult;
+    } catch (e) {
+      final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
+          .firstMatch(Platform.version)
+          ?.group(0);
+      if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
+        print('runIsolated requires Dart 2.15, ignoring error.');
+        env.closeAndDelete();
+        return;
+      } else {
+        rethrow;
+      }
+    }
     expect(x, 'foo!');
     expect(env.box.count(), 0); // Must be removed once awaited
     env.closeAndDelete();
