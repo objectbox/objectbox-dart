@@ -28,14 +28,14 @@ function publish() {
 
   echo -e "You're about to publish directory \e[33m'${1}'\e[39m as package \e[33m$(yq read "${pubspec}" name) v$(yq read "${pubspec}" version)\e[39m"
   echo -e "\e[31mWARNING: The same version can NOT be published twice!\e[39m"
-  read -p " Are you sure you want to publish to pub.dev? " yn
+  read -p " Publish to pub.dev [y/N]? " yn
   case $yn in
   [Yy]*)
     cd "${pkg_dir}" || exit 1
     dart pub publish --force
     ;;
   [Nn]*) ;;
-  *) echo "Please answer yes or no." ;;
+  *) echo "Not publishing this package." ;;
   esac
 }
 
