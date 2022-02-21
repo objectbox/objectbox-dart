@@ -1,9 +1,19 @@
 . "$(dirname "$0")"/common.sh
 
 # NOTE: This script requires version 3 of yq.
-# E.g. download from https://github.com/mikefarah/yq/releases/tag/3.4.1
-# and temporarily add to PATH for this script:
-# export PATH=$PATH:"/path/to/yq/"
+# Download versions for other architectures from https://github.com/mikefarah/yq/releases/tag/3.4.1
+msys=false
+case "$( uname )" in                #(
+  MSYS* | MINGW* )  msys=true    ;; #(
+esac
+if [ $msys ]; then
+  YQCMD="${root}/tool/yq_windows_amd64.exe"
+else
+  YQCMD="${root}/tool/yq_linux_amd64"
+fi
+echo "Testing yq version..."
+$YQCMD -V
+echo "Testing yq version...DONE"
 
 # ======================= BEFORE publishing==================== #
 
@@ -11,7 +21,7 @@ echo "Removing dependency_overrides from all pubspec.yaml files (backup at pubsp
 find "${root}" -type f -name "pubspec.yaml" \
   -exec echo "Processing {}" \; \
   -exec cp "{}" "{}.original" \; \
-  -exec yq delete -i "{}" dependency_overrides \;
+  -exec "$YQCMD" delete -i "{}" dependency_overrides \;
 
 # update links in the readme (see `git restore "${root}/objectbox/README.md"` below)
 "${root}/tool/pubdev-links.sh"
@@ -26,7 +36,7 @@ function publish() {
   pkg_dir="${root}/${1}"
   pubspec="${pkg_dir}/pubspec.yaml"
 
-  echo -e "You're about to publish directory \e[33m'${1}'\e[39m as package \e[33m$(yq read "${pubspec}" name) v$(yq read "${pubspec}" version)\e[39m"
+  echo -e "You're about to publish directory \e[33m'${1}'\e[39m as package \e[33m$($YQCMD read "${pubspec}" name) v$($YQCMD read "${pubspec}" version)\e[39m"
   echo -e "\e[31mWARNING: The same version can NOT be published twice!\e[39m"
   read -p " Publish to pub.dev [y/N]? " yn
   case $yn in
