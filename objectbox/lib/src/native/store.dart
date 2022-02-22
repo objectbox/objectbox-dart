@@ -389,7 +389,8 @@ class Store {
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
     final result = await isoPass.runFn(store);
     store.close();
-    // Note: maybe replace with Isolate.exit once min Dart SDK 2.15.
+    // Note: maybe replace with Isolate.exit (and remove kill call in
+    // runIsolated) once min Dart SDK 2.15.
     isoPass.resultPort?.send(result);
   }
 
@@ -402,7 +403,7 @@ class Store {
       TxMode mode, FutureOr<R> Function(Store, P) callback, P param) async {
     final resultPort = ReceivePort();
     // Await isolate spawn to avoid waiting forever if it fails to spawn.
-    await Isolate.spawn(
+    final isolate = await Isolate.spawn(
         _callFunctionWithStoreInIsolate,
         _IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
             resultPort.sendPort, callback, param));
@@ -413,6 +414,7 @@ class Store {
     });
     await result.future;
     resultPort.close();
+    isolate.kill();
     return result.future;
   }
 
