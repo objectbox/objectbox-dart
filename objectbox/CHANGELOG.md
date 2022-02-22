@@ -1,10 +1,11 @@
 ## latest
 
-* Add an option to change code-generator's `output_dir` in `pubspec.yaml`. #341
-* Support ObjectBox Admin for Android apps to browse the database, see our [docs](https://docs.objectbox.io/data-browser) to get started. #148
+* Support [ObjectBox Admin](https://docs.objectbox.io/data-browser) for Android apps to browse 
+  the database. #148
 * Add `Store.attach` to attach to a Store opened in a directory. This is an improved replacement for 
   `Store.fromReference` to share a Store across isolates. It is no longer required to pass a
   Store reference and the underlying Store remains open until the last instance is closed. #376
+* Add an option to change code-generator's `output_dir` in `pubspec.yaml`. #341
 * Update: [objectbox-c 0.15.2](https://github.com/objectbox/objectbox-c/releases/tag/v0.15.0).
 * Update: [objectbox-android 3.1.2](https://github.com/objectbox/objectbox-java/releases/tag/V3.1.0).
 * Update: [objectbox-swift 1.7.0](https://github.com/objectbox/objectbox-swift/releases/tag/v1.7.0).
