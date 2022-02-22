@@ -2,6 +2,10 @@
 
 * Support [ObjectBox Admin](https://docs.objectbox.io/data-browser) for Android apps to browse 
   the database. #148
+* Add `Store.runIsolated` to run database operations (asynchronous) in the background 
+  (requires Flutter 2.8.0/Dart 2.15.0 or newer). It spawns an isolate, runs the given callback in that 
+  isolate with its own Store and returns the result of the callback. This is similar to Flutters 
+  compute, but with the callback having access to a Store. #384
 * Add `Store.attach` to attach to a Store opened in a directory. This is an improved replacement for 
   `Store.fromReference` to share a Store across isolates. It is no longer required to pass a
   Store reference and the underlying Store remains open until the last instance is closed. #376

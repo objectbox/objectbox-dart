@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:meta/meta.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -192,6 +194,44 @@ void main() {
     store.close();
     Directory('basics').deleteSync(recursive: true);
   });
+
+  test('store_runInIsolatedTx', () async {
+    final env = TestEnv('basics');
+    final id = env.box.put(TestEntity(tString: 'foo'));
+    final futureResult =
+        env.store.runIsolated(TxMode.write, readStringAndRemove, id);
+    print('Count in main isolate: ${env.box.count()}');
+    final String x;
+    try {
+      x = await futureResult;
+    } catch (e) {
+      final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
+          .firstMatch(Platform.version)
+          ?.group(0);
+      if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
+        print('runIsolated requires Dart 2.15, ignoring error.');
+        env.closeAndDelete();
+        return;
+      } else {
+        rethrow;
+      }
+    }
+    expect(x, 'foo!');
+    expect(env.box.count(), 0); // Must be removed once awaited
+    env.closeAndDelete();
+  });
+}
+
+Future<String> readStringAndRemove(Store store, int id) async {
+  var box = store.box<TestEntity>();
+  var testEntity = box.get(id);
+  final result = testEntity!.tString! + '!';
+  print('Result in 2nd isolate: $result');
+  final removed = box.remove(id);
+  print('Removed in 2nd isolate: $removed');
+  print('Count in 2nd isolate after remove: ${box.count()}');
+  // Pointless Future to test async functions are supported.
+  return await Future.delayed(const Duration(milliseconds: 10), () => result);
 }
 
 class StoreAttachIsolateInit {
