@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
+import 'package:objectbox/src/native/version.dart';
 import 'package:path/path.dart' as path;
 
 import '../common.dart';
@@ -27,6 +28,13 @@ part 'observable.dart';
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
 class Store {
+  /// Path of the default directory, currently 'objectbox'.
+  static const String defaultDirectoryPath = 'objectbox';
+
+  /// Enables a couple of debug logs.
+  /// This meant for tests only; do not enable for releases!
+  static bool debugLogs = false;
+
   late final Pointer<OBX_store> _cStore;
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
@@ -36,8 +44,8 @@ class Store {
   final _reader = ReaderWithCBuffer();
   Transaction? _tx;
 
-  /// absolute path to the database directory
-  final String _dbDir;
+  /// Absolute path to the database directory, used for open check.
+  final String _absoluteDirectoryPath;
 
   late final ByteData _reference;
 
@@ -51,8 +59,12 @@ class Store {
   /// Default value for string query conditions [caseSensitive] argument.
   final bool _queriesCaseSensitiveDefault;
 
+  static String _safeDirectoryPath(String? path) =>
+      (path == null || path.isEmpty) ? defaultDirectoryPath : path;
+
   /// Creates a BoxStore using the model definition from your
-  /// `objectbox.g.dart` file.
+  /// `objectbox.g.dart` file in the given [directory] path
+  /// (or if null the [defaultDirectoryPath]).
   ///
   /// For example in a Flutter app:
   /// ```dart
@@ -76,10 +88,8 @@ class Store {
       String? macosApplicationGroup})
       : _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
-        _dbDir = path.context.canonicalize(
-            (directory == null || directory.isEmpty)
-                ? 'objectbox'
-                : directory) {
+        _absoluteDirectoryPath =
+            path.context.canonicalize(_safeDirectoryPath(directory)) {
     try {
       if (Platform.isMacOS && macosApplicationGroup != null) {
         if (!macosApplicationGroup.endsWith('/')) {
@@ -96,12 +106,7 @@ class Store {
           malloc.free(cStr);
         }
       }
-      if (_openStoreDirectories.contains(_dbDir)) {
-        throw UnsupportedError(
-            'Cannot create multiple Store instances for the same directory. '
-            'Please use a single Store or close() the previous instance before '
-            'opening another one.');
-      }
+      _checkStoreDirectoryNotOpen();
       final model = Model(_defs.model);
 
       final opt = C.opt();
@@ -130,25 +135,14 @@ class Store {
         C.opt_free(opt);
         rethrow;
       }
+      if (debugLogs) {
+        print('Opening store (C lib V${libraryVersion()})... path=$directory'
+            ' isOpen=${isOpen(directory)}');
+      }
+
       _cStore = C.store_open(opt);
 
-      try {
-        checkObxPtr(_cStore, 'failed to create store');
-      } on ObjectBoxException catch (e) {
-        // Recognize common problems when trying to open/create a database
-        // 10199 = OBX_ERROR_STORAGE_GENERAL
-        // 13 = permissions denied, 30 = read-only filesystem
-        if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
-            e.message.contains('Dir does not exist') &&
-            (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
-          throw ObjectBoxException(e.message +
-              ' - this usually indicates a problem with permissions; '
-                  "if you're using Flutter you may need to use "
-                  'getApplicationDocumentsDirectory() from the path_provider '
-                  'package, see example/README.md');
-        }
-        rethrow;
-      }
+      _checkStorePointer(_cStore);
 
       // Always create _reference, so it can be non-nullable.
       // Ensure we only try to access the store created in the same process.
@@ -157,7 +151,7 @@ class Store {
       _reference.setUint64(0 * _int64Size, pid);
       _reference.setUint64(1 * _int64Size, _ptr.address);
 
-      _openStoreDirectories.add(_dbDir);
+      _openStoreDirectories.add(_absoluteDirectoryPath);
     } catch (e) {
       _reader.clear();
       rethrow;
@@ -205,7 +199,7 @@ class Store {
       {bool queriesCaseSensitiveDefault = true})
       // must not close the same native store twice so [_weak]=true
       : _weak = true,
-        _dbDir = '',
+        _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
     // see [reference] for serialization order
     final readPid = _reference.getUint64(0 * _int64Size);
@@ -218,6 +212,95 @@ class Store {
     if (_cStore.address == 0) {
       throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
           'Given native pointer is empty');
+    }
+  }
+
+  /// Attach to a store opened in the [directoryPath]
+  /// (or if null the [defaultDirectoryPath]).
+  ///
+  /// Use this to access an open store from other isolates.
+  /// This results in each isolate having access to the same underlying native
+  /// store.
+  ///
+  /// The returned store is a new instance (e.g. different pointer value) with
+  /// its own lifetime and must also be closed (e.g. before an isolate exits).
+  /// The actual underlying store is only closed when the last store instance
+  /// is closed (e.g. when the app exits).
+  Store.attach(this._defs, String? directoryPath,
+      {bool queriesCaseSensitiveDefault = true})
+      // _weak = false so store can be closed.
+      : _weak = false,
+        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
+        _absoluteDirectoryPath =
+            path.context.canonicalize(_safeDirectoryPath(directoryPath)) {
+    try {
+      // Do not allow attaching to a store that is already open in the current
+      // isolate. While technically possible this is not the intended usage
+      // and e.g. transactions would have to be carefully managed to not
+      // overlap.
+      _checkStoreDirectoryNotOpen();
+
+      final path = _safeDirectoryPath(directoryPath);
+      final pathCStr = path.toNativeUtf8();
+      try {
+        if (debugLogs) {
+          final isOpen = C.store_is_open(pathCStr.cast());
+          print('Attaching to store... path=$path isOpen=$isOpen');
+        }
+        _cStore = C.store_attach(pathCStr.cast());
+      } finally {
+        malloc.free(pathCStr);
+      }
+
+      checkObxPtr(_cStore,
+          'could not attach to the store at given path - please ensure it was opened before');
+
+      // Not setting _reference as this is a replacement for obtaining a store
+      // via reference.
+    } catch (e) {
+      _reader.clear();
+      rethrow;
+    }
+  }
+
+  void _checkStoreDirectoryNotOpen() {
+    if (_openStoreDirectories.contains(_absoluteDirectoryPath)) {
+      throw UnsupportedError(
+          'Cannot create multiple Store instances for the same directory in the same isolate. '
+          'Please use a single Store, close() the previous instance before '
+          'opening another one or attach to it in another isolate.');
+    }
+  }
+
+  void _checkStorePointer(Pointer cStore) {
+    try {
+      checkObxPtr(cStore, 'failed to create store');
+    } on ObjectBoxException catch (e) {
+      // Recognize common problems when trying to open/create a database
+      // 10199 = OBX_ERROR_STORAGE_GENERAL
+      // 13 = permissions denied, 30 = read-only filesystem
+      if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
+          e.message.contains('Dir does not exist') &&
+          (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
+        throw ObjectBoxException(e.message +
+            ' - this usually indicates a problem with permissions; '
+                "if you're using Flutter you may need to use "
+                'getApplicationDocumentsDirectory() from the path_provider '
+                'package, see example/README.md');
+      }
+      rethrow;
+    }
+  }
+
+  /// Returns if an open store (i.e. opened before and not yet closed) was found
+  /// for the given [directoryPath] (or if null the [defaultDirectoryPath]).
+  static bool isOpen(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    final cStr = path.toNativeUtf8();
+    try {
+      return C.store_is_open(cStr.cast());
+    } finally {
+      malloc.free(cStr);
     }
   }
 
@@ -243,7 +326,7 @@ class Store {
     _reader.clear();
 
     if (!_weak) {
-      _openStoreDirectories.remove(_dbDir);
+      _openStoreDirectories.remove(_absoluteDirectoryPath);
       checkObx(C.store_close(_cStore));
     }
   }

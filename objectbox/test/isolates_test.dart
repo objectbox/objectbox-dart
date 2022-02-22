@@ -45,60 +45,92 @@ void main() {
     receivePort.close();
   });
 
-  /// Work with a single store across multiple isolates.
-  test('single store in multiple isolates', () async {
-    final receivePort = ReceivePort();
-    final isolate =
-        await Isolate.spawn(createDataIsolate, receivePort.sendPort);
-
-    final sendPortCompleter = Completer<SendPort>();
-    late Completer<dynamic> responseCompleter;
-    receivePort.listen((dynamic data) {
-      if (data is SendPort) {
-        sendPortCompleter.complete(data);
-      } else {
-        print('Main received: $data');
-        responseCompleter.complete(data);
-      }
-    });
-
-    // Receive the SendPort from the Isolate
-    SendPort sendPort = await sendPortCompleter.future;
-
-    final call = (dynamic message) {
-      responseCompleter = Completer<dynamic>();
-      sendPort.send(message);
-      return responseCompleter.future;
-    };
-
-    // Pass the store to the isolate
-    final env = TestEnv('isolates');
-    expect(await call(env.store.reference), equals('store set'));
-
-    {
-      // check simple box operations
-      expect(env.box.isEmpty(), isTrue);
-      expect(await call(['put', 'Foo']), equals(1)); // returns inserted id = 1
-      expect(env.box.get(1)!.tString, equals('Foo'));
-    }
-
-    {
-      // verify that query streams (using observers) work fine across isolates
-      final queryStream = env.box.query().watch();
-      // starts a subscription
-      final futureFirst = queryStream.map((q) => q.find()).first;
-      expect(await call(['put', 'Bar']), equals(2));
-      List<TestEntity> found = await futureFirst.timeout(defaultTimeout);
-      expect(found.length, equals(2));
-      expect(found.last.tString, equals('Bar'));
-    }
-
-    expect(await call(['close']), equals('done'));
-
-    isolate.kill();
-    receivePort.close();
-    env.closeAndDelete();
+  /// Work with a single store across multiple isolates using
+  /// the legacy way of passing a pointer reference to the isolate.
+  test('single store using reference', () async {
+    await testUsingStoreFromIsolate(
+        storeCreatorFromRef, (env) => env.store.reference);
   });
+
+  /// Work with a single store across multiple isolates using
+  /// the directory path to attach to an existing store.
+  test('single store using attach', () async {
+    Store.debugLogs = true;
+    await testUsingStoreFromIsolate(storeCreatorAttach, (env) => env.dir.path);
+  });
+}
+
+// Note: can't use closures, are only supported from Dart SDK 2.15.
+Store storeCreatorFromRef(dynamic msg) =>
+    Store.fromReference(getObjectBoxModel(), msg as ByteData);
+
+Store storeCreatorAttach(dynamic msg) {
+  Store.debugLogs = true;
+  return Store.attach(getObjectBoxModel(), msg as String);
+}
+
+class IsolateInitMessage {
+  SendPort sendPort;
+  Store Function(dynamic) storeCreator;
+
+  IsolateInitMessage(this.sendPort, this.storeCreator);
+}
+
+Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
+    dynamic Function(TestEnv) storeRefGetter) async {
+  final receivePort = ReceivePort();
+  final initMessage = IsolateInitMessage(receivePort.sendPort, storeCreator);
+  final isolate = await Isolate.spawn(createDataIsolate, initMessage);
+
+  final sendPortCompleter = Completer<SendPort>();
+  late Completer<dynamic> responseCompleter;
+  receivePort.listen((dynamic data) {
+    if (data is SendPort) {
+      sendPortCompleter.complete(data);
+    } else {
+      print('Main received: $data');
+      responseCompleter.complete(data);
+    }
+  });
+
+  // Receive the SendPort from the Isolate
+  SendPort sendPort = await sendPortCompleter.future;
+
+  final call = (dynamic message) {
+    responseCompleter = Completer<dynamic>();
+    sendPort.send(message);
+    return responseCompleter.future;
+  };
+
+  // Pass the store to the isolate
+  final env = TestEnv('isolates');
+  expect(Store.isOpen('testdata-isolates'), true);
+
+  expect(await call(storeRefGetter(env)), equals('store set'));
+
+  {
+    // check simple box operations
+    expect(env.box.isEmpty(), isTrue);
+    expect(await call(['put', 'Foo']), equals(1)); // returns inserted id = 1
+    expect(env.box.get(1)!.tString, equals('Foo'));
+  }
+
+  {
+    // verify that query streams (using observers) work fine across isolates
+    final queryStream = env.box.query().watch();
+    // starts a subscription
+    final futureFirst = queryStream.map((q) => q.find()).first;
+    expect(await call(['put', 'Bar']), equals(2));
+    List<TestEntity> found = await futureFirst.timeout(defaultTimeout);
+    expect(found.length, equals(2));
+    expect(found.last.tString, equals('Bar'));
+  }
+
+  expect(await call(['close']), equals('done'));
+
+  isolate.kill();
+  receivePort.close();
+  env.closeAndDelete();
 }
 
 // Echoes back any received message.
@@ -118,11 +150,12 @@ void echoIsolate(SendPort sendPort) async {
 }
 
 // Creates data in the background, in the [Store] received as the first message.
-void createDataIsolate(SendPort sendPort) async {
+void createDataIsolate(IsolateInitMessage initMessage) async {
   // Open the ReceivePort to listen for incoming messages
   final port = ReceivePort();
 
   // Send the port where the main isolate can contact us
+  final sendPort = initMessage.sendPort;
   sendPort.send(port.sendPort);
 
   Store? store;
@@ -130,7 +163,7 @@ void createDataIsolate(SendPort sendPort) async {
   await for (final msg in port) {
     if (store == null) {
       // first message data is Store's C pointer address
-      store = Store.fromReference(getObjectBoxModel(), msg as ByteData);
+      store = initMessage.storeCreator(msg);
       sendPort.send('store set');
     } else {
       print('Isolate received: $msg');
