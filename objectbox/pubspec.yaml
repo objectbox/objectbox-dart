@@ -18,6 +18,7 @@ dependencies:
   path: ^1.8.0
 
 dev_dependencies:
+  async: ^2.8.2
   build_runner: ^2.0.0
   objectbox_generator: any
   test: ^1.16.5
