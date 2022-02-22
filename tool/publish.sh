@@ -23,7 +23,7 @@ find "${root}" -type f -name "pubspec.yaml" \
   -exec cp "{}" "{}.original" \; \
   -exec "$YQCMD" delete -i "{}" dependency_overrides \;
 
-# update links in the readme (see `git restore "${root}/objectbox/README.md"` below)
+# Update links in READMEs (restored by git restore commands below).
 "${root}/tool/pubdev-links.sh"
 
 # =========================== PUBLISH ======================== #
@@ -63,3 +63,5 @@ find "${root}" -type f -name "pubspec.yaml" \
 
 echo "Restoring objectbox/README.md"
 git restore "${root}/objectbox/README.md"
+echo "Restoring objectbox/example/README.md"
+git restore "${root}/objectbox/example/README.md"
