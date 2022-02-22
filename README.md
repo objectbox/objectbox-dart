@@ -38,6 +38,23 @@ Great! Clone/check out this repository and run this to generate code and get you
 
 Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
 
+## Do you 💙 ObjectBox?
+Your opinion matters to us! Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
+
+We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
+What do you love? What's amiss? Where do you struggle in everyday app development?
+
+**We're looking forward to receiving your comments and requests:**
+
+- Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues) 
+- Upvote issues you find important by hitting the 👍/+1 reaction button
+- Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
+- ⭐ us, if you like what you see 
+
+Thank you! 🙏
+
+Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
+
 ## Packages
 
 This repository holds all ObjectBox Dart/Flutter packages as separate directories:
@@ -61,22 +78,6 @@ ObjectBox supports multiple platforms and languages:
 * [ObjectBox Go](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications 
 * [ObjectBox C and C++](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects
 
-
-## How can you help ObjectBox?
-
-We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
-What do you love? What's amiss? Where do you struggle in everyday app development?
-
-**We're looking forward to receiving your comments and requests:**
-
-- Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues) 
-- Upvote issues you find important by hitting the 👍/+1 reaction button
-- Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
-- ⭐ us, if you like what you see 
-
-Thank you! 🙏
-
-Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
 
 ## License
 

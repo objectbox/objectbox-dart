@@ -141,10 +141,16 @@ You can run these yourself using our [objectbox-dart-performance](https://github
 
 ## Help wanted 🤩
 
+Your opinion matters to us! Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us make ObjectBox better.
+
 ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
 Either comment on an existing issue or open a new one. For example, if you experience errors or if you have ideas how to
 improve the API. If you'd like to contribute some code: PRs are more than welcome! The ObjectBox team will try its best 
 to guide you and answer questions.
+
+Thank you! 🙏
+
+Keep in touch: For general news on ObjectBox, check our blog!
 
 ## FAQ
 
