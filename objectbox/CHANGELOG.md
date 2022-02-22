@@ -1,4 +1,4 @@
-## latest
+## 1.4.0 (2022-02-22)
 
 * Support [ObjectBox Admin](https://docs.objectbox.io/data-browser) for Android apps to browse 
   the database. #148
