@@ -139,18 +139,22 @@ manually outside of the measured time. Data preparation and evaluation were also
 
 You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
 
-## Help wanted 🤩
-
+## Do you 💙 ObjectBox?
 Your opinion matters to us! Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us make ObjectBox better.
 
-ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
-Either comment on an existing issue or open a new one. For example, if you experience errors or if you have ideas how to
-improve the API. If you'd like to contribute some code: PRs are more than welcome! The ObjectBox team will try its best 
-to guide you and answer questions.
+We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
+What do you love? What's amiss? Where do you struggle in everyday app development?
+
+**We're looking forward to receiving your comments and requests:**
+
+- Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues)
+- Upvote issues you find important by hitting the 👍/+1 reaction button
+- Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
+- ⭐ us, if you like what you see
 
 Thank you! 🙏
 
-Keep in touch: For general news on ObjectBox, check our blog!
+Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
 
 ## FAQ
 
