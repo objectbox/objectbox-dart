@@ -17,7 +17,7 @@ Future<void> main() async {
 
   objectbox = await ObjectBox.create();
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
