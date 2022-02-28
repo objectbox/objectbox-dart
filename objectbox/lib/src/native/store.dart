@@ -35,11 +35,11 @@ class Store {
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
 
-  late final Pointer<OBX_store> _cStore;
+  late Pointer<OBX_store> _cStore;
+  late final Pointer<OBX_dart_finalizer> _cFinalizer;
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
   final ModelDefinition _defs;
-  bool _closed = false;
   Stream<List<Type>>? _entityChanges;
   final _reader = ReaderWithCBuffer();
   Transaction? _tx;
@@ -154,6 +154,8 @@ class Store {
       _reference.setUint64(1 * _int64Size, _ptr.address);
 
       _openStoreDirectories.add(_absoluteDirectoryPath);
+
+      _attachFinalizer();
     } catch (e) {
       _reader.clear();
       rethrow;
@@ -261,6 +263,8 @@ class Store {
 
       // Not setting _reference as this is a replacement for obtaining a store
       // via reference.
+
+      _attachFinalizer();
     } catch (e) {
       _reader.clear();
       rethrow;
@@ -296,6 +300,24 @@ class Store {
     }
   }
 
+  /// Attach a finalizer (using Dart C API) so when garbage collected, most
+  /// importantly on Flutter's hot restart (not hot reload), the native Store is
+  /// properly closed.
+  ///
+  /// During regular use it's still recommended to explicitly call
+  /// close() and not rely on garbage collection [to avoid out-of-memory
+  /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
+  void _attachFinalizer() {
+    initializeDartAPI();
+    // Keep the finalizer so it can be detached when close() is called.
+    _cFinalizer = C.dartc_attach_finalizer(
+        this, native_store_close, _cStore.cast(), 1024 * 1024);
+    if (_cFinalizer == nullptr) {
+      close();
+      throwLatestNativeError(context: 'attach store finalizer');
+    }
+  }
+
   /// Returns if an open store (i.e. opened before and not yet closed) was found
   /// for the given [directoryPath] (or if null the [defaultDirectoryPath]).
   static bool isOpen(String? directoryPath) {
@@ -312,12 +334,14 @@ class Store {
   /// a single underlying native store. See [Store.fromReference] for more details.
   ByteData get reference => _reference;
 
+  /// Returns if this store is already closed and can no longer be used.
+  bool isClosed() => _cStore.address == 0;
+
   /// Closes this store.
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
-    if (_closed) return;
-    _closed = true;
+    if (isClosed()) return;
 
     _boxes.values.forEach(InternalBoxAccess.close);
     _boxes.clear();
@@ -331,8 +355,14 @@ class Store {
 
     if (!_weak) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
-      checkObx(C.store_close(_cStore));
+      final errors = List.filled(2, 0);
+      if (_cFinalizer != nullptr) {
+        errors[0] = C.dartc_detach_finalizer(_cFinalizer, this);
+      }
+      errors[1] = C.store_close(_cStore);
+      errors.forEach(checkObx);
     }
+    _cStore = nullptr;
   }
 
   /// Returns a cached Box instance.
@@ -459,7 +489,11 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitAsyncCompletion() => C.store_await_async_submitted(_ptr);
+  bool awaitAsyncCompletion() {
+    final result = C.store_await_async_submitted(_ptr);
+    reachabilityFence(this);
+    return result;
+  }
 
   /// Await for previously submitted async operations to be completed
   /// (the async queue does not have to become idle).
@@ -468,14 +502,16 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitAsyncSubmitted() => C.store_await_async_submitted(_ptr);
+  bool awaitAsyncSubmitted() {
+    final result = C.store_await_async_submitted(_ptr);
+    reachabilityFence(this);
+    return result;
+  }
 
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_store> get _ptr {
-    if (_closed) throw StateError('Cannot access a closed store pointer');
-    return _cStore;
-  }
+  Pointer<OBX_store> get _ptr =>
+      isClosed() ? throw StateError('Store is closed') : _cStore;
 }
 
 /// Internal only.
