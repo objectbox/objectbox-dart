@@ -1018,61 +1018,68 @@ class Query<T> {
     final commandPort = ReceivePort();
     sendPort.send(commandPort.sendPort);
 
-    // Visit inside transaction and do not complete transaction to ensure
-    // data pointers remain valid until main isolate has deserialized all data.
-    await InternalStoreAccess.runInTransaction(store, TxMode.read,
-        (Transaction tx) async {
-      // Use fixed-length lists to avoid performance hit due to growing.
-      final maxBatchSize = isolateInit.batchSize;
-      var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
-      var sizeBatch = List<int>.filled(maxBatchSize, 0);
-      var batchSize = 0;
-      final visitor = dataVisitor((Pointer<Uint8> data, int size) {
-        // Currently returning all results, even if the stream has been closed
-        // before (e.g. only first element taken). Would need a way to check
-        // for exit command on commandPort synchronously.
-        dataPtrBatch[batchSize] = data.address;
-        sizeBatch[batchSize] = size;
-        batchSize++;
-        // Send data in batches as sending a message is rather expensive.
-        if (batchSize == maxBatchSize) {
-          sendPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
-          // Re-use list instance to avoid performance hit due to new instance.
-          dataPtrBatch.fillRange(0, dataPtrBatch.length, 0);
-          sizeBatch.fillRange(0, dataPtrBatch.length, 0);
-          batchSize = 0;
+    try {
+      // Visit inside transaction and do not complete transaction to ensure
+      // data pointers remain valid until main isolate has deserialized all data.
+      await InternalStoreAccess.runInTransaction(store, TxMode.read,
+          (Transaction tx) async {
+        // Use fixed-length lists to avoid performance hit due to growing.
+        final maxBatchSize = isolateInit.batchSize;
+        var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
+        var sizeBatch = List<int>.filled(maxBatchSize, 0);
+        var batchSize = 0;
+        final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+          // Currently returning all results, even if the stream has been closed
+          // before (e.g. only first element taken). Would need a way to check
+          // for exit command on commandPort synchronously.
+          dataPtrBatch[batchSize] = data.address;
+          sizeBatch[batchSize] = size;
+          batchSize++;
+          // Send data in batches as sending a message is rather expensive.
+          if (batchSize == maxBatchSize) {
+            sendPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
+            // Re-use list instance to avoid performance hit due to new instance.
+            dataPtrBatch.fillRange(0, dataPtrBatch.length, 0);
+            sizeBatch.fillRange(0, dataPtrBatch.length, 0);
+            batchSize = 0;
+          }
+          return true;
+        });
+        final queryPtr =
+            Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
+        try {
+          checkObx(C.query_visit(queryPtr, visitor, nullptr));
+        } catch (e) {
+          sendPort.send(e);
+          return;
+        } finally {
+          try {
+            checkObx(C.query_close(queryPtr));
+          } catch (e) {
+            sendPort.send(e);
+            return;
+          }
         }
-        return true;
+        // Send any remaining data.
+        if (batchSize > 0) {
+          sendPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
+        }
+
+        // Signal to the main isolate there are no more results.
+        sendPort.send(null);
+        // Wait for main isolate to confirm it is done accessing sent data pointers.
+        await commandPort.first;
+        // Note: when the transaction is closed after await this might lead to an
+        // error log as the isolate could have been transferred to another thread
+        // when resuming execution.
+        // https://github.com/dart-lang/sdk/issues/46943
       });
-      final queryPtr =
-          Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
-      try {
-        checkObx(C.query_visit(queryPtr, visitor, nullptr));
-      } catch (e) {
-        sendPort.send(e);
-        return;
-      } finally {
-        checkObx(C.query_close(queryPtr));
-      }
-      // Send any remaining data.
-      if (batchSize > 0) {
-        sendPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
-      }
-
-      // Signal to the main isolate there are no more results.
-      sendPort.send(null);
-      // Wait for main isolate to confirm it is done accessing sent data pointers.
-      await commandPort.first;
-      // Note: when the transaction is closed after await this might lead to an
-      // error log as the isolate could have been transferred to another thread
-      // when resuming execution.
-      // https://github.com/dart-lang/sdk/issues/46943
-    });
-
-    store.close();
-
-    // Only available on Dart 2.15+
-    // Isolate.exit();
+    } finally {
+      store.close();
+      commandPort.close();
+      // Only available on Dart 2.15+
+      // Isolate.exit();
+    }
   }
 
   /// For internal testing purposes.
