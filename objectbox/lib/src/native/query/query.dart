@@ -934,12 +934,12 @@ class Query<T> {
   // }
 
   Future<Stream<T>> _streamIsolate() async {
+    final port = ReceivePort();
+
     // Pass clones of Store and Query to avoid these getting closed while the
     // worker isolate is still running. The isolate closes the clones once done.
     final storeClonePtr = InternalStoreAccess.clone(_store);
     final queryClonePtr = _clone();
-
-    final port = ReceivePort();
 
     // Current batch size determined through testing, performs well for smaller
     // objects. Might want to expose in the future for performance tuning by
@@ -1008,6 +1008,10 @@ class Query<T> {
 
   // Isolate entry point must be top-level or static.
   static Future<void> _queryAndVisit(_StreamIsolateInit isolateInit) async {
+    // Init native resources asap so that they do not leak, e.g. on exceptions
+    final store =
+        InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
+
     var sendPort = isolateInit.sendPort;
 
     // Send a SendPort to the main isolate so that it can send to this isolate.
@@ -1016,8 +1020,6 @@ class Query<T> {
 
     // Visit inside transaction and do not complete transaction to ensure
     // data pointers remain valid until main isolate has deserialized all data.
-    final store =
-        InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
     await InternalStoreAccess.runInTransaction(store, TxMode.read,
         (Transaction tx) async {
       // Use fixed-length lists to avoid performance hit due to growing.
