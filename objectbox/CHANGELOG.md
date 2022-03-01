@@ -1,3 +1,5 @@
+## latest
+
 ## 1.4.1 (2022-03-01)
 
 * Resolve "another store is still open" issue after Flutter hot restart (hot reload continues to work). #387
