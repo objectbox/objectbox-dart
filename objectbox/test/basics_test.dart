@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
-import 'package:meta/meta.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -114,8 +113,10 @@ void main() {
     expect(false, Store.isOpen(''));
     expect(false, Store.isOpen('testdata-basics'));
     final env = TestEnv('basics');
+    expect(false, env.store.isClosed());
     expect(true, Store.isOpen('testdata-basics'));
     env.closeAndDelete();
+    expect(true, env.store.isClosed());
     expect(false, Store.isOpen('testdata-basics'));
   });
 

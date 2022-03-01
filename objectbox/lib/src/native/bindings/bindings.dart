@@ -118,6 +118,8 @@ Object? _dartAPIInitException;
 /// Unfortunately, ffigen keeps those private.
 typedef _NativeClose = Int32 Function(Pointer<Void> ptr);
 
+late final native_store_close =
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_store_close');
 late final native_query_close =
     _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_close');
 late final native_query_prop_close =

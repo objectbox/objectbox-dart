@@ -85,6 +85,7 @@ extension ObservableStore on Store {
       observer.cObserver =
           C.dartc_observe_single_type(_ptr, entityId, observer.nativePort);
     });
+    reachabilityFence(this);
 
     return observer.stream;
   }
@@ -125,6 +126,7 @@ extension ObservableStore on Store {
     observer.init(() {
       observer.cObserver = C.dartc_observe(_ptr, observer.nativePort);
     }, broadcast: broadcast);
+    reachabilityFence(this);
 
     if (broadcast) {
       _onClose[observer] = observer.close;

@@ -1,5 +1,7 @@
 ## latest
 
+* Resolve "another store is still open" issue after Flutter hot restart (hot reload continues to work). #387
+* Add `Store.isClosed()`. #390
 * Add note to `objectbox.g.dart` on how to re-generate (update) it.
 
 ## 1.4.0 (2022-02-22)
