@@ -1,5 +1,7 @@
 ## latest
 
+* Add note to `objectbox.g.dart` on how to re-generate (update) it.
+
 ## 1.4.0 (2022-02-22)
 
 * Support [ObjectBox Admin](https://docs.objectbox.io/data-browser) for Android apps to browse 
