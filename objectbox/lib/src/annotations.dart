@@ -136,11 +136,11 @@ class Id {
 
   /// Use copyWith new id in the entity identifier setter.
   /// For example, if your entity is immutable object,
-  /// you can define idSetter as follows
+  /// you can define useCopyWith as follows
   ///
   /// @Entity()
   /// class ImmutableEntity {
-  ///   @Id(idSetter: _idSetter)
+  ///   @Id(useCopyWith: true)
   ///   final int? id;
   ///
   ///   final int payload;
@@ -154,8 +154,8 @@ class Id {
   ///
   ///   ImmutableEntity{this.id, required this.unique, required this.payload});
   ///
-  ///   static ImmutableEntity copyWithId(ImmutableEntity entity, int newId) =>
-  ///       entity.copyWith(id: newId);
+  ///   ImmutableEntity copyWithId(int newId) =>
+  ///       (id != newId) ? entity.copyWith(id: newId) : this;
   /// }
   final bool useCopyWith;
 
