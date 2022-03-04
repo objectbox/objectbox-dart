@@ -527,16 +527,44 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "12:3755469960880688715",
+      "lastPropertyId": "3:4328105509779076145",
+      "name": "TestEntityImmutable",
+      "properties": [
+        {
+          "id": "1:2702147992811450538",
+          "name": "id",
+          "type": 6,
+          "flags": 1,
+          "generatorFlags": 65536
+        },
+        {
+          "id": "2:8497246254690861169",
+          "name": "unique",
+          "type": 6,
+          "flags": 32808,
+          "indexId": "22:5208599577901675227"
+        },
+        {
+          "id": "3:4328105509779076145",
+          "name": "payload",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "10:8814538095619551454",
-  "lastIndexId": "20:4846837430056399798",
+  "lastEntityId": "12:3755469960880688715",
+  "lastIndexId": "22:5208599577901675227",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [
-    2679953000475642792
+    2679953000475642792,
+    1095349603547153763
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -554,7 +582,10 @@
     263290714597678490,
     2191004797635629014,
     6174275661850707374,
-    2900967122054840440
+    2900967122054840440,
+    7226208115703027531,
+    570487578217848006,
+    2435024852950745282
   ],
   "retiredRelationUids": [],
   "version": 1

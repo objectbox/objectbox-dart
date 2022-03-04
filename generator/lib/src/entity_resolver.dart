@@ -116,13 +116,16 @@ class EntityResolver extends Builder {
 
       var isToManyRel = false;
       int? fieldType;
-      var flags = 0;
+      var flags = 0, generatorFlags = 0;
       int? propUid;
 
       _idChecker.runIfMatches(f, (annotation) {
         flags |= OBXPropertyFlags.ID;
         if (annotation.getField('assignable')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.ID_SELF_ASSIGNABLE;
+        }
+        if (annotation.getField('useCopyWith')!.toBoolValue()!) {
+          generatorFlags |= OBXPropertyGeneratorFlags.USE_COPY_WITH_ID;
         }
       });
 
@@ -210,6 +213,7 @@ class EntityResolver extends Builder {
         final prop = ModelProperty.create(
             IdUid(0, propUid ?? 0), f.name, fieldType,
             flags: flags,
+            generatorFlags: generatorFlags,
             entity: entity,
             uidRequest: propUid != null && propUid == 0);
 
@@ -242,7 +246,9 @@ class EntityResolver extends Builder {
     final idField = element.fields
         .singleWhere((FieldElement f) => f.name == entity.idProperty.name);
     if (idField.setter == null) {
-      if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE)) {
+      if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE) &&
+          !entity.idProperty
+              .hasGeneratorFlag(OBXPropertyGeneratorFlags.USE_COPY_WITH_ID)) {
         throw InvalidGenerationSourceError(
             "Entity ${entity.name} has an ID field '${idField.name}' that is "
             'not assignable (that usually means it is declared final). '
@@ -308,7 +314,7 @@ class EntityResolver extends Builder {
 
     final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
     final uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
-    if (indexAnnotation == null && uniqueAnnotation == null) return null;
+    if (indexAnnotation == null && uniqueAnnotation == null) return;
 
     // Throw if property type does not support any index.
     if (fieldType == OBXPropertyType.Float ||

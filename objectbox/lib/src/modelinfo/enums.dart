@@ -138,6 +138,11 @@ abstract class OBXPropertyFlags {
   static const int UNIQUE_ON_CONFLICT_REPLACE = 32768;
 }
 
+abstract class OBXPropertyGeneratorFlags {
+  /// Use copyWithId in id setter
+  static const int USE_COPY_WITH_ID = 65536;
+}
+
 abstract class OBXPropertyType {
   /// < 1 byte
   static const int Bool = 1;

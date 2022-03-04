@@ -116,7 +116,7 @@ class Box<T> {
         _builder.resetIfLarge(); // reset before `await`
         if (id == 0) {
           // Note: if the newId future completes with an error, ID isn't set.
-          _entity.setId(object, await newId);
+          object = _entity.setId(object, await newId);
         }
         return newId;
       });
@@ -148,9 +148,18 @@ class Box<T> {
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.async_put_object4(_async!._cAsync, _builder.bufPtr,
         _builder.fbb.size(), _getOBXPutMode(mode));
-    id = _handlePutObjectResult(object, id, newId);
+    final result = _handlePutObjectResult(object, id, newId);
+
+    // replace object if id setter returns another object
+    if (object != result.object) {
+      _builder.fbb.reset();
+      _entity.objectToFB(result.object, _builder.fbb);
+      C.async_put_object4(_async!._cAsync, _builder.bufPtr, _builder.fbb.size(),
+          _getOBXPutMode(mode));
+    }
+
     _builder.resetIfLarge();
-    return newId;
+    return result.id;
   }
 
   int _put(T object, PutMode mode, Transaction? tx) {
@@ -164,7 +173,7 @@ class Box<T> {
         if ((_entity.getId(object) ?? 0) == 0) {
           final newId = C.box_id_for_put(_cBox, 0);
           if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
-          _entity.setId(object, newId);
+          object = _entity.setId(object, newId);
         }
         _putToOneRelFields(object, mode, tx);
       }
@@ -173,10 +182,19 @@ class Box<T> {
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.box_put_object4(
         _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
-    id = _handlePutObjectResult(object, id, newId);
-    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
+    final result = _handlePutObjectResult(object, id, newId);
+
+    // replace object if id setter returns another object
+    if (object != result.object) {
+      _builder.fbb.reset();
+      _entity.objectToFB(result.object, _builder.fbb);
+      C.box_put_object4(
+          _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
+    }
+
+    if (_hasToManyRelations) _putToManyRelFields(result.object, mode, tx!);
     _builder.resetIfLarge();
-    return id;
+    return result.id;
   }
 
   /// Puts the given [objects] into this Box in a single transaction.
@@ -201,7 +219,21 @@ class Box<T> {
         final id = _entity.objectToFB(object, _builder.fbb);
         final newId = C.cursor_put_object4(
             cursor.ptr, _builder.bufPtr, _builder.fbb.size(), cMode);
-        putIds[i] = _handlePutObjectResult(object, id, newId);
+        final result = _handlePutObjectResult(object, id, newId);
+        putIds[i] = result.id;
+
+        // replace object if id setter returns another object
+        if (object != result.object) {
+          objects[i] = result.object;
+          _builder.fbb.reset();
+          _entity.objectToFB(result.object, _builder.fbb);
+          C.cursor_put_object4(
+            cursor.ptr,
+            _builder.bufPtr,
+            _builder.fbb.size(),
+            cMode,
+          );
+        }
       }
 
       if (_hasToManyRelations) {
@@ -216,10 +248,11 @@ class Box<T> {
   // Checks if native obx_*_put_object() was successful (result is a valid ID).
   // Sets the given ID on the object if previous ID was zero (new object).
   @pragma('vm:prefer-inline')
-  int _handlePutObjectResult(T object, int prevId, int result) {
+  _HandlePutResult<T> _handlePutObjectResult(T object, int prevId, int result) {
     if (result == 0) throwLatestNativeError(context: 'object put failed');
-    if (prevId == 0) _entity.setId(object, result);
-    return result;
+    T newObject = object;
+    if (prevId == 0) newObject = _entity.setId(object, result);
+    return _HandlePutResult<T>(result, newObject);
   }
 
   /// Retrieves the stored object with the ID [id] from this box's database.
@@ -509,4 +542,11 @@ class InternalBoxAccess {
         }
         return result;
       });
+}
+
+/// Result of identifier setter _handlePutObjectResult
+class _HandlePutResult<T> {
+  final int id;
+  final T object;
+  const _HandlePutResult(this.id, this.object);
 }

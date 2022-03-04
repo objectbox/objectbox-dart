@@ -125,7 +125,8 @@ class CodeChunks {
       id: ${createIdUid(property.id)},
       name: '${property.name}',
       type: ${property.type},
-      flags: ${property.flags}
+      flags: ${property.flags},
+      generatorFlags: ${property.generatorFlags}
       $additionalArgs
     )
     ''';
@@ -180,8 +181,12 @@ class CodeChunks {
   }
 
   static String setId(ModelEntity entity) {
+    if (entity.idProperty
+        .hasGeneratorFlag(OBXPropertyGeneratorFlags.USE_COPY_WITH_ID)) {
+      return '{return object.copyWithId(id);}';
+    }
     if (!entity.idProperty.fieldIsReadOnly) {
-      return '{object.${propertyFieldName(entity.idProperty)} = id;}';
+      return '{object.${propertyFieldName(entity.idProperty)} = id; return object;}';
     }
     // Note: this is a special case handling read-only IDs with assignable=true.
     // Such ID must already be set, i.e. it could not have been assigned.
@@ -193,6 +198,7 @@ class CodeChunks {
         "doesn't match the inserted ID (ID \$id). "
         'You must assign an ID before calling [box.put()].');
       }
+      return object;
     }''';
   }
 
