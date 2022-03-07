@@ -417,8 +417,13 @@ class Store {
       _IsoPass<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
-    final result = await isoPass.runFn(store);
-    store.close();
+    final R result;
+    try {
+      result = await isoPass.runFn(store);
+    } finally {
+      store.close();
+    }
+
     // Note: maybe replace with Isolate.exit (and remove kill call in
     // runIsolated) once min Dart SDK 2.15.
     isoPass.resultPort?.send(result);
