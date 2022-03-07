@@ -16,7 +16,7 @@ void main() {
   late Store store;
   late Box<TestEntity> box;
 
-  final simpleItems = () => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+  simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
       .map((s) => TestEntity(tString: s))
       .toList();
 
