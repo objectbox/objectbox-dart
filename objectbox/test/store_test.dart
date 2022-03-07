@@ -111,6 +111,45 @@ void main() {
     env.closeAndDelete();
   });
 
+  test('async transactions', () async {
+    final env = TestEnv('store');
+    expect(TxMode.values.length, 2);
+    for (var mode in TxMode.values) {
+      // Returned value falls through.
+      expect(
+          await env.store
+              .runInTransactionAsync(mode, (store, param) => 1, null),
+          1);
+
+      // Async callbacks are forbidden.
+      final asyncCallbacks = [
+        (Store s, Object? p) async => null,
+        (Store s, Object? p) =>
+            Future<int>.delayed(const Duration(milliseconds: 1)),
+        (Store s, Object? p) => Future<void>.value(),
+      ];
+      for (var callback in asyncCallbacks) {
+        try {
+          await env.store.runInTransactionAsync(mode, callback, null);
+          fail("Should throw UnsupportedError");
+        } on UnsupportedError catch (e) {
+          expect(e.message,
+              'Executing an "async" function in a transaction is not allowed.');
+        }
+      }
+
+      // Functions that [Never] finish won't be executed at all.
+      try {
+        await env.store.runInTransactionAsync(mode, (store, param) {
+          throw 'Should never execute';
+        }, null);
+      } on UnsupportedError catch (e) {
+        expect(e.message, 'Given transaction callback always fails.');
+      }
+    }
+    env.closeAndDelete();
+  }, skip: notAtLeastDart2_15_0());
+
   test('store multi-open', () {
     final stores = <Store>[];
 

@@ -1,4 +1,6 @@
 ## latest
+* Add `Store.runInTransactionAsync` to run database operations asynchronously in the background
+  (requires Flutter 2.8.0/Dart 2.15.0 or newer).
 * Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and
   handle premature isolate exit.
 

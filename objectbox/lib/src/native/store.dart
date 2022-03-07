@@ -412,6 +412,29 @@ class Store {
     return _runInTransaction(mode, (tx) => fn());
   }
 
+  /// Like [runAsync], but executes [callback] within a read or write
+  /// transaction depending on [mode].
+  ///
+  /// See the documentation on [runAsync] for important usage details.
+  ///
+  /// The following example gets the name of a User object, deletes the object
+  /// and returns the name within a write transaction:
+  /// ```dart
+  /// String? readNameAndRemove(Store store, int objectId) {
+  ///   var box = store.box<User>();
+  ///   final nameOrNull = box.get(objectId)?.name;
+  ///   box.remove(objectId);
+  ///   return nameOrNull;
+  /// }
+  /// await store.runInTransactionAsync(TxMode.write, readNameAndRemove, objectId);
+  /// ```
+  Future<R> runInTransactionAsync<R, P>(
+          TxMode mode, TxAsyncCallback<R, P> callback, P param) =>
+      runAsync(
+          (Store store, P p) =>
+              store.runInTransaction(mode, () => callback(store, p)),
+          param);
+
   // Isolate entry point must be able to be sent via SendPort.send.
   // Must guarantee only a single result event is sent.
   // runAsync only handles a single event, any sent afterwards are ignored. E.g.
@@ -440,6 +463,8 @@ class Store {
   ///
   /// This is useful for ObjectBox operations that take longer than a few
   /// milliseconds, e.g. putting many objects, which would cause frame drops.
+  /// If all operations can execute within a single transaction, prefer to use
+  /// [runInTransactionAsync].
   ///
   /// The following example gets the name of a User object, deletes the object
   /// and returns the name:
@@ -716,3 +741,9 @@ class _RunAsyncError {
 
   const _RunAsyncError(this.error, this.stack);
 }
+
+// Specify so IDE generates named parameters.
+/// Signature for callback passed to [Store.runInTransactionAsync].
+///
+/// Instances must be functions that can be sent to an isolate.
+typedef TxAsyncCallback<R, P> = R Function(Store store, P parameter);
