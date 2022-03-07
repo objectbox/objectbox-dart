@@ -191,11 +191,10 @@ void main() {
     Directory('store').deleteSync(recursive: true);
   });
 
-  test('store_runInIsolatedTx', () async {
+  test('store run in isolate', () async {
     final env = TestEnv('store');
     final id = env.box.put(TestEntity(tString: 'foo'));
-    final futureResult =
-        env.store.runIsolated(TxMode.write, readStringAndRemove, id);
+    final futureResult = env.store.runAsync(readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
     final String x;
     try {
@@ -205,7 +204,7 @@ void main() {
           .firstMatch(Platform.version)
           ?.group(0);
       if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
-        print('runIsolated requires Dart 2.15, ignoring error.');
+        print('API requires Dart 2.15, ignoring error.');
         env.closeAndDelete();
         return;
       } else {

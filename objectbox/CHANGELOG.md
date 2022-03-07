@@ -1,4 +1,6 @@
 ## latest
+* Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and
+  handle premature isolate exit.
 
 * The native ObjectBox library is also searched for in the `lib` subfolder on desktop OS (macOS,
   Linux, Windows). This is where the [`install.sh`](/install.sh) script downloads it by default.
