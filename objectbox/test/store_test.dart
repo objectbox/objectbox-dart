@@ -84,7 +84,7 @@ void main() {
   test('transactions', () {
     final env = TestEnv('store');
     expect(TxMode.values.length, 2);
-    TxMode.values.forEach((mode) {
+    for (var mode in TxMode.values) {
       // Returned value falls through.
       expect(env.store.runInTransaction(mode, () => 1), 1);
 
@@ -94,11 +94,12 @@ void main() {
         () => Future<int>.delayed(const Duration(milliseconds: 1)),
         () => Future<void>.value(),
       ];
-      asyncCallbacks.forEach((callback) => expect(
-          () => env.store.runInTransaction(mode, callback),
-          throwsA(predicate((UnsupportedError e) => e
-              .toString()
-              .contains('"async" function in a transaction is not allowed')))));
+      for (var callback in asyncCallbacks) {
+        expect(
+            () => env.store.runInTransaction(mode, callback),
+            throwsA(predicate((UnsupportedError e) => e.toString().contains(
+                '"async" function in a transaction is not allowed'))));
+      }
 
       // Functions that [Never] finish won't be executed at all.
       expect(
@@ -106,20 +107,23 @@ void main() {
           throwsA(predicate((UnsupportedError e) => e
               .toString()
               .contains('Given transaction callback always fails.'))));
-    });
+    }
     env.closeAndDelete();
   });
 
   test('store multi-open', () {
     final stores = <Store>[];
 
-    final createStore =
-        (String? dir) => stores.add(Store(getObjectBoxModel(), directory: dir));
+    createStore(String? dir) {
+      stores.add(Store(getObjectBoxModel(), directory: dir));
+    }
 
-    final createMustFail = (String? dir) => expect(
-        () => createStore(dir),
-        throwsA(predicate(
-            (UnsupportedError e) => e.toString().contains('same directory'))));
+    createMustFail(String? dir) {
+      expect(
+          () => createStore(dir),
+          throwsA(predicate((UnsupportedError e) =>
+              e.toString().contains('same directory'))));
+    }
 
     createStore(null); // uses directory 'objectbox'
     createMustFail(null);
@@ -132,10 +136,14 @@ void main() {
     // restore the directory so other tests won't fail
     Directory.current = '../';
 
-    stores.forEach((store) => store.close());
+    for (var store in stores) {
+      store.close();
+    }
     createStore(null);
 
-    stores.forEach((store) => store.close());
+    for (var store in stores) {
+      store.close();
+    }
     Directory('objectbox').deleteSync(recursive: true);
   });
 
