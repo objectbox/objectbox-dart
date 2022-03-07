@@ -440,20 +440,47 @@ class Store {
   Future<R> runIsolated<P, R>(
       TxMode mode, FutureOr<R> Function(Store, P) callback, P param) async {
     final resultPort = ReceivePort();
+    final exitPort = ReceivePort();
+    final errorPort = ReceivePort();
     // Await isolate spawn to avoid waiting forever if it fails to spawn.
     final isolate = await Isolate.spawn(
         _callFunctionWithStoreInIsolate,
         _IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
-            resultPort.sendPort, callback, param));
+            resultPort.sendPort, callback, param),
+        errorsAreFatal: true,
+        onError: errorPort.sendPort,
+        onExit: exitPort.sendPort);
     // Use Completer to return result so type is not lost.
-    final result = Completer<R>();
-    resultPort.listen((dynamic message) {
-      result.complete(message as R);
+    final isolateResult = Completer<R>();
+    resultPort.listen((dynamic result) {
+      if (!isolateResult.isCompleted) {
+        isolateResult.complete(result as R);
+      }
     });
-    await result.future;
+    errorPort.listen((dynamic error) {
+      // See isolate.addErrorListener docs for message structure.
+      if (error is List<dynamic>) {
+        final Exception exception = Exception(error[0]);
+        final StackTrace stack = StackTrace.fromString(error[1] as String);
+        if (isolateResult.isCompleted) {
+          Zone.current.handleUncaughtError(exception, stack);
+        } else {
+          isolateResult.completeError(exception, stack);
+        }
+      }
+    });
+    exitPort.listen((dynamic exit) {
+      if (!isolateResult.isCompleted) {
+        isolateResult.completeError(
+            Exception('Isolate exited without result or error.'));
+      }
+    });
+    await isolateResult.future;
     resultPort.close();
+    exitPort.close();
+    errorPort.close();
     isolate.kill();
-    return result.future;
+    return isolateResult.future;
   }
 
   /// Internal only - bypasses the main checks for async functions, you may
