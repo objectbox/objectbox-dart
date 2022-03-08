@@ -13,11 +13,20 @@ class TestEnv {
   factory TestEnv(String name, {bool? queryCaseSensitive}) {
     final dir = Directory('testdata-' + name);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
-    final store = queryCaseSensitive == null
-        ? Store(getObjectBoxModel(), directory: dir.path)
-        : Store(getObjectBoxModel(),
-            directory: dir.path,
-            queriesCaseSensitiveDefault: queryCaseSensitive);
+    final Store store;
+    var modelDefinition = getObjectBoxModel();
+    try {
+      store = queryCaseSensitive == null
+          ? Store(modelDefinition, directory: dir.path)
+          : Store(modelDefinition,
+              directory: dir.path,
+              queriesCaseSensitiveDefault: queryCaseSensitive);
+    } catch (ex) {
+      print("$dir exists: ${dir.existsSync()}");
+      print("Store is open in directory: ${Store.isOpen(dir.path)}");
+      print("Model Info: ${modelDefinition.model.toMap(forModelJson: true)}");
+      rethrow;
+    }
     return TestEnv._(
         dir, store, Platform.environment.containsKey('TEST_SHORT'));
   }
