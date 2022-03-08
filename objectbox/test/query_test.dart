@@ -678,8 +678,7 @@ void main() {
     expect(query.count(), countMatching);
 
     final foundIds = query.findIds();
-    final stream =
-        useIsolateStream ? await query.streamAsync() : query.stream();
+    final stream = useIsolateStream ? query.streamAsync() : query.stream();
     final streamed = await stream.toList();
     expect(streamed.length, countMatching);
     final streamedIds = streamed.map((e) => e.id).toList(growable: false);
@@ -691,8 +690,7 @@ void main() {
     final streamListenedItems = <TestEntity>{};
 
     final start = DateTime.now();
-    final subStream =
-        useIsolateStream ? await query.streamAsync() : query.stream();
+    final subStream = useIsolateStream ? query.streamAsync() : query.stream();
     final subscription = subStream.listen(streamListenedItems.add);
     for (int i = 0; i < 10 && streamListenedItems.isEmpty; i++) {
       await Future<void>.delayed(Duration(milliseconds: i));

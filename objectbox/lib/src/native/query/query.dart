@@ -831,7 +831,7 @@ class Query<T> {
   ///
   /// This is typically faster than [stream()] and even [find()].
   @experimental
-  Future<Stream<T>> streamAsync() => _streamIsolate();
+  Stream<T> streamAsync() => _streamIsolate();
 
   /// Stream items by sending full flatbuffers binary as a message.
   Stream<T> _stream1() {
@@ -933,21 +933,26 @@ class Query<T> {
   //   }
   // }
 
-  Future<Stream<T>> _streamIsolate() async {
+  Stream<T> _streamIsolate() {
     final resultPort = ReceivePort();
     final exitPort = ReceivePort();
 
-    // Pass clones of Store and Query to avoid these getting closed while the
-    // worker isolate is still running. The isolate closes the clones once done.
-    final storeClonePtr = InternalStoreAccess.clone(_store);
-    final queryClonePtr = _clone();
+    void spawnWorkerIsolate() async {
+      // Pass clones of Store and Query to avoid these getting closed while the
+      // worker isolate is still running. The isolate closes the clones once done.
+      final storeClonePtr = InternalStoreAccess.clone(_store);
+      final queryClonePtr = _clone();
 
-    // Current batch size determined through testing, performs well for smaller
-    // objects. Might want to expose in the future for performance tuning by
-    // users.
-    final isolateInit = _StreamIsolateInit(
-        resultPort.sendPort, storeClonePtr.address, queryClonePtr.address, 20);
-    await Isolate.spawn(_queryAndVisit, isolateInit, onExit: exitPort.sendPort);
+      // Current batch size determined through testing, performs well for smaller
+      // objects. Might want to expose in the future for performance tuning by
+      // users.
+      final isolateInit = _StreamIsolateInit(resultPort.sendPort,
+          storeClonePtr.address, queryClonePtr.address, 20);
+      // If spawn errors StreamController will propagate the error, no point in
+      // using addError as no listener before this function completes.
+      await Isolate.spawn(_queryAndVisit, isolateInit,
+          onExit: exitPort.sendPort);
+    }
 
     SendPort? sendPort;
 
@@ -968,7 +973,8 @@ class Query<T> {
       exitPort.close();
     }
 
-    final streamController = StreamController<T>(onCancel: exitIsolate);
+    final streamController = StreamController<T>(
+        onListen: spawnWorkerIsolate, onCancel: exitIsolate);
     resultPort.listen((dynamic message) async {
       // The first message from the spawned isolate is a SendPort. This port
       // is used to communicate with the spawned isolate.
