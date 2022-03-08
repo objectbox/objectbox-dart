@@ -692,8 +692,10 @@ void main() {
     final start = DateTime.now();
     final subStream = useIsolateStream ? query.streamAsync() : query.stream();
     final subscription = subStream.listen(streamListenedItems.add);
-    for (int i = 0; i < 10 && streamListenedItems.isEmpty; i++) {
-      await Future<void>.delayed(Duration(milliseconds: i));
+    // Note: no upper limit, global test timeout will stop if it takes too long.
+    int millis = 1;
+    while (streamListenedItems.isEmpty) {
+      await Future<void>.delayed(Duration(milliseconds: millis++));
     }
     print('Received ${streamListenedItems.length} items in '
         '${DateTime.now().difference(start).inMilliseconds} milliseconds');
