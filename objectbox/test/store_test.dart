@@ -196,25 +196,11 @@ void main() {
     final id = env.box.put(TestEntity(tString: 'foo'));
     final futureResult = env.store.runAsync(readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
-    final String x;
-    try {
-      x = await futureResult;
-    } catch (e) {
-      final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
-          .firstMatch(Platform.version)
-          ?.group(0);
-      if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
-        print('API requires Dart 2.15, ignoring error.');
-        env.closeAndDelete();
-        return;
-      } else {
-        rethrow;
-      }
-    }
+    final String x = await futureResult;
     expect(x, 'foo!');
     expect(env.box.count(), 0); // Must be removed once awaited
     env.closeAndDelete();
-  });
+  }, skip: notAtLeastDart2_15_0());
 }
 
 Future<String> readStringAndRemove(Store store, int id) async {
