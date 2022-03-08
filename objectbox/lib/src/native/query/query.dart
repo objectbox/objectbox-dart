@@ -724,6 +724,13 @@ class Query<T> {
     }
   }
 
+  /// Clones this native query and returns a pointer to the clone.
+  Pointer<OBX_query> _clone() {
+    final ptr = checkObxPtr(C.query_clone(_ptr));
+    reachabilityFence(this);
+    return ptr;
+  }
+
   /// Close the query and free resources.
   void close() {
     if (!_closed) {
