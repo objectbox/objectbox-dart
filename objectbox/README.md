@@ -1,10 +1,30 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" width="400px">
+  <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" alt="ObjectBox" width="400px">
+</p>
+
+<p align="center">
+  <a href="https://docs.objectbox.io/getting-started">Getting Started</a> •
+  <a href="https://docs.objectbox.io">Documentation</a> •
+  <a href="https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example">Example Apps</a> •
+  <a href="https://github.com/objectbox/objectbox-dart/issues">Issues</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml">
+    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml/badge.svg" alt="Build and test">
+  </a>
+  <a href="https://pub.dev/packages/objectbox">
+    <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart" alt="pub.dev package">
+  </a>
+  <a href="https://github.com/objectbox/objectbox-dart/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache" alt="Apache 2.0 license">
+  </a>
+  <a href="https://twitter.com/ObjectBox_io">
+    <img src="https://img.shields.io/twitter/follow/ObjectBox_io?style=flat&logo=twitter" alt="Follow @ObjectBox_io">
+  </a>
 </p>
 
 # Flutter database for Dart-native objects 💙
-
-[![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
 
 Super-fast Flutter database for storing and syncing Dart objects
 
@@ -147,7 +167,7 @@ What do you love? What's amiss? Where do you struggle in everyday app developmen
 
 **We're looking forward to receiving your comments and requests:**
 
-- Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues)
+- Add [GitHub issues](https://github.com/objectbox/objectbox-dart/issues)
 - Upvote issues you find important by hitting the 👍/+1 reaction button
 - Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
 - ⭐ us, if you like what you see
