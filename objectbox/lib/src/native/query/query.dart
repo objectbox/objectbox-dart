@@ -11,7 +11,6 @@ import 'package:meta/meta.dart';
 
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
-import '../../modelinfo/model_definition.dart';
 import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
 import '../../store.dart';
@@ -935,16 +934,18 @@ class Query<T> {
   // }
 
   Future<Stream<T>> _streamIsolate() async {
+    // Pass clones of Store and Query to avoid these getting closed while the
+    // worker isolate is still running. The isolate closes the clones once done.
+    final storeClonePtr = InternalStoreAccess.clone(_store);
+    final queryClonePtr = _clone();
+
     final port = ReceivePort();
+
     // Current batch size determined through testing, performs well for smaller
     // objects. Might want to expose in the future for performance tuning by
     // users.
     final isolateInit = _StreamIsolateInit(
-        port.sendPort,
-        InternalStoreAccess.modelDefinition(_store),
-        _store.reference,
-        _ptr.address,
-        20);
+        port.sendPort, storeClonePtr.address, queryClonePtr.address, 20);
     await Isolate.spawn(_queryAndVisit, isolateInit);
 
     SendPort? sendPort;
@@ -1013,16 +1014,12 @@ class Query<T> {
     final commandPort = ReceivePort();
     sendPort.send(commandPort.sendPort);
 
-    final store =
-        Store.fromReference(isolateInit.model, isolateInit.storeReference);
     // Visit inside transaction and do not complete transaction to ensure
     // data pointers remain valid until main isolate has deserialized all data.
+    final store =
+        InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
     await InternalStoreAccess.runInTransaction(store, TxMode.read,
         (Transaction tx) async {
-      // FIXME Query might have already been closed and the pointer is invalid.
-      final queryPtr =
-          Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
-
       // Use fixed-length lists to avoid performance hit due to growing.
       final maxBatchSize = isolateInit.batchSize;
       var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
@@ -1045,11 +1042,15 @@ class Query<T> {
         }
         return true;
       });
+      final queryPtr =
+          Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
       try {
         checkObx(C.query_visit(queryPtr, visitor, nullptr));
       } catch (e) {
         sendPort.send(e);
         return;
+      } finally {
+        checkObx(C.query_close(queryPtr));
       }
       // Send any remaining data.
       if (batchSize > 0) {
@@ -1065,6 +1066,8 @@ class Query<T> {
       // when resuming execution.
       // https://github.com/dart-lang/sdk/issues/46943
     });
+
+    store.close();
 
     // Only available on Dart 2.15+
     // Isolate.exit();
@@ -1107,12 +1110,11 @@ class Query<T> {
 @immutable
 class _StreamIsolateInit {
   final SendPort sendPort;
-  final ModelDefinition model;
-  final ByteData storeReference;
+  final int storePtrAddress;
   final int queryPtrAddress;
   final int batchSize;
 
-  const _StreamIsolateInit(this.sendPort, this.model, this.storeReference,
+  const _StreamIsolateInit(this.sendPort, this.storePtrAddress,
       this.queryPtrAddress, this.batchSize);
 }
 

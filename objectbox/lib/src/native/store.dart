@@ -687,9 +687,6 @@ class InternalStoreAccess {
       Store._minimal(ptrAddress,
           queriesCaseSensitiveDefault: queriesCaseSensitiveDefault);
 
-  /// Access model definition.
-  static ModelDefinition modelDefinition(Store store) => store._modelDefinition;
-
   /// Access entity model for the given class (Dart Type).
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
