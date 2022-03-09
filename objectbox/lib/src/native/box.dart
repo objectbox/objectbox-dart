@@ -72,9 +72,25 @@ class Box<T> {
   int put(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       return InternalStoreAccess.runInTransaction(
-          _store, TxMode.write, (Transaction tx) => _put(object, mode, tx));
+          _store, TxMode.write, (Transaction tx) => _put(object, mode, tx).id);
     } else {
-      return _put(object, mode, null);
+      return _put(object, mode, null).id;
+    }
+  }
+
+  /// Puts the given Immutable Object in the box (aka persisting it).
+  ///
+  /// If this is a new object (its ID property is 0), a new object with new ID will be returned.
+  ///
+  /// If the object with given was already in the box, it will be overwritten.
+  ///
+  /// Performance note: consider [putImmutableMany] to put several objects at once.
+  T putImmutable(T object, {PutMode mode = PutMode.put}) {
+    if (_hasRelations) {
+      return InternalStoreAccess.runInTransaction(_store, TxMode.write,
+          (Transaction tx) => _put(object, mode, tx).object);
+    } else {
+      return _put(object, mode, null).object;
     }
   }
 
@@ -94,6 +110,28 @@ class Box<T> {
   /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
   /// ID immediately, even though the actual database put operation may fail.
   Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+      Future.sync(() async => (await _putAsync(object, mode: mode)).id);
+
+  /// Puts the given immutable object in the box (persisting it) asynchronously.
+  ///
+  /// The returned future completes with an stored object. If it is a new
+  /// object (its ID property is 0), a new object with new ID will be assigned to the object
+  /// argument, after the returned [Future] completes.
+  ///
+  /// In extreme scenarios (e.g. having hundreds of thousands async operations
+  /// per second), this may fail as internal queues fill up if the disk can't
+  /// keep up. However, this should not be a concern for typical apps.
+  /// The returned future may also complete with an error if the put failed
+  /// for another reason, for example a unique constraint violation. In that
+  /// case the [object]'s id field remains unchanged (0 if it was a new object).
+  ///
+  /// See also [putImmutableQueued] which doesn't return a [Future] but a pre-allocated
+  /// object immediately, even though the actual database put operation may fail.
+  Future<T> putImmutableAsync(T object, {PutMode mode = PutMode.put}) async =>
+      Future.sync(() async => (await _putAsync(object, mode: mode)).object);
+
+  Future<_HandlePutResult<T>> _putAsync(T object,
+          {PutMode mode = PutMode.put}) async =>
       // Wrap with [Future.sync] to avoid mixing sync and async errors.
       // Note: doesn't seem to decrease performance at all.
       // https://dart.dev/guides/libraries/futures-error-handling#potential-problem-accidentally-mixing-synchronous-and-asynchronous-errors
@@ -111,14 +149,14 @@ class Box<T> {
         // > This means that within an async function body, all synchronous code
         // > before the first await keyword executes immediately.
         _builder.fbb.reset();
-        var id = _entity.objectToFB(object, _builder.fbb);
+        final id = _entity.objectToFB(object, _builder.fbb);
         final newId = _async!.put(id, _builder, mode);
         _builder.resetIfLarge(); // reset before `await`
         if (id == 0) {
           // Note: if the newId future completes with an error, ID isn't set.
           object = _entity.setId(object, await newId);
         }
-        return newId;
+        return _HandlePutResult(await newId, object);
       });
 
   /// Schedules the given object to be put later on, by an asynchronous queue.
@@ -137,7 +175,29 @@ class Box<T> {
   /// actual database put was successful.
   /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
   /// until all operations have finished.
-  int putQueued(T object, {PutMode mode = PutMode.put}) {
+  int putQueued(T object, {PutMode mode = PutMode.put}) =>
+      _putQueued(object, mode: mode).id;
+
+  /// Schedules the given immutable object to be put later on, by an asynchronous queue.
+  ///
+  /// The actual database put operation may fail even if this function returned
+  /// normally (and even if it returned a new a new object with new ID). For example
+  /// if the database put failed because of a unique constraint violation.
+  /// Therefore, you should make sure the data you put is correct and you have
+  /// a fall back in place even if it eventually failed.
+  ///
+  /// In extreme scenarios (e.g. having hundreds of thousands async operations
+  /// per second), this may fail as internal queues fill up if the disk can't
+  /// keep up. However, this should not be a concern for typical apps.
+  ///
+  /// See also [putImmutableAsync] which returns a [Future] that only completes after an
+  /// actual database put was successful.
+  /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
+  /// until all operations have finished.
+  T putImmutableQueued(T object, {PutMode mode = PutMode.put}) =>
+      _putQueued(object, mode: mode).object;
+
+  _HandlePutResult<T> _putQueued(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       throw UnsupportedError('putQueued() is currently not supported on entity '
           '${T.toString()} because it has relations.');
@@ -150,19 +210,11 @@ class Box<T> {
         _builder.fbb.size(), _getOBXPutMode(mode));
     final result = _handlePutObjectResult(object, id, newId);
 
-    // replace object if id setter returns another object
-    if (object != result.object) {
-      _builder.fbb.reset();
-      _entity.objectToFB(result.object, _builder.fbb);
-      C.async_put_object4(_async!._cAsync, _builder.bufPtr, _builder.fbb.size(),
-          _getOBXPutMode(mode));
-    }
-
     _builder.resetIfLarge();
-    return result.id;
+    return result;
   }
 
-  int _put(T object, PutMode mode, Transaction? tx) {
+  _HandlePutResult<T> _put(T object, PutMode mode, Transaction? tx) {
     if (_hasRelations) {
       if (tx == null) {
         throw StateError(
@@ -184,31 +236,35 @@ class Box<T> {
         _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
     final result = _handlePutObjectResult(object, id, newId);
 
-    // replace object if id setter returns another object
-    if (object != result.object) {
-      _builder.fbb.reset();
-      _entity.objectToFB(result.object, _builder.fbb);
-      C.box_put_object4(
-          _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
-    }
-
     if (_hasToManyRelations) _putToManyRelFields(result.object, mode, tx!);
     _builder.resetIfLarge();
-    return result.id;
+    return result;
   }
 
   /// Puts the given [objects] into this Box in a single transaction.
   ///
   /// Returns a list of all IDs of the inserted Objects.
-  List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) {
+  List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) =>
+      _putMany(objects, mode: mode).map((obj) => obj.id).toList();
+
+  /// Puts the given List of immutable entities [objects] into this Box in a single transaction.
+  ///
+  /// Returns a list of all inserted Objects.
+  List<T> putImmutableMany(List<T> objects, {PutMode mode = PutMode.put}) =>
+      _putMany(objects, mode: mode).map((obj) => obj.object).toList();
+
+  List<_HandlePutResult<T>> _putMany(List<T> objects,
+      {PutMode mode = PutMode.put}) {
     if (objects.isEmpty) return [];
 
-    final putIds = List<int>.filled(objects.length, 0);
+    final putResults = <_HandlePutResult<T>>[];
 
     InternalStoreAccess.runInTransaction(_store, TxMode.write,
         (Transaction tx) {
       if (_hasToOneRelations) {
-        objects.forEach((object) => _putToOneRelFields(object, mode, tx));
+        for (final object in objects) {
+          _putToOneRelFields(object, mode, tx);
+        }
       }
 
       final cursor = tx.cursor(_entity);
@@ -220,29 +276,18 @@ class Box<T> {
         final newId = C.cursor_put_object4(
             cursor.ptr, _builder.bufPtr, _builder.fbb.size(), cMode);
         final result = _handlePutObjectResult(object, id, newId);
-        putIds[i] = result.id;
-
-        // replace object if id setter returns another object
-        if (object != result.object) {
-          objects[i] = result.object;
-          _builder.fbb.reset();
-          _entity.objectToFB(result.object, _builder.fbb);
-          C.cursor_put_object4(
-            cursor.ptr,
-            _builder.bufPtr,
-            _builder.fbb.size(),
-            cMode,
-          );
-        }
+        putResults.add(result);
       }
 
       if (_hasToManyRelations) {
-        objects.forEach((object) => _putToManyRelFields(object, mode, tx));
+        for (final object in objects) {
+          _putToManyRelFields(object, mode, tx);
+        }
       }
       _builder.resetIfLarge();
     });
 
-    return putIds;
+    return putResults;
   }
 
   // Checks if native obx_*_put_object() was successful (result is a valid ID).
@@ -250,8 +295,8 @@ class Box<T> {
   @pragma('vm:prefer-inline')
   _HandlePutResult<T> _handlePutObjectResult(T object, int prevId, int result) {
     if (result == 0) throwLatestNativeError(context: 'object put failed');
-    T newObject = object;
-    if (prevId == 0) newObject = _entity.setId(object, result);
+
+    final T newObject = (prevId == 0) ? _entity.setId(object, result) : object;
     return _HandlePutResult<T>(result, newObject);
   }
 
@@ -385,7 +430,7 @@ class Box<T> {
       // put new objects
       if (rel.targetId == 0) {
         rel.targetId =
-            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, tx);
+            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, tx).id;
       }
     });
   }
@@ -477,7 +522,7 @@ class InternalBoxAccess {
   @pragma('vm:prefer-inline')
   static int put<EntityT>(
           Box<EntityT> box, EntityT object, PutMode mode, Transaction? tx) =>
-      box._put(object, mode, tx);
+      box._put(object, mode, tx).id;
 
   /// Put a standalone relation.
   @pragma('vm:prefer-inline')

@@ -9,17 +9,11 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
-  late TestEnv env;
-  late Box<TestEntityImmutable> box;
+  test('Test putImmutable*', () async {
+    final env = TestEnv('entity_immutable');
+    final Box<TestEntityImmutable> box = env.store.box();
 
-  setUp(() {
-    env = TestEnv('entity_immutable');
-    box = env.store.box();
-  });
-  tearDown(() => env.closeAndDelete());
-
-  test('Query with no conditions, and order as desc ints', () {
-    box.putMany(<TestEntityImmutable>[
+    final result = box.putImmutableMany(const <TestEntityImmutable>[
       TestEntityImmutable(unique: 1, payload: 1),
       TestEntityImmutable(unique: 10, payload: 10),
       TestEntityImmutable(unique: 2, payload: 2),
@@ -28,6 +22,9 @@ void main() {
       TestEntityImmutable(unique: 50, payload: 0),
     ]);
 
+    expect(result.length, 6);
+    expect(result.map((e) => e.unique).toList(), [1, 10, 2, 100, 0, 50]);
+
     final query = (box.query()
           ..order(TestEntityImmutable_.payload, flags: Order.descending))
         .build();
@@ -35,10 +32,26 @@ void main() {
 
     expect(listDesc.map((t) => t.payload).toList(), [100, 10, 2, 1, 0, 0]);
 
-    box.put(TestEntityImmutable(unique: 50, payload: 50));
+    final obj = box.putImmutable(const TestEntityImmutable(
+      unique: 50,
+      payload: 50,
+    ));
+    expect([obj.unique, obj.payload], [50, 50]);
 
     listDesc = query.find();
     expect(listDesc.map((t) => t.payload).toList(), [100, 50, 10, 2, 1, 0]);
     query.close();
+
+    final objAsync = await box.putImmutableAsync(const TestEntityImmutable(
+      unique: 60,
+      payload: 60,
+    ));
+
+    expect(
+      [objAsync.id, objAsync.unique, objAsync.payload],
+      [obj.id! + 1, 60, 60],
+    );
+
+    env.closeAndDelete();
   });
 }

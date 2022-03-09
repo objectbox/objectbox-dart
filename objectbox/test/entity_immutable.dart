@@ -18,7 +18,11 @@ class TestEntityImmutable {
         payload: payload ?? this.payload,
       );
 
-  TestEntityImmutable({this.id, required this.unique, required this.payload});
+  const TestEntityImmutable({
+    this.id,
+    required this.unique,
+    required this.payload,
+  });
 
   TestEntityImmutable copyWithId(int newId) =>
       (id != newId) ? copyWith(id: newId) : this;
