@@ -436,10 +436,11 @@ class EntityResolver extends Builder {
   bool isRelationField(FieldElement f) =>
       isToOneRelationField(f) || isToManyRelationField(f);
 
-  bool isToOneRelationField(FieldElement f) => f.type.element!.name == 'ToOne';
+  bool isToOneRelationField(FieldElement f) =>
+      const {'ToOne', 'ToOneProxy'}.contains(f.type.element!.name);
 
   bool isToManyRelationField(FieldElement f) =>
-      f.type.element!.name == 'ToMany';
+      const {'ToMany', 'ToManyProxy'}.contains(f.type.element!.name);
 
   bool isNullable(DartType type) =>
       type.nullabilitySuffix == NullabilitySuffix.star ||

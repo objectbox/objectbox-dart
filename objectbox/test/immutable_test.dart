@@ -9,11 +9,18 @@ import 'test_env.dart';
 // ignore_for_file: omit_local_variable_types
 
 void main() {
+  late TestEnv env;
+
+  setUp(() {
+    env = TestEnv('entity_immutable');
+  });
+
+  tearDown(() => env.closeAndDelete());
+
   test('Test putImmutable*', () async {
-    final env = TestEnv('entity_immutable');
     final Box<TestEntityImmutable> box = env.store.box();
 
-    final result = box.putImmutableMany(const <TestEntityImmutable>[
+    final result = box.putImmutableMany(<TestEntityImmutable>[
       TestEntityImmutable(unique: 1, payload: 1),
       TestEntityImmutable(unique: 10, payload: 10),
       TestEntityImmutable(unique: 2, payload: 2),
@@ -32,7 +39,7 @@ void main() {
 
     expect(listDesc.map((t) => t.payload).toList(), [100, 10, 2, 1, 0, 0]);
 
-    final obj = box.putImmutable(const TestEntityImmutable(
+    final obj = box.putImmutable(TestEntityImmutable(
       unique: 50,
       payload: 50,
     ));
@@ -42,7 +49,7 @@ void main() {
     expect(listDesc.map((t) => t.payload).toList(), [100, 50, 10, 2, 1, 0]);
     query.close();
 
-    final objAsync = await box.putImmutableAsync(const TestEntityImmutable(
+    final objAsync = await box.putImmutableAsync(TestEntityImmutable(
       unique: 60,
       payload: 60,
     ));
@@ -51,7 +58,5 @@ void main() {
       [objAsync.id, objAsync.unique, objAsync.payload],
       [obj.id! + 1, 60, 60],
     );
-
-    env.closeAndDelete();
   });
 }

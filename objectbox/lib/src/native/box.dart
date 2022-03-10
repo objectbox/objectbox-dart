@@ -47,6 +47,12 @@ class Box<T> {
   final _builder = BuilderWithCBuffer();
   _AsyncBoxHelper? _async;
 
+  // chached put results object -> newObject
+  final _putCache = _PutCache();
+  void _clearPutCache() {
+    _putCache.clear();
+  }
+
   /// Create a box for an Entity.
   factory Box(Store store) => store.box();
 
@@ -70,6 +76,8 @@ class Box<T> {
   ///
   /// Performance note: consider [putMany] to put several objects at once.
   int put(T object, {PutMode mode = PutMode.put}) {
+    _clearPutCache();
+
     if (_hasRelations) {
       return InternalStoreAccess.runInTransaction(
           _store, TxMode.write, (Transaction tx) => _put(object, mode, tx).id);
@@ -86,6 +94,8 @@ class Box<T> {
   ///
   /// Performance note: consider [putImmutableMany] to put several objects at once.
   T putImmutable(T object, {PutMode mode = PutMode.put}) {
+    _clearPutCache();
+
     if (_hasRelations) {
       return InternalStoreAccess.runInTransaction(_store, TxMode.write,
           (Transaction tx) => _put(object, mode, tx).object);
@@ -109,8 +119,11 @@ class Box<T> {
   ///
   /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
   /// ID immediately, even though the actual database put operation may fail.
-  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
-      Future.sync(() async => (await _putAsync(object, mode: mode)).id);
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async {
+    _clearPutCache();
+
+    return Future.sync(() async => (await _putAsync(object, mode: mode)).id);
+  }
 
   /// Puts the given immutable object in the box (persisting it) asynchronously.
   ///
@@ -127,8 +140,12 @@ class Box<T> {
   ///
   /// See also [putImmutableQueued] which doesn't return a [Future] but a pre-allocated
   /// object immediately, even though the actual database put operation may fail.
-  Future<T> putImmutableAsync(T object, {PutMode mode = PutMode.put}) async =>
-      Future.sync(() async => (await _putAsync(object, mode: mode)).object);
+  Future<T> putImmutableAsync(T object, {PutMode mode = PutMode.put}) async {
+    _clearPutCache();
+
+    return Future.sync(
+        () async => (await _putAsync(object, mode: mode)).object);
+  }
 
   Future<_HandlePutResult<T>> _putAsync(T object,
           {PutMode mode = PutMode.put}) async =>
@@ -175,8 +192,11 @@ class Box<T> {
   /// actual database put was successful.
   /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
   /// until all operations have finished.
-  int putQueued(T object, {PutMode mode = PutMode.put}) =>
-      _putQueued(object, mode: mode).id;
+  int putQueued(T object, {PutMode mode = PutMode.put}) {
+    _clearPutCache();
+
+    return _putQueued(object, mode: mode).id;
+  }
 
   /// Schedules the given immutable object to be put later on, by an asynchronous queue.
   ///
@@ -194,8 +214,11 @@ class Box<T> {
   /// actual database put was successful.
   /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
   /// until all operations have finished.
-  T putImmutableQueued(T object, {PutMode mode = PutMode.put}) =>
-      _putQueued(object, mode: mode).object;
+  T putImmutableQueued(T object, {PutMode mode = PutMode.put}) {
+    _clearPutCache();
+
+    return _putQueued(object, mode: mode).object;
+  }
 
   _HandlePutResult<T> _putQueued(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
@@ -223,9 +246,19 @@ class Box<T> {
       if (_hasToOneRelations) {
         // In this case, there may be relation cycles so get the ID first.
         if ((_entity.getId(object) ?? 0) == 0) {
-          final newId = C.box_id_for_put(_cBox, 0);
-          if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
-          object = _entity.setId(object, newId);
+          final cached = _putCache.get(object);
+          if (cached != null) {
+            object = cached.object;
+          } else {
+            final newId = C.box_id_for_put(_cBox, 0);
+            if (newId == 0) {
+              throwLatestNativeError(context: 'id-for-put failed');
+            }
+
+            final newObject = _entity.setId(object, newId);
+            _putCache.store(object, _HandlePutResult<T>(newId, newObject));
+            object = newObject;
+          }
         }
         _putToOneRelFields(object, mode, tx);
       }
@@ -236,7 +269,9 @@ class Box<T> {
         _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
     final result = _handlePutObjectResult(object, id, newId);
 
-    if (_hasToManyRelations) _putToManyRelFields(result.object, mode, tx!);
+    if (_hasToManyRelations) {
+      _putToManyRelFields(result.object, mode, tx!);
+    }
     _builder.resetIfLarge();
     return result;
   }
@@ -244,17 +279,31 @@ class Box<T> {
   /// Puts the given [objects] into this Box in a single transaction.
   ///
   /// Returns a list of all IDs of the inserted Objects.
-  List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) =>
-      _putMany(objects, mode: mode).map((obj) => obj.id).toList();
+  List<int> putMany(
+    List<T> objects, {
+    PutMode mode = PutMode.put,
+  }) {
+    _clearPutCache();
+
+    return _putMany(objects, mode: mode).map((obj) => obj.id).toList();
+  }
 
   /// Puts the given List of immutable entities [objects] into this Box in a single transaction.
   ///
   /// Returns a list of all inserted Objects.
-  List<T> putImmutableMany(List<T> objects, {PutMode mode = PutMode.put}) =>
-      _putMany(objects, mode: mode).map((obj) => obj.object).toList();
+  List<T> putImmutableMany(
+    List<T> objects, {
+    PutMode mode = PutMode.put,
+  }) {
+    _clearPutCache();
 
-  List<_HandlePutResult<T>> _putMany(List<T> objects,
-      {PutMode mode = PutMode.put}) {
+    return _putMany(objects, mode: mode).map((obj) => obj.object).toList();
+  }
+
+  List<_HandlePutResult<T>> _putMany(
+    List<T> objects, {
+    PutMode mode = PutMode.put,
+  }) {
     if (objects.isEmpty) return [];
 
     final putResults = <_HandlePutResult<T>>[];
@@ -269,8 +318,7 @@ class Box<T> {
 
       final cursor = tx.cursor(_entity);
       final cMode = _getOBXPutMode(mode);
-      for (var i = 0; i < objects.length; i++) {
-        final object = objects[i];
+      for (final object in objects) {
         _builder.fbb.reset();
         final id = _entity.objectToFB(object, _builder.fbb);
         final newId = C.cursor_put_object4(
@@ -280,8 +328,8 @@ class Box<T> {
       }
 
       if (_hasToManyRelations) {
-        for (final object in objects) {
-          _putToManyRelFields(object, mode, tx);
+        for (final result in putResults) {
+          _putToManyRelFields(result.object, mode, tx);
         }
       }
       _builder.resetIfLarge();
@@ -423,23 +471,41 @@ class Box<T> {
     }
   }
 
-  void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
-    _entity.toOneRelations(object).forEach((ToOne rel) {
+  void _putToOneRelFields(
+    T object,
+    PutMode mode,
+    Transaction tx,
+  ) {
+    _entity.toOneRelations(object).forEach((ToOneRelationProvider rel) {
       if (!rel.hasValue) return;
       rel.attach(_store);
       // put new objects
       if (rel.targetId == 0) {
-        rel.targetId =
-            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, tx).id;
+        late final _HandlePutResult<dynamic> result;
+
+        // check if putCache already contains same objects _putResult (immutability)
+        final cached = _putCache.getDynamic(rel.target);
+        if (cached != null) {
+          result = cached;
+        } else {
+          result = InternalToOneAccess.targetBox(rel.relation)
+              ._put(rel.target, mode, tx);
+          // cache _put result
+          _putCache.storeDynamic(rel.target, result);
+        }
+        rel.targetId = result.id;
+        rel.target = result.object;
       }
     });
   }
 
   void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
-    _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
+    _entity
+        .toManyRelations(object)
+        .forEach((RelInfo info, ToManyRelationProvider rel) {
       // Always set relation info so ToMany applyToDb can be used after initial put
-      InternalToManyAccess.setRelInfo(rel, _store, info, this);
-      if (InternalToManyAccess.hasPendingDbChanges(rel)) {
+      InternalToManyAccess.setRelInfo(rel.relation, _store, info, this);
+      if (InternalToManyAccess.hasPendingDbChanges(rel.relation)) {
         rel.applyToDb(mode: mode, tx: tx);
       }
     });
@@ -520,9 +586,17 @@ class InternalBoxAccess {
 
   /// Put the object in a given transaction.
   @pragma('vm:prefer-inline')
-  static int put<EntityT>(
+  static _HandlePutResult<EntityT> put<EntityT>(
           Box<EntityT> box, EntityT object, PutMode mode, Transaction? tx) =>
-      box._put(object, mode, tx).id;
+      box._put(object, mode, tx);
+
+  /// Put the object in a given transaction.
+  @pragma('vm:prefer-inline')
+  static EntityT putClearCache<EntityT>(
+      Box<EntityT> box, EntityT object, PutMode mode) {
+    box._clearPutCache();
+    return box.putImmutable(object, mode: mode);
+  }
 
   /// Put a standalone relation.
   @pragma('vm:prefer-inline')
@@ -594,4 +668,44 @@ class _HandlePutResult<T> {
   final int id;
   final T object;
   const _HandlePutResult(this.id, this.object);
+}
+
+// TODO use this type on SDK >= 2.15
+//typedef _PutCache = Map<Type, Map<dynamic, _HandlePutResult<dynamic>>>;
+
+class _PutCache {
+  static final _instance = _PutCache._();
+  factory _PutCache() => _instance;
+  _PutCache._();
+
+  final Map<Type, Map<dynamic, _HandlePutResult<dynamic>>> _cache = {};
+
+  _HandlePutResult<T>? get<T>(T object) =>
+      _cache[T]?[object] as _HandlePutResult<T>?;
+
+  _HandlePutResult<dynamic>? getDynamic(dynamic object) {
+    final type = object.runtimeType;
+    return _cache[type]?[object];
+  }
+
+  void store<T>(T object, _HandlePutResult<T> result) {
+    if (object == result.object) {
+      return;
+    }
+    _cache[T] ??= <dynamic, _HandlePutResult<dynamic>>{};
+    _cache[T]![object] = result;
+  }
+
+  void storeDynamic(dynamic object, _HandlePutResult<dynamic> result) {
+    if (object == result.object) {
+      return;
+    }
+    final type = object.runtimeType;
+    _cache[type] ??= <dynamic, _HandlePutResult<dynamic>>{};
+    _cache[type]![object] = result;
+  }
+
+  void clear() {
+    _cache.clear();
+  }
 }

@@ -17,8 +17,8 @@ class EntityDefinition<T> {
   final T Function(Store, ByteData) objectFromFB;
   final int? Function(T) getId;
   final T Function(T, int) setId;
-  final List<ToOne> Function(T) toOneRelations;
-  final Map<RelInfo, ToMany> Function(T) toManyRelations;
+  final List<ToOneRelationProvider> Function(T) toOneRelations;
+  final Map<RelInfo, ToManyRelationProvider> Function(T) toManyRelations;
 
   const EntityDefinition(
       {required this.model,

@@ -24,8 +24,8 @@ export 'src/query.dart'
         QueryParamInt,
         QueryParamBool,
         QueryParamDouble;
-export 'src/relations/to_many.dart' show ToMany;
-export 'src/relations/to_one.dart' show ToOne;
+export 'src/relations/to_many.dart' show ToMany, ToManyProxy;
+export 'src/relations/to_one.dart' show ToOne, ToOneProxy;
 export 'src/store.dart' show Store, ObservableStore;
 export 'src/sync.dart'
     show

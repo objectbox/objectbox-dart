@@ -400,6 +400,8 @@ class CodeChunks {
         if (entity.properties[index].isRelation) {
           if (paramDartType.startsWith('ToOne<')) {
             paramValueCode = 'ToOne(targetId: $paramValueCode)';
+          } else if (paramDartType.startsWith('ToOneProxy<')) {
+            paramValueCode = 'ToOneProxy(targetId: $paramValueCode)';
           } else if (paramType == 'optional-named') {
             log.info('Skipping constructor parameter $paramName on '
                 "'${entity.name}': the matching field is a relation but the type "
@@ -409,6 +411,8 @@ class CodeChunks {
         }
       } else if (paramDartType.startsWith('ToMany<')) {
         paramValueCode = 'ToMany()';
+      } else if (paramDartType.startsWith('ToManyProxy<')) {
+        paramValueCode = 'ToManyProxy()';
       } else {
         // If we can't find a positional param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
@@ -456,7 +460,7 @@ class CodeChunks {
       if (!p.isRelation) return;
       if (fieldReaders[index].isNotEmpty) {
         postLines.add(
-            'object.${propertyFieldName(p)}.targetId = ${fieldReaders[index]};');
+            'object.${propertyFieldName(p)}.relation.targetId = ${fieldReaders[index]};');
       }
       postLines.add('object.${propertyFieldName(p)}.attach(store);');
     });

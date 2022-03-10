@@ -8,6 +8,23 @@ import '../store.dart';
 import '../transaction.dart';
 import 'info.dart';
 
+/// ToManyRelationProvider interface to use ToMany or ToManyProxy in same context
+abstract class ToManyRelationProvider<EntityT> {
+  /// Provider must implements relation getter
+  ToMany<EntityT> get relation;
+
+  /// Save changes made to this ToMany relation to the database. Alternatively,
+  /// you can call box.put(object) or box.putImmutable, its relations are automatically saved.
+  ///
+  /// If this collection contains new objects (with zero IDs),  applyToDb()
+  /// will put them on-the-fly. For this to work the source object (the object
+  /// owing this ToMany) must be already stored because its ID is required.
+  void applyToDb({
+    PutMode mode = PutMode.put,
+    Transaction? tx,
+  });
+}
+
 /// Manages a to-many relation, an unidirectional link from a "source" entity to
 /// multiple objects of a "target" entity.
 ///
@@ -42,7 +59,9 @@ import 'info.dart';
 /// student.teachers.removeAt(index)
 /// student.teachers.applyToDb(); // or store.box<Student>().put(student);
 /// ```
-class ToMany<EntityT> extends Object with ListMixin<EntityT> {
+class ToMany<EntityT> extends Object
+    with ListMixin<EntityT>
+    implements ToManyRelationProvider<EntityT> {
   bool _attached = false;
 
   late final Store _store;
@@ -109,7 +128,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   void add(EntityT element) {
     ArgumentError.checkNotNull(element, 'element');
     _track(element, 1);
-    if (__items == null) {
+    if (!_itemsLoaded) {
       // We don't need to load old data from DB to add new items.
       _addedBeforeLoad.add(element);
     } else {
@@ -120,7 +139,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   @override
   void addAll(Iterable<EntityT> iterable) {
     iterable.forEach(_track);
-    if (__items == null) {
+    if (!_itemsLoaded) {
       // We don't need to load old data from DB to add new items.
       _addedBeforeLoad.addAll(iterable);
     } else {
@@ -153,13 +172,28 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// True if there are any changes not yet saved in DB.
   bool get _hasPendingDbChanges => _counts.values.any((c) => c != 0);
 
+  void _updateObjectInItems(EntityT from, EntityT to) {
+    if (from == to || !_itemsLoaded) {
+      return;
+    }
+
+    final idx = _items.indexOf(from);
+    if (idx > -1) {
+      _items[idx] = to;
+    }
+  }
+
   /// Save changes made to this ToMany relation to the database. Alternatively,
   /// you can call box.put(object), its relations are automatically saved.
   ///
   /// If this collection contains new objects (with zero IDs),  applyToDb()
   /// will put them on-the-fly. For this to work the source object (the object
   /// owing this ToMany) must be already stored because its ID is required.
-  void applyToDb({PutMode mode = PutMode.put, Transaction? tx}) {
+  @override
+  void applyToDb({
+    PutMode mode = PutMode.put,
+    Transaction? tx,
+  }) {
     if (!_hasPendingDbChanges) return;
     _verifyAttached();
 
@@ -184,7 +218,11 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         switch (_rel!.type) {
           case RelType.toMany:
             if (add) {
-              if (id == 0) id = InternalBoxAccess.put(_box, object, mode, tx);
+              if (id == 0) {
+                final result = InternalBoxAccess.put(_box, object, mode, tx);
+                _updateObjectInItems(object, result.object);
+                id = result.id;
+              }
               InternalBoxAccess.relPut(_otherBox, _rel!.id, _rel!.objectId, id);
             } else {
               if (id == 0) return;
@@ -195,11 +233,18 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           case RelType.toOneBacklink:
             final srcField = _rel!.toOneSourceField(object);
             srcField.targetId = add ? _rel!.objectId : null;
-            _box.put(object, mode: mode);
+
+            final result = InternalBoxAccess.putClearCache(_box, object, mode);
+            _updateObjectInItems(object, result);
+
             break;
           case RelType.toManyBacklink:
             if (add) {
-              if (id == 0) id = InternalBoxAccess.put(_box, object, mode, tx);
+              if (id == 0) {
+                final result = InternalBoxAccess.put(_box, object, mode, tx);
+                _updateObjectInItems(object, result.object);
+                id = result.id;
+              }
               InternalBoxAccess.relPut(_box, _rel!.id, id, _rel!.objectId);
             } else {
               if (id == 0) return;
@@ -238,6 +283,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   List<EntityT> get _items => __items ??= _loadItems();
+  bool get _itemsLoaded => __items != null;
 
   List<EntityT> _loadItems() {
     if (_rel == null) {
@@ -261,6 +307,78 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           "Don't call applyToDb() on new objects, use box.put() instead.");
     }
   }
+
+  /// [ToManyRelationProvider] interface implementtation
+  @override
+  ToMany<EntityT> get relation => this;
+}
+
+/// Proxy ToMany relation between immutable entities
+class ToManyProxy<EntityT> implements ToManyRelationProvider<EntityT> {
+  late ToMany<EntityT> _sharedRelation;
+
+  /// [ToManyRelationProvider] interface implementtation
+  @override
+  ToMany<EntityT> get relation => _sharedRelation;
+
+  /// [ToManyRelationProvider] interface implementtation
+  @override
+  void applyToDb({PutMode mode = PutMode.put, Transaction? tx}) {
+    relation.applyToDb(mode: mode, tx: tx);
+  }
+
+  /// Clone relation link from another proxy
+  void cloneFrom(ToManyRelationProvider<EntityT> other) {
+    _sharedRelation = other.relation;
+  }
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  int get length => relation.length;
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  EntityT operator [](int index) => relation[index];
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  void operator []=(int index, EntityT element) {
+    relation[index] = element;
+  }
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  void add(EntityT element) {
+    relation.add(element);
+  }
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  void addAll(Iterable<EntityT> iterable) {
+    relation.addAll(iterable);
+  }
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  Iterable<T> map<T>(T Function(EntityT) f) => relation.map(f);
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  bool remove(Object? element) => relation.remove(element);
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  void removeWhere(bool Function(EntityT) test) {
+    relation.removeWhere(test);
+  }
+
+  /// [ListMixin] proxy to underlying [ToMany] relation
+  void clear() {
+    relation.clear();
+  }
+
+  /// Create a ToManyProxy for shared ToMany relationship between immutable entities.
+  ///
+  /// Normally, you don't assign items in the constructor but rather use this
+  /// class as a lazy-loaded/saved list. The option to assign in the constructor
+  /// is useful to initialize objects from an external source, e.g. from JSON.
+  /// Setting the items in the constructor bypasses the lazy loading, ignoring
+  /// any relations that are currently stored in the DB for the source object.
+  ToManyProxy({List<EntityT>? items}) {
+    _sharedRelation = ToMany(items: items);
+  }
 }
 
 /// Internal only.
@@ -270,26 +388,27 @@ class InternalToManyAccess {
   static bool hasPendingDbChanges(ToMany toMany) => toMany._hasPendingDbChanges;
 
   /// Set relation info.
-  static void setRelInfo(ToMany toMany, Store store, RelInfo rel, Box srcBox) =>
-      toMany._setRelInfo(store, rel, srcBox);
+  static void setRelInfo(ToManyRelationProvider toMany, Store store,
+          RelInfo rel, Box srcBox) =>
+      toMany.relation._setRelInfo(store, rel, srcBox);
 }
 
 /// Internal only.
 @internal
 @visibleForTesting
 class InternalToManyTestAccess<EntityT> {
-  final ToMany<EntityT> _rel;
+  final ToManyRelationProvider<EntityT> _rel;
 
   /// Used in tests.
-  bool get itemsLoaded => _rel.__items != null;
+  bool get itemsLoaded => _rel.relation._itemsLoaded;
 
   /// Used in tests.
-  List<EntityT> get items => _rel._items;
+  List<EntityT> get items => _rel.relation._items;
 
   /// Used in tests.
   Set<EntityT> get added {
     final result = <EntityT>{};
-    _rel._counts.forEach((EntityT object, count) {
+    _rel.relation._counts.forEach((EntityT object, count) {
       if (count > 0) result.add(object);
     });
     return result;
@@ -298,7 +417,7 @@ class InternalToManyTestAccess<EntityT> {
   /// Used in tests.
   Set<EntityT> get removed {
     final result = <EntityT>{};
-    _rel._counts.forEach((EntityT object, count) {
+    _rel.relation._counts.forEach((EntityT object, count) {
       if (count < 0) result.add(object);
     });
     return result;
