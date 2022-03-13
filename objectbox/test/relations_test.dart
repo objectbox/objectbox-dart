@@ -13,7 +13,7 @@ void main() {
     env = TestEnv('relations');
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   group('ToOne', () {
     test('put', () {
@@ -198,18 +198,18 @@ void main() {
       rel.removeAt(1);
       check(rel, items: [1, 3], added: [], removed: [2]);
 
-      rel.remove(rel[1]);
+      expect(rel.remove(rel[1]), isTrue);
       check(rel, items: [1], added: [], removed: [2, 3]);
 
       rel.add(TestEntity(tInt: 4));
       check(rel, items: [1, 4], added: [4], removed: [2, 3]);
 
-      rel.remove(rel[1]);
+      expect(rel.remove(rel[1]), isTrue);
       check(rel, items: [1], added: [], removed: [2, 3]);
 
       rel.add(rel[0]);
       check(rel, items: [1, 1], added: [1], removed: [2, 3]);
-      rel.remove(rel[0]);
+      expect(rel.remove(rel[0]), isTrue);
       check(rel, items: [1], added: [], removed: [2, 3]);
     });
   });
@@ -251,9 +251,17 @@ void main() {
       // Remove one, add one
       src!.relManyA.removeWhere((element) => element.tInt == 3);
       src!.relManyA.add(RelatedEntityA(tInt: 5));
+      check(src!.relManyA, items: [1, 4, 5], added: [5], removed: [3]);
       env.box.put(src!);
       src = env.box.get(1);
       check(src!.relManyA, items: [1, 4, 5], added: [], removed: []);
+
+      // Remove all
+      src!.relManyA.clear();
+      check(src!.relManyA, items: [], added: [], removed: [1, 4, 5]);
+      env.box.put(src!);
+      src = env.box.get(1);
+      check(src!.relManyA, items: [], added: [], removed: []);
     });
 
     // note: this requires box.attach() in Java/Kotlin, should not here.
@@ -264,6 +272,36 @@ void main() {
 
       src = env.box.get(42);
       check(src!.relManyA, items: [1], added: [], removed: []);
+    });
+
+    test('applyToDb', () {
+      final entity = src!;
+      expect(entity.relManyA, isNotNull);
+
+      // Put with empty ToMany
+      env.box.put(entity);
+      check(entity.relManyA, items: [], added: [], removed: []);
+
+      // Add one
+      entity.relManyA.add(RelatedEntityA(tInt: 1));
+      entity.relManyA.applyToDb();
+      check(entity.relManyA, items: [1], added: [], removed: []);
+
+      // Remove all
+      entity.relManyA.clear();
+      entity.relManyA.applyToDb();
+      check(entity.relManyA, items: [], added: [], removed: []);
+    });
+
+    test('applyToDb not attached throws', () {
+      final entity = src!;
+      expect(entity.relManyA, isNotNull);
+
+      entity.relManyA.add(RelatedEntityA(tInt: 1));
+      expect(
+          entity.relManyA.applyToDb,
+          throwsA(predicate((StateError e) => e.toString().contains(
+              "ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead."))));
     });
 
     test("don't load old data when just adding", () {

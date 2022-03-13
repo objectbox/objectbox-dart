@@ -18,7 +18,7 @@ void main() {
     box = env.box;
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   test('Subscribe to stream of entities', () async {
     final result = <String>[];

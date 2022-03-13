@@ -2,8 +2,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import '../../../flatbuffers/flat_buffers.dart' as fb;
 import 'nativemem.dart';
 
 // ignore_for_file: public_member_api_docs
@@ -121,7 +121,9 @@ class ReaderWithCBuffer {
   void clear() => malloc.free(_bufferPtr);
 
   ByteData access(Pointer<Uint8> dataPtr, int size) {
-    if (size > _maxBuffer) {
+    // If memcpy is not available, instead of using Dart memcpy implementation,
+    // directly convert to view which is a little faster.
+    if (isMemcpyNotAvailable || size > _maxBuffer) {
       final uint8List = dataPtr.asTypedList(size);
       return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
     } else {

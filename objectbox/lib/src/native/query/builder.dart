@@ -23,12 +23,12 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     }
   }
 
-  /// Finish building a [Query] creating a stream that issues events whenever
-  /// queried entity changes. Streamed query is persisted between stream events
-  /// and closed when you cancel the subscription.
+  /// Finish building a [Query] creating a [Stream] that issues events whenever
+  /// the queried entity changes. The streamed query is persisted between stream
+  /// events and can be used even after the subscription is cancelled.
   ///
-  /// if you pass TRUE as the [triggerImmediately] argument, a single stream
-  /// event will be sent immediately after subscription. You can use this to get
+  /// If you pass TRUE as the [triggerImmediately] argument, a single stream
+  /// event will be sent immediately after subscribing. You can use this to get
   /// access to the query object before any data changes.
   Stream<Query<T>> watch({bool triggerImmediately = false}) {
     final queriedEntities = HashSet<Type>();

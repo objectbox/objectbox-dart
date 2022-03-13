@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -17,7 +16,7 @@ void main() {
     box = env.box;
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
   final integerList = () => integers
@@ -288,28 +287,28 @@ void main() {
           ..distinct = false
           ..caseSensitive = false)
         .find(replaceNullWith: 'meh')
-          ..sort();
+      ..sort();
     expect(resultsNone, defaultResults);
 
     var resultsDC = (stringQuery
           ..distinct = true
           ..caseSensitive = true)
         .find()
-          ..sort();
+      ..sort();
     expect(resultsDC, ['1withSuffix', '2WITHSUFFIX', '2withSuffix']);
 
     var resultsC = (stringQuery
           ..distinct = false
           ..caseSensitive = true)
         .find(replaceNullWith: 'meh')
-          ..sort();
+      ..sort();
     expect(resultsC, defaultResults);
 
     var resultsD = (stringQuery
           ..distinct = true
           ..caseSensitive = false)
         .find()
-          ..sort();
+      ..sort();
     expect(resultsD, ['1withSuffix', '2withSuffix']);
 
     stringQuery.close();

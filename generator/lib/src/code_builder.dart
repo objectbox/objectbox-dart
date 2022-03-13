@@ -10,29 +10,42 @@ import 'package:dart_style/dart_style.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
+import 'config.dart';
 import 'entity_resolver.dart';
 import 'code_chunks.dart';
 
 /// CodeBuilder collects all '.objectbox.info' files created by EntityResolver and generates objectbox-model.json and
 /// objectbox_model.dart
 class CodeBuilder extends Builder {
-  static final jsonFile = 'objectbox-model.json';
-  static final codeFile = 'objectbox.g.dart';
+  final Config _config;
+
+  CodeBuilder(this._config);
 
   @override
-  final buildExtensions = {r'$lib$': _outputs, r'$test$': _outputs};
+  late final buildExtensions = {
+    r'$lib$': [path.join(_config.outDirLib, _config.codeFile)],
+    r'$test$': [path.join(_config.outDirTest, _config.codeFile)]
+  };
 
-  // we can't write `jsonFile` as part of the output because we want it persisted, not removed before each generation
-  static final _outputs = [codeFile];
+  String _dir(BuildStep buildStep) => path.dirname(buildStep.inputId.path);
 
-  String dir(BuildStep buildStep) => path.dirname(buildStep.inputId.path);
+  String _outDir(BuildStep buildStep) {
+    var dir = _dir(buildStep);
+    if (dir.endsWith('test')) {
+      return dir + '/' + _config.outDirTest;
+    } else if (dir.endsWith('lib')) {
+      return dir + '/' + _config.outDirLib;
+    } else {
+      throw Exception('Unrecognized path being generated: $dir');
+    }
+  }
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
     // build() will be called only twice, once for the `lib` directory and once for the `test` directory
     // map from file name to a 'json' representation of entities
     final files = <String, List<dynamic>>{};
-    final glob = Glob(dir(buildStep) + '/**' + EntityResolver.suffix);
+    final glob = Glob(_dir(buildStep) + '/**' + EntityResolver.suffix);
     await for (final input in buildStep.findAssets(glob)) {
       files[input.path] = json.decode(await buildStep.readAsString(input))!;
     }
@@ -55,7 +68,7 @@ class CodeBuilder extends Builder {
 
     Pubspec? pubspec;
     try {
-      final pubspecFile = File(path.join(dir(buildStep), '../pubspec.yaml'));
+      final pubspecFile = File(path.join(_dir(buildStep), '../pubspec.yaml'));
       pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
     } catch (e) {
       log.info("Couldn't load pubspec.yaml: $e");
@@ -69,8 +82,8 @@ class CodeBuilder extends Builder {
       List<ModelEntity> entities, BuildStep buildStep) async {
     // load an existing model or initialize a new one
     ModelInfo model;
-    final jsonId =
-        AssetId(buildStep.inputId.package, dir(buildStep) + '/' + jsonFile);
+    final jsonId = AssetId(
+        buildStep.inputId.package, _outDir(buildStep) + '/' + _config.jsonFile);
     if (await buildStep.canRead(jsonId)) {
       log.info('Using model: ${jsonId.path}');
       model =
@@ -95,11 +108,42 @@ class CodeBuilder extends Builder {
 
   void updateCode(ModelInfo model, List<String> infoFiles, BuildStep buildStep,
       Pubspec? pubspec) async {
+    // If output directory is not package root directory,
+    // need to prefix imports with as many '../' to be relative from root.
+    final rootPath = _dir(buildStep);
+    final outPath = _outDir(buildStep);
+    final rootDir = Directory(rootPath).absolute;
+    var outDir = Directory(outPath).absolute;
+    var prefix = '';
+
+    if (!outDir.path.startsWith(rootDir.path)) {
+      throw InvalidGenerationSourceError(
+          'configured output_dir ${outDir.path} is not a '
+          'subdirectory of the source directory ${rootDir.path}');
+    }
+
+    while (outDir.path != rootDir.path) {
+      final parent = outDir.parent;
+      if (parent.path == outDir.path) {
+        log.warning(
+            'Failed to find package root from output directory, generated imports might be incorrect.');
+        prefix = '';
+        break; // Reached top-most directory, stop searching.
+      }
+      outDir = parent;
+      prefix += '../';
+    }
+    if (prefix.isNotEmpty) {
+      log.info(
+          'Output directory not in package root, adding prefix to imports: ' +
+              prefix);
+    }
+
     // transform '/lib/path/entity.objectbox.info' to 'path/entity.dart'
     final imports = infoFiles
         .map((file) => file
             .replaceFirst(EntityResolver.suffix, '.dart')
-            .replaceFirst(dir(buildStep) + '/', ''))
+            .replaceFirst(rootPath + '/', prefix))
         .toList();
 
     var code = CodeChunks.objectboxDart(model, imports, pubspec);
@@ -109,7 +153,7 @@ class CodeBuilder extends Builder {
     } finally {
       // Write the code even after a formatter error so it's easier to debug.
       final codeId =
-          AssetId(buildStep.inputId.package, dir(buildStep) + '/' + codeFile);
+          AssetId(buildStep.inputId.package, outPath + '/' + _config.codeFile);
       log.info('Generating code: ${codeId.path}');
       await buildStep.writeAsString(codeId, code);
     }

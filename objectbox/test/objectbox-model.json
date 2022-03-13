@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:4630700155272683157",
-      "lastPropertyId": "34:3975438751767916074",
+      "lastPropertyId": "35:1724663621433823504",
       "name": "TestEntity",
       "properties": [
         {
@@ -189,6 +189,13 @@
           "id": "34:3975438751767916074",
           "name": "tDateNano",
           "type": 12
+        },
+        {
+          "id": "35:1724663621433823504",
+          "name": "replaceLong",
+          "type": 6,
+          "flags": 32808,
+          "indexId": "20:4846837430056399798"
         }
       ],
       "relations": [
@@ -523,7 +530,7 @@
     }
   ],
   "lastEntityId": "10:8814538095619551454",
-  "lastIndexId": "19:3009172190024929732",
+  "lastIndexId": "20:4846837430056399798",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

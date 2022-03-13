@@ -1,6 +1,12 @@
 name: Code analysis
 
-on: [ push, pull_request ]
+# Avoid duplicate builds for pull requests, allow manual trigger.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   analyze:
@@ -8,11 +14,12 @@ jobs:
     container:
       image: google/dart:latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - run: dart run build_runner build
         working-directory: objectbox
       - run: dart analyze
         working-directory: objectbox
+      - run: dart format --set-exit-if-changed --fix .
 
   pana:
     runs-on: ubuntu-latest
@@ -23,22 +30,21 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           relativePath: objectbox
-
       # You can then use this id to retrieve the outputs in the next steps.
       # The following step shows how to exit the workflow with an error if a score is below 100:
       - name: Check scores
         shell: bash
         run: |
-          if [[ "${{ steps.analysis.outputs.total }}" != "110" ]]; then
-            echo "Expected score 110, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
+          if [[ "${{ steps.analysis.outputs.total }}" != "120" ]]; then
+            echo "Expected score 120, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
             exit 1
           fi
 
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: subosito/flutter-action@v1
       - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v2
       - name: Generage test coverage
         working-directory: objectbox
         run: |
@@ -57,7 +63,7 @@ jobs:
           targetdir: 'coveragereport'
           reporttypes: 'HtmlInline' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
           sourcedirs: 'objectbox'
-      - uses: actions/upload-artifact@v2.2.3
+      - uses: actions/upload-artifact@v2
         with:
           name: CoverageReport # Artifact name
           path: coveragereport # Directory containing files to upload

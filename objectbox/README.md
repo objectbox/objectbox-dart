@@ -1,21 +1,48 @@
-![ObjectBox logo](https://raw.githubusercontent.com/objectbox/objectbox-java/master/logo.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" alt="ObjectBox" width="400px">
+</p>
 
-ObjectBox Dart & Flutter
-==========================
+<p align="center">
+  <a href="https://docs.objectbox.io/getting-started">Getting Started</a> •
+  <a href="https://docs.objectbox.io">Documentation</a> •
+  <a href="https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example">Example Apps</a> •
+  <a href="https://github.com/objectbox/objectbox-dart/issues">Issues</a>
+</p>
 
-ObjectBox is a super-fast database storing Dart objects locally.
+<p align="center">
+  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml">
+    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml/badge.svg" alt="Build and test">
+  </a>
+  <a href="https://pub.dev/packages/objectbox">
+    <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart" alt="pub.dev package">
+  </a>
+  <a href="https://github.com/objectbox/objectbox-dart/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache" alt="Apache 2.0 license">
+  </a>
+  <a href="https://twitter.com/ObjectBox_io">
+    <img src="https://img.shields.io/twitter/follow/ObjectBox_io?style=flat&logo=twitter" alt="Follow @ObjectBox_io">
+  </a>
+</p>
+
+# Flutter database for Dart-native objects 💙
+
+Super-fast Flutter database for storing and syncing Dart objects
 
 * 🏁 **High performance** - improving response rates and enabling real-time applications.
-* 🪂 **ACID compliance** - Atomic, Consistent, Isolated, Durable.
-* 🔗 **Relations** - object links / relationships are built-in.
+* 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.
+* 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.
 * 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
+
+Easy to use
+* 🔗 **Relations** - object links / relationships are built-in.
 * 💐 **Queries** - filter data as needed, even across relations.
 * 🦮 **Statically typed** - compile time checks & optimizations.
-* 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.
 * 📃 **Schema migration** - change your model with confidence.
-* 👥 [**ObjectBox Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
-## Sneak peek
+Oh, and there is one more thing...
+* 😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
+
+## Sneak peek - persist Dart objects with ObjectBox 
 
 ```dart
 @Entity()
@@ -47,30 +74,34 @@ final query = box.query(Person_.firstName.startsWith('J')).build();
 final people = query.find();  // find() returns List<Person>
 ```
 
-Head over to [docs](https://docs.objectbox.io/getting-started) and [examples](example/README.md) for more.
+## Getting Started
 
-Getting started
----------------
+**New:** check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).
 
-Add the following dependencies to start using ObjectBox and code generator.
+Depending on if you are building a Flutter or Dart-only app, follow the steps below to start using ObjectBox.
 
 ### Flutter 
 
+Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^1.2.0
+  objectbox: ^1.4.1
   objectbox_flutter_libs: any
+  # for ObjectBox Sync use this dependency instead:
+  # objectbox_sync_flutter_libs: any
 
 dev_dependencies:
-  build_runner: ^1.0.0
+  build_runner: ^2.0.0
   objectbox_generator: any
 ```
 
 * Install the packages: `flutter pub get`
-* XCode/iOS only: increase the deployment target to iOS 11 and, under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](#faq) for details.
-* If targeting macOS (creating sandboxed macOS apps): you need to specify an application group.
+* **For iOS**: in the Flutter Runner Xcode project
+  * increase the deployment target to at least iOS 11 and, 
+  * under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](https://docs.objectbox.io/faq#on-which-platforms-does-objectbox-run) for details.
+* **For sandboxed macOS apps**: specify an application group.
   Check all `macos/Runner/*.entitlements` files if they contain a `<dict>` section with correct group ID info. 
-  Change the string value to the `DEVELOPMENT_TEAM` you can find in your Xcode settings, plus an application-specific suffix, for example: 
+  Change the string value to the `DEVELOPMENT_TEAM` found in Xcode settings, plus an application-specific suffix, for example: 
   
   ```xml
   <key>com.apple.security.application-groups</key>
@@ -79,22 +110,25 @@ dev_dependencies:
   </array>
   ```
   
-  Next, in your app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
+  Next, in the app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
   Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
   19 characters or fewer.
-* Sync + Android only: in your `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
-* In order to run Flutter unit tests locally on your machine, you'll need to install the native ObjectBox library on 
+* **For Sync + Android**: in `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
+* In order to run Flutter unit tests locally on your machine, install the native ObjectBox library on 
   your host machine (same as you would if you developed for Dart native, as described in the next section):
 
   ```shell script
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
   ```
 
+Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
+
 ### Dart Native
 
+Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^1.2.0
+  objectbox: ^1.4.1
 
 dev_dependencies:
   build_runner: ^2.0.0
@@ -114,62 +148,47 @@ dev_dependencies:
   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
   ```
 
-Help wanted
------------
+Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
 
-ObjectBox Dart is open to contributions and feedback on [GitHub](https://github.com/objectbox/objectbox-dart/issues).
-Either comment on an existing issue or open a new one. For example, if you experience errors or if you have ideas how to
-improve the API. If you'd like to contribute some code: PRs are more than welcome! The ObjectBox team will try its best 
-to guide you and answer questions.
+## Database Performance Benchmarks
 
-FAQ
----
+We tested across the four main database operations, CRUD (create, read, update, delete). Each test was run multiple times and executed 
+manually outside of the measured time. Data preparation and evaluation were also done outside of the measured time.
 
-_**Q: After adding ObjectBox, the size of the APK increased significantly. Why is that?**_  
-**A: This is caused by ObjectBox following
-the [official Android recommendations](https://developer.android.com/topic/performance/reduce-apk-size#extract-false)
-for library compression settings**. By default, Flutter apps created from the template have the compression enabled,
-opposite to the recommendation. The setting to disable library compression affects all native libraries in your app, not
-just ObjectBox - with Flutter native libraries now taking up the large portion of the increased APK size. ObjectBox
-library adds about 5.8 MiB uncompressed, and Flutter framework libs increase the uncompressed size by 18.4 MiB.  
-_Q: Should I be worried about the size increase of uncompressed libraries?_  
-A: No, not really. Packaging uncompressed `.so` files is actually better for users. It uses less storage on device as it
-avoids copying .so files from the APK to the filesystem during installation and has the added benefit of making updates
-of your app smaller. For more information about the sizes, see the following table created with 
-ObjectBox v0.14.0 and Flutter v2.0.5 release builds (using the [recommended](https://flutter.dev/docs/deployment/android#build-an-apk)
-`flutter build apk --split-per-abi` to build APKs for each ABI):
+![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
 
-| Release                                   | without ObjectBox |            with ObjectBox |    difference |
-| ----------------------------------------- | ----------------: | ------------------------: | ------------: |
-| APK (default compressed, arm64-v8a)       |           5.5 MiB |       6.0 MiB<sup>1</sup> |      +0.5 MiB |
-| APK (uncompressed, arm64-v8a)<sup>2</sup> |          12.0 MiB |                  13.5 MiB |  **+1.5 MiB** |
-| Fat APK (uncompressed, all ABIs)          |          33.8 MiB |                  39.6 MiB |      +5.8 MiB |
+You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
 
-<sup>1</sup> Requires turning compression back on: in the `<application>` tag in `android/app/src/main/AndroidManifest.xml` add
-```
-android:extractNativeLibs="true"
-tools:replace="android:extractNativeLibs"
-```
-to override the ObjectBox settings.
+## Do you 💙 ObjectBox?
+Your opinion matters to us! Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us make ObjectBox better.
 
-<sup>2</sup> This is also about the size an APK generated by Google Play would be when uploading an App Bundle (`flutter build appbundle`).
+We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
+What do you love? What's amiss? Where do you struggle in everyday app development?
 
-_**Q: Flutter iOS builds for armv7 fail with "ObjectBox does not contain that architecture", does it not support 32-bit devices?**_  
-**A: No, only 64-bit iOS devices are supported.** When ObjectBox was first released for iOS all the latest iOS devices had 64-bit support,
-so we decided to not ship armv7 support. To resolve the build error, in your XCode project
-look under Architectures and replace `${ARCHS_STANDARD)` with `arm64` (or `$ARCHS_STANDARD_64_BIT`).
+**We're looking forward to receiving your comments and requests:**
 
-See also
----------
+- Add [GitHub issues](https://github.com/objectbox/objectbox-dart/issues)
+- Upvote issues you find important by hitting the 👍/+1 reaction button
+- Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
+- ⭐ us, if you like what you see
+
+Thank you! 🙏
+
+Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
+
+## FAQ
+
+See the [FAQ](https://docs.objectbox.io/faq) and [Troubleshooting](https://docs.objectbox.io/troubleshooting) pages.
+
+## See also
 
 * [Changelog](CHANGELOG.md)
 * [Contribution guidelines](../CONTRIBUTING.md)
 
-License
--------
+## License
 
 ```text
-Copyright 2019-2021 ObjectBox Ltd. All rights reserved.
+Copyright 2019-2022 ObjectBox Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -1,3 +1,38 @@
+## latest
+
+## 1.4.1 (2022-03-01)
+
+* Resolve "another store is still open" issue after Flutter hot restart (hot reload continues to work). #387
+* Add `Store.isClosed()`. #390
+* Add note to `objectbox.g.dart` on how to re-generate (update) it.
+
+## 1.4.0 (2022-02-22)
+
+* Support [ObjectBox Admin](https://docs.objectbox.io/data-browser) for Android apps to browse 
+  the database. #148
+* Add `Store.runIsolated` to run database operations (asynchronous) in the background 
+  (requires Flutter 2.8.0/Dart 2.15.0 or newer). It spawns an isolate, runs the given callback in that 
+  isolate with its own Store and returns the result of the callback. This is similar to Flutters 
+  compute, but with the callback having access to a Store. #384
+* Add `Store.attach` to attach to a Store opened in a directory. This is an improved replacement for 
+  `Store.fromReference` to share a Store across isolates. It is no longer required to pass a
+  Store reference and the underlying Store remains open until the last instance is closed. #376
+* Add an option to change code-generator's `output_dir` in `pubspec.yaml`. #341
+* Update: [objectbox-c 0.15.2](https://github.com/objectbox/objectbox-c/releases/tag/v0.15.0).
+* Update: [objectbox-android 3.1.2](https://github.com/objectbox/objectbox-java/releases/tag/V3.1.0).
+* Update: [objectbox-swift 1.7.0](https://github.com/objectbox/objectbox-swift/releases/tag/v1.7.0).
+
+## 1.3.0 (2021-11-22)
+
+* Support annotating a single property with `@Unique(onConflict: ConflictStrategy.replace)` to 
+  replace an existing object if a conflict occurs when doing a put. #297
+
+## 1.2.1 (2021-11-09)
+
+* Fix Flutter apps crashing on iOS 15 simulator. #313
+* Fix `ToMany.applyToDb()` not working after putting object with empty `ToMany`.
+* Update objectbox-android to `3.0.1`.
+
 ## 1.2.0 (2021-08-31)
 
 * Add `Query.findUnique()` to find a single object matching the query.

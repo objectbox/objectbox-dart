@@ -20,6 +20,8 @@ void main() {
     expect(model.entities[0].relations.length, 0);
 
     expect(model.lastEntityId.toString(), '2:2000');
+    // lastRelationId is kept even if the relation itself is removed.
+    expect(model.lastRelationId.toString(), '1:1005');
 
     expect(jsonModel.retiredEntityUids.length, 1);
     expect(jsonModel.retiredPropertyUids.length, 5);

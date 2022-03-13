@@ -22,9 +22,9 @@ void main() {
   // Close the connection to the driver after the tests have completed.
   tearDownAll(() async => await driver.close());
 
-  test('starts with an empty list', () async {
-    await driver.waitForAbsent(firstItemFinder,
-        timeout: const Duration(milliseconds: 100));
+  test('starts with a pre-populated list', () async {
+    expect(await driver.getText(firstItemFinder),
+        'Quickly add a note by writing text and pressing Enter');
   });
 
   test('inserted item appears in the list', () async {

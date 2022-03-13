@@ -13,7 +13,7 @@ import 'bindings/helpers.dart';
 
 /// Represents a native transaction - it is bound to a current thread so never
 /// use with asychcronous code, or more specifically, never `await` before
-/// calling [close].
+/// calling [successAndClose] or [abortAndClose].
 @internal
 class Transaction {
   final Store _store;
@@ -33,37 +33,19 @@ class Transaction {
     checkObxPtr(_cTxn, 'failed to create transaction');
   }
 
+  /// Indicates the write transaction is complete and closes it.
+  /// Read transactions are just closed.
+  /// If this is a top-level transaction, commits all changes.
   @pragma('vm:prefer-inline')
-  void _finish(bool successful) {
-    if (mode == TxMode.write) {
-      try {
-        _mark(successful);
-      } finally {
-        close();
-      }
-    } else {
-      close();
-    }
-  }
+  void successAndClose() => _finish(true);
 
-  @pragma('vm:prefer-inline')
-  void commitAndClose() => _finish(true);
-
+  /// Aborts a write transaction by just closing it.
+  /// Read transactions are just closed.
   @pragma('vm:prefer-inline')
   void abortAndClose() => _finish(false);
 
   @pragma('vm:prefer-inline')
-  void _mark(bool successful) =>
-      checkObx(C.txn_mark_success(_cTxn, successful));
-
-  @pragma('vm:prefer-inline')
-  void markSuccessful() => _mark(true);
-
-  @pragma('vm:prefer-inline')
-  void markFailed() => _mark(false);
-
-  @pragma('vm:prefer-inline')
-  void close() {
+  void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
     if (_firstCursor != null) {
@@ -72,7 +54,12 @@ class Transaction {
         ?..values.forEach((c) => c.close())
         ..clear();
     }
-    checkObx(C.txn_close(_cTxn));
+    if (mode == TxMode.write && successful) {
+      checkObx(C.txn_success(_cTxn));
+    } else {
+      // Also aborts write transactions, read transactions are just closed.
+      checkObx(C.txn_close(_cTxn));
+    }
   }
 
   /// Returns a cursor for the given entity. No need to close it manually.

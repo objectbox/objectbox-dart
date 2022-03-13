@@ -25,7 +25,7 @@ void main() async {
     box = env.box;
   });
 
-  tearDown(() => env.close());
+  tearDown(() => env.closeAndDelete());
 
   test('Observe single entity', () async {
     late Completer<void> completer;
@@ -43,9 +43,20 @@ void main() async {
     // expect two events after one put() and one putMany()
     expectedEvents = 2;
     completer = Completer();
-    box.put(simpleStringItems().first);
+    final first = simpleStringItems().first;
+    box.put(first);
     Box<TestEntity2>(env.store).put(TestEntity2());
     box.putMany(simpleStringItems());
+    await completer.future.timeout(defaultTimeout);
+    expect(expectedEvents, 0);
+
+    // expect one event after modifying ToMany
+    expectedEvents = 1;
+    completer = Completer();
+    first.relManyA.add(RelatedEntityA(tInt: 1));
+    // applyToDb does currently not trigger an event on the observed box
+    // first.relManyA.applyToDb();
+    box.put(first);
     await completer.future.timeout(defaultTimeout);
     expect(expectedEvents, 0);
 

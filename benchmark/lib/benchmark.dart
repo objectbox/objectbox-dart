@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:meta/meta.dart';
-import 'package:objectbox/objectbox.dart';
 
 import 'model.dart';
 import 'objectbox.g.dart';
