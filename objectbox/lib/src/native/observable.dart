@@ -85,6 +85,7 @@ extension ObservableStore on Store {
       observer.cObserver =
           C.dartc_observe_single_type(_ptr, entityId, observer.nativePort);
     });
+    reachabilityFence(this);
 
     return observer.stream;
   }
@@ -111,12 +112,6 @@ extension ObservableStore on Store {
       final entities = List<Type>.filled(entityIds.length, Null);
       for (var i = 0; i < entityIds.length; i++) {
         final entityId = entityIds[i];
-        if (entityId is! int) {
-          observer.controller.addError(ObjectBoxException(
-              'Received invalid item data format from the core notification: (${entityId.runtimeType}) $entityId'));
-          return;
-        }
-
         final entityType = entityTypesById[entityId];
         if (entityType == null) {
           observer.controller.addError(ObjectBoxException(
@@ -131,6 +126,7 @@ extension ObservableStore on Store {
     observer.init(() {
       observer.cObserver = C.dartc_observe(_ptr, observer.nativePort);
     }, broadcast: broadcast);
+    reachabilityFence(this);
 
     if (broadcast) {
       _onClose[observer] = observer.close;

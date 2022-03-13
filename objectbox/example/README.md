@@ -52,6 +52,18 @@ list (e.g. .gitignore), otherwise the build_runner will complain about it being 
 > annotations there. This is useful if you need a separate test DB. If you're just writing tests for your own code, you
 > won't have any annotations in the `test` folder so no DB will be created there.
 
+To customize the directory (relative to the package root) where the generated files are written,
+add the following to your `pubspec.yaml`:
+```
+objectbox:
+  # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).
+  output_dir: custom
+  # Or optionally specify the lib and test output folder separately.
+  # output_dir:
+  #   lib: custom
+  #   test: other
+```
+
 Creating a store
 ----------------
 
@@ -169,18 +181,18 @@ box.query(Note_.text.isNull() | Note_.date > 0).build();
 
 ### Ordering query results
 
-The results from a query can be ordered using the `order` method, e.g.
+The results from a query can be ordered using the `order` method:
 
 ```dart
-final q = box.query(Note_.date > 0)
-  .order(Note_.date)
-  .build();
+final builder = box.query(Note_.date > 0).order(Note_.date);
+final query = builder.build();
 
 // ...
 
-final qt = box.query(Note_.text.notNull())
-  .order(Note_.text, flags: Order.descending | Order.caseSensitive)
-  .build();
+final builder = box.query(Note_.text.notNull())
+  ..order(Note_.text, flags: Order.descending | Order.caseSensitive)
+  ..order(Note_.date);
+final query = builder.build();
 ```
 
 ### Property Queries
@@ -282,14 +294,14 @@ class Item {
 
 Now, let’s say a new customer has just confirmed an order through the UI. We need to create the `Customer` and the
 `Order` in the database, attaching a list of purchased items. We assume those items are already stored in the DB,
-customer must heve selected them somehow, right?
+customer must have selected them somehow, right?
 
 ```dart
 List<Item> purchasedItems = [...]; // loaded from the shopping basket
 
 // create a new order with a new customer
 final order = Order();
-order.customer.target = Customer()..name="John Doe"; // add a new Customer object
+order.customer.target = Customer()..name = 'Jane Smith'; // add a new Customer object
 order.items.addAll(purchasedItems); // add a list of existing items
 
 // create the order and the customer in the database with a single call
@@ -318,6 +330,7 @@ class Customer {
 @Entity()
 class Order {
   int id = 0;
+  bool paid = false;
 
   final customer = ToOne<Customer>();
   final items = ToMany<Item>();
@@ -327,6 +340,13 @@ class Order {
 class Item {
   int id = 0;
 }
+```
+
+To query a backlink relation, use `backlink` and reference the `ToOne` it is based on:
+```dart
+QueryBuilder<Customer> builder = 
+    customerBox.query(Customer_.name.equals('Jane Smith'));
+builder.backlink(Order_.customer, Order_.paid.equals(true));
 ```
 
 Note: if you change the `customer.orders` list, you're actually changing `order.customer.targetId` on each target.
@@ -356,8 +376,17 @@ class Order {
 @Entity()
 class Item {
   int id = 0;
+  String? category;
   
   @Backlink()
   final orders = ToMany<Order>();
 }
 ```
+
+To query a backlink relation, use `backlinkMany` and reference the `ToMany` it is based on:
+```dart
+QueryBuilder<Item> builder = 
+    itemBox.query(Item_.category.equal('common'));
+builder.backlinkMany(Order_.items, Order_.id.equals(42));
+```
+

@@ -1,3 +1,5 @@
+import '../objectbox.dart';
+
 /// Entity annotation is used on a class to let ObjectBox know it should store
 /// it - making the class a "persistable Entity".
 ///
@@ -190,17 +192,31 @@ enum IndexType {
   hash64,
 }
 
-/// Unique annotation forces that the value of a property is unique among all
-/// objects stored for the given entity.
+/// Enforces that the value of a property is unique among all objects in a box
+/// before an object can be put.
 ///
-/// Trying to put an Object with offending values will result in an exception.
+/// Trying to put an object with offending values will result in a
+/// [UniqueViolationException] (see [ConflictStrategy.fail]).
+/// Set [onConflict] to change this strategy.
 ///
-/// Unique properties are based on an [Index], so the same restrictions apply.
+/// Note: Unique properties are based on an [Index], so the same restrictions apply.
 /// It is supported to explicitly add the [Index] annotation to configure the
-/// index type.
+/// index.
 class Unique {
+  /// The strategy to use when a conflict is detected when an object is put.
+  final ConflictStrategy onConflict;
+
   /// Create a Unique annotation.
-  const Unique();
+  const Unique({this.onConflict = ConflictStrategy.fail});
+}
+
+/// Used with [Unique] to specify the conflict resolution strategy.
+enum ConflictStrategy {
+  /// Throws [UniqueViolationException] if any property violates a [Unique] constraint.
+  fail,
+
+  /// Any conflicting objects are deleted before the object is inserted.
+  replace,
 }
 
 /// Backlink annotation specifies a link in a reverse direction of another

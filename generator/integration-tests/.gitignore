@@ -1,0 +1,4 @@
+# Do not remove native library to allow running with non-globally installed version.
+!objectbox.dll
+!objectbox.lib
+!libobjectbox.*

@@ -257,6 +257,11 @@ class EntityResolver extends Builder {
       }
     }
 
+    // Verify there is at most 1 unique property with REPLACE strategy.
+    ensureSingleUniqueReplace(entity);
+    // If sync enabled, verify all unique properties use REPLACE strategy.
+    ifSyncEnsureAllUniqueAreReplace(entity);
+
     entity.properties.forEach((p) => log.info('  $p'));
 
     return entity;
@@ -301,9 +306,9 @@ class EntityResolver extends Builder {
       FieldElement f, int? fieldType, Element elementBare, ModelProperty prop) {
     IndexType? indexType;
 
-    final hasIndexAnnotation = _indexChecker.hasAnnotationOfExact(f);
-    final hasUniqueAnnotation = _uniqueChecker.hasAnnotationOfExact(f);
-    if (!hasIndexAnnotation && !hasUniqueAnnotation) return null;
+    final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
+    final uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
+    if (indexAnnotation == null && uniqueAnnotation == null) return null;
 
     // Throw if property type does not support any index.
     if (fieldType == OBXPropertyType.Float ||
@@ -319,8 +324,6 @@ class EntityResolver extends Builder {
     }
 
     // If available use index type from annotation.
-    final indexAnnotation =
-        hasIndexAnnotation ? _indexChecker.firstAnnotationOfExact(f) : null;
     if (indexAnnotation != null && !indexAnnotation.isNull) {
       final enumValItem = enumValueItem(indexAnnotation.getField('type')!);
       if (enumValItem != null) indexType = IndexType.values[enumValItem];
@@ -343,8 +346,15 @@ class EntityResolver extends Builder {
           "entity ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
     }
 
-    if (hasUniqueAnnotation) {
+    if (uniqueAnnotation != null && !uniqueAnnotation.isNull) {
       prop.flags |= OBXPropertyFlags.UNIQUE;
+      // Determine unique conflict resolution.
+      final onConflictVal =
+          enumValueItem(uniqueAnnotation.getField('onConflict')!);
+      if (onConflictVal != null &&
+          ConflictStrategy.values[onConflictVal] == ConflictStrategy.replace) {
+        prop.flags |= OBXPropertyFlags.UNIQUE_ON_CONFLICT_REPLACE;
+      }
     }
 
     switch (indexType) {
@@ -360,6 +370,27 @@ class EntityResolver extends Builder {
       default:
         throw InvalidGenerationSourceError(
             'entity ${elementBare.name}: invalid index type: $indexType');
+    }
+  }
+
+  void ensureSingleUniqueReplace(ModelEntity entity) {
+    final uniqueReplaceProps = entity.properties
+        .where((p) => p.hasFlag(OBXPropertyFlags.UNIQUE_ON_CONFLICT_REPLACE));
+    if (uniqueReplaceProps.length > 1) {
+      throw InvalidGenerationSourceError(
+          "ConflictStrategy.replace can only be used on a single property, but found multiple in '${entity.name}':\n  ${uniqueReplaceProps.join('\n  ')}");
+    }
+  }
+
+  void ifSyncEnsureAllUniqueAreReplace(ModelEntity entity) {
+    if (!entity.hasFlag(OBXEntityFlags.SYNC_ENABLED)) return;
+    final uniqueButNotReplaceProps = entity.properties.where((p) {
+      return p.hasFlag(OBXPropertyFlags.UNIQUE) &&
+          !p.hasFlag(OBXPropertyFlags.UNIQUE_ON_CONFLICT_REPLACE);
+    });
+    if (uniqueButNotReplaceProps.isNotEmpty) {
+      throw InvalidGenerationSourceError(
+          "Synced entities must use @Unique(onConflict: ConflictStrategy.replace) on all unique properties, but found others in '${entity.name}':\n  ${uniqueButNotReplaceProps.join('\n  ')}");
     }
   }
 

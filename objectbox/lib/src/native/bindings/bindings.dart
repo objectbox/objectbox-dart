@@ -2,10 +2,10 @@ import 'dart:ffi';
 import 'dart:io' show Platform;
 
 import 'helpers.dart';
-import 'objectbox-c.dart';
+import 'objectbox_c.dart';
 
 // let files importing bindings.dart also get all the OBX_* types
-export 'objectbox-c.dart';
+export 'objectbox_c.dart';
 
 // ignore_for_file: public_member_api_docs
 // ignore_for_file: non_constant_identifier_names
@@ -116,12 +116,16 @@ Object? _dartAPIInitException;
 
 /// A couple of native functions we need as callbacks to pass back to native.
 /// Unfortunately, ffigen keeps those private.
-typedef _native_close = Int32 Function(Pointer<Void> ptr);
+typedef _NativeClose = Int32 Function(Pointer<Void> ptr);
 
+late final native_store_close =
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_store_close');
 late final native_query_close =
-    _lib!.lookup<NativeFunction<_native_close>>('obx_query_close');
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_close');
 late final native_query_prop_close =
-    _lib!.lookup<NativeFunction<_native_close>>('obx_query_prop_close');
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_prop_close');
+late final native_admin_close =
+    _lib!.lookup<NativeFunction<_NativeClose>>('obx_admin_close');
 
 /// Keeps `this` alive until this call, preventing finalizers to run.
 /// Necessary for objects with a finalizer attached because the optimizer may

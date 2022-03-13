@@ -137,6 +137,11 @@ class TestEntity {
     this.uChar,
   }) : tString = '';
 
+  @Unique(onConflict: ConflictStrategy.replace)
+  int? replaceLong;
+
+  TestEntity.uniqueReplace({this.replaceLong, this.tString});
+
   @Property(type: PropertyType.byte)
   @Index()
   int? iByte;

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/store.dart';
 import 'package:test/test.dart';
@@ -28,8 +27,8 @@ void main() {
   });
 
   tearDown(() {
-    env.close();
-    env2.close();
+    env.closeAndDelete();
+    env2.closeAndDelete();
   });
 
   // lambda to easily create clients in the test below
@@ -105,7 +104,7 @@ void main() {
 
     test('SyncClient is closed when a store is closed', () {
       final client = createClient(env2.store);
-      env2.close();
+      env2.closeAndDelete();
       expect(client.isClosed(), isTrue);
     });
 
@@ -114,7 +113,7 @@ void main() {
 
       SyncClient c2 = createClient(env2.store);
       expect(c1, isNot(equals(c2)));
-      env2.close();
+      env2.closeAndDelete();
     });
 
     test('SyncClient states (no server available)', () {
@@ -309,7 +308,7 @@ void main() {
           Box<TestEntity>(env.store).put(TestEntity()); // not synced
           box.put(TestEntitySynced(value: 20));
           box.put(TestEntitySynced(value: 1));
-          box.remove(1);
+          expect(box.remove(1), isTrue);
         });
 
         // wait for the data to be transferred
@@ -331,7 +330,7 @@ void main() {
         //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
         //   box.put(TestEntitySynced(value: 20));
         //   box.put(TestEntitySynced(value: 1));
-        //   box.remove(1);
+        //   expect(box.remove(1), isTrue);
         // });
         expect(events[1].length, 1);
         expect(events[1][0].entity, TestEntitySynced);

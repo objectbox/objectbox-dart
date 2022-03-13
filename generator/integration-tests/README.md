@@ -1,3 +1,14 @@
+# Generator integration tests
+
+Run using the [`../test.sh`](../test.sh) script:
+```
+# Run all tests
+../test.sh
+
+# Run a specific test
+../test.sh <directory>
+```
+
 Each subdirectory contains a test case, a complete dart package (with some shared files: pubspec.yaml, test_env.dart, ...).
 * before a test starts, it's content is cleaned by running `git clean -fXd directory-path`, i.e. removing all ignored files 
 * each directory may contain `[0-9].dart` test files which are executed in ascending order using `pub run test N.dart` 
@@ -7,3 +18,19 @@ Each subdirectory contains a test case, a complete dart package (with some share
     but not removed between test-case runs
 * additionally, there may be `[0-9]-pre.dart` command-line apps, which are executed `dart N-pre.dart` - these may be 
 used to further prepare the environment **before** code generation for the step `N` is issued and `N.dart` test is run
+  
+## Troubleshooting
+
+```
+Error on line 1, column 1 of pubspec.yaml: The pubspec must be a YAML mapping.
+  ╷
+1 │ ../shared-pubspec.yaml
+  │ ^^^^^^^^^^^^^^^^^^^^^^
+  ╵
+```
+Replace the above line in `pubspec.yaml` with the contents of [shared-pubspec.yaml](shared-pubspec.yaml).
+
+```
+Invalid argument(s): Failed to load dynamic library 'lib/objectbox.dll'
+```
+Ensure `objectbox-c` is installed globally, or in the tested directory run [`../../../install.sh`](../../install.sh).
