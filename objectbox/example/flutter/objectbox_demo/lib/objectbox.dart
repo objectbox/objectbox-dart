@@ -8,6 +8,8 @@ class ObjectBox {
   /// The Store of this app.
   late final Store store;
 
+  late final Admin _admin;
+
   /// A Box of notes.
   late final Box<Note> noteBox;
 
@@ -15,6 +17,11 @@ class ObjectBox {
   late final Stream<Query<Note>> queryStream;
 
   ObjectBox._create(this.store) {
+    if (Admin.isAvailable()) {
+      // Keep a reference until no longer needed or manually closed.
+      _admin = Admin(store);
+    }
+
     noteBox = Box<Note>(store);
 
     final qBuilder = noteBox.query()

@@ -62,6 +62,19 @@ flutter {
     source '../..'
 }
 
+// Tell Gradle to exclude the objectbox-android dependency
+// that is added by objectbox_flutter_libs for debug builds.
+configurations {
+    debugImplementation {
+        exclude group: 'io.objectbox', module: 'objectbox-android'
+    }
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    // Add objectbox-android-objectbrowser only for debug builds.
+    // Warning: when objectbox_flutter_libs updates check if version
+    // needs update, e.g. check https://github.com/objectbox/objectbox-dart/releases.
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:3.1.2")
 }
