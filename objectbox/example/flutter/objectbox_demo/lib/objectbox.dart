@@ -18,7 +18,9 @@ class ObjectBox {
     noteBox = Box<Note>(store);
 
     final qBuilder = noteBox.query()
-      ..order(Note_.date, flags: Order.descending);
+      ..order(Note_.date, flags: Order.descending)
+      // Comment to see it working
+      ..linkMany(Note_.attachment);
     queryStream = qBuilder.watch(triggerImmediately: true);
 
     // Add some demo data if the box is empty.
