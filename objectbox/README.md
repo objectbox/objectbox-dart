@@ -26,7 +26,9 @@
 
 # Flutter database for Dart-native objects 💙
 
-Super-fast Flutter database for storing and syncing Dart objects
+Super-fast Flutter database for storing and syncing Dart objects.
+
+**Your opinion matters to us!** Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
 * 🏁 **High performance** - improving response rates and enabling real-time applications.
 * 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.
