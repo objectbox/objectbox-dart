@@ -26,7 +26,9 @@
 
 # Flutter database for fast Dart object persistence 💙
 
-Flutter database to store & sync objects across devices with a sustainable offline-first approach
+Flutter database to store & sync objects across devices with a sustainable offline-first approach.
+
+**Your opinion matters to us!** Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
 🏁 **High performance** on mobile and restricted devices, like IoT gateways, microcontrollers, ECUs etc.\
 🪂 **Resourceful** with minimal CPU, power and memory usage for maximum flexibility and sustainability\
@@ -59,7 +61,6 @@ Great! Clone/check out this repository and run this to generate code and get you
 Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
 
 ## Do you 💙 ObjectBox?
-Your opinion matters to us! Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
 We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
 What do you love? What's amiss? Where do you struggle in everyday app development?
