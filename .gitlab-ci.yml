@@ -26,7 +26,7 @@ variables:
 analyze:
   extends: .cache
   stage: analyze
-  tags: [ x64, linux, docker ]
+  tags: [ x64, linux, docker, dart ]
   image: dart:$DART_VERSION
   script:
     - cd objectbox
@@ -39,7 +39,7 @@ analyze:
 test-generator:linux:x64:
   extends: .cache
   stage: test
-  tags: [ x64, linux, docker ]
+  tags: [ x64, linux, docker, dart ]
   image: dart:$DART_VERSION
   script:
     - ./install.sh
@@ -68,7 +68,7 @@ test-generator:linux:x64:
 
 .test:linux:x64:
   extends: .test
-  tags: [ x64, linux, docker ]
+  tags: [ x64, linux, docker, dart ]
   image: dart:$DART_VERSION
 
 test-lib:linux:x64:2.13.4:
