@@ -31,11 +31,105 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:1284860998325969952",
+      "lastPropertyId": "7:5149058481398767674",
+      "name": "Pdf",
+      "properties": [
+        {
+          "id": "1:8959482298492323088",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8963809918167268543",
+          "name": "pdfData",
+          "type": 23
+        },
+        {
+          "id": "3:1209137883192954562",
+          "name": "customerName",
+          "type": 9
+        },
+        {
+          "id": "4:7915779567707336440",
+          "name": "purchaseDate",
+          "type": 10
+        },
+        {
+          "id": "5:343646297632621099",
+          "name": "totalAmount",
+          "type": 8
+        },
+        {
+          "id": "6:5346478738485784273",
+          "name": "updateDate",
+          "type": 10
+        },
+        {
+          "id": "7:5149058481398767674",
+          "name": "status",
+          "type": 6
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:8624304301634759290",
+          "name": "products",
+          "targetId": "3:5434393414217074816"
+        }
+      ]
+    },
+    {
+      "id": "3:5434393414217074816",
+      "lastPropertyId": "7:3050299387811614441",
+      "name": "Product",
+      "properties": [
+        {
+          "id": "1:169603244699188063",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7854471903959273693",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:3888223576435238689",
+          "name": "category",
+          "type": 9
+        },
+        {
+          "id": "4:3003284145941716545",
+          "name": "categoryId",
+          "type": 6
+        },
+        {
+          "id": "5:2776119189930596975",
+          "name": "price",
+          "type": 8
+        },
+        {
+          "id": "6:2999212164937945333",
+          "name": "weight",
+          "type": 8
+        },
+        {
+          "id": "7:3050299387811614441",
+          "name": "isRefunded",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:2802681814019499133",
+  "lastEntityId": "3:5434393414217074816",
   "lastIndexId": "0:0",
-  "lastRelationId": "0:0",
+  "lastRelationId": "1:8624304301634759290",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
