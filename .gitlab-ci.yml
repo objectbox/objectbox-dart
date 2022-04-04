@@ -53,7 +53,10 @@ test-generator:linux:x64:
     - cd objectbox
     - dart pub get
     - dart run build_runner build
-    - dart test
+    # Run only one test suite (== test file) at a time.
+    # Print log for every completed test.
+    # Together, this will produce sequential log output, making it easier to attribute native logs.
+    - dart test --concurrency=1 --reporter expanded
 
 # Temporarily do not run in parallel to diagnose issues, instead run sequentially.
 .test-lib:linux:x64:
