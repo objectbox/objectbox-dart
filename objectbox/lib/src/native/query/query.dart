@@ -851,8 +851,11 @@ class Query<T> {
               'Query stream received an invalid message type '
               '(${message.runtimeType}): $message'));
         }
+        // Close the stream, this will call the onCancel function.
+        // Do not call the onCancel function manually,
+        // if cancel() is called on the Stream subscription right afterwards it
+        // will use the shortcut in the onCancel function and not wait.
         controller.close(); // done
-        close();
       });
       return controller.stream;
     } catch (e) {
