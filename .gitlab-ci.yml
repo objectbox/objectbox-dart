@@ -67,4 +67,4 @@ test-lib:linux:x64:
     matrix:
       # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
       #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-      - DART_VERSION: [ '2.13.4', '2.14.4', '2.15.1', '2.16.0', '2.16.1' ]
+      - DART_VERSION: [ '2.13.4', '2.14.4', '2.15.1', '2.16.1', '2.16.2' ]
