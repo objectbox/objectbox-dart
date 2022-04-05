@@ -5,7 +5,7 @@ stages:
 variables:
   # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
   #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-  DART_VERSION: '2.16.1'
+  DART_VERSION: '2.16.2'
 
 # Make PUB_CACHE cacheable in GitLab;
 # see also https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77791/diffs and
