@@ -58,48 +58,13 @@ test-generator:linux:x64:
     # Together, this will produce sequential log output, making it easier to attribute native logs.
     - dart test --concurrency=1 --reporter expanded
 
-# Temporarily do not run in parallel to diagnose issues, instead run sequentially.
-.test-lib:linux:x64:
+test-lib:linux:x64:
   extends: .test
   tags: [ x64, linux, docker ]
   image: dart:$DART_VERSION
+  needs: ["test-generator:linux:x64"] # Wait for generator test
   parallel:
     matrix:
       # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
       #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-      - DART_VERSION: [ '2.16.1', '2.16.0', '2.15.1',  '2.14.4', '2.13.4' ]
-
-.test:linux:x64:
-  extends: .test
-  tags: [ x64, linux, docker, dart ]
-  image: dart:$DART_VERSION
-
-test-lib:linux:x64:2.13.4:
-  extends: .test:linux:x64
-  needs: ["test-generator:linux:x64"] # Wait for generator test
-  variables:
-    DART_VERSION: "2.13.4"
-
-test-lib:linux:x64:2.14.4:
-  extends: .test:linux:x64
-  needs: ["test-lib:linux:x64:2.13.4"]
-  variables:
-    DART_VERSION: "2.14.4"
-
-test-lib:linux:x64:2.15.1:
-  extends: .test:linux:x64
-  needs: ["test-lib:linux:x64:2.14.4"]
-  variables:
-    DART_VERSION: "2.15.1"
-
-test-lib:linux:x64:2.16.0:
-  extends: .test:linux:x64
-  needs: ["test-lib:linux:x64:2.15.1"]
-  variables:
-    DART_VERSION: "2.16.0"
-
-test-lib:linux:x64:2.16.1:
-  extends: .test:linux:x64
-  needs: ["test-lib:linux:x64:2.16.0"]
-  variables:
-    DART_VERSION: "2.16.1"
+      - DART_VERSION: [ '2.13.4', '2.14.4', '2.15.1', '2.16.0', '2.16.1' ]
