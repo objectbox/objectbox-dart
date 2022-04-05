@@ -1,5 +1,9 @@
 ## latest
 
+* The native ObjectBox library is also searched for in the `lib` subfolder on desktop OS (macOS,
+  Linux, Windows). This is where the [`install.sh`](/install.sh) script downloads it by default.
+  E.g. it is no longer necessary to install the library globally to run `dart test` or `flutter test`.
+
 ## 1.4.1 (2022-03-01)
 
 * Resolve "another store is still open" issue after Flutter hot restart (hot reload continues to work). #387

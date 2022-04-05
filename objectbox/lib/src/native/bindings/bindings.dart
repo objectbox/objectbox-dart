@@ -1,5 +1,7 @@
 import 'dart:ffi';
-import 'dart:io' show Platform;
+import 'dart:io' show Directory, Platform;
+
+import 'package:path/path.dart';
 
 import 'helpers.dart';
 import 'objectbox_c.dart';
@@ -31,29 +33,55 @@ ObjectBoxC? _tryObjectBoxLibProcess() {
 
 ObjectBoxC? _tryObjectBoxLibFile() {
   _lib = null;
-  var libName = 'objectbox';
+  final String libName;
   if (Platform.isWindows) {
-    libName += '.dll';
-    try {
-      _lib = DynamicLibrary.open(libName);
-    } on ArgumentError {
-      libName = 'lib/' + libName;
-    }
+    libName = 'objectbox.dll';
   } else if (Platform.isMacOS) {
-    libName = 'lib' + libName + '.dylib';
-    try {
-      _lib = DynamicLibrary.open(libName);
-    } on ArgumentError {
-      libName = '/usr/local/lib/' + libName;
-    }
+    libName = 'libobjectbox.dylib';
   } else if (Platform.isAndroid) {
-    libName = 'lib' + libName + '-jni.so';
+    libName = 'libobjectbox-jni.so';
   } else if (Platform.isLinux) {
-    libName = 'lib' + libName + '.so';
+    libName = 'libobjectbox.so';
   } else {
+    // Other platforms not supported (for iOS see _tryObjectBoxLibProcess).
     return null;
   }
-  _lib ??= DynamicLibrary.open(libName);
+  // For desktop OS prefer version in 'lib' subfolder as this is where
+  // install.sh (which calls objectbox-c download.sh) puts the library.
+  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+    // Must use absolute directory as relative directory fails on macOS
+    // due to security restrictions ("file system relative paths not allowed in
+    // hardened programs").
+    String libPath = join(Directory.current.path, "lib", libName);
+    try {
+      _lib = DynamicLibrary.open(libPath);
+    } on ArgumentError {
+      // On macOS also try /usr/local/lib, this is where the objectbox-c
+      // download script installs to as well.
+      if (Platform.isMacOS) {
+        try {
+          _lib ??= DynamicLibrary.open('/usr/local/lib/' + libName);
+        } on ArgumentError {
+          // Ignore.
+        }
+      }
+      // Try default path, see below.
+    }
+  }
+  try {
+    // This will look in some standard places for shared libraries:
+    // - on Android in the JNI lib folder for the architecture
+    // - on Linux in /lib and /usr/lib
+    // - on macOS?
+    // - on Windows in the working directory and System32
+    _lib ??= DynamicLibrary.open(libName);
+  } catch (e) {
+    print("Failed to load ObjectBox library. For Flutter apps, check if "
+        "objectbox_flutter_libs is added to dependencies. "
+        "For unit tests and Dart apps, check if the ObjectBox library was "
+        "downloaded (https://docs.objectbox.io/getting-started).");
+    rethrow;
+  }
   return ObjectBoxC(_lib!);
 }
 
