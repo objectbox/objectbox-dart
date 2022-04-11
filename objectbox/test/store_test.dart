@@ -230,6 +230,30 @@ void main() {
     Directory('store').deleteSync(recursive: true);
   });
 
+  test('store open in unicode symbol path', () async {
+    final parentDir = Directory('unicode-test');
+    await parentDir.create();
+    final unicodeDir = Directory(
+        parentDir.path + Platform.pathSeparator + 'Îñţérñåţîöñåļîžåţîờñ');
+    final store = Store(getObjectBoxModel(), directory: unicodeDir.path);
+    store.close();
+
+    // Check only expected files and directories exist.
+    final paths = await parentDir
+        .list(recursive: true)
+        .map((event) => event.path)
+        .toList();
+    expect(paths.length, 3);
+    final expectedPaths = [
+      unicodeDir.path,
+      File(unicodeDir.path + Platform.pathSeparator + 'data.mdb').path,
+      File(unicodeDir.path + Platform.pathSeparator + 'lock.mdb').path
+    ];
+    expect(paths, containsAll(expectedPaths));
+
+    parentDir.deleteSync(recursive: true);
+  });
+
   test('store run in isolate', () async {
     final env = TestEnv('store');
     final id = env.box.put(TestEntity(tString: 'foo'));
