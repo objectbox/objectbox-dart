@@ -44,9 +44,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
   final _listController = StreamController<List<Note>>(sync: true);
 
-  void _addNote() {
+  Future<void> _addNote() async {
     if (_noteInputController.text.isEmpty) return;
-    objectbox.noteBox.put(Note(_noteInputController.text));
+    await objectbox.addNote(_noteInputController.text);
     _noteInputController.text = '';
   }
 

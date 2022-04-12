@@ -40,6 +40,25 @@ class ObjectBox {
       Note('Delete notes by tapping on one'),
       Note('Write a demo app for ObjectBox')
     ];
-    noteBox.putMany(demoNotes);
+    store.runInTransactionAsync(TxMode.write, _putNotesInTx, demoNotes);
+  }
+
+  static void _putNotesInTx(Store store, List<Note> notes) =>
+      store.box<Note>().putMany(notes);
+
+  /// Add a note within a transaction.
+  ///
+  /// To avoid frame drops, run ObjectBox operations that take longer than a
+  /// few milliseconds, e.g. putting many objects, in an isolate with its
+  /// own Store instance.
+  /// For this example only a single object is put which would also be fine if
+  /// done here directly.
+  Future<void> addNote(String text) =>
+      store.runInTransactionAsync(TxMode.write, _addNoteInTx, text);
+
+  static void _addNoteInTx(Store store, String text) {
+    // Perform ObjectBox operations that take longer than a few milliseconds
+    // here. To keep it simple, this example just puts a single object.
+    store.box<Note>().put(Note(text));
   }
 }
