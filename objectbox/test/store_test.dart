@@ -201,6 +201,29 @@ void main() {
     expect(env.box.count(), 0); // Must be removed once awaited
     env.closeAndDelete();
   }, skip: notAtLeastDart2_15_0());
+
+  test('store runAsync returns isolate error', () async {
+    final env = TestEnv('store');
+    try {
+      await env.store.runAsync(_producesIsolateError, 'nothing');
+      fail("Should throw RemoteError");
+    } on RemoteError {
+      // expected
+    }
+    env.closeAndDelete();
+  }, skip: notAtLeastDart2_15_0());
+
+  test('store runAsync returns callback error', () async {
+    final env = TestEnv('store');
+    try {
+      await env.store.runAsync(_producesCallbackError, 'nothing');
+      fail("Should throw error produced by callback");
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+      expect(e, predicate((ArgumentError e) => e.message == 'Return me'));
+    }
+    env.closeAndDelete();
+  }, skip: notAtLeastDart2_15_0());
 }
 
 Future<String> _readStringAndRemove(Store store, int id) async {
@@ -213,6 +236,23 @@ Future<String> _readStringAndRemove(Store store, int id) async {
   print('Count in 2nd isolate after remove: ${box.count()}');
   // Pointless Future to test async functions are supported.
   return await Future.delayed(const Duration(milliseconds: 10), () => result);
+}
+
+// Produce an error within the isolate that triggers the onError handler case.
+// Errors because ReceivePort can not be sent via SendPort.
+int _producesIsolateError(Store store, String param) {
+  final port = ReceivePort();
+  try {
+    throw port;
+  } finally {
+    port.close();
+  }
+}
+
+// Produce an error that is caught and sent, triggering the error thrown
+// by callable case.
+int _producesCallbackError(Store store, String param) {
+  throw ArgumentError('Return me');
 }
 
 class StoreAttachIsolateInit {

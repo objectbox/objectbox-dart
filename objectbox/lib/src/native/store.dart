@@ -413,20 +413,31 @@ class Store {
   }
 
   // Isolate entry point must be able to be sent via SendPort.send.
+  // Must guarantee only a single result event is sent.
+  // runAsync only handles a single event, any sent afterwards are ignored. E.g.
+  // in case [Error] or [Exception] are thrown after the result is sent.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
       _RunAsyncIsolateConfig<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
-    final R result;
+    List<dynamic> result;
     try {
-      result = await isoPass.runCallback(store);
+      final callbackResult = await isoPass.runCallback(store);
+      // Use a one element list to signal a result was sent.
+      result = List<R>.filled(1, callbackResult);
+    } catch (error, stack) {
+      // Use a three element list to signal an error was caught.
+      // A two element list is already sent by isolate onError handler.
+      result = List<dynamic>.filled(3, null)
+        ..[0] = error
+        ..[1] = stack;
     } finally {
       store.close();
     }
 
-    // Note: maybe replace with Isolate.exit (and remove kill call in
-    // runIsolated) once min Dart SDK 2.15.
-    isoPass.resultPort?.send(result);
+    // Note: maybe replace with Isolate.exit (and remove kill() call in caller)
+    // once min Dart SDK 2.15.
+    isoPass.resultPort.send(result);
   }
 
   /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
@@ -462,48 +473,66 @@ class Store {
   /// Note: this requires Dart 2.15.0 or newer
   /// (shipped with Flutter 2.8.0 or newer).
   Future<R> runAsync<P, R>(RunAsyncCallback<P, R> callback, P param) async {
-    final resultPort = ReceivePort();
-    final exitPort = ReceivePort();
-    final errorPort = ReceivePort();
-    // Await isolate spawn to avoid waiting forever if it fails to spawn.
-    final isolate = await Isolate.spawn(
-        _callFunctionWithStoreInIsolate,
-        _RunAsyncIsolateConfig(_defs, directoryPath,
-            _queriesCaseSensitiveDefault, resultPort.sendPort, callback, param),
-        errorsAreFatal: true,
-        onError: errorPort.sendPort,
-        onExit: exitPort.sendPort);
-    // Use Completer to return result so type is not lost.
-    final isolateResult = Completer<R>();
-    resultPort.listen((dynamic result) {
-      if (!isolateResult.isCompleted) {
-        isolateResult.complete(result as R);
-      }
-    });
-    errorPort.listen((dynamic error) {
-      // See isolate.addErrorListener docs for message structure.
-      if (error is List<dynamic>) {
-        final Exception exception = Exception(error[0]);
-        final StackTrace stack = StackTrace.fromString(error[1] as String);
-        if (isolateResult.isCompleted) {
-          Zone.current.handleUncaughtError(exception, stack);
-        } else {
-          isolateResult.completeError(exception, stack);
-        }
-      }
-    });
-    exitPort.listen((dynamic exit) {
-      if (!isolateResult.isCompleted) {
-        isolateResult.completeError(
-            Exception('Isolate exited without result or error.'));
-      }
-    });
-    await isolateResult.future;
-    resultPort.close();
-    exitPort.close();
-    errorPort.close();
+    final port = RawReceivePort();
+    final completer = Completer<dynamic>();
+
+    void _cleanup() {
+      port.close();
+    }
+
+    port.handler = (dynamic message) {
+      _cleanup();
+      completer.complete(message);
+    };
+
+    final Isolate isolate;
+    try {
+      // Await isolate spawn to avoid waiting forever if it fails to spawn.
+      isolate = await Isolate.spawn(
+          _callFunctionWithStoreInIsolate,
+          _RunAsyncIsolateConfig(_defs, directoryPath,
+              _queriesCaseSensitiveDefault, port.sendPort, callback, param),
+          errorsAreFatal: true,
+          onError: port.sendPort,
+          onExit: port.sendPort);
+    } on Object {
+      _cleanup();
+      rethrow;
+    }
+
+    final dynamic response = await completer.future;
+    // Replace with Isolate.exit in _callFunctionWithStoreInIsolate
+    // once min SDK 2.15.
     isolate.kill();
-    return isolateResult.future;
+
+    if (response == null) {
+      throw RemoteError('Isolate exited without result or error.', '');
+    }
+
+    assert(response is List<dynamic>);
+    response as List<dynamic>;
+
+    final respLength = response.length;
+    assert(1 <= respLength && respLength <= 3);
+    switch (respLength) {
+      case 1:
+        // Success, return result.
+        return response[0] as R;
+      case 2:
+        // See isolate.addErrorListener docs for message structure.
+        await Future<Never>.error(RemoteError(
+          response[0] as String,
+          response[1] as String,
+        ));
+      case 3:
+      default:
+        // Error thrown by callback.
+        assert(respLength == 3 && response[2] == null);
+        await Future<Never>.error(
+          response[0] as Object,
+          response[1] as StackTrace,
+        );
+    }
   }
 
   /// Deprecated. Use [runAsync] instead. Will be removed in a future release.
@@ -660,7 +689,7 @@ class _RunAsyncIsolateConfig<P, R> {
   final bool queriesCaseSensitiveDefault;
 
   /// Non-void functions can use this port to receive the result.
-  final SendPort? resultPort;
+  final SendPort resultPort;
 
   /// Parameter passed to [callback].
   final P param;
