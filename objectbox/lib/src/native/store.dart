@@ -412,14 +412,14 @@ class Store {
     return _runInTransaction(mode, (tx) => fn());
   }
 
-  // Isolate entry point must be static or top-level.
+  // Isolate entry point must be able to be sent via SendPort.send.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
-      _IsoPass<P, R> isoPass) async {
+      _RunAsyncIsolateConfig<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
     final R result;
     try {
-      result = await isoPass.runFn(store);
+      result = await isoPass.runCallback(store);
     } finally {
       store.close();
     }
@@ -432,6 +432,11 @@ class Store {
   /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
   /// its own Store and returns the result of callback.
   ///
+  /// This is useful for ObjectBox operations that take longer than a few
+  /// milliseconds, e.g. putting many objects, which would cause frame drops.
+  ///
+  /// The following example gets the name of a User object, deletes the object
+  /// and returns the name:
   /// ```dart
   /// String? readNameAndRemove(Store store, int objectId) {
   ///   var box = store.box<User>();
@@ -442,21 +447,29 @@ class Store {
   /// await store.runAsync(readNameAndRemove, objectId);
   /// ```
   ///
-  /// Instances of [callback] must be top-level functions or static methods
-  /// of classes, not closures or instance methods of objects.
+  /// The [callback] must be a function that can be sent to an isolate: either a
+  /// top-level function, static method or a closure that only captures objects
+  /// that can be sent to an isolate.
+  ///
+  /// The types `P` (type of the parameter to be passed to the callback) and
+  /// `R` (type of the result returned by the callback) must be able to be sent
+  /// to or received from an isolate. The same applies to errors originating
+  /// from the callback.
+  ///
+  /// See [SendPort.send] for a discussion on which values can be sent to and
+  /// received from isolates.
   ///
   /// Note: this requires Dart 2.15.0 or newer
   /// (shipped with Flutter 2.8.0 or newer).
-  Future<R> runAsync<P, R>(
-      FutureOr<R> Function(Store, P) callback, P param) async {
+  Future<R> runAsync<P, R>(RunAsyncCallback<P, R> callback, P param) async {
     final resultPort = ReceivePort();
     final exitPort = ReceivePort();
     final errorPort = ReceivePort();
     // Await isolate spawn to avoid waiting forever if it fails to spawn.
     final isolate = await Isolate.spawn(
         _callFunctionWithStoreInIsolate,
-        _IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
-            resultPort.sendPort, callback, param),
+        _RunAsyncIsolateConfig(_defs, directoryPath,
+            _queriesCaseSensitiveDefault, resultPort.sendPort, callback, param),
         errorsAreFatal: true,
         onError: errorPort.sendPort,
         onExit: exitPort.sendPort);
@@ -628,10 +641,16 @@ final _openStoreDirectories = HashSet<String>();
 final _nullSafetyEnabled = _nullReturningFn is! Future Function();
 final _nullReturningFn = () => null;
 
+// Define type so IDE generates named parameters.
+/// Signature for the callback passed to [Store.runAsync].
+///
+/// Instances must be functions that can be sent to an isolate.
+typedef RunAsyncCallback<P, R> = FutureOr<R> Function(Store store, P parameter);
+
 /// Captures everything required to create a "copy" of a store in an isolate
 /// and run user code.
 @immutable
-class _IsoPass<P, R> {
+class _RunAsyncIsolateConfig<P, R> {
   final ModelDefinition model;
 
   /// Used to attach to store in separate isolate
@@ -647,9 +666,9 @@ class _IsoPass<P, R> {
   final P param;
 
   /// To be called in isolate.
-  final FutureOr<R> Function(Store, P) callback;
+  final RunAsyncCallback<P, R> callback;
 
-  const _IsoPass(
+  const _RunAsyncIsolateConfig(
       this.model,
       this.dbDirectoryPath,
       // ignore: avoid_positional_boolean_parameters
@@ -660,5 +679,5 @@ class _IsoPass<P, R> {
 
   /// Calls [callback] inside this class so types are not lost
   /// (if called in isolate types would be dynamic instead of P and R).
-  FutureOr<R> runFn(Store store) => callback(store, param);
+  FutureOr<R> runCallback(Store store) => callback(store, param);
 }

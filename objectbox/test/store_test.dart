@@ -194,7 +194,7 @@ void main() {
   test('store run in isolate', () async {
     final env = TestEnv('store');
     final id = env.box.put(TestEntity(tString: 'foo'));
-    final futureResult = env.store.runAsync(readStringAndRemove, id);
+    final futureResult = env.store.runAsync(_readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
     final String x = await futureResult;
     expect(x, 'foo!');
@@ -203,7 +203,7 @@ void main() {
   }, skip: notAtLeastDart2_15_0());
 }
 
-Future<String> readStringAndRemove(Store store, int id) async {
+Future<String> _readStringAndRemove(Store store, int id) async {
   var box = store.box<TestEntity>();
   var testEntity = box.get(id);
   final result = testEntity!.tString! + '!';
