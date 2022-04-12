@@ -420,17 +420,12 @@ class Store {
       _RunAsyncIsolateConfig<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
-    List<dynamic> result;
+    dynamic result;
     try {
       final callbackResult = await isoPass.runCallback(store);
-      // Use a one element list to signal a result was sent.
-      result = List<R>.filled(1, callbackResult);
+      result = _RunAsyncResult(callbackResult);
     } catch (error, stack) {
-      // Use a three element list to signal an error was caught.
-      // A two element list is already sent by isolate onError handler.
-      result = List<dynamic>.filled(3, null)
-        ..[0] = error
-        ..[1] = stack;
+      result = _RunAsyncError(error, stack);
     } finally {
       store.close();
     }
@@ -509,29 +504,25 @@ class Store {
       throw RemoteError('Isolate exited without result or error.', '');
     }
 
-    assert(response is List<dynamic>);
-    response as List<dynamic>;
+    if (response is _RunAsyncResult) {
+      // Success, return result.
+      return response.result as R;
+    } else if (response is List<dynamic>) {
+      // See isolate.addErrorListener docs for message structure.
+      assert(response.length == 2);
+      await Future<Never>.error(RemoteError(
+        response[0] as String,
+        response[1] as String,
+      ));
+    } else {
+      // Error thrown by callback.
+      assert(response is _RunAsyncError);
+      response as _RunAsyncError;
 
-    final respLength = response.length;
-    assert(1 <= respLength && respLength <= 3);
-    switch (respLength) {
-      case 1:
-        // Success, return result.
-        return response[0] as R;
-      case 2:
-        // See isolate.addErrorListener docs for message structure.
-        await Future<Never>.error(RemoteError(
-          response[0] as String,
-          response[1] as String,
-        ));
-      case 3:
-      default:
-        // Error thrown by callback.
-        assert(respLength == 3 && response[2] == null);
-        await Future<Never>.error(
-          response[0] as Object,
-          response[1] as StackTrace,
-        );
+      await Future<Never>.error(
+        response.error,
+        response.stack,
+      );
     }
   }
 
@@ -709,4 +700,19 @@ class _RunAsyncIsolateConfig<P, R> {
   /// Calls [callback] inside this class so types are not lost
   /// (if called in isolate types would be dynamic instead of P and R).
   FutureOr<R> runCallback(Store store) => callback(store, param);
+}
+
+@immutable
+class _RunAsyncResult<R> {
+  final R result;
+
+  const _RunAsyncResult(this.result);
+}
+
+@immutable
+class _RunAsyncError {
+  final Object error;
+  final StackTrace stack;
+
+  const _RunAsyncError(this.error, this.stack);
 }
