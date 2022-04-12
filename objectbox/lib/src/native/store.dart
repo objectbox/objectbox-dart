@@ -482,6 +482,11 @@ class Store {
   /// top-level function, static method or a closure that only captures objects
   /// that can be sent to an isolate.
   ///
+  /// Warning: Due to
+  /// [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983) a
+  /// closure may capture more objects than expected, even if they are not
+  /// directly used in the closure itself.
+  ///
   /// The types `P` (type of the parameter to be passed to the callback) and
   /// `R` (type of the result returned by the callback) must be able to be sent
   /// to or received from an isolate. The same applies to errors originating
