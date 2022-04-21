@@ -9,6 +9,8 @@
 * Windows: Support database directory paths that contain unicode (UTF-8) characters. #406
 * Update: [objectbox-c 0.16.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.16.0).
 * Update: [objectbox-android 3.1.3](https://github.com/objectbox/objectbox-java/releases/tag/V3.1.3).
+* Add new [task with tag list Flutter example app](example/flutter/objectbox_demo_relations) that 
+  shows how to use relations.
 
 ## 1.4.1 (2022-03-01)
 
