@@ -82,9 +82,10 @@ final people = query.find();  // find() returns List<Person>
 
 Check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).
 
-We also have two video tutorials: 
+We also have three video tutorials, each featuring a different example app: 
 - [Shop order app](https://youtu.be/AxYbdriXKI8)
 - [Restaurant: chef and order apps](https://youtu.be/r9Lc2r22KBk)
+- [Task-list app (in Spanish)](https://youtu.be/osUq6B92-BY)
 
 
 **Depending on if you are building a Flutter or Dart-only app, follow the steps below to start using ObjectBox.**
