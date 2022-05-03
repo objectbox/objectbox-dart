@@ -111,6 +111,45 @@ void main() {
     env.closeAndDelete();
   });
 
+  test('async transactions', () async {
+    final env = TestEnv('store');
+    expect(TxMode.values.length, 2);
+    for (var mode in TxMode.values) {
+      // Returned value falls through.
+      expect(
+          await env.store
+              .runInTransactionAsync(mode, (store, param) => 1, null),
+          1);
+
+      // Async callbacks are forbidden.
+      final asyncCallbacks = [
+        (Store s, Object? p) async => null,
+        (Store s, Object? p) =>
+            Future<int>.delayed(const Duration(milliseconds: 1)),
+        (Store s, Object? p) => Future<void>.value(),
+      ];
+      for (var callback in asyncCallbacks) {
+        try {
+          await env.store.runInTransactionAsync(mode, callback, null);
+          fail("Should throw UnsupportedError");
+        } on UnsupportedError catch (e) {
+          expect(e.message,
+              'Executing an "async" function in a transaction is not allowed.');
+        }
+      }
+
+      // Functions that [Never] finish won't be executed at all.
+      try {
+        await env.store.runInTransactionAsync(mode, (store, param) {
+          throw 'Should never execute';
+        }, null);
+      } on UnsupportedError catch (e) {
+        expect(e.message, 'Given transaction callback always fails.');
+      }
+    }
+    env.closeAndDelete();
+  }, skip: notAtLeastDart2_15_0());
+
   test('store multi-open', () {
     final stores = <Store>[];
 
@@ -191,34 +230,42 @@ void main() {
     Directory('store').deleteSync(recursive: true);
   });
 
-  test('store_runInIsolatedTx', () async {
+  test('store run in isolate', () async {
     final env = TestEnv('store');
     final id = env.box.put(TestEntity(tString: 'foo'));
-    final futureResult =
-        env.store.runIsolated(TxMode.write, readStringAndRemove, id);
+    final futureResult = env.store.runAsync(_readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
-    final String x;
-    try {
-      x = await futureResult;
-    } catch (e) {
-      final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
-          .firstMatch(Platform.version)
-          ?.group(0);
-      if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
-        print('runIsolated requires Dart 2.15, ignoring error.');
-        env.closeAndDelete();
-        return;
-      } else {
-        rethrow;
-      }
-    }
+    final String x = await futureResult;
     expect(x, 'foo!');
     expect(env.box.count(), 0); // Must be removed once awaited
     env.closeAndDelete();
-  });
+  }, skip: notAtLeastDart2_15_0());
+
+  test('store runAsync returns isolate error', () async {
+    final env = TestEnv('store');
+    try {
+      await env.store.runAsync(_producesIsolateError, 'nothing');
+      fail("Should throw RemoteError");
+    } on RemoteError {
+      // expected
+    }
+    env.closeAndDelete();
+  }, skip: notAtLeastDart2_15_0());
+
+  test('store runAsync returns callback error', () async {
+    final env = TestEnv('store');
+    try {
+      await env.store.runAsync(_producesCallbackError, 'nothing');
+      fail("Should throw error produced by callback");
+    } catch (e) {
+      expect(e, isA<ArgumentError>());
+      expect(e, predicate((ArgumentError e) => e.message == 'Return me'));
+    }
+    env.closeAndDelete();
+  }, skip: notAtLeastDart2_15_0());
 }
 
-Future<String> readStringAndRemove(Store store, int id) async {
+Future<String> _readStringAndRemove(Store store, int id) async {
   var box = store.box<TestEntity>();
   var testEntity = box.get(id);
   final result = testEntity!.tString! + '!';
@@ -228,6 +275,23 @@ Future<String> readStringAndRemove(Store store, int id) async {
   print('Count in 2nd isolate after remove: ${box.count()}');
   // Pointless Future to test async functions are supported.
   return await Future.delayed(const Duration(milliseconds: 10), () => result);
+}
+
+// Produce an error within the isolate that triggers the onError handler case.
+// Errors because ReceivePort can not be sent via SendPort.
+int _producesIsolateError(Store store, String param) {
+  final port = ReceivePort();
+  try {
+    throw port;
+  } finally {
+    port.close();
+  }
+}
+
+// Produce an error that is caught and sent, triggering the error thrown
+// by callable case.
+int _producesCallbackError(Store store, String param) {
+  throw ArgumentError('Return me');
 }
 
 class StoreAttachIsolateInit {

@@ -1,4 +1,8 @@
 ## latest
+* Add `Store.runInTransactionAsync` to run database operations asynchronously in the background
+  (requires Flutter 2.8.0/Dart 2.15.0 or newer).
+* Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and
+  handle premature isolate exit.
 
 * The native ObjectBox library is also searched for in the `lib` subfolder on desktop OS (macOS,
   Linux, Windows). This is where the [`install.sh`](/install.sh) script downloads it by default.

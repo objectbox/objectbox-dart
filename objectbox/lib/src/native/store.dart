@@ -412,18 +412,152 @@ class Store {
     return _runInTransaction(mode, (tx) => fn());
   }
 
-  // Isolate entry point must be static or top-level.
+  /// Like [runAsync], but executes [callback] within a read or write
+  /// transaction depending on [mode].
+  ///
+  /// See the documentation on [runAsync] for important usage details.
+  ///
+  /// The following example gets the name of a User object, deletes the object
+  /// and returns the name within a write transaction:
+  /// ```dart
+  /// String? readNameAndRemove(Store store, int objectId) {
+  ///   var box = store.box<User>();
+  ///   final nameOrNull = box.get(objectId)?.name;
+  ///   box.remove(objectId);
+  ///   return nameOrNull;
+  /// }
+  /// await store.runInTransactionAsync(TxMode.write, readNameAndRemove, objectId);
+  /// ```
+  Future<R> runInTransactionAsync<R, P>(
+          TxMode mode, TxAsyncCallback<R, P> callback, P param) =>
+      runAsync(
+          (Store store, P p) =>
+              store.runInTransaction(mode, () => callback(store, p)),
+          param);
+
+  // Isolate entry point must be able to be sent via SendPort.send.
+  // Must guarantee only a single result event is sent.
+  // runAsync only handles a single event, any sent afterwards are ignored. E.g.
+  // in case [Error] or [Exception] are thrown after the result is sent.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
-      _IsoPass<P, R> isoPass) async {
+      _RunAsyncIsolateConfig<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
-    final result = await isoPass.runFn(store);
-    store.close();
-    // Note: maybe replace with Isolate.exit (and remove kill call in
-    // runIsolated) once min Dart SDK 2.15.
-    isoPass.resultPort?.send(result);
+    dynamic result;
+    try {
+      final callbackResult = await isoPass.runCallback(store);
+      result = _RunAsyncResult(callbackResult);
+    } catch (error, stack) {
+      result = _RunAsyncError(error, stack);
+    } finally {
+      store.close();
+    }
+
+    // Note: maybe replace with Isolate.exit (and remove kill() call in caller)
+    // once min Dart SDK 2.15.
+    isoPass.resultPort.send(result);
   }
 
+  /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
+  /// its own Store and returns the result of callback.
+  ///
+  /// This is useful for ObjectBox operations that take longer than a few
+  /// milliseconds, e.g. putting many objects, which would cause frame drops.
+  /// If all operations can execute within a single transaction, prefer to use
+  /// [runInTransactionAsync].
+  ///
+  /// The following example gets the name of a User object, deletes the object
+  /// and returns the name:
+  /// ```dart
+  /// String? readNameAndRemove(Store store, int objectId) {
+  ///   var box = store.box<User>();
+  ///   final nameOrNull = box.get(objectId)?.name;
+  ///   box.remove(objectId);
+  ///   return nameOrNull;
+  /// }
+  /// await store.runAsync(readNameAndRemove, objectId);
+  /// ```
+  ///
+  /// The [callback] must be a function that can be sent to an isolate: either a
+  /// top-level function, static method or a closure that only captures objects
+  /// that can be sent to an isolate.
+  ///
+  /// Warning: Due to
+  /// [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983) a
+  /// closure may capture more objects than expected, even if they are not
+  /// directly used in the closure itself.
+  ///
+  /// The types `P` (type of the parameter to be passed to the callback) and
+  /// `R` (type of the result returned by the callback) must be able to be sent
+  /// to or received from an isolate. The same applies to errors originating
+  /// from the callback.
+  ///
+  /// See [SendPort.send] for a discussion on which values can be sent to and
+  /// received from isolates.
+  ///
+  /// Note: this requires Dart 2.15.0 or newer
+  /// (shipped with Flutter 2.8.0 or newer).
+  Future<R> runAsync<P, R>(RunAsyncCallback<P, R> callback, P param) async {
+    final port = RawReceivePort();
+    final completer = Completer<dynamic>();
+
+    void _cleanup() {
+      port.close();
+    }
+
+    port.handler = (dynamic message) {
+      _cleanup();
+      completer.complete(message);
+    };
+
+    final Isolate isolate;
+    try {
+      // Await isolate spawn to avoid waiting forever if it fails to spawn.
+      isolate = await Isolate.spawn(
+          _callFunctionWithStoreInIsolate,
+          _RunAsyncIsolateConfig(_defs, directoryPath,
+              _queriesCaseSensitiveDefault, port.sendPort, callback, param),
+          errorsAreFatal: true,
+          onError: port.sendPort,
+          onExit: port.sendPort);
+    } on Object {
+      _cleanup();
+      rethrow;
+    }
+
+    final dynamic response = await completer.future;
+    // Replace with Isolate.exit in _callFunctionWithStoreInIsolate
+    // once min SDK 2.15.
+    isolate.kill();
+
+    if (response == null) {
+      throw RemoteError('Isolate exited without result or error.', '');
+    }
+
+    if (response is _RunAsyncResult) {
+      // Success, return result.
+      return response.result as R;
+    } else if (response is List<dynamic>) {
+      // See isolate.addErrorListener docs for message structure.
+      assert(response.length == 2);
+      await Future<Never>.error(RemoteError(
+        response[0] as String,
+        response[1] as String,
+      ));
+    } else {
+      // Error thrown by callback.
+      assert(response is _RunAsyncError);
+      response as _RunAsyncError;
+
+      await Future<Never>.error(
+        response.error,
+        response.stack,
+      );
+    }
+  }
+
+  /// Deprecated. Use [runAsync] instead. Will be removed in a future release.
+  ///
   /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
   /// its own Store and returns the result of callback.
   ///
@@ -432,24 +566,10 @@ class Store {
   ///
   /// Note: this requires Dart 2.15.0 or newer
   /// (shipped with Flutter 2.8.0 or newer).
-  Future<R> runIsolated<P, R>(
-      TxMode mode, FutureOr<R> Function(Store, P) callback, P param) async {
-    final resultPort = ReceivePort();
-    // Await isolate spawn to avoid waiting forever if it fails to spawn.
-    final isolate = await Isolate.spawn(
-        _callFunctionWithStoreInIsolate,
-        _IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
-            resultPort.sendPort, callback, param));
-    // Use Completer to return result so type is not lost.
-    final result = Completer<R>();
-    resultPort.listen((dynamic message) {
-      result.complete(message as R);
-    });
-    await result.future;
-    resultPort.close();
-    isolate.kill();
-    return result.future;
-  }
+  @Deprecated('Use `runAsync` instead. Will be removed in a future release.')
+  Future<R> runIsolated<P, R>(TxMode mode,
+          FutureOr<R> Function(Store, P) callback, P param) async =>
+      runAsync(callback, param);
 
   /// Internal only - bypasses the main checks for async functions, you may
   /// only pass synchronous callbacks!
@@ -571,10 +691,16 @@ final _openStoreDirectories = HashSet<String>();
 final _nullSafetyEnabled = _nullReturningFn is! Future Function();
 final _nullReturningFn = () => null;
 
+// Define type so IDE generates named parameters.
+/// Signature for the callback passed to [Store.runAsync].
+///
+/// Instances must be functions that can be sent to an isolate.
+typedef RunAsyncCallback<P, R> = FutureOr<R> Function(Store store, P parameter);
+
 /// Captures everything required to create a "copy" of a store in an isolate
 /// and run user code.
 @immutable
-class _IsoPass<P, R> {
+class _RunAsyncIsolateConfig<P, R> {
   final ModelDefinition model;
 
   /// Used to attach to store in separate isolate
@@ -584,15 +710,15 @@ class _IsoPass<P, R> {
   final bool queriesCaseSensitiveDefault;
 
   /// Non-void functions can use this port to receive the result.
-  final SendPort? resultPort;
+  final SendPort resultPort;
 
   /// Parameter passed to [callback].
   final P param;
 
   /// To be called in isolate.
-  final FutureOr<R> Function(Store, P) callback;
+  final RunAsyncCallback<P, R> callback;
 
-  const _IsoPass(
+  const _RunAsyncIsolateConfig(
       this.model,
       this.dbDirectoryPath,
       // ignore: avoid_positional_boolean_parameters
@@ -603,5 +729,26 @@ class _IsoPass<P, R> {
 
   /// Calls [callback] inside this class so types are not lost
   /// (if called in isolate types would be dynamic instead of P and R).
-  FutureOr<R> runFn(Store store) => callback(store, param);
+  FutureOr<R> runCallback(Store store) => callback(store, param);
 }
+
+@immutable
+class _RunAsyncResult<R> {
+  final R result;
+
+  const _RunAsyncResult(this.result);
+}
+
+@immutable
+class _RunAsyncError {
+  final Object error;
+  final StackTrace stack;
+
+  const _RunAsyncError(this.error, this.stack);
+}
+
+// Specify so IDE generates named parameters.
+/// Signature for callback passed to [Store.runInTransactionAsync].
+///
+/// Instances must be functions that can be sent to an isolate.
+typedef TxAsyncCallback<R, P> = R Function(Store store, P parameter);

@@ -64,3 +64,14 @@ Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 // We need to do this to receive an event in the stream before processing
 // the remainder of the test case.
 final yieldExecution = () async => await Future<void>.delayed(Duration.zero);
+
+dynamic notAtLeastDart2_15_0() {
+  final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
+      .firstMatch(Platform.version)
+      ?.group(0);
+  if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
+    return 'Test requires Dart 2.15.0, skipping.';
+  } else {
+    return false;
+  }
+}
