@@ -985,7 +985,7 @@ class Query<T> {
       // Further messages are
       // - ObxObjectMessage for data,
       // - Exception and Error for errors and
-      // - null when there is no more data.
+      // - null if the worker isolate is done sending data.
       else if (message is _StreamIsolateMessage) {
         try {
           for (var i = 0; i < message.dataPtrAddresses.length; i++) {
