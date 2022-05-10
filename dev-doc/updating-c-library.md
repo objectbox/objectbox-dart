@@ -15,7 +15,7 @@ Update `flutter_libs` and `sync_flutter_libs` with **compatible library versions
   - [sync_flutter_libs Linux](../sync_flutter_libs/linux/CMakeLists.txt)
   - [sync_flutter_libs Windows](../sync_flutter_libs/windows/CMakeLists.txt)
 - Android ([view releases](https://github.com/objectbox/objectbox-java/releases))
-  - Shortcut: search and replace `-android:3.1.2` in `build.gradle` files.
+  - Shortcut: search and replace `-android:3.1.3` in `build.gradle` files.
   - In [flutter_libs](../flutter_libs/android/build.gradle)
   - In [sync_flutter_libs](../sync_flutter_libs/android/build.gradle)
 - Swift (iOS/macOS) ([view releases](https://github.com/objectbox/objectbox-swift/releases))
