@@ -39,4 +39,14 @@ void main() {
       skip: Admin.isAvailable()
           ? null
           : 'Admin is not available in the loaded library');
+
+  test('admin not available', () {
+    expect(
+        () => Admin(env.store),
+        throwsA(predicate((UnsupportedError e) => e.toString().contains(
+            'Admin is not available in the loaded ObjectBox runtime library.'))));
+  },
+      skip: Admin.isAvailable()
+          ? 'Admin is available in the loaded library'
+          : false);
 }
