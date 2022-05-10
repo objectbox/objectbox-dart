@@ -3,10 +3,12 @@
   (requires Flutter 2.8.0/Dart 2.15.0 or newer).
 * Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and
   handle premature isolate exit.
-
 * The native ObjectBox library is also searched for in the `lib` subfolder on desktop OS (macOS,
   Linux, Windows). This is where the [`install.sh`](/install.sh) script downloads it by default.
   E.g. it is no longer necessary to install the library globally to run `dart test` or `flutter test`.
+* Windows: Support database directory paths that contain unicode (UTF-8) characters. #406
+* Update: [objectbox-c 0.16.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.16.0).
+* Update: [objectbox-android 3.1.3](https://github.com/objectbox/objectbox-java/releases/tag/V3.1.3).
 
 ## 1.4.1 (2022-03-01)
 
