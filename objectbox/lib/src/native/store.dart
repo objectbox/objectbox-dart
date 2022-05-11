@@ -227,9 +227,12 @@ class Store {
   /// without any info like model definition, database directory and others.
   ///
   /// This store is e.g. good enough to start a transaction, but does not allow
-  /// to e.g. use boxes.
+  /// to e.g. use boxes. This is useful when creating a store within another
+  /// isolate as only information that can be sent to an isolate is necessary
+  /// (the store and model definition contain pointers that can not be sent to
+  /// an isolate).
   ///
-  /// Obtain a [ptrAddress] from [_clone].
+  /// Obtain a [ptrAddress] from [_clone], see it for more details.
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
       : _defs = null,
         _weak = false,
@@ -360,7 +363,26 @@ class Store {
 
   /// Clones this native store and returns a pointer to the clone.
   ///
-  /// Use the address of the pointer with [Store._minimal].
+  /// The address of the pointer can be used with [Store._minimal].
+  ///
+  /// This can be useful to work with isolates as it is not possible to send a
+  /// [Store] to an isolate (the Store itself and the contained model definition
+  /// contain pointers). Instead, send the pointer address returned by this
+  /// and create a minimal store (for limitations see [Store._minimal]) in the
+  /// isolate. Make sure to [close] the clone as well before the isolate exits.
+  ///
+  /// ```dart
+  /// // Clone the store and obtain its address, can be sent to an isolate.
+  /// final storePtrAddress = store.clone().address;
+  ///
+  /// // Within an isolate create a minimal store.
+  /// final store = InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
+  /// try {
+  ///   // Use the store.
+  /// } finally {
+  ///   store.close();
+  /// }
+  /// ```
   Pointer<OBX_store> _clone() {
     final ptr = checkObxPtr(C.store_clone(_ptr));
     reachabilityFence(this);

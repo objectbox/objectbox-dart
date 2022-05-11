@@ -724,6 +724,17 @@ class Query<T> {
   }
 
   /// Clones this native query and returns a pointer to the clone.
+  ///
+  /// This is useful to send a reference to a query to an isolate. A [Query] can
+  /// not be sent to an isolate directly because it contains pointers.
+  ///
+  /// ```dart
+  /// // Clone the query and obtain its address, can be sent to an isolate.
+  /// final queryPtrAddress = query._clone().address;
+  ///
+  /// // Within an isolate re-create the query pointer to be used with the C API.
+  /// final queryPtr = Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
+  /// ```
   Pointer<OBX_query> _clone() {
     final ptr = checkObxPtr(C.query_clone(_ptr));
     reachabilityFence(this);
