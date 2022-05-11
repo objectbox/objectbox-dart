@@ -678,7 +678,8 @@ void main() {
     expect(query.count(), countMatching);
 
     final foundIds = query.findIds();
-    final streamed = await query.stream().toList();
+    final stream = query.stream();
+    final streamed = await stream.toList();
     expect(streamed.length, countMatching);
     final streamedIds = streamed.map((e) => e.id).toList(growable: false);
 
@@ -689,9 +690,12 @@ void main() {
     final streamListenedItems = <TestEntity>{};
 
     final start = DateTime.now();
-    final subscription = query.stream().listen(streamListenedItems.add);
-    for (int i = 0; i < 10 && streamListenedItems.isEmpty; i++) {
-      await Future<void>.delayed(Duration(milliseconds: i));
+    final subStream = query.stream();
+    final subscription = subStream.listen(streamListenedItems.add);
+    // Note: no upper limit, global test timeout will stop if it takes too long.
+    int millis = 1;
+    while (streamListenedItems.isEmpty) {
+      await Future<void>.delayed(Duration(milliseconds: millis++));
     }
     print('Received ${streamListenedItems.length} items in '
         '${DateTime.now().difference(start).inMilliseconds} milliseconds');

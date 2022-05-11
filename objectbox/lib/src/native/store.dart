@@ -39,7 +39,9 @@ class Store {
   late final Pointer<OBX_dart_finalizer> _cFinalizer;
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
-  final ModelDefinition _defs;
+
+  /// May be null for minimal store, access via [_modelDefinition] with null check.
+  final ModelDefinition? _defs;
   Stream<List<Type>>? _entityChanges;
   final _reader = ReaderWithCBuffer();
   Transaction? _tx;
@@ -82,14 +84,15 @@ class Store {
   /// ```
   ///
   /// See our examples for more details.
-  Store(this._defs,
+  Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
       int? fileMode,
       int? maxReaders,
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
-      : _weak = false,
+      : _defs = modelDefinition,
+        _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         directoryPath = _safeDirectoryPath(directory),
         _absoluteDirectoryPath =
@@ -111,7 +114,7 @@ class Store {
         }
       }
       _checkStoreDirectoryNotOpen();
-      final model = Model(_defs.model);
+      final model = Model(modelDefinition.model);
 
       final opt = C.opt();
       checkObxPtr(opt, 'failed to create store options');
@@ -218,6 +221,30 @@ class Store {
       throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
           'Given native pointer is empty');
     }
+  }
+
+  /// Returns a minimal Store that only has a reference to a native store,
+  /// without any info like model definition, database directory and others.
+  ///
+  /// This store is e.g. good enough to start a transaction, but does not allow
+  /// to e.g. use boxes. This is useful when creating a store within another
+  /// isolate as only information that can be sent to an isolate is necessary
+  /// (the store and model definition contain pointers that can not be sent to
+  /// an isolate).
+  ///
+  /// Obtain a [ptrAddress] from [_clone], see it for more details.
+  Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
+      : _defs = null,
+        _weak = false,
+        directoryPath = '',
+        _absoluteDirectoryPath = '',
+        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
+    if (ptrAddress == 0) {
+      throw ArgumentError.value(
+          ptrAddress, 'ptrAddress', 'Given native pointer address is invalid');
+    }
+    _cStore = Pointer<OBX_store>.fromAddress(ptrAddress);
+    _attachFinalizer();
   }
 
   /// Attach to a store opened in the [directoryPath]
@@ -334,6 +361,34 @@ class Store {
   /// a single underlying native store. See [Store.fromReference] for more details.
   ByteData get reference => _reference;
 
+  /// Clones this native store and returns a pointer to the clone.
+  ///
+  /// The address of the pointer can be used with [Store._minimal].
+  ///
+  /// This can be useful to work with isolates as it is not possible to send a
+  /// [Store] to an isolate (the Store itself and the contained model definition
+  /// contain pointers). Instead, send the pointer address returned by this
+  /// and create a minimal store (for limitations see [Store._minimal]) in the
+  /// isolate. Make sure to [close] the clone as well before the isolate exits.
+  ///
+  /// ```dart
+  /// // Clone the store and obtain its address, can be sent to an isolate.
+  /// final storePtrAddress = store.clone().address;
+  ///
+  /// // Within an isolate create a minimal store.
+  /// final store = InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
+  /// try {
+  ///   // Use the store.
+  /// } finally {
+  ///   store.close();
+  /// }
+  /// ```
+  Pointer<OBX_store> _clone() {
+    final ptr = checkObxPtr(C.store_clone(_ptr));
+    reachabilityFence(this);
+    return ptr;
+  }
+
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;
 
@@ -376,7 +431,7 @@ class Store {
   }
 
   EntityDefinition<T> _entityDef<T>() {
-    final binding = _defs.bindings[T];
+    final binding = _modelDefinition.bindings[T];
     if (binding == null) {
       throw ArgumentError('Unknown entity type ' + T.toString());
     }
@@ -515,7 +570,7 @@ class Store {
       // Await isolate spawn to avoid waiting forever if it fails to spawn.
       isolate = await Isolate.spawn(
           _callFunctionWithStoreInIsolate,
-          _RunAsyncIsolateConfig(_defs, directoryPath,
+          _RunAsyncIsolateConfig(_modelDefinition, directoryPath,
               _queriesCaseSensitiveDefault, port.sendPort, callback, param),
           errorsAreFatal: true,
           onError: port.sendPort,
@@ -632,11 +687,28 @@ class Store {
   @pragma('vm:prefer-inline')
   Pointer<OBX_store> get _ptr =>
       isClosed() ? throw StateError('Store is closed') : _cStore;
+
+  /// Returns the ModelDefinition of this store, or throws if
+  /// this is a minimal store.
+  ModelDefinition get _modelDefinition {
+    final model = _defs;
+    if (model == null) throw StateError('Minimal store does not have a model');
+    return model;
+  }
 }
 
 /// Internal only.
 @internal
 class InternalStoreAccess {
+  /// See [Store._clone].
+  static Pointer<OBX_store> clone(Store store) => store._clone();
+
+  /// See [Store._minimal].
+  static Store createMinimal(int ptrAddress,
+          {bool queriesCaseSensitiveDefault = true}) =>
+      Store._minimal(ptrAddress,
+          queriesCaseSensitiveDefault: queriesCaseSensitiveDefault);
+
   /// Access entity model for the given class (Dart Type).
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
@@ -651,8 +723,9 @@ class InternalStoreAccess {
   static Map<int, Type> entityTypeById(Store store) {
     if (store._entityTypeById == null) {
       store._entityTypeById = HashMap<int, Type>();
-      store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
-          store._entityTypeById![entityDef.model.id.id] = entity);
+      store._modelDefinition.bindings.forEach(
+          (Type entity, EntityDefinition entityDef) =>
+              store._entityTypeById![entityDef.model.id.id] = entity);
     }
     return store._entityTypeById!;
   }

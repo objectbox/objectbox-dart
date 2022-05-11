@@ -7,12 +7,14 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
 import '../../store.dart';
+import '../../transaction.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
@@ -721,6 +723,24 @@ class Query<T> {
     }
   }
 
+  /// Clones this native query and returns a pointer to the clone.
+  ///
+  /// This is useful to send a reference to a query to an isolate. A [Query] can
+  /// not be sent to an isolate directly because it contains pointers.
+  ///
+  /// ```dart
+  /// // Clone the query and obtain its address, can be sent to an isolate.
+  /// final queryPtrAddress = query._clone().address;
+  ///
+  /// // Within an isolate re-create the query pointer to be used with the C API.
+  /// final queryPtr = Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
+  /// ```
+  Pointer<OBX_query> _clone() {
+    final ptr = checkObxPtr(C.query_clone(_ptr));
+    reachabilityFence(this);
+    return ptr;
+  }
+
   /// Close the query and free resources.
   void close() {
     if (!_closed) {
@@ -811,58 +831,59 @@ class Query<T> {
 
   /// Finds Objects matching the query, streaming them while the query executes.
   ///
-  /// Note: make sure you evaluate performance in your use case - streams come
-  /// with an overhead so a plain [find()] is usually faster.
-  Stream<T> stream() => _stream1();
+  /// Results are streamed from a worker isolate in batches (the stream still
+  /// returns objects one by one).
+  Stream<T> stream() => _streamIsolate();
 
   /// Stream items by sending full flatbuffers binary as a message.
-  Stream<T> _stream1() {
-    initializeDartAPI();
-    final port = ReceivePort();
-    final cStream = checkObxPtr(
-        C.dartc_query_find(_cQuery, port.sendPort.nativePort), 'query stream');
-
-    var closed = false;
-    final close = () {
-      if (closed) return;
-      closed = true;
-      C.dartc_stream_close(cStream);
-      port.close();
-      reachabilityFence(this);
-    };
-
-    try {
-      final controller = StreamController<T>(onCancel: close);
-      port.listen((dynamic message) {
-        // We expect Uint8List for data and NULL when the query has finished.
-        if (message is Uint8List) {
-          try {
-            controller.add(
-                _entity.objectFromFB(_store, ByteData.view(message.buffer)));
-            return;
-          } catch (e) {
-            controller.addError(e);
-          }
-        } else if (message is String) {
-          controller.addError(
-              ObjectBoxException('Query stream native exception: $message'));
-        } else if (message != null) {
-          controller.addError(ObjectBoxException(
-              'Query stream received an invalid message type '
-              '(${message.runtimeType}): $message'));
-        }
-        // Close the stream, this will call the onCancel function.
-        // Do not call the onCancel function manually,
-        // if cancel() is called on the Stream subscription right afterwards it
-        // will use the shortcut in the onCancel function and not wait.
-        controller.close(); // done
-      });
-      return controller.stream;
-    } catch (e) {
-      close();
-      rethrow;
-    }
-  }
+  /// Replaced by _streamIsolate which in benchmarks has been faster.
+  // Stream<T> _stream1() {
+  //   initializeDartAPI();
+  //   final port = ReceivePort();
+  //   final cStream = checkObxPtr(
+  //       C.dartc_query_find(_cQuery, port.sendPort.nativePort), 'query stream');
+  //
+  //   var closed = false;
+  //   final close = () {
+  //     if (closed) return;
+  //     closed = true;
+  //     C.dartc_stream_close(cStream);
+  //     port.close();
+  //     reachabilityFence(this);
+  //   };
+  //
+  //   try {
+  //     final controller = StreamController<T>(onCancel: close);
+  //     port.listen((dynamic message) {
+  //       // We expect Uint8List for data and NULL when the query has finished.
+  //       if (message is Uint8List) {
+  //         try {
+  //           controller.add(
+  //               _entity.objectFromFB(_store, ByteData.view(message.buffer)));
+  //           return;
+  //         } catch (e) {
+  //           controller.addError(e);
+  //         }
+  //       } else if (message is String) {
+  //         controller.addError(
+  //             ObjectBoxException('Query stream native exception: $message'));
+  //       } else if (message != null) {
+  //         controller.addError(ObjectBoxException(
+  //             'Query stream received an invalid message type '
+  //             '(${message.runtimeType}): $message'));
+  //       }
+  //       // Close the stream, this will call the onCancel function.
+  //       // Do not call the onCancel function manually,
+  //       // if cancel() is called on the Stream subscription right afterwards it
+  //       // will use the shortcut in the onCancel function and not wait.
+  //       controller.close(); // done
+  //     });
+  //     return controller.stream;
+  //   } catch (e) {
+  //     close();
+  //     rethrow;
+  //   }
+  // }
 
   /// Stream items by sending pointers from native code.
   /// Interestingly this is slower even though it transfers only pointers...
@@ -915,6 +936,166 @@ class Query<T> {
   //   }
   // }
 
+  Stream<T> _streamIsolate() {
+    final resultPort = ReceivePort();
+    final exitPort = ReceivePort();
+
+    void spawnWorkerIsolate() async {
+      // Pass clones of Store and Query to avoid these getting closed while the
+      // worker isolate is still running. The isolate closes the clones once done.
+      final storeClonePtr = InternalStoreAccess.clone(_store);
+      final queryClonePtr = _clone();
+
+      // Current batch size determined through testing, performs well for smaller
+      // objects. Might want to expose in the future for performance tuning by
+      // users.
+      final isolateInit = _StreamIsolateInit(resultPort.sendPort,
+          storeClonePtr.address, queryClonePtr.address, 20);
+      // If spawn errors StreamController will propagate the error, no point in
+      // using addError as no listener before this function completes.
+      await Isolate.spawn(_queryAndVisit, isolateInit,
+          onExit: exitPort.sendPort);
+    }
+
+    SendPort? sendPort;
+
+    // Callback to exit the isolate once consumers or this close the stream
+    // (potentially before all results have been streamed).
+    // Must return Future<void>, otherwise StreamController will not wait on it.
+    var isolateExitSent = false;
+    Future<void> exitIsolate() async {
+      if (isolateExitSent) return;
+      isolateExitSent = true;
+      // Send signal to isolate it should exit.
+      sendPort?.send(null);
+      // Wait for isolate to clean up native resources,
+      // otherwise e.g. Store is still open and
+      // e.g. tests can not delete database files.
+      await exitPort.first;
+      resultPort.close();
+      exitPort.close();
+    }
+
+    final streamController = StreamController<T>(
+        onListen: spawnWorkerIsolate, onCancel: exitIsolate);
+    resultPort.listen((dynamic message) async {
+      // The first message from the spawned isolate is a SendPort. This port
+      // is used to communicate with the spawned isolate.
+      if (message is SendPort) {
+        sendPort = message;
+        return; // wait for next message.
+      }
+      // Further messages are
+      // - ObxObjectMessage for data,
+      // - Exception and Error for errors and
+      // - null if the worker isolate is done sending data.
+      else if (message is _StreamIsolateMessage) {
+        try {
+          for (var i = 0; i < message.dataPtrAddresses.length; i++) {
+            final dataPtrAddress = message.dataPtrAddresses[i];
+            final size = message.sizes[i];
+            if (size == 0) break; // Reached last object.
+            streamController.add(_entity.objectFromFB(
+                _store,
+                InternalStoreAccess.reader(_store)
+                    .access(Pointer.fromAddress(dataPtrAddress), size)));
+          }
+          return; // wait for next message.
+        } catch (e) {
+          streamController.addError(e);
+        }
+      } else if (message is Error) {
+        streamController.addError(message);
+      } else if (message is Exception) {
+        streamController.addError(message);
+      } else if (message != null) {
+        streamController.addError(
+            ObjectBoxException('Query stream received an invalid message type '
+                '(${message.runtimeType}): $message'));
+      }
+      // Close the stream, this will call the onCancel function.
+      // Do not call the onCancel function manually,
+      // if cancel() is called on the Stream subscription right afterwards it
+      // will use the shortcut in the onCancel function and not wait.
+      streamController.close();
+    });
+    return streamController.stream;
+  }
+
+  // Isolate entry point must be top-level or static.
+  static Future<void> _queryAndVisit(_StreamIsolateInit isolateInit) async {
+    // Init native resources asap so that they do not leak, e.g. on exceptions
+    final store =
+        InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
+
+    var resultPort = isolateInit.resultPort;
+
+    // Send a SendPort to the main isolate so that it can send to this isolate.
+    final commandPort = ReceivePort();
+    resultPort.send(commandPort.sendPort);
+
+    try {
+      // Visit inside transaction and do not complete transaction to ensure
+      // data pointers remain valid until main isolate has deserialized all data.
+      await InternalStoreAccess.runInTransaction(store, TxMode.read,
+          (Transaction tx) async {
+        // Use fixed-length lists to avoid performance hit due to growing.
+        final maxBatchSize = isolateInit.batchSize;
+        var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
+        var sizeBatch = List<int>.filled(maxBatchSize, 0);
+        var batchSize = 0;
+        final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+          // Currently returning all results, even if the stream has been closed
+          // before (e.g. only first element taken). Would need a way to check
+          // for exit command on commandPort synchronously.
+          dataPtrBatch[batchSize] = data.address;
+          sizeBatch[batchSize] = size;
+          batchSize++;
+          // Send data in batches as sending a message is rather expensive.
+          if (batchSize == maxBatchSize) {
+            resultPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
+            // Re-use list instance to avoid performance hit due to new instance.
+            dataPtrBatch.fillRange(0, dataPtrBatch.length, 0);
+            sizeBatch.fillRange(0, dataPtrBatch.length, 0);
+            batchSize = 0;
+          }
+          return true;
+        });
+        final queryPtr =
+            Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
+        try {
+          checkObx(C.query_visit(queryPtr, visitor, nullptr));
+        } catch (e) {
+          resultPort.send(e);
+          return;
+        } finally {
+          try {
+            checkObx(C.query_close(queryPtr));
+          } catch (e) {
+            resultPort.send(e);
+            return;
+          }
+        }
+        // Send any remaining data.
+        if (batchSize > 0) {
+          resultPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
+        }
+
+        // Signal to the main isolate there are no more results.
+        resultPort.send(null);
+        // Wait for main isolate to confirm it is done accessing sent data pointers.
+        await commandPort.first;
+        // Note: when the transaction is closed after await this might lead to an
+        // error log as the isolate could have been transferred to another thread
+        // when resuming execution.
+        // https://github.com/dart-lang/sdk/issues/46943
+      });
+    } finally {
+      store.close();
+      commandPort.close();
+    }
+  }
+
   /// For internal testing purposes.
   String describe() {
     final result = dartStringFromC(C.query_describe(_ptr));
@@ -946,4 +1127,25 @@ class Query<T> {
     }
     return result;
   }
+}
+
+/// Message passed to entry point [Query._queryAndVisit] of isolate.
+@immutable
+class _StreamIsolateInit {
+  final SendPort resultPort;
+  final int storePtrAddress;
+  final int queryPtrAddress;
+  final int batchSize;
+
+  const _StreamIsolateInit(this.resultPort, this.storePtrAddress,
+      this.queryPtrAddress, this.batchSize);
+}
+
+/// Message sent to main isolate containing info about a batch of objects.
+@immutable
+class _StreamIsolateMessage {
+  final List<int> dataPtrAddresses;
+  final List<int> sizes;
+
+  const _StreamIsolateMessage(this.dataPtrAddresses, this.sizes);
 }
