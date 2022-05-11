@@ -31,6 +31,7 @@ valgrind-test: 		## Test all targets with valgrind
 
 integration-test:	## Execute integration tests
 	./tool/integration-test.sh example/flutter/objectbox_demo
+	./tool/integration-test.sh example/flutter/objectbox_demo_relations
 	./tool/integration-test.sh example/flutter/objectbox_demo_sync
 
 format:			## Format all code
