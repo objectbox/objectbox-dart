@@ -39,4 +39,5 @@ initialize dart generator
 initialize dart benchmark generate
 initialize dart objectbox generate
 initialize flutter objectbox/example/flutter/objectbox_demo generate
+initialize flutter objectbox/example/flutter/objectbox_demo_relations generate
 initialize flutter objectbox/example/flutter/objectbox_demo_sync generate
