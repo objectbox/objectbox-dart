@@ -665,7 +665,7 @@ void main() {
     q.close();
   });
 
-  testStream({required bool useIsolateStream}) async {
+  test('stream items', () async {
     final count = env.short ? 100 : 1000;
     final items = List<TestEntity>.generate(
         count, (i) => TestEntity.filled(id: 0, tByte: i % 30));
@@ -678,7 +678,7 @@ void main() {
     expect(query.count(), countMatching);
 
     final foundIds = query.findIds();
-    final stream = useIsolateStream ? query.streamAsync() : query.stream();
+    final stream = query.stream();
     final streamed = await stream.toList();
     expect(streamed.length, countMatching);
     final streamedIds = streamed.map((e) => e.id).toList(growable: false);
@@ -690,7 +690,7 @@ void main() {
     final streamListenedItems = <TestEntity>{};
 
     final start = DateTime.now();
-    final subStream = useIsolateStream ? query.streamAsync() : query.stream();
+    final subStream = query.stream();
     final subscription = subStream.listen(streamListenedItems.add);
     // Note: no upper limit, global test timeout will stop if it takes too long.
     int millis = 1;
@@ -703,14 +703,6 @@ void main() {
     expect(streamListenedItems.length, isNonZero);
 
     query.close();
-  }
-
-  test('stream items', () async {
-    await testStream(useIsolateStream: false);
-  });
-
-  test('stream items via isolate', () async {
-    await testStream(useIsolateStream: true);
   });
 
   test('set param single', () async {

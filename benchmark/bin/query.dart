@@ -8,7 +8,6 @@ void main() async {
   await QueryFind().report();
   await QueryFindIds().report();
   await QueryStream().report();
-  await QueryStreamIsolate().report();
 }
 
 class QueryBenchmark extends DbBenchmark {
@@ -57,21 +56,10 @@ class QueryFindIds extends QueryBenchmark {
   Future<void> run() async => query.findIds();
 }
 
-/// Stream where visitor is running in native code.
+/// Stream where visitor is running in Dart isolate.
 class QueryStream extends QueryBenchmark {
   QueryStream() : super('${QueryStream}');
 
   @override
   Future<void> run() async => await query.stream().toList();
-}
-
-/// Stream where visitor is running in Dart isolate.
-class QueryStreamIsolate extends QueryBenchmark {
-  QueryStreamIsolate() : super('${QueryStreamIsolate}');
-
-  @override
-  Future<void> run() async {
-    var stream = await query.streamAsync();
-    await stream.toList();
-  }
 }

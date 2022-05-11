@@ -820,67 +820,59 @@ class Query<T> {
 
   /// Finds Objects matching the query, streaming them while the query executes.
   ///
-  /// Note: make sure you evaluate performance in your use case - streams come
-  /// with an overhead so a plain [find()] is usually faster.
-  Stream<T> stream() => _stream1();
-
-  /// Finds Objects matching the query, streaming them while the query executes.
-  ///
   /// Results are streamed from a worker isolate in batches (the stream still
   /// returns objects one by one).
-  ///
-  /// This is typically faster than [stream()] and even [find()].
-  @experimental
-  Stream<T> streamAsync() => _streamIsolate();
+  Stream<T> stream() => _streamIsolate();
 
   /// Stream items by sending full flatbuffers binary as a message.
-  Stream<T> _stream1() {
-    initializeDartAPI();
-    final port = ReceivePort();
-    final cStream = checkObxPtr(
-        C.dartc_query_find(_cQuery, port.sendPort.nativePort), 'query stream');
-
-    var closed = false;
-    final close = () {
-      if (closed) return;
-      closed = true;
-      C.dartc_stream_close(cStream);
-      port.close();
-      reachabilityFence(this);
-    };
-
-    try {
-      final controller = StreamController<T>(onCancel: close);
-      port.listen((dynamic message) {
-        // We expect Uint8List for data and NULL when the query has finished.
-        if (message is Uint8List) {
-          try {
-            controller.add(
-                _entity.objectFromFB(_store, ByteData.view(message.buffer)));
-            return;
-          } catch (e) {
-            controller.addError(e);
-          }
-        } else if (message is String) {
-          controller.addError(
-              ObjectBoxException('Query stream native exception: $message'));
-        } else if (message != null) {
-          controller.addError(ObjectBoxException(
-              'Query stream received an invalid message type '
-              '(${message.runtimeType}): $message'));
-        }
-        // Close the stream, this will call the onCancel function.
-        // Do not call the onCancel function manually,
-        // if cancel() is called on the Stream subscription right afterwards it
-        // will use the shortcut in the onCancel function and not wait.
-        controller.close(); // done
-      });
-      return controller.stream;
-    } catch (e) {
-      close();
-      rethrow;
-    }
-  }
+  /// Replaced by _streamIsolate which in benchmarks has been faster.
+  // Stream<T> _stream1() {
+  //   initializeDartAPI();
+  //   final port = ReceivePort();
+  //   final cStream = checkObxPtr(
+  //       C.dartc_query_find(_cQuery, port.sendPort.nativePort), 'query stream');
+  //
+  //   var closed = false;
+  //   final close = () {
+  //     if (closed) return;
+  //     closed = true;
+  //     C.dartc_stream_close(cStream);
+  //     port.close();
+  //     reachabilityFence(this);
+  //   };
+  //
+  //   try {
+  //     final controller = StreamController<T>(onCancel: close);
+  //     port.listen((dynamic message) {
+  //       // We expect Uint8List for data and NULL when the query has finished.
+  //       if (message is Uint8List) {
+  //         try {
+  //           controller.add(
+  //               _entity.objectFromFB(_store, ByteData.view(message.buffer)));
+  //           return;
+  //         } catch (e) {
+  //           controller.addError(e);
+  //         }
+  //       } else if (message is String) {
+  //         controller.addError(
+  //             ObjectBoxException('Query stream native exception: $message'));
+  //       } else if (message != null) {
+  //         controller.addError(ObjectBoxException(
+  //             'Query stream received an invalid message type '
+  //             '(${message.runtimeType}): $message'));
+  //       }
+  //       // Close the stream, this will call the onCancel function.
+  //       // Do not call the onCancel function manually,
+  //       // if cancel() is called on the Stream subscription right afterwards it
+  //       // will use the shortcut in the onCancel function and not wait.
+  //       controller.close(); // done
+  //     });
+  //     return controller.stream;
+  //   } catch (e) {
+  //     close();
+  //     rethrow;
+  //   }
+  // }
 
   /// Stream items by sending pointers from native code.
   /// Interestingly this is slower even though it transfers only pointers...
