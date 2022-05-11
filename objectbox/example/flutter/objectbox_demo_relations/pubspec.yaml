@@ -29,7 +29,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  objectbox: ^1.4.1
+  objectbox: ^1.5.0
   objectbox_flutter_libs: any
   intl: any
 

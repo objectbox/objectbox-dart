@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: any
   intl: any
-  objectbox: ^1.4.1
+  objectbox: ^1.5.0
   objectbox_flutter_libs: any
 
 dev_dependencies:
