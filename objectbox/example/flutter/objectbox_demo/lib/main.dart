@@ -67,46 +67,72 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   GestureDetector Function(BuildContext, int) _itemBuilder(List<Note> notes) =>
-      (BuildContext context, int index) => GestureDetector(
-            onTap: () => objectbox.noteBox.remove(notes[index].id),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                        border:
-                            Border(bottom: BorderSide(color: Colors.black12))),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 18.0, horizontal: 10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            notes[index].text,
-                            style: const TextStyle(
-                              fontSize: 15.0,
-                            ),
-                            // Provide a Key for the integration test
-                            key: Key('list_item_$index'),
+      (BuildContext context, int index) {
+        final note = notes[index];
+        return GestureDetector(
+          onTap: () => objectbox.noteBox.remove(note.id),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.black12),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18.0, horizontal: 10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          note.text,
+                          style: const TextStyle(
+                            fontSize: 15.0,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 5.0),
-                            child: Text(
-                              'Added on ${notes[index].dateFormat}',
-                              style: const TextStyle(
-                                fontSize: 12.0,
+                          // Provide a Key for the integration test
+                          key: Key('list_item_$index'),
+                        ),
+                        Wrap(
+                          children: [
+                            for (final att in note.attachment)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Text(
+                                  'A: ${att.id}',
+                                  style: TextStyle(fontSize: 10),
+                                ),
                               ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: Text(
+                            'Added on ${notes[index].dateFormat}',
+                            style: const TextStyle(
+                              fontSize: 12.0,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
+              ),
+              IconButton(
+                onPressed: () {
+                  note.attachment.add(
+                    Attachment('Hello'),
+                  );
+                  objectbox.noteBox.put(note);
+                },
+                icon: const Icon(Icons.attach_file),
+              )
+            ],
+          ),
+        );
+      };
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -125,7 +151,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: TextField(
                           decoration: const InputDecoration(
-                              hintText: 'Enter a new note'),
+                            hintText: 'Enter a new note',
+                          ),
                           controller: _noteInputController,
                           onSubmitted: (value) => _addNote(),
                           // Provide a Key for the integration test
@@ -152,13 +179,16 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Expanded(
-              child: StreamBuilder<List<Note>>(
-                  stream: _listController.stream,
-                  builder: (context, snapshot) => ListView.builder(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      itemCount: snapshot.hasData ? snapshot.data!.length : 0,
-                      itemBuilder: _itemBuilder(snapshot.data ?? []))))
+            child: StreamBuilder<List<Note>>(
+              stream: _listController.stream,
+              builder: (context, snapshot) => ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                itemCount: snapshot.hasData ? snapshot.data!.length : 0,
+                itemBuilder: _itemBuilder(snapshot.data ?? []),
+              ),
+            ),
+          )
         ]),
         // We need a separate submit button because flutter_driver integration
         // test doesn't support submitting a TextField using "enter" key.
