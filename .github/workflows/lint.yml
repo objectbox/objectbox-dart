@@ -48,7 +48,7 @@ jobs:
         with:
           flutter-version: 3.0.0
           cache: true
-      - name: Generage test coverage
+      - name: Generate test coverage
         working-directory: objectbox
         run: |
           ../tool/apt-install.sh lcov
