@@ -96,7 +96,9 @@ jobs:
           - ubuntu-20.04
         flutter-version:
           - 3.0.0
-          - 2.0.0 # Lowest supported version, based on lowest supported Dart SDK, see pubspec.yaml files
+          - 2.2.0
+          # 2.0.0 technically lowest supported, but need 2.2.0 to correctly resolve null safety dependencies.
+          # https://github.com/flutter/flutter/issues/77282
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
