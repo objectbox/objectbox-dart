@@ -54,7 +54,6 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: ${{ matrix.sdk }}
-      - run: dart --version
       - uses: actions/checkout@v2
       - name: Install ObjectBox C-API
         working-directory: objectbox
