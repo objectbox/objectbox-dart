@@ -1,4 +1,4 @@
-package com.example.objectbox_demo
+package com.example.objectbox_demo_sync
 
 import io.flutter.embedding.android.FlutterActivity
 

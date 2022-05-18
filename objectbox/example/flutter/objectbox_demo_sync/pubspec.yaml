@@ -1,6 +1,7 @@
 name: objectbox_demo
-description: An example project for the objectbox-dart binding.
-version: 0.3.0+1
+description: Note taking example app using a Sync-enabled ObjectBox Flutter database.
+publish_to: 'none'
+version: 1.0.0+1
 
 environment:
   sdk: ">=2.13.0 <3.0.0"
@@ -8,17 +9,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: any
-  intl: any
   objectbox: ^1.5.0
-  objectbox_sync_flutter_libs: any
+  objectbox_sync_flutter_libs: any # For Sync support use this instead of objectbox_flutter_libs.
+  intl: any
 
 dev_dependencies:
-  objectbox_generator: any
-  build_runner: any
   flutter_driver:
     sdk: flutter
   test: any
+  flutter_lints: ^1.0.0
+  build_runner: ^2.0.0
+  objectbox_generator: any
 
 flutter:
   uses-material-design: true
