@@ -12,7 +12,7 @@ jobs:
   analyze:
     runs-on: ubuntu-20.04
     container:
-      image: google/dart:latest
+      image: dart:2.17.0
     steps:
       - uses: actions/checkout@v2
       - run: dart run build_runner build
@@ -22,7 +22,7 @@ jobs:
       - run: dart format --set-exit-if-changed --fix .
 
   pana:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: axel-op/dart-package-analyzer@v3
@@ -41,11 +41,14 @@ jobs:
           fi
 
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
-      - name: Generage test coverage
+        with:
+          flutter-version: 3.0.0
+          cache: true
+      - name: Generate test coverage
         working-directory: objectbox
         run: |
           ../tool/apt-install.sh lcov

@@ -11,22 +11,22 @@ help:			## Show this help
 all: depend test valgrind-test integration-test
 
 depend:			## Build dependencies
-	pub get
+	dart pub get
 	../install.sh
 
 test: 			## Test all targets
-	pub run build_runner build
-	pub run test
+	dart run build_runner build
+	dart run test
 
 coverage: 			## Calculate test coverage
-	pub run build_runner build
+	dart run build_runner build
     # Note: only flutter test generates `.lcov` - can't use `dart test`
 	flutter test --coverage
 	lcov --remove coverage/lcov.info 'lib/src/native/sync.dart' 'lib/src/native/bindings/objectbox_c.dart' 'lib/src/native/bindings/bindings.dart' 'lib/src/modelinfo/*' -o coverage/lcov.info
 	genhtml coverage/lcov.info -o coverage/html || true
 
 valgrind-test: 		## Test all targets with valgrind
-	pub run build_runner build
+	dart run build_runner build
 	./tool/valgrind.sh
 
 integration-test:	## Execute integration tests
@@ -35,4 +35,4 @@ integration-test:	## Execute integration tests
 	./tool/integration-test.sh example/flutter/objectbox_demo_sync
 
 format:			## Format all code
-	dartfmt -w .
+	dart format .
