@@ -2,7 +2,6 @@
     package="com.example.objectbox_demo_relations">
    <application
         android:label="objectbox_demo_relations"
-        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
