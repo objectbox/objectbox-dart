@@ -16,7 +16,7 @@ jobs:
   generator:
     runs-on: ubuntu-20.04
     container:
-      image: google/dart:latest
+      image: dart:2.17.0
     steps:
       - uses: actions/checkout@v2
       - name: Install ObjectBox C-API
@@ -30,6 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.0.0
+          cache: true
       - run: ./tool/init.sh
 
   lib:
@@ -37,21 +40,20 @@ jobs:
       fail-fast: false # To see all Dart SDKs that fail, also sometimes with more helpful errors.
       matrix:
         os:
-          - windows-2019
-          - macos-10.15
+          - windows-2022
+          - macos-11
           - ubuntu-20.04
         sdk:
-          - stable
+          - 2.17.0
+          - 2.16.2
           - 2.15.1
           - 2.14.4
-          - 2.13.4
           - 2.12.0  # currently the lowest fully supported version (i.e. generator + lib)
     runs-on: ${{ matrix.os }}
     steps:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: ${{ matrix.sdk }}
-      - run: dart --version
       - uses: actions/checkout@v2
       - name: Install ObjectBox C-API
         working-directory: objectbox
@@ -67,6 +69,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 2.17.0
       - uses: actions/checkout@v2
       - name: Install ObjectBox C-API
         run: ./install.sh
@@ -87,24 +91,33 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - windows-2019
-          - macos-10.15
+          - macos-11
           - ubuntu-20.04
-        channel:
-          - beta
-          - stable
+        flutter-version:
+          - 3.0.0
+          - 2.2.0
+          # 2.0.0 technically lowest supported, but need 2.2.0 to correctly resolve null safety dependencies.
+          # https://github.com/flutter/flutter/issues/77282
+        include:
+          - flutter-version: 3.0.0 # Flutter 2.9 and newer need Visual Studio 2022 to build desktop.
+            os: windows-2022
+          - flutter-version: 2.2.0 # Flutter 2.8.1 and older need Visual Studio 2019 to build desktop.
+            os: windows-2019
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
         with:
-          channel: ${{ matrix.channel }}
-      - uses: actions/setup-java@v2 # macos-10.15 and windows-2019 default to Java 8, but Android Plugin requires 11
+          flutter-version: ${{ matrix.flutter-version }}
+          cache: true
+      # macos-11 and windows-2019/2022 default to Java 8, but Android Plugin requires 11.
+      - uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: '11'
       - run: echo $PATH
       - run: flutter --version
+      # https://docs.flutter.dev/desktop#additional-linux-requirements
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: ./tool/apt-install.sh ninja-build pkg-config libgtk-3-dev
       - run: make integration-test

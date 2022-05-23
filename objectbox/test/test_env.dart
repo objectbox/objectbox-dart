@@ -13,11 +13,20 @@ class TestEnv {
   factory TestEnv(String name, {bool? queryCaseSensitive}) {
     final dir = Directory('testdata-' + name);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
-    final store = queryCaseSensitive == null
-        ? Store(getObjectBoxModel(), directory: dir.path)
-        : Store(getObjectBoxModel(),
-            directory: dir.path,
-            queriesCaseSensitiveDefault: queryCaseSensitive);
+    final Store store;
+    var modelDefinition = getObjectBoxModel();
+    try {
+      store = queryCaseSensitive == null
+          ? Store(modelDefinition, directory: dir.path)
+          : Store(modelDefinition,
+              directory: dir.path,
+              queriesCaseSensitiveDefault: queryCaseSensitive);
+    } catch (ex) {
+      print("$dir exists: ${dir.existsSync()}");
+      print("Store is open in directory: ${Store.isOpen(dir.path)}");
+      print("Model Info: ${modelDefinition.model.toMap(forModelJson: true)}");
+      rethrow;
+    }
     return TestEnv._(
         dir, store, Platform.environment.containsKey('TEST_SHORT'));
   }
@@ -55,3 +64,14 @@ Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 // We need to do this to receive an event in the stream before processing
 // the remainder of the test case.
 final yieldExecution = () async => await Future<void>.delayed(Duration.zero);
+
+dynamic notAtLeastDart2_15_0() {
+  final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
+      .firstMatch(Platform.version)
+      ?.group(0);
+  if (dartVersion != null && dartVersion.compareTo('2.15.0') < 0) {
+    return 'Test requires Dart 2.15.0, skipping.';
+  } else {
+    return false;
+  }
+}

@@ -160,10 +160,10 @@ class ToOne<EntityT> implements ToOneRelationProvider<EntityT> {
     if (id == 0) {
       _value = _ToOneValue<EntityT>.none();
     } else if (_value._state == _ToOneState.unstored &&
-        id == _getId(_value._object!)) {
+        id == _getId(_value._object as EntityT)) {
       // Optimization for targetId being set from box.put(sourceObject)
       // after entity.setId(object, newID) was already called on the new target.
-      _value = _ToOneValue<EntityT>.stored(id, _value._object!);
+      _value = _ToOneValue<EntityT>.stored(id, _value._object as EntityT);
     } else if (_value._state != _ToOneState.unknown && id == _value._id) {
       return;
     } else {

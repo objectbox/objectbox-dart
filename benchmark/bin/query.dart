@@ -56,6 +56,7 @@ class QueryFindIds extends QueryBenchmark {
   Future<void> run() async => query.findIds();
 }
 
+/// Stream where visitor is running in Dart isolate.
 class QueryStream extends QueryBenchmark {
   QueryStream() : super('${QueryStream}');
 

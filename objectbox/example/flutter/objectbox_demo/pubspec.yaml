@@ -1,25 +1,25 @@
 name: objectbox_demo
-description: An example project for the objectbox-dart binding.
-version: 0.3.0+1
+description: Note taking example app using ObjectBox Flutter database.
+publish_to: 'none'
+version: 1.0.0+1
 
 environment:
-  sdk: ^2.12.0
-  flutter: ^2.0.0
+  sdk: ">=2.13.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: any
-  intl: any
-  objectbox: ^1.4.0
+  objectbox: ^1.5.0
   objectbox_flutter_libs: any
+  intl: any
 
 dev_dependencies:
-  objectbox_generator: any
-  build_runner: any
   flutter_driver:
     sdk: flutter
   test: any
+  flutter_lints: ^1.0.0
+  build_runner: ^2.0.0
+  objectbox_generator: any
 
 flutter:
   uses-material-design: true
@@ -32,8 +32,3 @@ dependency_overrides:
     path: ../../../../generator
   objectbox_flutter_libs:
     path: ../../../../flutter_libs
-
-  # Temporary flutter_driver issue, same as https://github.com/flutter/flutter/issues/77282
-  archive: ^3.0.0
-  convert: ^3.0.0
-  crypto: ^3.0.0

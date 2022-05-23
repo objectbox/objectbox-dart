@@ -1,26 +1,49 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" width="400px">
+  <img src="https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/logo.png" alt="ObjectBox" width="400px">
+</p>
+
+<p align="center">
+  <a href="https://docs.objectbox.io/getting-started">Getting Started</a> •
+  <a href="https://docs.objectbox.io">Documentation</a> •
+  <a href="https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example">Example Apps</a> •
+  <a href="https://github.com/objectbox/objectbox-dart/issues">Issues</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml">
+    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml/badge.svg" alt="Build and test">
+  </a>
+  <a href="https://pub.dev/packages/objectbox">
+    <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart" alt="pub.dev package">
+  </a>
+  <a href="https://github.com/objectbox/objectbox-dart/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache" alt="Apache 2.0 license">
+  </a>
+  <a href="https://twitter.com/ObjectBox_io">
+    <img src="https://img.shields.io/twitter/follow/ObjectBox_io?style=flat&logo=twitter" alt="Follow @ObjectBox_io">
+  </a>
 </p>
 
 # Flutter database for fast Dart object persistence 💙
 
-[![pub package](https://img.shields.io/pub/v/objectbox.svg)](https://pub.dev/packages/objectbox)
+🙌 **Your opinion matters to us!** Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
-Flutter database to store & sync objects across devices with a sustainable offline-first approach
+ObjectBox Flutter database is a great option for storing data in your cross-platform apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT devices. It is made for efficient data access and is 10x faster than any alternative. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses pure Dart API that is easy to work with and can be integrated in minutes. Apart from that, we built a data synchronization solution that allows you to choose which objects to sync when and therefore keep your cloud costs low.
 
-🏁 **High performance** on mobile and restricted devices, like IoT gateways, microcontrollers, ECUs etc.\
-🪂 **Resourceful** with minimal CPU, power and memory usage for maximum flexibility and sustainability\
-🔗 **Relations:** object links / relationships are built-in\
-💻 **Multiplatform:** Linux, Windows, Android, iOS, macOS
+### Features
 
-🌱 **Scalable:** handling millions of objects resource-efficiently with ease\
-💐 **Queries:** filter data as needed, even across relations\
-🦮 **Statically typed:** compile time checks & optimizations\
-📃 **Automatic schema migrations:** no update scripts needed
+🏁 **High performance** - improving response rates and enabling real-time applications.\
+🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
+💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.\
+🌱 **Scalable** - grows with your app, handling millions of objects with ease.
 
-**And much more than just data persistence**\
-👥 **[ObjectBox Sync](https://objectbox.io/sync/):** keeps data in sync between devices and servers\
-🕒 **[ObjectBox TS](https://objectbox.io/time-series-database/):** time series extension for time based data
+🔗 **Relations** - object links / relationships are built-in.\
+💐 **Queries** - filter data as needed, even across relations.\
+🦮 **Statically typed** - compile time checks & optimizations.\
+📃 **Schema migration** - change your model with confidence.
+
+Oh, and there is one more thing...
+😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
 ## Getting Started (in your App)
 
@@ -38,18 +61,28 @@ Great! Clone/check out this repository and run this to generate code and get you
 
 Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
 
+## Flutter Database Performance Benchmarks
+
+We tested across the four main database operations, CRUD (create, read, update, delete). Each test was run multiple times and executed  manually outside of the measured time. Data preparation and evaluation were also done outside of the measured time. 
+
+Here are the benchmarks for ObjectBox vs sqflite vs Hive 👇
+
+![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
+
+You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
+
 ## Do you 💙 ObjectBox?
-Your opinion matters to us! Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
 We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
 What do you love? What's amiss? Where do you struggle in everyday app development?
 
 **We're looking forward to receiving your comments and requests:**
 
-- Add [GitHub issues](https://github.com/ObjectBox/objectbox-dart/issues) 
+- Add [GitHub issues](https://github.com/objectbox/objectbox-dart/issues)
 - Upvote issues you find important by hitting the 👍/+1 reaction button
+- Fill in the [feedback form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us improve our products
 - Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
-- ⭐ us, if you like what you see 
+- ⭐ us, if you like what you see
 
 Thank you! 🙏
 

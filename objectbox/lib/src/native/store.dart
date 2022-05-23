@@ -35,11 +35,13 @@ class Store {
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
 
-  late final Pointer<OBX_store> _cStore;
+  late Pointer<OBX_store> _cStore;
+  late final Pointer<OBX_dart_finalizer> _cFinalizer;
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
-  final ModelDefinition _defs;
-  bool _closed = false;
+
+  /// May be null for minimal store, access via [_modelDefinition] with null check.
+  final ModelDefinition? _defs;
   Stream<List<Type>>? _entityChanges;
   final _reader = ReaderWithCBuffer();
   Transaction? _tx;
@@ -82,14 +84,15 @@ class Store {
   /// ```
   ///
   /// See our examples for more details.
-  Store(this._defs,
+  Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
       int? fileMode,
       int? maxReaders,
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
-      : _weak = false,
+      : _defs = modelDefinition,
+        _weak = false,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         directoryPath = _safeDirectoryPath(directory),
         _absoluteDirectoryPath =
@@ -111,7 +114,7 @@ class Store {
         }
       }
       _checkStoreDirectoryNotOpen();
-      final model = Model(_defs.model);
+      final model = Model(modelDefinition.model);
 
       final opt = C.opt();
       checkObxPtr(opt, 'failed to create store options');
@@ -154,6 +157,8 @@ class Store {
       _reference.setUint64(1 * _int64Size, _ptr.address);
 
       _openStoreDirectories.add(_absoluteDirectoryPath);
+
+      _attachFinalizer();
     } catch (e) {
       _reader.clear();
       rethrow;
@@ -218,6 +223,30 @@ class Store {
     }
   }
 
+  /// Returns a minimal Store that only has a reference to a native store,
+  /// without any info like model definition, database directory and others.
+  ///
+  /// This store is e.g. good enough to start a transaction, but does not allow
+  /// to e.g. use boxes. This is useful when creating a store within another
+  /// isolate as only information that can be sent to an isolate is necessary
+  /// (the store and model definition contain pointers that can not be sent to
+  /// an isolate).
+  ///
+  /// Obtain a [ptrAddress] from [_clone], see it for more details.
+  Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
+      : _defs = null,
+        _weak = false,
+        directoryPath = '',
+        _absoluteDirectoryPath = '',
+        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
+    if (ptrAddress == 0) {
+      throw ArgumentError.value(
+          ptrAddress, 'ptrAddress', 'Given native pointer address is invalid');
+    }
+    _cStore = Pointer<OBX_store>.fromAddress(ptrAddress);
+    _attachFinalizer();
+  }
+
   /// Attach to a store opened in the [directoryPath]
   /// (or if null the [defaultDirectoryPath]).
   ///
@@ -261,6 +290,8 @@ class Store {
 
       // Not setting _reference as this is a replacement for obtaining a store
       // via reference.
+
+      _attachFinalizer();
     } catch (e) {
       _reader.clear();
       rethrow;
@@ -296,6 +327,24 @@ class Store {
     }
   }
 
+  /// Attach a finalizer (using Dart C API) so when garbage collected, most
+  /// importantly on Flutter's hot restart (not hot reload), the native Store is
+  /// properly closed.
+  ///
+  /// During regular use it's still recommended to explicitly call
+  /// close() and not rely on garbage collection [to avoid out-of-memory
+  /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
+  void _attachFinalizer() {
+    initializeDartAPI();
+    // Keep the finalizer so it can be detached when close() is called.
+    _cFinalizer = C.dartc_attach_finalizer(
+        this, native_store_close, _cStore.cast(), 1024 * 1024);
+    if (_cFinalizer == nullptr) {
+      close();
+      throwLatestNativeError(context: 'attach store finalizer');
+    }
+  }
+
   /// Returns if an open store (i.e. opened before and not yet closed) was found
   /// for the given [directoryPath] (or if null the [defaultDirectoryPath]).
   static bool isOpen(String? directoryPath) {
@@ -312,12 +361,42 @@ class Store {
   /// a single underlying native store. See [Store.fromReference] for more details.
   ByteData get reference => _reference;
 
+  /// Clones this native store and returns a pointer to the clone.
+  ///
+  /// The address of the pointer can be used with [Store._minimal].
+  ///
+  /// This can be useful to work with isolates as it is not possible to send a
+  /// [Store] to an isolate (the Store itself and the contained model definition
+  /// contain pointers). Instead, send the pointer address returned by this
+  /// and create a minimal store (for limitations see [Store._minimal]) in the
+  /// isolate. Make sure to [close] the clone as well before the isolate exits.
+  ///
+  /// ```dart
+  /// // Clone the store and obtain its address, can be sent to an isolate.
+  /// final storePtrAddress = store.clone().address;
+  ///
+  /// // Within an isolate create a minimal store.
+  /// final store = InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
+  /// try {
+  ///   // Use the store.
+  /// } finally {
+  ///   store.close();
+  /// }
+  /// ```
+  Pointer<OBX_store> _clone() {
+    final ptr = checkObxPtr(C.store_clone(_ptr));
+    reachabilityFence(this);
+    return ptr;
+  }
+
+  /// Returns if this store is already closed and can no longer be used.
+  bool isClosed() => _cStore.address == 0;
+
   /// Closes this store.
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
   void close() {
-    if (_closed) return;
-    _closed = true;
+    if (isClosed()) return;
 
     _boxes.values.forEach(InternalBoxAccess.close);
     _boxes.clear();
@@ -331,8 +410,14 @@ class Store {
 
     if (!_weak) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
-      checkObx(C.store_close(_cStore));
+      final errors = List.filled(2, 0);
+      if (_cFinalizer != nullptr) {
+        errors[0] = C.dartc_detach_finalizer(_cFinalizer, this);
+      }
+      errors[1] = C.store_close(_cStore);
+      errors.forEach(checkObx);
     }
+    _cStore = nullptr;
   }
 
   /// Returns a cached Box instance.
@@ -346,7 +431,7 @@ class Store {
   }
 
   EntityDefinition<T> _entityDef<T>() {
-    final binding = _defs.bindings[T];
+    final binding = _modelDefinition.bindings[T];
     if (binding == null) {
       throw ArgumentError('Unknown entity type ' + T.toString());
     }
@@ -382,18 +467,152 @@ class Store {
     return _runInTransaction(mode, (tx) => fn());
   }
 
-  // Isolate entry point must be static or top-level.
+  /// Like [runAsync], but executes [callback] within a read or write
+  /// transaction depending on [mode].
+  ///
+  /// See the documentation on [runAsync] for important usage details.
+  ///
+  /// The following example gets the name of a User object, deletes the object
+  /// and returns the name within a write transaction:
+  /// ```dart
+  /// String? readNameAndRemove(Store store, int objectId) {
+  ///   var box = store.box<User>();
+  ///   final nameOrNull = box.get(objectId)?.name;
+  ///   box.remove(objectId);
+  ///   return nameOrNull;
+  /// }
+  /// await store.runInTransactionAsync(TxMode.write, readNameAndRemove, objectId);
+  /// ```
+  Future<R> runInTransactionAsync<R, P>(
+          TxMode mode, TxAsyncCallback<R, P> callback, P param) =>
+      runAsync(
+          (Store store, P p) =>
+              store.runInTransaction(mode, () => callback(store, p)),
+          param);
+
+  // Isolate entry point must be able to be sent via SendPort.send.
+  // Must guarantee only a single result event is sent.
+  // runAsync only handles a single event, any sent afterwards are ignored. E.g.
+  // in case [Error] or [Exception] are thrown after the result is sent.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
-      _IsoPass<P, R> isoPass) async {
+      _RunAsyncIsolateConfig<P, R> isoPass) async {
     final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
         queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
-    final result = await isoPass.runFn(store);
-    store.close();
-    // Note: maybe replace with Isolate.exit (and remove kill call in
-    // runIsolated) once min Dart SDK 2.15.
-    isoPass.resultPort?.send(result);
+    dynamic result;
+    try {
+      final callbackResult = await isoPass.runCallback(store);
+      result = _RunAsyncResult(callbackResult);
+    } catch (error, stack) {
+      result = _RunAsyncError(error, stack);
+    } finally {
+      store.close();
+    }
+
+    // Note: maybe replace with Isolate.exit (and remove kill() call in caller)
+    // once min Dart SDK 2.15.
+    isoPass.resultPort.send(result);
   }
 
+  /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
+  /// its own Store and returns the result of callback.
+  ///
+  /// This is useful for ObjectBox operations that take longer than a few
+  /// milliseconds, e.g. putting many objects, which would cause frame drops.
+  /// If all operations can execute within a single transaction, prefer to use
+  /// [runInTransactionAsync].
+  ///
+  /// The following example gets the name of a User object, deletes the object
+  /// and returns the name:
+  /// ```dart
+  /// String? readNameAndRemove(Store store, int objectId) {
+  ///   var box = store.box<User>();
+  ///   final nameOrNull = box.get(objectId)?.name;
+  ///   box.remove(objectId);
+  ///   return nameOrNull;
+  /// }
+  /// await store.runAsync(readNameAndRemove, objectId);
+  /// ```
+  ///
+  /// The [callback] must be a function that can be sent to an isolate: either a
+  /// top-level function, static method or a closure that only captures objects
+  /// that can be sent to an isolate.
+  ///
+  /// Warning: Due to
+  /// [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983) a
+  /// closure may capture more objects than expected, even if they are not
+  /// directly used in the closure itself.
+  ///
+  /// The types `P` (type of the parameter to be passed to the callback) and
+  /// `R` (type of the result returned by the callback) must be able to be sent
+  /// to or received from an isolate. The same applies to errors originating
+  /// from the callback.
+  ///
+  /// See [SendPort.send] for a discussion on which values can be sent to and
+  /// received from isolates.
+  ///
+  /// Note: this requires Dart 2.15.0 or newer
+  /// (shipped with Flutter 2.8.0 or newer).
+  Future<R> runAsync<P, R>(RunAsyncCallback<P, R> callback, P param) async {
+    final port = RawReceivePort();
+    final completer = Completer<dynamic>();
+
+    void _cleanup() {
+      port.close();
+    }
+
+    port.handler = (dynamic message) {
+      _cleanup();
+      completer.complete(message);
+    };
+
+    final Isolate isolate;
+    try {
+      // Await isolate spawn to avoid waiting forever if it fails to spawn.
+      isolate = await Isolate.spawn(
+          _callFunctionWithStoreInIsolate,
+          _RunAsyncIsolateConfig(_modelDefinition, directoryPath,
+              _queriesCaseSensitiveDefault, port.sendPort, callback, param),
+          errorsAreFatal: true,
+          onError: port.sendPort,
+          onExit: port.sendPort);
+    } on Object {
+      _cleanup();
+      rethrow;
+    }
+
+    final dynamic response = await completer.future;
+    // Replace with Isolate.exit in _callFunctionWithStoreInIsolate
+    // once min SDK 2.15.
+    isolate.kill();
+
+    if (response == null) {
+      throw RemoteError('Isolate exited without result or error.', '');
+    }
+
+    if (response is _RunAsyncResult) {
+      // Success, return result.
+      return response.result as R;
+    } else if (response is List<dynamic>) {
+      // See isolate.addErrorListener docs for message structure.
+      assert(response.length == 2);
+      await Future<Never>.error(RemoteError(
+        response[0] as String,
+        response[1] as String,
+      ));
+    } else {
+      // Error thrown by callback.
+      assert(response is _RunAsyncError);
+      response as _RunAsyncError;
+
+      await Future<Never>.error(
+        response.error,
+        response.stack,
+      );
+    }
+  }
+
+  /// Deprecated. Use [runAsync] instead. Will be removed in a future release.
+  ///
   /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
   /// its own Store and returns the result of callback.
   ///
@@ -402,24 +621,10 @@ class Store {
   ///
   /// Note: this requires Dart 2.15.0 or newer
   /// (shipped with Flutter 2.8.0 or newer).
-  Future<R> runIsolated<P, R>(
-      TxMode mode, FutureOr<R> Function(Store, P) callback, P param) async {
-    final resultPort = ReceivePort();
-    // Await isolate spawn to avoid waiting forever if it fails to spawn.
-    final isolate = await Isolate.spawn(
-        _callFunctionWithStoreInIsolate,
-        _IsoPass(_defs, directoryPath, _queriesCaseSensitiveDefault,
-            resultPort.sendPort, callback, param));
-    // Use Completer to return result so type is not lost.
-    final result = Completer<R>();
-    resultPort.listen((dynamic message) {
-      result.complete(message as R);
-    });
-    await result.future;
-    resultPort.close();
-    isolate.kill();
-    return result.future;
-  }
+  @Deprecated('Use `runAsync` instead. Will be removed in a future release.')
+  Future<R> runIsolated<P, R>(TxMode mode,
+          FutureOr<R> Function(Store, P) callback, P param) async =>
+      runAsync(callback, param);
 
   /// Internal only - bypasses the main checks for async functions, you may
   /// only pass synchronous callbacks!
@@ -459,7 +664,11 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitAsyncCompletion() => C.store_await_async_submitted(_ptr);
+  bool awaitAsyncCompletion() {
+    final result = C.store_await_async_submitted(_ptr);
+    reachabilityFence(this);
+    return result;
+  }
 
   /// Await for previously submitted async operations to be completed
   /// (the async queue does not have to become idle).
@@ -468,19 +677,38 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitAsyncSubmitted() => C.store_await_async_submitted(_ptr);
+  bool awaitAsyncSubmitted() {
+    final result = C.store_await_async_submitted(_ptr);
+    reachabilityFence(this);
+    return result;
+  }
 
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_store> get _ptr {
-    if (_closed) throw StateError('Cannot access a closed store pointer');
-    return _cStore;
+  Pointer<OBX_store> get _ptr =>
+      isClosed() ? throw StateError('Store is closed') : _cStore;
+
+  /// Returns the ModelDefinition of this store, or throws if
+  /// this is a minimal store.
+  ModelDefinition get _modelDefinition {
+    final model = _defs;
+    if (model == null) throw StateError('Minimal store does not have a model');
+    return model;
   }
 }
 
 /// Internal only.
 @internal
 class InternalStoreAccess {
+  /// See [Store._clone].
+  static Pointer<OBX_store> clone(Store store) => store._clone();
+
+  /// See [Store._minimal].
+  static Store createMinimal(int ptrAddress,
+          {bool queriesCaseSensitiveDefault = true}) =>
+      Store._minimal(ptrAddress,
+          queriesCaseSensitiveDefault: queriesCaseSensitiveDefault);
+
   /// Access entity model for the given class (Dart Type).
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
@@ -495,8 +723,9 @@ class InternalStoreAccess {
   static Map<int, Type> entityTypeById(Store store) {
     if (store._entityTypeById == null) {
       store._entityTypeById = HashMap<int, Type>();
-      store._defs.bindings.forEach((Type entity, EntityDefinition entityDef) =>
-          store._entityTypeById![entityDef.model.id.id] = entity);
+      store._modelDefinition.bindings.forEach(
+          (Type entity, EntityDefinition entityDef) =>
+              store._entityTypeById![entityDef.model.id.id] = entity);
     }
     return store._entityTypeById!;
   }
@@ -535,10 +764,16 @@ final _openStoreDirectories = HashSet<String>();
 final _nullSafetyEnabled = _nullReturningFn is! Future Function();
 final _nullReturningFn = () => null;
 
+// Define type so IDE generates named parameters.
+/// Signature for the callback passed to [Store.runAsync].
+///
+/// Instances must be functions that can be sent to an isolate.
+typedef RunAsyncCallback<P, R> = FutureOr<R> Function(Store store, P parameter);
+
 /// Captures everything required to create a "copy" of a store in an isolate
 /// and run user code.
 @immutable
-class _IsoPass<P, R> {
+class _RunAsyncIsolateConfig<P, R> {
   final ModelDefinition model;
 
   /// Used to attach to store in separate isolate
@@ -548,15 +783,15 @@ class _IsoPass<P, R> {
   final bool queriesCaseSensitiveDefault;
 
   /// Non-void functions can use this port to receive the result.
-  final SendPort? resultPort;
+  final SendPort resultPort;
 
   /// Parameter passed to [callback].
   final P param;
 
   /// To be called in isolate.
-  final FutureOr<R> Function(Store, P) callback;
+  final RunAsyncCallback<P, R> callback;
 
-  const _IsoPass(
+  const _RunAsyncIsolateConfig(
       this.model,
       this.dbDirectoryPath,
       // ignore: avoid_positional_boolean_parameters
@@ -567,5 +802,26 @@ class _IsoPass<P, R> {
 
   /// Calls [callback] inside this class so types are not lost
   /// (if called in isolate types would be dynamic instead of P and R).
-  FutureOr<R> runFn(Store store) => callback(store, param);
+  FutureOr<R> runCallback(Store store) => callback(store, param);
 }
+
+@immutable
+class _RunAsyncResult<R> {
+  final R result;
+
+  const _RunAsyncResult(this.result);
+}
+
+@immutable
+class _RunAsyncError {
+  final Object error;
+  final StackTrace stack;
+
+  const _RunAsyncError(this.error, this.stack);
+}
+
+// Specify so IDE generates named parameters.
+/// Signature for callback passed to [Store.runInTransactionAsync].
+///
+/// Instances must be functions that can be sent to an isolate.
+typedef TxAsyncCallback<R, P> = R Function(Store store, P parameter);

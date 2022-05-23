@@ -16,7 +16,7 @@ void main() {
   late Store store;
   late Box<TestEntity> box;
 
-  final simpleItems = () => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+  simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
       .map((s) => TestEntity(tString: s))
       .toList();
 
@@ -553,6 +553,17 @@ void main() {
     expect(count, equals(6));
   });
 
+  test('simple write in txn works - async', () async {
+    int count;
+    void callback(Store store, List<TestEntity> param) {
+      store.box<TestEntity>().putMany(param);
+    }
+
+    await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
+    count = box.count();
+    expect(count, equals(6));
+  }, skip: notAtLeastDart2_15_0());
+
   test('failing transactions', () {
     expect(
         () => store.runInTransaction(TxMode.write, () {
@@ -568,6 +579,22 @@ void main() {
     expect(box.count(), equals(0));
   });
 
+  test('failing transactions - async', () async {
+    expect(
+        () async => await store.runInTransactionAsync(TxMode.write,
+                (Store store, List<TestEntity> param) {
+              store.box<TestEntity>().putMany(param);
+              // note: we're throwing conditionally (but always true) so that
+              // the return type is not [Never]. See [Transaction.execute()]
+              // testing for the return type to be a [Future]. [Never] is a
+              // base class to everything, so a [Future] is also a [Never].
+              if (1 + 1 == 2) throw 'test-exception';
+              return 1;
+            }, simpleItems()),
+        throwsA('test-exception'));
+    expect(box.count(), equals(0));
+  }, skip: notAtLeastDart2_15_0());
+
   test('recursive write in write transaction', () {
     store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
@@ -578,6 +605,22 @@ void main() {
     expect(box.count(), equals(12));
   });
 
+  test('recursive write in write transaction - async', () async {
+    await store.runInTransactionAsync(TxMode.write,
+        (Store store, List<TestEntity> param) {
+      final box = store.box<TestEntity>();
+      box.putMany(param);
+      store.runInTransaction(TxMode.write, () {
+        // Re-set IDs to re-insert.
+        for (var element in param) {
+          element.id = 0;
+        }
+        box.putMany(param);
+      });
+    }, simpleItems());
+    expect(box.count(), equals(12));
+  }, skip: notAtLeastDart2_15_0());
+
   test('recursive read in write transaction', () {
     int count = store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
@@ -585,6 +628,16 @@ void main() {
     });
     expect(count, equals(6));
   });
+
+  test('recursive read in write transaction - async', () async {
+    int count = await store.runInTransactionAsync(TxMode.write,
+        (Store store, List<TestEntity> param) {
+      final box = store.box<TestEntity>();
+      box.putMany(param);
+      return store.runInTransaction(TxMode.read, box.count);
+    }, simpleItems());
+    expect(count, equals(6));
+  }, skip: notAtLeastDart2_15_0());
 
   test('recursive write in read -> fails during creation', () {
     expect(
@@ -596,6 +649,19 @@ void main() {
         throwsA(predicate((StateError e) =>
             e.toString().contains('failed to create transaction'))));
   });
+
+  test('recursive write in async read -> fails during creation', () {
+    expect(
+        () => store.runInTransactionAsync(TxMode.read,
+                (Store store, List<TestEntity> param) {
+              final box = store.box<TestEntity>();
+              box.count();
+              return store.runInTransaction(
+                  TxMode.write, () => box.putMany(param));
+            }, simpleItems()),
+        throwsA(predicate((StateError e) => e.toString().contains(
+            'Bad state: failed to create transaction: 10001 Cannot start a write transaction inside a read only transaction'))));
+  }, skip: notAtLeastDart2_15_0());
 
   test('failing in recursive txn', () {
     store.runInTransaction(TxMode.write, () {

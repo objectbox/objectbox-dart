@@ -22,15 +22,6 @@ used to further prepare the environment **before** code generation for the step 
 ## Troubleshooting
 
 ```
-Error on line 1, column 1 of pubspec.yaml: The pubspec must be a YAML mapping.
-  ╷
-1 │ ../shared-pubspec.yaml
-  │ ^^^^^^^^^^^^^^^^^^^^^^
-  ╵
-```
-Replace the above line in `pubspec.yaml` with the contents of [shared-pubspec.yaml](shared-pubspec.yaml).
-
-```
 Invalid argument(s): Failed to load dynamic library 'lib/objectbox.dll'
 ```
-Ensure `objectbox-c` is installed globally, or in the tested directory run [`../../../install.sh`](../../install.sh).
+Ensure `objectbox-c` is installed globally (required on Linux), or in the tested directory run [`../../../install.sh`](../../install.sh).

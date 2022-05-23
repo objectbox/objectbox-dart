@@ -9,13 +9,13 @@ Dart won't error on C function signature mismatch, leading to obscure memory bug
 Update `flutter_libs` and `sync_flutter_libs` with **compatible library versions**:  
 
 - Linux and Windows
-  - Shortcut: search and replace e.g. `set(OBJECTBOX_VERSION 0.15.2)` in `CMakeLists.txt`.
+  - Shortcut: search and replace e.g. `set(OBJECTBOX_VERSION 0.16.0)` in `CMakeLists.txt`.
   - [flutter_libs Linux](../flutter_libs/linux/CMakeLists.txt)
   - [flutter_libs Windows](../flutter_libs/windows/CMakeLists.txt)
   - [sync_flutter_libs Linux](../sync_flutter_libs/linux/CMakeLists.txt)
   - [sync_flutter_libs Windows](../sync_flutter_libs/windows/CMakeLists.txt)
 - Android ([view releases](https://github.com/objectbox/objectbox-java/releases))
-  - Shortcut: search and replace `-android:3.1.2` in `build.gradle` files.
+  - Shortcut: search and replace `-android:3.1.3` in `build.gradle` files.
   - In [flutter_libs](../flutter_libs/android/build.gradle)
   - In [sync_flutter_libs](../sync_flutter_libs/android/build.gradle)
 - Swift (iOS/macOS) ([view releases](https://github.com/objectbox/objectbox-swift/releases))

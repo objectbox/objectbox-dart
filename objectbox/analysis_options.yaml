@@ -1,26 +1,22 @@
 include: package:lints/recommended.yaml
 # https://dart.dev/guides/language/analysis-options
+# https://github.com/dart-lang/lints/blob/main/lib/core.yaml
+# https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml
+# https://github.com/flutter/packages/blob/main/packages/flutter_lints/lib/flutter.yaml
+# https://dart.dev/guides/language/effective-dart
 
 linter:
-  # Some additional rules from pub.dev analyzer and package:effective_dart
   rules:
-    - non_constant_identifier_names
-    - constant_identifier_names
-    - public_member_api_docs
-    - prefer_expression_function_bodies
-    - prefer_typing_uninitialized_variables
-    - use_function_type_syntax_for_parameters
-    - directives_ordering
-    - avoid_positional_boolean_parameters
-    - avoid_returning_this
-    - unnecessary_brace_in_string_interps
-    - unnecessary_lambdas
-    - prefer_relative_imports
-    - type_annotate_public_apis
-    - prefer_initializing_formals
-    - prefer_const_constructors
-    - prefer_const_constructors_in_immutables
-    # - lines_longer_than_80_chars
+    - avoid_positional_boolean_parameters # Using named boolean parameters is much more readable.
+    - avoid_returning_this # Dart has a cascade operator (..function) which allows method chaining.
+    - directives_ordering # Effective Dart.
+    - prefer_const_constructors # From flutter rule set.
+    - prefer_const_constructors_in_immutables # From flutter rule set.
+    - prefer_expression_function_bodies # Effective Dart.
+    - prefer_relative_imports # Effective Dart.
+    - public_member_api_docs # Effective Dart.
+    - type_annotate_public_apis # Effective Dart.
+    - unnecessary_lambdas # Effective Dart.
 
 # exclude standalone packages:
 analyzer:
