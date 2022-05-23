@@ -16,10 +16,6 @@ void main() {
   late Store store;
   late Box<TestEntity> box;
 
-  simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
-      .map((s) => TestEntity(tString: s))
-      .toList();
-
   setUp(() {
     env = TestEnv('box');
     box = env.box;
@@ -555,11 +551,11 @@ void main() {
 
   test('simple write in txn works - async', () async {
     int count;
-    void callback(Store store, List<TestEntity> param) {
-      store.box<TestEntity>().putMany(param);
-    }
-
-    await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
+    // Note: sending not attached ToOne and ToMany to an isolate works, e.g.
+    // no pointer to the store is set!
+    var result = await store.runInTransactionAsync(
+        TxMode.write, simpleWriteInTxnWorksCallback, simpleItems());
+    expect(result.length, equals(6));
     count = box.count();
     expect(count, equals(6));
   }, skip: notAtLeastDart2_15_0());
@@ -768,4 +764,24 @@ void main() {
     expect(() => box.get(2), ThrowingInConverters.throwsIn('Setter'));
     expect(() => box.getAll(), ThrowingInConverters.throwsIn('Setter'));
   });
+}
+
+List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+    .map((s) => TestEntity(tString: s))
+    .toList();
+
+// Use only top-level functions, inline declaration/closure over-captures state
+// ([dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983)
+// e.g. here the inline simpleItems function would capture the Store from main
+// which contains a pointer that can not be sent to isolates.
+List<TestEntity> simpleWriteInTxnWorksCallback(
+    Store store, List<TestEntity> param) {
+  var testBox = store.box<TestEntity>();
+  testBox.putMany(param);
+  // Sending not attached ToOne and ToMany is allowed (no store pointer).
+  final items = simpleItems();
+  // This does not work as ToOne and ToMany are attached,
+  // e.g. contain a store pointer.
+  // final items = testBox.getAll();
+  return items;
 }
