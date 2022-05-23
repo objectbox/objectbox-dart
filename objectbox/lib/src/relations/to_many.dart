@@ -222,19 +222,20 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   }
 
   void _setRelInfo(Store store, RelInfo rel, Box otherBox) {
-    if (_attached) {
-      if (_store != store) {
-        throw ArgumentError.value(
-            store, 'store', 'Relation already attached to a different store');
-      }
-      return;
-    }
-    _attached = true;
-    _store = store;
-    _box = store.box<EntityT>();
-    _entity = InternalStoreAccess.entityDef<EntityT>(_store);
-    _rel = rel;
-    _otherBox = otherBox;
+    // FIXME Detach ToMany.
+    // if (_attached) {
+    //   if (_store != store) {
+    //     throw ArgumentError.value(
+    //         store, 'store', 'Relation already attached to a different store');
+    //   }
+    //   return;
+    // }
+    // _attached = true;
+    // _store = store;
+    // _box = store.box<EntityT>();
+    // _entity = InternalStoreAccess.entityDef<EntityT>(_store);
+    // _rel = rel;
+    // _otherBox = otherBox;
   }
 
   List<EntityT> get _items => __items ??= _loadItems();

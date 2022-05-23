@@ -46,13 +46,9 @@ import '../store.dart';
 /// order.customer.targetId = 0
 /// ```
 class ToOne<EntityT> {
-  bool _attached = false;
+  _PointerReferences<EntityT>? _storeReference;
 
-  late final Store _store;
-
-  late final Box<EntityT> _box;
-
-  late final EntityDefinition<EntityT> _entity;
+  bool get _attached => _storeReference != null;
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
@@ -78,8 +74,7 @@ class ToOne<EntityT> {
   /// Get target object. If it's the first access, this reads from DB.
   EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
-      _verifyAttached();
-      final object = _box.get(_value._id);
+      final object = _getStoreReferenceOrThrow().box.get(_value._id);
       _value = (object == null)
           ? _ToOneValue<EntityT>.unresolvable(_value._id)
           : _ToOneValue<EntityT>.stored(_value._id, object);
@@ -112,7 +107,7 @@ class ToOne<EntityT> {
         target = _value._object;
       } else {
         // Otherwise, we still can't access the ID so let's throw...
-        _verifyAttached();
+        _getStoreReferenceOrThrow();
       }
     }
     return _value._id;
@@ -147,29 +142,33 @@ class ToOne<EntityT> {
   /// [target] so you should know it's ID.
   void attach(Store store) {
     if (_attached) {
-      if (_store != store) {
+      if (_getStoreReferenceOrThrow().store != store) {
         throw ArgumentError.value(
             store, 'store', 'Relation already attached to a different store');
       }
       return;
     }
-    _attached = true;
-    _store = store;
-    _box = store.box<EntityT>();
-    _entity = InternalStoreAccess.entityDef<EntityT>(_store);
+    _storeReference = _PointerReferences(store);
   }
 
-  void _verifyAttached() {
-    if (!_attached) {
+  /// Detach from the store, removes any native code references (pointers) to
+  /// allow sending this to an isolate.
+  void detach() {
+    _storeReference = null;
+  }
+
+  _PointerReferences<EntityT> _getStoreReferenceOrThrow() {
+    final ref = _storeReference;
+    if (ref == null) {
       throw StateError('ToOne relation field not initialized. '
           'Make sure to call attach(store) before the first use.');
+    } else {
+      return ref;
     }
   }
 
-  int _getId(EntityT object) {
-    _verifyAttached();
-    return _entity.getId(object) ?? 0;
-  }
+  int _getId(EntityT object) =>
+      _getStoreReferenceOrThrow().entity.getId(object) ?? 0;
 }
 
 enum _ToOneState { none, unstored, unknown, lazy, stored, unresolvable }
@@ -208,8 +207,20 @@ class _ToOneValue<EntityT> {
 @internal
 class InternalToOneAccess {
   /// Get access of the relation's target box.
-  static Box targetBox(ToOne toOne) {
-    toOne._verifyAttached();
-    return toOne._box;
-  }
+  static Box targetBox(ToOne toOne) => toOne._getStoreReferenceOrThrow().box;
+}
+
+/// Wraps objects with pointer references that can not be sent to isolates
+/// so they can easily be removed.
+class _PointerReferences<EntityT> {
+  final Store store;
+  final Box<EntityT> box;
+
+  /// The definition contains references to functions that return ToOne/ToMany
+  /// which may contain Store/Box pointers.
+  final EntityDefinition<EntityT> entity;
+
+  _PointerReferences(this.store)
+      : box = store.box<EntityT>(),
+        entity = InternalStoreAccess.entityDef<EntityT>(store);
 }

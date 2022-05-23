@@ -559,10 +559,15 @@ void main() {
       // state (https://github.com/dart-lang/sdk/issues/36983)
       // e.g. here the inline simpleItems function would capture the Store from
       // main which contains a pointer that can not be sent to isolates.
-      final items = simpleItems();
+      // final items = simpleItems();
       // This does not work as ToOne and ToMany are attached,
       // e.g. contain a store pointer.
-      // final items = testBox.getAll();
+      final items = testBox.getAll();
+      for (var value in items) {
+        value.relA.detach();
+        value.relB.detach();
+        // FIXME Detach ToMany.
+      }
       return items;
     }
 
