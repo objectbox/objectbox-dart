@@ -521,6 +521,9 @@ class Store {
   /// If all operations can execute within a single transaction, prefer to use
   /// [runInTransactionAsync].
   ///
+  /// The Store given to the callback does not have to be closed, it is closed
+  /// by the worker isolate once the callback returns (or throws).
+  ///
   /// The following example gets the name of a User object, deletes the object
   /// and returns the name:
   /// ```dart
