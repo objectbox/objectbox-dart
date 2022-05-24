@@ -57,8 +57,8 @@ class Store {
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
 
-  /// Creates a BoxStore using the model definition from the generated
-  /// whether this store was created from a pointer (won't close in that case)
+  /// If weak and calling [close] does not try to close the native Store and
+  /// remove [_absoluteDirectoryPath] from [_openStoreDirectories].
   final bool _weak;
 
   /// Default value for string query conditions [caseSensitive] argument.
@@ -223,16 +223,13 @@ class Store {
     }
   }
 
-  /// Returns a minimal Store that only has a reference to a native store,
-  /// without any info like model definition, database directory and others.
+  /// Creates a Store clone with minimal functionality given a pointer address
+  /// obtained by [_clone].
   ///
-  /// This store is e.g. good enough to start a transaction, but does not allow
-  /// to e.g. use boxes. This is useful when creating a store within another
-  /// isolate as only information that can be sent to an isolate is necessary
-  /// (the store and model definition contain pointers that can not be sent to
-  /// an isolate).
+  /// Only has a reference to a native store, has no model definition. E.g. is
+  /// good enough to start a transaction, but does not allow to use boxes.
   ///
-  /// Obtain a [ptrAddress] from [_clone], see it for more details.
+  /// See [_clone] for details.
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
       : _defs = null,
         _weak = false,
@@ -365,15 +362,19 @@ class Store {
   ///
   /// The address of the pointer can be used with [Store._minimal].
   ///
-  /// This can be useful to work with isolates as it is not possible to send a
-  /// [Store] to an isolate (the Store itself and the contained model definition
-  /// contain pointers). Instead, send the pointer address returned by this
-  /// and create a minimal store (for limitations see [Store._minimal]) in the
-  /// isolate. Make sure to [close] the clone as well before the isolate exits.
+  /// This can be useful to access the same Store in another isolate as it is
+  /// not possible to send a [Store] to an isolate (Store contains Pointer which
+  /// can not be sent, ModelDefinition contains Function which can only be sent
+  /// on Dart SDK 2.15 or higher). Instead, send the pointer address returned by
+  /// this and create a minimal store in the isolate. For limitations see
+  /// [Store._minimal].
+  ///
+  /// Make sure to [close] the clone before the isolate exits. The native store
+  /// remains open until all clones and the original Store are closed.
   ///
   /// ```dart
   /// // Clone the store and obtain its address, can be sent to an isolate.
-  /// final storePtrAddress = store.clone().address;
+  /// final storePtrAddress = InternalStoreAccess.clone(store).address;
   ///
   /// // Within an isolate create a minimal store.
   /// final store = InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
