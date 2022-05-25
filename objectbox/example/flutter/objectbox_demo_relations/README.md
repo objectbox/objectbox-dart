@@ -9,7 +9,9 @@ See how to:
 - create Boxes and put Objects there ([objectbox.dart](lib/objectbox.dart))
 - query for Objects ([objectbox.dart](lib/objectbox.dart))
 - create, read, update and delete Objects ([main.dart](lib/main.dart))
+- add ObjectBox Admin for debug builds ([objectbox.dart](lib/objectbox.dart), [build.gradle](android/app/build.gradle))
 
 ## Docs
 - [Getting started with ObjectBox](https://docs.objectbox.io/getting-started)
 - [How to use ObjectBox Relations](https://docs.objectbox.io/relations)
+- [ObjectBox Admin](https://docs.objectbox.io/data-browser)

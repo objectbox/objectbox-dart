@@ -7,6 +7,7 @@ import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 class ObjectBox {
   /// The Store of this app.
   late final Store store;
+  late final Admin _admin;
 
   /// Two Boxes: one for Tasks, one for Tags.
   late final Box<Task> taskBox;
@@ -17,6 +18,13 @@ class ObjectBox {
   late final Stream<Query<Tag>> tagsStream;
 
   ObjectBox._create(this.store) {
+    // Optional: enable ObjectBox Admin on debug builds.
+    // https://docs.objectbox.io/data-browser
+    if (Admin.isAvailable()) {
+      // Keep a reference until no longer needed or manually closed.
+      _admin = Admin(store);
+    }
+
     taskBox = Box<Task>(store);
     tagBox = Box<Tag>(store);
 
