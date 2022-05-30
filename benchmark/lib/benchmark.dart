@@ -12,6 +12,21 @@ class Benchmark {
   final watch = Stopwatch();
   final Emitter emitter;
 
+  /// Create a benchmark with the given [name], starts measuring total run time.
+  ///
+  /// ```dart
+  /// await Benchmark('Name', iterations: 1, coefficient: 1 / count).report();
+  /// ```
+  ///
+  /// Call [report] on this to await results.
+  ///
+  /// Runs the [runIteration] function [iterations] times, defaults to 1.
+  ///
+  /// Set a fraction in [coefficient] to multiply the measured value of a run
+  /// with, defaults to 1. Use this if a run calls a to be measured function
+  /// multiple times (e.g. `1 / times`) to get the duration of a single call.
+  ///
+  /// Results are printed to the command line.
   Benchmark(this.name, {this.iterations = 1, this.coefficient = 1})
       : emitter = Emitter(iterations, coefficient) {
     print('-------------------------------------------------------------');
@@ -24,9 +39,13 @@ class Benchmark {
     watch.start();
   }
 
-  // Not measured setup code executed prior to the benchmark runs.
+  /// Not measured setup code executed prior to [run] getting called.
   void setup() {}
 
+  /// Called after all [run] calls have completed, measures total time of the
+  /// benchmark.
+  ///
+  /// A method overriding this must call this.
   @mustCallSuper
   void teardown() {
     final millis = watch.elapsedMilliseconds;
@@ -35,16 +54,18 @@ class Benchmark {
         '$color${Emitter._format(millis.toDouble(), suffix: ' ms')}\x1B[0m');
   }
 
+  /// Calls [runIteration] [iterations] of times.
   Future<void> run() async {
     for (var i = 0; i < iterations; i++) runIteration(i);
     return Future.value();
   }
 
+  /// A single test iteration, given [iteration] index starting from 0.
   void runIteration(int iteration) {
     throw UnimplementedError('Please override runIteration() or run()');
   }
 
-  // Runs [f] for at least [minimumMillis] milliseconds.
+  /// Runs [f] for at least [minimumMillis] milliseconds.
   static Future<double> _measureFor(Function f, int minimumMillis) async {
     final minimumMicros = minimumMillis * 1000;
     var iter = 0;
@@ -58,7 +79,9 @@ class Benchmark {
     return elapsed / iter;
   }
 
-  // Measures the score for the benchmark and returns it.
+  /// Measures the score for the benchmark and returns it.
+  ///
+  /// See [report] for details.
   @nonVirtual
   Future<double> _measure() async {
     setup();
@@ -70,6 +93,13 @@ class Benchmark {
     return result;
   }
 
+  /// Starts the benchmark and waits for the result.
+  ///
+  /// - Calls [setup], then
+  /// - repeatedly calls [run] for at least 100 ms to warm up,
+  /// - then calls [run] repeatedly for at least 2000 ms and collects the
+  /// average elapsed time of a call (if run multiple times), then
+  /// - calls [teardown] and returns the result.
   @nonVirtual
   Future<void> report() async {
     emitter.emit(name, await _measure());
