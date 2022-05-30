@@ -16,6 +16,7 @@ void main() async {
   await PutQueued().report();
   await RunInTx().report();
   await RunInTxAsync().report();
+  await RunAsync().report();
 }
 
 class Put extends DbBenchmark {
@@ -106,7 +107,10 @@ class RunInTx extends DbBenchmark {
 
   @override
   void runIteration(int i) {
-    store.runInTransaction(TxMode.write, () => items.forEach(box.put));
+    store.runInTransaction(TxMode.write, () {
+      box.putMany(items);
+      return box.getAll();
+    });
   }
 }
 
@@ -116,11 +120,27 @@ class RunInTxAsync extends DbBenchmark {
   RunInTxAsync() : super('$RunInTxAsync');
 
   @override
-  Future<void> runIteration(int iteration) {
+  Future<List<TestEntity>> runIteration(int iteration) async {
     return store.runInTransactionAsync(TxMode.write,
-        (Store store, List<TestEntity> items) {
+        (Store store, List<TestEntity> param) {
       final box = store.box<TestEntity>();
-      items.forEach(box.put);
+      box.putMany(param);
+      return box.getAll();
+    }, items);
+  }
+}
+
+class RunAsync extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  RunAsync() : super('$RunAsync');
+
+  @override
+  Future<List<TestEntity>> runIteration(int iteration) {
+    return store.runAsync((Store store, List<TestEntity> param) {
+      final box = store.box<TestEntity>();
+      box.putMany(param);
+      return box.getAll();
     }, items);
   }
 }
