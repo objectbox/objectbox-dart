@@ -16,12 +16,17 @@ class Benchmark {
   /// Create a benchmark with the given [name], starts measuring total run time.
   ///
   /// ```dart
-  /// await Benchmark('Name', iterations: 1, coefficient: 1 / count).report();
+  /// await Benchmark('Name', coefficient: 1 / count).report();
   /// ```
   ///
   /// Call [report] on this to await results.
   ///
-  /// Runs the [runIteration] function [iterations] times, defaults to 1.
+  /// Runs the [runIteration] function at least [iterations] times, defaults to
+  /// 1. If possible, leave this at the default. The benchmark is automatically
+  /// re-run a) to warm up until at least 100 ms have passed (e.g. to avoid
+  /// caching skewing results) and b) to measure until at least 2 seconds have
+  /// passed. This is similar to how Dart's benchmark_harness and various other
+  /// benchmarking libraries in other languages work.
   ///
   /// Set a fraction in [coefficient] to multiply the measured value of a run
   /// with, defaults to 1. Use this if a run calls a to be measured function
@@ -108,9 +113,11 @@ class Benchmark {
   /// Starts the benchmark and waits for the result.
   ///
   /// - Calls [setup], then
-  /// - repeatedly calls [run] for at least 100 ms to warm up,
-  /// - then calls [run] repeatedly for at least 2000 ms and collects the
-  /// average elapsed time of a call (if run multiple times), then
+  /// - repeatedly calls [run] for at least 100 ms to warm up to avoid effects
+  /// e.g. due to caching,
+  /// - then calls [run] repeatedly until at least 2000 ms have passed to ensure
+  /// stable results and collects the average elapsed time of a call (if run
+  /// multiple times), then
   /// - calls [teardown] and returns the result.
   @nonVirtual
   Future<void> report() async {
