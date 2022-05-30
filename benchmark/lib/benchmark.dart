@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
@@ -56,12 +57,17 @@ class Benchmark {
 
   /// Calls [runIteration] [iterations] of times.
   Future<void> run() async {
-    for (var i = 0; i < iterations; i++) runIteration(i);
+    for (var i = 0; i < iterations; i++) {
+      final result = runIteration(i);
+      if (result is Future) {
+        await result;
+      }
+    }
     return Future.value();
   }
 
   /// A single test iteration, given [iteration] index starting from 0.
-  void runIteration(int iteration) {
+  FutureOr<void> runIteration(int iteration) {
     throw UnimplementedError('Please override runIteration() or run()');
   }
 
