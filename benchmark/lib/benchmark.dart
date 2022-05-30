@@ -30,9 +30,9 @@ class Benchmark {
   Benchmark(this.name, {this.iterations = 1, this.coefficient = 1})
       : emitter = Emitter(iterations, coefficient) {
     print('-------------------------------------------------------------');
-    print('$name(iterations):       ' +
+    print('$name(iterations):          ' +
         Emitter._format(iterations.toDouble(), decimalPoints: 0));
-    print('$name(count):            ' +
+    print('$name(unit count):          ' +
         Emitter._format(iterations / coefficient, decimalPoints: 0));
     // Measure the total time of the test - if it's too high, you should
     // decrease the number of iterations. Expected time is between 2 and 3 sec.
@@ -50,7 +50,7 @@ class Benchmark {
   void teardown() {
     final millis = watch.elapsedMilliseconds;
     final color = millis > 3000 ? '\x1B[31m' : '';
-    print('$name(total time taken): '
+    print('$name(benchmark run time):     '
         '$color${Emitter._format(millis.toDouble(), suffix: ' ms')}\x1B[0m');
   }
 
@@ -117,12 +117,14 @@ class Emitter {
   void emit(String testName, double value) {
     final timePerIter = value / iterations;
     final timePerUnit = timePerIter * coefficient;
-    print(
-        '$testName(Single iteration): ${_format(timePerIter, suffix: ' us')}');
-    print(
-        '$testName(Runtime per unit): ${_format(timePerUnit, suffix: ' us')}');
-    print('$testName(Runs per second):  ${_format(usInSec / timePerIter)}');
-    print('$testName(Units per second): ${_format(usInSec / timePerUnit)}');
+    print('$testName(single iteration):       '
+        '${_format(timePerIter, suffix: ' us')}');
+    print('$testName(per unit):               '
+        '${_format(timePerUnit, suffix: ' us')}');
+    print('$testName(iterations / second): '
+        '${_format(usInSec / timePerIter)}');
+    print('$testName(units / second):      '
+        '${_format(usInSec / timePerUnit)}');
   }
 
   // Simple number formatting, maybe use a lib?
