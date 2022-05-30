@@ -33,7 +33,7 @@ class Benchmark {
     print('$name(iterations):       ' +
         Emitter._format(iterations.toDouble(), decimalPoints: 0));
     print('$name(count):            ' +
-        Emitter._format(iterations / coefficient));
+        Emitter._format(iterations / coefficient, decimalPoints: 0));
     // Measure the total time of the test - if it's too high, you should
     // decrease the number of iterations. Expected time is between 2 and 3 sec.
     watch.start();
