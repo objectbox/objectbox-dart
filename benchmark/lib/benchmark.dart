@@ -66,7 +66,7 @@ class Benchmark {
   }
 
   /// Runs [f] for at least [minimumMillis] milliseconds.
-  static Future<double> _measureFor(Function f, int minimumMillis) async {
+  Future<double> _measureFor(Function f, int minimumMillis, bool warmUp) async {
     final minimumMicros = minimumMillis * 1000;
     var iter = 0;
     final watch = Stopwatch()..start();
@@ -75,6 +75,12 @@ class Benchmark {
       await f();
       elapsed = watch.elapsedMicroseconds;
       iter++;
+    }
+    if (!warmUp) {
+      // Print how often f had to be re-run to reach minimum run time.
+      final reruns = iter - 1;
+      print('$name(re-runs):             '
+          '${Emitter._format(reruns.toDouble(), decimalPoints: 0)}');
     }
     return elapsed / iter;
   }
@@ -86,9 +92,9 @@ class Benchmark {
   Future<double> _measure() async {
     setup();
     // Warmup for at least 100ms. Discard result.
-    await _measureFor(run, 100);
+    await _measureFor(run, 100, true);
     // Run the benchmark for at least 2000ms.
-    var result = await _measureFor(run, 2000);
+    var result = await _measureFor(run, 2000, false);
     teardown();
     return result;
   }
