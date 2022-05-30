@@ -117,10 +117,10 @@ class RunInTxAsync extends DbBenchmark {
 
   @override
   Future<void> runIteration(int iteration) {
-    return store.runInTransactionAsync(
-        TxMode.write,
-        (Store store, List<TestEntity> items) =>
-            items.forEach(store.box<TestEntity>().put),
-        items);
+    return store.runInTransactionAsync(TxMode.write,
+        (Store store, List<TestEntity> items) {
+      final box = store.box<TestEntity>();
+      items.forEach(box.put);
+    }, items);
   }
 }
