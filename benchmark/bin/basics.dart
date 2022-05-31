@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/objectbox.g.dart';
@@ -14,6 +15,8 @@ void main() async {
 
   await DynLibProcess().report();
   await DynLibFile().report();
+
+  await StoreOpen().report();
 }
 
 class ModelInit extends Benchmark {
@@ -100,5 +103,29 @@ class BoxAccessList extends Benchmark {
         return;
       }
     }
+  }
+}
+
+class StoreOpen extends Benchmark {
+  final String dbDir = 'benchmark-db';
+
+  StoreOpen() : super('$StoreOpen');
+
+  @override
+  void runIteration(int iteration) {
+    final store = Store(getObjectBoxModel(), directory: dbDir);
+    store.close();
+  }
+
+  @override
+  void teardown() {
+    // Note: do not delete before test, not benchmarking file creation time.
+    deleteDbDir();
+    super.teardown();
+  }
+
+  void deleteDbDir() {
+    final dir = Directory(dbDir);
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
   }
 }
