@@ -19,14 +19,21 @@ ObjectBoxC? _tryObjectBoxLibProcess() {
   // [DynamicLibrary.process()] is not supported on windows, see its docs.
   if (Platform.isWindows) return null;
 
-  ObjectBoxC? obxc;
+  final DynamicLibrary lib;
   try {
-    _lib = DynamicLibrary.process();
-    obxc = ObjectBoxC(_lib!);
-    _isSupportedVersion(obxc); // may throw in case symbols are not found
-    return obxc;
+    lib = DynamicLibrary.process();
   } catch (_) {
-    // ignore errors (i.e. symbol not found)
+    // Ignore errors, caller will try using open.
+    return null;
+  }
+
+  // Check if the library is actually loaded by searching for a common function.
+  // Note: not using 'lookup' as its exception if not found is caught if
+  // All Exceptions is enabled in VS Code.
+  if (lib.providesSymbol('obx_version')) {
+    _lib = lib;
+    return ObjectBoxC(lib);
+  } else {
     return null;
   }
 }
