@@ -1,3 +1,5 @@
+## latest
+
 ## 1.5.0 (2022-05-11)
 * Add `Store.runInTransactionAsync` to run database operations asynchronously in the background
   (requires Flutter 2.8.0/Dart 2.15.0 or newer). #415
