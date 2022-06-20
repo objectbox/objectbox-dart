@@ -15,7 +15,6 @@ class ObjectBox {
 
   /// A stream of all tasks ordered by date.
   late final Stream<Query<Task>> tasksStream;
-  late final Stream<Query<Tag>> tagsStream;
 
   ObjectBox._create(this.store) {
     // Optional: enable ObjectBox Admin on debug builds.
@@ -36,8 +35,6 @@ class ObjectBox {
     tasksStream = qBuilderTasks.watch(triggerImmediately: true);
 
     final qBuilderTags = tagBox.query()..order(Tag_.name);
-    tagsStream = qBuilderTags.watch(triggerImmediately: true);
-
     // Add some demo data if the box is empty.
     if (taskBox.isEmpty()) {
       _putDemoData();

@@ -58,9 +58,9 @@ class Task {
   String getStateText() {
     String text;
     if (isFinished()) {
-      text = 'Finished on ${dateFinishedFormat}';
+      text = 'Finished on $dateFinishedFormat';
     } else {
-      text = 'Created on ${dateCreatedFormat}';
+      text = 'Created on $dateCreatedFormat';
     }
     return text;
   }
