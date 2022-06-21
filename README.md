@@ -26,9 +26,7 @@
 
 # Flutter database for fast Dart object persistence 💙
 
-🙌 **Your opinion matters to us!** Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
-
-ObjectBox Flutter database is a great option for storing data in your cross-platform apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT devices. It is made for efficient data access and is 10x faster than any alternative. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses pure Dart API that is easy to work with and can be integrated in minutes. Apart from that, we built a data synchronization solution that allows you to choose which objects to sync when and therefore keep your cloud costs low.
+ObjectBox Flutter database is a great option for storing data in your cross-platform apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT devices. It is made for efficient data access and is 10x faster than any alternative. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses pure Dart API that is easy to work with and can be integrated in minutes. Apart from that, we built a data synchronization solution that allows you to choose which objects to sync when and keep data easily and efficiently in sync across devices.
 
 ### Features
 
@@ -51,6 +49,7 @@ To start using ObjectBox in your Flutter/Dart app, head over to
 
 * the [ObjectBox pub.dev page](https://pub.dev/packages/objectbox) or
 * check out our [Getting Started Guide](https://docs.objectbox.io/getting-started).
+* if you prefer to start with a video tutorial, [here you go](https://www.youtube.com/watch?v=BBlr8F8m9lo)
 
 ## Getting Started with this Repository 
 
@@ -74,7 +73,9 @@ You can run these yourself using our [objectbox-dart-performance](https://github
 ## Do you 💙 ObjectBox?
 
 We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
+
 What do you love? What's amiss? Where do you struggle in everyday app development?
+--> Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
 **We're looking forward to receiving your comments and requests:**
 
@@ -82,7 +83,7 @@ What do you love? What's amiss? Where do you struggle in everyday app developmen
 - Upvote issues you find important by hitting the 👍/+1 reaction button
 - Fill in the [feedback form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us improve our products
 - Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
-- ⭐ us, if you like what you see
+- ⭐ us on GitHub, if you like what you see or give us a 👍 on [pub.dev](https://pub.dev/packages/objectbox)
 
 Thank you! 🙏
 
