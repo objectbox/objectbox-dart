@@ -26,7 +26,7 @@
 
 # Flutter database for fast Dart object persistence 💙
 
-ObjectBox Flutter database is a great option for storing data in your cross-platform apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT devices. It is made for efficient data access and is 10x faster than any alternative. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses pure Dart API that is easy to work with and can be integrated in minutes. Apart from that, we built a data synchronization solution that allows you to choose which objects to sync when and keep data easily and efficiently in sync across devices.
+ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT devices. Made for efficient data access, it is 10x faster than any alternative across all CRUD operations. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses a pure Dart API that is easy to work with and can be integrated in minutes. Plus: We built a data synchronization solution that allows you to choose which objects to sync when and keep data easily and efficiently in sync across devices.
 
 ### Features
 
@@ -43,22 +43,13 @@ ObjectBox Flutter database is a great option for storing data in your cross-plat
 Oh, and there is one more thing...
 😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
-## Getting Started (in your App)
+## Getting Started
 
 To start using ObjectBox in your Flutter/Dart app, head over to
 
 * the [ObjectBox pub.dev page](https://pub.dev/packages/objectbox) or
 * check out our [Getting Started Guide](https://docs.objectbox.io/getting-started).
-* if you prefer to start with a video tutorial, [here you go](https://www.youtube.com/watch?v=BBlr8F8m9lo)
-
-## Getting Started with this Repository 
-
-Do you want to check out the ObjectBox code itself? E.g. see in action, run tests, or even contribute code?
-Great! Clone/check out this repository and run this to generate code and get you started quickly:
-
-    ./tool/init.sh
-
-Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
+* if you prefer video, in this tutorial you'll [learn how to persist data locally in your Flutter App](https://www.youtube.com/watch?v=BBlr8F8m9lo)
 
 ## Flutter Database Performance Benchmarks
 
@@ -88,6 +79,15 @@ What do you love? What's amiss? Where do you struggle in everyday app developmen
 Thank you! 🙏
 
 Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
+
+## Contributing
+
+Do you want to check out the ObjectBox code itself? E.g. see in action, run tests, or even contribute code?
+Great! Clone/check out this repository and run this to generate code and get you started quickly:
+
+    ./tool/init.sh
+
+Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
 
 ## Packages
 
