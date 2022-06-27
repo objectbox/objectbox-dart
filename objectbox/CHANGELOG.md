@@ -4,6 +4,7 @@
 * When using the "All Exceptions" debug option in Visual Studio Code there is no longer an exception
 when initializing ObjectBox. #252
 * Update: [objectbox-c 0.17.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.17.0).
+* Update: [objectbox-android 3.2.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.0).
 
 ## 1.5.0 (2022-05-11)
 
