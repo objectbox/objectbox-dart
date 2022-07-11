@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Runs all tests in the integration-test folder with
+# ./test.sh
+# or a specific one with
+# ./test.sh <folder> e.g. ./test.sh basics
+
 myDir=$(dirname "$0")
 
 function runTestFile() {
