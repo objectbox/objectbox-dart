@@ -349,13 +349,13 @@ class CodeChunks {
           fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
           return readFieldNonNull('0');
         case OBXPropertyType.String:
-          // TODO `asciiOptimization: true` is for keeping the same behavior as the previous FB fork.
-          //      Check if it still makes sense with the latest Dart/Flutter.
+          // still makes sense to keep `asciiOptimization: true` 
+          // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
           fbReader = 'fb.StringReader(asciiOptimization: true)';
           break;
         case OBXPropertyType.StringVector:
-          // TODO `asciiOptimization: true` is for keeping the same behavior as the previous FB fork.
-          //      Check if it still makes sense with the latest Dart/Flutter.
+          // still makes sense to keep `asciiOptimization: true`
+          // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
           fbReader =
               'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)';
           break;
