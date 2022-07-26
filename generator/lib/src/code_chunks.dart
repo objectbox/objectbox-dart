@@ -16,6 +16,7 @@ class CodeChunks {
     // See also https://docs.objectbox.io/getting-started#generate-objectbox-code
 
     // ignore_for_file: camel_case_types
+    // coverage:ignore-file
 
     import 'dart:typed_data';
 
