@@ -28,8 +28,8 @@ class _NewTagState extends State<NewTag> {
     return FloatingActionButton.extended(
       label: const Text('New Tag'),
       heroTag: null,
-      onPressed: () => {
-        showDialog(
+      onPressed: () async {
+        final dialog = await showDialog(
           context: context,
           builder: (BuildContext context) => AlertDialog(
             title: const Text('New tag'),
@@ -43,14 +43,15 @@ class _NewTagState extends State<NewTag> {
                 child: const Text('Submit'),
                 onPressed: () {
                   _addTag(_tagInputController.text);
-                  _tagInputController.clear();
-
                   Navigator.of(context).pop();
                 },
               ),
             ],
           ),
-        )
+        );
+        // Clear text after dialog is dismissed.
+        _tagInputController.clear();
+        return dialog;
       },
     );
   }
