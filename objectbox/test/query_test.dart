@@ -576,7 +576,6 @@ void main() {
       q.close();
     }
   });
-
   test('orAny() & andAll()', () {
     final p = TestEntity_.tInt;
     expect(

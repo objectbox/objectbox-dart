@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -224,8 +225,11 @@ void main() {
         maxDBSizeInKB: 100,
         fileMode: int.parse('0666', radix: 8),
         maxReaders: 5,
+        debugFlag: OBXDebugFlags.LOG_TRANSACTIONS_READ |
+            OBXDebugFlags.LOG_TRANSACTIONS_WRITE,
         queriesCaseSensitiveDefault: false,
         macosApplicationGroup: 'foo-bar');
+
     store.close();
     Directory('store').deleteSync(recursive: true);
   });

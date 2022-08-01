@@ -83,12 +83,20 @@ class Store {
   /// final store = Store(getObjectBoxModel());
   /// ```
   ///
+  /// Pass one or more of [OBXDebugFlags] to [debugFlag] to enable debug log
+  /// output:
+  /// ```dart
+  /// final store = Store(getObjectBoxModel(),
+  ///     debugFlag: OBXDebugFlags.LOG_QUERY_PARAMETERS);
+  /// ```
+  ///
   /// See our examples for more details.
   Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
       int? fileMode,
       int? maxReaders,
+      int? debugFlag,
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _defs = modelDefinition,
@@ -135,6 +143,9 @@ class Store {
         }
         if (maxReaders != null && maxReaders > 0) {
           C.opt_max_readers(opt, maxReaders);
+        }
+        if (debugFlag != null) {
+          C.opt_debug_flags(opt, debugFlag);
         }
       } catch (e) {
         C.opt_free(opt);
