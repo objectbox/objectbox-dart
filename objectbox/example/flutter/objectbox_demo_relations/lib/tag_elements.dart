@@ -43,6 +43,8 @@ class _NewTagState extends State<NewTag> {
                 child: const Text('Submit'),
                 onPressed: () {
                   _addTag(_tagInputController.text);
+                  _tagInputController.clear();
+
                   Navigator.of(context).pop();
                 },
               ),
