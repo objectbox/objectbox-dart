@@ -6,6 +6,10 @@ import 'main.dart';
 import 'model.dart';
 import 'task_elements.dart';
 
+/// Displays the current list of tasks by listening to a stream.
+///
+/// Each task has a check button to mark it completed and an edit button to
+/// update it. A task can also be swiped away to remove it.
 class TaskList extends StatefulWidget {
   const TaskList({Key? key}) : super(key: key);
 

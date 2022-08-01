@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'main.dart';
 
+/// Displays a floating action button that opens a dialog to add a new tag.
 class NewTag extends StatefulWidget {
   final void Function(int) updateTags;
 
+  /// [updateTags] returns the ID of the added tag.
   const NewTag({Key? key, required this.updateTags}) : super(key: key);
 
   @override

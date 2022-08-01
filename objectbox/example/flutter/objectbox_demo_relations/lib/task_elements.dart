@@ -4,9 +4,15 @@ import 'main.dart';
 import 'model.dart';
 import 'tag_elements.dart';
 
+/// Interface to add a new or update an existing task, also to add new tags.
+///
+/// Supports adding or changing the text and setting the associated tag of
+/// a task.
 class TaskInput extends StatefulWidget {
   final int? taskId;
 
+  /// If [taskId] is not null, the id of the task to edit.
+  /// Otherwise, will create a new task.
   const TaskInput({Key? key, this.taskId}) : super(key: key);
 
   @override
