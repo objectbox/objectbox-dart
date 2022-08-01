@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2.5.0
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.0.5
           cache: true
