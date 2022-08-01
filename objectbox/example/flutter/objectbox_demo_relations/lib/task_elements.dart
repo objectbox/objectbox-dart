@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'main.dart';
 import 'model.dart';
-
 import 'tag_elements.dart';
 
 class TaskInput extends StatefulWidget {
@@ -16,29 +15,15 @@ class TaskInput extends StatefulWidget {
 
 class _TaskInputState extends State<TaskInput> {
   late String appBarTitle;
-  Task? currentTask;
-  Tag? currentTag;
+  Task? existingTask;
+  late Tag currentTag;
 
   final inputController = TextEditingController();
   List<Tag> tags = objectbox.tagBox.getAll();
 
-  void saveTask(Task editedTask) {
-    currentTask = editedTask;
-
-    if (editedTask.text.isEmpty) return;
-    Task task = Task(editedTask.text);
-    task.tag.target = currentTag;
-    objectbox.taskBox.put(task);
-    debugPrint('Saved task ${task.text} with tag ${task.tag.target?.name}');
-
-    // List updated via watched query stream.
-    inputController.clear(); //create separate functions for these
-    currentTask = null;
-  }
-
   /// Reload the tag list and set the selected tag to the added one.
   void _updateTags(int newTagId) {
-    var newTag = objectbox.tagBox.get(newTagId);
+    var newTag = objectbox.tagBox.get(newTagId)!;
     var newTags = objectbox.tagBox.getAll();
     setState(() {
       currentTag = newTag;
@@ -49,15 +34,17 @@ class _TaskInputState extends State<TaskInput> {
   @override
   void initState() {
     super.initState();
-    if (widget.taskId != null) {
+    var taskId = widget.taskId;
+    if (taskId != null) {
       appBarTitle = "Edit Task";
-      var taskToEdit = objectbox.taskBox.get(widget.taskId!)!;
-      currentTask = taskToEdit;
-      currentTag = taskToEdit.tag.target;
+      var taskToEdit = objectbox.taskBox.get(taskId)!;
+      existingTask = taskToEdit;
+      currentTag = taskToEdit.tag.target!;
       inputController.text = taskToEdit.text;
     } else {
       appBarTitle = "Add Task";
-      currentTag = objectbox.tagBox.query().build().findFirst();
+      existingTask = null;
+      currentTag = objectbox.tagBox.query().build().findFirst()!;
     }
   }
 
@@ -82,7 +69,7 @@ class _TaskInputState extends State<TaskInput> {
                             fontSize: 15.0,
                           ))),
                   DropdownButton<int>(
-                      value: currentTag?.id,
+                      value: currentTag.id,
                       items: tags.map(buildMenuItem).toList(),
                       underline: Container(
                         height: 2,
@@ -91,9 +78,8 @@ class _TaskInputState extends State<TaskInput> {
                       onChanged: (value) => {
                             setState(
                               () {
-                                currentTag = objectbox.tagBox.get(value!);
-                                debugPrint(
-                                    "tag updated to ${currentTag?.name}");
+                                currentTag = objectbox.tagBox.get(value!)!;
+                                debugPrint("tag updated to ${currentTag.name}");
                               },
                             )
                           }),
@@ -104,10 +90,9 @@ class _TaskInputState extends State<TaskInput> {
                         child: const Text('Save'),
                         onPressed: () {
                           setState(() {
-                            currentTask == null
-                                ? currentTask = Task(inputController.text)
-                                : currentTask?.text = inputController.text;
-                            saveTask(currentTask!);
+                            objectbox.saveTask(
+                                existingTask, inputController.text, currentTag);
+                            // Screen is left afterwards, no need to clear or update UI.
                             Navigator.pop(context);
                           });
                         }),

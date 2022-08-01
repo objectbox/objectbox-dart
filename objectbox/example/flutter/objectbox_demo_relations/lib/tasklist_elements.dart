@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import 'main.dart';
 import 'model.dart';
-
 import 'task_elements.dart';
 
 class TaskList extends StatefulWidget {
@@ -23,7 +22,7 @@ class _TaskListState extends State<TaskList> {
             key: UniqueKey(), //Key('dismissed_$index'),
             onDismissed: (direction) {
               // Remove the task from the store.
-              objectbox.taskBox.remove(tasks[index].id);
+              objectbox.removeTask(tasks[index].id);
               // List updated via watched query stream.
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   behavior: SnackBarBehavior.floating,
