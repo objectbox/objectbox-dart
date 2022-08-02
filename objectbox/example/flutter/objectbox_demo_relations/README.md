@@ -2,6 +2,8 @@
 
 This is a task-list example app that shows how to use ObjectBox in Flutter. 
 
+<img src="screenshot-app.png" height="540"/>
+
 See how to:
 - write and annotate classes to create a data model ([model.dart](lib/model.dart))
 - define a relation between Entities ([model.dart](lib/model.dart)) and use it ([objectbox.dart](lib/objectbox.dart))
