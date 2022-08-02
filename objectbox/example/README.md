@@ -3,7 +3,7 @@ ObjectBox Examples
 
 If you want to dive straight into the code:
 
-* see a [Flutter example app](flutter/objectbox_demo)
+* see a [Flutter example app](flutter/objectbox_demo_relations)
 
 Data model
 --------------------
