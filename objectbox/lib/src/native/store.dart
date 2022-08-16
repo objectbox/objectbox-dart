@@ -83,6 +83,53 @@ class Store {
   /// final store = Store(getObjectBoxModel());
   /// ```
   ///
+  /// ## Case insensitive queries
+  ///
+  /// By default, ObjectBox queries are case sensitive. Set [queriesCaseSensitiveDefault]
+  /// to `false` to make queries ignore case by default.
+  ///
+  /// Case sensitivity can also be set for each query.
+  ///
+  /// ## macOS application group
+  ///
+  /// If you're creating a sandboxed macOS app use [macosApplicationGroup] to
+  /// specify the application group. For more details see our online docs.
+  ///
+  /// ## Maximum database size
+  ///
+  /// [maxDBSizeInKB] sets the maximum size the database file can grow to.
+  /// By default this is 1 GB, which should be sufficient for most applications.
+  /// The store will throw when trying to insert more data if the maximum size
+  /// is reached.
+  ///
+  /// In general, a maximum size prevents the database from growing indefinitely
+  /// when something goes wrong (for example data is put in an infinite loop).
+  ///
+  /// ## File mode
+  ///
+  /// Specify [unix-style file permissions](https://en.wikipedia.org/wiki/File_system_permissions#Numeric_notation)
+  /// for database files with [fileMode]. E.g. for `-rw-r----` (owner, group,
+  /// other) pass the octal code `0640`. Any newly generated directory
+  /// additionally gets searchable (01) for groups with read or write permissions.
+  /// It's not allowed to pass in an executable flag.
+  ///
+  /// ## Maximum number of readers
+  ///
+  /// [maxReaders] sets the maximum number of concurrent readers. For most
+  /// applications, the default is fine (~ 126 readers).
+  ///
+  /// A "reader" is short for a thread involved in a read transaction.
+  ///
+  /// If the store throws OBX_ERROR_MAX_READERS_EXCEEDED, you should first worry
+  /// about the amount of threads your code is using.
+  /// For highly concurrent setups (e.g. using ObjectBox on the server side) it
+  /// may make sense to increase the number.
+  ///
+  /// Note: Each thread that performed a read transaction and is still alive
+  /// holds on to a reader slot. These slots only get vacated when the thread
+  /// ends. Thus, be mindful with the number of active threads.
+  ///
+  /// ## Debug flags
   /// Pass one or more [DebugFlags] to [debugFlags] to enable debug log
   /// output:
   /// ```dart
