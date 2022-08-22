@@ -1,4 +1,4 @@
-## latest
+## 1.6.1 (2022-08-22)
 
 * Store: add option to pass debug flags. #134 
 * Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test.
