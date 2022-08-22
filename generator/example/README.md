@@ -1,1 +1,1 @@
-See [ObjectBox example](https://pub.dev/packages/objectbox#-example-tab-).
+See [objectbox example](https://pub.dev/packages/objectbox/example).
