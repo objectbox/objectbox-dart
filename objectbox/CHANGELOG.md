@@ -2,6 +2,7 @@
 
 * Store: add option to pass debug flags. #134 
 * Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test.
+* Increase supported `analyzer` to v4. #443
 * Update documentation on `Query` streams using `watch` to highlight it is a single-subscription
   stream that can only be listened to once. Also updated code examples to not imply the stream is
   re-usable.
