@@ -20,6 +20,21 @@ void main() {
 
   tearDown(() => env.closeAndDelete());
 
+  test('Resubscribe to a stream', () async {
+    var stream = box.query().watch();
+    final subscription1 = stream.listen((event) {});
+    await subscription1.cancel();
+
+    // Query stream is currently a single subscription stream.
+    expect(() {
+      final subscription2 = stream.listen((event) {});
+    },
+        throwsA(predicate((e) =>
+            e is StateError &&
+            e.message == 'Stream has already been listened to.')));
+    // await subscription2.cancel();
+  });
+
   test('Subscribe to stream of entities', () async {
     final result = <String>[];
     final text = TestEntity_.tString;

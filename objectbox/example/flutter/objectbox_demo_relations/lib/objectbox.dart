@@ -9,6 +9,7 @@ import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 class ObjectBox {
   /// The Store of this app.
   late final Store store;
+
   // Keeping reference to avoid Admin getting closed.
   // ignore: unused_field
   late final Admin _admin;
@@ -16,9 +17,6 @@ class ObjectBox {
   /// Two Boxes: one for Tasks, one for Tags.
   late final Box<Task> taskBox;
   late final Box<Tag> tagBox;
-
-  /// A stream of all tasks ordered by date.
-  late final Stream<Query<Task>> tasksStream;
 
   ObjectBox._create(this.store) {
     // Optional: enable ObjectBox Admin on debug builds.
@@ -30,13 +28,6 @@ class ObjectBox {
 
     taskBox = Box<Task>(store);
     tagBox = Box<Tag>(store);
-
-    // Prepare a Query for all tasks, sorted by their date.
-    // The Query is not run until find() is called or it is subscribed to.
-    // https://docs.objectbox.io/queries
-    final qBuilderTasks = taskBox.query()
-      ..order(Task_.dateCreated, flags: Order.descending);
-    tasksStream = qBuilderTasks.watch(triggerImmediately: true);
 
     // Add some demo data if the box is empty.
     if (taskBox.isEmpty()) {
@@ -64,6 +55,19 @@ class ObjectBox {
     // When the Task is put, its Tag will automatically be put into the Tag Box.
     // Both ToOne and ToMany automatically put new Objects when the Object owning them is put.
     taskBox.putMany([task1, task2]);
+  }
+
+  Stream<List<Task>> getTasks() {
+    // Query for all tasks, sorted by their date.
+    // https://docs.objectbox.io/queries
+    final qBuilderTasks = taskBox.query()
+      ..order(Task_.dateCreated, flags: Order.descending);
+    // Build and watch the query,
+    // set triggerImmediately to emit the query immediately on listen.
+    return qBuilderTasks
+        .watch(triggerImmediately: true)
+        // Map it to a list of tasks to be used by a StreamBuilder.
+        .map((query) => query.find());
   }
 
   void saveTask(Task? task, String text, Tag tag) {

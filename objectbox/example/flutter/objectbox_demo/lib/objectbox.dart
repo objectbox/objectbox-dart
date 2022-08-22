@@ -11,15 +11,8 @@ class ObjectBox {
   /// A Box of notes.
   late final Box<Note> noteBox;
 
-  /// A stream of all notes ordered by date.
-  late final Stream<Query<Note>> queryStream;
-
   ObjectBox._create(this.store) {
     noteBox = Box<Note>(store);
-
-    final qBuilder = noteBox.query()
-      ..order(Note_.date, flags: Order.descending);
-    queryStream = qBuilder.watch(triggerImmediately: true);
 
     // Add some demo data if the box is empty.
     if (noteBox.isEmpty()) {
@@ -41,6 +34,18 @@ class ObjectBox {
       Note('Write a demo app for ObjectBox')
     ];
     store.runInTransactionAsync(TxMode.write, _putNotesInTx, demoNotes);
+  }
+
+  Stream<List<Note>> getNotes() {
+    // Query for all notes, sorted by their date.
+    // https://docs.objectbox.io/queries
+    final builder = noteBox.query()..order(Note_.date, flags: Order.descending);
+    // Build and watch the query,
+    // set triggerImmediately to emit the query immediately on listen.
+    return builder
+        .watch(triggerImmediately: true)
+        // Map it to a list of notes to be used by a StreamBuilder.
+        .map((query) => query.find());
   }
 
   static void _putNotesInTx(Store store, List<Note> notes) =>
