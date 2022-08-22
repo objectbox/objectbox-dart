@@ -6,6 +6,7 @@
 * Update documentation on `Query` streams using `watch` to highlight it is a single-subscription
   stream that can only be listened to once. Also updated code examples to not imply the stream is
   re-usable.
+* Update: [objectbox-android 3.2.1](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.1).
 
 ## 1.6.0 (2022-06-27)
 
