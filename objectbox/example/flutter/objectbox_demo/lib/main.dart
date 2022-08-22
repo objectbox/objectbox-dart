@@ -42,7 +42,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _noteInputController = TextEditingController();
-  final _listController = StreamController<List<Note>>(sync: true);
 
   Future<void> _addNote() async {
     if (_noteInputController.text.isEmpty) return;
@@ -51,18 +50,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    setState(() {});
-
-    _listController.addStream(objectbox.queryStream.map((q) => q.find()));
-  }
-
-  @override
   void dispose() {
     _noteInputController.dispose();
-    _listController.close();
     super.dispose();
   }
 
@@ -153,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
               child: StreamBuilder<List<Note>>(
-                  stream: _listController.stream,
+                  stream: objectbox.getNotes(),
                   builder: (context, snapshot) => ListView.builder(
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),

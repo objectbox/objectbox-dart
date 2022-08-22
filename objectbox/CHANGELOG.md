@@ -1,7 +1,10 @@
 ## latest
 
 * Store: add option to pass debug flags. #134 
-* Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test
+* Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test.
+* Update documentation on `Query` streams using `watch` to highlight it is a single-subscription
+  stream that can only be listened to once. Also updated code examples to not imply the stream is
+  re-usable.
 
 ## 1.6.0 (2022-06-27)
 

@@ -96,27 +96,11 @@ class _TaskListState extends State<TaskList> {
             ),
           );
 
-  final _taskListController = StreamController<List<Task>>(sync: true);
-
-  @override
-  void initState() {
-    super.initState();
-    setState(() {});
-
-    _taskListController.addStream(objectbox.tasksStream.map((q) => q.find()));
-  }
-
-  @override
-  void dispose() {
-    _taskListController.close();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Expanded(
         child: StreamBuilder<List<Task>>(
-            stream: _taskListController.stream,
+            stream: objectbox.getTasks(),
             builder: (context, snapshot) => ListView.builder(
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
