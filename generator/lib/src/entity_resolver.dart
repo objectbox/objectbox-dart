@@ -168,7 +168,9 @@ class EntityResolver extends Builder {
           isToManyRel = true;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '$dartType'");
+              "  skipping property '${f.name}': type '$dartType' not supported,"
+              " consider creating a relation for @Entity types (https://docs.objectbox.io/relations),"
+              " or replace with getter/setter converting to a supported type (https://docs.objectbox.io/advanced/custom-types).");
           continue;
         }
       }
