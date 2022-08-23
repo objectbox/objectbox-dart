@@ -51,10 +51,10 @@ class EntityResolver extends Builder {
   }
 
   ModelEntity generateForAnnotatedElement(
-      Element element, ConstantReader annotation) {
-    if (element is! ClassElement) {
+      Element classElement, ConstantReader annotation) {
+    if (classElement is! ClassElement) {
       throw InvalidGenerationSourceError(
-          "entity ${element.name}: annotated element isn't a class");
+          "Entity '${classElement.name}': annotated element must be a class.");
     }
 
     // process basic entity (note that allModels.createEntity is not used, as the entity will be merged)
@@ -63,23 +63,23 @@ class EntityResolver extends Builder {
     final entity = ModelEntity.create(
         IdUid(0, entityUid.isNull ? 0 : entityUid.intValue),
         entityRealClass.isNull
-            ? element.name
+            ? classElement.name
             : entityRealClass.typeValue.element!.name!,
         null,
         uidRequest: !entityUid.isNull && entityUid.intValue == 0);
 
-    if (_syncChecker.hasAnnotationOfExact(element)) {
+    if (_syncChecker.hasAnnotationOfExact(classElement)) {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;
     }
 
     log.info(entity);
 
-    entity.constructorParams = constructorParams(findConstructor(element));
-    entity.nullSafetyEnabled = nullSafetyEnabled(element);
+    entity.constructorParams = constructorParams(findConstructor(classElement));
+    entity.nullSafetyEnabled = nullSafetyEnabled(classElement);
     if (!entity.nullSafetyEnabled) {
       log.warning(
-          "Entity ${entity.name} is in a library/application that doesn't use null-safety"
-          ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12');
+          "Entity '${entity.name}' is in a package that doesn't use null-safety"
+          ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12.');
     }
 
     // Make sure all stored fields are writable when reading object from DB.
@@ -88,7 +88,7 @@ class EntityResolver extends Builder {
     //   * don't have a corresponding argument in the constructor.
     // Note: `.correspondingSetter == null` is also true for `final` fields.
     final readOnlyFields = <String>{};
-    for (var f in element.accessors) {
+    for (var f in classElement.accessors) {
       if (f.isGetter &&
           f.correspondingSetter == null &&
           !entity.constructorParams
@@ -98,19 +98,19 @@ class EntityResolver extends Builder {
     }
 
     // read all suitable annotated properties
-    for (var f in element.fields) {
+    for (var f in classElement.fields) {
       if (_transientChecker.hasAnnotationOfExact(f)) {
-        log.info('  skipping property ${f.name} (annotated with @Transient)');
+        log.info("  Skipping property '${f.name}': annotated with @Transient.");
         continue;
       }
 
       if (readOnlyFields.contains(f.name) && !isRelationField(f)) {
-        log.info('  skipping read-only/getter ${f.name}');
+        log.info("  Skipping property '${f.name}': is read-only/getter.");
         continue;
       }
 
       if (f.isPrivate) {
-        log.info('  skipping private field ${f.name}');
+        log.info("  Skipping property '${f.name}': is private.");
         continue;
       }
 
@@ -160,7 +160,7 @@ class EntityResolver extends Builder {
         } else if (dartType.element!.name == 'DateTime') {
           fieldType = OBXPropertyType.Date;
           log.warning(
-              "  DateTime property '${f.name}' in entity '${element.name}' is stored and read using millisecond precision. "
+              "  DateTime property '${f.name}' in entity '${classElement.name}' is stored and read using millisecond precision. "
               'To silence this warning, add an explicit type using @Property(type: PropertyType.date) or @Property(type: PropertyType.dateNano) annotation.');
         } else if (isToOneRelationField(f)) {
           fieldType = OBXPropertyType.Relation;
@@ -168,7 +168,9 @@ class EntityResolver extends Builder {
           isToManyRel = true;
         } else {
           log.warning(
-              "  skipping property '${f.name}' in entity '${element.name}', as it has an unsupported type: '$dartType'");
+              "  Skipping property '${f.name}': type '$dartType' not supported,"
+              " consider creating a relation for @Entity types (https://docs.objectbox.io/relations),"
+              " or replace with getter/setter converting to a supported type (https://docs.objectbox.io/advanced/custom-types).");
           continue;
         }
       }
@@ -176,8 +178,8 @@ class EntityResolver extends Builder {
       String? relTargetName;
       if (isRelationField(f)) {
         if (f.type is! ParameterizedType) {
-          log.severe(
-              "  invalid relation property '${f.name}' in entity '${element.name}' - must use ToOne/ToMany<TargetEntity>");
+          log.severe("  Skipping property '${f.name}': invalid relation type, "
+              "use a type like ToOne<TargetEntity> or ToMany<TargetEntity>.");
           continue;
         }
         relTargetName =
@@ -188,7 +190,7 @@ class EntityResolver extends Builder {
       if (backlinkAnnotations.isNotEmpty) {
         if (!isToManyRel) {
           log.severe(
-              '  invalid use of @Backlink() annotation - may only be used on a ToMany<> field');
+              "  Skipping property '${f.name}': @Backlink() may only be used with ToMany.");
           continue;
         }
         final backlinkField =
@@ -224,7 +226,7 @@ class EntityResolver extends Builder {
         }
 
         // Index and unique annotation.
-        processAnnotationIndexUnique(f, fieldType, element, prop);
+        processAnnotationIndexUnique(f, fieldType, classElement, prop);
 
         // for code generation
         prop.dartFieldType =
@@ -233,24 +235,23 @@ class EntityResolver extends Builder {
       }
     }
 
-    processIdProperty(entity);
+    processIdProperty(entity, classElement);
 
     // We need to check that the ID field is writable. Otherwise, generated code
     // for `setId()` won't compile. The only exception is when user uses
     // self-assigned IDs, then a different setter will be generated - one that
     // checks the ID being set is already the same, otherwise it must throw.
-    final idField = element.fields
+    final idField = classElement.fields
         .singleWhere((FieldElement f) => f.name == entity.idProperty.name);
     if (idField.setter == null) {
       if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE)) {
         throw InvalidGenerationSourceError(
-            "Entity ${entity.name} has an ID field '${idField.name}' that is "
-            'not assignable (that usually means it is declared final). '
-            "This won't work because ObjectBox needs to be able to assign "
-            'an ID after inserting a new object (if the given ID was zero). '
-            'If you want to assign IDs manually instead, you can annotate the '
-            "field '${idField.name}' with `@Id(assignable: true)`. Otherwise "
-            'please provide a setter or remove the `final` keyword.');
+            "@Id field '${idField.name}' must be writable:"
+            " ObjectBox uses it to set the assigned ID after inserting a new object,"
+            " provide a setter or remove the 'final' keyword."
+            " If your code needs to assign IDs itself,"
+            " see https://docs.objectbox.io/advanced/object-ids#self-assigned-object-ids.",
+            element: idField);
       } else {
         // We need to get the information to code generator (code_chunks.dart).
         entity.idProperty.fieldIsReadOnly = true;
@@ -258,28 +259,32 @@ class EntityResolver extends Builder {
     }
 
     // Verify there is at most 1 unique property with REPLACE strategy.
-    ensureSingleUniqueReplace(entity);
+    ensureSingleUniqueReplace(entity, classElement);
     // If sync enabled, verify all unique properties use REPLACE strategy.
-    ifSyncEnsureAllUniqueAreReplace(entity);
+    ifSyncEnsureAllUniqueAreReplace(entity, classElement);
 
     entity.properties.forEach((p) => log.info('  $p'));
 
     return entity;
   }
 
-  void processIdProperty(ModelEntity entity) {
+  void processIdProperty(ModelEntity entity, ClassElement classElement) {
     // check properties explicitly annotated with @Id()
     final annotated =
         entity.properties.where((p) => p.hasFlag(OBXPropertyFlags.ID));
     if (annotated.length > 1) {
+      final names = annotated.map((e) => e.name).join(", ");
       throw InvalidGenerationSourceError(
-          'entity ${entity.name}: multiple fields annotated with Id(), there may only be one');
+          "Entity '${entity.name}': multiple fields ($names) annotated with @Id(), there may only be one.",
+          element: classElement);
     }
 
     if (annotated.length == 1) {
       if (annotated.first.type != OBXPropertyType.Long) {
         throw InvalidGenerationSourceError(
-            "entity ${entity.name}: Id() annotated property has invalid type, expected 'int'");
+            "Entity '${entity.name}': @Id() property must be 'int'."
+            " If you need to use other types, see https://docs.objectbox.io/entity-annotations#object-ids-id.",
+            element: classElement);
       }
     } else {
       // if there are no annotated props, try to find one by name & type
@@ -287,9 +292,8 @@ class EntityResolver extends Builder {
           p.name.toLowerCase() == 'id' && p.type == OBXPropertyType.Long);
       if (candidates.length != 1) {
         throw InvalidGenerationSourceError(
-            'entity ${entity.name}: ID property not found - either define'
-            ' an integer field named ID/id/... (case insensitive) or add'
-            ' @Id annotation to any integer field');
+            "Entity '${entity.name}': no @Id() property found, add an int field annotated with @Id().",
+            element: classElement);
       }
       candidates.first.flags |= OBXPropertyFlags.ID;
     }
@@ -308,19 +312,22 @@ class EntityResolver extends Builder {
 
     final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
     final uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
-    if (indexAnnotation == null && uniqueAnnotation == null) return null;
+    if (indexAnnotation == null && uniqueAnnotation == null) return;
 
     // Throw if property type does not support any index.
     if (fieldType == OBXPropertyType.Float ||
         fieldType == OBXPropertyType.Double ||
         fieldType == OBXPropertyType.ByteVector) {
       throw InvalidGenerationSourceError(
-          "entity ${elementBare.name}: @Index/@Unique is not supported for type '${f.type}' of field '${f.name}'");
+          "Entity '${elementBare.name}': @Index/@Unique is not supported for type '${f.type}' of field '${f.name}'.",
+          element: f);
     }
 
     if (prop.hasFlag(OBXPropertyFlags.ID)) {
       throw InvalidGenerationSourceError(
-          'entity ${elementBare.name}: @Index/@Unique is not supported for ID field ${f.name}. IDs are unique by definition and automatically indexed');
+          "Entity '${elementBare.name}': @Index/@Unique is not supported for @Id field '${f.name}'."
+          " IDs are unique by definition and automatically indexed.",
+          element: f);
     }
 
     // If available use index type from annotation.
@@ -343,7 +350,8 @@ class EntityResolver extends Builder {
     if (!supportsHashIndex &&
         (indexType == IndexType.hash || indexType == IndexType.hash64)) {
       throw InvalidGenerationSourceError(
-          "entity ${elementBare.name}: a hash index is not supported for type '${f.type}' of field '${f.name}'");
+          "Entity '${elementBare.name}': a hash index is not supported for type '${f.type}' of field '${f.name}'",
+          element: f);
     }
 
     if (uniqueAnnotation != null && !uniqueAnnotation.isNull) {
@@ -369,20 +377,24 @@ class EntityResolver extends Builder {
         break;
       default:
         throw InvalidGenerationSourceError(
-            'entity ${elementBare.name}: invalid index type: $indexType');
+            "Entity '${elementBare.name}': index type $indexType not supported.",
+            element: f);
     }
   }
 
-  void ensureSingleUniqueReplace(ModelEntity entity) {
+  void ensureSingleUniqueReplace(
+      ModelEntity entity, ClassElement classElement) {
     final uniqueReplaceProps = entity.properties
         .where((p) => p.hasFlag(OBXPropertyFlags.UNIQUE_ON_CONFLICT_REPLACE));
     if (uniqueReplaceProps.length > 1) {
       throw InvalidGenerationSourceError(
-          "ConflictStrategy.replace can only be used on a single property, but found multiple in '${entity.name}':\n  ${uniqueReplaceProps.join('\n  ')}");
+          "ConflictStrategy.replace can only be used on a single property, but found multiple in '${entity.name}':\n  ${uniqueReplaceProps.join('\n  ')}",
+          element: classElement);
     }
   }
 
-  void ifSyncEnsureAllUniqueAreReplace(ModelEntity entity) {
+  void ifSyncEnsureAllUniqueAreReplace(
+      ModelEntity entity, ClassElement classElement) {
     if (!entity.hasFlag(OBXEntityFlags.SYNC_ENABLED)) return;
     final uniqueButNotReplaceProps = entity.properties.where((p) {
       return p.hasFlag(OBXPropertyFlags.UNIQUE) &&
@@ -390,7 +402,9 @@ class EntityResolver extends Builder {
     });
     if (uniqueButNotReplaceProps.isNotEmpty) {
       throw InvalidGenerationSourceError(
-          "Synced entities must use @Unique(onConflict: ConflictStrategy.replace) on all unique properties, but found others in '${entity.name}':\n  ${uniqueButNotReplaceProps.join('\n  ')}");
+          "Synced entities must use @Unique(onConflict: ConflictStrategy.replace) on all unique properties,"
+          " but found others in '${entity.name}':\n  ${uniqueButNotReplaceProps.join('\n  ')}",
+          element: classElement);
     }
   }
 

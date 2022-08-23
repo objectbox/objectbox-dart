@@ -1,5 +1,6 @@
 ## latest
 
+* Generator messages should be more helpful, provide code location when possible and link to docs.
 
 ## 1.6.1 (2022-08-22)
 
