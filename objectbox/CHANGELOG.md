@@ -1,4 +1,4 @@
-## latest
+## 1.6.2 (2022-08-24)
 
 * Revert to [objectbox-android 3.2.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.0) 
   to restore query functionality (#460). If you are using Admin, make sure to update your 
