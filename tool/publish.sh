@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 . "$(dirname "$0")"/common.sh
 
 # NOTE: This script requires version 3 of yq.

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 . "$(dirname "$0")"/common.sh
 
 # Optional script to simplify the initial setup: run this script to pub-get all packages and generate code.

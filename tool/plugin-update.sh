@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 . "$(dirname "$0")"/common.sh
 
 # Begins an update of flutter plugins - you need to manually review the changes and commit what's necessary.

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 . "$(dirname "$0")"/common.sh
 
 echo "Setting pub.dev specific links"
