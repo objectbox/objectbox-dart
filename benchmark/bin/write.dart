@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:objectbox_benchmark/benchmark.dart';
+import 'package:objectbox_benchmark/model.dart';
 import 'package:objectbox_benchmark/objectbox.g.dart';
 
 const count = 10000;
@@ -11,6 +14,9 @@ void main() async {
   await PutAsync2().report();
   await PutAsync3().report();
   await PutQueued().report();
+  await RunInTx().report();
+  await RunInTxAsync().report();
+  await RunAsync().report();
 }
 
 class Put extends DbBenchmark {
@@ -91,5 +97,50 @@ class PutQueued extends DbBenchmark {
   Future<void> run() async {
     items.forEach(box.putQueued);
     store.awaitAsyncSubmitted();
+  }
+}
+
+class RunInTx extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  RunInTx() : super('$RunInTx');
+
+  @override
+  void runIteration(int i) {
+    store.runInTransaction(TxMode.write, () {
+      box.putMany(items);
+      return box.getAll();
+    });
+  }
+}
+
+class RunInTxAsync extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  RunInTxAsync() : super('$RunInTxAsync');
+
+  @override
+  Future<List<TestEntity>> runIteration(int iteration) async {
+    return store.runInTransactionAsync(TxMode.write,
+        (Store store, List<TestEntity> param) {
+      final box = store.box<TestEntity>();
+      box.putMany(param);
+      return box.getAll();
+    }, items);
+  }
+}
+
+class RunAsync extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  RunAsync() : super('$RunAsync');
+
+  @override
+  Future<List<TestEntity>> runIteration(int iteration) {
+    return store.runAsync((Store store, List<TestEntity> param) {
+      final box = store.box<TestEntity>();
+      box.putMany(param);
+      return box.getAll();
+    }, items);
   }
 }

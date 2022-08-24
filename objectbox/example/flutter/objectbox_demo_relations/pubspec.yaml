@@ -1,15 +1,15 @@
 name: objectbox_demo_relations
-description: Note taking example app using ObjectBox Flutter database with relations.
+description: Task-list example app using ObjectBox Flutter database with relations.
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.13.0 <3.0.0"
+  sdk: ">=2.14.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  objectbox: ^1.5.0
+  objectbox: ^1.6.1
   objectbox_flutter_libs: any
   intl: any
 

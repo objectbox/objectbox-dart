@@ -1,4 +1,23 @@
+## 1.6.1 (2022-08-22)
+
+* Store: add option to pass debug flags. #134 
+* Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test.
+* Increase supported `analyzer` to v4. #443
+* Update documentation on `Query` streams using `watch` to highlight it is a single-subscription
+  stream that can only be listened to once. Also updated code examples to not imply the stream is
+  re-usable.
+* Update: [objectbox-android 3.2.1](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.1).
+
+## 1.6.0 (2022-06-27)
+
+* Require at least Dart SDK 2.14 (shipped with Flutter 2.5.0).
+* When using the "All Exceptions" debug option in Visual Studio Code there is no longer an exception
+when initializing ObjectBox. #252
+* Update: [objectbox-c 0.17.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.17.0).
+* Update: [objectbox-android 3.2.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.0).
+
 ## 1.5.0 (2022-05-11)
+
 * Add `Store.runInTransactionAsync` to run database operations asynchronously in the background
   (requires Flutter 2.8.0/Dart 2.15.0 or newer). #415
 * Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and

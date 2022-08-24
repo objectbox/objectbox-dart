@@ -149,7 +149,7 @@ class SyncClient {
     final cServerUri = serverUri.toNativeUtf8();
     try {
       _cSync = checkObxPtr(
-          C.sync_1(InternalStoreAccess.ptr(_store), cServerUri.cast()),
+          C.sync1(InternalStoreAccess.ptr(_store), cServerUri.cast()),
           'failed to create sync client');
     } finally {
       malloc.free(cServerUri);

@@ -57,8 +57,8 @@ class Store {
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
 
-  /// Creates a BoxStore using the model definition from the generated
-  /// whether this store was created from a pointer (won't close in that case)
+  /// If weak and calling [close] does not try to close the native Store and
+  /// remove [_absoluteDirectoryPath] from [_openStoreDirectories].
   final bool _weak;
 
   /// Default value for string query conditions [caseSensitive] argument.
@@ -83,12 +83,67 @@ class Store {
   /// final store = Store(getObjectBoxModel());
   /// ```
   ///
+  /// ## Case insensitive queries
+  ///
+  /// By default, ObjectBox queries are case sensitive. Set [queriesCaseSensitiveDefault]
+  /// to `false` to make queries ignore case by default.
+  ///
+  /// Case sensitivity can also be set for each query.
+  ///
+  /// ## macOS application group
+  ///
+  /// If you're creating a sandboxed macOS app use [macosApplicationGroup] to
+  /// specify the application group. For more details see our online docs.
+  ///
+  /// ## Maximum database size
+  ///
+  /// [maxDBSizeInKB] sets the maximum size the database file can grow to.
+  /// By default this is 1 GB, which should be sufficient for most applications.
+  /// The store will throw when trying to insert more data if the maximum size
+  /// is reached.
+  ///
+  /// In general, a maximum size prevents the database from growing indefinitely
+  /// when something goes wrong (for example data is put in an infinite loop).
+  ///
+  /// ## File mode
+  ///
+  /// Specify [unix-style file permissions](https://en.wikipedia.org/wiki/File_system_permissions#Numeric_notation)
+  /// for database files with [fileMode]. E.g. for `-rw-r----` (owner, group,
+  /// other) pass the octal code `0640`. Any newly generated directory
+  /// additionally gets searchable (01) for groups with read or write permissions.
+  /// It's not allowed to pass in an executable flag.
+  ///
+  /// ## Maximum number of readers
+  ///
+  /// [maxReaders] sets the maximum number of concurrent readers. For most
+  /// applications, the default is fine (~ 126 readers).
+  ///
+  /// A "reader" is short for a thread involved in a read transaction.
+  ///
+  /// If the store throws OBX_ERROR_MAX_READERS_EXCEEDED, you should first worry
+  /// about the amount of threads your code is using.
+  /// For highly concurrent setups (e.g. using ObjectBox on the server side) it
+  /// may make sense to increase the number.
+  ///
+  /// Note: Each thread that performed a read transaction and is still alive
+  /// holds on to a reader slot. These slots only get vacated when the thread
+  /// ends. Thus, be mindful with the number of active threads.
+  ///
+  /// ## Debug flags
+  /// Pass one or more [DebugFlags] to [debugFlags] to enable debug log
+  /// output:
+  /// ```dart
+  /// final store = Store(getObjectBoxModel(),
+  ///     debugFlag: DebugFlags.logQueries | DebugFlags.logQueryParameters);
+  /// ```
+  ///
   /// See our examples for more details.
   Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
       int? fileMode,
       int? maxReaders,
+      int? debugFlags,
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _defs = modelDefinition,
@@ -135,6 +190,9 @@ class Store {
         }
         if (maxReaders != null && maxReaders > 0) {
           C.opt_max_readers(opt, maxReaders);
+        }
+        if (debugFlags != null) {
+          C.opt_debug_flags(opt, debugFlags);
         }
       } catch (e) {
         C.opt_free(opt);
@@ -223,16 +281,13 @@ class Store {
     }
   }
 
-  /// Returns a minimal Store that only has a reference to a native store,
-  /// without any info like model definition, database directory and others.
+  /// Creates a Store clone with minimal functionality given a pointer address
+  /// obtained by [_clone].
   ///
-  /// This store is e.g. good enough to start a transaction, but does not allow
-  /// to e.g. use boxes. This is useful when creating a store within another
-  /// isolate as only information that can be sent to an isolate is necessary
-  /// (the store and model definition contain pointers that can not be sent to
-  /// an isolate).
+  /// Only has a reference to a native store, has no model definition. E.g. is
+  /// good enough to start a transaction, but does not allow to use boxes.
   ///
-  /// Obtain a [ptrAddress] from [_clone], see it for more details.
+  /// See [_clone] for details.
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
       : _defs = null,
         _weak = false,
@@ -365,15 +420,19 @@ class Store {
   ///
   /// The address of the pointer can be used with [Store._minimal].
   ///
-  /// This can be useful to work with isolates as it is not possible to send a
-  /// [Store] to an isolate (the Store itself and the contained model definition
-  /// contain pointers). Instead, send the pointer address returned by this
-  /// and create a minimal store (for limitations see [Store._minimal]) in the
-  /// isolate. Make sure to [close] the clone as well before the isolate exits.
+  /// This can be useful to access the same Store in another isolate as it is
+  /// not possible to send a [Store] to an isolate (Store contains Pointer which
+  /// can not be sent, ModelDefinition contains Function which can only be sent
+  /// on Dart SDK 2.15 or higher). Instead, send the pointer address returned by
+  /// this and create a minimal store in the isolate. For limitations see
+  /// [Store._minimal].
+  ///
+  /// Make sure to [close] the clone before the isolate exits. The native store
+  /// remains open until all clones and the original Store are closed.
   ///
   /// ```dart
   /// // Clone the store and obtain its address, can be sent to an isolate.
-  /// final storePtrAddress = store.clone().address;
+  /// final storePtrAddress = InternalStoreAccess.clone(store).address;
   ///
   /// // Within an isolate create a minimal store.
   /// final store = InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
@@ -520,6 +579,9 @@ class Store {
   /// milliseconds, e.g. putting many objects, which would cause frame drops.
   /// If all operations can execute within a single transaction, prefer to use
   /// [runInTransactionAsync].
+  ///
+  /// The Store given to the callback does not have to be closed, it is closed
+  /// by the worker isolate once the callback returns (or throws).
   ///
   /// The following example gets the name of a User object, deletes the object
   /// and returns the name:

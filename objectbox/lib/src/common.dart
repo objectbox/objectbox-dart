@@ -33,3 +33,21 @@ class UniqueViolationException extends ObjectBoxException {
   /// Create a new exception.
   UniqueViolationException(String message) : super(message);
 }
+
+/// Flags to enable debug options when creating a [Store].
+class DebugFlags {
+  /// Log read transactions.
+  static const int logTransactionsRead = 1;
+
+  /// Log write transactions.
+  static const int logTransactionsWrite = 2;
+
+  /// Log queries.
+  static const int logQueries = 4;
+
+  /// Log parameters used in queries.
+  static const int logQueryParameters = 8;
+
+  /// Log async queue details.
+  static const int logAsyncQueue = 16;
+}

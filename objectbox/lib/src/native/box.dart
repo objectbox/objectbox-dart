@@ -529,7 +529,7 @@ int _getOBXPutMode(PutMode mode) {
 class _AsyncBoxHelper {
   final Pointer<OBX_async> _cAsync;
 
-  _AsyncBoxHelper(Box box) : _cAsync = C.async_1(box._cBox) {
+  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._cBox) {
     initializeDartAPI();
   }
 

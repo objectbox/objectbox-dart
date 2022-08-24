@@ -1,0 +1,2 @@
+# https://dart.dev/guides/language/analysis-options
+include: package:lints/recommended.yaml

@@ -23,29 +23,55 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     }
   }
 
-  /// Finish building a [Query] creating a [Stream] that issues events whenever
-  /// the queried entity changes. The streamed query is persisted between stream
-  /// events and can be used even after the subscription is cancelled.
+  /// Builds the [Query] and creates a [single-subscription](https://dart.dev/tutorials/language/streams#two-kinds-of-streams)
+  /// [Stream] that sends the query whenever there are changes to the boxes of
+  /// the queried entities.
   ///
-  /// If you pass TRUE as the [triggerImmediately] argument, a single stream
-  /// event will be sent immediately after subscribing. You can use this to get
-  /// access to the query object before any data changes.
+  /// Use [triggerImmediately] to send an event immediately after subscribing,
+  /// even before an actual change.
+  ///
+  /// A common use case is to get a list of the latest results for a UI widget:
+  /// ```
+  /// // Map to a stream of results, immediately get current results.
+  /// final Stream<List<Entity>> listStream = box.query()
+  ///     .watch(triggerImmediately: true)
+  ///     .map((query) => query.find());
+  /// ```
+  ///
+  /// However, this method allows to do whatever needed with the returned query:
+  /// ```
+  /// box.query().watch().listen((query) {
+  ///   // Do something with query, e.g. find or count.
+  /// });
+  /// ```
+  ///
+  /// The stream is a single-subscription stream, so can only be listened to once.
+  /// The query returned by the stream is persisted between events and can be
+  /// used even after the subscription is cancelled (the query is not explicitly
+  /// closed).
   Stream<Query<T>> watch({bool triggerImmediately = false}) {
     final queriedEntities = HashSet<Type>();
     _fillQueriedEntities(queriedEntities);
     final query = build();
     late StreamSubscription<void> subscription;
     late StreamController<Query<T>> controller;
-    final subscribe = () {
+
+    _subscribe() {
       subscription = _store.entityChanges.listen((List<Type> entityTypes) {
         if (entityTypes.any(queriedEntities.contains)) {
           controller.add(query);
         }
       });
-    };
+    }
+
+    // Note: this can not be a broadcast StreamController (to allow
+    // re-subscribing or multiple subscribers) as it would not be
+    // possible to implement the send on listen (triggerImmediately)
+    // functionality (onListen is only called for the first subscriber,
+    // also does not allow to send an event within).
     controller = StreamController<Query<T>>(
-        onListen: subscribe,
-        onResume: subscribe,
+        onListen: _subscribe,
+        onResume: _subscribe,
         onPause: () => subscription.pause(),
         onCancel: () => subscription.cancel());
     if (triggerImmediately) controller.add(query);

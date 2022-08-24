@@ -10,16 +10,17 @@ class TestEnv {
   final Store store;
   final bool short;
 
-  factory TestEnv(String name, {bool? queryCaseSensitive}) {
+  factory TestEnv(String name, {bool? queryCaseSensitive, int? debugFlag}) {
     final dir = Directory('testdata-' + name);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
     final Store store;
     var modelDefinition = getObjectBoxModel();
     try {
       store = queryCaseSensitive == null
-          ? Store(modelDefinition, directory: dir.path)
+          ? Store(modelDefinition, directory: dir.path, debugFlags: debugFlag)
           : Store(modelDefinition,
               directory: dir.path,
+              debugFlags: debugFlag,
               queriesCaseSensitiveDefault: queryCaseSensitive);
     } catch (ex) {
       print("$dir exists: ${dir.existsSync()}");

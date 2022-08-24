@@ -22,7 +22,7 @@ bool Function(Pointer<Uint8> data, int size) _callback = _callback;
 int _forwarder(Pointer<Void> _, Pointer<Void> dataPtr, int size) =>
     _callback(dataPtr.cast<Uint8>(), size) ? 1 : 0;
 
-final Pointer<NativeFunction<obx_data_visitor>> _nativeVisitor =
+final Pointer<obx_data_visitor> _nativeVisitor =
     Pointer.fromFunction(_forwarder, 0);
 
 /// The callback for reading data one-by-one.
@@ -31,18 +31,15 @@ final Pointer<NativeFunction<obx_data_visitor>> _nativeVisitor =
 /// - [size] specifies the length of the read data.
 /// - Return true to keep going, false to cancel.
 @pragma('vm:prefer-inline')
-Pointer<NativeFunction<obx_data_visitor>> dataVisitor(
+Pointer<obx_data_visitor> dataVisitor(
     bool Function(Pointer<Uint8> data, int size) callback) {
   _callback = callback;
   return _nativeVisitor;
 }
 
 @pragma('vm:prefer-inline')
-Pointer<NativeFunction<obx_data_visitor>> objectCollector<T>(
-        List<T> list,
-        Store store,
-        EntityDefinition<T> entity,
-        ObjectCollectorError outError) =>
+Pointer<obx_data_visitor> objectCollector<T>(List<T> list, Store store,
+        EntityDefinition<T> entity, ObjectCollectorError outError) =>
     dataVisitor((Pointer<Uint8> data, int size) {
       try {
         list.add(entity.objectFromFB(
