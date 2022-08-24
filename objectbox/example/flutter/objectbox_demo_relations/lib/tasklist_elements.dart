@@ -99,11 +99,35 @@ class _TaskListState extends State<TaskList> {
     return Expanded(
         child: StreamBuilder<List<Task>>(
             stream: objectbox.getTasks(),
-            builder: (context, snapshot) => ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                itemCount: snapshot.hasData ? snapshot.data!.length : 0,
-                itemBuilder: _itemBuilder(snapshot.data ?? []))));
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                // Print the stack trace and show the error message.
+                // An actual app would display a user-friendly error message
+                // and report the error behind the scenes.
+                debugPrintStack(stackTrace: snapshot.stackTrace);
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 60,
+                    ),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 16, left: 16, right: 16),
+                      child: Text('Error: ${snapshot.error}'),
+                    ),
+                  ],
+                );
+              } else {
+                return ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    itemCount: snapshot.hasData ? snapshot.data!.length : 0,
+                    itemBuilder: _itemBuilder(snapshot.data ?? []));
+              }
+            }));
   }
 }
 
