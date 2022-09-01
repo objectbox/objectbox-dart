@@ -1,7 +1,19 @@
-## latest
+## 1.6.2 (2022-08-24)
+
+* Revert to [objectbox-android 3.2.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.0) 
+  to restore query functionality (#460). If you are using Admin, make sure to update your 
+  `objectbox-android-objectbrowser` dependency.
+* Generator messages should be more helpful, provide code location when possible and link to docs.
+
+## 1.6.1 (2022-08-22)
 
 * Store: add option to pass debug flags. #134 
-* Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test
+* Add `// coverage:ignore-file` to generated objectbox.g.dart skipping this file from coverage test.
+* Increase supported `analyzer` to v4. #443
+* Update documentation on `Query` streams using `watch` to highlight it is a single-subscription
+  stream that can only be listened to once. Also updated code examples to not imply the stream is
+  re-usable.
+* Update: [objectbox-android 3.2.1](https://github.com/objectbox/objectbox-java/releases/tag/V3.2.1).
 
 ## 1.6.0 (2022-06-27)
 

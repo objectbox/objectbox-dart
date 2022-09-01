@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 . "$(dirname "$0")"/common.sh
 
 # Note: when you see the process seemingly stuck after printing "All tests passed!", it's because `dart compile exe`

@@ -225,8 +225,8 @@ void main() {
         maxDBSizeInKB: 100,
         fileMode: int.parse('0666', radix: 8),
         maxReaders: 5,
-        debugFlag: OBXDebugFlags.LOG_TRANSACTIONS_READ |
-            OBXDebugFlags.LOG_TRANSACTIONS_WRITE,
+        debugFlags:
+            DebugFlags.logTransactionsRead | DebugFlags.logTransactionsWrite,
         queriesCaseSensitiveDefault: false,
         macosApplicationGroup: 'foo-bar');
 

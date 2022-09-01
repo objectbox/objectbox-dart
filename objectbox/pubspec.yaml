@@ -3,7 +3,7 @@ description: Flutter database for super-fast NoSQL ACID compliant object persist
 homepage: https://objectbox.io
 repository: https://github.com/objectbox/objectbox-dart
 documentation: https://docs.objectbox.io
-version: 1.6.0
+version: 1.6.2
 
 environment:
   # minimum Dart SDK (also see generator and flutter_libs)

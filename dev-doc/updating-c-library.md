@@ -15,12 +15,9 @@ Update `flutter_libs` and `sync_flutter_libs` with **compatible library versions
   - [sync_flutter_libs Linux](../sync_flutter_libs/linux/CMakeLists.txt)
   - [sync_flutter_libs Windows](../sync_flutter_libs/windows/CMakeLists.txt)
 - Android ([view releases](https://github.com/objectbox/objectbox-java/releases))
-  - Shortcut: search and replace `-android:3.2.0` in `build.gradle` files.
-  - In [flutter_libs](../flutter_libs/android/build.gradle)
-  - In [sync_flutter_libs](../sync_flutter_libs/android/build.gradle)
-- Android in examples.
-  - Shortcut: search and replace `-android-objectbrowser:3.2.0` in `build.gradle` files. 
-  - In [objectbox_demo_relations](../objectbox/example/flutter/objectbox_demo_relations/android/app/build.gradle)
+  ```
+  ./tool/set-android-version.sh 3.2.0
+  ```
 - Swift (iOS/macOS) ([view releases](https://github.com/objectbox/objectbox-swift/releases))
   - Shortcut: search and replace e.g. `s.dependency 'ObjectBox', '1.7.0` in `.podspec` files.
   - In [flutter_libs for iOS](../flutter_libs/ios/objectbox_flutter_libs.podspec)

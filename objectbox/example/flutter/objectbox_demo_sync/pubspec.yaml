@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  objectbox: ^1.6.0
+  objectbox: ^1.6.2
   objectbox_sync_flutter_libs: any # For Sync support use this instead of objectbox_flutter_libs.
   intl: any
 

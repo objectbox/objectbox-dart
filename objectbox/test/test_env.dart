@@ -17,10 +17,10 @@ class TestEnv {
     var modelDefinition = getObjectBoxModel();
     try {
       store = queryCaseSensitive == null
-          ? Store(modelDefinition, directory: dir.path, debugFlag: debugFlag)
+          ? Store(modelDefinition, directory: dir.path, debugFlags: debugFlag)
           : Store(modelDefinition,
               directory: dir.path,
-              debugFlag: debugFlag,
+              debugFlags: debugFlag,
               queriesCaseSensitiveDefault: queryCaseSensitive);
     } catch (ex) {
       print("$dir exists: ${dir.existsSync()}");

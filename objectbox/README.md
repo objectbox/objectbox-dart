@@ -94,7 +94,7 @@ We also have some video tutorials, each featuring a different example app:
 Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^1.6.0
+  objectbox: ^1.6.2
   objectbox_flutter_libs: any
   # for ObjectBox Sync use this dependency instead:
   # objectbox_sync_flutter_libs: any
@@ -137,7 +137,7 @@ Continue with the [examples README](example/README.md) to learn how to create en
 Add these dependencies to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  objectbox: ^1.6.0
+  objectbox: ^1.6.2
 
 dev_dependencies:
   build_runner: ^2.0.0
