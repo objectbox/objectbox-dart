@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'model.dart';
 import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
@@ -37,8 +39,16 @@ class ObjectBox {
 
   /// Create an instance of ObjectBox to use throughout the app.
   static Future<ObjectBox> create() async {
+    // Note: on desktop systems this returns the users documents directory,
+    // so make sure to create a unique sub-directory.
+    // On mobile using the default (not supplying any directory) is typically
+    // fine, as apps have their own directory structure.
+    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final databaseDirectory =
+        p.join(documentsDirectory.path, "obx-demo-relations");
+
     // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
-    final store = await openStore();
+    final store = await openStore(directory: databaseDirectory);
     return ObjectBox._create(store);
   }
 
