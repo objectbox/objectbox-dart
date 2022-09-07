@@ -26,7 +26,13 @@
 
 # Flutter database for Dart-native objects 💙
 
-ObjectBox Flutter database is a great option for storing Dart objects in your cross-platform apps. Minimal CPU, memory and battery use make it an ideal choice for mobile and IoT devices. Made for efficient data access, the ObjectBox Flutter database is 10x faster than any alternative. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses a pure Dart API that is easy to work with and can be integrated in minutes. Plus: We built a data synchronization solution that allows you to choose which objects to sync when and keep data easily and efficiently in sync across devices.
+ObjectBox Flutter database is a great option for storing Dart objects in your cross-platform apps. 
+Minimal CPU, memory and battery use make it an ideal choice for mobile and IoT devices. Made for 
+efficient data access, the ObjectBox Flutter database is 10x faster than any alternative. See the 
+[performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as 
+our NoSQL database uses a pure Dart API that is easy to work with and can be integrated in minutes. 
+Plus: We built a data synchronization solution that allows you to choose which objects to sync when 
+and keep data easily and efficiently in sync across devices.
 
 ### Features
 
@@ -41,8 +47,21 @@ ObjectBox Flutter database is a great option for storing Dart objects in your cr
 📃 **Schema migration** - change your model with confidence.
 
 Oh, and there is one more thing...
+
 😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
+## On this page
+- [Sneak peek](#sneak-peek---persist-dart-objects-with-objectbox)
+- [Getting Started](#getting-started)
+  - [Flutter](#flutter)
+  - [Dart Native](#dart-native)
+- [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
+- [Do you 💙 ObjectBox?](#do-you--objectbox)
+- [FAQ](#faq)
+- [See also](#see-also)
+- [License](#license)
+
+---
 
 ## Sneak peek - persist Dart objects with ObjectBox 
 
@@ -78,7 +97,7 @@ final people = query.find();  // find() returns List<Person>
 
 ## Getting Started
 
-Check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).
+**Check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).**
 
 We also have some video tutorials, each featuring a different example app: 
 - [Shop order app](https://youtu.be/AxYbdriXKI8)

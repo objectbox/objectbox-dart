@@ -26,7 +26,13 @@
 
 # Flutter database for fast Dart object persistence 💙
 
-ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT devices. Made for efficient data access, it is 10x faster than any alternative across all CRUD operations. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as our NoSQL database uses a pure Dart API that is easy to work with and can be integrated in minutes. Plus: We built a data synchronization solution that allows you to choose which objects to sync when and keep data easily and efficiently in sync across devices.
+ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform
+apps. It uses minimal CPU, memory and battery, which makes it an ideal choice for mobile and IoT 
+devices. Made for efficient data access, it is 10x faster than any alternative across all CRUD 
+operations. See the [performance benchmarks](#flutter-database-performance-benchmarks) below. No 
+need to learn SQL, as our NoSQL database uses a pure Dart API that is easy to work with and can be 
+integrated in minutes. Plus: We built a data synchronization solution that allows you to choose 
+which objects to sync when and keep data easily and efficiently in sync across devices.
 
 ### Features
 
@@ -41,7 +47,19 @@ ObjectBox Flutter database is a great option for storing Dart objects locally in
 📃 **Schema migration** - change your model with confidence.
 
 Oh, and there is one more thing...
+
 😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
+
+## Table of Contents
+- [Getting Started](#getting-started)
+- [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
+- [Do you 💙 ObjectBox?](#do-you--objectbox)
+- [Contributing](#contributing)
+- [Packages](#packages)
+- [Other languages/bindings](#other-languagesbindings)
+- [License](#license)
+
+---
 
 ## Getting Started
 
