@@ -35,8 +35,8 @@ jobs:
       - name: Check scores
         shell: bash
         run: |
-          if [[ "${{ steps.analysis.outputs.total }}" != "120" ]]; then
-            echo "Expected score 120, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
+          if [[ "${{ steps.analysis.outputs.total }}" != "130" ]]; then
+            echo "Expected score 130, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
             exit 1
           fi
 
