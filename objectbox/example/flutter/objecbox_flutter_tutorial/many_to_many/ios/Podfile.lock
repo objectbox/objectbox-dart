@@ -1,0 +1,35 @@
+PODS:
+  - Flutter (1.0.0)
+  - ObjectBox (1.7.0-sync)
+  - objectbox_sync_flutter_libs (0.0.1):
+    - Flutter
+    - ObjectBox (= 1.7.0-sync)
+  - path_provider_ios (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - objectbox_sync_flutter_libs (from `.symlinks/plugins/objectbox_sync_flutter_libs/ios`)
+  - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - ObjectBox
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  objectbox_sync_flutter_libs:
+    :path: ".symlinks/plugins/objectbox_sync_flutter_libs/ios"
+  path_provider_ios:
+    :path: ".symlinks/plugins/path_provider_ios/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  ObjectBox: 11572df0386ab8736912006015148f0c9c68aa0e
+  objectbox_sync_flutter_libs: d2d284bd5b800e680676ebdc89d449a3dde6fd43
+  path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
+
+PODFILE CHECKSUM: 7368163408c647b7eb699d0d788ba6718e18fb8d
+
+COCOAPODS: 1.11.3
