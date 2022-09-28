@@ -42,9 +42,10 @@ box.remove(person.id);       // Delete
 
 ## Table of Contents
 - [Why use ObjectBox](#why-use-objectbox)
-- [Features](#features)
+  - [Features](#features)
 - [Getting Started](#getting-started)
-- [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
+- [How does ObjectBox compare to other solutions?](#how-does-objectbox-compare-to-other-solutions)
+  - [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
 - [Do you 💙 ObjectBox?](#do-you--objectbox)
 - [Contributing](#contributing)
 - [Packages](#packages)
@@ -135,7 +136,7 @@ For more details about using ObjectBox in your Flutter/Dart app, head over to
 ## How does ObjectBox compare to other solutions?
 
 - ObjectBox is fast. Have a look at our benchmarks below, or test it for yourself
-- It's a full NoSQL SQLite alternative with intuitive 100% Dart APIs you'll love 💙
+- It's a full NoSQL SQLite alternative with intuitive Dart APIs you'll love 💙
 - It comes with an out-of-the-box [Data Sync](https://objectbox.io/sync/), making it an effective self-hosted Firebase alternative
 
 ### Flutter Database Performance Benchmarks
@@ -194,7 +195,7 @@ comparing the performance of our FlatBuffers fork vs the upstream version: [flat
 
 ObjectBox supports multiple platforms and languages: 
 
-* [Java Database](https://github.com/objectbox/objectbox-java)(+ Kotlin): runs on Android, desktop, and servers.
+* [Java Database](https://github.com/objectbox/objectbox-java) (+ Kotlin): runs on Android, desktop, and servers.
 * [Swift Database](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS and macOS.
 * [Go Database](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications.
 * [C / C++ Database](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects.
