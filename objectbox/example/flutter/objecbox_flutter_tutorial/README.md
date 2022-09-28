@@ -2,6 +2,16 @@
 
 This is the project from the Event Management tutorial on YouTube. 
 
+<h2>File structure</h3>
+```
+    \--objectbox_flutter_tutorial
+        \--event_manager_base
+        \--many_to_many
+```
+
+The event_manager folder includes the project from the first half of the tutorial where we covered modeling and working with one-to-one and one-to-many relationships. The many_to_many folder contains the final extension of the application where we change the task managing section into a many-to-many relationship.
+
+
 <h2> Running the Applications</h3>
 
 ### Change the directory into one of the folders in this repository:
