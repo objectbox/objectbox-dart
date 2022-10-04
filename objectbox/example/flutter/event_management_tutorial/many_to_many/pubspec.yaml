@@ -13,10 +13,8 @@ dependencies:
     sdk: flutter
   
   objectbox: ^1.6.2
-  objectbox_sync_flutter_libs: any
-  cupertino_icons: ^1.0.2
+  objectbox_flutter_libs: any
   intl: any
-  flat_buffers: ^2.0.5
 
 dev_dependencies:
   flutter_test:
