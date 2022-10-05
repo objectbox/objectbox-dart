@@ -13,7 +13,7 @@ dependencies:
   objectbox_flutter_libs: any
   intl: any
   path_provider: ^2.0.11
-  path: ^1.8.1
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:
