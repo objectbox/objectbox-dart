@@ -16,6 +16,7 @@
   code `OBX_ERROR_DB_FULL`).
 * Change `Query.findUnique()` to throw `NonUniqueResultException` instead of 
   `UniqueViolationException` if there is more than one result.
+* Update: [objectbox-android 3.5.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.5.0).
 
 ## 1.6.2 (2022-08-24)
 
