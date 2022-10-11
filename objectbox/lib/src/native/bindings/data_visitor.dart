@@ -19,8 +19,8 @@ import 'bindings.dart';
 
 bool Function(Pointer<Uint8> data, int size) _callback = _callback;
 
-int _forwarder(Pointer<Void> _, Pointer<Void> dataPtr, int size) =>
-    _callback(dataPtr.cast<Uint8>(), size) ? 1 : 0;
+int _forwarder(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
+    _callback(dataPtr, size) ? 1 : 0;
 
 final Pointer<obx_data_visitor> _nativeVisitor =
     Pointer.fromFunction(_forwarder, 0);
