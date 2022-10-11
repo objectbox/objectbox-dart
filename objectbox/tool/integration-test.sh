@@ -25,8 +25,11 @@ if [[ "${GITHUB_ACTIONS:-}" == "" ]]; then
 fi
 
 # Only test App Bundle build, its the preferred format (and required for new apps on Google Play).
+# On GitHub Actions, only build Android on Linux to reduce build time.
 # flutter build apk
-flutter build appbundle
+if [[ "${GITHUB_ACTIONS:-}" == "" || "$(uname)" == "Linux" ]]; then
+  flutter build appbundle
+fi
 
 if [[ "$(uname)" == "Darwin" ]]; then
   flutter build ios --no-codesign
