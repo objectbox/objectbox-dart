@@ -40,7 +40,7 @@ class ObjectBox {
   Stream<List<Note>> getNotes() {
     // Query for all notes, sorted by their date.
     // https://docs.objectbox.io/queries
-    final builder = noteBox.query()..order(Note_.date, flags: Order.descending);
+    final builder = noteBox.query().order(Note_.date, flags: Order.descending);
     // Build and watch the query,
     // set triggerImmediately to emit the query immediately on listen.
     return builder

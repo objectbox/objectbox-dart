@@ -39,7 +39,7 @@ void main() {
     final result = <String>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
-    final queryStream = (box.query(condition)..order(text)).watch();
+    final queryStream = box.query(condition).order(text).watch();
     final subscription = queryStream.listen((q) {
       final str = q.find().map((t) => t.tString).toList().join(', ');
       result.add(str);
@@ -65,7 +65,7 @@ void main() {
     final result = <int>[];
     final text = TestEntity_.tString;
     final condition = text.notNull();
-    final queryStream = (box.query(condition)..order(text)).watch();
+    final queryStream = box.query(condition).order(text).watch();
     final subscription = queryStream.listen((query) {
       result.add(query.count());
     });
