@@ -28,17 +28,38 @@
 
 Database for Flutter / Dart - fast and simple. Persist local Dart objects with ease & speed, focus on the value your application provides.
 
-### Demo code
-
 ```dart
-var person = Person(firstName: 'Joe', lastName: 'Green');
-final id = box.put(person);  // Create
-person = box.get(id)!;       // Read
-person.lastName = "Black";
-box.put(person);             // Update
-box.remove(person.id);       // Delete
+// Annotate a Dart class to create a box
+@Entity()
+class Person {
+  @Id() 
+  int id;
+  String name;
+
+  Person({this.id = 0, required this.name});
+}
+
+// Put a new object into the box
+var person = Person(name: "Joe Green");
+final id = box.put(person);
+
+// Get the object back from the box
+person = box.get(id)!;
+
+// Update the object
+person.name = "Joe Black";
+box.put(person);
+
+// Query for objects
+final query = (box.query(Person_.name.equal("Joe Black"))
+  ..order(Person_.name)).build();
+final people = query.find();
+query.close();
+
+// Remove the object from the box
+box.remove(person.id);
 ```
---> For more details check out the [docs](https://docs.objectbox.io/)
+For more details start with our 👉 [Getting Started Guide](https://docs.objectbox.io/getting-started) 👈
 
 ## Table of Contents
 - [Why use ObjectBox](#why-use-objectbox)
@@ -82,56 +103,9 @@ Oh, and there is one more thing...
 
 ## Getting Started
 
-### Dependencies
+**Continue with our 👉 [Getting Started](https://docs.objectbox.io/getting-started) 👈 guide.**
 
-Add these to your `pubsec.yaml`:
-```
-dependencies:
-  objectbox: ^1.6.2
-  objectbox_flutter_libs: any
-
-dev_dependencies:
-  build_runner: ^2.0.0
-  objectbox_generator: any
-```
-
-### First steps
-
-1. Define an entity class
-
-```dart
-@Entity()
-class Person {
-  int id;
- 
-  String firstName;
-  String lastName;
- 
-  Person({this.id = 0, required this.firstName, required this.lastName});
-}
-```
-
-2. Run `dart run build_runner build` to generate the binding code -> `objectbox.g.dart`
-
-3. Create the ObjectBox store of your app
-```dart
-import 'objectbox.g.dart';
-final store = openStore();
-```
-
-4. Get a `Box` class
-```dart
-final box = store.box<Person>();
-```
-
-5. Have fun using the Box functions, e.g. `put`, `get`, `remove`, `query`, as shown in the [Demo code above](#demo-code).
-
-### Further steps
-
-For more details about using ObjectBox in your Flutter/Dart app, head over to
-* our [Getting Started Guide](https://docs.objectbox.io/getting-started), or,
-* if you prefer video, in this tutorial you'll [learn how to persist data locally in your Flutter App](https://www.youtube.com/watch?v=BBlr8F8m9lo);
-* another video tutorial for ObjectBox: [how to create a restaurant Flutter App](https://youtu.be/r9Lc2r22KBk).
+It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
 ## How does ObjectBox compare to other solutions?
 

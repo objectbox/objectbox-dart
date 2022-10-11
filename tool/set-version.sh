@@ -18,8 +18,6 @@ update flutter_libs/pubspec.yaml "${versionExpr}"
 update sync_flutter_libs/pubspec.yaml "${versionExpr}"
 
 dependencyHigherExpr="s/objectbox: \^.*/objectbox: ^${version}/g"
-update README.md "${dependencyHigherExpr}"
-update objectbox/README.md "${dependencyHigherExpr}"
 update objectbox/example/flutter/event_management_tutorial/event_manager/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/event_management_tutorial/many_to_many/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/objectbox_demo/pubspec.yaml "${dependencyHigherExpr}"

@@ -34,7 +34,7 @@ our intuitive native Dart API in minutes, without the hassle of SQL.
 Plus: We built a data synchronization solution that allows you to keep data in sync across devices and servers,
 both online and offline.
 
-### Features
+## Features
 
 🏁 **Super fast** - 10X faster than SQLite - see the [performance benchmarks](#flutter-database-performance-benchmarks).\
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
@@ -63,120 +63,51 @@ Oh, and there is one more thing...
 
 ---
 
-## Sneak peek - persist Dart objects with ObjectBox 
+## Sneak peek - persist Dart objects with ObjectBox
 
 ```dart
+// Annotate a Dart class to create a box
 @Entity()
 class Person {
+  @Id() 
   int id;
+  String name;
 
-  String firstName;
-  String lastName;
-
-  Person({this.id = 0, required this.firstName, required this.lastName});
+  Person({this.id = 0, required this.name});
 }
 
-final store = await openStore(); 
-final box = store.box<Person>();
+// Put a new object into the box
+var person = Person(name: "Joe Green");
+final id = box.put(person);
 
-var person = Person(firstName: 'Joe', lastName: 'Green');
+// Get the object back from the box
+person = box.get(id)!;
 
-final id = box.put(person);  // Create
+// Update the object
+person.name = "Joe Black";
+box.put(person);
 
-person = box.get(id)!;       // Read
+// Query for objects
+final query = (box.query(Person_.name.equal("Joe Black"))
+  ..order(Person_.name)).build();
+final people = query.find();
+query.close();
 
-person.lastName = "Black";
-box.put(person);             // Update
-
-box.remove(person.id);       // Delete
-
-// find all people whose name start with letter 'J'
-final query = box.query(Person_.firstName.startsWith('J')).build();
-final people = query.find();  // find() returns List<Person>
+// Remove the object from the box
+box.remove(person.id);
 ```
 
 ## Getting Started
 
-**Check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).**
+**Continue with our 👉 [Getting Started](https://docs.objectbox.io/getting-started) 👈 guide.** 
+
+It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
 We also have some video tutorials, each featuring a different example app: 
 - [Shop order app](https://youtu.be/AxYbdriXKI8)
 - [Restaurant: chef and order apps](https://youtu.be/r9Lc2r22KBk)
 - [Task-list app (in Spanish)](https://youtu.be/osUq6B92-BY)
 - [Inventory Management](https://www.youtube.com/watch?v=BBlr8F8m9lo)
-
-
-**Depending on if you are building a Flutter or Dart-only app, follow the steps below to start using ObjectBox.**
-
-### Flutter 
-
-Add these dependencies to your `pubspec.yaml`:
-```yaml
-dependencies:
-  objectbox: ^1.6.2
-  objectbox_flutter_libs: any
-  # for ObjectBox Sync use this dependency instead:
-  # objectbox_sync_flutter_libs: any
-
-dev_dependencies:
-  build_runner: ^2.0.0
-  objectbox_generator: any
-```
-
-* Install the packages: `flutter pub get`
-* **For iOS**: in the Flutter Runner Xcode project
-  * increase the deployment target to at least iOS 11 and, 
-  * under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](https://docs.objectbox.io/faq#on-which-platforms-does-objectbox-run) for details.
-* **For sandboxed macOS apps**: specify an application group.
-  Check all `macos/Runner/*.entitlements` files if they contain a `<dict>` section with correct group ID info. 
-  Change the string value to the `DEVELOPMENT_TEAM` found in Xcode settings, plus an application-specific suffix, for example: 
-  
-  ```xml
-  <key>com.apple.security.application-groups</key>
-  <array>
-    <string>FGDTDLOBXDJ.demo</string>
-  </array>
-  ```
-  
-  Next, in the app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
-  Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
-  19 characters or fewer.
-* **For Sync + Android**: in `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
-* In order to run Flutter unit tests locally on your machine, install the native ObjectBox library on 
-  your host machine (same as you would if you developed for Dart native, as described in the next section):
-
-  ```shell script
-  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
-  ```
-
-Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
-
-### Dart Native
-
-Add these dependencies to your `pubspec.yaml`:
-```yaml
-dependencies:
-  objectbox: ^1.6.2
-
-dev_dependencies:
-  build_runner: ^2.0.0
-  objectbox_generator: any
-```
-
-* Install the packages: `dart pub get`
-* Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide (use "Git bash" on Windows):
-
-  ```shell script
-  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
-  ```
-  
-  To install ObjectBox Sync variant of the native library, pass `--sync` argument to the script:
-  
-  ```shell script
-  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
-  ```
-
-Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
 
 ## Flutter Database Performance Benchmarks
 
