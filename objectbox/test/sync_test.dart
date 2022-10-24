@@ -391,7 +391,7 @@ class SyncServer {
       '--db-directory=${_dir!.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
       '--bind=ws://127.0.0.1:$_port',
-      '--browser-bind=http://127.0.0.1:${await _getUnusedPort()}'
+      '--admin-bind=http://127.0.0.1:${await _getUnusedPort()}'
     ]);
 
     return _port!;
