@@ -5,7 +5,7 @@ set -eu
 # It's important that the generated dart bindings and the c-api library version match. Dart won't error on C function
 # signature mismatch, leading to obscure memory bugs.
 # For how to upgrade the version see dev-doc/updating-c-library.md
-cLibVersion=0.17.0
+cLibVersion=0.18.0
 os=$(uname)
 cLibArgs="$*"
 
