@@ -14,41 +14,41 @@
     <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml/badge.svg" alt="Build and test">
   </a>
   <a href="https://pub.dev/packages/objectbox">
-    <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart" alt="pub.dev package">
+    <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart&style=flat-square" alt="pub.dev package">
   </a>
   <a href="https://github.com/objectbox/objectbox-dart/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache" alt="Apache 2.0 license">
+    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache&style=flat-square" alt="Apache 2.0 license">
   </a>
   <a href="https://twitter.com/ObjectBox_io">
-    <img src="https://img.shields.io/twitter/follow/ObjectBox_io?style=flat&logo=twitter" alt="Follow @ObjectBox_io">
+    <img src="https://img.shields.io/twitter/follow/objectbox_io?color=%20%2300aced&logo=twitter&style=flat-square" alt="Follow @ObjectBox_io">
   </a>
 </p>
 
 # Flutter database for Dart-native objects 💙
 
-ObjectBox Flutter database is a great option for storing Dart objects in your cross-platform apps. 
-Minimal CPU, memory and battery use make it an ideal choice for mobile and IoT devices. Made for 
-efficient data access, the ObjectBox Flutter database is 10x faster than any alternative. See the 
-[performance benchmarks](#flutter-database-performance-benchmarks) below. No need to learn SQL, as 
-our NoSQL database uses a pure Dart API that is easy to work with and can be integrated in minutes. 
-Plus: We built a data synchronization solution that allows you to choose which objects to sync when 
-and keep data easily and efficiently in sync across devices.
+ObjectBox Flutter database is a great option for storing Dart objects in your cross-platform apps. Designed for 
+high performance, the ObjectBox Flutter database is ideal or mobile and IoT devices. ObjectBox uses minimal CPU, 
+memory and battery, making your app not only effective, but also sustainalbe. By storing data locally on device, 
+ObjectBox helps you cut your cloud costs down and make an app that doesn't depend connection. Get started with
+our intuitive native Dart API in minutes, without the hassle of SQL.
+Plus: We built a data synchronization solution that allows you to keep data in sync across devices and servers,
+both online and offline.
 
-### Features
+## Features
 
-🏁 **High performance** - improving response rates and enabling real-time applications.\
+🏁 **Super fast** - 10X faster than SQLite - see the [performance benchmarks](#flutter-database-performance-benchmarks).\
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
-💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows.\
+💻 **Cross-platform** - Android, iOS, macOS, Linux, Windows.\
 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
 
-🔗 **Relations** - object links / relationships are built-in.\
-💐 **Queries** - filter data as needed, even across relations.\
-🦮 **Statically typed** - compile time checks & optimizations.\
-📃 **Schema migration** - change your model with confidence.
+🎯 **NoSQL database** - no rows or columns, only pure Dart objects.\
+🔗 **[Relations](https://docs.objectbox.io/relations)** - object links / relationships are built-in.\
+💐 **[Queries](https://docs.objectbox.io/queries)** - filter data as needed, even across relations.\
+📃 **Schema migration** - simply change your model, we handle the rest.
 
 Oh, and there is one more thing...
 
-😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
+😮 [**Data Sync**](https://objectbox.io/sync/) - sync only when and where needed.
 
 ## On this page
 - [Sneak peek](#sneak-peek---persist-dart-objects-with-objectbox)
@@ -63,120 +63,51 @@ Oh, and there is one more thing...
 
 ---
 
-## Sneak peek - persist Dart objects with ObjectBox 
+## Sneak peek - persist Dart objects with ObjectBox
 
 ```dart
+// Annotate a Dart class to create a box
 @Entity()
 class Person {
+  @Id() 
   int id;
+  String name;
 
-  String firstName;
-  String lastName;
-
-  Person({this.id = 0, required this.firstName, required this.lastName});
+  Person({this.id = 0, required this.name});
 }
 
-final store = await openStore(); 
-final box = store.box<Person>();
+// Put a new object into the box
+var person = Person(name: "Joe Green");
+final id = box.put(person);
 
-var person = Person(firstName: 'Joe', lastName: 'Green');
+// Get the object back from the box
+person = box.get(id)!;
 
-final id = box.put(person);  // Create
+// Update the object
+person.name = "Joe Black";
+box.put(person);
 
-person = box.get(id)!;       // Read
+// Query for objects
+final query = (box.query(Person_.name.equal("Joe Black"))
+  ..order(Person_.name)).build();
+final people = query.find();
+query.close();
 
-person.lastName = "Black";
-box.put(person);             // Update
-
-box.remove(person.id);       // Delete
-
-// find all people whose name start with letter 'J'
-final query = box.query(Person_.firstName.startsWith('J')).build();
-final people = query.find();  // find() returns List<Person>
+// Remove the object from the box
+box.remove(person.id);
 ```
 
 ## Getting Started
 
-**Check out our new [Getting Started guide](https://docs.objectbox.io/getting-started).**
+**Continue with our 👉 [Getting Started](https://docs.objectbox.io/getting-started) 👈 guide.** 
+
+It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
 We also have some video tutorials, each featuring a different example app: 
 - [Shop order app](https://youtu.be/AxYbdriXKI8)
 - [Restaurant: chef and order apps](https://youtu.be/r9Lc2r22KBk)
 - [Task-list app (in Spanish)](https://youtu.be/osUq6B92-BY)
 - [Inventory Management](https://www.youtube.com/watch?v=BBlr8F8m9lo)
-
-
-**Depending on if you are building a Flutter or Dart-only app, follow the steps below to start using ObjectBox.**
-
-### Flutter 
-
-Add these dependencies to your `pubspec.yaml`:
-```yaml
-dependencies:
-  objectbox: ^1.6.2
-  objectbox_flutter_libs: any
-  # for ObjectBox Sync use this dependency instead:
-  # objectbox_sync_flutter_libs: any
-
-dev_dependencies:
-  build_runner: ^2.0.0
-  objectbox_generator: any
-```
-
-* Install the packages: `flutter pub get`
-* **For iOS**: in the Flutter Runner Xcode project
-  * increase the deployment target to at least iOS 11 and, 
-  * under Architectures, replace `${ARCHS_STANDARD}` with `arm64` (or `$ARCHS_STANDARD_64_BIT`). See [FAQ](https://docs.objectbox.io/faq#on-which-platforms-does-objectbox-run) for details.
-* **For sandboxed macOS apps**: specify an application group.
-  Check all `macos/Runner/*.entitlements` files if they contain a `<dict>` section with correct group ID info. 
-  Change the string value to the `DEVELOPMENT_TEAM` found in Xcode settings, plus an application-specific suffix, for example: 
-  
-  ```xml
-  <key>com.apple.security.application-groups</key>
-  <array>
-    <string>FGDTDLOBXDJ.demo</string>
-  </array>
-  ```
-  
-  Next, in the app code, pass the same string when opening the Store, for example: `openStore(macosApplicationGroup: 'FGDTDLOBXDJ.demo')`.  
-  Note: Pick a short group identifier; there's an internal limit in macOS that requires the complete string to be 
-  19 characters or fewer.
-* **For Sync + Android**: in `android/app/build.gradle` set `minSdkVersion 21` in section `android -> defaultConfig`. 
-* In order to run Flutter unit tests locally on your machine, install the native ObjectBox library on 
-  your host machine (same as you would if you developed for Dart native, as described in the next section):
-
-  ```shell script
-  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
-  ```
-
-Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
-
-### Dart Native
-
-Add these dependencies to your `pubspec.yaml`:
-```yaml
-dependencies:
-  objectbox: ^1.6.2
-
-dev_dependencies:
-  build_runner: ^2.0.0
-  objectbox_generator: any
-```
-
-* Install the packages: `dart pub get`
-* Install [objectbox-c](https://github.com/objectbox/objectbox-c) system-wide (use "Git bash" on Windows):
-
-  ```shell script
-  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
-  ```
-  
-  To install ObjectBox Sync variant of the native library, pass `--sync` argument to the script:
-  
-  ```shell script
-  bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
-  ```
-
-Continue with the [examples README](example/README.md) to learn how to create entities and use the ObjectBox API.
 
 ## Flutter Database Performance Benchmarks
 

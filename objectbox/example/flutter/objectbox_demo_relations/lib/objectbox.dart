@@ -70,8 +70,8 @@ class ObjectBox {
   Stream<List<Task>> getTasks() {
     // Query for all tasks, sorted by their date.
     // https://docs.objectbox.io/queries
-    final qBuilderTasks = taskBox.query()
-      ..order(Task_.dateCreated, flags: Order.descending);
+    final qBuilderTasks =
+        taskBox.query().order(Task_.dateCreated, flags: Order.descending);
     // Build and watch the query,
     // set triggerImmediately to emit the query immediately on listen.
     return qBuilderTasks

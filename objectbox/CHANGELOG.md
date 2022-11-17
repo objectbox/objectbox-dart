@@ -1,5 +1,12 @@
 ## latest
 
+* Support more concise method chaining when using a sort order with a query:
+  ```dart
+  // BEFORE
+  final query = (box.query()..order(Person_.name)).build();
+  // AFTER
+  final query = box.query().order(Person_.name).build();
+  ```
 
 ## 1.6.2 (2022-08-24)
 
