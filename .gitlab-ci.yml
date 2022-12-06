@@ -35,7 +35,7 @@ analyze:
     - cd ..
     - dart format --set-exit-if-changed --fix .
 
-# Runs generator integration tests, e.g. ensures generator works as expected.
+# Runs generator unit and integration tests, e.g. ensures generator works as expected.
 test-generator:linux:x64:
   extends: .cache
   stage: test
@@ -44,6 +44,9 @@ test-generator:linux:x64:
   script:
     - ./install.sh
     - ./generator/test.sh
+    - cd generator
+    - dart pub get
+    - dart test
 
 .test:
   extends: .cache

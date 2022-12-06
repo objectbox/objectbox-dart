@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install ObjectBox C-API
         run: ./install.sh
-      - name: Test
+      - name: Integration test
         run: ./generator/test.sh
 
   # make sure the init script doesn't stop working - it's not something we usually run during normal development
@@ -54,10 +54,15 @@ jobs:
         with:
           sdk: ${{ matrix.sdk }}
       - uses: actions/checkout@v3
+      - name: Generator Test
+        working-directory: generator
+        run: |
+          ../tool/pub.sh get
+          ../tool/pub.sh run test
       - name: Install ObjectBox C-API
         working-directory: objectbox
         run: ../install.sh
-      - name: Test
+      - name: Library Test
         working-directory: objectbox
         run: |
           ../tool/pub.sh get
