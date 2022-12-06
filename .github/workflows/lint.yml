@@ -10,7 +10,7 @@ on:
 
 jobs:
   analyze:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
       image: dart:2.17.6
     steps:
@@ -22,7 +22,7 @@ jobs:
       - run: dart format --set-exit-if-changed --fix .
 
   pana:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: axel-op/dart-package-analyzer@v3
@@ -41,7 +41,7 @@ jobs:
           fi
 
   coverage:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2

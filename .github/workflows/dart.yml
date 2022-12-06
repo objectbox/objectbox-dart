@@ -14,7 +14,7 @@ defaults:
 
 jobs:
   generator:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
       image: dart:2.17.6
     steps:
@@ -26,7 +26,7 @@ jobs:
 
   # make sure the init script doesn't stop working - it's not something we usually run during normal development
   init-script:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
@@ -42,7 +42,7 @@ jobs:
         os:
           - windows-2022
           - macos-11
-          - ubuntu-20.04
+          - ubuntu-22.04
         sdk:
           - 2.17.6
           - 2.16.2
@@ -65,7 +65,7 @@ jobs:
           ../tool/pub.sh run test
 
   valgrind:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: dart-lang/setup-dart@v1
         with:
@@ -91,7 +91,7 @@ jobs:
       matrix:
         os:
           - macos-11
-          - ubuntu-20.04
+          - ubuntu-22.04
         flutter-version:
           - 3.0.5
           - 2.5.0 # currently the lowest fully supported version (i.e. generator + lib)
