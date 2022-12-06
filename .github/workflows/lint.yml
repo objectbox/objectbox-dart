@@ -14,7 +14,7 @@ jobs:
     container:
       image: dart:2.17.6
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: dart run build_runner build
         working-directory: objectbox
       - run: dart analyze
@@ -24,7 +24,7 @@ jobs:
   pana:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: axel-op/dart-package-analyzer@v3
         id: analysis # set an id for the current step
         with:
@@ -43,7 +43,7 @@ jobs:
   coverage:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.0.5

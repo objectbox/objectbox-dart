@@ -18,7 +18,7 @@ jobs:
     container:
       image: dart:2.17.6
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Test
@@ -28,7 +28,7 @@ jobs:
   init-script:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.0.5
@@ -53,7 +53,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: ${{ matrix.sdk }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install ObjectBox C-API
         working-directory: objectbox
         run: ../install.sh
@@ -70,7 +70,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 2.17.6
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Install Valgrind
@@ -102,7 +102,7 @@ jobs:
             os: windows-2019
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ matrix.flutter-version }}
