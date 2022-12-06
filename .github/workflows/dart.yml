@@ -108,7 +108,7 @@ jobs:
           flutter-version: ${{ matrix.flutter-version }}
           cache: true
       # macos-11 and windows-2019/2022 default to Java 8, but Android Plugin requires 11.
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '11'
