@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
-import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -232,6 +231,31 @@ void main() {
 
     store.close();
     Directory('store').deleteSync(recursive: true);
+  });
+
+  test('store maxDBSizeInKB', () {
+    final testDir = Directory('db-size-test');
+    if (testDir.existsSync()) testDir.deleteSync(recursive: true);
+
+    // Empty file is around 24 KB, object below adds about 12 KB each.
+    var store =
+        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 40);
+    var box = store.box<TestEntity>();
+    box.put(TestEntity.filled(id: 0));
+
+    final testEntity2 = TestEntity.filled(id: 0);
+    expect(
+        () => box.put(testEntity2),
+        throwsA(predicate((e) =>
+            e is ObjectBoxException &&
+            e.message == 'object put failed: 10101 Could not put')));
+
+    // Re-open with larger size.
+    store.close();
+    store =
+        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 60);
+    testEntity2.id = 0; // Clear ID of object that failed to put.
+    store.box<TestEntity>().put(testEntity2);
   });
 
   test('store open in unicode symbol path', () async {
