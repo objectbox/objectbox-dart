@@ -28,6 +28,18 @@ class ObjectBoxException implements Exception {
   String toString() => 'ObjectBoxException: $message';
 }
 
+/// ObjectBox database exception with an OBX_ERROR code.
+class StorageException extends ObjectBoxException {
+  /// OBX_ERROR code as defined in [objectbox.h of the C library](https://github.com/objectbox/objectbox-c/blob/main/include/objectbox.h).
+  final int errorCode;
+
+  /// Create with a message and OBX_ERROR code.
+  StorageException(String message, this.errorCode) : super(message);
+
+  @override
+  String toString() => 'StorageException: $message (OBX_ERROR code $errorCode)';
+}
+
 /// A unique constraint would have been violated by this database operation.
 class UniqueViolationException extends ObjectBoxException {
   /// Create a new exception.

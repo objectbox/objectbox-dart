@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
+import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -247,8 +248,9 @@ void main() {
     expect(
         () => box.put(testEntity2),
         throwsA(predicate((e) =>
-            e is ObjectBoxException &&
-            e.message == 'object put failed: 10101 Could not put')));
+            e is StorageException &&
+            e.errorCode == OBX_ERROR_DB_FULL &&
+            e.message == 'object put failed: Could not put')));
 
     // Re-open with larger size.
     store.close();

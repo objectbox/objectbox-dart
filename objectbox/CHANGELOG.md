@@ -10,6 +10,7 @@
 * Allow `analyzer` with major version 5. #487
 * Generator not longer warns that it can not find the package source root if the output directory is
   the package root directory.
+* Add `StorageException` which is a `ObjectBoxException` with an `errorCode` (a `OBX_ERROR` code).
 
 ## 1.6.2 (2022-08-24)
 

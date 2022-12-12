@@ -57,25 +57,33 @@ class ObjectBoxNativeError {
 
   ObjectBoxNativeError(this.code, this.message, this.context);
 
-  String get fullMessage =>
-      context == null ? '$code $message' : '$context: $code $message';
+  String get messageWithContext =>
+      context == null ? message : '$context: $message';
+
+  String get messageWithErrorCode => code == 0
+      ? messageWithContext
+      : '$messageWithContext (OBX_ERROR code $code)';
 
   Never throwMapped() {
     switch (code) {
       case OBX_ERROR_ILLEGAL_STATE:
-        throw StateError(fullMessage);
+        throw StateError(messageWithErrorCode);
       case OBX_ERROR_ILLEGAL_ARGUMENT:
       case OBX_ERROR_STD_ILLEGAL_ARGUMENT:
-        throw ArgumentError(fullMessage);
+        throw ArgumentError(messageWithErrorCode);
       case OBX_ERROR_NUMERIC_OVERFLOW:
       case OBX_ERROR_STD_OUT_OF_RANGE:
       case OBX_ERROR_STD_RANGE:
       case OBX_ERROR_STD_OVERFLOW:
-        throw RangeError(fullMessage);
+        throw RangeError(messageWithErrorCode);
       case OBX_ERROR_UNIQUE_VIOLATED:
-        throw UniqueViolationException(fullMessage);
+        throw UniqueViolationException(messageWithContext);
       default:
-        throw ObjectBoxException(fullMessage);
+        if (code == 0) {
+          throw ObjectBoxException(messageWithContext);
+        } else {
+          throw StorageException(messageWithContext, code);
+        }
     }
   }
 }
