@@ -10,11 +10,11 @@ on:
 
 jobs:
   analyze:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container:
       image: dart:2.17.6
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: dart run build_runner build
         working-directory: objectbox
       - run: dart analyze
@@ -22,9 +22,9 @@ jobs:
       - run: dart format --set-exit-if-changed --fix .
 
   pana:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: axel-op/dart-package-analyzer@v3
         id: analysis # set an id for the current step
         with:
@@ -41,9 +41,9 @@ jobs:
           fi
 
   coverage:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.0.5
@@ -60,13 +60,13 @@ jobs:
           result_path: objectbox/coverage/lcov.info
           min_coverage: 90
           token: ${{ github.token }}
-      - uses: danielpalme/ReportGenerator-GitHub-Action@4.8.10
+      - uses: danielpalme/ReportGenerator-GitHub-Action@5.1.12
         with:
           reports: 'objectbox/coverage/lcov.info'
           targetdir: 'coveragereport'
           reporttypes: 'HtmlInline' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
           sourcedirs: 'objectbox'
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: CoverageReport # Artifact name
           path: coveragereport # Directory containing files to upload
