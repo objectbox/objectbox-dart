@@ -7,6 +7,7 @@
   // AFTER
   final query = box.query().order(Person_.name).build();
   ```
+* Allow `analyzer` with major version 5. #487
 
 ## 1.6.2 (2022-08-24)
 

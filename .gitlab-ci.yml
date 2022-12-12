@@ -65,7 +65,8 @@ test-lib:linux:x64:
   needs: ["test-generator:linux:x64"] # Wait for generator test
   parallel:
     matrix:
-      # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
-      #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-      # Always include lowest supported version (see sdk key in objectbox and generator pubspec.yaml).
-      - DART_VERSION: [ '2.14', '2.16.2', '2.17.6', '2.18.5' ]
+      # Note: use specific versions instead of latest/beta tags as Docker images may not always be
+      # pulled due to "if-not-present" pull policy. Check https://hub.docker.com/_/dart?tab=tags.
+      # Always include lowest supported version (see sdk key in objectbox and generator
+      # pubspec.yaml, but may be higher due to dependencies).
+      - DART_VERSION: [ '2.17.6', '2.18.5' ]
