@@ -8,6 +8,8 @@
   final query = box.query().order(Person_.name).build();
   ```
 * Allow `analyzer` with major version 5. #487
+* Generator not longer warns that it can not find the package source root if the output directory is
+  the package root directory.
 
 ## 1.6.2 (2022-08-24)
 

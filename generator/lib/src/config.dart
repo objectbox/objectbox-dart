@@ -22,7 +22,7 @@ class Config {
   final String outDirLib;
   final String outDirTest;
 
-  Config._(
+  Config(
       {String? jsonFile,
       String? codeFile,
       String? outDirLib,
@@ -48,9 +48,9 @@ class Config {
           outDirLib = outDirTest = outDirYaml as String?;
         }
 
-        return Config._(outDirLib: outDirLib, outDirTest: outDirTest);
+        return Config(outDirLib: outDirLib, outDirTest: outDirTest);
       }
     }
-    return Config._();
+    return Config();
   }
 }
