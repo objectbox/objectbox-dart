@@ -1,3 +1,5 @@
+import '../objectbox.dart';
+
 /// Wrapper for a semantic version information.
 class Version {
   /// Major version number.
@@ -38,6 +40,13 @@ class StorageException extends ObjectBoxException {
 
   @override
   String toString() => 'StorageException: $message (OBX_ERROR code $errorCode)';
+}
+
+/// Thrown when applying a transaction (e.g. putting an object) would exceed the
+/// `maxDBSizeInKB` configured when calling [Store.new].
+class DbFullException extends StorageException {
+  /// See [DbFullException].
+  DbFullException(String message, int errorCode) : super(message, errorCode);
 }
 
 /// A unique constraint would have been violated by this database operation.

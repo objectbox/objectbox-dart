@@ -78,6 +78,8 @@ class ObjectBoxNativeError {
         throw RangeError(messageWithErrorCode);
       case OBX_ERROR_UNIQUE_VIOLATED:
         throw UniqueViolationException(messageWithContext);
+      case OBX_ERROR_DB_FULL:
+        throw DbFullException(messageWithContext, code);
       default:
         if (code == 0) {
           throw ObjectBoxException(messageWithContext);

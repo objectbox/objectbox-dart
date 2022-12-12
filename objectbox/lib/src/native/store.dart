@@ -98,12 +98,15 @@ class Store {
   /// ## Maximum database size
   ///
   /// [maxDBSizeInKB] sets the maximum size the database file can grow to.
-  /// By default this is 1 GB, which should be sufficient for most applications.
-  /// The store will throw when trying to insert more data if the maximum size
-  /// is reached.
+  /// When applying a transaction (e.g. putting an object) would exceed it a
+  /// [DbFullException] is thrown.
   ///
+  /// By default, this is 1 GB, which should be sufficient for most applications.
   /// In general, a maximum size prevents the database from growing indefinitely
   /// when something goes wrong (for example data is put in an infinite loop).
+  ///
+  /// This value can be changed, so increased or also decreased, each time when
+  /// opening a store.
   ///
   /// ## File mode
   ///

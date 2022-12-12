@@ -248,7 +248,7 @@ void main() {
     expect(
         () => box.put(testEntity2),
         throwsA(predicate((e) =>
-            e is StorageException &&
+            e is DbFullException &&
             e.errorCode == OBX_ERROR_DB_FULL &&
             e.message == 'object put failed: Could not put')));
 
