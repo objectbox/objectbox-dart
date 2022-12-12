@@ -44,10 +44,10 @@ jobs:
           - macos-11
           - ubuntu-22.04
         sdk:
+          # Always include lowest supported version (see sdk key in objectbox and generator
+          # pubspec.yaml, but may be higher due to dependencies).
           - 2.18.5
           - 2.17.6
-          - 2.16.2
-          - 2.14.0 # currently the lowest fully supported version (i.e. generator + lib)
     runs-on: ${{ matrix.os }}
     steps:
       - uses: dart-lang/setup-dart@v1
@@ -93,14 +93,12 @@ jobs:
         os:
           - macos-11
           - ubuntu-22.04
+          - windows-2022 # Flutter 2.9 and newer need Visual Studio 2022 to build desktop.
         flutter-version:
+          # Always include lowest supported version (based on lowest tested Dart SDK, see lib tests
+          # above): https://docs.flutter.dev/development/tools/sdk/releases lists included Dart SDK.
           - 3.3.9
-          - 2.5.0 # currently the lowest fully supported version (i.e. generator + lib)
-        include:
-          - flutter-version: 3.3.9 # Flutter 2.9 and newer need Visual Studio 2022 to build desktop.
-            os: windows-2022
-          - flutter-version: 2.5.0 # Flutter 2.8.1 and older need Visual Studio 2019 to build desktop.
-            os: windows-2019
+          - 3.0.5
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
