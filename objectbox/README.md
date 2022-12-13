@@ -88,8 +88,8 @@ person.name = "Joe Black";
 box.put(person);
 
 // Query for objects
-final query = (box.query(Person_.name.equal("Joe Black"))
-  ..order(Person_.name)).build();
+final query = box.query(Person_.name.equal("Joe Black"))
+        .order(Person_.name).build();
 final people = query.find();
 query.close();
 
@@ -99,7 +99,7 @@ box.remove(person.id);
 
 ## Getting Started
 
-**Continue with our 👉 [Getting Started](https://docs.objectbox.io/getting-started) 👈 guide.** 
+Read the **[Getting Started guide](https://docs.objectbox.io/getting-started)**. 
 
 It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
