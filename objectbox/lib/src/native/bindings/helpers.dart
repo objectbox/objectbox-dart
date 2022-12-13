@@ -71,7 +71,7 @@ class ObjectBoxNativeError {
       case OBX_ERROR_ILLEGAL_ARGUMENT:
         throw ArgumentError(messageWithErrorCode);
       case OBX_ERROR_NUMERIC_OVERFLOW:
-        throw RangeError(messageWithErrorCode);
+        throw NumericOverflowException(messageWithContext);
       case OBX_ERROR_DB_FULL:
         throw DbFullException(messageWithContext, code);
       case OBX_ERROR_MAX_READERS_EXCEEDED:

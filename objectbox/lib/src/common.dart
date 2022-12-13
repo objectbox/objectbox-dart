@@ -30,6 +30,13 @@ class ObjectBoxException implements Exception {
   String toString() => 'ObjectBoxException: $message';
 }
 
+/// Thrown if a property query aggregate function (e.g. `sum()`) can not compute
+/// a result due to a number type overflowing.
+class NumericOverflowException extends ObjectBoxException {
+  /// See [NumericOverflowException].
+  NumericOverflowException(String message) : super(message);
+}
+
 /// ObjectBox database exception with an OBX_ERROR code.
 class StorageException extends ObjectBoxException {
   /// OBX_ERROR code as defined in [objectbox.h of the C library](https://github.com/objectbox/objectbox-c/blob/main/include/objectbox.h).
