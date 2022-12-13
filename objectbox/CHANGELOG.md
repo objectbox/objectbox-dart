@@ -10,6 +10,11 @@
 * Allow `analyzer` with major version 5. #487
 * Generator not longer warns that it can not find the package source root if the output directory is
   the package root directory.
+* Add `StorageException` which is a `ObjectBoxException` with an `errorCode` (a `OBX_ERROR` code).
+* Throw `DbFullException` instead of `ObjectBoxException` with message `10101 Could not put` (error 
+  code `OBX_ERROR_DB_FULL`).
+* Change `Query.findUnique()` to throw `NonUniqueResultException` instead of 
+  `UniqueViolationException` if there is more than one result.
 
 ## 1.6.2 (2022-08-24)
 

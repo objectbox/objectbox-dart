@@ -365,8 +365,8 @@ void main() {
 
     expect(
         () => query.findUnique(),
-        throwsA(predicate((UniqueViolationException e) =>
-            e.toString().contains('more than one'))));
+        throwsA(predicate((NonUniqueResultException e) =>
+            e.message == 'Query findUnique() matched more than one object')));
 
     query.param(TestEntity_.tString).value = 't2';
     expect(query.findUnique()!.tString, 't2');

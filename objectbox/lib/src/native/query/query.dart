@@ -775,7 +775,8 @@ class Query<T> {
   }
 
   /// Finds the only object matching the query. Returns null if there are no
-  /// results or throws if there are multiple objects matching.
+  /// results or throws [NonUniqueResultException] if there are multiple objects
+  /// matching.
   ///
   /// Note: [offset] and [limit] are respected, if set. Because [limit] affects
   /// the number of matched objects, make sure you leave it at zero or set it
@@ -794,7 +795,7 @@ class Query<T> {
           return false;
         }
       } else {
-        error = UniqueViolationException(
+        error = NonUniqueResultException(
             'Query findUnique() matched more than one object');
         return false;
       }

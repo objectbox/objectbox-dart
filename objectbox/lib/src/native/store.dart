@@ -98,12 +98,15 @@ class Store {
   /// ## Maximum database size
   ///
   /// [maxDBSizeInKB] sets the maximum size the database file can grow to.
-  /// By default this is 1 GB, which should be sufficient for most applications.
-  /// The store will throw when trying to insert more data if the maximum size
-  /// is reached.
+  /// When applying a transaction (e.g. putting an object) would exceed it a
+  /// [DbFullException] is thrown.
   ///
+  /// By default, this is 1 GB, which should be sufficient for most applications.
   /// In general, a maximum size prevents the database from growing indefinitely
   /// when something goes wrong (for example data is put in an infinite loop).
+  ///
+  /// This value can be changed, so increased or also decreased, each time when
+  /// opening a store.
   ///
   /// ## File mode
   ///
@@ -116,14 +119,14 @@ class Store {
   /// ## Maximum number of readers
   ///
   /// [maxReaders] sets the maximum number of concurrent readers. For most
-  /// applications, the default is fine (~ 126 readers).
+  /// applications, the default is fine (about 126 readers).
   ///
-  /// A "reader" is short for a thread involved in a read transaction.
+  /// A "reader" is short for a thread involved in a read transaction. If the
+  /// maximum is exceeded the store throws [DbMaxReadersExceededException]. In
+  /// this case check that your code only uses a reasonable amount of threads.
   ///
-  /// If the store throws OBX_ERROR_MAX_READERS_EXCEEDED, you should first worry
-  /// about the amount of threads your code is using.
-  /// For highly concurrent setups (e.g. using ObjectBox on the server side) it
-  /// may make sense to increase the number.
+  /// For highly concurrent setups (e.g. you are using ObjectBox on the server
+  /// side) it may make sense to increase the number.
   ///
   /// Note: Each thread that performed a read transaction and is still alive
   /// holds on to a reader slot. These slots only get vacated when the thread
