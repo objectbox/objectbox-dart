@@ -152,6 +152,25 @@ void main() {
     query.close();
   });
 
+  test('.sum integers overflow', () {
+    box.removeAll();
+    // Max int for Dart native (64-bit signed integer).
+    box.put(TestEntity(tLong: 0x7fffffffffffffff));
+    box.put(TestEntity(tLong: 1));
+
+    expect(box.get(1)!.tLong, 0x7fffffffffffffff);
+    expect(box.get(2)!.tLong, 1);
+
+    final query = box.query().build();
+    expect(() {
+      query.property(tLong).sum();
+    },
+        throwsA(predicate((e) =>
+            e is NumericOverflowException &&
+            e.message == "Numeric overflow: 9223372036854775808 high: 0")));
+    query.close();
+  });
+
   test('.min integers', () {
     box.putMany(integerList());
 
