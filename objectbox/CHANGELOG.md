@@ -10,6 +10,7 @@
 * Allow `analyzer` with major version 5. #487
 * Generator not longer warns that it can not find the package source root if the output directory is
   the package root directory.
+* Query: add `.containsElement`, deprecate `.contains` condition for `List<String>`. #481
 * Add `StorageException` which is a `ObjectBoxException` with an `errorCode` (a `OBX_ERROR` code).
 * Throw `DbFullException` instead of `ObjectBoxException` with message `10101 Could not put` (error 
   code `OBX_ERROR_DB_FULL`).
