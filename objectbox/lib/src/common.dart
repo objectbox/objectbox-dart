@@ -112,6 +112,13 @@ class DbPagesCorruptException extends DbFileCorruptException {
       : super(message, errorCode);
 }
 
+/// Thrown if `Query.findUnique()` is called, but the query matches more than
+/// one object.
+class NonUniqueResultException extends ObjectBoxException {
+  /// See [NonUniqueResultException].
+  NonUniqueResultException(String message) : super(message);
+}
+
 /// Passed as `debugFlags` when calling [Store.new] to enable debug options.
 class DebugFlags {
   /// Log read transactions.
