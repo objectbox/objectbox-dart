@@ -14,17 +14,18 @@ dependencies:
   objectbox: 1.6.2
   path_provider: ^2.0.0
 
+# FIXME Disable iOS and macOS support until Swift release supporting C API 0.18.0 is available.
 flutter:
   plugin:
     platforms:
       android:
         package: io.objectbox.objectbox_sync_flutter_libs
         pluginClass: ObjectboxSyncFlutterLibsPlugin
-      ios:
-        pluginClass: ObjectboxSyncFlutterLibsPlugin
+#      ios:
+#        pluginClass: ObjectboxSyncFlutterLibsPlugin
       linux:
         pluginClass: ObjectboxSyncFlutterLibsPlugin
-      macos:
-        pluginClass: ObjectboxSyncFlutterLibsPlugin
+#      macos:
+#        pluginClass: ObjectboxSyncFlutterLibsPlugin
       windows:
         pluginClass: ObjectboxSyncFlutterLibsPlugin
