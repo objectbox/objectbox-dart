@@ -49,13 +49,63 @@ class DbFullException extends StorageException {
   DbFullException(String message, int errorCode) : super(message, errorCode);
 }
 
+/// Thrown when the maximum amount of readers (read transactions) was exceeded.
+///
+/// Verify that your code only uses a reasonable amount of threads.
+///
+/// If a very high number of threads (>100) needs to be used, consider
+/// setting `maxReaders` when calling [Store.new].
+class DbMaxReadersExceededException extends StorageException {
+  /// See [DbMaxReadersExceededException].
+  DbMaxReadersExceededException(String message, int errorCode)
+      : super(message, errorCode);
+}
+
+/// Thrown when an error occurred that requires the store to be closed.
+///
+/// This may be an I/O error. Regular operations won't be possible. To handle
+/// this exit the app or try to reopen the store.
+class DbShutdownException extends StorageException {
+  /// See [DbShutdownException].
+  DbShutdownException(String message, int errorCode)
+      : super(message, errorCode);
+}
+
 /// A unique constraint would have been violated by this database operation.
 class UniqueViolationException extends ObjectBoxException {
   /// Create a new exception.
   UniqueViolationException(String message) : super(message);
 }
 
-/// Flags to enable debug options when creating a [Store].
+/// Thrown when there is an error with the data schema (data model).
+///
+/// Typically, there is a conflict between the data model defined in your code
+/// (using `@Entity` classes) and the data model of the existing database file.
+///
+/// Read the [meta model docs](https://docs.objectbox.io/advanced/meta-model-ids-and-uids#resolving-meta-model-conflicts)
+/// on why this can happen and how to resolve such conflicts.
+class SchemaException extends ObjectBoxException {
+  /// See [SchemaException].
+  SchemaException(String message) : super(message);
+}
+
+/// Errors were detected in a database file, e.g. illegal values or structural
+/// inconsistencies.
+class DbFileCorruptException extends StorageException {
+  /// See [DbFileCorruptException].
+  DbFileCorruptException(String message, int errorCode)
+      : super(message, errorCode);
+}
+
+/// Errors related to pages were detected in a database file, e.g. bad page refs
+/// outside of the file.
+class DbPagesCorruptException extends DbFileCorruptException {
+  /// See [DbPagesCorruptException].
+  DbPagesCorruptException(String message, int errorCode)
+      : super(message, errorCode);
+}
+
+/// Passed as `debugFlags` when calling [Store.new] to enable debug options.
 class DebugFlags {
   /// Log read transactions.
   static const int logTransactionsRead = 1;

@@ -76,10 +76,20 @@ class ObjectBoxNativeError {
       case OBX_ERROR_STD_RANGE:
       case OBX_ERROR_STD_OVERFLOW:
         throw RangeError(messageWithErrorCode);
-      case OBX_ERROR_UNIQUE_VIOLATED:
-        throw UniqueViolationException(messageWithContext);
       case OBX_ERROR_DB_FULL:
         throw DbFullException(messageWithContext, code);
+      case OBX_ERROR_MAX_READERS_EXCEEDED:
+        throw DbMaxReadersExceededException(messageWithContext, code);
+      case OBX_ERROR_STORE_MUST_SHUTDOWN:
+        throw DbShutdownException(messageWithContext, code);
+      case OBX_ERROR_UNIQUE_VIOLATED:
+        throw UniqueViolationException(messageWithContext);
+      case OBX_ERROR_SCHEMA:
+        throw SchemaException(messageWithContext);
+      case OBX_ERROR_FILE_CORRUPT:
+        throw DbFileCorruptException(messageWithContext, code);
+      case OBX_ERROR_FILE_PAGES_CORRUPT:
+        throw DbPagesCorruptException(messageWithContext, code);
       default:
         if (code == 0) {
           throw ObjectBoxException(messageWithContext);
