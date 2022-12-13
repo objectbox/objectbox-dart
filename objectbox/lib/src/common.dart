@@ -135,4 +135,23 @@ class DebugFlags {
 
   /// Log async queue details.
   static const int logAsyncQueue = 16;
+
+  /// Log cache hits.
+  static const int logCacheHits = 32;
+
+  /// Log all cache access.
+  static const int logCacheAll = 64;
+
+  /// Log tree API use.
+  static const int logTree = 128;
+
+  /// For a limited number of error conditions, this will try to print stack
+  /// traces. Note: this is Linux-only, experimental, and has several
+  /// limitations: The usefulness of these stack traces depends on several
+  /// factors and might not be helpful at all.
+  static const int logExceptionStackTrace = 256;
+
+  /// Run a quick self-test to verify basic threading; somewhat paranoia to
+  /// check the platform and the library setup.
+  static const int runThreadingSelfTest = 512;
 }
