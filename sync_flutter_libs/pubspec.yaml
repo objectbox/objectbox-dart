@@ -2,7 +2,7 @@ name: objectbox_sync_flutter_libs
 description: Fast Flutter database for persisting Dart objects. This package contains Flutter runtime libraries for ObjectBox, including ObjectBox Sync.
 repository: https://github.com/objectbox/objectbox-dart
 homepage: https://objectbox.io
-version: 1.6.2
+version: 1.7.0
 
 environment:
   sdk: ">=2.14.0 <3.0.0"
@@ -11,7 +11,7 @@ environment:
 dependencies:
   # This is here just to ensure compatibility between objectbox-dart code and the libraries used
   # You should still depend on objectbox directly in your Flutter application.
-  objectbox: 1.6.2
+  objectbox: 1.7.0
   path_provider: ^2.0.0
 
 flutter:
