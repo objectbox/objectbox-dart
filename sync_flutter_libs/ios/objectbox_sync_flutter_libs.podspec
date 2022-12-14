@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source_files     = 'Classes/**/*'
 
   s.dependency 'Flutter'
-  s.dependency 'ObjectBox', '1.7.0-sync'
+  s.dependency 'ObjectBox', '1.8.1-sync-rc'
 
   # Flutter.framework does not contain a i386 or arm64. Only x86_64 simulators are supported.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
