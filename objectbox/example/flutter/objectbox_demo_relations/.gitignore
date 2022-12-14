@@ -45,3 +45,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Not checking in Podfile.lock to avoid updating it for every 
+# ObjectBox release and to always build with latest dependencies on CI.
+ios/Podfile.lock
+macos/Podfile.lock
