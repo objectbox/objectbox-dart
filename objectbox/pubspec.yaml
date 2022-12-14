@@ -37,6 +37,7 @@ ffigen:
   headers:
     entry-points:
       # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading
+      # This is to avoid casting Pointer<Uint8> to Pointer<Void> in Dart.
       - 'lib/src/native/bindings/objectbox.h'
       - 'lib/src/native/bindings/objectbox-dart.h'
     include-directives:

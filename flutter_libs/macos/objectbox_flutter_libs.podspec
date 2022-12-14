@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source_files     = 'Classes/**/*'
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'ObjectBox', '1.7.0'
+  s.dependency 'ObjectBox', '1.8.1-rc'
 
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.3'

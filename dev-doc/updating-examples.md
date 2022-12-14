@@ -2,9 +2,8 @@
 
 In the example directory delete the platform specific directories.
 
-Then run `flutter create .` to re-create these files.
+Then run `flutter create --platforms=android,ios,linux,macos,windows .` to re-create these files.
 
-- Remove the web folder.
 - Remove the created default test.
 
 Check changes do not break the example in any way, make additional changes as required.

@@ -16,5 +16,5 @@ repositories {
 
 dependencies {
     // https://search.maven.org/search?q=g:io.objectbox%20objectbox-sync-android
-    implementation "io.objectbox:objectbox-sync-android:3.2.0"
+    implementation "io.objectbox:objectbox-sync-android:3.5.0"
 }

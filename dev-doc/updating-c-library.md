@@ -9,21 +9,19 @@ Dart won't error on C function signature mismatch, leading to obscure memory bug
 Update `flutter_libs` and `sync_flutter_libs` with **compatible library versions**:  
 
 - Linux and Windows
-  - Shortcut: search and replace e.g. `set(OBJECTBOX_VERSION 0.17.0)` in `CMakeLists.txt`.
+  - Shortcut: search and replace e.g. `set(OBJECTBOX_VERSION 0.18.0)` in `CMakeLists.txt`.
   - [flutter_libs Linux](../flutter_libs/linux/CMakeLists.txt)
   - [flutter_libs Windows](../flutter_libs/windows/CMakeLists.txt)
   - [sync_flutter_libs Linux](../sync_flutter_libs/linux/CMakeLists.txt)
   - [sync_flutter_libs Windows](../sync_flutter_libs/windows/CMakeLists.txt)
 - Android ([view releases](https://github.com/objectbox/objectbox-java/releases))
   ```
-  ./tool/set-android-version.sh 3.2.0
+  ./tool/set-android-version.sh 3.5.0
   ```
 - Swift (iOS/macOS) ([view releases](https://github.com/objectbox/objectbox-swift/releases))
-  - Shortcut: search and replace e.g. `s.dependency 'ObjectBox', '1.7.0` in `.podspec` files.
-  - In [flutter_libs for iOS](../flutter_libs/ios/objectbox_flutter_libs.podspec)
-  - In [flutter_libs for macOS](../flutter_libs/macos/objectbox_flutter_libs.podspec)
-  - In [sync_flutter_libs for iOS](../sync_flutter_libs/ios/objectbox_sync_flutter_libs.podspec)
-  - In [sync_flutter_libs for macOS](../sync_flutter_libs/macos/objectbox_sync_flutter_libs.podspec)
+  ```
+  ./tool/set-swift-version.sh 1.8.0
+  ```
 
 ## Dart bindings
 Download source code of an [objectbox-c release version](https://github.com/objectbox/objectbox-c/releases).
@@ -36,5 +34,5 @@ Download source code of an [objectbox-c release version](https://github.com/obje
   (see [ffigen docs](https://pub.dev/packages/ffigen#installing-llvm) 
   and the ffigen section in [pubspec.yaml](../objectbox/pubspec.yaml)).
 - Copy/update enums from [objectbox_c.dart](../objectbox/lib/src/native/bindings/objectbox_c.dart) 
-  in [enums.dart](../objectbox/lib/src/modelinfo/enums.dart).
+  in [enums.dart](../objectbox/lib/src/modelinfo/enums.dart) that need to be exposed to users.
 - Have a look at the changed files to see if some call sites need to be updated.
