@@ -22,6 +22,7 @@ dependencies:
 dev_dependencies:
   test: ^1.16.5
   lints: ^2.0.1
+  crypto: ^3.0.2
 
 # NOTE: remove before publishing
 dependency_overrides:
