@@ -26,6 +26,12 @@
 
 # Flutter database for fast Dart object persistence 💙
 
+---
+
+💙 Jobs: We're looking for a [Flutter Developer Relations Manager](https://objectbox.io/jobs/developer-relations-manager-evangelist-advocate/)! 💙
+
+---
+
 Database for Flutter / Dart - fast and simple. Persist local Dart objects with ease & speed, focus on the value your application provides.
 
 ```dart
