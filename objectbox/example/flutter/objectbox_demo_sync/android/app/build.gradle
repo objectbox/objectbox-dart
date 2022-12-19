@@ -26,10 +26,8 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    // Using explicit versions to build with Flutter 2.2.0 in CI.
-    // compileSdkVersion flutter.compileSdkVersion
-    // ndkVersion flutter.ndkVersion
-    compileSdkVersion 31
+    compileSdkVersion flutter.compileSdkVersion
+    ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -48,10 +46,9 @@ android {
         applicationId "com.example.objectbox_demo_sync"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
+//        minSdkVersion flutter.minSdkVersion
         minSdkVersion 21 // ObjectBox Sync requires at least SDK 21 (Android 5.0)
-        // targetSdkVersion flutter.targetSdkVersion
-        // Using explicit version to build with Flutter 2.2.0 in CI.
-        targetSdkVersion 29
+        targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

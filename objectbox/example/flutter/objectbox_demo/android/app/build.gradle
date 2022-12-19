@@ -26,10 +26,8 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    // Using explicit versions to build with Flutter 2.2.0 in CI.
-    // compileSdkVersion flutter.compileSdkVersion
-    // ndkVersion flutter.ndkVersion
-    compileSdkVersion 31
+    compileSdkVersion flutter.compileSdkVersion
+    ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -48,11 +46,8 @@ android {
         applicationId "com.example.objectbox_demo"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
-        // minSdkVersion flutter.minSdkVersion
-        // targetSdkVersion flutter.targetSdkVersion
-        // Using explicit versions to build with Flutter 2.2.0 in CI.
-        minSdkVersion 16
-        targetSdkVersion 29
+        minSdkVersion flutter.minSdkVersion
+        targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
