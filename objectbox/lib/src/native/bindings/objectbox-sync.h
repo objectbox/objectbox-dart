@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 ObjectBox Ltd. All rights reserved.
+ * Copyright 2018-2022 ObjectBox Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 0 && OBX_VERSION_MINOR == 15 && OBX_VERSION_PATCH == 2,
+static_assert(OBX_VERSION_MAJOR == 0 && OBX_VERSION_MINOR == 18 && OBX_VERSION_PATCH == 0,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -110,14 +110,14 @@ typedef struct OBX_sync_change_array {
 typedef struct OBX_sync_object {
     OBXSyncObjectType type;
     uint64_t id;       ///< optional value that the application can use identify the object (may be zero)
-    const void* data;  ///< Pointer to object data, which is to be interpreted according to its type
+    const uint8_t* data;  ///< Pointer to object data, which is to be interpreted according to its type
     size_t size;       ///< Size of the object data (including the trailing \0 in case of OBXSyncObjectType_String)
 } OBX_sync_object;
 
 /// Incubating message that carries multiple data "objects" (e.g. FlatBuffers, strings, raw bytes).
 /// Interpretation is up to the application. Does not involve any persistence or delivery guarantees at the moment.
 typedef struct OBX_sync_msg_objects {
-    const void* topic;
+    const uint8_t* topic;
     size_t topic_size;  ///< topic is usually a string, but could also be binary (up to the application)
     const OBX_sync_object* objects;
     size_t count;
@@ -343,7 +343,7 @@ OBX_C_API obx_err obx_sync_server_certificate_path(OBX_sync_server* server, cons
 
 /// Sets credentials for the server to accept. Use before obx_sync_server_start().
 /// @param data may be NULL in combination with OBXSyncCredentialsType_NONE
-OBX_C_API obx_err obx_sync_server_credentials(OBX_sync_server* server, OBXSyncCredentialsType type, const void* data,
+OBX_C_API obx_err obx_sync_server_credentials(OBX_sync_server* server, OBXSyncCredentialsType type, const uint8_t* data,
                                               size_t size);
 
 /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.

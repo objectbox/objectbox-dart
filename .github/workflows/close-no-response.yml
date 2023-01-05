@@ -11,7 +11,7 @@ jobs:
       pull-requests: write
     steps:
       # https://github.com/marketplace/actions/close-stale-issues
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           days-before-stale: -1 # Add the stale label manually.
           days-before-close: 21

@@ -22,7 +22,7 @@ coverage: 			## Calculate test coverage
 	dart run build_runner build
     # Note: only flutter test generates `.lcov` - can't use `dart test`
 	flutter test --coverage
-	lcov --remove coverage/lcov.info 'lib/src/native/sync.dart' 'lib/src/native/bindings/objectbox_c.dart' 'lib/src/native/bindings/bindings.dart' 'lib/src/modelinfo/*' -o coverage/lcov.info
+	lcov --remove coverage/lcov.info 'lib/src/native/admin.dart' 'lib/src/native/sync.dart' 'lib/src/native/bindings/objectbox_c.dart' 'lib/src/native/bindings/bindings.dart' 'lib/src/modelinfo/*' -o coverage/lcov.info
 	genhtml coverage/lcov.info -o coverage/html || true
 
 valgrind-test: 		## Test all targets with valgrind

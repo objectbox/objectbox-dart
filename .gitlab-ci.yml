@@ -5,7 +5,7 @@ stages:
 variables:
   # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
   #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-  DART_VERSION: '2.17.6'
+  DART_VERSION: '2.18.5'
 
 # Make PUB_CACHE cacheable in GitLab;
 # see also https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77791/diffs and
@@ -35,7 +35,7 @@ analyze:
     - cd ..
     - dart format --set-exit-if-changed --fix .
 
-# Runs generator integration tests, e.g. ensures generator works as expected.
+# Runs generator unit and integration tests, e.g. ensures generator works as expected.
 test-generator:linux:x64:
   extends: .cache
   stage: test
@@ -44,6 +44,9 @@ test-generator:linux:x64:
   script:
     - ./install.sh
     - ./generator/test.sh
+    - cd generator
+    - dart pub get
+    - dart test
 
 .test:
   extends: .cache
@@ -65,7 +68,8 @@ test-lib:linux:x64:
   needs: ["test-generator:linux:x64"] # Wait for generator test
   parallel:
     matrix:
-      # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
-      #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-      # Always include lowest supported version (see sdk key in objectbox and generator pubspec.yaml).
-      - DART_VERSION: [ '2.14', '2.15.1', '2.16.1', '2.16.2', '2.17.6' ]
+      # Note: use specific versions instead of latest/beta tags as Docker images may not always be
+      # pulled due to "if-not-present" pull policy. Check https://hub.docker.com/_/dart?tab=tags.
+      # Always include lowest supported version (see sdk key in objectbox and generator
+      # pubspec.yaml, but may be higher due to dependencies).
+      - DART_VERSION: [ '2.17.6', '2.18.5' ]

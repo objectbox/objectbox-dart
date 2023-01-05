@@ -21,7 +21,7 @@ class ObjectBoxC {
           lookup)
       : _lookup = lookup;
 
-  /// Return the version of the library as ints. Pointers may be null
+  /// Return the (runtime) version of the library as ints. Pointers may be null
   void version(
     ffi.Pointer<ffi.Int32> major,
     ffi.Pointer<ffi.Int32> minor,
@@ -42,7 +42,7 @@ class ObjectBoxC {
       void Function(ffi.Pointer<ffi.Int32>, ffi.Pointer<ffi.Int32>,
           ffi.Pointer<ffi.Int32>)>();
 
-  /// Check if the version of the library is equal to or higher than the given version ints.
+  /// Check if the (runtime) version of the library is equal to or higher than the given version ints.
   bool version_is_at_least(
     int major,
     int minor,
@@ -63,9 +63,10 @@ class ObjectBoxC {
   late final _version_is_at_least =
       _version_is_at_leastPtr.asFunction<int Function(int, int, int)>();
 
-  /// Return the version of the library to be printed.
-  /// The format may change in any future release; only use for information purposes.
-  /// @see obx_version() and obx_version_is_at_least()
+  /// Return the (runtime) version of the library to be printed.
+  /// The current format is "major.minor.patch" (e.g. "1.0.0") but may change in any future release.
+  /// Thus, only use for information purposes.
+  /// @see obx_version() and obx_version_is_at_least() for integer based versions
   ffi.Pointer<ffi.Int8> version_string() {
     return _version_string();
   }
@@ -76,9 +77,8 @@ class ObjectBoxC {
   late final _version_string =
       _version_stringPtr.asFunction<ffi.Pointer<ffi.Int8> Function()>();
 
-  /// Return the version of the ObjectBox core to be printed.
+  /// Return the version of the ObjectBox core to be printed (currently also contains a version date and features).
   /// The format may change in any future release; only use for information purposes.
-  /// @see obx_version() and obx_version_is_at_least()
   ffi.Pointer<ffi.Int8> version_core_string() {
     return _version_core_string();
   }
@@ -119,8 +119,24 @@ class ObjectBoxC {
   late final _remove_db_files =
       _remove_db_filesPtr.asFunction<int Function(ffi.Pointer<ffi.Int8>)>();
 
-  /// Enable (or disable) debug logging. This requires a version of the library with OBXFeature_DebugLog.
-  /// Use obx_has_feature(OBXFeature_DebugLog) to check if the feature is available.
+  /// @returns the file size of the main database file, or 0 if the file does not exist or some error occurred.
+  int db_file_size(
+    ffi.Pointer<ffi.Int8> directory,
+  ) {
+    return _db_file_size(
+      directory,
+    );
+  }
+
+  late final _db_file_sizePtr =
+      _lookup<ffi.NativeFunction<ffi.IntPtr Function(ffi.Pointer<ffi.Int8>)>>(
+          'obx_db_file_size');
+  late final _db_file_size =
+      _db_file_sizePtr.asFunction<int Function(ffi.Pointer<ffi.Int8>)>();
+
+  /// Enable (or disable) debug logging for ObjectBox internals.
+  /// This requires a version of the library with the DebugLog feature.
+  /// You can check if the feature is available with obx_has_feature(OBXFeature_DebugLog).
   int debug_log(
     bool enabled,
   ) {
@@ -132,6 +148,29 @@ class ObjectBoxC {
   late final _debug_logPtr =
       _lookup<ffi.NativeFunction<obx_err Function(ffi.Uint8)>>('obx_debug_log');
   late final _debug_log = _debug_logPtr.asFunction<int Function(int)>();
+
+  /// Checks if debug logs are enabled for ObjectBox internals. This depends on the availability of the DebugLog feature.
+  /// If the feature is available, it returns the current state, which is adjustable via obx_debug_log().
+  /// Otherwise, it always returns false for standard release builds (or true if you are having a special debug version).
+  bool debug_log_enabled() {
+    return _debug_log_enabled() != 0;
+  }
+
+  late final _debug_log_enabledPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint8 Function()>>(
+          'obx_debug_log_enabled');
+  late final _debug_log_enabled =
+      _debug_log_enabledPtr.asFunction<int Function()>();
+
+  /// Gets the number, as used by ObjectBox, of the current thread.
+  /// This e.g. allows to "associate" the thread with ObjectBox logs (each log entry contains the thread number).
+  int thread_number() {
+    return _thread_number();
+  }
+
+  late final _thread_numberPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function()>>('obx_thread_number');
+  late final _thread_number = _thread_numberPtr.asFunction<int Function()>();
 
   /// Return the error status on the current thread and clear the error state.
   /// The buffer returned in out_message is valid only until the next call into ObjectBox.
@@ -542,6 +581,47 @@ class ObjectBoxC {
   late final _model_entity_last_property_id = _model_entity_last_property_idPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int, int)>();
 
+  /// Get the actual bytes from the given OBX_bytes_lazy.
+  /// Because of the potential lazy creation of bytes, the given bytes are not const as it may be resolved internally.
+  /// For the same reason, this function is not thread-safe, at least for the first call on a OBX_bytes_lazy instance.
+  /// @param out_bytes The pointer to a data pointer may be null, e.g. if you are only interested in the size.
+  int bytes_lazy_get(
+    ffi.Pointer<OBX_bytes_lazy> bytes,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> out_bytes,
+    ffi.Pointer<ffi.IntPtr> out_size,
+  ) {
+    return _bytes_lazy_get(
+      bytes,
+      out_bytes,
+      out_size,
+    );
+  }
+
+  late final _bytes_lazy_getPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_bytes_lazy>,
+              ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
+              ffi.Pointer<ffi.IntPtr>)>>('obx_bytes_lazy_get');
+  late final _bytes_lazy_get = _bytes_lazy_getPtr.asFunction<
+      int Function(ffi.Pointer<OBX_bytes_lazy>,
+          ffi.Pointer<ffi.Pointer<ffi.Uint8>>, ffi.Pointer<ffi.IntPtr>)>();
+
+  /// Releases any resources associated with the given OBX_bytes_lazy.
+  void bytes_lazy_free(
+    ffi.Pointer<OBX_bytes_lazy> bytes,
+  ) {
+    return _bytes_lazy_free(
+      bytes,
+    );
+  }
+
+  late final _bytes_lazy_freePtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_bytes_lazy>)>>(
+      'obx_bytes_lazy_free');
+  late final _bytes_lazy_free = _bytes_lazy_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_bytes_lazy>)>();
+
   /// Create a default set of store options.
   /// @returns NULL on failure, a default set of options on success
   ffi.Pointer<OBX_store_options> opt() {
@@ -586,8 +666,30 @@ class ObjectBoxC {
   late final _opt_max_db_size_in_kbPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<OBX_store_options>,
-              ffi.IntPtr)>>('obx_opt_max_db_size_in_kb');
+              ffi.Uint64)>>('obx_opt_max_db_size_in_kb');
   late final _opt_max_db_size_in_kb = _opt_max_db_size_in_kbPtr
+      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
+
+  /// Data size tracking is more involved than DB size tracking, e.g. it stores an internal counter.
+  /// Thus only use it if a stricter, more accurate limit is required (it's off by default).
+  /// It tracks the size of actual data bytes of objects (system and metadata is not considered).
+  /// On the upside, reaching the data limit still allows data to be removed (assuming DB limit is not reached).
+  /// Max data and DB sizes can be combined; data size must be below the DB size.
+  void opt_max_data_size_in_kb(
+    ffi.Pointer<OBX_store_options> opt,
+    int size_in_kb,
+  ) {
+    return _opt_max_data_size_in_kb(
+      opt,
+      size_in_kb,
+    );
+  }
+
+  late final _opt_max_data_size_in_kbPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>,
+              ffi.Uint64)>>('obx_opt_max_data_size_in_kb');
+  late final _opt_max_data_size_in_kb = _opt_max_data_size_in_kbPtr
       .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
 
   /// Set the file mode on the options. The default is 0644 (unix-style)
@@ -682,7 +784,7 @@ class ObjectBoxC {
   /// Set the model on the options copying the given bytes. The default is no model.
   int opt_model_bytes(
     ffi.Pointer<OBX_store_options> opt,
-    ffi.Pointer<ffi.Void> bytes,
+    ffi.Pointer<ffi.Uint8> bytes,
     int size,
   ) {
     return _opt_model_bytes(
@@ -695,16 +797,16 @@ class ObjectBoxC {
   late final _opt_model_bytesPtr = _lookup<
       ffi.NativeFunction<
           obx_err Function(ffi.Pointer<OBX_store_options>,
-              ffi.Pointer<ffi.Void>, ffi.IntPtr)>>('obx_opt_model_bytes');
+              ffi.Pointer<ffi.Uint8>, ffi.IntPtr)>>('obx_opt_model_bytes');
   late final _opt_model_bytes = _opt_model_bytesPtr.asFunction<
       int Function(
-          ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Void>, int)>();
+          ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Uint8>, int)>();
 
   /// Like obx_opt_model_bytes BUT WITHOUT copying the given bytes.
   /// Thus, you must keep the bytes available until after the store is created.
   int opt_model_bytes_direct(
     ffi.Pointer<OBX_store_options> opt,
-    ffi.Pointer<ffi.Void> bytes,
+    ffi.Pointer<ffi.Uint8> bytes,
     int size,
   ) {
     return _opt_model_bytes_direct(
@@ -718,11 +820,11 @@ class ObjectBoxC {
       ffi.NativeFunction<
           obx_err Function(
               ffi.Pointer<OBX_store_options>,
-              ffi.Pointer<ffi.Void>,
+              ffi.Pointer<ffi.Uint8>,
               ffi.IntPtr)>>('obx_opt_model_bytes_direct');
   late final _opt_model_bytes_direct = _opt_model_bytes_directPtr.asFunction<
       int Function(
-          ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Void>, int)>();
+          ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Uint8>, int)>();
 
   /// When the DB is opened initially, ObjectBox can do a consistency check on the given amount of pages.
   /// Reliable file systems already guarantee consistency, so this is primarily meant to deal with unreliable
@@ -829,7 +931,8 @@ class ObjectBoxC {
   late final _opt_read_only = _opt_read_onlyPtr
       .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
 
-  /// Configure debug logging. Defaults to NONE
+  /// Configure debug flags (OBXDebugFlags); e.g. to influence logging. Defaults to NONE.
+  /// Combine multiple flags using bitwise OR.
   void opt_debug_flags(
     ffi.Pointer<OBX_store_options> opt,
     int flags,
@@ -843,8 +946,27 @@ class ObjectBoxC {
   late final _opt_debug_flagsPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<OBX_store_options>,
-              ffi.Int32)>>('obx_opt_debug_flags');
+              ffi.Uint32)>>('obx_opt_debug_flags');
   late final _opt_debug_flags = _opt_debug_flagsPtr
+      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
+
+  /// Adds debug flags (OBXDebugFlags) to potentially existing ones.
+  /// Combine multiple flags using bitwise OR.
+  void opt_add_debug_flags(
+    ffi.Pointer<OBX_store_options> opt,
+    int flags,
+  ) {
+    return _opt_add_debug_flags(
+      opt,
+      flags,
+    );
+  }
+
+  late final _opt_add_debug_flagsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>,
+              ffi.Uint32)>>('obx_opt_add_debug_flags');
+  late final _opt_add_debug_flags = _opt_add_debug_flagsPtr
       .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
 
   /// Maximum of async elements in the queue before new elements will be rejected.
@@ -1140,6 +1262,100 @@ class ObjectBoxC {
       _opt_async_object_bytes_max_size_to_cachePtr
           .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
 
+  /// Registers a log callback, which is called for a selection of log events.
+  /// Note: this does not replace the default logging, which is much more extensive (at least at this point).
+  void opt_log_callback(
+    ffi.Pointer<OBX_store_options> opt,
+    ffi.Pointer<obx_log_callback> callback,
+    ffi.Pointer<ffi.Void> user_data,
+  ) {
+    return _opt_log_callback(
+      opt,
+      callback,
+      user_data,
+    );
+  }
+
+  late final _opt_log_callbackPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<OBX_store_options>,
+              ffi.Pointer<obx_log_callback>,
+              ffi.Pointer<ffi.Void>)>>('obx_opt_log_callback');
+  late final _opt_log_callback = _opt_log_callbackPtr.asFunction<
+      void Function(ffi.Pointer<OBX_store_options>,
+          ffi.Pointer<obx_log_callback>, ffi.Pointer<ffi.Void>)>();
+
+  /// Gets the option for "directory"; this is either the default, or, the value set by obx_opt_directory().
+  /// The returned value must not be modified and is only valid for the lifetime of the options or until the value is
+  /// changed.
+  /// @returns null if an error occurred, e.g. the given options were null.
+  ffi.Pointer<ffi.Int8> opt_get_directory(
+    ffi.Pointer<OBX_store_options> opt,
+  ) {
+    return _opt_get_directory(
+      opt,
+    );
+  }
+
+  late final _opt_get_directoryPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Int8> Function(
+              ffi.Pointer<OBX_store_options>)>>('obx_opt_get_directory');
+  late final _opt_get_directory = _opt_get_directoryPtr.asFunction<
+      ffi.Pointer<ffi.Int8> Function(ffi.Pointer<OBX_store_options>)>();
+
+  /// Gets the option for "max DB size"; this is either the default, or, the value set by obx_opt_max_db_size_in_kb().
+  /// @returns 0 if an error occurred, e.g. the given options were null.
+  int opt_get_max_db_size_in_kb(
+    ffi.Pointer<OBX_store_options> opt,
+  ) {
+    return _opt_get_max_db_size_in_kb(
+      opt,
+    );
+  }
+
+  late final _opt_get_max_db_size_in_kbPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Uint64 Function(ffi.Pointer<OBX_store_options>)>>(
+      'obx_opt_get_max_db_size_in_kb');
+  late final _opt_get_max_db_size_in_kb = _opt_get_max_db_size_in_kbPtr
+      .asFunction<int Function(ffi.Pointer<OBX_store_options>)>();
+
+  /// Gets the option for "max data size"; this is either the default, or, the value set by obx_opt_max_data_size_in_kb().
+  /// @returns 0 if an error occurred, e.g. the given options were null.
+  int opt_get_max_data_size_in_kb(
+    ffi.Pointer<OBX_store_options> opt,
+  ) {
+    return _opt_get_max_data_size_in_kb(
+      opt,
+    );
+  }
+
+  late final _opt_get_max_data_size_in_kbPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Uint64 Function(ffi.Pointer<OBX_store_options>)>>(
+      'obx_opt_get_max_data_size_in_kb');
+  late final _opt_get_max_data_size_in_kb = _opt_get_max_data_size_in_kbPtr
+      .asFunction<int Function(ffi.Pointer<OBX_store_options>)>();
+
+  /// Gets the option for "debug flags"; this is either the default, or, the value set by obx_opt_debug_flags().
+  /// @returns 0 if an error occurred, e.g. the given options were null.
+  int opt_get_debug_flags(
+    ffi.Pointer<OBX_store_options> opt,
+  ) {
+    return _opt_get_debug_flags(
+      opt,
+    );
+  }
+
+  late final _opt_get_debug_flagsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Uint32 Function(
+              ffi.Pointer<OBX_store_options>)>>('obx_opt_get_debug_flags');
+  late final _opt_get_debug_flags = _opt_get_debug_flagsPtr
+      .asFunction<int Function(ffi.Pointer<OBX_store_options>)>();
+
   /// Free the options.
   /// Note: Only free *unused* options, obx_store_open() frees the options internally
   void opt_free(
@@ -1156,6 +1372,11 @@ class ObjectBoxC {
   late final _opt_free =
       _opt_freePtr.asFunction<void Function(ffi.Pointer<OBX_store_options>)>();
 
+  /// Opens (creates) a "store", which represents an ObjectBox database instance in a given directory.
+  /// The store is an entry point to data access APIs such as box (obx_box_*), query (obx_qb_* and obx_query_*),
+  /// and transaction (obx_txn_*).
+  /// It's possible open multiple stores in different directories, e.g. at the same time.
+  /// See also obx_store_close() to close a previously opened store.
   /// Note: the given options are always freed by this function, including when an error occurs.
   /// @param opt required parameter holding the data model (obx_opt_model()) and optional options (see obx_opt_*())
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
@@ -1191,8 +1412,7 @@ class ObjectBoxC {
       _store_is_openPtr.asFunction<int Function(ffi.Pointer<ffi.Int8>)>();
 
   /// Attach to a previously opened store matching the path of the DB directory, which was used for opening the store.
-  /// The returned store is a new instance (e.g. different pointer value) with its own lifetime and must also be closed
-  /// via obx_store_close().
+  /// The returned store is a new instance (e.g. different pointer value) and must also be closed via obx_store_close().
   /// The actual underlying store is only closed when the last store OBX_store instance is closed.
   /// @returns nullptr if no open store was found (i.e. not opened before or already closed)
   /// @see obx_store_clone() for "attaching" to a available store instance.
@@ -1210,6 +1430,26 @@ class ObjectBoxC {
               ffi.Pointer<ffi.Int8>)>>('obx_store_attach');
   late final _store_attach = _store_attachPtr
       .asFunction<ffi.Pointer<OBX_store> Function(ffi.Pointer<ffi.Int8>)>();
+
+  /// Attach to a previously opened store matching the given store ID.
+  /// The returned store is a new instance (e.g. different pointer value) and must also be closed via obx_store_close().
+  /// The actual underlying store is only closed when the last store OBX_store instance is closed.
+  /// @param store_id
+  /// @returns nullptr if no open store was found (i.e. not opened before or already closed)
+  /// @see obx_store_clone() for "attaching" to a available store instance.
+  ffi.Pointer<OBX_store> store_attach_id(
+    int store_id,
+  ) {
+    return _store_attach_id(
+      store_id,
+    );
+  }
+
+  late final _store_attach_idPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<OBX_store> Function(ffi.Uint64)>>(
+          'obx_store_attach_id');
+  late final _store_attach_id =
+      _store_attach_idPtr.asFunction<ffi.Pointer<OBX_store> Function(int)>();
 
   /// Combines the functionality of obx_store_attach() and obx_store_open() in a thread-safe way.
   /// @param check_matching_options if true, some effort will be taken to check if the given options match an existing
@@ -1237,11 +1477,27 @@ class ObjectBoxC {
       ffi.Pointer<OBX_store> Function(
           ffi.Pointer<OBX_store_options>, int, ffi.Pointer<ffi.Uint8>)>();
 
+  /// Store IDs can be used to attach to a store later.
+  /// The IDs are stable and unique during the lifetime of the process.
+  /// E.g. these IDs can be shared across threads efficiently and can serve a similar purpose as weak pointers do.
+  int store_id(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _store_id(
+      store,
+    );
+  }
+
+  late final _store_idPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<OBX_store>)>>(
+          'obx_store_id');
+  late final _store_id =
+      _store_idPtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
+
   /// Clone a previously opened store; while a store instance is usable from multiple threads, situations may exist
   /// in which cloning a store simplifies the overall lifecycle.
   /// E.g. when a store is used for multiple threads and it may only be fully released once the last thread completes.
-  /// The returned store is a new instance (e.g. different pointer value) with its own lifetime and must also be closed
-  /// via obx_store_close().
+  /// The returned store is a new instance (e.g. different pointer value) and must also be closed via obx_store_close().
   /// The actual underlying store is only closed when the last store OBX_store instance is closed.
   /// @returns nullptr if the store could not be cloned
   /// @see obx_store_attach() for "cloning" using the store's path.
@@ -1321,8 +1577,8 @@ class ObjectBoxC {
       _store_entity_property_idPtr.asFunction<
           int Function(ffi.Pointer<OBX_store>, int, ffi.Pointer<ffi.Int8>)>();
 
-  /// Await for all (including future) async submissions to be completed (the async queue becomes idle for a moment).
-  /// @returns true if all submissions were completed or async processing was not started; false if shutting down
+  /// Await for all (including future) async submissions to be completed (the async queue becomes empty).
+  /// @returns true if all submissions were completed or async processing was not started
   /// @returns false if shutting down or an error occurred
   bool store_await_async_completion(
     ffi.Pointer<OBX_store> store,
@@ -1339,8 +1595,9 @@ class ObjectBoxC {
   late final _store_await_async_completion = _store_await_async_completionPtr
       .asFunction<int Function(ffi.Pointer<OBX_store>)>();
 
-  /// Await for previously submitted async operations to be completed (the async queue does not have to become idle).
-  /// @returns true if all submissions were completed or async processing was not started
+  /// Await async operations that have been submitted up to this point to be completed
+  /// (the async queue may still contain elements).
+  /// @returns true if all submissions were completed (or async processing was not started)
   /// @returns false if shutting down or an error occurred
   bool store_await_async_submitted(
     ffi.Pointer<OBX_store> store,
@@ -1393,6 +1650,27 @@ class ObjectBoxC {
       _store_opened_with_previous_commitPtr
           .asFunction<int Function(ffi.Pointer<OBX_store>)>();
 
+  /// Prepares the store to close by setting its internal state to "closing".
+  /// Functions relying on the store will result in OBX_ERROR_SHUTTING_DOWN status once closing is initiated.
+  /// Unlike obx_store_close(), this method will return immediately and does not free resources just yet.
+  /// This is typically used in a multi-threaded context to allow an orderly shutdown in stages which go through a
+  /// "not accepting new requests" state.
+  int store_prepare_to_close(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _store_prepare_to_close(
+      store,
+    );
+  }
+
+  late final _store_prepare_to_closePtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_store>)>>(
+          'obx_store_prepare_to_close');
+  late final _store_prepare_to_close = _store_prepare_to_closePtr
+      .asFunction<int Function(ffi.Pointer<OBX_store>)>();
+
+  /// Closes a previously opened store and thus freeing all resources associated with the store.
+  /// \note This waits for write transactions to finish before returning from this call.
   /// @param store may be NULL
   int store_close(
     ffi.Pointer<OBX_store> store,
@@ -1501,6 +1779,26 @@ class ObjectBoxC {
           'obx_txn_abort');
   late final _txn_abort =
       _txn_abortPtr.asFunction<int Function(ffi.Pointer<OBX_txn>)>();
+
+  int txn_data_size(
+    ffi.Pointer<OBX_txn> txn,
+    ffi.Pointer<ffi.Uint64> out_committed_size,
+    ffi.Pointer<ffi.Uint64> out_size_change,
+  ) {
+    return _txn_data_size(
+      txn,
+      out_committed_size,
+      out_size_change,
+    );
+  }
+
+  late final _txn_data_sizePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_txn>, ffi.Pointer<ffi.Uint64>,
+              ffi.Pointer<ffi.Uint64>)>>('obx_txn_data_size');
+  late final _txn_data_size = _txn_data_sizePtr.asFunction<
+      int Function(ffi.Pointer<OBX_txn>, ffi.Pointer<ffi.Uint64>,
+          ffi.Pointer<ffi.Uint64>)>();
 
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_cursor> cursor(
@@ -2819,6 +3117,60 @@ class ObjectBoxC {
       _box_rel_get_backlink_idsPtr.asFunction<
           ffi.Pointer<OBX_id_array> Function(ffi.Pointer<OBX_box>, int, int)>();
 
+  /// Removes expired objects of one or all entity types.
+  /// @param entity_id Type of the objects to be remove; if zero, all types are included.
+  /// Hint: if you only have the entity type's name, use obx_store_entity_id() to get the ID.
+  /// @param out_removed_count If given (non-null), it will receive the count of removed objects.
+  /// @see OBXPropertyFlags_EXPIRATION_TIME to define a property for the expiration time.
+  int expired_objects_remove(
+    ffi.Pointer<OBX_txn> txn,
+    int entity_id,
+    ffi.Pointer<ffi.IntPtr> out_removed_count,
+  ) {
+    return _expired_objects_remove(
+      txn,
+      entity_id,
+      out_removed_count,
+    );
+  }
+
+  late final _expired_objects_removePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_txn>, obx_schema_id,
+              ffi.Pointer<ffi.IntPtr>)>>('obx_expired_objects_remove');
+  late final _expired_objects_remove = _expired_objects_removePtr.asFunction<
+      int Function(ffi.Pointer<OBX_txn>, int, ffi.Pointer<ffi.IntPtr>)>();
+
+  /// Asynchronously removes expired objects of one or all entity types.
+  /// @param entity_id Type of the objects to be remove; if zero, all types are included.
+  /// Hint: if you only have the entity type's name, use obx_store_entity_id() to get the ID.
+  /// @see OBXPropertyFlags_EXPIRATION_TIME to define a property for the expiration time.
+  int expired_objects_remove_async(
+    ffi.Pointer<OBX_store> store,
+    int entity_id,
+    ffi.Pointer<obx_status_callback> callback,
+    ffi.Pointer<ffi.Void> user_data,
+  ) {
+    return _expired_objects_remove_async(
+      store,
+      entity_id,
+      callback,
+      user_data,
+    );
+  }
+
+  late final _expired_objects_remove_asyncPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_store>,
+              obx_schema_id,
+              ffi.Pointer<obx_status_callback>,
+              ffi.Pointer<ffi.Void>)>>('obx_expired_objects_remove_async');
+  late final _expired_objects_remove_async =
+      _expired_objects_remove_asyncPtr.asFunction<
+          int Function(ffi.Pointer<OBX_store>, int,
+              ffi.Pointer<obx_status_callback>, ffi.Pointer<ffi.Void>)>();
+
   /// Time series: get the limits (min/max time values) over all objects
   /// @param out_min_id pointer to receive an output (may be NULL)
   /// @param out_min_value pointer to receive an output (may be NULL)
@@ -3171,6 +3523,22 @@ class ObjectBoxC {
       'obx_qb_close');
   late final _qb_close =
       _qb_closePtr.asFunction<int Function(ffi.Pointer<OBX_query_builder>)>();
+
+  /// @returns the entity type ID that was used to construct the query builder.
+  int qb_type_id(
+    ffi.Pointer<OBX_query_builder> builder,
+  ) {
+    return _qb_type_id(
+      builder,
+    );
+  }
+
+  late final _qb_type_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_schema_id Function(
+              ffi.Pointer<OBX_query_builder>)>>('obx_qb_type_id');
+  late final _qb_type_id =
+      _qb_type_idPtr.asFunction<int Function(ffi.Pointer<OBX_query_builder>)>();
 
   /// To minimise the amount of error handling code required when building a query, the first error is stored in the query
   /// and can be obtained here. All the obx_qb_XXX functions are null operations after the first query error has occurred.
@@ -3999,6 +4367,36 @@ class ObjectBoxC {
   late final _qb_less_or_equal_bytes = _qb_less_or_equal_bytesPtr.asFunction<
       int Function(
           ffi.Pointer<OBX_query_builder>, int, ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// An object matches, if it has a given number of related objects pointing to it.
+  /// At this point, there are a couple of limitations (later version may improve on that):
+  /// 1) 1:N relations only, 2) the complexity is O(n * (relationCount + 1)) and cannot be improved via indexes,
+  /// 3) The relation count cannot be set as an parameter.
+  /// @param relation_entity_id ID of the entity type the relation comes from.
+  /// @param relation_property_id ID of the property in the related entity type representing the relation.
+  /// @param relation_count Number of related object an object must have to match. May be 0 if objects shall be matched
+  /// that do not have related objects. (Typically low numbers are used for the count.)
+  int qb_relation_count_property(
+    ffi.Pointer<OBX_query_builder> builder,
+    int relation_entity_id,
+    int relation_property_id,
+    int relation_count,
+  ) {
+    return _qb_relation_count_property(
+      builder,
+      relation_entity_id,
+      relation_property_id,
+      relation_count,
+    );
+  }
+
+  late final _qb_relation_count_propertyPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(ffi.Pointer<OBX_query_builder>, obx_schema_id,
+              obx_schema_id, ffi.Int32)>>('obx_qb_relation_count_property');
+  late final _qb_relation_count_property =
+      _qb_relation_count_propertyPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int, int, int)>();
 
   /// Combine conditions[] to a new condition using operator AND (all).
   int qb_all(
@@ -5599,7 +5997,7 @@ class ObjectBoxC {
   /// Future versions might change that to a background thread, so be careful with threading assumptions.
   /// Also, it's a usually good idea to make the callback return quickly to let the calling thread continue.
   /// \attention Currently, you can not call any data operations from inside the call back.
-  /// \attention More accurately, no transaction may be strated. (This restriction may be removed in a later version.)
+  /// \attention More accurately, no transaction may be started. (This restriction may be removed in a later version.)
   /// @param type_id ID of the object type to be observer.
   /// @param user_data any value you want to be forwarded to the given observer callback (usually some context info).
   /// @param callback pointer to be called when the observed data changes.
@@ -5647,6 +6045,447 @@ class ObjectBoxC {
           'obx_observer_close');
   late final _observer_close =
       _observer_closePtr.asFunction<int Function(ffi.Pointer<OBX_observer>)>();
+
+  /// Creates a options object that is passed to tree creation via obx_tree().
+  ffi.Pointer<OBX_tree_options> tree_options() {
+    return _tree_options();
+  }
+
+  late final _tree_optionsPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<OBX_tree_options> Function()>>(
+          'obx_tree_options');
+  late final _tree_options =
+      _tree_optionsPtr.asFunction<ffi.Pointer<OBX_tree_options> Function()>();
+
+  /// Free the tree options if they were not used (and "consumed") by obx_tree().
+  /// Note: Only free *unused* options, obx_tree() frees the options internally.
+  void tree_options_free(
+    ffi.Pointer<OBX_tree_options> options,
+  ) {
+    return _tree_options_free(
+      options,
+    );
+  }
+
+  late final _tree_options_freePtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_tree_options>)>>(
+      'obx_tree_options_free');
+  late final _tree_options_free = _tree_options_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_tree_options>)>();
+
+  /// Adjusts the path delimiter character, which is by default "/".
+  int tree_opt_path_delimiter(
+    ffi.Pointer<OBX_tree_options> options,
+    int path_delimiter,
+  ) {
+    return _tree_opt_path_delimiter(
+      options,
+      path_delimiter,
+    );
+  }
+
+  late final _tree_opt_path_delimiterPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_tree_options>,
+              ffi.Int8)>>('obx_tree_opt_path_delimiter');
+  late final _tree_opt_path_delimiter = _tree_opt_path_delimiterPtr
+      .asFunction<int Function(ffi.Pointer<OBX_tree_options>, int)>();
+
+  /// Sets the given OBXTreeOptionFlags at the tree options.
+  /// Combine multiple flags using bitwise OR.
+  int tree_opt_flags(
+    ffi.Pointer<OBX_tree_options> options,
+    int flags,
+  ) {
+    return _tree_opt_flags(
+      options,
+      flags,
+    );
+  }
+
+  late final _tree_opt_flagsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_tree_options>,
+              ffi.Uint32)>>('obx_tree_opt_flags');
+  late final _tree_opt_flags = _tree_opt_flagsPtr
+      .asFunction<int Function(ffi.Pointer<OBX_tree_options>, int)>();
+
+  /// Creates a tree for the given store.
+  /// @param options can be null for default options (e.g. use '/' as a path delimiter).
+  /// The options are always freed when calling this function.
+  ffi.Pointer<OBX_tree> tree(
+    ffi.Pointer<OBX_store> store,
+    ffi.Pointer<OBX_tree_options> options,
+  ) {
+    return _tree(
+      store,
+      options,
+    );
+  }
+
+  late final _treePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_tree> Function(ffi.Pointer<OBX_store>,
+              ffi.Pointer<OBX_tree_options>)>>('obx_tree');
+  late final _tree = _treePtr.asFunction<
+      ffi.Pointer<OBX_tree> Function(
+          ffi.Pointer<OBX_store>, ffi.Pointer<OBX_tree_options>)>();
+
+  void tree_close(
+    ffi.Pointer<OBX_tree> tree,
+  ) {
+    return _tree_close(
+      tree,
+    );
+  }
+
+  late final _tree_closePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_tree>)>>(
+          'obx_tree_close');
+  late final _tree_close =
+      _tree_closePtr.asFunction<void Function(ffi.Pointer<OBX_tree>)>();
+
+  /// To get/put data from tree, you need to create a tree cursor using this method.
+  /// @param txn may be null if the transaction will be set later via obx_tree_cursor_txn()
+  ffi.Pointer<OBX_tree_cursor> tree_cursor(
+    ffi.Pointer<OBX_tree> tree,
+    ffi.Pointer<OBX_txn> txn,
+  ) {
+    return _tree_cursor(
+      tree,
+      txn,
+    );
+  }
+
+  late final _tree_cursorPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_tree_cursor> Function(
+              ffi.Pointer<OBX_tree>, ffi.Pointer<OBX_txn>)>>('obx_tree_cursor');
+  late final _tree_cursor = _tree_cursorPtr.asFunction<
+      ffi.Pointer<OBX_tree_cursor> Function(
+          ffi.Pointer<OBX_tree>, ffi.Pointer<OBX_txn>)>();
+
+  /// Gets the number of currently tracked node conflicts (non-unique nodes at the same path).
+  /// This count gets resent when conflicts get consolidated.
+  /// Only tracked if OBXTreeOptionFlags_DetectNonUniqueNodes (or OBXTreeOptionFlags_AutoConsolidateNonUniqueNodes) is
+  /// set.
+  int tree_node_conflict_count(
+    ffi.Pointer<OBX_tree> tree,
+  ) {
+    return _tree_node_conflict_count(
+      tree,
+    );
+  }
+
+  late final _tree_node_conflict_countPtr =
+      _lookup<ffi.NativeFunction<ffi.IntPtr Function(ffi.Pointer<OBX_tree>)>>(
+          'obx_tree_node_conflict_count');
+  late final _tree_node_conflict_count = _tree_node_conflict_countPtr
+      .asFunction<int Function(ffi.Pointer<OBX_tree>)>();
+
+  /// \brief Closes the tree cursor, e.g. before a transaction is ending.
+  /// The cursor cannot be used afterwards (consider obx_tree_cursor_reset() if you want to keep using it).
+  void tree_cursor_close(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+  ) {
+    return _tree_cursor_close(
+      cursor,
+    );
+  }
+
+  late final _tree_cursor_closePtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_tree_cursor>)>>(
+      'obx_tree_cursor_close');
+  late final _tree_cursor_close = _tree_cursor_closePtr
+      .asFunction<void Function(ffi.Pointer<OBX_tree_cursor>)>();
+
+  /// \brief Sets or clears a transaction from the tree cursor.
+  ///
+  /// A typical use case for this function is to cache the tree cursor for reusing it later.
+  /// Note: before closing a transaction, ensure to clear it here first (set to null).
+  int tree_cursor_txn(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+    ffi.Pointer<OBX_txn> txn,
+  ) {
+    return _tree_cursor_txn(
+      cursor,
+      txn,
+    );
+  }
+
+  late final _tree_cursor_txnPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_tree_cursor>,
+              ffi.Pointer<OBX_txn>)>>('obx_tree_cursor_txn');
+  late final _tree_cursor_txn = _tree_cursor_txnPtr.asFunction<
+      int Function(ffi.Pointer<OBX_tree_cursor>, ffi.Pointer<OBX_txn>)>();
+
+  /// \brief A "low-level" get operation to access a tree leaf using the raw FlatBuffer bytes stored in the database.
+  /// As usual, the data is only valid during the lifetime of the transaction and before the first write to the DB.
+  /// An advantage of using "raw" operations is that custom properties can be passed in the FlatBuffer.
+  /// @param data receiver of the data pointer (non-null pointer to a pointer), which will be pointing to FlatBuffers
+  /// bytes for the data leaf after this call.
+  /// @param metadata optional FlatBuffers receiver (nullable pointer to a pointer) for the meta leaf.
+  /// @returns general success/error codes and some tree-specific ones (OBX_ERROR_TREE_*)
+  int tree_cursor_get_raw(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+    ffi.Pointer<ffi.Int8> path,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> data,
+    ffi.Pointer<ffi.IntPtr> size,
+    ffi.Pointer<ffi.Pointer<ffi.Uint8>> metadata,
+    ffi.Pointer<ffi.IntPtr> metadata_size,
+  ) {
+    return _tree_cursor_get_raw(
+      cursor,
+      path,
+      data,
+      size,
+      metadata,
+      metadata_size,
+    );
+  }
+
+  late final _tree_cursor_get_rawPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_tree_cursor>,
+              ffi.Pointer<ffi.Int8>,
+              ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
+              ffi.Pointer<ffi.IntPtr>,
+              ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
+              ffi.Pointer<ffi.IntPtr>)>>('obx_tree_cursor_get_raw');
+  late final _tree_cursor_get_raw = _tree_cursor_get_rawPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_tree_cursor>,
+          ffi.Pointer<ffi.Int8>,
+          ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
+          ffi.Pointer<ffi.IntPtr>,
+          ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
+          ffi.Pointer<ffi.IntPtr>)>();
+
+  /// \brief A "low-level" put operation for a tree leaf using given raw FlatBuffer bytes.
+  /// Any non-existing branches and meta nodes are put on the fly if an optional meta-leaf FlatBuffers is given.
+  /// A typical usage pattern is to first try without the meta-leaf, and if it does not work, create the meta-leaf and
+  /// call again with the meta leaf. This approach takes into account that meta-leaves typically exist, and thus no
+  /// resources are wasted for meta-leaf creation if it's not required.
+  /// An advantage of using "raw" operations is that custom properties can be passed in the FlatBuffers.
+  /// @param leaf_data prepared FlatBuffers bytes for the data leaf (non-const as the data buffer will be mutated);
+  /// note: slots for IDs must be already be prepared (zero values)
+  /// @param type value type of the given leafObject: it has to be passed to verify against stored metadata
+  /// @param leaf_metadata optional FlatBuffers for the meta leaf; at minimum, "name" and "type" must be set.
+  /// Note: slots for IDs must be already be prepared (zero values).
+  /// Passing null indicates that the branches and meta nodes must already exist; otherwise
+  /// the operation will fail and OBX_NOT_FOUND will be returned.
+  /// @param leaf_put_mode For the data leaf only (the actual value tree node)
+  /// @returns OBX_NOT_FOUND if the path did not exist (and no metadata was given)
+  /// @returns OBX_NO_SUCCESS if the put was not successful according to the put mode
+  /// @returns also other standard result codes like OBX_SUCCESS or OBX_ERR_*
+  int tree_cursor_put_raw(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+    ffi.Pointer<ffi.Int8> path,
+    ffi.Pointer<ffi.Void> leaf_data,
+    int leaf_data_size,
+    int type,
+    ffi.Pointer<obx_id> out_id,
+    ffi.Pointer<ffi.Void> leaf_metadata,
+    int leaf_metadata_size,
+    int leaf_put_mode,
+  ) {
+    return _tree_cursor_put_raw(
+      cursor,
+      path,
+      leaf_data,
+      leaf_data_size,
+      type,
+      out_id,
+      leaf_metadata,
+      leaf_metadata_size,
+      leaf_put_mode,
+    );
+  }
+
+  late final _tree_cursor_put_rawPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_tree_cursor>,
+              ffi.Pointer<ffi.Int8>,
+              ffi.Pointer<ffi.Void>,
+              ffi.IntPtr,
+              ffi.Int32,
+              ffi.Pointer<obx_id>,
+              ffi.Pointer<ffi.Void>,
+              ffi.IntPtr,
+              ffi.Int32)>>('obx_tree_cursor_put_raw');
+  late final _tree_cursor_put_raw = _tree_cursor_put_rawPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_tree_cursor>,
+          ffi.Pointer<ffi.Int8>,
+          ffi.Pointer<ffi.Void>,
+          int,
+          int,
+          ffi.Pointer<obx_id>,
+          ffi.Pointer<ffi.Void>,
+          int,
+          int)>();
+
+  /// Explicitly consolidates tree node conflicts (non unique nodes sharing a common path).
+  /// See also obx_tree_async_consolidate_node_conflicts() for an asynchronous version.
+  int tree_cursor_consolidate_node_conflicts(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+    ffi.Pointer<ffi.IntPtr> out_consolidated_count,
+  ) {
+    return _tree_cursor_consolidate_node_conflicts(
+      cursor,
+      out_consolidated_count,
+    );
+  }
+
+  late final _tree_cursor_consolidate_node_conflictsPtr = _lookup<
+          ffi.NativeFunction<
+              obx_err Function(
+                  ffi.Pointer<OBX_tree_cursor>, ffi.Pointer<ffi.IntPtr>)>>(
+      'obx_tree_cursor_consolidate_node_conflicts');
+  late final _tree_cursor_consolidate_node_conflicts =
+      _tree_cursor_consolidate_node_conflictsPtr.asFunction<
+          int Function(
+              ffi.Pointer<OBX_tree_cursor>, ffi.Pointer<ffi.IntPtr>)>();
+
+  /// Like obx_tree_cursor_put_raw(), but asynchronous.
+  /// @param callback Optional (may be null) function that is called with results once the async operation completes.
+  /// @param callback_user_data Any value you can supply, which is passed on to the callback (e.g. to identify user
+  /// specific context).
+  int tree_async_put_raw(
+    ffi.Pointer<OBX_tree> tree,
+    ffi.Pointer<ffi.Int8> path,
+    ffi.Pointer<ffi.Void> leaf_data,
+    int leaf_data_size,
+    int type,
+    ffi.Pointer<ffi.Void> leaf_metadata,
+    int leaf_metadata_size,
+    int leaf_put_mode,
+    ffi.Pointer<obx_tree_async_put_callback> callback,
+    ffi.Pointer<ffi.Void> callback_user_data,
+  ) {
+    return _tree_async_put_raw(
+      tree,
+      path,
+      leaf_data,
+      leaf_data_size,
+      type,
+      leaf_metadata,
+      leaf_metadata_size,
+      leaf_put_mode,
+      callback,
+      callback_user_data,
+    );
+  }
+
+  late final _tree_async_put_rawPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_tree>,
+              ffi.Pointer<ffi.Int8>,
+              ffi.Pointer<ffi.Void>,
+              ffi.IntPtr,
+              ffi.Int32,
+              ffi.Pointer<ffi.Void>,
+              ffi.IntPtr,
+              ffi.Int32,
+              ffi.Pointer<obx_tree_async_put_callback>,
+              ffi.Pointer<ffi.Void>)>>('obx_tree_async_put_raw');
+  late final _tree_async_put_raw = _tree_async_put_rawPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_tree>,
+          ffi.Pointer<ffi.Int8>,
+          ffi.Pointer<ffi.Void>,
+          int,
+          int,
+          ffi.Pointer<ffi.Void>,
+          int,
+          int,
+          ffi.Pointer<obx_tree_async_put_callback>,
+          ffi.Pointer<ffi.Void>)>();
+
+  /// Explicitly consolidates tree node conflicts (non unique nodes sharing a common path) asynchronously.
+  /// See also obx_tree_cursor_consolidate_node_conflicts() for a synchronous version.
+  int tree_async_consolidate_node_conflicts(
+    ffi.Pointer<OBX_tree> tree,
+  ) {
+    return _tree_async_consolidate_node_conflicts(
+      tree,
+    );
+  }
+
+  late final _tree_async_consolidate_node_conflictsPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_tree>)>>(
+          'obx_tree_async_consolidate_node_conflicts');
+  late final _tree_async_consolidate_node_conflicts =
+      _tree_async_consolidate_node_conflictsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_tree>)>();
+
+  /// Creates a weak reference to the given store.
+  ffi.Pointer<OBX_weak_store> weak_store(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _weak_store(
+      store,
+    );
+  }
+
+  late final _weak_storePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_weak_store> Function(
+              ffi.Pointer<OBX_store>)>>('obx_weak_store');
+  late final _weak_store = _weak_storePtr.asFunction<
+      ffi.Pointer<OBX_weak_store> Function(ffi.Pointer<OBX_store>)>();
+
+  /// Frees a weak store reference.
+  void weak_store_free(
+    ffi.Pointer<OBX_weak_store> weak_store,
+  ) {
+    return _weak_store_free(
+      weak_store,
+    );
+  }
+
+  late final _weak_store_freePtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_weak_store>)>>(
+      'obx_weak_store_free');
+  late final _weak_store_free = _weak_store_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_weak_store>)>();
+
+  /// Tries to get a weak reference to the store with the given ID.
+  /// @returns null if no store was found for the given ID
+  ffi.Pointer<OBX_weak_store> weak_store_by_id(
+    int store_id,
+  ) {
+    return _weak_store_by_id(
+      store_id,
+    );
+  }
+
+  late final _weak_store_by_idPtr = _lookup<
+          ffi.NativeFunction<ffi.Pointer<OBX_weak_store> Function(ffi.Uint64)>>(
+      'obx_weak_store_by_id');
+  late final _weak_store_by_id = _weak_store_by_idPtr
+      .asFunction<ffi.Pointer<OBX_weak_store> Function(int)>();
+
+  /// Tries to create a regular store instance for the given weak reference.
+  /// @returns null if the store was already closed (all "strong references" are gone)
+  ffi.Pointer<OBX_store> weak_store_lock(
+    ffi.Pointer<OBX_weak_store> weak_store,
+  ) {
+    return _weak_store_lock(
+      weak_store,
+    );
+  }
+
+  late final _weak_store_lockPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_store> Function(
+              ffi.Pointer<OBX_weak_store>)>>('obx_weak_store_lock');
+  late final _weak_store_lock = _weak_store_lockPtr.asFunction<
+      ffi.Pointer<OBX_store> Function(ffi.Pointer<OBX_weak_store>)>();
 
   void bytes_free(
     ffi.Pointer<OBX_bytes> bytes,
@@ -6073,7 +6912,7 @@ class ObjectBoxC {
       ffi.Pointer<OBX_admin> Function(ffi.Pointer<OBX_admin_options>)>();
 
   /// Returns a port this server listens on. This is especially useful if the port was assigned arbitrarily
-  /// (a "0" port was used in the URI given to obx_admin_opt_bind()).
+  /// (a "0" port was used in the URL given to obx_admin_opt_bind()).
   int admin_port(
     ffi.Pointer<OBX_admin> admin,
   ) {
@@ -6754,7 +7593,7 @@ class ObjectBoxC {
   int sync_server_credentials(
     ffi.Pointer<OBX_sync_server> server,
     int type,
-    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Uint8> data,
     int size,
   ) {
     return _sync_server_credentials(
@@ -6770,11 +7609,11 @@ class ObjectBoxC {
           obx_err Function(
               ffi.Pointer<OBX_sync_server>,
               ffi.Int32,
-              ffi.Pointer<ffi.Void>,
+              ffi.Pointer<ffi.Uint8>,
               ffi.IntPtr)>>('obx_sync_server_credentials');
   late final _sync_server_credentials = _sync_server_credentialsPtr.asFunction<
       int Function(
-          ffi.Pointer<OBX_sync_server>, int, ffi.Pointer<ffi.Void>, int)>();
+          ffi.Pointer<OBX_sync_server>, int, ffi.Pointer<ffi.Uint8>, int)>();
 
   /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
   /// @param listener set NULL to reset
@@ -7336,6 +8175,24 @@ abstract class OBXFeature {
   static const int SyncServer = 7;
 }
 
+/// Log level as passed to obx_log_callback.
+abstract class OBXLogLevel {
+  /// Log level for verbose messages (not emitted at the moment)
+  static const int Verbose = 10;
+
+  /// Log level for debug messages (may be limited to special debug builds)
+  static const int Debug = 20;
+
+  /// Log level for info messages
+  static const int Info = 30;
+
+  /// Log level for warning messages
+  static const int Warn = 40;
+
+  /// Log level for error messages
+  static const int Error = 50;
+}
+
 /// Error/success code returned by an obx_* function; see defines OBX_SUCCESS, OBX_NOT_FOUND, and OBX_ERROR_*
 typedef obx_err = ffi.Int32;
 
@@ -7451,16 +8308,12 @@ abstract class OBXPropertyFlags {
 
   /// Unique on-conflict strategy: the object being put replaces any existing conflicting object (deletes it).
   static const int UNIQUE_ON_CONFLICT_REPLACE = 32768;
+
+  /// If a date property has this flag (max. one per entity type), the date value specifies the time by which
+  /// the object expires, at which point it MAY be removed (deleted), which can be triggered by an API call.
+  static const int EXPIRATION_TIME = 65536;
 }
 
-/// Model represents a database schema and must be provided when opening the store.
-/// Model initialization is usually done by language bindings, which automatically build the model based on parsed
-/// source code (for examples, see ObjectBox Go or Swift, which also use this C API).
-///
-/// For manual creation, these are the basic steps:
-/// - define entity types using obx_model_entity() and obx_model_property()
-/// - Pass the last ever used IDs with obx_model_last_entity_id(), obx_model_last_index_id(),
-/// obx_model_last_relation_id()
 class OBX_model extends ffi.Opaque {}
 
 /// Schema entity & property identifiers
@@ -7469,23 +8322,29 @@ typedef obx_schema_id = ffi.Uint32;
 /// Universal identifier used in schema for entities & properties
 typedef obx_uid = ffi.Uint64;
 
-/// Store represents a single database.
-/// Once opened using obx_store_open(), it's an entry point to data access APIs such as box, query, cursor, transaction.
-/// After your work is done, you must close obx_store_close() to safely release all the handles and avoid data loss.
-/// It's possible to have multiple stores open at once, there's no globally shared state.
 class OBX_store extends ffi.Opaque {}
 
-/// Store options customize the behavior of ObjectBox before opening a store. Options can't be changed once the store is
-/// open but of course you can close the store and open it again with the changed options.
-/// Some of the notable options are obx_opt_directory() and obx_opt_max_db_size_in_kb().
 class OBX_store_options extends ffi.Opaque {}
 
+/// Debug flags typically enable additional "debug logging" that can be helpful to better understand what is going on
+/// internally. These are intended for the development process only; typically one does not enable them for releases.
 abstract class OBXDebugFlags {
   static const int LOG_TRANSACTIONS_READ = 1;
   static const int LOG_TRANSACTIONS_WRITE = 2;
   static const int LOG_QUERIES = 4;
   static const int LOG_QUERY_PARAMETERS = 8;
   static const int LOG_ASYNC_QUEUE = 16;
+  static const int LOG_CACHE_HITS = 32;
+  static const int LOG_CACHE_ALL = 64;
+  static const int LOG_TREE = 128;
+
+  /// For a limited number of error conditions, this will try to print stack traces.
+  /// Note: this is Linux-only, experimental, and has several limitations:
+  /// The usefulness of these stack traces depends on several factors and might not be helpful at all.
+  static const int LOG_EXCEPTION_STACK_TRACE = 256;
+
+  /// Run a quick self-test to verify basic threading; somewhat paranoia to check the platform and the library setup.
+  static const int RUN_THREADING_SELF_TEST = 512;
 }
 
 /// Defines a padding mode for putting data bytes.
@@ -7509,7 +8368,7 @@ abstract class OBXPutPaddingMode {
 
 /// Bytes struct is an input/output wrapper typically used for a single object data (represented as FlatBuffers).
 class OBX_bytes extends ffi.Struct {
-  external ffi.Pointer<ffi.Void> data;
+  external ffi.Pointer<ffi.Uint8> data;
 
   @ffi.IntPtr()
   external int size;
@@ -7522,6 +8381,8 @@ class OBX_bytes_array extends ffi.Struct {
   @ffi.IntPtr()
   external int count;
 }
+
+class OBX_bytes_lazy extends ffi.Opaque {}
 
 /// ID array struct is an input/output wrapper for an array of object IDs.
 class OBX_id_array extends ffi.Struct {
@@ -7590,18 +8451,13 @@ class OBX_float_array extends ffi.Struct {
   external int count;
 }
 
-/// Transaction provides the mean to use explicit database transactions, grouping several operations into a single unit
-/// of work that either executes completely or not at all. If you are looking for a more detailed introduction to
-/// transactions in general, please consult other resources, e.g., https://en.wikipedia.org/wiki/Database_transaction
-///
-/// You may not notice it, but almost all interactions with ObjectBox involve transactions. For example, if you call
-/// obx_box_put() a write transaction is used. Also if you call obx_box_count(), a read transaction is used. All of this
-/// is done under the hood and transparent to you.
-/// However, there are situations where an explicit read transaction is necessary, e.g. obx_box_get(). Also, it’s
-/// usually worth learning transaction basics to make your app more consistent and efficient, especially for writes.
+/// Callback for logging, which can be provided to store creation via options.
+typedef obx_log_callback = ffi.NativeFunction<
+    ffi.Void Function(
+        ffi.Int32, ffi.Pointer<ffi.Int8>, ffi.IntPtr, ffi.Pointer<ffi.Void>)>;
+
 class OBX_txn extends ffi.Opaque {}
 
-/// Cursor provides fine-grained (lower level API) access to the stored objects. Check also the more convenient Box API.
 class OBX_cursor extends ffi.Opaque {}
 
 abstract class OBXPutMode {
@@ -7615,28 +8471,25 @@ abstract class OBXPutMode {
   static const int UPDATE = 3;
 }
 
-/// From ObjectBox you vend Box instances to manage your entities. While you can have multiple Box instances of the same
-/// type (for the same Entity) "open" at once, it's usually preferable to just use one instance and pass it around.
-/// Box operations automatically start an implicit transaction when accessing the database.
-/// And because transactions offered by this C API are always reentrant, you can set your own transaction boundary
-/// using obx_txn_read() or obx_txn_write(). This is very much encouraged for calling multiple write operations that
-/// logically belong together (or for better performance).
 class OBX_box extends ffi.Opaque {}
 
 /// The callback for reading data one-by-one
-/// @param user_data is a pass-through argument passed to the called API
 /// @param data is the read data buffer
 /// @param size specifies the length of the read data
+/// @param user_data is a pass-through argument passed to the called API
 /// @return true to keep going, false to cancel.
 typedef obx_data_visitor = ffi.NativeFunction<
     ffi.Uint8 Function(
-        ffi.Pointer<ffi.Void>, ffi.Pointer<ffi.Void>, ffi.IntPtr)>;
+        ffi.Pointer<ffi.Uint8>, ffi.IntPtr, ffi.Pointer<ffi.Void>)>;
 
-/// Created by obx_box_async, used for async operations like obx_async_put.
+/// Callback for simple async functions that only deliver a obx_err status.
+/// @param status The result status of the async operation
+/// @param user_data The data initially passed to the async function call is passed back.
+typedef obx_status_callback
+    = ffi.NativeFunction<ffi.Void Function(obx_err, ffi.Pointer<ffi.Void>)>;
+
 class OBX_async extends ffi.Opaque {}
 
-/// You use QueryBuilder to specify criteria and create a Query which actually executes the query and returns matching
-/// objects.
 class OBX_query_builder extends ffi.Opaque {}
 
 /// Not really an enum, but binary flags to use across languages
@@ -7664,17 +8517,10 @@ abstract class OBXOrderFlags {
 /// - used to combine conditions with any/all, thus building more complex conditions
 typedef obx_qb_cond = ffi.Int32;
 
-/// Query holds the information necessary to execute a database query. It's prepared by QueryBuilder and may be reused
-/// any number of times. It also supports parametrization before executing, further improving the reusability.
-/// Query is NOT thread safe and must only be used from a single thread at the same time. If you prefer to avoid locks,
-/// you may want to create clonse using obx_query_clone().
 class OBX_query extends ffi.Opaque {}
 
-/// PropertyQuery - getting a single property instead of whole objects. Also provides aggregation over properties.
 class OBX_query_prop extends ffi.Opaque {}
 
-/// Observers are called back when data has changed in the database.
-/// See obx_observe(), or obx_observe_single_type() to listen to a changes that affect a single entity type
 class OBX_observer extends ffi.Opaque {}
 
 /// Callback for obx_observe()
@@ -7683,15 +8529,58 @@ class OBX_observer extends ffi.Opaque {}
 /// @param type_ids_count number of IDs of type_ids
 typedef obx_observer = ffi.NativeFunction<
     ffi.Void Function(
-        ffi.Pointer<ffi.Void>, ffi.Pointer<obx_schema_id>, ffi.IntPtr)>;
+        ffi.Pointer<obx_schema_id>, ffi.IntPtr, ffi.Pointer<ffi.Void>)>;
 
 /// Callback for obx_observe_single_type()
 typedef obx_observer_single_type
     = ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>;
 
+abstract class OBXTreeOptionFlags {
+  /// If true, debug logs are always disabled for this tree regardless of the store's debug flags.
+  static const int DebugLogsDisable = 1;
+
+  /// If true, debug logs are always enabled for this tree regardless of the store's debug flags.
+  static const int DebugLogsEnable = 2;
+
+  /// By default, a path such as "a/b/c" can address a branch and a leaf at the same time.
+  /// E.g. under the common parent path "a/b", a branch "c" and a "c" leaf may exist.
+  /// To disable this, set this flag to true.
+  /// This will enable an additional check when inserting new leafs and new branches for the existence of the other.
+  static const int EnforceUniquePath = 4;
+
+  /// In some scenarios, e.g. when using Sync, multiple node objects of the same type (e.g. branch or leaf) at the
+  /// same path may exist temporarily. By enabling this flag, this is not considered an error situation. Instead, the
+  /// first node is picked.
+  static const int AllowNonUniqueNodes = 8;
+
+  /// Nodes described in AllowNonUniqueNodes will be automatically detected to consolidate them (manually).
+  static const int DetectNonUniqueNodes = 16;
+
+  /// Nodes described in AllowNonUniqueNodes will be automatically consolidated to make them unique.
+  /// This consolidation happens e.g. on put/remove operations.
+  /// Using this value implies DetectNonUniqueNodes.
+  static const int AutoConsolidateNonUniqueNodes = 32;
+}
+
+class OBX_tree_options extends ffi.Opaque {}
+
+class OBX_tree extends ffi.Opaque {}
+
+class OBX_tree_cursor extends ffi.Opaque {}
+
+/// Callback for obx_tree_async_put_raw().
+/// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
+/// during this callback (error state is thread bound and the callback uses an internal thread).
+/// @param status The result status of the async operation
+/// @param id If the operation was successful, the ID of the leaf, which was put (otherwise zero).
+/// @param user_data The data initially passed to the async function call is passed back.
+typedef obx_tree_async_put_callback = ffi
+    .NativeFunction<ffi.Void Function(obx_err, obx_id, ffi.Pointer<ffi.Void>)>;
+
+class OBX_weak_store extends ffi.Opaque {}
+
 class OBX_admin_options extends ffi.Opaque {}
 
-/// Admin web UI
 class OBX_admin extends ffi.Opaque {}
 
 class OBX_sync extends ffi.Opaque {}
@@ -7767,7 +8656,7 @@ class OBX_sync_object extends ffi.Struct {
   external int id;
 
   /// < Pointer to object data, which is to be interpreted according to its type
-  external ffi.Pointer<ffi.Void> data;
+  external ffi.Pointer<ffi.Uint8> data;
 
   /// < Size of the object data (including the trailing \0 in case of OBXSyncObjectType_String)
   @ffi.IntPtr()
@@ -7777,7 +8666,7 @@ class OBX_sync_object extends ffi.Struct {
 /// Incubating message that carries multiple data "objects" (e.g. FlatBuffers, strings, raw bytes).
 /// Interpretation is up to the application. Does not involve any persistence or delivery guarantees at the moment.
 class OBX_sync_msg_objects extends ffi.Struct {
-  external ffi.Pointer<ffi.Void> topic;
+  external ffi.Pointer<ffi.Uint8> topic;
 
   /// < topic is usually a string, but could also be binary (up to the application)
   @ffi.IntPtr()
@@ -7846,9 +8735,9 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 15;
+const int OBX_VERSION_MINOR = 18;
 
-const int OBX_VERSION_PATCH = 2;
+const int OBX_VERSION_PATCH = 0;
 
 const int OBX_ID_NEW = -1;
 
@@ -7870,6 +8759,8 @@ const int OBX_ERROR_NUMERIC_OVERFLOW = 10004;
 
 const int OBX_ERROR_FEATURE_NOT_AVAILABLE = 10005;
 
+const int OBX_ERROR_SHUTTING_DOWN = 10006;
+
 const int OBX_ERROR_NO_ERROR_INFO = 10097;
 
 const int OBX_ERROR_GENERAL = 10098;
@@ -7881,6 +8772,10 @@ const int OBX_ERROR_DB_FULL = 10101;
 const int OBX_ERROR_MAX_READERS_EXCEEDED = 10102;
 
 const int OBX_ERROR_STORE_MUST_SHUTDOWN = 10103;
+
+const int OBX_ERROR_MAX_DATA_SIZE_EXCEEDED = 10104;
+
+const int OBX_ERROR_DB_GENERAL = 10198;
 
 const int OBX_ERROR_STORAGE_GENERAL = 10199;
 
@@ -7919,3 +8814,13 @@ const int OBX_ERROR_FILE_CORRUPT = 10502;
 const int OBX_ERROR_FILE_PAGES_CORRUPT = 10503;
 
 const int OBX_ERROR_SCHEMA_OBJECT_NOT_FOUND = 10504;
+
+const int OBX_ERROR_TREE_MODEL_INVALID = 10601;
+
+const int OBX_ERROR_TREE_VALUE_TYPE_MISMATCH = 10602;
+
+const int OBX_ERROR_TREE_PATH_NON_UNIQUE = 10603;
+
+const int OBX_ERROR_TREE_PATH_ILLEGAL = 10604;
+
+const int OBX_ERROR_TREE_OTHER = 10699;

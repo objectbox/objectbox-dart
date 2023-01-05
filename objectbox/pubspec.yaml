@@ -3,7 +3,7 @@ description: Flutter database for super-fast NoSQL ACID compliant object persist
 homepage: https://objectbox.io
 repository: https://github.com/objectbox/objectbox-dart
 documentation: https://docs.objectbox.io
-version: 1.6.2
+version: 1.7.0
 
 environment:
   # minimum Dart SDK (also see generator and flutter_libs)
@@ -23,7 +23,7 @@ dev_dependencies:
   objectbox_generator: any
   test: ^1.16.5
   ffigen: ^4.1.3
-  lints: ^1.0.1
+  lints: ^2.0.1
 
 # NOTE: remove before publishing
 dependency_overrides:
@@ -37,6 +37,7 @@ ffigen:
   headers:
     entry-points:
       # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading
+      # This is to avoid casting Pointer<Uint8> to Pointer<Void> in Dart.
       - 'lib/src/native/bindings/objectbox.h'
       - 'lib/src/native/bindings/objectbox-dart.h'
     include-directives:

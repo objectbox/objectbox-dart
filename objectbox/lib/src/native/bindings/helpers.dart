@@ -57,25 +57,41 @@ class ObjectBoxNativeError {
 
   ObjectBoxNativeError(this.code, this.message, this.context);
 
-  String get fullMessage =>
-      context == null ? '$code $message' : '$context: $code $message';
+  String get messageWithContext =>
+      context == null ? message : '$context: $message';
+
+  String get messageWithErrorCode => code == 0
+      ? messageWithContext
+      : '$messageWithContext (OBX_ERROR code $code)';
 
   Never throwMapped() {
     switch (code) {
       case OBX_ERROR_ILLEGAL_STATE:
-        throw StateError(fullMessage);
+        throw StateError(messageWithErrorCode);
       case OBX_ERROR_ILLEGAL_ARGUMENT:
-      case OBX_ERROR_STD_ILLEGAL_ARGUMENT:
-        throw ArgumentError(fullMessage);
+        throw ArgumentError(messageWithErrorCode);
       case OBX_ERROR_NUMERIC_OVERFLOW:
-      case OBX_ERROR_STD_OUT_OF_RANGE:
-      case OBX_ERROR_STD_RANGE:
-      case OBX_ERROR_STD_OVERFLOW:
-        throw RangeError(fullMessage);
+        throw NumericOverflowException(messageWithContext);
+      case OBX_ERROR_DB_FULL:
+        throw DbFullException(messageWithContext, code);
+      case OBX_ERROR_MAX_READERS_EXCEEDED:
+        throw DbMaxReadersExceededException(messageWithContext, code);
+      case OBX_ERROR_STORE_MUST_SHUTDOWN:
+        throw DbShutdownException(messageWithContext, code);
       case OBX_ERROR_UNIQUE_VIOLATED:
-        throw UniqueViolationException(fullMessage);
+        throw UniqueViolationException(messageWithContext);
+      case OBX_ERROR_SCHEMA:
+        throw SchemaException(messageWithContext);
+      case OBX_ERROR_FILE_CORRUPT:
+        throw DbFileCorruptException(messageWithContext, code);
+      case OBX_ERROR_FILE_PAGES_CORRUPT:
+        throw DbPagesCorruptException(messageWithContext, code);
       default:
-        throw ObjectBoxException(fullMessage);
+        if (code == 0) {
+          throw ObjectBoxException(messageWithContext);
+        } else {
+          throw StorageException(messageWithContext, code);
+        }
     }
   }
 }

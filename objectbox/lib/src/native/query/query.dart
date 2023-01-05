@@ -232,9 +232,16 @@ class QueryStringVectorProperty<EntityT>
     extends QueryProperty<EntityT, List<String>> {
   QueryStringVectorProperty(ModelProperty model) : super(model);
 
+  @Deprecated(
+      'Use `containsElement` instead. Will be removed in a future release.')
   Condition<EntityT> contains(String p, {bool? caseSensitive, String? alias}) =>
+      containsElement(p, caseSensitive: caseSensitive, alias: alias);
+
+  /// Matches if at least one element of the list equals the given value.
+  Condition<EntityT> containsElement(String value,
+          {bool? caseSensitive, String? alias}) =>
       _StringCondition<EntityT, List<String>>(
-          _ConditionOp.contains, this, p, null, alias,
+          _ConditionOp.containsElement, this, value, null, alias,
           caseSensitive: caseSensitive);
 }
 
@@ -254,6 +261,7 @@ enum _ConditionOp {
   eq,
   notEq,
   contains,
+  containsElement,
   startsWith,
   endsWith,
   gt,
@@ -370,10 +378,9 @@ class _StringCondition<EntityT, PropertyDartType>
       case _ConditionOp.notEq:
         return _op1(builder, C.qb_not_equals_string);
       case _ConditionOp.contains:
-        final cFn = (_property._model.type == OBXPropertyType.String)
-            ? C.qb_contains_string
-            : C.qb_any_equals_string;
-        return _op1(builder, cFn);
+        return _op1(builder, C.qb_contains_string);
+      case _ConditionOp.containsElement:
+        return _op1(builder, C.qb_contains_element_string);
       case _ConditionOp.startsWith:
         return _op1(builder, C.qb_starts_with_string);
       case _ConditionOp.endsWith:
@@ -775,7 +782,8 @@ class Query<T> {
   }
 
   /// Finds the only object matching the query. Returns null if there are no
-  /// results or throws if there are multiple objects matching.
+  /// results or throws [NonUniqueResultException] if there are multiple objects
+  /// matching.
   ///
   /// Note: [offset] and [limit] are respected, if set. Because [limit] affects
   /// the number of matched objects, make sure you leave it at zero or set it
@@ -794,7 +802,7 @@ class Query<T> {
           return false;
         }
       } else {
-        error = UniqueViolationException(
+        error = NonUniqueResultException(
             'Query findUnique() matched more than one object');
         return false;
       }

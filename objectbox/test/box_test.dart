@@ -660,7 +660,7 @@ void main() {
                   TxMode.write, () => box.putMany(param));
             }, simpleItems()),
         throwsA(predicate((StateError e) => e.toString().contains(
-            'Bad state: failed to create transaction: 10001 Cannot start a write transaction inside a read only transaction'))));
+            'Bad state: failed to create transaction: Cannot start a write transaction inside a read only transaction (OBX_ERROR code 10001)'))));
   }, skip: notAtLeastDart2_15_0());
 
   test('failing in recursive txn', () {

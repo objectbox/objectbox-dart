@@ -47,3 +47,8 @@ app.*.map.json
 /android/app/release
 
 objectbox
+
+# Not checking in Podfile.lock to avoid updating it for every 
+# ObjectBox release and to always build with latest dependencies on CI.
+ios/Podfile.lock
+macos/Podfile.lock

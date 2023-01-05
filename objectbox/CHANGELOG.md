@@ -1,4 +1,4 @@
-## latest
+## 1.7.0 (2022-12-14)
 
 * Support more concise method chaining when using a sort order with a query:
   ```dart
@@ -7,6 +7,18 @@
   // AFTER
   final query = box.query().order(Person_.name).build();
   ```
+* Allow `analyzer` with major version 5. #487
+* Generator not longer warns that it can not find the package source root if the output directory is
+  the package root directory.
+* Query: add `.containsElement`, deprecate `.contains` condition for `List<String>`. #481
+* Add `StorageException` which is a `ObjectBoxException` with an `errorCode` (a `OBX_ERROR` code).
+* Throw `DbFullException` instead of `ObjectBoxException` with message `10101 Could not put` (error 
+  code `OBX_ERROR_DB_FULL`).
+* Change `Query.findUnique()` to throw `NonUniqueResultException` instead of 
+  `UniqueViolationException` if there is more than one result.
+* Update: [objectbox-c 0.18.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.18.0).
+* Update: [objectbox-android 3.5.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.5.0).
+* Update: [objectbox-swift 1.8.1-rc](https://github.com/objectbox/objectbox-swift/releases/tag/v1.8.0).
 
 ## 1.6.2 (2022-08-24)
 

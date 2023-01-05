@@ -9,15 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  objectbox: ^1.6.2
+  objectbox: ^1.7.0
   objectbox_flutter_libs: any
   intl: any
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
-  test: any
-  flutter_lints: ^1.0.0
+  test: any # Should specify a minimum version; but we use any for easier testing of multiple SDKs.
+  flutter_lints: ^2.0.1
   build_runner: ^2.0.0
   objectbox_generator: any
 
