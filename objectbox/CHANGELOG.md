@@ -1,5 +1,6 @@
 ## latest
 
+* Send anonymous data when running code generator to help us analyze its usage.
 
 ## 1.7.0 (2022-12-14)
 

@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
+import 'package:objectbox_generator/src/analysis/analysis.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:path/path.dart' as path;
 import 'package:objectbox/internal.dart';
@@ -67,6 +68,8 @@ class CodeBuilder extends Builder {
     // generate binding code
     updateCode(model, files.keys.toList(growable: false), buildStep,
         builderDirs, pubspec);
+
+    await ObjectBoxAnalysis().sendBuildEvent(pubspec);
   }
 
   Future<ModelInfo> updateModel(List<ModelEntity> entities, BuildStep buildStep,
