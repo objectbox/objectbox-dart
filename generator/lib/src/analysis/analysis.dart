@@ -4,8 +4,10 @@ import 'dart:isolate';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:http/http.dart' as http;
-import 'package:objectbox_generator/src/analysis/build_properties.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+
+import '../version.dart';
+import 'build_properties.dart';
 
 /// Sends anonymous data to analyze usage of this package.
 ///
@@ -79,12 +81,7 @@ class ObjectBoxAnalysis {
     properties["distinct_id"] = distinctId;
 
     properties["Tool"] = "Dart Generator";
-    // This is (in most cases) not the actually used version,
-    // but the version range allowed.
-    final obxDep = pubspec?.dependencies["objectbox"];
-    if (obxDep != null && obxDep is HostedDependency) {
-      properties["Version"] = obxDep.version.toString();
-    }
+    properties["Version"] = Version.current;
 
     final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
         .firstMatch(Platform.version)
