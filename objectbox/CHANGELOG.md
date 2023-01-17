@@ -1,3 +1,6 @@
+## latest
+
+
 ## 1.7.2 (2023-01-31)
 
 * Flutter Linux apps do not longer fail to run due to the shared ObjectBox C library not loading. #504
