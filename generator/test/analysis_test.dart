@@ -31,7 +31,10 @@ void main() {
     // Create a token file just for this test (delete right after to avoid
     // CI sending events).
     final token = Platform.environment["DART_ANALYSIS_TOKEN"];
-    if (token == null) fail("DART_ANALYSIS_TOKEN not set");
+    if (token == null) {
+      markTestSkipped("DART_ANALYSIS_TOKEN not set");
+      return;
+    }
     var obfuscatedToken = await obfuscateToken(token);
     final tokenFile = File("lib/${ObjectBoxAnalysis.tokenFilePath}");
     await tokenFile.writeAsString(
