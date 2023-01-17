@@ -1,3 +1,6 @@
+## latest
+
+
 ## 1.7.0 (2022-12-14)
 
 * Support more concise method chaining when using a sort order with a query:
