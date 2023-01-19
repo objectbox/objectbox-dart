@@ -24,7 +24,7 @@
   </a>
 </p>
 
-# Flutter database for fast Dart object persistence 💙
+# Flutter database - easy to use & fast Dart object persistence 💙
 
 ---
 
@@ -32,7 +32,7 @@
 
 ---
 
-Database for Flutter / Dart - fast and simple. Persist local Dart objects with ease & speed, focus on the value your application provides.
+Database for Flutter / Dart - intuitive APIs, simply fast. Persist local Dart objects with ease & speed, focus on the value your application provides.
 
 ```dart
 // Annotate a Dart class to create a box
@@ -67,18 +67,6 @@ box.remove(person.id);
 ```
 Ready? Continue with the **[Getting Started guide](https://docs.objectbox.io/getting-started)**.
 
-## Table of Contents
-- [Why use ObjectBox](#why-use-objectbox)
-  - [Features](#features)
-- [Getting Started](#getting-started)
-- [How does ObjectBox compare to other solutions?](#how-does-objectbox-compare-to-other-solutions)
-  - [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
-- [Do you 💙 ObjectBox?](#do-you--objectbox)
-- [Contributing](#contributing)
-- [Packages](#packages)
-- [Other languages/bindings](#other-languagesbindings)
-- [License](#license)
-
 ## Why use ObjectBox
 
 ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform
@@ -109,9 +97,7 @@ Oh, and there is one more thing...
 
 ## Getting Started
 
-Continue with our **[Getting Started guide](https://docs.objectbox.io/getting-started)**.
-
-It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
+Continue with our **[Getting Started guide](https://docs.objectbox.io/getting-started)**. It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
 ## How does ObjectBox compare to other solutions?
 
@@ -129,24 +115,19 @@ Here are the benchmarks for ObjectBox vs sqflite vs Hive 👇
 
 You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
 
-## Do you 💙 ObjectBox?
-
-We strive to bring joy to Flutter developers and appreciate all kind of feedback, both positive and negative.
-
-What do you love? What's amiss? Where do you struggle in everyday app development?
---> Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
+## How do you 💙 ObjectBox?
 
 **We're looking forward to receiving your comments and requests:**
 
 - Add [GitHub issues](https://github.com/objectbox/objectbox-dart/issues)
 - Upvote issues you find important by hitting the 👍/+1 reaction button
-- Fill in the [feedback form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us improve our products
+- Fill in the [anonymous feedback form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us improve our products
 - Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
 - ⭐ us on GitHub, if you like what you see or give us a 👍 on [pub.dev](https://pub.dev/packages/objectbox)
 
 Thank you! 🙏
 
-Keep in touch: For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
+For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
 
 ## Contributing
 
