@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://objectbox.io'
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
-  s.platform         = :osx, '10.11'
+  s.platform         = :osx, '10.13' # ObjectBox Swift requires macOS 10.13.
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
 

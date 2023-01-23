@@ -27,6 +27,24 @@ find "${root}" -type f -name "pubspec.yaml" \
 # Update links in READMEs (restored by git restore commands below).
 "${root}/tool/pubdev-links.sh"
 
+# Verify MixPanel project token file exists. Obtain token from MixPanel project settings.
+echo "analysis: checking if generator/lib/assets/analysis-token.txt exists..."
+analysisTokenFile="${root}/generator/lib/assets/analysis-token.txt"
+if [ -f $analysisTokenFile ]; then
+  echo "analysis: analysis-token.txt found, proceeding with release."
+else
+  read -p "WARNING analysis: analysis-token.txt not found, release with analysis *disabled*? [y/N]: " answer
+  case $answer in
+    [Yy]*)
+      echo "WARNING Releasing with analysis *disabled*."
+      ;;
+    *)
+      echo "See analysis_test.dart on how to create a analysis-token.txt file."
+      exit 1
+      ;;
+  esac
+fi
+
 # =========================== PUBLISH ======================== #
 function publish() {
   if [[ "$#" -ne "1" ]]; then

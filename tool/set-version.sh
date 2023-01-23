@@ -17,6 +17,9 @@ update generator/pubspec.yaml "${versionExpr}"
 update flutter_libs/pubspec.yaml "${versionExpr}"
 update sync_flutter_libs/pubspec.yaml "${versionExpr}"
 
+versionDartExpr="s/current = \".*\"/current = \"${version}\"/g"
+update generator/lib/src/version.dart "${versionDartExpr}"
+
 dependencyHigherExpr="s/objectbox: \^.*/objectbox: ^${version}/g"
 update objectbox/example/flutter/event_management_tutorial/event_manager/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/event_management_tutorial/many_to_many/pubspec.yaml "${dependencyHigherExpr}"

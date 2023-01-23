@@ -1,0 +1,3 @@
+# Override .gitignore of this directory for pub.dev publishing.
+
+# Add no rules to publish analysis-token.txt to pub.dev so analysis works on releases.

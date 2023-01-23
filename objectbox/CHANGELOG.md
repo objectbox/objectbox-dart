@@ -1,3 +1,10 @@
+## latest
+
+
+## 1.7.1 (2023-01-17)
+
+* Send anonymous data when running code generator to help us analyze its usage.
+
 ## 1.7.0 (2022-12-14)
 
 * Support more concise method chaining when using a sort order with a query:

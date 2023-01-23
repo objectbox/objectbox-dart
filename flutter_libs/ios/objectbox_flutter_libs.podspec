@@ -9,15 +9,15 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://objectbox.io'
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
-  s.platform         = :ios, '11.0'
+  s.platform         = :ios, '11.0' # ObjectBox Swift requires 64-bit, so iOS 11.
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
 
   s.dependency 'Flutter'
   s.dependency 'ObjectBox', '1.8.1-rc'
 
-  # Flutter.framework does not contain a i386 or arm64. Only x86_64 simulators are supported.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
+  # Flutter.framework does not contain a i386 slice.
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
 
   s.swift_version = '5.3'
 

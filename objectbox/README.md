@@ -28,7 +28,7 @@
 
 ObjectBox Flutter database is a great option for storing Dart objects in your cross-platform apps. Designed for 
 high performance, the ObjectBox Flutter database is ideal or mobile and IoT devices. ObjectBox uses minimal CPU, 
-memory and battery, making your app not only effective, but also sustainalbe. By storing data locally on device, 
+memory and battery, making your app not only effective, but also sustainable. By storing data locally on device, 
 ObjectBox helps you cut your cloud costs down and make an app that doesn't depend connection. Get started with
 our intuitive native Dart API in minutes, without the hassle of SQL.
 Plus: We built a data synchronization solution that allows you to keep data in sync across devices and servers,
