@@ -50,6 +50,8 @@ class ToOne<EntityT> {
 
   bool get _attached => _storeReference != null;
 
+  late final EntityDefinition<EntityT> _entity;
+
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
   /// Create a ToOne relationship.
@@ -149,6 +151,7 @@ class ToOne<EntityT> {
       return;
     }
     _storeReference = _PointerReferences(store);
+    _entity = InternalStoreAccess.entityDef<EntityT>(store);
   }
 
   /// Detach from the store, removes any native code references (pointers) to
@@ -216,8 +219,6 @@ class _PointerReferences<EntityT> {
   final Store store;
   final Box<EntityT> box;
 
-  /// The definition contains references to functions that return ToOne/ToMany
-  /// which may contain Store/Box pointers.
   final EntityDefinition<EntityT> entity;
 
   _PointerReferences(this.store)

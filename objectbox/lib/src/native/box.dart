@@ -360,7 +360,7 @@ class Box<T> {
   void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
     _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
       // Always set relation info so ToMany applyToDb can be used after initial put
-      InternalToManyAccess.setRelInfo(rel, _store, info, this);
+      InternalToManyAccess.setRelInfo<T>(rel, _store, info);
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
         rel.applyToDb(mode: mode, tx: tx);
       }

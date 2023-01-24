@@ -22,8 +22,10 @@ import 'bindings/helpers.dart';
 import 'box.dart';
 import 'model.dart';
 import 'sync.dart';
+import 'weak_store.dart';
 
 part 'observable.dart';
+part 'store_config.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
@@ -35,6 +37,7 @@ class Store {
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
 
+  /// Pointer to the C instance of this, access via [_ptr] with closed check.
   late Pointer<OBX_store> _cStore;
   late final Pointer<OBX_dart_finalizer> _cFinalizer;
   HashMap<int, Type>? _entityTypeById;
@@ -357,6 +360,25 @@ class Store {
     }
   }
 
+  // TODO Hide from public API (introduce interface? or partial class not exported publicly?)
+  /// Obtains a Store from a weak Store for short-time use.
+  ///
+  /// Will throw if the Store is already closed.
+  /// Make sure to [close] this when done using.
+  Store.fromWeakStore(
+      StoreConfiguration configuration, Pointer<OBX_weak_store> weakStorePtr)
+      : _defs = configuration.modelDefinition,
+        _weak = false,
+        directoryPath = configuration.directoryPath,
+        _absoluteDirectoryPath = '',
+        _queriesCaseSensitiveDefault =
+            configuration.queriesCaseSensitiveDefault {
+    Pointer<OBX_store>? storePtr = C.weak_store_lock(weakStorePtr);
+    _checkStorePointer(storePtr);
+    _cStore = storePtr;
+    _attachFinalizer();
+  }
+
   void _checkStoreDirectoryNotOpen() {
     if (_openStoreDirectories.contains(_absoluteDirectoryPath)) {
       throw UnsupportedError(
@@ -487,6 +509,14 @@ class Store {
       errors.forEach(checkObx);
     }
     _cStore = nullptr;
+  }
+
+  // TODO Hide from public API (introduce interface? or partial class not exported publicly?)
+  /// Returns the unique ID of this, valid for the lifetime of the process.
+  StoreConfiguration configuration() {
+    int id = C.store_id(_ptr);
+    return StoreConfiguration(
+        _modelDefinition, directoryPath, _queriesCaseSensitiveDefault, id);
   }
 
   /// Returns a cached Box instance.
