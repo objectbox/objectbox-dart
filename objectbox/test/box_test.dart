@@ -551,33 +551,41 @@ void main() {
 
   test('simple write in txn works - async', () async {
     int count;
-    List<TestEntity> callback(Store store, List<TestEntity> param) {
-      var testBox = store.box<TestEntity>();
-      testBox.putMany(param);
-      // Sending not attached ToOne and ToMany is allowed (no store pointer).
-      // WARNING: only call top-level functions, inline functions over-capture
-      // state (https://github.com/dart-lang/sdk/issues/36983)
-      // e.g. here the inline simpleItems function would capture the Store from
-      // main which contains a pointer that can not be sent to isolates.
-      // final items = simpleItems();
-      // This does not work as ToOne and ToMany are attached,
-      // e.g. contain a store pointer.
-      final items = testBox.getAll();
-      for (var value in items) {
-        value.relA.detach();
-        value.relB.detach();
-        // FIXME Detach ToMany.
-      }
-      return items;
+    void callback(Store store, List<TestEntity> param) {
+      store.box<TestEntity>().putMany(param);
     }
 
-    // Note: sending not attached ToOne and ToMany to an isolate works, e.g.
-    // no pointer to the store is set!
-    var result = await store.runInTransactionAsync(
-        TxMode.write, callback, simpleItems());
-    expect(result.length, equals(6));
+    await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
     count = box.count();
     expect(count, equals(6));
+  }, skip: notAtLeastDart2_15_0());
+
+  test('async txn - send and receive relations', () async {
+    final testBox = store.box<TestEntity>();
+    testBox.putMany(simpleItems());
+    // Get objects from Box so relations are attached.
+    final testObjects = testBox.getAll();
+
+    List<TestEntity> callback(Store store, List<TestEntity> receivedObjects) {
+      // Check ToOne and ToMany classes can access store.
+      for (var object in receivedObjects) {
+        object.relA.target;
+        object.relManyA.length;
+      }
+
+      // Return objects with attached relations to main isolate.
+      return store.box<TestEntity>().getAll();
+    }
+
+    // Send objects with attached relations to worker isolate.
+    var isolateResponse =
+        await store.runInTransactionAsync(TxMode.read, callback, testObjects);
+    expect(isolateResponse.length, equals(6));
+    // Check ToOne and ToMany classes can access store.
+    for (var object in isolateResponse) {
+      object.relA.target;
+      object.relManyA.length;
+    }
   }, skip: notAtLeastDart2_15_0());
 
   test('failing transactions', () {
