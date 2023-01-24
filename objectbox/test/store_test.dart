@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -69,6 +70,41 @@ void main() {
 
     // Dispose StreamQueue.
     await received.cancel();
+  });
+
+  // FIXME Replace with Dart API once implemented.
+  test('weak store is closed with store', () {
+    final env = TestEnv('store');
+    // Get store ID.
+    var storeId = C.store_id(InternalStoreAccess.ptr(env.store));
+    expect(storeId, isNot(0));
+
+    // Create weak store by ID.
+    var weakStorePtr = C.weak_store_by_id(storeId);
+    expect(weakStorePtr, isNot(nullptr));
+
+    // Obtain strong reference.
+    Pointer<OBX_store>? storePtr = C.weak_store_lock(weakStorePtr);
+    expect(storePtr, isNot(nullptr));
+    expect(C.store_id(storePtr), storeId);
+    // Release strong reference.
+    C.store_close(storePtr);
+    storePtr = null;
+
+    // Try again to obtain strong reference.
+    Pointer<OBX_store>? storePtr2 = C.weak_store_lock(weakStorePtr);
+    expect(storePtr2, isNot(nullptr));
+    expect(C.store_id(storePtr2), storeId);
+    C.store_close(storePtr2);
+    storePtr2 = null;
+
+    // Close underlying store, should not longer be able
+    // to obtain strong reference.
+    env.closeAndDelete();
+    var storePtr3 = C.weak_store_lock(weakStorePtr);
+    expect(storePtr3, nullptr);
+
+    C.weak_store_free(weakStorePtr);
   });
 
   test('store is open', () {
