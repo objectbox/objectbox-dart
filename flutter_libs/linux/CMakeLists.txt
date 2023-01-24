@@ -38,14 +38,6 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
 
-# List of absolute paths to libraries that should be bundled with the plugin.
-# This list could contain prebuilt libraries, or libraries created by an
-# external build triggered from this build file.
-set(objectbox_flutter_libs_bundled_libraries
-  ""
-  PARENT_SCOPE
-)
-
 # ----------------------------------------------------------------------
 # Download and add objectbox-c prebuilt library.
 
@@ -71,16 +63,15 @@ if(NOT objectbox-download_POPULATED)
   FetchContent_Populate(objectbox-download)
 endif()
 
-# Bundle library with Flutter plugin, see template above.
+# ----------------------------------------------------------------------
+
+# List of absolute paths to libraries that should be bundled with the plugin.
+# This list could contain prebuilt libraries, or libraries created by an
+# external build triggered from this build file.
+
+# Note: do not link the ObjectBox C library; the Dart library looks for it in a lib subfolder
+# where flutter build puts it when added below.
 set(objectbox_flutter_libs_bundled_libraries
     "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}"
     PARENT_SCOPE
 )
-
-add_library(objectbox SHARED IMPORTED GLOBAL)
-set_target_properties(objectbox PROPERTIES
-    IMPORTED_LOCATION ${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}
-    IMPORTED_IMPLIB ${objectbox-download_SOURCE_DIR}/lib/${CMAKE_IMPORT_LIBRARY_PREFIX}objectbox${CMAKE_IMPORT_LIBRARY_SUFFIX}
-)
-
-target_link_libraries(${PLUGIN_NAME} PRIVATE objectbox)
