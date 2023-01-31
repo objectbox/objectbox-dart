@@ -1,6 +1,12 @@
 ## latest
 
 * Flutter Linux apps do not longer fail to run due to the shared ObjectBox C library not loading. #504
+* Fixes writes failing with "Storage error (code -30786)", which may occur in some corner cases on 
+  iOS and some Android devices. #485
+* Update: [objectbox-c 0.18.1](https://github.com/objectbox/objectbox-c/releases/tag/v0.18.1).
+* Update: [objectbox-swift 1.8.1](https://github.com/objectbox/objectbox-swift/releases/tag/v1.8.1).
+* Update: [objectbox-android 3.5.1](https://github.com/objectbox/objectbox-java/releases/tag/V3.5.1).
+  If you are using Admin, make sure to [update your `objectbox-android-objectbrowser` dependency](https://docs.objectbox.io/data-browser#setup).
 
 ## 1.7.1 (2023-01-17)
 
