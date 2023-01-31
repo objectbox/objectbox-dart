@@ -46,6 +46,6 @@ android {
 
     dependencies {
         // https://search.maven.org/search?q=g:io.objectbox%20objectbox-android
-        implementation "io.objectbox:objectbox-android:3.5.0"
+        implementation "io.objectbox:objectbox-android:3.5.1"
     }
 }
