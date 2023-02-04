@@ -2,13 +2,13 @@ name: objectbox_generator
 description: ObjectBox Flutter / Dart database binding code generator - finds annotated entities and adds them to the ObjectBox DB model.
 repository: https://github.com/objectbox/objectbox-dart
 homepage: https://objectbox.io
-version: 1.7.1
+version: 1.7.2
 
 environment:
   sdk: '>=2.14.0 <3.0.0'
 
 dependencies:
-  objectbox: 1.7.1
+  objectbox: 1.7.2
   analyzer: '>=4.0.0 <6.0.0' # v5 requires test version that requires Dart SDK 2.18, allow v4 for some time.
   build: ^2.0.0
   collection: ^1.15.0
