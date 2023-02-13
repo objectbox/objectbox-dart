@@ -346,15 +346,13 @@ class Box<T> {
   }
 
   void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
-    _entity.toOneRelations(object).forEach((ToOne rel) {
-      if (!rel.hasValue) return;
-      rel.attach(_store);
-      // put new objects
-      if (rel.targetId == 0) {
-        rel.targetId =
-            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, tx);
-      }
-    });
+    for (var toOne in _entity.toOneRelations(object)) {
+      if (!toOne.hasValue) continue;
+      toOne.attach(_store);
+      // TODO To avoid all ToOnes obtaining a Store for each put,
+      // pass the store of this box.
+      toOne.applyToDb(mode, tx);
+    }
   }
 
   void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
@@ -362,6 +360,8 @@ class Box<T> {
       // Always set relation info so ToMany applyToDb can be used after initial put
       InternalToManyAccess.setRelInfo<T>(rel, _store, info);
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
+        // TODO To avoid all ToManys obtaining a Store for each put,
+        //   pass the store of this box.
         rel.applyToDb(mode: mode, tx: tx);
       }
     });

@@ -1,7 +1,7 @@
-import 'package:meta/meta.dart';
-
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
+import '../native/transaction.dart';
+import '../native/weak_store.dart';
 import '../store.dart';
 
 /// Manages a to-one relation, an unidirectional link from a "source" entity to
@@ -46,11 +46,12 @@ import '../store.dart';
 /// order.customer.targetId = 0
 /// ```
 class ToOne<EntityT> {
-  _PointerReferences<EntityT>? _storeReference;
-
-  bool get _attached => _storeReference != null;
-
-  late final EntityDefinition<EntityT> _entity;
+  /// Store-related configuration attached to this.
+  ///
+  /// This is to have a single place to store attached configuration and to
+  /// support sending this across isolates, which does not support sending a
+  /// Store which contains a pointer.
+  _ToOneStoreConfiguration<EntityT>? _storeConfiguration;
 
   _ToOneValue<EntityT> _value = _ToOneValue<EntityT>.none();
 
@@ -76,7 +77,13 @@ class ToOne<EntityT> {
   /// Get target object. If it's the first access, this reads from DB.
   EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
-      final object = _getStoreReferenceOrThrow().box.get(_value._id);
+      var storeAccess = _getStoreConfigOrThrow().getStoreAccess();
+      final EntityT? object;
+      try {
+        object = storeAccess.box().get(_value._id);
+      } finally {
+        storeAccess.close();
+      }
       _value = (object == null)
           ? _ToOneValue<EntityT>.unresolvable(_value._id)
           : _ToOneValue<EntityT>.stored(_value._id, object);
@@ -87,9 +94,12 @@ class ToOne<EntityT> {
   /// Set relation target object. Note: this does not store the change yet, use
   /// [Box.put()] on the containing (relation source) object.
   set target(EntityT? object) {
+    // If not attached, yet, avoid throwing and set the ID to unknown instead.
+    // If the targetId getter is used later, it will call this to re-try
+    // resolving the ID.
     if (object == null) {
       _value = _ToOneValue<EntityT>.none();
-    } else if (_attached) {
+    } else if (_storeConfiguration != null) {
       final id = _getId(object);
       _value = (id == 0)
           ? _ToOneValue<EntityT>.unstored(object)
@@ -102,15 +112,12 @@ class ToOne<EntityT> {
   /// Get ID of a relation target object.
   int get targetId {
     if (_value._state == _ToOneState.unknown) {
-      // If the target was previously set while not attached, the ID is unknown.
-      // It's because we couldn't call _entity.getId() when _entity was null.
-      // If, in the meantime, we have become attached, the ID can be resolved.
-      if (_attached) {
-        target = _value._object;
-      } else {
-        // Otherwise, we still can't access the ID so let's throw...
-        _getStoreReferenceOrThrow();
-      }
+      // The target was set while this was not attached, so the target setter
+      // set the ID as unknown.
+      // If this is attached now, re-set the target so the target setter
+      // resolves the ID. If still not attached, throw.
+      _getStoreConfigOrThrow();
+      target = _value._object;
     }
     return _value._id;
   }
@@ -136,42 +143,39 @@ class ToOne<EntityT> {
   /// Whether the relation field has a value stored. Otherwise it's null.
   bool get hasValue => _value._state != _ToOneState.none;
 
-  /// Initialize the relation field, attaching it to the store.
+  /// Initializes this relation, attaching it to the [store].
   ///
-  /// [Box.put()] calls this automatically. You only need to call this manually
-  /// on new objects after you've set [target] and want to read [targetId],
-  /// which is a very unusual operation because you've just assigned the
-  /// [target] so you should know it's ID.
+  /// Calling this is typically not necessary as e.g. for objects obtained via
+  /// [Box.get] or put with [Box.put] this is called automatically.
+  ///
+  /// However, when creating a new instance of ToOne and setting [target], this
+  /// must be called before accessing [targetId]. But in that case it is likely
+  /// easier to get the target ID from the [target] object directly.
   void attach(Store store) {
-    if (_attached) {
-      if (_getStoreReferenceOrThrow().store != store) {
+    final storeConfiguration = _storeConfiguration;
+    if (storeConfiguration != null) {
+      if (storeConfiguration._storeConfiguration.id !=
+          store.configuration().id) {
         throw ArgumentError.value(
             store, 'store', 'Relation already attached to a different store');
       }
       return;
     }
-    _storeReference = _PointerReferences(store);
-    _entity = InternalStoreAccess.entityDef<EntityT>(store);
+    _storeConfiguration = _ToOneStoreConfiguration(
+        store.configuration(), InternalStoreAccess.entityDef<EntityT>(store));
   }
 
-  /// Detach from the store, removes any native code references (pointers) to
-  /// allow sending this to an isolate.
-  void detach() {
-    _storeReference = null;
-  }
-
-  _PointerReferences<EntityT> _getStoreReferenceOrThrow() {
-    final ref = _storeReference;
-    if (ref == null) {
-      throw StateError('ToOne relation field not initialized. '
-          'Make sure to call attach(store) before the first use.');
-    } else {
-      return ref;
+  _ToOneStoreConfiguration<EntityT> _getStoreConfigOrThrow() {
+    final storeConfiguration = _storeConfiguration;
+    if (storeConfiguration == null) {
+      throw StateError("ToOne relation field not initialized. "
+          "Make sure attach(store) is called before using this.");
     }
+    return storeConfiguration;
   }
 
   int _getId(EntityT object) =>
-      _getStoreReferenceOrThrow().entity.getId(object) ?? 0;
+      _getStoreConfigOrThrow().entity.getId(object) ?? 0;
 }
 
 enum _ToOneState { none, unstored, unknown, lazy, stored, unresolvable }
@@ -206,22 +210,51 @@ class _ToOneValue<EntityT> {
   const _ToOneValue._(this._state, this._id, this._object);
 }
 
-/// Internal only.
-@internal
-class InternalToOneAccess {
-  /// Get access of the relation's target box.
-  static Box targetBox(ToOne toOne) => toOne._getStoreReferenceOrThrow().box;
+/// This hides away methods from the public API
+/// (this is not marked as show in objectbox.dart)
+/// while remaining accessible by other libraries in this package.
+extension ToOneInternal<EntityT> on ToOne<EntityT> {
+  /// Puts the [target] if it is new.
+  void applyToDb(PutMode mode, Transaction tx) {
+    // Put if target object is new.
+    if (targetId == 0) {
+      final storeAccess = _getStoreConfigOrThrow().getStoreAccess();
+      try {
+        targetId = InternalBoxAccess.put(storeAccess.box(), target, mode, tx);
+      } finally {
+        storeAccess.close();
+      }
+    }
+  }
 }
 
-/// Wraps objects with pointer references that can not be sent to isolates
-/// so they can easily be removed.
-class _PointerReferences<EntityT> {
-  final Store store;
-  final Box<EntityT> box;
-
+/// This stores the target entity type with the store configuration.
+class _ToOneStoreConfiguration<EntityT> {
+  final StoreConfiguration _storeConfiguration;
   final EntityDefinition<EntityT> entity;
 
-  _PointerReferences(this.store)
-      : box = store.box<EntityT>(),
-        entity = InternalStoreAccess.entityDef<EntityT>(store);
+  _ToOneStoreConfiguration(this._storeConfiguration, this.entity);
+
+  _ToOneStoreAccess<EntityT> getStoreAccess() => _ToOneStoreAccess(this);
+}
+
+// TODO Add base class with _ToManyStoreAccess?
+/// This provides temporary access to a store given a store configuration.
+class _ToOneStoreAccess<EntityT> {
+  final _ToOneStoreConfiguration<EntityT> configuration;
+  Store _store;
+
+  factory _ToOneStoreAccess(_ToOneStoreConfiguration<EntityT> configuration) {
+    final weakStore = WeakStore.get(configuration._storeConfiguration);
+    final store = weakStore.lock();
+    return _ToOneStoreAccess._fromFactory(configuration, store);
+  }
+
+  _ToOneStoreAccess._fromFactory(this.configuration, this._store);
+
+  Box<EntityT> box() => _store.box<EntityT>();
+
+  void close() {
+    _store.close();
+  }
 }
