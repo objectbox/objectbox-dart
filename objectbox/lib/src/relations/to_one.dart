@@ -215,15 +215,17 @@ class _ToOneValue<EntityT> {
 /// while remaining accessible by other libraries in this package.
 extension ToOneInternal<EntityT> on ToOne<EntityT> {
   /// Puts the [target] if it is new.
-  void applyToDb(PutMode mode, Transaction tx) {
+  void applyToDb(Store store, PutMode mode, Transaction tx) {
+    if (!hasValue) return;
+    // Attach so can get box below.
+    attach(store);
     // Put if target object is new.
     if (targetId == 0) {
-      final storeAccess = _getStoreConfigOrThrow().getStoreAccess();
-      try {
-        targetId = InternalBoxAccess.put(storeAccess.box(), target, mode, tx);
-      } finally {
-        storeAccess.close();
-      }
+      // Note: would call store.box<EntityT>() here directly, but callers might
+      // use dynamic as EntityT. So get box via embedded config class that
+      // definitely has a type for EntityT.
+      targetId = InternalBoxAccess.put(
+          _getStoreConfigOrThrow().box(store), target, mode, tx);
     }
   }
 }
@@ -236,6 +238,9 @@ class _ToOneStoreConfiguration<EntityT> {
   _ToOneStoreConfiguration(this._storeConfiguration, this.entity);
 
   _ToOneStoreAccess<EntityT> getStoreAccess() => _ToOneStoreAccess(this);
+
+  /// Workaround to get box with actual EntityT type.
+  Box<EntityT> box(Store store) => store.box<EntityT>();
 }
 
 // TODO Add base class with _ToManyStoreAccess?

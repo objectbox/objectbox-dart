@@ -346,12 +346,12 @@ class Box<T> {
   }
 
   void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
+    // FIXME Instead of List<ToOne<dynamic>> toOneRelations generate type safe
+    //  code to replace the below.
     for (var toOne in _entity.toOneRelations(object)) {
-      if (!toOne.hasValue) continue;
-      toOne.attach(_store);
-      // TODO To avoid all ToOnes obtaining a Store for each put,
+      // To avoid all ToOnes obtaining a Store for each put,
       // pass the store of this box.
-      toOne.applyToDb(mode, tx);
+      toOne.applyToDb(_store, mode, tx);
     }
   }
 
