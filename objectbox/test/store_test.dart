@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
+import 'package:objectbox/src/native/weak_store.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -72,39 +72,41 @@ void main() {
     await received.cancel();
   });
 
-  // FIXME Replace with Dart API once implemented.
   test('weak store is closed with store', () {
     final env = TestEnv('store');
-    // Get store ID.
-    var storeId = C.store_id(InternalStoreAccess.ptr(env.store));
-    expect(storeId, isNot(0));
+    // Get store config.
+    final storeConfig = env.store.configuration();
+    expect(storeConfig.id, isNot(0));
 
     // Create weak store by ID.
-    var weakStorePtr = C.weak_store_by_id(storeId);
-    expect(weakStorePtr, isNot(nullptr));
+    var weakStore = WeakStore.get(storeConfig);
 
     // Obtain strong reference.
-    Pointer<OBX_store>? storePtr = C.weak_store_lock(weakStorePtr);
-    expect(storePtr, isNot(nullptr));
-    expect(C.store_id(storePtr), storeId);
+    final store = weakStore.lock();
+    expect(store.configuration().id, storeConfig.id);
     // Release strong reference.
-    C.store_close(storePtr);
-    storePtr = null;
+    store.close();
 
     // Try again to obtain strong reference.
-    Pointer<OBX_store>? storePtr2 = C.weak_store_lock(weakStorePtr);
-    expect(storePtr2, isNot(nullptr));
-    expect(C.store_id(storePtr2), storeId);
-    C.store_close(storePtr2);
-    storePtr2 = null;
+    final store2 = weakStore.lock();
+    expect(store2.configuration().id, storeConfig.id);
+    store2.close();
 
     // Close underlying store, should not longer be able
     // to obtain strong reference.
     env.closeAndDelete();
-    var storePtr3 = C.weak_store_lock(weakStorePtr);
-    expect(storePtr3, nullptr);
+    expect(
+        () => weakStore.lock(),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == "failed to create store")));
 
-    C.weak_store_free(weakStorePtr);
+    // Clean up.
+    weakStore.close();
+
+    // Re-open underlying store, store ID should have changed.
+    final env2 = TestEnv("store");
+    expect(env2.store.configuration().id, isNot(storeConfig.id));
+    env2.closeAndDelete();
   });
 
   test('store is open', () {
