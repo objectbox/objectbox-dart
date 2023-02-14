@@ -202,8 +202,9 @@ class Store {
         rethrow;
       }
       if (debugLogs) {
-        print('Opening store (C lib V${libraryVersion()})... path=$directory'
-            ' isOpen=${isOpen(directory)}');
+        print(
+            "Opening store (C lib V${libraryVersion()})... path=$directoryPath"
+            " isOpen=${isOpen(directoryPath)}");
       }
 
       _cStore = C.store_open(opt);
@@ -404,7 +405,13 @@ class Store {
   }
 
   /// Returns if an open store (i.e. opened before and not yet closed) was found
-  /// for the given [directoryPath] (or if null the [defaultDirectoryPath]).
+  /// for the given [directoryPath].
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
   static bool isOpen(String? directoryPath) {
     final path = _safeDirectoryPath(directoryPath);
     final cStr = path.toNativeUtf8();
