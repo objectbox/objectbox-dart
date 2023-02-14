@@ -79,7 +79,7 @@ void main() {
     expect(storeConfig.id, isNot(0));
 
     // Create weak store by ID.
-    var weakStore = WeakStore.get(storeConfig);
+    var weakStore = WeakStore.getOrCreate(storeConfig);
 
     // Obtain strong reference.
     final store = weakStore.lock();
@@ -97,11 +97,8 @@ void main() {
     env.closeAndDelete();
     expect(
         () => weakStore.lock(),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == "failed to create store")));
-
-    // Clean up.
-    weakStore.close();
+        throwsA(
+            predicate((StateError e) => e.message == "Weak store is closed")));
 
     // Re-open underlying store, store ID should have changed.
     final env2 = TestEnv("store");

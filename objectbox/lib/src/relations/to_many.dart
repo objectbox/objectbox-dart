@@ -351,7 +351,7 @@ class _ToManyStoreAccess<EntityT, OwningEntityT> {
 
   factory _ToManyStoreAccess(
       _ToManyStoreConfiguration<EntityT, OwningEntityT> configuration) {
-    final weakStore = WeakStore.get(configuration._storeConfiguration);
+    final weakStore = WeakStore.getOrCreate(configuration._storeConfiguration);
     final store = weakStore.lock();
     return _ToManyStoreAccess._fromFactory(configuration, store);
   }

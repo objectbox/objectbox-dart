@@ -60,9 +60,13 @@ class Store {
   /// A list of observers of the Store.close() event.
   final _onClose = <dynamic, void Function()>{};
 
-  /// If weak and calling [close] does not try to close the native Store and
+  /// If true and calling [close] will also close the native Store and
   /// remove [_absoluteDirectoryPath] from [_openStoreDirectories].
-  final bool _weak;
+  final bool _closesNativeStore;
+
+  /// If true and calling [close] will also close a cached WeakStore, if one was
+  /// created for this store.
+  final bool _closesWeakStore;
 
   /// Default value for string query conditions [caseSensitive] argument.
   final bool _queriesCaseSensitiveDefault;
@@ -153,7 +157,8 @@ class Store {
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _defs = modelDefinition,
-        _weak = false,
+        _closesNativeStore = true,
+        _closesWeakStore = true,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         directoryPath = _safeDirectoryPath(directory),
         _absoluteDirectoryPath =
@@ -269,8 +274,10 @@ class Store {
   /// ```
   Store.fromReference(this._defs, this._reference,
       {bool queriesCaseSensitiveDefault = true})
-      // must not close the same native store twice so [_weak]=true
-      : _weak = true,
+      :
+        // Must not close native store twice, only original store is allowed to.
+        _closesNativeStore = false,
+        _closesWeakStore = true,
         directoryPath = '',
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
@@ -297,7 +304,9 @@ class Store {
   /// See [_clone] for details.
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
       : _defs = null,
-        _weak = false,
+        _closesNativeStore = true,
+        // Minimal store does not have a model, so could not create Weak Store.
+        _closesWeakStore = false,
         directoryPath = '',
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
@@ -322,8 +331,8 @@ class Store {
   /// is closed (e.g. when the app exits).
   Store.attach(this._defs, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
-      // _weak = false so store can be closed.
-      : _weak = false,
+      : _closesNativeStore = true,
+        _closesWeakStore = true,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         directoryPath = _safeDirectoryPath(directoryPath),
         _absoluteDirectoryPath =
@@ -368,7 +377,9 @@ class Store {
   Store._fromWeakStore(
       StoreConfiguration configuration, Pointer<OBX_weak_store> weakStorePtr)
       : _defs = configuration.modelDefinition,
-        _weak = false,
+        _closesNativeStore = true,
+        // This Store was obtained from a WeakStore, do not close it.
+        _closesWeakStore = false,
         directoryPath = configuration.directoryPath,
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault =
@@ -499,7 +510,12 @@ class Store {
 
     _reader.clear();
 
-    if (!_weak) {
+    if (_closesWeakStore) {
+      // If there is a weak store reference for this, close it as well.
+      WeakStore.get(configuration())?.close();
+    }
+
+    if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
       final errors = List.filled(2, 0);
       if (_cFinalizer != nullptr) {

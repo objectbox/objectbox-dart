@@ -250,7 +250,7 @@ class _ToOneStoreAccess<EntityT> {
   Store _store;
 
   factory _ToOneStoreAccess(_ToOneStoreConfiguration<EntityT> configuration) {
-    final weakStore = WeakStore.get(configuration._storeConfiguration);
+    final weakStore = WeakStore.getOrCreate(configuration._storeConfiguration);
     final store = weakStore.lock();
     return _ToOneStoreAccess._fromFactory(configuration, store);
   }

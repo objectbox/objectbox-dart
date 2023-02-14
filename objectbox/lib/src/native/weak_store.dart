@@ -14,16 +14,20 @@ import 'bindings/helpers.dart';
 /// // Do Store operations.
 /// store.close();
 /// // Optional: if not longer needed, free the weak store reference.
+/// // Note this is done automatically if the underlying store is closed.
 /// weakStore.close();
 /// ```
 class WeakStore {
-  // TODO All these should be closed when the isolate is shut down.
   /// Holds previously constructed weak stores by store ID for this isolate.
   static final _weakStoresCacheOfIsolate = <int, WeakStore>{};
 
+  /// Based on the ID get an existing weak store, or null if there is none.
+  static WeakStore? get(StoreConfiguration configuration) =>
+      _weakStoresCacheOfIsolate[configuration.id];
+
   /// Based on the ID get an existing weak store, or create a new one.
-  static WeakStore get(StoreConfiguration configuration) {
-    final existingWeakStore = _weakStoresCacheOfIsolate[configuration.id];
+  static WeakStore getOrCreate(StoreConfiguration configuration) {
+    final existingWeakStore = get(configuration);
     if (existingWeakStore == null) {
       final newWeakStore = WeakStore(configuration);
       _weakStoresCacheOfIsolate[configuration.id] = newWeakStore;
@@ -61,6 +65,7 @@ class WeakStore {
     if (weakStorePtr == null) return;
     C.weak_store_free(weakStorePtr);
     _weakStorePtr = null;
+    _weakStoresCacheOfIsolate.remove(configuration.id);
   }
 
   /// Obtains a Store from a weak Store for short-time use.
