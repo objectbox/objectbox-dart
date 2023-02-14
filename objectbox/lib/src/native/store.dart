@@ -360,12 +360,12 @@ class Store {
     }
   }
 
-  // TODO Hide from public API (introduce interface? or partial class not exported publicly?)
-  /// Obtains a Store from a weak Store for short-time use.
+  /// Obtains a Store from a weak Store reference for short-time use.
   ///
   /// Will throw if the Store is already closed.
-  /// Make sure to [close] this when done using.
-  Store.fromWeakStore(
+  /// Make sure to [close] this when done using, which will not close the
+  /// underlying store.
+  Store._fromWeakStore(
       StoreConfiguration configuration, Pointer<OBX_weak_store> weakStorePtr)
       : _defs = configuration.modelDefinition,
         _weak = false,
@@ -509,14 +509,6 @@ class Store {
       errors.forEach(checkObx);
     }
     _cStore = nullptr;
-  }
-
-  // TODO Hide from public API (introduce interface? or partial class not exported publicly?)
-  /// Returns the unique ID of this, valid for the lifetime of the process.
-  StoreConfiguration configuration() {
-    int id = C.store_id(_ptr);
-    return StoreConfiguration(
-        _modelDefinition, directoryPath, _queriesCaseSensitiveDefault, id);
   }
 
   /// Returns a cached Box instance.
@@ -796,6 +788,24 @@ class Store {
     final model = _defs;
     if (model == null) throw StateError('Minimal store does not have a model');
     return model;
+  }
+}
+
+/// This hides away methods from the public API
+/// (this is not marked as show in objectbox.dart)
+/// while remaining accessible by other libraries in this package.
+extension StoreInternal on Store {
+  /// See [Store._fromWeakStore].
+  static Store fromWeakStore(StoreConfiguration configuration,
+          Pointer<OBX_weak_store> weakStorePtr) =>
+      Store._fromWeakStore(configuration, weakStorePtr);
+
+  /// Returns the configuration for this to be used with
+  /// [WeakStore], valid for the lifetime of the process.
+  StoreConfiguration configuration() {
+    int id = C.store_id(_ptr);
+    return StoreConfiguration(
+        _modelDefinition, directoryPath, _queriesCaseSensitiveDefault, id);
   }
 }
 

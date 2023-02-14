@@ -67,5 +67,5 @@ class WeakStore {
   ///
   /// Will throw if the Store is already closed.
   /// Make sure to close the returned Store when done using it.
-  Store lock() => Store.fromWeakStore(configuration, _weakStorePtrSafe);
+  Store lock() => StoreInternal.fromWeakStore(configuration, _weakStorePtrSafe);
 }
