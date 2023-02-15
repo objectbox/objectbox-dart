@@ -17,7 +17,7 @@ import 'bindings/helpers.dart';
 /// // Note this is done automatically if the underlying store is closed.
 /// weakStore.close();
 /// ```
-class WeakStore {
+class WeakStore implements Finalizable {
   /// Holds previously constructed weak stores by store ID for this isolate.
   static final _weakStoresCacheOfIsolate = <int, WeakStore>{};
 
@@ -42,6 +42,13 @@ class WeakStore {
 
   Pointer<OBX_weak_store>? _weakStorePtr;
 
+  /// Runs [weak_store_free] on [_weakStorePtr] if the object is garbage
+  /// collected.
+  ///
+  /// Keep the finalizer itself reachable, otherwise it might be disposed
+  /// before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(weak_store_free.cast());
+
   Pointer<OBX_weak_store> get _weakStorePtrSafe {
     final weakStorePtrBacking = _weakStorePtr;
     if (weakStorePtrBacking == null) throw StateError("Weak store is closed");
@@ -55,6 +62,8 @@ class WeakStore {
     final weakStorePtr = C.weak_store_by_id(configuration.id);
     checkObxPtr(weakStorePtr);
     _weakStorePtr = weakStorePtr;
+    _finalizer.attach(this, weakStorePtr.cast(),
+        detach: this, externalSize: 1024);
   }
 
   /// Frees the native resources associated with this.
@@ -63,6 +72,7 @@ class WeakStore {
   void close() {
     final weakStorePtr = _weakStorePtr;
     if (weakStorePtr == null) return;
+    _finalizer.detach(this);
     C.weak_store_free(weakStorePtr);
     _weakStorePtr = null;
     _weakStoresCacheOfIsolate.remove(configuration.id);
