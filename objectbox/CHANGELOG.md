@@ -1,5 +1,6 @@
 ## latest
 
+* Require at least Dart SDK 2.17 (shipped with Flutter 3.0.0).
 
 ## 1.7.2 (2023-01-31)
 
