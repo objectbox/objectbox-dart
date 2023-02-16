@@ -130,7 +130,8 @@ class CodeChunks {
       id: ${createIdUid(property.id)},
       name: '${property.name}',
       type: ${property.type},
-      flags: ${property.flags}
+      flags: ${property.flags},
+      generatorFlags: ${property.generatorFlags}
       $additionalArgs
     )
     ''';
@@ -185,8 +186,12 @@ class CodeChunks {
   }
 
   static String setId(ModelEntity entity) {
+    if (entity.idProperty
+        .hasGeneratorFlag(OBXPropertyGeneratorFlags.USE_COPY_WITH_ID)) {
+      return '{return object.copyWithId(id);}';
+    }
     if (!entity.idProperty.fieldIsReadOnly) {
-      return '{object.${propertyFieldName(entity.idProperty)} = id;}';
+      return '{object.${propertyFieldName(entity.idProperty)} = id; return object;}';
     }
     // Note: this is a special case handling read-only IDs with assignable=true.
     // Such ID must already be set, i.e. it could not have been assigned.
@@ -198,6 +203,7 @@ class CodeChunks {
         "doesn't match the inserted ID (ID \$id). "
         'You must assign an ID before calling [box.put()].');
       }
+      return object;
     }''';
   }
 
@@ -399,6 +405,8 @@ class CodeChunks {
         if (entity.properties[index].isRelation) {
           if (paramDartType.startsWith('ToOne<')) {
             paramValueCode = 'ToOne(targetId: $paramValueCode)';
+          } else if (paramDartType.startsWith('ToOneProxy<')) {
+            paramValueCode = 'ToOneProxy(targetId: $paramValueCode)';
           } else if (paramType == 'optional-named') {
             log.info('Skipping constructor parameter $paramName on '
                 "'${entity.name}': the matching field is a relation but the type "
@@ -408,6 +416,8 @@ class CodeChunks {
         }
       } else if (paramDartType.startsWith('ToMany<')) {
         paramValueCode = 'ToMany()';
+      } else if (paramDartType.startsWith('ToManyProxy<')) {
+        paramValueCode = 'ToManyProxy()';
       } else {
         // If we can't find a positional param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
@@ -455,7 +465,7 @@ class CodeChunks {
       if (!p.isRelation) return;
       if (fieldReaders[index].isNotEmpty) {
         postLines.add(
-            'object.${propertyFieldName(p)}.targetId = ${fieldReaders[index]};');
+            'object.${propertyFieldName(p)}.relation.targetId = ${fieldReaders[index]};');
       }
       postLines.add('object.${propertyFieldName(p)}.attach(store);');
     });

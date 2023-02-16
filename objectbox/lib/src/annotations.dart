@@ -134,8 +134,33 @@ class Id {
   /// telling which objects are new and which are already saved.
   final bool assignable;
 
+  /// Use copyWith new id in the entity identifier setter.
+  /// For example, if your entity is immutable object,
+  /// you can define useCopyWith as follows
+  ///
+  /// @Entity()
+  /// class ImmutableEntity {
+  ///   @Id(useCopyWith: true)
+  ///   final int? id;
+  ///
+  ///   final int payload;
+  ///
+  ///   ImmutableEntity copyWith({int? id, int? unique, int? payload}) =>
+  ///       ImmutableEntity(
+  ///         id: id,
+  ///         unique: unique ?? this.unique,
+  ///         payload: payload ?? this.payload,
+  ///       );
+  ///
+  ///   ImmutableEntity{this.id, required this.unique, required this.payload});
+  ///
+  ///   ImmutableEntity copyWithId(int newId) =>
+  ///       (id != newId) ? entity.copyWith(id: newId) : this;
+  /// }
+  final bool useCopyWith;
+
   /// Create an Id annotation.
-  const Id({this.assignable = false});
+  const Id({this.assignable = false, this.useCopyWith = false});
 }
 
 /// Transient annotation marks fields that should not be stored in the database.

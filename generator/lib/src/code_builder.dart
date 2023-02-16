@@ -213,6 +213,7 @@ class CodeBuilder extends Builder {
     propInModel.name = prop.name;
     propInModel.type = prop.type;
     propInModel.flags = prop.flags;
+    propInModel.generatorFlags = prop.generatorFlags;
     propInModel.dartFieldType = prop.dartFieldType;
     propInModel.relationTarget = prop.relationTarget;
 

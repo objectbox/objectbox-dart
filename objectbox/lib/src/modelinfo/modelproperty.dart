@@ -10,7 +10,7 @@ class ModelProperty {
 
   late String _name;
 
-  late int _type, _flags;
+  late int _type, _flags, _generatorFlags;
   IdUid? _indexId;
   ModelEntity? entity;
   String? relationTarget;
@@ -49,6 +49,16 @@ class ModelProperty {
       throw ArgumentError('flags must be defined and may not be < 0');
     }
     _flags = value;
+  }
+
+  int get generatorFlags => _generatorFlags;
+
+  set generatorFlags(int? value) {
+    if (value == null || value < 0) {
+      throw ArgumentError('generator flags must be defined and may not be < 0');
+    }
+
+    _generatorFlags = value;
   }
 
   String get dartFieldType => _dartFieldType!;
@@ -92,6 +102,7 @@ class ModelProperty {
   // used in code generator
   ModelProperty.create(this.id, String? name, int? type,
       {int flags = 0,
+      int generatorFlags = 0,
       String? indexId,
       this.entity,
       String? dartFieldType,
@@ -101,6 +112,7 @@ class ModelProperty {
     this.name = name;
     this.type = type;
     this.flags = flags;
+    this.generatorFlags = generatorFlags;
     this.indexId = indexId == null ? null : IdUid.fromString(indexId);
   }
 
@@ -110,11 +122,13 @@ class ModelProperty {
       required String name,
       required int type,
       required int flags,
+      int? generatorFlags,
       IdUid? indexId,
       this.relationTarget})
       : _name = name,
         _type = type,
         _flags = flags,
+        _generatorFlags = generatorFlags ?? 0,
         _indexId = indexId,
         uidRequest = false;
 
@@ -122,6 +136,7 @@ class ModelProperty {
       : this.create(IdUid.fromString(data['id'] as String?),
             data['name'] as String?, data['type'] as int?,
             flags: data['flags'] as int? ?? 0,
+            generatorFlags: data['generatorFlags'] as int? ?? 0,
             indexId: data['indexId'] as String?,
             entity: entity,
             dartFieldType: data['dartFieldType'] as String?,
@@ -134,6 +149,7 @@ class ModelProperty {
     ret['name'] = name;
     ret['type'] = type;
     if (flags != 0) ret['flags'] = flags;
+    if (generatorFlags != 0) ret['generatorFlags'] = generatorFlags;
     if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
     if (!forModelJson && _dartFieldType != null) {
@@ -144,6 +160,7 @@ class ModelProperty {
   }
 
   bool hasFlag(int flag) => (flags & flag) == flag;
+  bool hasGeneratorFlag(int flag) => (generatorFlags & flag) == flag;
 
   bool hasIndexFlag() =>
       hasFlag(OBXPropertyFlags.INDEXED) ||
@@ -167,6 +184,7 @@ class ModelProperty {
     result += ' type:${obxPropertyTypeToString(type)}';
     if (!isSigned) result += ' unsigned';
     result += ' flags:$flags';
+    result += ' generatorFlags:$generatorFlags';
 
     if (hasIndexFlag()) {
       result += ' index:' +

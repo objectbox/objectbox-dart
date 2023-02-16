@@ -11,7 +11,7 @@ help:			## Show this help
 all: depend test valgrind-test integration-test
 
 depend:			## Build dependencies
-	dart pub get
+	dart pub get 
 	../install.sh
 
 test: 			## Test all targets

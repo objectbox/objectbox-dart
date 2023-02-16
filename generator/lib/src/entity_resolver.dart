@@ -116,13 +116,16 @@ class EntityResolver extends Builder {
 
       var isToManyRel = false;
       int? fieldType;
-      var flags = 0;
+      var flags = 0, generatorFlags = 0;
       int? propUid;
 
       _idChecker.runIfMatches(f, (annotation) {
         flags |= OBXPropertyFlags.ID;
         if (annotation.getField('assignable')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.ID_SELF_ASSIGNABLE;
+        }
+        if (annotation.getField('useCopyWith')!.toBoolValue()!) {
+          generatorFlags |= OBXPropertyGeneratorFlags.USE_COPY_WITH_ID;
         }
       });
 
@@ -212,6 +215,7 @@ class EntityResolver extends Builder {
         final prop = ModelProperty.create(
             IdUid(0, propUid ?? 0), f.name, fieldType,
             flags: flags,
+            generatorFlags: generatorFlags,
             entity: entity,
             uidRequest: propUid != null && propUid == 0);
 
@@ -244,7 +248,9 @@ class EntityResolver extends Builder {
     final idField = classElement.fields
         .singleWhere((FieldElement f) => f.name == entity.idProperty.name);
     if (idField.setter == null) {
-      if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE)) {
+      if (!entity.idProperty.hasFlag(OBXPropertyFlags.ID_SELF_ASSIGNABLE) &&
+          !entity.idProperty
+              .hasGeneratorFlag(OBXPropertyGeneratorFlags.USE_COPY_WITH_ID)) {
         throw InvalidGenerationSourceError(
             "@Id field '${idField.name}' must be writable:"
             " ObjectBox uses it to set the assigned ID after inserting a new object,"
@@ -444,10 +450,11 @@ class EntityResolver extends Builder {
   bool isRelationField(FieldElement f) =>
       isToOneRelationField(f) || isToManyRelationField(f);
 
-  bool isToOneRelationField(FieldElement f) => f.type.element!.name == 'ToOne';
+  bool isToOneRelationField(FieldElement f) =>
+      const {'ToOne', 'ToOneProxy'}.contains(f.type.element!.name);
 
   bool isToManyRelationField(FieldElement f) =>
-      f.type.element!.name == 'ToMany';
+      const {'ToMany', 'ToManyProxy'}.contains(f.type.element!.name);
 
   bool isNullable(DartType type) =>
       type.nullabilitySuffix == NullabilitySuffix.star ||
