@@ -158,60 +158,65 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// If this contains new objects (IDs set to 0) they will be put. This
   /// requires the object owning this ToMany to already be stored because its ID
   /// is required.
-  void applyToDb({PutMode mode = PutMode.put, Transaction? tx}) {
+  void applyToDb(
+      {Store? existingStore, PutMode mode = PutMode.put, Transaction? tx}) {
     if (!_hasPendingDbChanges) return;
 
-    final storeAccess = _accessStoreOrThrow();
+    final configuration = _getStoreConfigOrThrow();
 
-    final relInfo = storeAccess.configuration.relInfo;
+    final relInfo = configuration.relInfo;
     if (relInfo.objectId == 0) {
-      // This shouldn't happen but let's be a little paranoid.
-      storeAccess.close();
+      // The ID of the object owning this is required.
       throw StateError(
           "Can't store relation info for the target object with zero ID");
     }
 
+    // Use given store, or obtain one via store configuration
+    // (then store must be closed once done).
+    final Store store = existingStore ??
+        WeakStore.getOrCreate(configuration.storeConfiguration).lock();
+
     try {
       final ownedTx = tx == null;
-      tx ??= Transaction(storeAccess.store(), TxMode.write);
+      tx ??= Transaction(store, TxMode.write);
       try {
         _counts.forEach((EntityT object, count) {
           if (count == 0) return;
           final add = count > 0; // otherwise: remove
-          var id = storeAccess.configuration.entity.getId(object) ?? 0;
+          var id = configuration.entity.getId(object) ?? 0;
 
           switch (relInfo.type) {
             case RelType.toMany:
               if (add) {
                 if (id == 0) {
                   id = InternalBoxAccess.put(
-                      storeAccess.box(), object, mode, tx);
+                      configuration.box(store), object, mode, tx);
                 }
-                InternalBoxAccess.relPut(
-                    storeAccess.otherBox(), relInfo.id, relInfo.objectId, id);
+                InternalBoxAccess.relPut(configuration.otherBox(store),
+                    relInfo.id, relInfo.objectId, id);
               } else {
                 if (id == 0) return;
-                InternalBoxAccess.relRemove(
-                    storeAccess.otherBox(), relInfo.id, relInfo.objectId, id);
+                InternalBoxAccess.relRemove(configuration.otherBox(store),
+                    relInfo.id, relInfo.objectId, id);
               }
               break;
             case RelType.toOneBacklink:
               final srcField = relInfo.toOneSourceField(object);
               srcField.targetId = add ? relInfo.objectId : null;
-              storeAccess.box().put(object, mode: mode);
+              configuration.box(store).put(object, mode: mode);
               break;
             case RelType.toManyBacklink:
               if (add) {
                 if (id == 0) {
                   id = InternalBoxAccess.put(
-                      storeAccess.box(), object, mode, tx);
+                      configuration.box(store), object, mode, tx);
                 }
                 InternalBoxAccess.relPut(
-                    storeAccess.box(), relInfo.id, id, relInfo.objectId);
+                    configuration.box(store), relInfo.id, id, relInfo.objectId);
               } else {
                 if (id == 0) return;
                 InternalBoxAccess.relRemove(
-                    storeAccess.box(), relInfo.id, id, relInfo.objectId);
+                    configuration.box(store), relInfo.id, id, relInfo.objectId);
               }
               break;
             default:
@@ -225,7 +230,10 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         rethrow;
       }
     } finally {
-      storeAccess.close();
+      // If store was temporarily created, close it.
+      if (existingStore == null) {
+        store.close();
+      }
     }
 
     _counts.clear();
@@ -235,7 +243,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   void _setRelInfo<OwningEntityT>(Store store, RelInfo relInfo) {
     final storeConfiguration = _storeConfiguration;
     if (storeConfiguration != null) {
-      if (storeConfiguration._storeConfiguration.id !=
+      if (storeConfiguration.storeConfiguration.id !=
           store.configuration().id) {
         throw ArgumentError.value(
             store, 'store', 'Relation already attached to a different store');
@@ -248,31 +256,31 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
         InternalStoreAccess.entityDef<EntityT>(store));
   }
 
-  /// Obtain temporary access to a full Store. Make sure to close right after done using.
-  _ToManyStoreAccess<EntityT, dynamic> _accessStoreOrThrow() {
+  _ToManyStoreConfiguration<EntityT, dynamic> _getStoreConfigOrThrow() {
     final storeConfiguration = _storeConfiguration;
     if (storeConfiguration == null) {
-      throw StateError('ToMany relation field not initialized. '
+      throw StateError("ToMany relation field not initialized. "
           "Don't call applyToDb() on new objects, use box.put() instead.");
     }
-    return storeConfiguration.getStoreAccess();
+    return storeConfiguration;
   }
 
   List<EntityT> get _items => __items ??= _loadItems();
 
   List<EntityT> _loadItems() {
     final List<EntityT> items;
-    final storeConfiguration = _storeConfiguration;
-    if (storeConfiguration == null) {
+    final configuration = _storeConfiguration;
+    if (configuration == null) {
       // Null _storeConfiguration means this relation is used on a new
       // (not stored) object.
       // Therefore, this can be sure there are no stored items yet.
       items = [];
     } else {
-      final storeAccess = _accessStoreOrThrow();
+      final store =
+          WeakStore.getOrCreate(configuration.storeConfiguration).lock();
       items = InternalBoxAccess.getRelated(
-          storeAccess.box(), storeConfiguration.relInfo);
-      storeAccess.close();
+          configuration.box(store), configuration.relInfo);
+      store.close();
     }
     if (_addedBeforeLoad.isNotEmpty) {
       items.addAll(_addedBeforeLoad);
@@ -331,42 +339,15 @@ class InternalToManyTestAccess<EntityT> {
 
 /// This stores the owning entity type with the store configuration.
 class _ToManyStoreConfiguration<EntityT, OwningEntityT> {
-  final StoreConfiguration _storeConfiguration;
+  final StoreConfiguration storeConfiguration;
   final RelInfo relInfo;
   final EntityDefinition<EntityT> entity;
 
-  _ToManyStoreConfiguration(
-      this._storeConfiguration, this.relInfo, this.entity);
-
-  /// Obtain temporary access to a full Store. Make sure to close right after
-  /// done using.
-  _ToManyStoreAccess<EntityT, OwningEntityT> getStoreAccess() =>
-      _ToManyStoreAccess(this);
-}
-
-/// This provides temporary access to a store given a store configuration.
-class _ToManyStoreAccess<EntityT, OwningEntityT> {
-  final _ToManyStoreConfiguration<EntityT, OwningEntityT> configuration;
-  Store _store;
-
-  factory _ToManyStoreAccess(
-      _ToManyStoreConfiguration<EntityT, OwningEntityT> configuration) {
-    final weakStore = WeakStore.getOrCreate(configuration._storeConfiguration);
-    final store = weakStore.lock();
-    return _ToManyStoreAccess._fromFactory(configuration, store);
-  }
-
-  _ToManyStoreAccess._fromFactory(this.configuration, this._store);
-
-  Store store() => _store;
+  _ToManyStoreConfiguration(this.storeConfiguration, this.relInfo, this.entity);
 
   /// Standard direction: target box; backlinks: source box.
-  Box<EntityT> box() => _store.box<EntityT>();
+  Box<EntityT> box(Store store) => store.box<EntityT>();
 
   /// Standard direction: source box; backlinks: target box.
-  Box<OwningEntityT> otherBox() => _store.box<OwningEntityT>();
-
-  void close() {
-    _store.close();
-  }
+  Box<OwningEntityT> otherBox(Store store) => store.box<OwningEntityT>();
 }

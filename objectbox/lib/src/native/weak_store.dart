@@ -8,10 +8,11 @@ import 'bindings/helpers.dart';
 ///
 /// To use:
 /// ```
-/// final weakStore = WeakStore.get(store.configuration());
+/// final weakStore = WeakStore.getOrCreate(store.configuration());
 /// // Lock full store, this throws if that was closed already.
 /// final store = weakStore.lock();
-/// // Do Store operations.
+/// // Do Store operations...
+/// // Close the store when done.
 /// store.close();
 /// // Optional: if not longer needed, free the weak store reference.
 /// // Note this is done automatically if the underlying store is closed.

@@ -77,12 +77,14 @@ class ToOne<EntityT> {
   /// Get target object. If it's the first access, this reads from DB.
   EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
-      var storeAccess = _getStoreConfigOrThrow().getStoreAccess();
+      final configuration = _getStoreConfigOrThrow();
+      var store =
+          WeakStore.getOrCreate(configuration.storeConfiguration).lock();
       final EntityT? object;
       try {
-        object = storeAccess.box().get(_value._id);
+        object = configuration.box(store).get(_value._id);
       } finally {
-        storeAccess.close();
+        store.close();
       }
       _value = (object == null)
           ? _ToOneValue<EntityT>.unresolvable(_value._id)
@@ -152,10 +154,9 @@ class ToOne<EntityT> {
   /// must be called before accessing [targetId]. But in that case it is likely
   /// easier to get the target ID from the [target] object directly.
   void attach(Store store) {
-    final storeConfiguration = _storeConfiguration;
-    if (storeConfiguration != null) {
-      if (storeConfiguration._storeConfiguration.id !=
-          store.configuration().id) {
+    final configuration = _storeConfiguration;
+    if (configuration != null) {
+      if (configuration.storeConfiguration.id != store.configuration().id) {
         throw ArgumentError.value(
             store, 'store', 'Relation already attached to a different store');
       }
@@ -232,34 +233,11 @@ extension ToOneInternal<EntityT> on ToOne<EntityT> {
 
 /// This stores the target entity type with the store configuration.
 class _ToOneStoreConfiguration<EntityT> {
-  final StoreConfiguration _storeConfiguration;
+  final StoreConfiguration storeConfiguration;
   final EntityDefinition<EntityT> entity;
 
-  _ToOneStoreConfiguration(this._storeConfiguration, this.entity);
+  _ToOneStoreConfiguration(this.storeConfiguration, this.entity);
 
-  _ToOneStoreAccess<EntityT> getStoreAccess() => _ToOneStoreAccess(this);
-
-  /// Workaround to get box with actual EntityT type.
+  /// Get box for EntityT.
   Box<EntityT> box(Store store) => store.box<EntityT>();
-}
-
-// TODO Add base class with _ToManyStoreAccess?
-/// This provides temporary access to a store given a store configuration.
-class _ToOneStoreAccess<EntityT> {
-  final _ToOneStoreConfiguration<EntityT> configuration;
-  Store _store;
-
-  factory _ToOneStoreAccess(_ToOneStoreConfiguration<EntityT> configuration) {
-    final weakStore = WeakStore.getOrCreate(configuration._storeConfiguration);
-    final store = weakStore.lock();
-    return _ToOneStoreAccess._fromFactory(configuration, store);
-  }
-
-  _ToOneStoreAccess._fromFactory(this.configuration, this._store);
-
-  Box<EntityT> box() => _store.box<EntityT>();
-
-  void close() {
-    _store.close();
-  }
 }

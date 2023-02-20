@@ -346,8 +346,6 @@ class Box<T> {
   }
 
   void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
-    // FIXME Instead of List<ToOne<dynamic>> toOneRelations generate type safe
-    //  code to replace the below.
     for (var toOne in _entity.toOneRelations(object)) {
       // To avoid all ToOnes obtaining a Store for each put,
       // pass the store of this box.
@@ -360,9 +358,9 @@ class Box<T> {
       // Always set relation info so ToMany applyToDb can be used after initial put
       InternalToManyAccess.setRelInfo<T>(rel, _store, info);
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
-        // TODO To avoid all ToManys obtaining a Store for each put,
-        //   pass the store of this box.
-        rel.applyToDb(mode: mode, tx: tx);
+        // To avoid all ToManys obtaining a Store for each put,
+        // pass the store of this box.
+        rel.applyToDb(existingStore: _store, mode: mode, tx: tx);
       }
     });
   }
