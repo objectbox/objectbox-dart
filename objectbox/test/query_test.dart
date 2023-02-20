@@ -500,22 +500,34 @@ void main() {
     final n = TestEntity_.id;
     final b = TestEntity_.tBool;
 
-    final check = (Condition<TestEntity> condition, String text) {
+    check(Condition<TestEntity> condition, String text) {
       final q = box.query(condition).build();
       expect(q.describeParameters(), text);
       q.close();
-    };
+    }
 
-    check((n.equals(0) & b.equals(false)) | (n.equals(1) & b.equals(true)),
+    final n0 = n.equals(0);
+    final n1 = n.equals(1);
+    final bF = b.equals(false);
+    final bT = b.equals(true);
+
+    // Explicit AND over OR precedence.
+    check((n0 & bF) | (n1 & bT),
         '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))');
-    check(n.equals(0) & b.equals(false) | n.equals(1) & b.equals(true),
+    // Implicit AND over OR precedence.
+    check(n0 & bF | n1 & bT,
         '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))');
-    check((n.equals(0) & b.equals(false)) | (n.equals(1) | b.equals(true)),
-        '((id == 0\n AND tBool == 0)\n OR (id == 1\n OR tBool == 1))');
-    check((n.equals(0) & b.equals(false)) | n.equals(1) | b.equals(true),
-        '((id == 0\n AND tBool == 0)\n OR id == 1\n OR tBool == 1)');
-    check(n.equals(0) | b.equals(false) & n.equals(1) | b.equals(true),
+    check(n0 | bF & n1 | bT,
         '(id == 0\n OR (tBool == 0\n AND id == 1)\n OR tBool == 1)');
+    // Combine OR.
+    check((n0 & bF) | (n1 | bT),
+        '((id == 0\n AND tBool == 0)\n OR (id == 1\n OR tBool == 1))');
+    // Default OR.
+    check((n0 & bF) | n1 | bT,
+        '((id == 0\n AND tBool == 0)\n OR id == 1\n OR tBool == 1)');
+    // Force OR over AND precedence.
+    check(n0 & (bF | n1) & bT,
+        '(id == 0\n AND (tBool == 0\n OR id == 1)\n AND tBool == 1)');
   });
 
   test('.describeParameters query', () {
