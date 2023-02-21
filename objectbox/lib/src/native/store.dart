@@ -25,6 +25,7 @@ import 'sync.dart';
 import 'weak_store.dart';
 
 part 'observable.dart';
+
 part 'store_config.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
@@ -46,6 +47,8 @@ class Store {
   /// May be null for minimal store, access via [_modelDefinition] with null check.
   final ModelDefinition? _defs;
   Stream<List<Type>>? _entityChanges;
+
+  /// Should be cleared when this closes to free native resources.
   final _reader = ReaderWithCBuffer();
   Transaction? _tx;
 
@@ -384,10 +387,15 @@ class Store {
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault =
             configuration.queriesCaseSensitiveDefault {
-    Pointer<OBX_store>? storePtr = C.weak_store_lock(weakStorePtr);
-    _checkStorePointer(storePtr);
-    _cStore = storePtr;
-    _attachFinalizer();
+    try {
+      Pointer<OBX_store>? storePtr = C.weak_store_lock(weakStorePtr);
+      _checkStorePointer(storePtr);
+      _cStore = storePtr;
+      _attachFinalizer();
+    } catch (e) {
+      _reader.clear();
+      rethrow;
+    }
   }
 
   void _checkStoreDirectoryNotOpen() {
