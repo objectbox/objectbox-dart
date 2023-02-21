@@ -20,5 +20,4 @@ export 'src/query.dart'
 export 'src/relations/info.dart';
 export 'src/relations/to_many.dart'
     show InternalToManyAccess, InternalToManyTestAccess;
-export 'src/relations/to_one.dart' show InternalToOneAccess;
 export 'src/sync.dart' show InternalSyncTestAccess;

@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
+import 'package:objectbox/src/native/weak_store.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -69,6 +70,40 @@ void main() {
 
     // Dispose StreamQueue.
     await received.cancel();
+  });
+
+  test('weak store is closed with store', () {
+    final env = TestEnv('store');
+    // Get store config.
+    final storeConfig = env.store.configuration();
+    expect(storeConfig.id, isNot(0));
+
+    // Create weak store by ID.
+    var weakStore = WeakStore.getOrCreate(storeConfig);
+
+    // Obtain strong reference.
+    final store = weakStore.lock();
+    expect(store.configuration().id, storeConfig.id);
+    // Release strong reference.
+    store.close();
+
+    // Try again to obtain strong reference.
+    final store2 = weakStore.lock();
+    expect(store2.configuration().id, storeConfig.id);
+    store2.close();
+
+    // Close underlying store, should not longer be able
+    // to obtain strong reference.
+    env.closeAndDelete();
+    expect(
+        () => weakStore.lock(),
+        throwsA(
+            predicate((StateError e) => e.message == "Weak store is closed")));
+
+    // Re-open underlying store, store ID should have changed.
+    final env2 = TestEnv("store");
+    expect(env2.store.configuration().id, isNot(storeConfig.id));
+    env2.closeAndDelete();
   });
 
   test('store is open', () {

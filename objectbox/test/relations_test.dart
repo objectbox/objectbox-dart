@@ -29,8 +29,10 @@ void main() {
       // attached manually.
       expect(
           () => src.relA.targetId,
-          throwsA(predicate(
-              (StateError e) => e.toString().contains('call attach('))));
+          throwsA(predicate((StateError e) =>
+              e.message ==
+              "ToOne relation field not initialized. "
+                  "Make sure attach(store) is called before using this.")));
       src.relA.attach(env.store);
       expect(src.relA.targetId, isZero);
 

@@ -461,10 +461,10 @@ class CodeChunks {
     });
 
     postLines.addAll(entity.relations.map((ModelRelation rel) =>
-        'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());'));
+        'InternalToManyAccess.setRelInfo<${entity.name}>(object.${rel.name}, store, ${relInfo(entity, rel)});'));
 
     postLines.addAll(entity.backlinks.map((ModelBacklink bl) {
-      return 'InternalToManyAccess.setRelInfo(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity.name}>());';
+      return 'InternalToManyAccess.setRelInfo<${entity.name}>(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)});';
     }));
 
     return '''(Store store, ByteData fbData) {

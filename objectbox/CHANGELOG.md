@@ -1,5 +1,10 @@
 ## latest
 
+* Require at least Dart SDK 2.17 (shipped with Flutter 3.0.0).
+* Breaking changes to generated code: run `flutter pub run build_runner build` 
+  (or `dart run build_runner build` for Dart Native apps) after updating!
+* Objects containing `ToOne` and `ToMany` relations can be sent across isolates, e.g. when using 
+  `store.runInTransactionAsync`. #340
 
 ## 1.7.2 (2023-01-31)
 

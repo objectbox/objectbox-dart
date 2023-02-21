@@ -16,10 +16,6 @@ void main() {
   late Store store;
   late Box<TestEntity> box;
 
-  simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
-      .map((s) => TestEntity(tString: s))
-      .toList();
-
   setUp(() {
     env = TestEnv('box');
     box = env.box;
@@ -564,6 +560,34 @@ void main() {
     expect(count, equals(6));
   }, skip: notAtLeastDart2_15_0());
 
+  test('async txn - send and receive relations', () async {
+    final testBox = store.box<TestEntity>();
+    testBox.putMany(simpleItems());
+    // Get objects from Box so relations are attached.
+    final testObjects = testBox.getAll();
+
+    List<TestEntity> callback(Store store, List<TestEntity> receivedObjects) {
+      // Check ToOne and ToMany classes can access store.
+      for (var object in receivedObjects) {
+        object.relA.target;
+        object.relManyA.length;
+      }
+
+      // Return objects with attached relations to main isolate.
+      return store.box<TestEntity>().getAll();
+    }
+
+    // Send objects with attached relations to worker isolate.
+    var isolateResponse =
+        await store.runInTransactionAsync(TxMode.read, callback, testObjects);
+    expect(isolateResponse.length, equals(6));
+    // Check ToOne and ToMany classes can access store.
+    for (var object in isolateResponse) {
+      object.relA.target;
+      object.relManyA.length;
+    }
+  }, skip: notAtLeastDart2_15_0());
+
   test('failing transactions', () {
     expect(
         () => store.runInTransaction(TxMode.write, () {
@@ -769,3 +793,7 @@ void main() {
     expect(() => box.getAll(), ThrowingInConverters.throwsIn('Setter'));
   });
 }
+
+List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+    .map((s) => TestEntity(tString: s))
+    .toList();
