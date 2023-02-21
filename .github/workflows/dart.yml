@@ -19,6 +19,8 @@ jobs:
       image: dart:2.19.2
     steps:
       - uses: actions/checkout@v3
+      # Work around for https://github.com/actions/checkout/issues/1169
+      - run: git config --system --add safe.directory /__w/objectbox-dart/objectbox-dart
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Integration test
