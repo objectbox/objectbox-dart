@@ -22,7 +22,6 @@ import 'bindings/helpers.dart';
 import 'box.dart';
 import 'model.dart';
 import 'sync.dart';
-import 'weak_store.dart';
 
 part 'observable.dart';
 
@@ -43,6 +42,9 @@ class Store {
   late final Pointer<OBX_dart_finalizer> _cFinalizer;
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
+
+  /// Configuration of this for use with [Store._attachByConfiguration].
+  late final StoreConfiguration? _configuration;
 
   /// May be null for minimal store, access via [_modelDefinition] with null check.
   final ModelDefinition? _defs;
@@ -66,10 +68,6 @@ class Store {
   /// If true and calling [close] will also close the native Store and
   /// remove [_absoluteDirectoryPath] from [_openStoreDirectories].
   final bool _closesNativeStore;
-
-  /// If true and calling [close] will also close a cached WeakStore, if one was
-  /// created for this store.
-  final bool _closesWeakStore;
 
   /// Default value for string query conditions [caseSensitive] argument.
   final bool _queriesCaseSensitiveDefault;
@@ -161,7 +159,6 @@ class Store {
       String? macosApplicationGroup})
       : _defs = modelDefinition,
         _closesNativeStore = true,
-        _closesWeakStore = true,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         directoryPath = _safeDirectoryPath(directory),
         _absoluteDirectoryPath =
@@ -230,7 +227,7 @@ class Store {
       _reference.setUint64(1 * _int64Size, _ptr.address);
 
       _openStoreDirectories.add(_absoluteDirectoryPath);
-
+      _attachConfiguration(_cStore);
       _attachFinalizer();
     } catch (e) {
       _reader.clear();
@@ -280,7 +277,6 @@ class Store {
       :
         // Must not close native store twice, only original store is allowed to.
         _closesNativeStore = false,
-        _closesWeakStore = true,
         directoryPath = '',
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
@@ -296,6 +292,8 @@ class Store {
       throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
           'Given native pointer is empty');
     }
+
+    _attachConfiguration(_cStore);
   }
 
   /// Creates a Store clone with minimal functionality given a pointer address
@@ -308,8 +306,6 @@ class Store {
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
       : _defs = null,
         _closesNativeStore = true,
-        // Minimal store does not have a model, so could not create Weak Store.
-        _closesWeakStore = false,
         directoryPath = '',
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
@@ -318,6 +314,7 @@ class Store {
           ptrAddress, 'ptrAddress', 'Given native pointer address is invalid');
     }
     _cStore = Pointer<OBX_store>.fromAddress(ptrAddress);
+    _configuration = null;
     _attachFinalizer();
   }
 
@@ -335,7 +332,6 @@ class Store {
   Store.attach(this._defs, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
-        _closesWeakStore = true,
         _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
         directoryPath = _safeDirectoryPath(directoryPath),
         _absoluteDirectoryPath =
@@ -365,6 +361,7 @@ class Store {
       // Not setting _reference as this is a replacement for obtaining a store
       // via reference.
 
+      _attachConfiguration(_cStore);
       _attachFinalizer();
     } catch (e) {
       _reader.clear();
@@ -372,25 +369,25 @@ class Store {
     }
   }
 
-  /// Obtains a Store from a weak Store reference for short-time use.
+  /// Attach to an open Store for short-time use.
   ///
-  /// Will throw if the Store is already closed.
-  /// Make sure to [close] this when done using, which will not close the
-  /// underlying store.
-  Store._fromWeakStore(
-      StoreConfiguration configuration, Pointer<OBX_weak_store> weakStorePtr)
+  /// Will throw if the underlying store is already closed.
+  ///
+  /// While this is open will prevent the underlying store from closing,
+  /// so [close] this immediately when done using. Closing this will only close
+  /// the underlying store if it is not opened elsewhere.
+  Store._attachByConfiguration(StoreConfiguration configuration)
       : _defs = configuration.modelDefinition,
         _closesNativeStore = true,
-        // This Store was obtained from a WeakStore, do not close it.
-        _closesWeakStore = false,
         directoryPath = configuration.directoryPath,
         _absoluteDirectoryPath = '',
         _queriesCaseSensitiveDefault =
             configuration.queriesCaseSensitiveDefault {
     try {
-      Pointer<OBX_store>? storePtr = C.weak_store_lock(weakStorePtr);
+      Pointer<OBX_store>? storePtr = C.store_attach_id(configuration.id);
       _checkStorePointer(storePtr);
       _cStore = storePtr;
+      _configuration = configuration;
       _attachFinalizer();
     } catch (e) {
       _reader.clear();
@@ -425,6 +422,12 @@ class Store {
       }
       rethrow;
     }
+  }
+
+  void _attachConfiguration(Pointer<OBX_store> storePtr) {
+    int id = C.store_id(storePtr);
+    _configuration = StoreConfiguration._(id, _modelDefinition, directoryPath,
+        queriesCaseSensitiveDefault: _queriesCaseSensitiveDefault);
   }
 
   /// Attach a finalizer (using Dart C API) so when garbage collected, most
@@ -517,11 +520,6 @@ class Store {
     _onClose.clear();
 
     _reader.clear();
-
-    if (_closesWeakStore) {
-      // If there is a weak store reference for this, close it as well.
-      WeakStore.get(configuration())?.close();
-    }
 
     if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
@@ -819,17 +817,21 @@ class Store {
 /// (this is not marked as show in objectbox.dart)
 /// while remaining accessible by other libraries in this package.
 extension StoreInternal on Store {
-  /// See [Store._fromWeakStore].
-  static Store fromWeakStore(StoreConfiguration configuration,
-          Pointer<OBX_weak_store> weakStorePtr) =>
-      Store._fromWeakStore(configuration, weakStorePtr);
+  /// See [Store._attachByConfiguration].
+  static Store attachByConfiguration(StoreConfiguration configuration) =>
+      Store._attachByConfiguration(configuration);
 
   /// Returns the configuration for this to be used with
-  /// [WeakStore], valid for the lifetime of the process.
+  /// [Store._fromConfiguration()], valid while the underlying store is open.
+  ///
+  /// This will throw when called for a minimal store.
   StoreConfiguration configuration() {
-    int id = C.store_id(_ptr);
-    return StoreConfiguration(
-        _modelDefinition, directoryPath, _queriesCaseSensitiveDefault, id);
+    final config = _configuration;
+    if (config == null) {
+      throw StateError("This store does not provide a configuration.");
+    } else {
+      return config;
+    }
   }
 }
 

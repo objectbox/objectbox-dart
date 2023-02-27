@@ -4,7 +4,6 @@ import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
-import 'package:objectbox/src/native/weak_store.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -72,33 +71,29 @@ void main() {
     await received.cancel();
   });
 
-  test('weak store is closed with store', () {
+  test('store attach with configuration', () {
     final env = TestEnv('store');
     // Get store config.
     final storeConfig = env.store.configuration();
     expect(storeConfig.id, isNot(0));
 
-    // Create weak store by ID.
-    var weakStore = WeakStore.getOrCreate(storeConfig);
-
-    // Obtain strong reference.
-    final store = weakStore.lock();
+    // Obtain store by ID.
+    var store = StoreInternal.attachByConfiguration(storeConfig);
     expect(store.configuration().id, storeConfig.id);
-    // Release strong reference.
+    // Release reference.
     store.close();
 
-    // Try again to obtain strong reference.
-    final store2 = weakStore.lock();
+    // Try again to obtain by ID.
+    final store2 = StoreInternal.attachByConfiguration(storeConfig);
     expect(store2.configuration().id, storeConfig.id);
     store2.close();
 
-    // Close underlying store, should not longer be able
-    // to obtain strong reference.
+    // Close underlying store, should not longer be able to obtain by ID.
     env.closeAndDelete();
     expect(
-        () => weakStore.lock(),
-        throwsA(
-            predicate((StateError e) => e.message == "Weak store is closed")));
+        () => StoreInternal.attachByConfiguration(storeConfig),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == "failed to create store")));
 
     // Re-open underlying store, store ID should have changed.
     final env2 = TestEnv("store");

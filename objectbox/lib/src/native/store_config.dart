@@ -1,7 +1,11 @@
 part of 'store.dart';
 
-/// Configuration of a [Store] for use with [WeakStore].
+/// Configuration of a [Store] containing everything required to obtain it
+/// again, e.g. from another isolate.
 class StoreConfiguration {
+  /// The ID of the store.
+  final int id;
+
   /// [Store._modelDefinition]
   final ModelDefinition modelDefinition;
 
@@ -11,10 +15,7 @@ class StoreConfiguration {
   /// [Store._queriesCaseSensitiveDefault]
   final bool queriesCaseSensitiveDefault;
 
-  /// The ID of the store.
-  final int id;
-
   /// Create a new [StoreConfiguration].
-  StoreConfiguration(this.modelDefinition, this.directoryPath,
-      this.queriesCaseSensitiveDefault, this.id);
+  StoreConfiguration._(this.id, this.modelDefinition, this.directoryPath,
+      {required this.queriesCaseSensitiveDefault});
 }

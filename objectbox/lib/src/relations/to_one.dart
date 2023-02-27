@@ -1,7 +1,6 @@
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../native/transaction.dart';
-import '../native/weak_store.dart';
 import '../store.dart';
 
 /// Manages a to-one relation, an unidirectional link from a "source" entity to
@@ -79,7 +78,7 @@ class ToOne<EntityT> {
     if (_value._state == _ToOneState.lazy) {
       final configuration = _getStoreConfigOrThrow();
       var store =
-          WeakStore.getOrCreate(configuration.storeConfiguration).lock();
+          StoreInternal.attachByConfiguration(configuration.storeConfiguration);
       final EntityT? object;
       try {
         object = configuration.box(store).get(_value._id);
