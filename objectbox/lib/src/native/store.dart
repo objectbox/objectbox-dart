@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
-import 'package:objectbox/src/native/version.dart';
 import 'package:path/path.dart' as path;
 
 import '../common.dart';
@@ -22,6 +21,7 @@ import 'bindings/helpers.dart';
 import 'box.dart';
 import 'model.dart';
 import 'sync.dart';
+import 'version.dart';
 
 part 'observable.dart';
 
@@ -43,11 +43,11 @@ class Store {
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
 
-  /// Configuration of this for use with [Store._attachByConfiguration].
+  /// Configuration of this.
+  /// Is null if this is a minimal store.
+  /// Can be used with [Store._attachByConfiguration].
   late final StoreConfiguration? _configuration;
 
-  /// May be null for minimal store, access via [_modelDefinition] with null check.
-  final ModelDefinition? _defs;
   Stream<List<Type>>? _entityChanges;
 
   /// Should be cleared when this closes to free native resources.
@@ -55,7 +55,14 @@ class Store {
   Transaction? _tx;
 
   /// Path to the database directory.
-  final String directoryPath;
+  String get directoryPath {
+    final configuration = _configuration;
+    if (configuration != null) {
+      return configuration.directoryPath;
+    } else {
+      throw StateError("A minimal store does not have a directory path.");
+    }
+  }
 
   /// Absolute path to the database directory, used for open check.
   final String _absoluteDirectoryPath;
@@ -68,9 +75,6 @@ class Store {
   /// If true and calling [close] will also close the native Store and
   /// remove [_absoluteDirectoryPath] from [_openStoreDirectories].
   final bool _closesNativeStore;
-
-  /// Default value for string query conditions [caseSensitive] argument.
-  final bool _queriesCaseSensitiveDefault;
 
   static String _safeDirectoryPath(String? path) =>
       (path == null || path.isEmpty) ? defaultDirectoryPath : path;
@@ -157,10 +161,7 @@ class Store {
       int? debugFlags,
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
-      : _defs = modelDefinition,
-        _closesNativeStore = true,
-        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
-        directoryPath = _safeDirectoryPath(directory),
+      : _closesNativeStore = true,
         _absoluteDirectoryPath =
             path.context.canonicalize(_safeDirectoryPath(directory)) {
     try {
@@ -181,13 +182,14 @@ class Store {
       }
       _checkStoreDirectoryNotOpen();
       final model = Model(modelDefinition.model);
+      final safeDirectoryPath = _safeDirectoryPath(directory);
 
       final opt = C.opt();
       checkObxPtr(opt, 'failed to create store options');
 
       try {
         checkObx(C.opt_model(opt, model.ptr));
-        final cStr = directoryPath.toNativeUtf8();
+        final cStr = safeDirectoryPath.toNativeUtf8();
         try {
           checkObx(C.opt_directory(opt, cStr.cast()));
         } finally {
@@ -211,8 +213,8 @@ class Store {
       }
       if (debugLogs) {
         print(
-            "Opening store (C lib V${libraryVersion()})... path=$directoryPath"
-            " isOpen=${isOpen(directoryPath)}");
+            "Opening store (C lib V${libraryVersion()})... path=$safeDirectoryPath"
+            " isOpen=${isOpen(safeDirectoryPath)}");
       }
 
       _cStore = C.store_open(opt);
@@ -227,7 +229,8 @@ class Store {
       _reference.setUint64(1 * _int64Size, _ptr.address);
 
       _openStoreDirectories.add(_absoluteDirectoryPath);
-      _attachConfiguration(_cStore);
+      _attachConfiguration(_cStore, modelDefinition, safeDirectoryPath,
+          queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
       _reader.clear();
@@ -272,14 +275,12 @@ class Store {
   ///     ...
   ///   }
   /// ```
-  Store.fromReference(this._defs, this._reference,
+  Store.fromReference(ModelDefinition modelDefinition, this._reference,
       {bool queriesCaseSensitiveDefault = true})
       :
         // Must not close native store twice, only original store is allowed to.
         _closesNativeStore = false,
-        directoryPath = '',
-        _absoluteDirectoryPath = '',
-        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
+        _absoluteDirectoryPath = '' {
     // see [reference] for serialization order
     final readPid = _reference.getUint64(0 * _int64Size);
     if (readPid != pid) {
@@ -293,7 +294,8 @@ class Store {
           'Given native pointer is empty');
     }
 
-    _attachConfiguration(_cStore);
+    _attachConfiguration(
+        _cStore, modelDefinition, '', queriesCaseSensitiveDefault);
   }
 
   /// Creates a Store clone with minimal functionality given a pointer address
@@ -304,11 +306,8 @@ class Store {
   ///
   /// See [_clone] for details.
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
-      : _defs = null,
-        _closesNativeStore = true,
-        directoryPath = '',
-        _absoluteDirectoryPath = '',
-        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault {
+      : _closesNativeStore = true,
+        _absoluteDirectoryPath = '' {
     if (ptrAddress == 0) {
       throw ArgumentError.value(
           ptrAddress, 'ptrAddress', 'Given native pointer address is invalid');
@@ -329,11 +328,9 @@ class Store {
   /// its own lifetime and must also be closed (e.g. before an isolate exits).
   /// The actual underlying store is only closed when the last store instance
   /// is closed (e.g. when the app exits).
-  Store.attach(this._defs, String? directoryPath,
+  Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
-        _queriesCaseSensitiveDefault = queriesCaseSensitiveDefault,
-        directoryPath = _safeDirectoryPath(directoryPath),
         _absoluteDirectoryPath =
             path.context.canonicalize(_safeDirectoryPath(directoryPath)) {
     try {
@@ -343,12 +340,12 @@ class Store {
       // overlap.
       _checkStoreDirectoryNotOpen();
 
-      final pathCStr = this.directoryPath.toNativeUtf8();
+      final safeDirectoryPath = _safeDirectoryPath(directoryPath);
+      final pathCStr = safeDirectoryPath.toNativeUtf8();
       try {
         if (debugLogs) {
           final isOpen = C.store_is_open(pathCStr.cast());
-          print(
-              'Attaching to store... path=${this.directoryPath} isOpen=$isOpen');
+          print('Attaching to store... path=$safeDirectoryPath isOpen=$isOpen');
         }
         _cStore = C.store_attach(pathCStr.cast());
       } finally {
@@ -361,7 +358,8 @@ class Store {
       // Not setting _reference as this is a replacement for obtaining a store
       // via reference.
 
-      _attachConfiguration(_cStore);
+      _attachConfiguration(_cStore, modelDefinition, safeDirectoryPath,
+          queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
       _reader.clear();
@@ -377,12 +375,8 @@ class Store {
   /// so [close] this immediately when done using. Closing this will only close
   /// the underlying store if it is not opened elsewhere.
   Store._attachByConfiguration(StoreConfiguration configuration)
-      : _defs = configuration.modelDefinition,
-        _closesNativeStore = true,
-        directoryPath = configuration.directoryPath,
-        _absoluteDirectoryPath = '',
-        _queriesCaseSensitiveDefault =
-            configuration.queriesCaseSensitiveDefault {
+      : _closesNativeStore = true,
+        _absoluteDirectoryPath = '' {
     try {
       Pointer<OBX_store>? storePtr = C.store_attach_id(configuration.id);
       _checkStorePointer(storePtr);
@@ -424,10 +418,11 @@ class Store {
     }
   }
 
-  void _attachConfiguration(Pointer<OBX_store> storePtr) {
+  void _attachConfiguration(Pointer<OBX_store> storePtr, ModelDefinition model,
+      String directoryPath, bool queriesCaseSensitiveDefault) {
     int id = C.store_id(storePtr);
-    _configuration = StoreConfiguration._(id, _modelDefinition, directoryPath,
-        queriesCaseSensitiveDefault: _queriesCaseSensitiveDefault);
+    _configuration = StoreConfiguration._(
+        id, model, directoryPath, queriesCaseSensitiveDefault);
   }
 
   /// Attach a finalizer (using Dart C API) so when garbage collected, most
@@ -544,7 +539,7 @@ class Store {
   }
 
   EntityDefinition<T> _entityDef<T>() {
-    final binding = _modelDefinition.bindings[T];
+    final binding = configuration().modelDefinition.bindings[T];
     if (binding == null) {
       throw ArgumentError('Unknown entity type ' + T.toString());
     }
@@ -802,14 +797,6 @@ class Store {
   @pragma('vm:prefer-inline')
   Pointer<OBX_store> get _ptr =>
       isClosed() ? throw StateError('Store is closed') : _cStore;
-
-  /// Returns the ModelDefinition of this store, or throws if
-  /// this is a minimal store.
-  ModelDefinition get _modelDefinition {
-    final model = _defs;
-    if (model == null) throw StateError('Minimal store does not have a model');
-    return model;
-  }
 }
 
 /// This hides away methods from the public API
@@ -860,7 +847,7 @@ class InternalStoreAccess {
   static Map<int, Type> entityTypeById(Store store) {
     if (store._entityTypeById == null) {
       store._entityTypeById = HashMap<int, Type>();
-      store._modelDefinition.bindings.forEach(
+      store.configuration().modelDefinition.bindings.forEach(
           (Type entity, EntityDefinition entityDef) =>
               store._entityTypeById![entityDef.model.id.id] = entity);
     }
@@ -882,7 +869,8 @@ class InternalStoreAccess {
 
   /// String query case-sensitive default
   @pragma('vm:prefer-inline')
-  static bool queryCS(Store store) => store._queriesCaseSensitiveDefault;
+  static bool queryCS(Store store) =>
+      store.configuration().queriesCaseSensitiveDefault;
 
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
