@@ -609,8 +609,7 @@ class Store {
   // in case [Error] or [Exception] are thrown after the result is sent.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
       _RunAsyncIsolateConfig<P, R> isoPass) async {
-    final store = Store.attach(isoPass.model, isoPass.dbDirectoryPath,
-        queriesCaseSensitiveDefault: isoPass.queriesCaseSensitiveDefault);
+    final store = Store._attachByConfiguration(isoPass.storeConfiguration);
     dynamic result;
     try {
       final callbackResult = await isoPass.runCallback(store);
@@ -686,8 +685,8 @@ class Store {
       // Await isolate spawn to avoid waiting forever if it fails to spawn.
       isolate = await Isolate.spawn(
           _callFunctionWithStoreInIsolate,
-          _RunAsyncIsolateConfig(_modelDefinition, directoryPath,
-              _queriesCaseSensitiveDefault, port.sendPort, callback, param),
+          _RunAsyncIsolateConfig(
+              configuration(), port.sendPort, callback, param),
           errorsAreFatal: true,
           onError: port.sendPort,
           onExit: port.sendPort);
@@ -912,13 +911,7 @@ typedef RunAsyncCallback<P, R> = FutureOr<R> Function(Store store, P parameter);
 /// and run user code.
 @immutable
 class _RunAsyncIsolateConfig<P, R> {
-  final ModelDefinition model;
-
-  /// Used to attach to store in separate isolate
-  /// (may be replaced in the future).
-  final String dbDirectoryPath;
-
-  final bool queriesCaseSensitiveDefault;
+  final StoreConfiguration storeConfiguration;
 
   /// Non-void functions can use this port to receive the result.
   final SendPort resultPort;
@@ -930,13 +923,7 @@ class _RunAsyncIsolateConfig<P, R> {
   final RunAsyncCallback<P, R> callback;
 
   const _RunAsyncIsolateConfig(
-      this.model,
-      this.dbDirectoryPath,
-      // ignore: avoid_positional_boolean_parameters
-      this.queriesCaseSensitiveDefault,
-      this.resultPort,
-      this.callback,
-      this.param);
+      this.storeConfiguration, this.resultPort, this.callback, this.param);
 
   /// Calls [callback] inside this class so types are not lost
   /// (if called in isolate types would be dynamic instead of P and R).
