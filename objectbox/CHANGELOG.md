@@ -1,5 +1,6 @@
 ## latest
 
+* Add `getAsync`, `getManyAsync` and `getAllAsync` to `Box`.
 * Breaking changes to generated code: run `flutter pub run build_runner build` 
   (or `dart run build_runner build` for Dart Native apps) after updating!
 * Objects containing `ToOne` and `ToMany` relations can be sent across isolates, e.g. when using 

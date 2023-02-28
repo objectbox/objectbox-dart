@@ -227,6 +227,12 @@ class Box<T> {
   T? get(int id) => InternalStoreAccess.runInTransaction(
       _store, TxMode.read, (Transaction tx) => tx.cursor(_entity).get(id));
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static T? _getAsyncCallback<T>(Store store, int id) => store.box<T>().get(id);
+
+  /// Like [get], but runs the box operation asynchronously in a worker isolate.
+  Future<T?> getAsync(int id) => _store.runAsync(_getAsyncCallback<T>, id);
+
   /// Returns a list of [ids.length] Objects of type T, each corresponding to
   /// the location of its ID in [ids]. Non-existent IDs become null.
   ///
@@ -245,6 +251,17 @@ class Box<T> {
     });
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T?> _getManyAsyncCallback<T>(
+          Store store, _GetManyAsyncArgs args) =>
+      store.box<T>().getMany(args.ids, growableResult: args.growableResult);
+
+  /// Like [getMany], but runs the box operation asynchronously in a worker
+  /// isolate.
+  Future<List<T?>> getManyAsync(List<int> ids, {bool growableResult = false}) =>
+      _store.runAsync(
+          _getManyAsyncCallback<T>, _GetManyAsyncArgs(ids, growableResult));
+
   /// Returns all stored objects in this Box.
   List<T> getAll() => InternalStoreAccess.runInTransaction(_store, TxMode.read,
           (Transaction tx) {
@@ -259,6 +276,15 @@ class Box<T> {
         }
         return result;
       });
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T> _getAllAsyncCallback<T>(Store store, void param) =>
+      store.box<T>().getAll();
+
+  /// Like [getAll], but runs the box operation asynchronously in a worker
+  /// isolate.
+  Future<List<T>> getAllAsync() =>
+      _store.runAsync(_getAllAsyncCallback<T>, null);
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   @pragma('vm:prefer-inline')
@@ -507,4 +533,11 @@ class InternalBoxAccess {
         }
         return result;
       });
+}
+
+class _GetManyAsyncArgs {
+  final List<int> ids;
+  final bool growableResult;
+
+  _GetManyAsyncArgs(this.ids, this.growableResult);
 }

@@ -153,20 +153,26 @@ void main() {
     expect(store.box<TestEntityNonRel>().count(), 0);
   });
 
-  test('.get() returns the correct item', () {
+  test('.get() returns the correct item', () async {
     final int putId = box.put(TestEntity(
         tString: 'Hello',
         tStrings: ['foo', 'bar'],
         tByteList: [1, 99, -54],
         tUint8List: Uint8List.fromList([2, 50, 78]),
         tInt8List: Int8List.fromList([-16, 20, 43])));
-    final TestEntity item = box.get(putId)!;
-    expect(item.id, equals(putId));
-    expect(item.tString, equals('Hello'));
-    expect(item.tStrings, equals(['foo', 'bar']));
-    expect(item.tByteList, equals([1, 99, -54]));
-    expect(item.tUint8List, equals([2, 50, 78]));
-    expect(item.tInt8List, equals([-16, 20, 43]));
+
+    assertItem(TestEntity? item) {
+      expect(item, isNotNull);
+      expect(item!.id, equals(putId));
+      expect(item.tString, equals('Hello'));
+      expect(item.tStrings, equals(['foo', 'bar']));
+      expect(item.tByteList, equals([1, 99, -54]));
+      expect(item.tUint8List, equals([2, 50, 78]));
+      expect(item.tInt8List, equals([-16, 20, 43]));
+    }
+
+    assertItem(box.get(putId));
+    assertItem(await box.getAsync(putId));
   });
 
   test('.get() returns null on non-existent item', () {
@@ -281,7 +287,7 @@ void main() {
     }
   });
 
-  test('.getAll/getMany works on large arrays', () {
+  test('.getAll/getMany works on large arrays', () async {
     // This would fail on 32-bit system if objectbox-c
     // obx_supports_bytes_array() wasn't respected
     final length = 10 * 1000;
@@ -291,17 +297,25 @@ void main() {
     box.put(TestEntity(tString: largeString));
     box.put(TestEntity(tString: largeString));
 
-    List<TestEntity?> items = box.getAll();
-    expect(items.length, 2);
-    expect(items[0]!.tString, largeString);
-    expect(items[1]!.tString, largeString);
+    assertGetAll(List<TestEntity> items) {
+      expect(items.length, 2);
+      expect(items[0].tString, largeString);
+      expect(items[1].tString, largeString);
+    }
+
+    assertGetAll(box.getAll());
+    assertGetAll(await box.getAllAsync());
 
     box.put(TestEntity(tString: largeString));
 
-    items = box.getMany([1, 2]);
-    expect(items.length, 2);
-    expect(items[0]!.tString, largeString);
-    expect(items[1]!.tString, largeString);
+    assertGetMany(List<TestEntity?> items) {
+      expect(items.length, 2);
+      expect(items[0]!.tString, largeString);
+      expect(items[1]!.tString, largeString);
+    }
+
+    assertGetMany(box.getMany([1, 2]));
+    assertGetMany(await box.getManyAsync([1, 2]));
   });
 
   test('.getMany correctly handles non-existent items', () {
