@@ -78,22 +78,56 @@ class Box<T> {
     }
   }
 
-  /// Puts the given object in the box (persisting it) asynchronously.
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _putAsyncCallback<T>(Store store, _PutAsyncArgs<T> args) =>
+      store.box<T>().put(args.object, mode: args.mode);
+
+  /// Like [put], but runs the box operation asynchronously in a worker isolate.
+  ///
+  /// If the [object] is new (its ID property is 0), an ID will be assigned to
+  /// it after the returned [Future] completes.
+  ///
+  /// See also [putQueued] which is optimized for running a large number of puts
+  /// in parallel.
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async {
+    // Running put in a worker isolate will only set a potentially new ID on the
+    // object sent to that isolate, but not at the instance in this isolate,
+    // so do that manually.
+    int existingId = _entity.getId(object) ?? 0;
+    final newId = await _store.runAsync(
+        _putAsyncCallback<T>, _PutAsyncArgs(object, mode));
+    if (existingId == 0) {
+      _entity.setId(object, newId);
+    }
+    return newId;
+  }
+
+  /// Like [putQueued], but waits on the put to complete.
+  ///
+  /// For typical use cases, use [putAsync] instead which supports objects with
+  /// relations. Use this when a large number of puts needs to be performed in
+  /// parallel (e.g. this is called many times) for better performance. But then
+  /// [putQueued] will achieve even better performance as it does not have to
+  /// notify all callers of completion.
   ///
   /// The returned future completes with an ID of the object. If it is a new
-  /// object (its ID property is 0), a new ID will be assigned to the object
-  /// argument, after the returned [Future] completes.
+  /// object (its ID property is 0), a new ID will be assigned to [object],
+  /// after the returned [Future] completes.
   ///
   /// In extreme scenarios (e.g. having hundreds of thousands async operations
   /// per second), this may fail as internal queues fill up if the disk can't
   /// keep up. However, this should not be a concern for typical apps.
-  /// The returned future may also complete with an error if the put failed
+  ///
+  /// The returned future may complete with an error if the put failed
   /// for another reason, for example a unique constraint violation. In that
   /// case the [object]'s id field remains unchanged (0 if it was a new object).
   ///
   /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
   /// ID immediately, even though the actual database put operation may fail.
-  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+  @Deprecated(
+      "Use putAsync which supports relations, or for a large number of parallel calls putQueued.")
+  Future<int> putQueuedAwaitResult(T object,
+          {PutMode mode = PutMode.put}) async =>
       // Wrap with [Future.sync] to avoid mixing sync and async errors.
       // Note: doesn't seem to decrease performance at all.
       // https://dart.dev/guides/libraries/futures-error-handling#potential-problem-accidentally-mixing-synchronous-and-asynchronous-errors
@@ -123,20 +157,24 @@ class Box<T> {
 
   /// Schedules the given object to be put later on, by an asynchronous queue.
   ///
-  /// The actual database put operation may fail even if this function returned
-  /// normally (and even if it returned a new ID for a new object). For example
-  /// if the database put failed because of a unique constraint violation.
-  /// Therefore, you should make sure the data you put is correct and you have
-  /// a fall back in place even if it eventually failed.
+  /// For typical use cases, use [putAsync] instead which supports objects with
+  /// relations. Use this when a large number of puts needs to be performed in
+  /// parallel (e.g. this is called many times) for better performance.
   ///
-  /// In extreme scenarios (e.g. having hundreds of thousands async operations
-  /// per second), this may fail as internal queues fill up if the disk can't
-  /// keep up. However, this should not be a concern for typical apps.
+  /// To wait on the completion of submitted operations, use
+  /// [Store.awaitAsyncSubmitted] or [Store.awaitAsyncCompletion].
   ///
-  /// See also [putAsync] which returns a [Future] that only completes after an
-  /// actual database put was successful.
-  /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
-  /// until all operations have finished.
+  /// The actual database put operation may fail even if this returned
+  /// normally (and even if a new ID for a new object was returned), for example
+  /// due to a unique constraint violation. So do not rely on the object being
+  /// put or add checks as necessary.
+  ///
+  /// In extreme scenarios (e.g. having hundreds of thousands of async operations
+  /// per second, not of concern for typical apps), this may fail as internal
+  /// queues fill up if the disk can't keep up.
+  ///
+  /// See also [putAsync] which supports relations and returns a [Future] that
+  /// only completes after a put was successful.
   int putQueued(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       throw UnsupportedError('putQueued() is currently not supported on entity '
@@ -533,6 +571,13 @@ class InternalBoxAccess {
         }
         return result;
       });
+}
+
+class _PutAsyncArgs<T> {
+  final T object;
+  final PutMode mode;
+
+  _PutAsyncArgs(this.object, this.mode);
 }
 
 class _GetManyAsyncArgs {
