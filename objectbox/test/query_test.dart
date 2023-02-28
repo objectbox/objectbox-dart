@@ -27,7 +27,7 @@ void main() {
     box.query().build().find();
   });
 
-  test('Query with no conditions, and order as desc ints', () {
+  test('Query with no conditions, and order as desc ints', () async {
     box.putMany(<TestEntity>[
       TestEntity(tInt: 0),
       TestEntity(tInt: 10),
@@ -38,10 +38,15 @@ void main() {
 
     var query =
         box.query().order(TestEntity_.tInt, flags: Order.descending).build();
-    final listDesc = query.find();
-    query.close();
+    try {
+      final listDesc = query.find();
+      expect(listDesc.map((t) => t.tInt).toList(), [100, 10, 10, 0, 0]);
 
-    expect(listDesc.map((t) => t.tInt).toList(), [100, 10, 10, 0, 0]);
+      final listDescAsync = await query.findAsync();
+      expect(listDescAsync.map((t) => t.tInt).toList(), [100, 10, 10, 0, 0]);
+    } finally {
+      query.close();
+    }
   });
 
   test('ignore transient field', () {
@@ -333,7 +338,7 @@ void main() {
     q.close();
   });
 
-  test('.findFirst returns TestEntity', () {
+  test('.findFirst returns TestEntity', () async {
     box.put(TestEntity(tLong: 0));
     box.put(TestEntity(tString: 'test1t'));
     box.put(TestEntity(tString: 'test'));
@@ -346,14 +351,16 @@ void main() {
     var q = box.query(c).build();
 
     expect(q.findFirst()!.tString, 'test1t');
+    expect((await q.findFirstAsync())!.tString, 'test1t');
     q.close();
 
     q = box.query(number.notNull()).build();
     expect(q.findFirst()!.tLong, 0);
+    expect((await q.findFirstAsync())!.tLong, 0);
     q.close();
   });
 
-  test('.findUnique', () {
+  test('.findUnique', () async {
     box.put(TestEntity(tLong: 0));
     box.put(TestEntity(tString: 't1'));
     box.put(TestEntity(tString: 't2'));
@@ -363,16 +370,18 @@ void main() {
         .order(TestEntity_.iInt)
         .build();
 
-    expect(
-        () => query.findUnique(),
-        throwsA(predicate((NonUniqueResultException e) =>
-            e.message == 'Query findUnique() matched more than one object')));
+    final throwsNonUniqueEx = throwsA(predicate((NonUniqueResultException e) =>
+        e.message == 'Query findUnique() matched more than one object'));
+    expect(() => query.findUnique(), throwsNonUniqueEx);
+    expect(() async => await query.findUniqueAsync(), throwsNonUniqueEx);
 
     query.param(TestEntity_.tString).value = 't2';
     expect(query.findUnique()!.tString, 't2');
+    expect((await query.findUniqueAsync())!.tString, 't2');
 
     query.param(TestEntity_.tString).value = 'xyz';
     expect(query.findUnique(), isNull);
+    expect(await query.findUniqueAsync(), isNull);
   });
 
   test('.find works on large arrays', () {
