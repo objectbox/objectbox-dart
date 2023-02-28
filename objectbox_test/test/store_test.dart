@@ -404,4 +404,5 @@ void storeAttachIsolate(StoreAttachIsolateInit init) async {
   }
 
   print('Store attach isolate finished');
+  Isolate.exit();
 }
