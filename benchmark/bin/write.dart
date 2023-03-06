@@ -10,9 +10,10 @@ void main() async {
   await Put().report();
   await PutInTx().report();
   await PutMany().report();
-  await PutAsync().report();
-  await PutAsync2().report();
-  await PutAsync3().report();
+  await PutAsyncSequential().report();
+  await PutAsyncParallel().report();
+  await PutAsyncToList().report();
+  await PutAsyncAwait().report();
   await PutQueued().report();
   await RunInTx().report();
   await RunInTxAsync().report();
@@ -23,7 +24,7 @@ class Put extends DbBenchmark {
   static const count = 100;
   final items = prepareTestEntities(count, assignedIds: true);
 
-  Put() : super('${Put}', iterations: count);
+  Put() : super('$Put', iterations: count);
 
   @override
   void runIteration(int i) => box.put(items[i]);
@@ -32,7 +33,7 @@ class Put extends DbBenchmark {
 class PutInTx extends DbBenchmark {
   final items = prepareTestEntities(count, assignedIds: true);
 
-  PutInTx() : super('${PutInTx}', iterations: 1, coefficient: 1 / count);
+  PutInTx() : super('$PutInTx', iterations: 1, coefficient: 1 / count);
 
   @override
   void runIteration(int i) =>
@@ -42,31 +43,40 @@ class PutInTx extends DbBenchmark {
 class PutMany extends DbBenchmark {
   final items = prepareTestEntities(count, assignedIds: true);
 
-  PutMany() : super('${PutMany}', iterations: 1, coefficient: 1 / count);
+  PutMany() : super('$PutMany', iterations: 1, coefficient: 1 / count);
 
   @override
   void runIteration(int i) => box.putMany(items);
 }
 
-class PutAsync extends DbBenchmark {
+/// Runs putAsync one-by-one, use to measure time of a single call.
+class PutAsyncSequential extends DbBenchmark {
+  static const count = 10;
   final items = prepareTestEntities(count, assignedIds: true);
 
-  PutAsync()
-      : super('${PutAsync}[wait(map())] ',
-            iterations: 1, coefficient: 1 / count);
+  PutAsyncSequential() : super('$PutAsyncSequential', iterations: count);
+
+  @override
+  FutureOr<void> runIteration(int iteration) => box.putAsync(items[iteration]);
+}
+
+/// Runs many putAsync calls in parallel and waits until the last one completes,
+/// use to assert parallelization capability.
+class PutAsyncParallel extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  PutAsyncParallel() : super('$PutAsyncParallel');
 
   @override
   Future<void> run() async => await Future.wait(items.map(box.putAsync));
 }
 
-// This is slightly different (slower) then the [PutAsync] - all futures are
-// prepared beforehand, only then it starts to wait for them to complete.
-class PutAsync2 extends DbBenchmark {
+/// This is slightly different (slower) then [PutAsyncParallel] - all futures are
+/// prepared beforehand, only then it starts to wait for them to complete.
+class PutAsyncToList extends DbBenchmark {
   final items = prepareTestEntities(count, assignedIds: true);
 
-  PutAsync2()
-      : super('${PutAsync2}[wait(map().toList())] ',
-            iterations: 1, coefficient: 1 / count);
+  PutAsyncToList() : super('$PutAsyncToList');
 
   @override
   Future<void> run() async {
@@ -76,10 +86,10 @@ class PutAsync2 extends DbBenchmark {
   }
 }
 
-class PutAsync3 extends DbBenchmark {
+class PutAsyncAwait extends DbBenchmark {
   final items = prepareTestEntities(count, assignedIds: true);
 
-  PutAsync3() : super('${PutAsync3}[wait(putAsync(i))]', iterations: count);
+  PutAsyncAwait() : super('$PutAsyncAwait');
 
   @override
   Future<void> run() async {
@@ -91,7 +101,7 @@ class PutAsync3 extends DbBenchmark {
 class PutQueued extends DbBenchmark {
   final items = prepareTestEntities(count, assignedIds: true);
 
-  PutQueued() : super('${PutQueued}', iterations: count);
+  PutQueued() : super('$PutQueued', iterations: count);
 
   @override
   Future<void> run() async {
