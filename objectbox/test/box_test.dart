@@ -43,6 +43,25 @@ void main() {
     int putId = box.put(object);
     expect(putId, greaterThan(0));
     expect(object.id, equals(putId)); // ID on the object is updated
+
+    object.tString = "Hello again";
+    int updateId = box.put(object, mode: PutMode.update);
+    expect(updateId, greaterThan(0));
+    expect(object.id, updateId);
+  });
+
+  test('.put() update mode failures', () {
+    final box = store.box<TestEntity2>();
+    expect(
+        () => box.put(TestEntity2(id: 0), mode: PutMode.update),
+        throwsA(predicate((ArgumentError e) => e
+            .toString()
+            .contains('ID is not set (zero) for object to update'))));
+
+    expect(
+        () => box.put(TestEntity2(id: 5), mode: PutMode.update),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == 'object put failed')));
   });
 
   test('.putAsync', () async {
