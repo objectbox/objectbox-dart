@@ -76,7 +76,7 @@ class PutQueued extends DbBenchmark {
   @override
   FutureOr<void> runIteration(int iteration) {
     box.putQueued(items[iteration]);
-    store.awaitAsyncSubmitted();
+    store.awaitQueueSubmitted();
   }
 }
 
@@ -115,7 +115,7 @@ class PutQueuedParallel extends DbBenchmark {
   @override
   Future<void> run() async {
     items.forEach(box.putQueued);
-    store.awaitAsyncSubmitted();
+    store.awaitQueueSubmitted();
   }
 }
 
@@ -142,7 +142,7 @@ class PutAsyncToList extends DbBenchmark {
   Future<void> run() async {
     final futures = items.map(box.putQueuedAwaitResult).toList(growable: false);
     await Future.wait(futures);
-    store.awaitAsyncSubmitted();
+    store.awaitQueueSubmitted();
   }
 }
 
@@ -154,7 +154,7 @@ class PutAsyncAwait extends DbBenchmark {
   @override
   Future<void> run() async {
     items.forEach((item) async => await box.putQueuedAwaitResult(item));
-    store.awaitAsyncSubmitted();
+    store.awaitQueueSubmitted();
   }
 }
 

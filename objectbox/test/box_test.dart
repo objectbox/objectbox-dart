@@ -197,7 +197,7 @@ void main() {
     for (int i = 0; i < items.length; i++) {
       expect(items[i].id, ids[i]);
     }
-    store.awaitAsyncSubmitted();
+    store.awaitQueueSubmitted();
     expect(box.count(), items.length);
   });
 
@@ -216,7 +216,7 @@ void main() {
         throwsA(predicate((ArgumentError e) =>
             e.toString().contains('Use ID 0 (zero) to insert new entities'))));
 
-    store.awaitAsyncCompletion();
+    store.awaitQueueCompletion();
     expect(store.box<TestEntity2>().count(), 0);
     expect(store.box<TestEntityNonRel>().count(), 0);
   });

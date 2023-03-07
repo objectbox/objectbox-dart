@@ -162,7 +162,7 @@ class Box<T> {
   /// parallel (e.g. this is called many times) for better performance.
   ///
   /// To wait on the completion of submitted operations, use
-  /// [Store.awaitAsyncSubmitted] or [Store.awaitAsyncCompletion].
+  /// [Store.awaitQueueSubmitted] or [Store.awaitQueueCompletion].
   ///
   /// The actual database put operation may fail even if this returned
   /// normally (and even if a new ID for a new object was returned), for example
