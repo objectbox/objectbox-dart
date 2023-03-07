@@ -5,6 +5,8 @@
   (or `dart run build_runner build` for Dart Native apps) after updating!
 * Objects containing `ToOne` and `ToMany` relations can be sent across isolates, e.g. when using 
   `store.runInTransactionAsync`. #340
+* `Store.fromReference` and `Store.attach` do not longer accept a null model, which was not 
+  supported anyhow.
 
 ## 1.7.2 (2023-01-31)
 

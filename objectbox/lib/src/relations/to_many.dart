@@ -4,7 +4,6 @@ import 'package:meta/meta.dart';
 
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
-import '../native/weak_store.dart';
 import '../store.dart';
 import '../transaction.dart';
 import 'info.dart';
@@ -174,7 +173,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     // Use given store, or obtain one via store configuration
     // (then store must be closed once done).
     final Store store = existingStore ??
-        WeakStore.getOrCreate(configuration.storeConfiguration).lock();
+        StoreInternal.attachByConfiguration(configuration.storeConfiguration);
 
     try {
       final ownedTx = tx == null;
@@ -277,7 +276,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
       items = [];
     } else {
       final store =
-          WeakStore.getOrCreate(configuration.storeConfiguration).lock();
+          StoreInternal.attachByConfiguration(configuration.storeConfiguration);
       items = InternalBoxAccess.getRelated(
           configuration.box(store), configuration.relInfo);
       store.close();
