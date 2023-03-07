@@ -323,36 +323,83 @@ void main() {
     expect(items.where((i) => i.id == id3).single.tString, equals('Three'));
   });
 
+  assertPutManyItems(List<TestEntity> items, {required bool expectIdSet}) {
+    // Check IDs on objects in relations.
+    final relIdMatcher = expectIdSet ? greaterThan(0) : isNull;
+    expect(items[0].relA.target!.id, relIdMatcher);
+    expect(items[1].relB.target!.id, relIdMatcher);
+    expect(items[2].relManyA[0].id, relIdMatcher);
+
+    // Check objects and relations were inserted.
+    final List<TestEntity> itemsFetched = box.getAll();
+    expect(itemsFetched.length, 3);
+    expect(itemsFetched[0].tString, 'One');
+    expect(itemsFetched[0].relA.target!.tInt, 1);
+    expect(itemsFetched[1].tString, 'Two');
+    expect(itemsFetched[1].relB.target!.tString, "2");
+    expect(itemsFetched[2].tString, 'Three');
+    expect(itemsFetched[2].relManyA[0].tInt, 3);
+  }
+
   test('.putMany inserts multiple items', () {
     final List<TestEntity> items = [
-      TestEntity(tString: 'One'),
-      TestEntity(tString: 'Two'),
-      TestEntity(tString: 'Three')
+      TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
+      TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
     ];
-    box.putMany(items);
-    final List<TestEntity> itemsFetched = box.getAll();
-    expect(itemsFetched.length, equals(items.length));
-    expect(itemsFetched[0].tString, equals(items[0].tString));
-    expect(itemsFetched[1].tString, equals(items[1].tString));
-    expect(itemsFetched[2].tString, equals(items[2].tString));
+    final ids = box.putMany(items);
+
+    // Check returned IDs are valid and set on given objects.
+    for (int i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      expect(id, greaterThan(0));
+      expect(items[i].id, id);
+    }
+
+    assertPutManyItems(items, expectIdSet: true);
   });
 
-  test('.putMany returns the new item IDs', () {
+  test('.putManyAsync inserts multiple items', () async {
+    // Need to define inside test closure to avoid Dart over-capturing store
+    // and box which can't be sent to worker isolate.
     final List<TestEntity> items = [
-      'One',
-      'Two',
-      'Three',
-      'Four',
-      'Five',
-      'Six',
-      'Seven'
-    ].map((s) => TestEntity(tString: s)).toList();
-    final List<int> ids = box.putMany(items);
-    expect(ids.length, equals(items.length));
-    for (var i = 0; i < items.length; ++i) {
-      expect(items[i].id, equals(ids[i])); // IDs on the objects are updated
-      expect(box.get(ids[i])!.tString, equals(items[i].tString));
+      TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
+      TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+    ];
+    final ids = await box.putManyAsync(items);
+
+    // Check returned IDs are valid and *not* set on given objects.
+    for (int i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      expect(id, greaterThan(0));
+      expect(items[i].id, 0);
     }
+
+    assertPutManyItems(items, expectIdSet: false);
+  });
+
+  test('.putAndGetManyAsync inserts multiple items', () async {
+    // Need to define inside test closure to avoid Dart over-capturing store
+    // and box which can't be sent to worker isolate.
+    final List<TestEntity> items = [
+      TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
+      TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+    ];
+    final storedItems = await box.putAndGetManyAsync(items);
+
+    // Check returned IDs are *not* set on given objects.
+    for (final item in items) {
+      expect(item.id, 0);
+    }
+
+    // Check IDs are set on returned objects.
+    for (final item in storedItems) {
+      expect(item.id, greaterThan(0));
+    }
+
+    assertPutManyItems(storedItems, expectIdSet: true);
   });
 
   test('.getAll/getMany works on large arrays', () async {

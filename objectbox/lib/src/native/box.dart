@@ -251,6 +251,30 @@ class Box<T> {
     return putIds;
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<int> _putManyAsyncCallback<T>(
+          Store store, _PutManyAsyncArgs<T> args) =>
+      store.box<T>().putMany(args.objects, mode: args.mode);
+
+  /// Like [putMany], but runs the box operation asynchronously in a worker
+  /// isolate.
+  Future<List<int>> putManyAsync(List<T> objects,
+      {PutMode mode = PutMode.put}) async {
+    // Running put in a worker isolate will only set a potentially new ID on the
+    // objects sent to that isolate, but not at the instances in this isolate,
+    // so do that manually.
+    final newIds = await _store.runAsync(
+        _putManyAsyncCallback<T>, _PutManyAsyncArgs(objects, mode));
+    for (int i = 0; i < objects.length; i++) {
+      final object = objects[i];
+      int existingId = _entity.getId(object) ?? 0;
+      if (existingId == 0) {
+        _entity.setId(object, newIds[i]);
+      }
+    }
+    return newIds;
+  }
+
   // Checks if native obx_*_put_object() was successful (result is a valid ID).
   // Sets the given ID on the object if previous ID was zero (new object).
   @pragma('vm:prefer-inline')
@@ -578,6 +602,13 @@ class _PutAsyncArgs<T> {
   final PutMode mode;
 
   _PutAsyncArgs(this.object, this.mode);
+}
+
+class _PutManyAsyncArgs<T> {
+  final List<T> objects;
+  final PutMode mode;
+
+  _PutManyAsyncArgs(this.objects, this.mode);
 }
 
 class _GetManyAsyncArgs {
