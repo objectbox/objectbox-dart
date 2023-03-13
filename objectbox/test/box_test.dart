@@ -51,17 +51,51 @@ void main() {
     a.relA.target = RelatedEntityA(tInt: 1);
     final b = TestEntity(tString: 'Hello B');
     b.relManyA.add(RelatedEntityA(tInt: 2));
-    Future<int> aId = box.putAsync(a);
+    // Launch two async puts.
+    Future<int> putA = box.putAsync(a);
+    Future<int> putB = box.putAsync(b);
+    // Async put does not guarantee order, so can't expect ID values.
+    final aId = await putA;
+    final bId = await putB;
+    expect(aId, greaterThan(0));
+    expect(bId, greaterThan(0));
+    // Check new IDs are *not* set on given objects.
     expect(a.id, 0);
-    Future<int> bId = box.putAsync(b);
     expect(b.id, 0);
-    // putAsync does not guarantee order, so can't expect ID values.
-    expect(await aId, greaterThan(0));
-    expect(await bId, greaterThan(0));
-    expect(a.id, greaterThan(0));
-    expect(b.id, greaterThan(0));
-    expect(box.get(a.id)!.relA.target!.tInt, 1);
-    expect(box.get(b.id)!.relManyA[0].tInt, 2);
+    expect(a.relA.target!.id, isNull);
+    expect(b.relManyA[0].id, isNull);
+    // Check objects and relations were saved.
+    expect(box.get(aId)!.relA.target!.tInt, 1);
+    expect(box.get(bId)!.relManyA[0].tInt, 2);
+  });
+
+  test('.putAndGetAsync', () async {
+    // Supports relations, so add some.
+    final a = TestEntity(tString: 'Hello A');
+    a.relA.target = RelatedEntityA(tInt: 1);
+    final b = TestEntity(tString: 'Hello B');
+    b.relManyA.add(RelatedEntityA(tInt: 2));
+    // Launch two async puts.
+    Future<TestEntity> putA = box.putAndGetAsync(a);
+    Future<TestEntity> putB = box.putAndGetAsync(b);
+    // Async put does not guarantee order, so can't expect ID values.
+    final aStored = await putA;
+    final bStored = await putB;
+    expect(aStored.id, greaterThan(0));
+    expect(bStored.id, greaterThan(0));
+    // Check new IDs are *not* set on given objects.
+    expect(a.id, 0);
+    expect(b.id, 0);
+    expect(a.relA.target!.id, isNull);
+    expect(b.relManyA[0].id, isNull);
+    // Check new IDs are set on returned objects.
+    expect(aStored.id, greaterThan(0));
+    expect(bStored.id, greaterThan(0));
+    expect(aStored.relA.target!.id, greaterThan(0));
+    expect(bStored.relManyA[0].id, greaterThan(0));
+    // Check objects and relations were saved.
+    expect(box.get(aStored.id)!.relA.target!.tInt, 1);
+    expect(box.get(bStored.id)!.relManyA[0].tInt, 2);
   });
 
   test('.putAsync failures', () async {

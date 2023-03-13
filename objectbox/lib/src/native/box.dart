@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../annotations.dart';
 import '../common.dart';
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
@@ -61,14 +62,23 @@ class Box<T> {
 
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
 
-  /// Puts the given Object in the box (aka persisting it).
+  /// Puts the given [object] and returns its (new) ID.
   ///
-  /// If this is a new object (its ID property is 0), a new ID will be assigned
-  /// to the object (and returned).
+  /// If the object is new (its [Id] property is 0 or null), it is inserted and
+  /// assigned a new ID. The new ID is set on the object. This also applies to
+  /// new objects in its relations.
   ///
-  /// If the object with given was already in the box, it will be overwritten.
+  /// If an object with the same ID is already in the box, it will be updated.
+  /// Otherwise the put will fail. This does not apply to existing objects in
+  /// its relations, in this case only the relation is updated to point to the
+  /// new target object(s).
   ///
-  /// Performance note: consider [putMany] to put several objects at once.
+  /// Change [mode] to specify explicitly that only an insert or update should
+  /// occur.
+  ///
+  /// See [putMany] to put several objects at once with better performance.
+  ///
+  /// See [putAsync] for an asynchronous version.
   int put(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       return InternalStoreAccess.runInTransaction(
@@ -82,25 +92,36 @@ class Box<T> {
   static int _putAsyncCallback<T>(Store store, _PutAsyncArgs<T> args) =>
       store.box<T>().put(args.object, mode: args.mode);
 
-  /// Like [put], but runs the box operation asynchronously in a worker isolate.
+  /// Like [put], but runs in a worker isolate and does not modify the given
+  /// [object], e.g. to set a new ID.
   ///
-  /// If the [object] is new (its ID property is 0), an ID will be assigned to
-  /// it after the returned [Future] completes.
+  /// Use [get] to get an inserted object with its new ID set,
+  /// or use [putAndGetAsync] instead.
   ///
   /// See also [putQueued] which is optimized for running a large number of puts
   /// in parallel.
-  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async {
-    // Running put in a worker isolate will only set a potentially new ID on the
-    // object sent to that isolate, but not at the instance in this isolate,
-    // so do that manually.
-    int existingId = _entity.getId(object) ?? 0;
-    final newId = await _store.runAsync(
-        _putAsyncCallback<T>, _PutAsyncArgs(object, mode));
-    if (existingId == 0) {
-      _entity.setId(object, newId);
-    }
-    return newId;
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(_putAsyncCallback<T>, _PutAsyncArgs(object, mode));
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static T _putAndGetAsyncCallback<T>(Store store, _PutAsyncArgs<T> args) {
+    store.box<T>().put(args.object, mode: args.mode);
+    return args.object;
   }
+
+  /// Like [putAsync], but returns a copy of the [object] with the (new) ID set.
+  ///
+  /// If the object is new (its [Id] property is 0 or null), the returned copy
+  /// will have its [Id] property set to the new ID. This also applies to new
+  /// objects in its relations.
+  ///
+  /// If the object or (new) ID is not needed, use [putAsync] instead.
+  ///
+  /// See also [putQueued] which is optimized for running a large number of puts
+  /// in parallel.
+  Future<T> putAndGetAsync(T object, {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(
+          _putAndGetAsyncCallback<T>, _PutAsyncArgs(object, mode));
 
   /// Like [putQueued], but waits on the put to complete.
   ///
@@ -217,9 +238,13 @@ class Box<T> {
     return id;
   }
 
-  /// Puts the given [objects] into this Box in a single transaction.
+  /// Like [put], but optimized to put many [objects] at once.
   ///
-  /// Returns a list of all IDs of the inserted Objects.
+  /// All objects are put in a single transaction (similar to using
+  /// [Store.runInTransaction]), making this faster than calling [put] multiple
+  /// times.
+  ///
+  /// Returns the IDs of all put objects.
   List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) {
     if (objects.isEmpty) return [];
 
@@ -256,24 +281,33 @@ class Box<T> {
           Store store, _PutManyAsyncArgs<T> args) =>
       store.box<T>().putMany(args.objects, mode: args.mode);
 
-  /// Like [putMany], but runs the box operation asynchronously in a worker
-  /// isolate.
+  /// Like [putMany], but runs in a worker isolate and does not modify the given
+  /// [objects], e.g. to set an assigned ID.
+  ///
+  /// Use [getMany] to get inserted objects with their assigned ID set,
+  /// or use [putAndGetManyAsync] instead.
   Future<List<int>> putManyAsync(List<T> objects,
-      {PutMode mode = PutMode.put}) async {
-    // Running put in a worker isolate will only set a potentially new ID on the
-    // objects sent to that isolate, but not at the instances in this isolate,
-    // so do that manually.
-    final newIds = await _store.runAsync(
-        _putManyAsyncCallback<T>, _PutManyAsyncArgs(objects, mode));
-    for (int i = 0; i < objects.length; i++) {
-      final object = objects[i];
-      int existingId = _entity.getId(object) ?? 0;
-      if (existingId == 0) {
-        _entity.setId(object, newIds[i]);
-      }
-    }
-    return newIds;
+          {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(
+          _putManyAsyncCallback<T>, _PutManyAsyncArgs(objects, mode));
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T> _putAndGetManyAsyncCallback<T>(
+      Store store, _PutManyAsyncArgs<T> args) {
+    store.box<T>().putMany(args.objects, mode: args.mode);
+    return args.objects;
   }
+
+  /// Like [putManyAsync], but returns a copy of the [objects] with new IDs
+  /// assigned.
+  ///
+  /// If the objects are new (their [Id] property is 0 or null), returns a
+  /// copy of them with the [Id] property set to the assigned ID. This also
+  /// applies to new objects in their relations.
+  Future<List<T>> putAndGetManyAsync(List<T> objects,
+          {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(
+          _putAndGetManyAsyncCallback<T>, _PutManyAsyncArgs(objects, mode));
 
   // Checks if native obx_*_put_object() was successful (result is a valid ID).
   // Sets the given ID on the object if previous ID was zero (new object).

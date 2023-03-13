@@ -12,9 +12,12 @@ void main() async {
   await Put().report();
   await PutInTx().report();
   await PutMany().report();
+  await PutManyAsync().report();
+  await PutAndGetManyAsync().report();
   await PutQueuedAwaitResult().report();
   await PutQueued().report();
   await PutAsync().report();
+  await PutAndGetAsync().report();
   await PutQueuedAwaitResultParallel().report();
   await PutQueuedParallel().report();
   await PutAsyncParallel().report();
@@ -54,6 +57,26 @@ class PutMany extends DbBenchmark {
   void runIteration(int i) => box.putMany(items);
 }
 
+class PutManyAsync extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  PutManyAsync()
+      : super('$PutManyAsync', iterations: 1, coefficient: 1 / count);
+
+  @override
+  void runIteration(int i) => box.putManyAsync(items);
+}
+
+class PutAndGetManyAsync extends DbBenchmark {
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  PutAndGetManyAsync()
+      : super('$PutAndGetManyAsync', iterations: 1, coefficient: 1 / count);
+
+  @override
+  void runIteration(int i) => box.putAndGetManyAsync(items);
+}
+
 /// Runs putAsync one-by-one, use to measure time of a single call.
 class PutQueuedAwaitResult extends DbBenchmark {
   static const count = 10;
@@ -89,6 +112,18 @@ class PutAsync extends DbBenchmark {
 
   @override
   FutureOr<void> runIteration(int iteration) => box.putAsync(items[iteration]);
+}
+
+/// Runs one-by-one, use to measure time of a single call.
+class PutAndGetAsync extends DbBenchmark {
+  static const count = 10;
+  final items = prepareTestEntities(count, assignedIds: true);
+
+  PutAndGetAsync() : super('$PutAndGetAsync', iterations: count);
+
+  @override
+  FutureOr<void> runIteration(int iteration) =>
+      box.putAndGetAsync(items[iteration]);
 }
 
 /// Runs many PutQueuedAwaitResult calls in parallel and waits until the last one completes,

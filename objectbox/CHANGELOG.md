@@ -3,7 +3,9 @@
 * Added and updated async APIs in `Box`:
   * new `getAsync`, `getManyAsync`, `getAllAsync`,
   * new `putAsync` and `putManyAsync` which support objects with relations,
-  * renamed the former `putAsync` to `putQueuedAwaitResult`.
+  * renamed the former `putAsync` to `putQueuedAwaitResult`,
+  * new `putAndGetAsync` and `putAndGetManyAsync` which return a copy of the given objects with new
+    IDs set.
 * Add new async `Query` APIs: `findAsync`, `findFirstAsync`, `findUniqueAsync` and `findIdsAsync`.
 * Breaking changes to generated code: run `flutter pub run build_runner build` 
   (or `dart run build_runner build` for Dart Native apps) after updating!
