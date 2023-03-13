@@ -9,8 +9,10 @@ void main() async {
   await GetAllAsync().report();
 }
 
+const iterationsGet = 1000;
+
 class Get extends DbBenchmark {
-  Get() : super('$Get', iterations: 1000);
+  Get() : super('$Get', iterations: iterationsGet);
 
   @override
   void runIteration(int i) => box.get(i + 1);
@@ -20,7 +22,7 @@ class Get extends DbBenchmark {
 }
 
 class GetAsync extends DbBenchmark {
-  GetAsync() : super('$GetAsync', iterations: 1000);
+  GetAsync() : super('$GetAsync', iterations: iterationsGet);
 
   @override
   void runIteration(int i) => box.getAsync(i + 1);
@@ -29,53 +31,50 @@ class GetAsync extends DbBenchmark {
   void setup() => box.putMany(prepareTestEntities(iterations));
 }
 
+const getManyCount = 10000;
+
 class GetMany extends DbBenchmark {
-  static final count = 10000;
   late final List<int> ids;
 
-  GetMany() : super('$GetMany', iterations: 1, coefficient: 1 / count);
+  GetMany() : super('$GetMany', iterations: 1, coefficient: 1 / getManyCount);
 
   @override
   void runIteration(int i) => box.getMany(ids);
 
   @override
-  void setup() => ids = box.putMany(prepareTestEntities(count));
+  void setup() => ids = box.putMany(prepareTestEntities(getManyCount));
 }
 
 class GetManyAsync extends DbBenchmark {
-  static final count = 10000;
   late final List<int> ids;
 
   GetManyAsync()
-      : super('$GetManyAsync', iterations: 1, coefficient: 1 / count);
+      : super('$GetManyAsync', iterations: 1, coefficient: 1 / getManyCount);
 
   @override
   void runIteration(int i) => box.getManyAsync(ids);
 
   @override
-  void setup() => ids = box.putMany(prepareTestEntities(count));
+  void setup() => ids = box.putMany(prepareTestEntities(getManyCount));
 }
 
 class GetAll extends DbBenchmark {
-  static final count = 10000;
-
-  GetAll() : super('$GetAll', iterations: 1, coefficient: 1 / count);
+  GetAll() : super('$GetAll', iterations: 1, coefficient: 1 / getManyCount);
 
   @override
   void runIteration(int i) => box.getAll();
 
   @override
-  void setup() => box.putMany(prepareTestEntities(count));
+  void setup() => box.putMany(prepareTestEntities(getManyCount));
 }
 
 class GetAllAsync extends DbBenchmark {
-  static final count = 10000;
-
-  GetAllAsync() : super('$GetAllAsync', iterations: 1, coefficient: 1 / count);
+  GetAllAsync()
+      : super('$GetAllAsync', iterations: 1, coefficient: 1 / getManyCount);
 
   @override
   void runIteration(int i) => box.getAllAsync();
 
   @override
-  void setup() => box.putMany(prepareTestEntities(count));
+  void setup() => box.putMany(prepareTestEntities(getManyCount));
 }
