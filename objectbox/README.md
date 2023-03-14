@@ -88,7 +88,7 @@ person.name = "Joe Black";
 box.put(person);
 
 // Query for objects
-final query = box.query(Person_.name.equal("Joe Black"))
+final query = box.query(Person_.name.equals("Joe Black"))
         .order(Person_.name).build();
 final people = query.find();
 query.close();
