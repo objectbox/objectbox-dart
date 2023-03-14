@@ -85,7 +85,7 @@ when initializing ObjectBox. #252
 * Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and
   handle premature isolate exit. #415
 * The native ObjectBox library is also searched for in the `lib` subfolder on desktop OS (macOS,
-  Linux, Windows). This is where the [`install.sh`](/install.sh) script downloads it by default.
+  Linux, Windows). This is where the [`install.sh`](../install.sh) script downloads it by default.
   E.g. it is no longer necessary to install the library globally to run `dart test` or `flutter test`.
 * Windows: Support database directory paths that contain unicode (UTF-8) characters. #406
 * Changed `Query.stream` to collect results in a worker isolate, which should typically be faster. #420
