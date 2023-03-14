@@ -64,7 +64,7 @@ class ObjectBox {
 
     // When the Task is put, its Tag will automatically be put into the Tag Box.
     // Both ToOne and ToMany automatically put new Objects when the Object owning them is put.
-    taskBox.putMany([task1, task2]);
+    taskBox.putManyAsync([task1, task2]);
   }
 
   Stream<List<Task>> getTasks() {
@@ -95,7 +95,7 @@ class ObjectBox {
     }
     // Set or update the target of the to-one relation to Tag.
     task.tag.target = tag;
-    taskBox.put(task);
+    taskBox.putAsync(task);
     debugPrint('Saved task ${task.text} with tag ${task.tag.target!.name}');
   }
 
@@ -103,7 +103,7 @@ class ObjectBox {
     taskBox.remove(taskId);
   }
 
-  int addTag(String name) {
+  Future<int> addTag(String name) async {
     if (name.isEmpty) {
       // Do not allow an empty tag name.
       // A real app might want to display an UI hint about that.
@@ -111,14 +111,14 @@ class ObjectBox {
     }
     // Do not allow adding a tag with an existing name.
     // A real app might want to display an UI hint about that.
-    final existingTags = tagBox.getAll();
+    final existingTags = await tagBox.getAllAsync();
     for (var existingTag in existingTags) {
       if (existingTag.name == name) {
         return -1;
       }
     }
 
-    final newTagId = tagBox.put(Tag(name));
+    final newTagId = await tagBox.putAsync(Tag(name));
     debugPrint("Added tag: ${tagBox.get(newTagId)!.name}");
 
     return newTagId;
