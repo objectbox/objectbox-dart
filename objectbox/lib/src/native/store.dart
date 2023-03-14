@@ -767,27 +767,27 @@ class Store {
   /// available. Use [Sync.client()] to create one first.
   SyncClient? syncClient() => syncClientsStorage[this];
 
-  /// Await for all (including future) async submissions to be completed
-  /// (the async queue becomes idle for a moment).
+  /// Await for all (including future) submissions using [Box.putQueued] to be
+  /// completed (the queue becomes idle for a moment).
   ///
-  /// Returns true if all submissions were completed or async processing was
+  /// Returns true if all submissions were completed or processing was
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitAsyncCompletion() {
+  bool awaitQueueCompletion() {
     final result = C.store_await_async_submitted(_ptr);
     reachabilityFence(this);
     return result;
   }
 
-  /// Await for previously submitted async operations to be completed
-  /// (the async queue does not have to become idle).
+  /// Await for previously submitted operations using [Box.putQueued] to be
+  /// completed (the queue does not have to become idle).
   ///
-  /// Returns true if all submissions were completed or async processing was
+  /// Returns true if all submissions were completed or processing was
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitAsyncSubmitted() {
+  bool awaitQueueSubmitted() {
     final result = C.store_await_async_submitted(_ptr);
     reachabilityFence(this);
     return result;

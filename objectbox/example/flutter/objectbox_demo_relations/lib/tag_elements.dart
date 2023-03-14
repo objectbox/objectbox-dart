@@ -16,8 +16,8 @@ class NewTag extends StatefulWidget {
 class _NewTagState extends State<NewTag> {
   final _tagInputController = TextEditingController();
 
-  void _addTag(String name) {
-    final newTagId = objectbox.addTag(name);
+  Future<void> _addTag(String name) async {
+    final newTagId = await objectbox.addTag(name);
     if (newTagId > 0) {
       widget.updateTags(newTagId);
     }

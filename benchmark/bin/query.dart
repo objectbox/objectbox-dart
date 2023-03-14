@@ -6,7 +6,9 @@ const count = 10000;
 
 void main() async {
   await QueryFind().report();
+  await QueryFindAsync().report();
   await QueryFindIds().report();
+  await QueryFindIdsAsync().report();
   await QueryStream().report();
 }
 
@@ -14,8 +16,7 @@ class QueryBenchmark extends DbBenchmark {
   static const expectedCount = count / 5;
   late final Query<TestEntity> query;
 
-  QueryBenchmark(String name)
-      : super(name, iterations: 1, coefficient: 1 / expectedCount);
+  QueryBenchmark(String name) : super(name, coefficient: 1 / expectedCount);
 
   @override
   void setup() {
@@ -40,26 +41,37 @@ class QueryBenchmark extends DbBenchmark {
 }
 
 class QueryFind extends QueryBenchmark {
-  QueryFind() : super('${QueryFind}');
+  QueryFind() : super('$QueryFind');
 
   @override
-  Future<void> run() async {
-    query.find();
-    return Future.value();
-  }
+  void runIteration(int iteration) => query.find();
+}
+
+class QueryFindAsync extends QueryBenchmark {
+  QueryFindAsync() : super('$QueryFindAsync');
+
+  @override
+  Future<void> runIteration(int iteration) => query.findAsync();
 }
 
 class QueryFindIds extends QueryBenchmark {
-  QueryFindIds() : super('${QueryFindIds}');
+  QueryFindIds() : super('$QueryFindIds');
 
   @override
-  Future<void> run() async => query.findIds();
+  void runIteration(int iteration) => query.findIds();
+}
+
+class QueryFindIdsAsync extends QueryBenchmark {
+  QueryFindIdsAsync() : super('$QueryFindIdsAsync');
+
+  @override
+  Future<void> runIteration(int iteration) => query.findIdsAsync();
 }
 
 /// Stream where visitor is running in Dart isolate.
 class QueryStream extends QueryBenchmark {
-  QueryStream() : super('${QueryStream}');
+  QueryStream() : super('$QueryStream');
 
   @override
-  Future<void> run() async => await query.stream().toList();
+  Future<void> runIteration(int iteration) => query.stream().toList();
 }
