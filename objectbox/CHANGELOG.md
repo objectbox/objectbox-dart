@@ -6,6 +6,7 @@
   `store.runInTransactionAsync`. #340
 * `Store.fromReference` and `Store.attach` do not longer accept a null model, which was not 
   supported anyhow.
+* Require at least Dart SDK 2.15 (shipped with Flutter 2.8.0).
 
 ## 1.7.2 (2023-01-31)
 
