@@ -1,5 +1,7 @@
 ## latest
 
+* **Breaking changes to generated code:** run `flutter pub run build_runner build`
+  (or `dart run build_runner build` for Dart Native apps) after updating!
 * Added and updated async APIs in `Box`:
   * new `getAsync`, `getManyAsync`, `getAllAsync`,
   * new `putAsync` and `putManyAsync` which support objects with relations,
@@ -7,13 +9,11 @@
   * new `putAndGetAsync` and `putAndGetManyAsync` which return a copy of the given objects with new
     IDs set.
 * Add new async `Query` APIs: `findAsync`, `findFirstAsync`, `findUniqueAsync` and `findIdsAsync`.
-* Breaking changes to generated code: run `flutter pub run build_runner build` 
-  (or `dart run build_runner build` for Dart Native apps) after updating!
-* Objects containing `ToOne` and `ToMany` relations can be sent across isolates, e.g. when using 
+* Support sending objects containing `ToOne` and `ToMany` across isolates, e.g. when using
   `store.runInTransactionAsync`. #340
-* `Store.fromReference` and `Store.attach` do not longer accept a null model, which was not 
+* `Store.attach` (and `Store.fromReference`) do not longer accept a null model, which was not
   supported anyhow.
-* Breaking change: renamed `Store.awaitAsyncSubmitted` and `awaitAsyncCompletion` to
+* **Breaking change:** renamed `store.awaitAsyncSubmitted` and `awaitAsyncCompletion` to
   `awaitQueueSubmitted` and `awaitQueueCompletion` to avoid any mix-up with the new async methods.
 * Require at least Dart SDK 2.15 (shipped with Flutter 2.8.0).
 
