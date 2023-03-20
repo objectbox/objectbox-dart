@@ -120,11 +120,15 @@ class _QueryBuilder<T> {
 
   void _fillQueriedEntities(Set<Type> outEntities) {
     outEntities.add(T);
-    _innerQBs.forEach((qb) => qb._fillQueriedEntities(outEntities));
+    for (var qb in _innerQBs) {
+      qb._fillQueriedEntities(outEntities);
+    }
   }
 
   void _close() {
-    _innerQBs.forEach((iqb) => iqb._close());
+    for (var iqb in _innerQBs) {
+      iqb._close();
+    }
     checkObx(C.qb_close(_cBuilder));
   }
 

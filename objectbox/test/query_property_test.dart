@@ -75,23 +75,23 @@ void main() {
     box.putMany(stringList());
     box.putMany(floatList());
 
-    tSignedInts.forEach((i) {
+    for (var i in tSignedInts) {
       final queryInt = box.query(i.greaterThan(0)).build();
       expect(queryInt.count(), 8);
       queryInt.close();
-    });
+    }
 
-    tUnsignedInts.forEach((i) {
+    for (var i in tUnsignedInts) {
       final queryInt = box.query(i.greaterThan(0)).build();
       expect(queryInt.count(), 9);
       queryInt.close();
-    });
+    }
 
-    tFloats.forEach((f) {
+    for (var f in tFloats) {
       final queryFloat = box.query(f.lessThan(1.0)).build();
       expect(queryFloat.count(), 6);
       queryFloat.close();
-    });
+    }
 
     final queryString =
         box.query(tString.contains('t', caseSensitive: false)).build();
@@ -114,17 +114,17 @@ void main() {
 
     final query = box.query(tLong < 2).build();
 
-    tSignedInts.forEach((prop) {
+    for (var prop in tSignedInts) {
       final qp = query.property(prop);
       expect(qp is PropertyQuery<int>, true);
       qp.close();
-    });
+    }
 
-    tFloats.forEach((prop) {
+    for (var prop in tFloats) {
       final qp = query.property(prop);
       expect(qp is PropertyQuery<double>, true);
       qp.close();
-    });
+    }
 
     final qp = query.property(tString);
     expect(qp is PropertyQuery<String>, true);
@@ -277,7 +277,7 @@ void main() {
       qp.close();
     }
 
-    tFloats.forEach((f) {
+    for (var f in tFloats) {
       final qp = queryFloats.property(f);
 
       final increment = tFloat == f ? 0.1 : 0.2;
@@ -287,7 +287,7 @@ void main() {
       expect(qp.find().map((f) => f.toStringAsFixed(2)).toList(), expected);
 
       qp.close();
-    });
+    }
 
     final stringQuery = queryStrings.property(tString);
 

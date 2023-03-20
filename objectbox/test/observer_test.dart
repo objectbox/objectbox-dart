@@ -82,8 +82,9 @@ void main() async {
       print('Entities updated: $entityTypes');
       expectedEvents--;
 
-      entityTypes.forEach((entityType) =>
-          typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0));
+      for (var entityType in entityTypes) {
+        typesUpdates[entityType] = 1 + (typesUpdates[entityType] ?? 0);
+      }
 
       if (expectedEvents == 0) {
         completer.complete();

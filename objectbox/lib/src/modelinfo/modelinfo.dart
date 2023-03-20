@@ -213,7 +213,9 @@ class ModelInfo {
     }
     entities = entities.where((p) => p != foundEntity).toList();
     retiredEntityUids.add(entity.id.uid);
-    entity.properties.forEach((prop) => retiredPropertyUids.add(prop.id.uid));
+    for (var prop in entity.properties) {
+      retiredPropertyUids.add(prop.id.uid);
+    }
   }
 
   int generateUid() {

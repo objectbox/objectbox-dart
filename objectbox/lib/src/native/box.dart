@@ -253,7 +253,9 @@ class Box<T> {
     InternalStoreAccess.runInTransaction(_store, TxMode.write,
         (Transaction tx) {
       if (_hasToOneRelations) {
-        objects.forEach((object) => _putToOneRelFields(object, mode, tx));
+        for (var object in objects) {
+          _putToOneRelFields(object, mode, tx);
+        }
       }
 
       final cursor = tx.cursor(_entity);
@@ -268,7 +270,9 @@ class Box<T> {
       }
 
       if (_hasToManyRelations) {
-        objects.forEach((object) => _putToManyRelFields(object, mode, tx));
+        for (var object in objects) {
+          _putToManyRelFields(object, mode, tx);
+        }
       }
       _builder.resetIfLarge();
     });

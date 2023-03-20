@@ -21,7 +21,7 @@ Uint8List addFbData(fb.Builder fbb) {
 
 void main() {
   test('custom flatbuffers builder', () {
-    [1024, 1].forEach((initialSize) {
+    for (var initialSize in [1024, 1]) {
       printOnFailure('initialSize=$initialSize');
 
       final fb1 = BuilderWithCBuffer(initialSize: initialSize);
@@ -38,7 +38,7 @@ void main() {
           fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()), equals(list1b));
 
       fb1.clear();
-    });
+    }
   });
 
   final bytesSum =
