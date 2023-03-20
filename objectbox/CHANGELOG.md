@@ -17,6 +17,7 @@
   supported anyhow.
 * **Breaking change:** renamed `store.awaitAsyncSubmitted` and `awaitAsyncCompletion` to
   `awaitQueueSubmitted` and `awaitQueueCompletion` to avoid any mix-up with the new async methods.
+* Removed deprecated `Store.runIsolated`.
 * Require at least Dart SDK 2.15 (shipped with Flutter 2.8.0).
 
 ## 1.7.2 (2023-01-31)

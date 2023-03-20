@@ -721,21 +721,6 @@ class Store {
     }
   }
 
-  /// Deprecated. Use [runAsync] instead. Will be removed in a future release.
-  ///
-  /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
-  /// its own Store and returns the result of callback.
-  ///
-  /// Instances of [callback] must be top-level functions or static methods
-  /// of classes, not closures or instance methods of objects.
-  ///
-  /// Note: this requires Dart 2.15.0 or newer
-  /// (shipped with Flutter 2.8.0 or newer).
-  @Deprecated('Use `runAsync` instead. Will be removed in a future release.')
-  Future<R> runIsolated<P, R>(TxMode mode,
-          FutureOr<R> Function(Store, P) callback, P param) async =>
-      runAsync(callback, param);
-
   /// Internal only - bypasses the main checks for async functions, you may
   /// only pass synchronous callbacks!
   R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
