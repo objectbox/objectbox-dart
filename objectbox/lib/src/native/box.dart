@@ -675,5 +675,6 @@ class _GetManyAsyncArgs {
   final List<int> ids;
   final bool growableResult;
 
+  // ignore: avoid_positional_boolean_parameters
   _GetManyAsyncArgs(this.ids, this.growableResult);
 }

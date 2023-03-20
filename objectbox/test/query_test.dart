@@ -108,7 +108,7 @@ void main() {
   });
 
   test('string case-sensitivity', () {
-    final testCaseSensitivity = (Box<TestEntity> box, bool defaultIsTrue) {
+    final testCaseSensitivity = (Box<TestEntity> box, {required bool defaultIsTrue}) {
       box.put(TestEntity(tString: 'Hello'));
       box.put(TestEntity(tString: 'hello'));
 
@@ -132,9 +132,9 @@ void main() {
     final env2 = TestEnv('query2', queryCaseSensitive: false);
 
     // current default: case insensitive
-    testCaseSensitivity(env.box, true);
-    testCaseSensitivity(env1.box, true);
-    testCaseSensitivity(env2.box, false);
+    testCaseSensitivity(env.box, defaultIsTrue: true);
+    testCaseSensitivity(env1.box, defaultIsTrue: true);
+    testCaseSensitivity(env2.box, defaultIsTrue: false);
 
     env1.closeAndDelete();
     env2.closeAndDelete();
@@ -316,10 +316,10 @@ void main() {
 
     // paranoia
     [result0, result2, result3].forEach((ids) => ids.forEach((id) {
-          final read = box.get(id)!;
-          expect(read, isNotNull);
-          expect(read.id, equals(id));
-        }));
+        final read = box.get(id)!;
+        expect(read, isNotNull);
+        expect(read.id, equals(id));
+      }));
   });
 
   test('.find offset and limit', () {

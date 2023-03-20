@@ -667,12 +667,12 @@ class Store {
     final port = RawReceivePort();
     final completer = Completer<dynamic>();
 
-    void _cleanup() {
+    void cleanup() {
       port.close();
     }
 
     port.handler = (dynamic message) {
-      _cleanup();
+      cleanup();
       completer.complete(message);
     };
 
@@ -687,7 +687,7 @@ class Store {
           onError: port.sendPort,
           onExit: port.sendPort);
     } on Object {
-      _cleanup();
+      cleanup();
       rethrow;
     }
 

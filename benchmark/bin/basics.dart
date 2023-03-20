@@ -62,8 +62,7 @@ final _types = <Type>[
 String _boxAccessResult = ''; // so that we do something with the result
 
 class BoxAccessMap extends Benchmark {
-  final boxes = Map<Type, String>.fromIterable(_types,
-      key: (item) => item, value: (item) => item.toString());
+  final boxes = {for (var item in _types) item: item.toString()};
 
   BoxAccessMap() : super('${BoxAccessMap}', iterations: 10000);
 

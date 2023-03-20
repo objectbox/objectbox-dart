@@ -56,7 +56,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     late StreamSubscription<void> subscription;
     late StreamController<Query<T>> controller;
 
-    _subscribe() {
+    subscribe() {
       subscription = _store.entityChanges.listen((List<Type> entityTypes) {
         if (entityTypes.any(queriedEntities.contains)) {
           controller.add(query);
@@ -70,8 +70,8 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     // functionality (onListen is only called for the first subscriber,
     // also does not allow to send an event within).
     controller = StreamController<Query<T>>(
-        onListen: _subscribe,
-        onResume: _subscribe,
+        onListen: subscribe,
+        onResume: subscribe,
         onPause: () => subscription.pause(),
         onCancel: () => subscription.cancel());
     if (triggerImmediately) controller.add(query);

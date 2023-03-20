@@ -174,7 +174,9 @@ class Emitter {
       }
     }
     str += suffix;
-    while (str.length < 10) str = ' $str';
+    while (str.length < 10) {
+      str = ' $str';
+    }
     return str;
   }
 }

@@ -123,7 +123,7 @@ void main() {
       final asyncCallbacks = [
         () async => null,
         () => Future<int>.delayed(const Duration(milliseconds: 1)),
-        () => Future<void>.value(),
+        Future<void>.value,
       ];
       for (var callback in asyncCallbacks) {
         expect(
