@@ -18,11 +18,12 @@ echo "Testing yq version...DONE"
 
 # ======================= BEFORE publishing==================== #
 
-echo "Removing dependency_overrides from all pubspec.yaml files (backup at pubspec.yaml.original)"
-find "${root}" -type f -name "pubspec.yaml" \
-  -exec echo "Processing {}" \; \
-  -exec cp "{}" "{}.original" \; \
-  -exec "$YQCMD" delete -i "{}" dependency_overrides \;
+# Disabled to publish with Dart SDK 2.19, see objectbox/objectbox-dart#55.
+#echo "Removing dependency_overrides from all pubspec.yaml files (backup at pubspec.yaml.original)"
+#find "${root}" -type f -name "pubspec.yaml" \
+#  -exec echo "Processing {}" \; \
+#  -exec cp "{}" "{}.original" \; \
+#  -exec "$YQCMD" delete -i "{}" dependency_overrides \;
 
 # Update links in READMEs (restored by git restore commands below).
 "${root}/tool/pubdev-links.sh"
@@ -75,10 +76,11 @@ publish objectbox
 
 #======================== AFTER publishing==================== #
 
-echo "Restoring pubspec.yaml files from backup pubspec.yaml.original"
-find "${root}" -type f -name "pubspec.yaml" \
-  -exec echo "Restoring {}" \; \
-  -exec mv "{}.original" "{}" \;
+# Disabled to publish with Dart SDK 2.19, see objectbox/objectbox-dart#55.
+#echo "Restoring pubspec.yaml files from backup pubspec.yaml.original"
+#find "${root}" -type f -name "pubspec.yaml" \
+#  -exec echo "Restoring {}" \; \
+#  -exec mv "{}.original" "{}" \;
 
 echo "Restoring objectbox/README.md"
 git restore "${root}/objectbox/README.md"
