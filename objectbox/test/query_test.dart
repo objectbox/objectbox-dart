@@ -108,7 +108,7 @@ void main() {
   });
 
   test('string case-sensitivity', () {
-    final testCaseSensitivity = (Box<TestEntity> box, {required bool defaultIsTrue}) {
+    testCaseSensitivity(Box<TestEntity> box, {required bool defaultIsTrue}) {
       box.put(TestEntity(tString: 'Hello'));
       box.put(TestEntity(tString: 'hello'));
 
@@ -129,7 +129,8 @@ void main() {
       for (var q in [q1, q2, q3, q4]) {
         q.close();
       }
-    };
+    }
+
     final env1 = TestEnv('query1', queryCaseSensitive: true);
     final env2 = TestEnv('query2', queryCaseSensitive: false);
 
@@ -218,12 +219,11 @@ void main() {
     final t = TestEntity_.tString;
     final n = TestEntity_.tLong;
 
-    final checkQueryCount =
-        (int expectedCount, Condition<TestEntity> condition) {
+    checkQueryCount(int expectedCount, Condition<TestEntity> condition) {
       final query = box.query(condition).build();
       expect(query.count(), expectedCount);
       query.close();
-    };
+    }
 
     checkQueryCount(2, b.equals(false));
     checkQueryCount(1, t.greaterThan('more'));

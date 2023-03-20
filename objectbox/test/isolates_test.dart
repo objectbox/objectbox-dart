@@ -31,11 +31,11 @@ void main() {
     // Receive the SendPort from the Isolate
     SendPort sendPort = await sendPortCompleter.future;
 
-    final call = (String message) {
+    call(String message) {
       responseCompleter = Completer<String>();
       sendPort.send(message);
       return responseCompleter.future;
-    };
+    }
 
     // Send a message to the isolate
     expect(await call('hello'), equals('re:hello'));
@@ -96,11 +96,11 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
   // Receive the SendPort from the Isolate
   SendPort sendPort = await sendPortCompleter.future;
 
-  final call = (dynamic message) {
+  call(dynamic message) {
     responseCompleter = Completer<dynamic>();
     sendPort.send(message);
     return responseCompleter.future;
-  };
+  }
 
   // Pass the store to the isolate
   final env = TestEnv('isolates');

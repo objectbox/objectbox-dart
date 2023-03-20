@@ -329,12 +329,11 @@ class CodeChunks {
       fieldIndexes[propertyFieldName(p)] = index;
 
       String? fbReader;
-      var readFieldOrNull = () =>
+      readFieldOrNull() =>
           'const $fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
-      var readFieldNonNull = ([String? defaultValue]) =>
+      readFieldNonNull([String? defaultValue]) =>
           'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
-      var readField =
-          () => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
+      readField() => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
       final valueVar = '${propertyFieldName(p)}Value';
 
       switch (p.type) {
@@ -501,7 +500,7 @@ class CodeChunks {
     ModelRelation? srcRel;
     ModelProperty? srcProp;
 
-    final throwAmbiguousError = (String prop, String rel) =>
+    throwAmbiguousError(String prop, String rel) =>
         throw InvalidGenerationSourceError(
             'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
             ' Matching property: $prop.'

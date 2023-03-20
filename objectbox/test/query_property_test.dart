@@ -19,7 +19,7 @@ void main() {
   tearDown(() => env.closeAndDelete());
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
-  final integerList = () => integers
+  integerList() => integers
       .map((i) => TestEntity(
           tBool: true,
           tByte: 1 + i,
@@ -39,9 +39,9 @@ void main() {
     'swing',
     '2WITHSUFFIX'
   ];
-  final stringList = () => strings.map((s) => TestEntity(tString: s)).toList();
+  stringList() => strings.map((s) => TestEntity(tString: s)).toList();
   final floats = [-0.5, 0, 0.0, 0.1, 0.2, 0.1];
-  final floatList = () =>
+  floatList() =>
       floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
   final tBool = TestEntity_.tBool;
@@ -352,11 +352,11 @@ void main() {
     var intUnsignedBaseAvg =
         integers.map(toUint32).reduce((a, b) => a + b) / integers.length;
 
-    final qpInteger = (QueryIntegerProperty<TestEntity> p, double avg) {
+    qpInteger(QueryIntegerProperty<TestEntity> p, double avg) {
       final qp = queryIntegers.property(p);
       expect(qp.average(), avg);
       qp.close();
-    };
+    }
 
     qpInteger(tByte, intBaseAvg + 1);
     qpInteger(tLong, intBaseAvg + 5);
@@ -364,11 +364,11 @@ void main() {
     qpInteger(tShort, intBaseAvg + 2);
 
     // floats
-    final qpFloat = (QueryDoubleProperty<TestEntity> p, double avg) {
+    qpFloat(QueryDoubleProperty<TestEntity> p, double avg) {
       final qp = queryFloats.property(p);
       expect(qp.average().toStringAsFixed(2), avg.toStringAsFixed(2));
       qp.close();
-    };
+    }
 
     var floatBaseAvg = floats.reduce((a, b) => a + b) / floats.length;
 
@@ -385,13 +385,14 @@ void main() {
     box.putMany(stringList());
 
     final queryStrings = box.query(tString.contains('t')).build();
-    final queryAndCheck = (QueryIntegerProperty<TestEntity> prop,
-        int valueIfNull, String reason) {
+    queryAndCheck(
+        QueryIntegerProperty<TestEntity> prop, int valueIfNull, String reason) {
       final qp = queryStrings.property(prop);
       expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
           reason: reason);
       qp.close();
-    };
+    }
+
     queryAndCheck(tByte, 3, 'byte null->positive');
     queryAndCheck(tShort, 3, 'short null->positive');
     queryAndCheck(tInt, 3, 'int null->positive');
@@ -410,13 +411,13 @@ void main() {
     box.putMany(integerList());
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
-    final queryAndCheck = (QueryDoubleProperty<TestEntity> prop,
-        double valueIfNull, String reason) {
+    queryAndCheck(QueryDoubleProperty<TestEntity> prop, double valueIfNull,
+        String reason) {
       final qp = queryIntegers.property(prop);
       expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
           reason: reason);
       qp.close();
-    };
+    }
 
     queryAndCheck(tDouble, 1337.0, 'null double');
     queryAndCheck(tFloat, 1337.0, 'null float');
@@ -473,8 +474,7 @@ void main() {
     final allStrings = queryString.find()..sort();
     print('All items: $allStrings');
 
-    final testStringPQ =
-        ({required bool distinct, required bool caseSensitive}) {
+    testStringPQ({required bool distinct, required bool caseSensitive}) {
       queryString
         ..distinct = distinct
         ..caseSensitive = caseSensitive;
@@ -491,7 +491,7 @@ void main() {
         printOnFailure('$itemsDart');
         expect(queryString.count(), itemsDart.length);
       }
-    };
+    }
 
     expect(queryString.count(), 8);
 

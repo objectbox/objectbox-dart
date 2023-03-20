@@ -873,6 +873,7 @@ final _openStoreDirectories = HashSet<String>();
 /// True if the package enables null-safety (i.e. depends on SDK 2.12+).
 /// Otherwise, it's we can distinguish at runtime whether a function is async.
 final _nullSafetyEnabled = _nullReturningFn is! Future Function();
+// ignore: prefer_function_declarations_over_variables
 final _nullReturningFn = () => null;
 
 // Define type so IDE generates named parameters.

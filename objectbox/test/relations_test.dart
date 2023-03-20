@@ -383,7 +383,7 @@ void main() {
       expect(b[2]!.id, 3);
       expect(b[2]!.tString, 'not referenced');
 
-      final strings = (TestEntity? e) => e!.tString;
+      strings(TestEntity? e) => e!.tString;
       expect(b[0]!.testEntities.map(strings), sameAsList(['foo']));
       expect(b[1]!.testEntities.map(strings), sameAsList(['bar', 'bar2']));
       expect(b[2]!.testEntities.length, isZero);
@@ -459,7 +459,7 @@ void main() {
       expect(a[2].id, 3);
       expect(a[2].tInt, 3);
 
-      final strings = (TestEntity? e) => e!.tString;
+      strings(TestEntity? e) => e!.tString;
       expect(a[0].testEntities.map(strings), sameAsList(['foo']));
       expect(a[1].testEntities.map(strings), sameAsList(['bar', 'bar2']));
       expect(a[2].testEntities.length, isZero);

@@ -41,8 +41,7 @@ void main() {
     }
   });
 
-  final bytesSum =
-      (ByteData data) => data.buffer.asInt8List().reduce((v, e) => v + e);
+  bytesSum(ByteData data) => data.buffer.asInt8List().reduce((v, e) => v + e);
 
   // Note: only checks content initialized by TestEntity.filled
   void checkSameEntities(TestEntityNonRel a, TestEntityNonRel b) {

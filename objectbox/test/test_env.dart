@@ -64,7 +64,8 @@ Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 //
 // We need to do this to receive an event in the stream before processing
 // the remainder of the test case.
-final yieldExecution = () async => await Future<void>.delayed(Duration.zero);
+Future<void> yieldExecution() async =>
+    await Future<void>.delayed(Duration.zero);
 
 dynamic notAtLeastDart2_15_0() {
   final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
