@@ -552,7 +552,7 @@ class Sync {
   /// Create a Sync annotation, enabling synchronization for an entity.
   const Sync();
 
-  static late final bool _syncAvailable = C.has_feature(OBXFeature.Sync);
+  static final bool _syncAvailable = C.has_feature(OBXFeature.Sync);
 
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() => _syncAvailable;
