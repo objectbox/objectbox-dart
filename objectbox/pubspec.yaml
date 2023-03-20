@@ -25,11 +25,6 @@ dev_dependencies:
   ffigen: ^4.1.3
   lints: ^2.0.1
 
-# NOTE: remove before publishing
-dependency_overrides:
-  objectbox_generator:
-    path: ../generator
-
 ffigen:
   name: 'ObjectBoxC'
   description: 'Bindings to ObjectBox C-API'
