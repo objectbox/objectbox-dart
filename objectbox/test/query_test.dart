@@ -402,21 +402,35 @@ void main() {
     query.close();
   });
 
-  test('.remove deletes the right items', () {
+  test('.remove deletes the right items', () async {
     box.put(TestEntity());
-    box.put(TestEntity(tString: 'test'));
-    box.put(TestEntity(tString: 'test3'));
+    box.put(TestEntity(tString: 'test10'));
     box.put(TestEntity(tString: 'foo'));
+    box.put(TestEntity(tString: 'test20'));
+    box.put(TestEntity(tString: 'test11'));
+    box.put(TestEntity(tString: 'test21'));
+    box.put(TestEntity(tString: 'bar'));
 
     final text = TestEntity_.tString;
 
-    final q = box.query(text.startsWith('test')).build();
-    expect(q.remove(), 2);
-    q.close();
+    // Remove sync
+    final query1 = box.query(text.startsWith('test1')).build();
+    expect(query1.remove(), 2);
+    query1.close();
 
-    final remaining = box.getAll();
-    expect(remaining.length, 2);
-    expect(remaining.map((e) => e.id), equals([1, 4]));
+    final remaining1 = box.getAll();
+    expect(remaining1.length, 5);
+    expect(remaining1.map((e) => e.tString),
+        equals([null, "foo", "test20", "test21", "bar"]));
+
+    // Remove async
+    final query2 = box.query(text.startsWith('test2')).build();
+    expect(await query2.removeAsync(), 2);
+    query2.close();
+
+    final remaining2 = box.getAll();
+    expect(remaining2.length, 3);
+    expect(remaining2.map((e) => e.tString), equals([null, "foo", "bar"]));
   });
 
   test('.count items after grouping with and/or', () {
