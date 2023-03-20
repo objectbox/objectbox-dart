@@ -45,28 +45,22 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(widget.title)),
         body: Column(
-          children: <Widget>[
-            const SizedBox(
+          children: const [
+            SizedBox(
               height: 10,
             ),
-            const SwipeLeftNotification(),
-            const TaskList(),
-            Container(
-                padding: const EdgeInsets.only(bottom: 70.0, right: 15),
-                child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: Column(children: [
-                      FloatingActionButton.extended(
-                        key: const Key('add'),
-                        label: const Text('Add Task'),
-                        heroTag: null,
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const TaskInput()));
-                        },
-                      ),
-                    ]))),
+            SwipeLeftNotification(),
+            TaskList()
           ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          key: const Key('add'),
+          label: const Text('Add Task'),
+          heroTag: null,
+          onPressed: () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const TaskInput()));
+          },
         ),
       );
 }
