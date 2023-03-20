@@ -20,7 +20,7 @@ void main() async {
 }
 
 class ModelInit extends Benchmark {
-  ModelInit() : super('${ModelInit}', iterations: 1000);
+  ModelInit() : super('$ModelInit', iterations: 1000);
 
   @override
   void runIteration(int i) => getObjectBoxModel();
@@ -28,7 +28,7 @@ class ModelInit extends Benchmark {
 
 // ~ 21 M/second
 class DynLibProcess extends Benchmark {
-  DynLibProcess() : super('${DynLibProcess}', iterations: 1000);
+  DynLibProcess() : super('$DynLibProcess', iterations: 1000);
 
   @override
   void runIteration(int i) => DynamicLibrary.process();
@@ -36,7 +36,7 @@ class DynLibProcess extends Benchmark {
 
 // ~ 4 M/second
 class DynLibFile extends Benchmark {
-  DynLibFile() : super('${DynLibFile}', iterations: 1000);
+  DynLibFile() : super('$DynLibFile', iterations: 1000);
 
   @override
   void runIteration(int i) => DynamicLibrary.open('libobjectbox.so');
@@ -64,7 +64,7 @@ String _boxAccessResult = ''; // so that we do something with the result
 class BoxAccessMap extends Benchmark {
   final boxes = {for (var item in _types) item: item.toString()};
 
-  BoxAccessMap() : super('${BoxAccessMap}', iterations: 10000);
+  BoxAccessMap() : super('$BoxAccessMap', iterations: 10000);
 
   @override
   void runIteration(int i) {
@@ -77,7 +77,7 @@ class BoxAccessHashMap extends Benchmark {
   final boxes = HashMap<Type, String>.fromIterable(_types,
       key: (item) => item, value: (item) => item.toString());
 
-  BoxAccessHashMap() : super('${BoxAccessHashMap}', iterations: 10000);
+  BoxAccessHashMap() : super('$BoxAccessHashMap', iterations: 10000);
 
   @override
   void runIteration(int i) {
@@ -91,7 +91,7 @@ class BoxAccessList extends Benchmark {
   final boxValues =
       List<String>.from(_types.map((t) => t.toString()), growable: false);
 
-  BoxAccessList() : super('${BoxAccessList}', iterations: 10000);
+  BoxAccessList() : super('$BoxAccessList', iterations: 10000);
 
   @override
   void runIteration(int i) {
