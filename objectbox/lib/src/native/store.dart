@@ -408,6 +408,7 @@ class Store {
       if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
           e.message.contains('Dir does not exist') &&
           (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
+        // ignore: prefer_interpolation_to_compose_strings
         throw ObjectBoxException(e.message +
             ' - this usually indicates a problem with permissions; '
                 "if you're using Flutter you may need to use "
@@ -541,7 +542,7 @@ class Store {
   EntityDefinition<T> _entityDef<T>() {
     final binding = configuration().modelDefinition.bindings[T];
     if (binding == null) {
-      throw ArgumentError('Unknown entity type ' + T.toString());
+      throw ArgumentError('Unknown entity type $T');
     }
     return binding as EntityDefinition<T>;
   }

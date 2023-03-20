@@ -67,7 +67,7 @@ ObjectBoxC? _tryObjectBoxLibFile() {
       // download script installs to as well.
       if (Platform.isMacOS) {
         try {
-          _lib ??= DynamicLibrary.open('/usr/local/lib/' + libName);
+          _lib ??= DynamicLibrary.open('/usr/local/lib/$libName');
         } on ArgumentError {
           // Ignore.
         }

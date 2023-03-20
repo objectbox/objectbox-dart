@@ -788,14 +788,14 @@ void main() {
       ..param(TestEntity_.tString).values = ['foo', 'bar'];
     if (!['tString in ["foo", "bar"]', 'tString in ["bar", "foo"]']
         .contains(q1.describeParameters())) {
-      fail('Invalid query: ' + q1.describeParameters());
+      fail('Invalid query: ${q1.describeParameters()}');
     }
 
     final q2 = box.query(TestEntity_.tInt.oneOf([])).build()
       ..param(TestEntity_.tInt).values = [1, 2];
 
     if (!['tInt in [1|2]', 'tInt in [2|1]'].contains(q2.describeParameters())) {
-      fail('Invalid query: ' + q2.describeParameters());
+      fail('Invalid query: ${q2.describeParameters()}');
     }
 
     final q3 = box.query(TestEntity_.tLong.oneOf([])).build()
@@ -803,7 +803,7 @@ void main() {
 
     if (!['tLong in [1|2]', 'tLong in [2|1]']
         .contains(q3.describeParameters())) {
-      fail('Invalid query: ' + q3.describeParameters());
+      fail('Invalid query: ${q3.describeParameters()}');
     }
   });
 
@@ -869,7 +869,7 @@ void main() {
       ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
     if (!['OR tString in ["foo", "bar"]', 'OR tString in ["bar", "foo"]']
         .any(q1.describeParameters().contains)) {
-      fail('Invalid query: ' + q1.describeParameters());
+      fail('Invalid query: ${q1.describeParameters()}');
     }
 
     final q2 = box
@@ -880,7 +880,7 @@ void main() {
 
     if (!['OR tInt in [1|2]', 'OR tInt in [2|1]']
         .any(q2.describeParameters().contains)) {
-      fail('Invalid query: ' + q2.describeParameters());
+      fail('Invalid query: ${q2.describeParameters()}');
     }
 
     final q3 = box
@@ -891,7 +891,7 @@ void main() {
 
     if (!['OR tLong in [1|2]', 'OR tLong in [2|1]']
         .any(q3.describeParameters().contains)) {
-      fail('Invalid query: ' + q3.describeParameters());
+      fail('Invalid query: ${q3.describeParameters()}');
     }
   });
 

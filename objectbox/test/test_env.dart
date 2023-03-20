@@ -11,7 +11,7 @@ class TestEnv {
   final bool short;
 
   factory TestEnv(String name, {bool? queryCaseSensitive, int? debugFlag}) {
-    final dir = Directory('testdata-' + name);
+    final dir = Directory('testdata-$name');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
     final Store store;
     var modelDefinition = getObjectBoxModel();

@@ -70,7 +70,7 @@ void main() {
     final source = TestEntityNonRel.filled();
     // Test the "dagger" char (0x20 0x20) which may cause problems if
     // utf16/ascii isn't recognized properly.
-    source.tString = source.tString! + '†asdf';
+    source.tString = '${source.tString!}†asdf';
 
     final fb1 = BuilderWithCBuffer();
     binding.objectToFB(source, fb1.fbb);

@@ -478,6 +478,7 @@ class CodeChunks {
   }
 
   static String toOneRelations(ModelEntity entity) =>
+      // ignore: prefer_interpolation_to_compose_strings
       '[' +
       entity.properties
           .where((ModelProperty prop) => prop.isRelation)
@@ -520,7 +521,7 @@ class CodeChunks {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity.findPropertyByName(bl.srcField + 'Id');
+      srcProp = srcEntity.findPropertyByName('${bl.srcField}Id');
       srcRel =
           srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
 
