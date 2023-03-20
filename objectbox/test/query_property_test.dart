@@ -116,17 +116,20 @@ void main() {
 
     for (var prop in tSignedInts) {
       final qp = query.property(prop);
+      // ignore: unnecessary_type_check
       expect(qp is PropertyQuery<int>, true);
       qp.close();
     }
 
     for (var prop in tFloats) {
       final qp = query.property(prop);
+      // ignore: unnecessary_type_check
       expect(qp is PropertyQuery<double>, true);
       qp.close();
     }
 
     final qp = query.property(tString);
+    // ignore: unnecessary_type_check
     expect(qp is PropertyQuery<String>, true);
     qp.close();
 
