@@ -658,47 +658,51 @@ void main() {
     expect(contains, equals(false));
   });
 
-  test('.remove(id) works', () {
+  test('.remove(id) works', () async {
     final List<int> ids = box.putMany(simpleItems());
-    //check if single id remove works
+    // Removes existing object
     expect(box.remove(ids[1]), isTrue);
     expect(box.count(), equals(5));
-    //check what happens if id already deleted -> throws OBJBOXEX 404
-    bool success = box.remove(ids[1]);
-    expect(box.count(), equals(5));
-    expect(success, isFalse);
+
+    expect(await box.removeAsync(ids[2]), isTrue);
+    expect(box.count(), equals(4));
+
+    // Fails to remove a not existing object
+    expect(box.remove(ids[1]), isFalse);
+    expect(await box.removeAsync(ids[1]), isFalse);
+    expect(box.count(), equals(4));
   });
 
-  test('.remove() returns false on non-existent item', () {
-    box.removeAll();
-    expect(box.remove(1), isFalse);
-  });
-
-  test('.removeMany(ids) works', () {
+  test('.removeMany(ids) works', () async {
     final List<int> ids = box.putMany(simpleItems());
-    expect(box.count(), equals(6));
-    box.removeMany(ids.sublist(4));
-    expect(box.count(), equals(4));
-    //again test what happens if ids already deleted
-    box.removeMany(ids.sublist(4));
+    // Removes existing objects and returns count.
+    var fiveAndSix = ids.sublist(4);
+    expect(box.removeMany(fiveAndSix), 2);
     expect(box.count(), equals(4));
 
-    // verify the right items were removed
+    expect(await box.removeManyAsync(ids.sublist(0, 2) /* 1 + 2 */), 2);
+    expect(box.count(), equals(2));
+
+    // Does nothing if objects do not exist, returns count of 0.
+    expect(box.removeMany(fiveAndSix), 0);
+    expect(await box.removeManyAsync(fiveAndSix), 0);
+    expect(box.count(), equals(2));
+
+    // Verify the correct items were removed.
     final List<int?> remainingIds = box.getAll().map((o) => o.id).toList();
-    expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
+    expect(remainingIds, unorderedEquals(ids.sublist(2, 4) /* 2 + 3 */));
   });
 
   test('.removeAll() works', () {
     box.putMany(simpleItems());
-    int removed = box.removeAll();
-    expect(removed, equals(6));
+    expect(box.removeAll(), 6);
+    expect(box.count(), 0);
+  });
+
+  test('.removeAllAsync() works', () async {
+    box.putMany(simpleItems());
+    expect(await box.removeAllAsync(), 6);
     expect(box.count(), equals(0));
-    //try with different number of items
-    List<TestEntity> items =
-        ['one', 'two', 'three'].map((s) => TestEntity(tString: s)).toList();
-    box.putMany(items);
-    removed = box.removeAll();
-    expect(removed, equals(3));
   });
 
   test('simple write in txn works', () {

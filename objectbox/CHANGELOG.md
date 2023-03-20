@@ -8,6 +8,7 @@
   * renamed the former `putAsync` to `putQueuedAwaitResult`,
   * new `putAndGetAsync` and `putAndGetManyAsync` which return a copy of the given objects with new
     IDs set.
+  * new `removeAsync`, `removeManyAsync` and `removeAllAsync`.
 * Add new async `Query` APIs: `findAsync`, `findFirstAsync`, `findUniqueAsync` and `findIdsAsync`.
 * Support sending objects containing `ToOne` and `ToMany` across isolates, e.g. when using
   `store.runInTransactionAsync`. #340
