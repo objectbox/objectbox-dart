@@ -25,12 +25,12 @@ class _TaskInputState extends State<TaskInput> {
   late Tag currentTag;
 
   final inputController = TextEditingController();
-  List<Tag> tags = objectbox.tagBox.getAll();
+  List<Tag> tags = objectbox.getAllTags();
 
   /// Reload the tag list and set the selected tag to the added one.
-  void _updateTags(int newTagId) {
-    var newTag = objectbox.tagBox.get(newTagId)!;
-    var newTags = objectbox.tagBox.getAll();
+  Future<void> _updateTags(int newTagId) async {
+    var newTag = objectbox.getTag(newTagId);
+    var newTags = await objectbox.getAllTagsAsync();
     setState(() {
       currentTag = newTag;
       tags = newTags;
@@ -43,14 +43,14 @@ class _TaskInputState extends State<TaskInput> {
     var taskId = widget.taskId;
     if (taskId != null) {
       appBarTitle = "Edit Task";
-      var taskToEdit = objectbox.taskBox.get(taskId)!;
+      var taskToEdit = objectbox.getTask(taskId);
       existingTask = taskToEdit;
       currentTag = taskToEdit.tag.target!;
       inputController.text = taskToEdit.text;
     } else {
       appBarTitle = "Add Task";
       existingTask = null;
-      currentTag = objectbox.tagBox.query().build().findFirst()!;
+      currentTag = objectbox.getFirstTag();
     }
   }
 
@@ -84,7 +84,7 @@ class _TaskInputState extends State<TaskInput> {
                       onChanged: (value) => {
                             setState(
                               () {
-                                currentTag = objectbox.tagBox.get(value!)!;
+                                currentTag = objectbox.getTag(value!);
                                 debugPrint("tag updated to ${currentTag.name}");
                               },
                             )

@@ -42,8 +42,7 @@ class _TaskListState extends State<TaskList> {
                     value: tasks[index].isFinished(),
                     onChanged: (bool? value) {
                       final task = tasks[index];
-                      task.toggleFinished();
-                      objectbox.taskBox.put(task);
+                      objectbox.finishTask(task);
                       // List updated via watched query stream.
                     }),
                 Expanded(
