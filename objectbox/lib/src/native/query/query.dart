@@ -729,7 +729,7 @@ class Query<T> {
     }
   }
 
-  /// Returns the number of removed Objects.
+  /// Removes all matching objects. Returns the number of removed objects.
   int remove() {
     final ptr = malloc<Uint64>();
     try {
@@ -739,6 +739,15 @@ class Query<T> {
       malloc.free(ptr);
     }
   }
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _removeAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, int>(
+          store, configuration, (query) => query.remove());
+
+  /// Like [remove], but runs in a worker isolate.
+  Future<int> removeAsync() => _runAsyncImpl(_removeAsyncCallback<T>);
 
   /// Clones this native query and returns a pointer to the clone.
   ///
@@ -799,7 +808,7 @@ class Query<T> {
 
   /// Like [findFirst], but runs the query operation asynchronously in a worker
   /// isolate.
-  Future<T?> findFirstAsync() => _findAsyncImpl(_findFirstAsyncCallback<T>);
+  Future<T?> findFirstAsync() => _runAsyncImpl(_findFirstAsyncCallback<T>);
 
   /// Finds the only object matching the query. Returns null if there are no
   /// results or throws [NonUniqueResultException] if there are multiple objects
@@ -841,7 +850,7 @@ class Query<T> {
 
   /// Like [findUnique], but runs the query operation asynchronously in a worker
   /// isolate.
-  Future<T?> findUniqueAsync() => _findAsyncImpl(_findUniqueAsyncCallback<T>);
+  Future<T?> findUniqueAsync() => _runAsyncImpl(_findUniqueAsyncCallback<T>);
 
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
@@ -864,7 +873,7 @@ class Query<T> {
 
   /// Like [findIds], but runs the query operation asynchronously in a worker
   /// isolate.
-  Future<List<int>> findIdsAsync() => _findAsyncImpl(_findIdsAsyncCallback<T>);
+  Future<List<int>> findIdsAsync() => _runAsyncImpl(_findIdsAsyncCallback<T>);
 
   /// Finds Objects matching the query.
   List<T> find() {
@@ -885,9 +894,12 @@ class Query<T> {
 
   /// Like [find], but runs the query operation asynchronously in a worker
   /// isolate.
-  Future<List<T>> findAsync() => _findAsyncImpl(_findAsyncCallback<T>);
+  Future<List<T>> findAsync() => _runAsyncImpl(_findAsyncCallback<T>);
 
-  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  /// Base callback for [_runAsyncImpl] to run a query [action] in a worker
+  /// isolate.
+  ///
+  /// Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
   static R _asyncCallbackImpl<T, R>(Store store,
       _QueryConfiguration<T> configuration, R Function(Query<T>) action) {
     final query = Query._fromConfiguration(store, configuration);
@@ -898,8 +910,10 @@ class Query<T> {
     }
   }
 
-  /// Runs the given query callback on a worker isolate and returns the result.
-  Future<R> _findAsyncImpl<R>(
+  /// Runs the given query callback on a worker isolate and returns the result,
+  /// clones the query to pass it to the worker isolate
+  /// (see [_QueryConfiguration]).
+  Future<R> _runAsyncImpl<R>(
           R Function(Store, _QueryConfiguration<T>) callback) =>
       _store.runAsync(callback, _QueryConfiguration(this));
 

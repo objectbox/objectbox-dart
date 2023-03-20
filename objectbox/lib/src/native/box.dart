@@ -435,7 +435,7 @@ class Box<T> {
   }
 
   /// Removes (deletes) the Object with the given [id]. Returns true if the
-  /// object was present (and thus removed), otherwise returns false.
+  /// object did exist and was removed, otherwise false.
   bool remove(int id) {
     final err = C.box_remove(_cBox, id);
     if (err == OBX_NOT_FOUND) return false;
@@ -443,7 +443,16 @@ class Box<T> {
     return true;
   }
 
-  /// Removes (deletes) by ID, returning a list of IDs of all removed Objects.
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static bool _removeAsyncCallback<T>(Store store, int id) =>
+      store.box<T>().remove(id);
+
+  /// Like [remove], but runs in a worker isolate.
+  Future<bool> removeAsync(int id) async =>
+      await _store.runAsync(_removeAsyncCallback<T>, id);
+
+  /// Removes (deletes) objects with the given [ids] if they exist. Returns the
+  /// number of removed objects.
   int removeMany(List<int> ids) {
     final countRemoved = malloc<Uint64>();
     try {
@@ -456,7 +465,16 @@ class Box<T> {
     }
   }
 
-  /// Removes (deletes) ALL Objects in a single transaction.
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _removeManyAsyncCallback<T>(Store store, List<int> ids) =>
+      store.box<T>().removeMany(ids);
+
+  /// Like [removeMany], but runs in a worker isolate.
+  Future<int> removeManyAsync(List<int> ids) async =>
+      await _store.runAsync(_removeManyAsyncCallback<T>, ids);
+
+  /// Removes (deletes) all objects in this box. Returns the number of removed
+  /// objects.
   int removeAll() {
     final removedItems = malloc<Uint64>();
     try {
@@ -466,6 +484,14 @@ class Box<T> {
       malloc.free(removedItems);
     }
   }
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _removeAllAsyncCallback<T>(Store store, void param) =>
+      store.box<T>().removeAll();
+
+  /// Like [removeAll], but runs in a worker isolate.
+  Future<int> removeAllAsync() async =>
+      await _store.runAsync(_removeAllAsyncCallback<T>, null);
 
   void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
     for (var toOne in _entity.toOneRelations(object)) {
