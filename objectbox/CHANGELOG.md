@@ -1,5 +1,6 @@
 ## latest
 
+* Fix put returning an incorrect error message in a rare case.
 
 ## 2.0.0 (2023-03-21)
 

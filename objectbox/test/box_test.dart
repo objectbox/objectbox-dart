@@ -119,13 +119,12 @@ void main() {
 
   test('.putAsync failures', () async {
     final box = store.box<TestEntity2>();
-    // FIXME Disable until error overwriting bug is fixed.
-    // await expectLater(
-    //     () async =>
-    //         await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
-    //     throwsA(predicate((ArgumentError e) => e
-    //         .toString()
-    //         .contains('ID is not set (zero) for object to update'))));
+    await expectLater(
+        () async =>
+            await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
+        throwsA(predicate((ArgumentError e) => e
+            .toString()
+            .contains('ID is not set (zero) for object to update'))));
 
     await expectLater(
         await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert), 1);
