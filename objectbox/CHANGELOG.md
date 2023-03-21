@@ -1,5 +1,7 @@
 ## latest
 
+* **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions` 
+  (or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
 * **Breaking changes to generated code:** run `flutter pub run build_runner build`
   (or `dart run build_runner build` for Dart Native apps) after updating!
 * Added and updated async APIs in `Box`:
