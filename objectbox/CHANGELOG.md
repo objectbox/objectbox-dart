@@ -1,3 +1,6 @@
+## latest
+
+
 ## 2.0.0 (2023-03-21)
 
 * **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions` 
