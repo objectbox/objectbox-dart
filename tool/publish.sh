@@ -69,10 +69,11 @@ function publish() {
   esac
 }
 
+# Publish packages that others depend on first to pass publish checks.
+publish objectbox
 publish generator
 publish flutter_libs
 publish sync_flutter_libs
-publish objectbox
 
 #======================== AFTER publishing==================== #
 
