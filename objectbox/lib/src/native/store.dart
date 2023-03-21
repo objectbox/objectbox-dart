@@ -408,6 +408,7 @@ class Store {
       if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
           e.message.contains('Dir does not exist') &&
           (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
+        // ignore: prefer_interpolation_to_compose_strings
         throw ObjectBoxException(e.message +
             ' - this usually indicates a problem with permissions; '
                 "if you're using Flutter you may need to use "
@@ -541,7 +542,7 @@ class Store {
   EntityDefinition<T> _entityDef<T>() {
     final binding = configuration().modelDefinition.bindings[T];
     if (binding == null) {
-      throw ArgumentError('Unknown entity type ' + T.toString());
+      throw ArgumentError('Unknown entity type $T');
     }
     return binding as EntityDefinition<T>;
   }
@@ -666,12 +667,12 @@ class Store {
     final port = RawReceivePort();
     final completer = Completer<dynamic>();
 
-    void _cleanup() {
+    void cleanup() {
       port.close();
     }
 
     port.handler = (dynamic message) {
-      _cleanup();
+      cleanup();
       completer.complete(message);
     };
 
@@ -686,7 +687,7 @@ class Store {
           onError: port.sendPort,
           onExit: port.sendPort);
     } on Object {
-      _cleanup();
+      cleanup();
       rethrow;
     }
 
@@ -720,21 +721,6 @@ class Store {
       );
     }
   }
-
-  /// Deprecated. Use [runAsync] instead. Will be removed in a future release.
-  ///
-  /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
-  /// its own Store and returns the result of callback.
-  ///
-  /// Instances of [callback] must be top-level functions or static methods
-  /// of classes, not closures or instance methods of objects.
-  ///
-  /// Note: this requires Dart 2.15.0 or newer
-  /// (shipped with Flutter 2.8.0 or newer).
-  @Deprecated('Use `runAsync` instead. Will be removed in a future release.')
-  Future<R> runIsolated<P, R>(TxMode mode,
-          FutureOr<R> Function(Store, P) callback, P param) async =>
-      runAsync(callback, param);
 
   /// Internal only - bypasses the main checks for async functions, you may
   /// only pass synchronous callbacks!
@@ -887,6 +873,7 @@ final _openStoreDirectories = HashSet<String>();
 /// True if the package enables null-safety (i.e. depends on SDK 2.12+).
 /// Otherwise, it's we can distinguish at runtime whether a function is async.
 final _nullSafetyEnabled = _nullReturningFn is! Future Function();
+// ignore: prefer_function_declarations_over_variables
 final _nullReturningFn = () => null;
 
 // Define type so IDE generates named parameters.

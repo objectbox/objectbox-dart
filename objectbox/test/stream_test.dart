@@ -27,7 +27,7 @@ void main() {
 
     // Query stream is currently a single subscription stream.
     expect(() {
-      final subscription2 = stream.listen((event) {});
+      stream.listen((event) {});
     },
         throwsA(predicate((e) =>
             e is StateError &&

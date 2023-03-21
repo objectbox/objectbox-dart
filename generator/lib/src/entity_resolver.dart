@@ -263,7 +263,9 @@ class EntityResolver extends Builder {
     // If sync enabled, verify all unique properties use REPLACE strategy.
     ifSyncEnsureAllUniqueAreReplace(entity, classElement);
 
-    entity.properties.forEach((p) => log.info('  $p'));
+    for (var p in entity.properties) {
+      log.info('  $p');
+    }
 
     return entity;
   }

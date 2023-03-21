@@ -486,8 +486,8 @@ class _SyncListenerGroup<StreamValueType> {
     assert(finished, 'Starting an unfinished group?!');
 
     var hasError = false;
-    _configs.forEach((_SyncListenerConfig config) {
-      if (hasError) return;
+    for (var config in _configs) {
+      if (hasError) continue;
 
       // Initialize a receive port where the native listener will post messages.
       final receivePort = ReceivePort()
@@ -503,7 +503,7 @@ class _SyncListenerGroup<StreamValueType> {
       } else {
         _cListeners.add(cListener);
       }
-    });
+    }
 
     if (hasError) {
       try {
@@ -527,7 +527,9 @@ class _SyncListenerGroup<StreamValueType> {
         .toList(growable: false); // call toList() to execute immediately
     _cListeners.clear();
 
-    _receivePorts.forEach((rp) => rp.close());
+    for (var rp in _receivePorts) {
+      rp.close();
+    }
     _receivePorts.clear();
 
     // throw on native, if any
@@ -550,7 +552,7 @@ class Sync {
   /// Create a Sync annotation, enabling synchronization for an entity.
   const Sync();
 
-  static late final bool _syncAvailable = C.has_feature(OBXFeature.Sync);
+  static final bool _syncAvailable = C.has_feature(OBXFeature.Sync);
 
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() => _syncAvailable;

@@ -101,14 +101,14 @@ void main() {
     final qdNull = box.query(t.isNull()).build();
     final qdNotNull = box.query(t.notNull()).build();
 
-    [qbNull, qbNotNull, qtNull, qtNotNull, qdNull, qdNotNull].forEach((q) {
+    for (var q in [qbNull, qbNotNull, qtNull, qtNotNull, qdNull, qdNotNull]) {
       expect(q.count(), 2);
       q.close();
-    });
+    }
   });
 
   test('string case-sensitivity', () {
-    final testCaseSensitivity = (Box<TestEntity> box, bool defaultIsTrue) {
+    testCaseSensitivity(Box<TestEntity> box, {required bool defaultIsTrue}) {
       box.put(TestEntity(tString: 'Hello'));
       box.put(TestEntity(tString: 'hello'));
 
@@ -126,15 +126,18 @@ void main() {
       final q4 = box.query(t.endsWith('ello', caseSensitive: true)).build();
       expect(q4.count(), 2);
 
-      [q1, q2, q3, q4].forEach((q) => q.close());
-    };
+      for (var q in [q1, q2, q3, q4]) {
+        q.close();
+      }
+    }
+
     final env1 = TestEnv('query1', queryCaseSensitive: true);
     final env2 = TestEnv('query2', queryCaseSensitive: false);
 
     // current default: case insensitive
-    testCaseSensitivity(env.box, true);
-    testCaseSensitivity(env1.box, true);
-    testCaseSensitivity(env2.box, false);
+    testCaseSensitivity(env.box, defaultIsTrue: true);
+    testCaseSensitivity(env1.box, defaultIsTrue: true);
+    testCaseSensitivity(env2.box, defaultIsTrue: false);
 
     env1.closeAndDelete();
     env2.closeAndDelete();
@@ -183,7 +186,9 @@ void main() {
     expect(qany3.count(), 1);
     expect(qall0.count(), 1);
 
-    [q0, qany0, qany1, qany2, qany3, qall0].forEach((q) => q.close());
+    for (var q in [q0, qany0, qany1, qany2, qany3, qall0]) {
+      q.close();
+    }
   });
 
   test('between ints', () {
@@ -214,12 +219,11 @@ void main() {
     final t = TestEntity_.tString;
     final n = TestEntity_.tLong;
 
-    final checkQueryCount =
-        (int expectedCount, Condition<TestEntity> condition) {
+    checkQueryCount(int expectedCount, Condition<TestEntity> condition) {
       final query = box.query(condition).build();
       expect(query.count(), expectedCount);
       query.close();
-    };
+    }
 
     checkQueryCount(2, b.equals(false));
     checkQueryCount(1, t.greaterThan('more'));
@@ -264,7 +268,9 @@ void main() {
     expect(qn1.count(), 3);
     expect(qn2.count(), 4);
 
-    [qs0, qs1, qs2, qs3, qn0, qn1, qn2].forEach((q) => q.close());
+    for (var q in [qs0, qs1, qs2, qs3, qn0, qn1, qn2]) {
+      q.close();
+    }
   });
 
   test('.count matches of List<String> `contains`', () {
@@ -283,7 +289,9 @@ void main() {
     final qs2 = box.query(prop.containsElement('foo')).build();
     expect(qs2.count(), 2);
 
-    [qs0, qs1, qs2].forEach((q) => q.close());
+    for (var q in [qs0, qs1, qs2]) {
+      q.close();
+    }
   });
 
   test('.findIds returns List<int>', () {
@@ -315,11 +323,13 @@ void main() {
     q3.close();
 
     // paranoia
-    [result0, result2, result3].forEach((ids) => ids.forEach((id) {
-          final read = box.get(id)!;
-          expect(read, isNotNull);
-          expect(read.id, equals(id));
-        }));
+    for (var ids in [result0, result2, result3]) {
+      for (var id in ids) {
+        final read = box.get(id)!;
+        expect(read, isNotNull);
+        expect(read.id, equals(id));
+      }
+    }
   });
 
   test('.find offset and limit', () {
@@ -475,7 +485,9 @@ void main() {
     expect(q5.count(), 1);
     expect(q6.count(), 0);
 
-    [q1, q2, q3, q4, q5, q6].forEach((q) => q.close());
+    for (var q in [q1, q2, q3, q4, q5, q6]) {
+      q.close();
+    }
   });
 
   test('.describe query', () {
@@ -788,14 +800,14 @@ void main() {
       ..param(TestEntity_.tString).values = ['foo', 'bar'];
     if (!['tString in ["foo", "bar"]', 'tString in ["bar", "foo"]']
         .contains(q1.describeParameters())) {
-      fail('Invalid query: ' + q1.describeParameters());
+      fail('Invalid query: ${q1.describeParameters()}');
     }
 
     final q2 = box.query(TestEntity_.tInt.oneOf([])).build()
       ..param(TestEntity_.tInt).values = [1, 2];
 
     if (!['tInt in [1|2]', 'tInt in [2|1]'].contains(q2.describeParameters())) {
-      fail('Invalid query: ' + q2.describeParameters());
+      fail('Invalid query: ${q2.describeParameters()}');
     }
 
     final q3 = box.query(TestEntity_.tLong.oneOf([])).build()
@@ -803,7 +815,7 @@ void main() {
 
     if (!['tLong in [1|2]', 'tLong in [2|1]']
         .contains(q3.describeParameters())) {
-      fail('Invalid query: ' + q3.describeParameters());
+      fail('Invalid query: ${q3.describeParameters()}');
     }
   });
 
@@ -869,7 +881,7 @@ void main() {
       ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
     if (!['OR tString in ["foo", "bar"]', 'OR tString in ["bar", "foo"]']
         .any(q1.describeParameters().contains)) {
-      fail('Invalid query: ' + q1.describeParameters());
+      fail('Invalid query: ${q1.describeParameters()}');
     }
 
     final q2 = box
@@ -880,7 +892,7 @@ void main() {
 
     if (!['OR tInt in [1|2]', 'OR tInt in [2|1]']
         .any(q2.describeParameters().contains)) {
-      fail('Invalid query: ' + q2.describeParameters());
+      fail('Invalid query: ${q2.describeParameters()}');
     }
 
     final q3 = box
@@ -891,7 +903,7 @@ void main() {
 
     if (!['OR tLong in [1|2]', 'OR tLong in [2|1]']
         .any(q3.describeParameters().contains)) {
-      fail('Invalid query: ' + q3.describeParameters());
+      fail('Invalid query: ${q3.describeParameters()}');
     }
   });
 

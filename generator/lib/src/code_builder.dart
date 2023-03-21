@@ -166,10 +166,10 @@ class CodeBuilder extends Builder {
   void merge(ModelInfo model, List<ModelEntity> entities) {
     // update existing and add new, while collecting all entity IDs at the end
     final currentEntityIds = <int>{};
-    entities.forEach((entity) {
+    for (var entity in entities) {
       final id = mergeEntity(model, entity);
       currentEntityIds.add(id.id);
-    });
+    }
 
     // remove ('retire') missing entities
     model.entities
@@ -181,14 +181,16 @@ class CodeBuilder extends Builder {
     });
 
     // finally, update relation targets, now that all entities are resolved
-    model.entities.forEach((entity) => entity.relations.forEach((rel) {
-          final targetEntity = model.findEntityByName(rel.targetName);
-          if (targetEntity == null) {
-            throw InvalidGenerationSourceError(
-                "entity ${entity.name} relation ${rel.name}: cannot find target entity '${rel.targetName}");
-          }
-          rel.targetId = targetEntity.id;
-        }));
+    for (var entity in model.entities) {
+      for (var rel in entity.relations) {
+        final targetEntity = model.findEntityByName(rel.targetName);
+        if (targetEntity == null) {
+          throw InvalidGenerationSourceError(
+              "entity ${entity.name} relation ${rel.name}: cannot find target entity '${rel.targetName}");
+        }
+        rel.targetId = targetEntity.id;
+      }
+    }
   }
 
   void mergeProperty(ModelEntity entityInModel, ModelProperty prop) {
@@ -273,30 +275,34 @@ class CodeBuilder extends Builder {
     entityInModel.constructorParams = entity.constructorParams;
 
     // here, the entity was found already and entityInModel and entity might differ, i.e. conflicts need to be resolved, so merge all properties first
-    entity.properties.forEach((p) => mergeProperty(entityInModel!, p));
-    entity.relations.forEach((r) => mergeRelation(entityInModel!, r));
+    for (var p in entity.properties) {
+      mergeProperty(entityInModel, p);
+    }
+    for (var r in entity.relations) {
+      mergeRelation(entityInModel, r);
+    }
 
     // then remove all properties not present anymore in entity
     final missingProps = entityInModel.properties
         .where((p) => entity.findSameProperty(p) == null)
         .toList(growable: false);
 
-    missingProps.forEach((p) {
+    for (var p in missingProps) {
       log.warning(
           'Property ${entity.name}.${p.name}(${p.id}) not found in the code, removing from the model');
-      entityInModel!.removeProperty(p);
-    });
+      entityInModel.removeProperty(p);
+    }
 
     // then remove all relations not present anymore in entity
     final missingRels = entityInModel.relations
         .where((p) => entity.findSameRelation(p) == null)
         .toList(growable: false);
 
-    missingRels.forEach((p) {
+    for (var p in missingRels) {
       log.warning(
           'Relation ${entity.name}.${p.name}(${p.id}) not found in the code, removing from the model');
-      entityInModel!.removeRelation(p);
-    });
+      entityInModel.removeRelation(p);
+    }
 
     // Only for code generator, backlinks are not actually in model JSON.
     entityInModel.backlinks.addAll(entity.backlinks);

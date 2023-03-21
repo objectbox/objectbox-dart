@@ -189,7 +189,9 @@ class PutAsyncAwait extends DbBenchmark {
 
   @override
   Future<void> run() async {
-    items.forEach((item) async => await box.putQueuedAwaitResult(item));
+    for (var item in items) {
+      await box.putQueuedAwaitResult(item);
+    }
     store.awaitQueueSubmitted();
   }
 }

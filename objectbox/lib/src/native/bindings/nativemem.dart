@@ -22,6 +22,7 @@ _DartMemcpy? _lookupMemcpyOrNull() {
 /// and a Dart implementation is used.
 final isMemcpyNotAvailable = _memcpyNative == null;
 
+// ignore: prefer_function_declarations_over_variables
 final _DartMemcpy _memcpyDart = (dest, src, length) {
   dest
       .asTypedList(length)

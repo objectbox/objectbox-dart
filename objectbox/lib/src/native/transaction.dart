@@ -48,11 +48,16 @@ class Transaction {
   void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
-    if (_firstCursor != null) {
-      _firstCursor!.close();
-      _cursors
-        ?..values.forEach((c) => c.close())
-        ..clear();
+    final firstCursor = _firstCursor;
+    if (firstCursor != null) {
+      firstCursor.close();
+      final cursors = _cursors;
+      if (cursors != null) {
+        for (var cursor in cursors.values) {
+          cursor.close();
+        }
+      }
+      _cursors?.clear();
     }
     if (mode == TxMode.write && successful) {
       checkObx(C.txn_success(_cTxn));

@@ -618,8 +618,7 @@ class _ConditionGroup<EntityT> extends Condition<EntityT> {
         final cid = _conditions[i]._applyFull(builder, isRoot: false);
         if (cid == 0) {
           builder._throwExceptionIfNecessary();
-          throw StateError(
-              'Failed to create condition ' + _conditions[i].toString());
+          throw StateError('Failed to create condition ${_conditions[i]}');
         }
 
         intArrayPtr[i] = cid;

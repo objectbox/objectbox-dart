@@ -36,10 +36,10 @@ class Benchmark {
   Benchmark(this.name, {this.iterations = 1, this.coefficient = 1})
       : emitter = Emitter(iterations, coefficient) {
     print('-------------------------------------------------------------');
-    print('$name(iterations):          ' +
-        Emitter._format(iterations.toDouble(), decimalPoints: 0));
-    print('$name(unit count):          ' +
-        Emitter._format(iterations / coefficient, decimalPoints: 0));
+    print(
+        '$name(iterations):          ${Emitter._format(iterations.toDouble(), decimalPoints: 0)}');
+    print(
+        '$name(unit count):          ${Emitter._format(iterations / coefficient, decimalPoints: 0)}');
     // Measure the total time of the test - if it's too high, you should
     // decrease the number of iterations. Expected time is between 2 and 3 sec.
     watch.start();
@@ -174,7 +174,9 @@ class Emitter {
       }
     }
     str += suffix;
-    while (str.length < 10) str = ' $str';
+    while (str.length < 10) {
+      str = ' $str';
+    }
     return str;
   }
 }

@@ -56,7 +56,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     late StreamSubscription<void> subscription;
     late StreamController<Query<T>> controller;
 
-    _subscribe() {
+    subscribe() {
       subscription = _store.entityChanges.listen((List<Type> entityTypes) {
         if (entityTypes.any(queriedEntities.contains)) {
           controller.add(query);
@@ -70,8 +70,8 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     // functionality (onListen is only called for the first subscriber,
     // also does not allow to send an event within).
     controller = StreamController<Query<T>>(
-        onListen: _subscribe,
-        onResume: _subscribe,
+        onListen: subscribe,
+        onResume: subscribe,
         onPause: () => subscription.pause(),
         onCancel: () => subscription.cancel());
     if (triggerImmediately) controller.add(query);
@@ -88,11 +88,11 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
   ///     .order(Person_.name, flags: Order.ascending)
   ///     .build();
   /// ```
-  // Using Dart's cascade operator does not allow for nice chaining with build(),
-  // so explicitly return this for a more fluent interface.
-  // ignore: avoid_returning_this
-  QueryBuilder<T> order<_>(QueryProperty<T, _> p, {int flags = 0}) {
+  QueryBuilder<T> order<D>(QueryProperty<T, D> p, {int flags = 0}) {
     checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
+    // Using Dart's cascade operator does not allow for nice chaining with
+    // build(), so explicitly return this for a more fluent interface.
+    // ignore: avoid_returning_this
     return this;
   }
 }
@@ -120,11 +120,15 @@ class _QueryBuilder<T> {
 
   void _fillQueriedEntities(Set<Type> outEntities) {
     outEntities.add(T);
-    _innerQBs.forEach((qb) => qb._fillQueriedEntities(outEntities));
+    for (var qb in _innerQBs) {
+      qb._fillQueriedEntities(outEntities);
+    }
   }
 
   void _close() {
-    _innerQBs.forEach((iqb) => iqb._close());
+    for (var iqb in _innerQBs) {
+      iqb._close();
+    }
     checkObx(C.qb_close(_cBuilder));
   }
 
