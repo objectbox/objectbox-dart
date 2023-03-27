@@ -808,7 +808,6 @@ extension StoreInternal on Store {
 }
 
 /// Internal only.
-@internal
 class InternalStoreAccess {
   /// See [Store._clone].
   static Pointer<OBX_store> clone(Store store) => store._clone();
