@@ -63,10 +63,10 @@ jobs:
           ../tool/pub.sh get
           ../tool/pub.sh run test
       - name: Install ObjectBox C-API
-        working-directory: objectbox
+        working-directory: objectbox_test
         run: ../install.sh
       - name: Library Test
-        working-directory: objectbox
+        working-directory: objectbox_test
         run: |
           ../tool/pub.sh get
           ../tool/pub.sh run build_runner build
