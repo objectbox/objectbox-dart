@@ -38,6 +38,11 @@ Never throwLatestNativeError({String? context, int codeIfMissing = 0}) {
   var code = C.last_error_code();
   var message = dartStringFromC(C.last_error_message());
 
+  // Clear the error as the C API does not update error code on some failures.
+  // If not cleared, this could then cause an incorrect error message to be
+  // returned if the next failure does not update the error code.
+  C.last_error_clear();
+
   if (code == 0 && message.isEmpty) {
     if (codeIfMissing == 0) {
       throw ObjectBoxException(context ?? 'unknown error');
