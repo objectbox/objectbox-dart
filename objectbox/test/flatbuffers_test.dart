@@ -21,7 +21,7 @@ Uint8List addFbData(fb.Builder fbb) {
 
 void main() {
   test('custom flatbuffers builder', () {
-    [1024, 1].forEach((initialSize) {
+    for (var initialSize in [1024, 1]) {
       printOnFailure('initialSize=$initialSize');
 
       final fb1 = BuilderWithCBuffer(initialSize: initialSize);
@@ -38,11 +38,10 @@ void main() {
           fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()), equals(list1b));
 
       fb1.clear();
-    });
+    }
   });
 
-  final bytesSum =
-      (ByteData data) => data.buffer.asInt8List().reduce((v, e) => v + e);
+  bytesSum(ByteData data) => data.buffer.asInt8List().reduce((v, e) => v + e);
 
   // Note: only checks content initialized by TestEntity.filled
   void checkSameEntities(TestEntityNonRel a, TestEntityNonRel b) {
@@ -70,7 +69,7 @@ void main() {
     final source = TestEntityNonRel.filled();
     // Test the "dagger" char (0x20 0x20) which may cause problems if
     // utf16/ascii isn't recognized properly.
-    source.tString = source.tString! + '†asdf';
+    source.tString = '${source.tString!}†asdf';
 
     final fb1 = BuilderWithCBuffer();
     binding.objectToFB(source, fb1.fbb);

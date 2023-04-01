@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../annotations.dart';
 import '../common.dart';
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
@@ -61,14 +62,23 @@ class Box<T> {
 
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
 
-  /// Puts the given Object in the box (aka persisting it).
+  /// Puts the given [object] and returns its (new) ID.
   ///
-  /// If this is a new object (its ID property is 0), a new ID will be assigned
-  /// to the object (and returned).
+  /// If the object is new (its [Id] property is 0 or null), it is inserted and
+  /// assigned a new ID. The new ID is set on the object. This also applies to
+  /// new objects in its relations.
   ///
-  /// If the object with given was already in the box, it will be overwritten.
+  /// If an object with the same ID is already in the box, it will be updated.
+  /// Otherwise the put will fail. This does not apply to existing objects in
+  /// its relations, in this case only the relation is updated to point to the
+  /// new target object(s).
   ///
-  /// Performance note: consider [putMany] to put several objects at once.
+  /// Change [mode] to specify explicitly that only an insert or update should
+  /// occur.
+  ///
+  /// See [putMany] to put several objects at once with better performance.
+  ///
+  /// See [putAsync] for an asynchronous version.
   int put(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       return InternalStoreAccess.runInTransaction(
@@ -78,22 +88,67 @@ class Box<T> {
     }
   }
 
-  /// Puts the given object in the box (persisting it) asynchronously.
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _putAsyncCallback<T>(Store store, _PutAsyncArgs<T> args) =>
+      store.box<T>().put(args.object, mode: args.mode);
+
+  /// Like [put], but runs in a worker isolate and does not modify the given
+  /// [object], e.g. to set a new ID.
+  ///
+  /// Use [get] to get an inserted object with its new ID set,
+  /// or use [putAndGetAsync] instead.
+  ///
+  /// See also [putQueued] which is optimized for running a large number of puts
+  /// in parallel.
+  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(_putAsyncCallback<T>, _PutAsyncArgs(object, mode));
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static T _putAndGetAsyncCallback<T>(Store store, _PutAsyncArgs<T> args) {
+    store.box<T>().put(args.object, mode: args.mode);
+    return args.object;
+  }
+
+  /// Like [putAsync], but returns a copy of the [object] with the (new) ID set.
+  ///
+  /// If the object is new (its [Id] property is 0 or null), the returned copy
+  /// will have its [Id] property set to the new ID. This also applies to new
+  /// objects in its relations.
+  ///
+  /// If the object or (new) ID is not needed, use [putAsync] instead.
+  ///
+  /// See also [putQueued] which is optimized for running a large number of puts
+  /// in parallel.
+  Future<T> putAndGetAsync(T object, {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(
+          _putAndGetAsyncCallback<T>, _PutAsyncArgs(object, mode));
+
+  /// Like [putQueued], but waits on the put to complete.
+  ///
+  /// For typical use cases, use [putAsync] instead which supports objects with
+  /// relations. Use this when a large number of puts needs to be performed in
+  /// parallel (e.g. this is called many times) for better performance. But then
+  /// [putQueued] will achieve even better performance as it does not have to
+  /// notify all callers of completion.
   ///
   /// The returned future completes with an ID of the object. If it is a new
-  /// object (its ID property is 0), a new ID will be assigned to the object
-  /// argument, after the returned [Future] completes.
+  /// object (its ID property is 0), a new ID will be assigned to [object],
+  /// after the returned [Future] completes.
   ///
   /// In extreme scenarios (e.g. having hundreds of thousands async operations
   /// per second), this may fail as internal queues fill up if the disk can't
   /// keep up. However, this should not be a concern for typical apps.
-  /// The returned future may also complete with an error if the put failed
+  ///
+  /// The returned future may complete with an error if the put failed
   /// for another reason, for example a unique constraint violation. In that
   /// case the [object]'s id field remains unchanged (0 if it was a new object).
   ///
   /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
   /// ID immediately, even though the actual database put operation may fail.
-  Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
+  @Deprecated(
+      "Use putAsync which supports relations, or for a large number of parallel calls putQueued.")
+  Future<int> putQueuedAwaitResult(T object,
+          {PutMode mode = PutMode.put}) async =>
       // Wrap with [Future.sync] to avoid mixing sync and async errors.
       // Note: doesn't seem to decrease performance at all.
       // https://dart.dev/guides/libraries/futures-error-handling#potential-problem-accidentally-mixing-synchronous-and-asynchronous-errors
@@ -123,20 +178,24 @@ class Box<T> {
 
   /// Schedules the given object to be put later on, by an asynchronous queue.
   ///
-  /// The actual database put operation may fail even if this function returned
-  /// normally (and even if it returned a new ID for a new object). For example
-  /// if the database put failed because of a unique constraint violation.
-  /// Therefore, you should make sure the data you put is correct and you have
-  /// a fall back in place even if it eventually failed.
+  /// For typical use cases, use [putAsync] instead which supports objects with
+  /// relations. Use this when a large number of puts needs to be performed in
+  /// parallel (e.g. this is called many times) for better performance.
   ///
-  /// In extreme scenarios (e.g. having hundreds of thousands async operations
-  /// per second), this may fail as internal queues fill up if the disk can't
-  /// keep up. However, this should not be a concern for typical apps.
+  /// To wait on the completion of submitted operations, use
+  /// [Store.awaitQueueSubmitted] or [Store.awaitQueueCompletion].
   ///
-  /// See also [putAsync] which returns a [Future] that only completes after an
-  /// actual database put was successful.
-  /// Use [Store.awaitAsyncCompletion] and [Store.awaitAsyncSubmitted] to wait
-  /// until all operations have finished.
+  /// The actual database put operation may fail even if this returned
+  /// normally (and even if a new ID for a new object was returned), for example
+  /// due to a unique constraint violation. So do not rely on the object being
+  /// put or add checks as necessary.
+  ///
+  /// In extreme scenarios (e.g. having hundreds of thousands of async operations
+  /// per second, not of concern for typical apps), this may fail as internal
+  /// queues fill up if the disk can't keep up.
+  ///
+  /// See also [putAsync] which supports relations and returns a [Future] that
+  /// only completes after a put was successful.
   int putQueued(T object, {PutMode mode = PutMode.put}) {
     if (_hasRelations) {
       throw UnsupportedError('putQueued() is currently not supported on entity '
@@ -179,9 +238,13 @@ class Box<T> {
     return id;
   }
 
-  /// Puts the given [objects] into this Box in a single transaction.
+  /// Like [put], but optimized to put many [objects] at once.
   ///
-  /// Returns a list of all IDs of the inserted Objects.
+  /// All objects are put in a single transaction (similar to using
+  /// [Store.runInTransaction]), making this faster than calling [put] multiple
+  /// times.
+  ///
+  /// Returns the IDs of all put objects.
   List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) {
     if (objects.isEmpty) return [];
 
@@ -190,7 +253,9 @@ class Box<T> {
     InternalStoreAccess.runInTransaction(_store, TxMode.write,
         (Transaction tx) {
       if (_hasToOneRelations) {
-        objects.forEach((object) => _putToOneRelFields(object, mode, tx));
+        for (var object in objects) {
+          _putToOneRelFields(object, mode, tx);
+        }
       }
 
       final cursor = tx.cursor(_entity);
@@ -205,13 +270,48 @@ class Box<T> {
       }
 
       if (_hasToManyRelations) {
-        objects.forEach((object) => _putToManyRelFields(object, mode, tx));
+        for (var object in objects) {
+          _putToManyRelFields(object, mode, tx);
+        }
       }
       _builder.resetIfLarge();
     });
 
     return putIds;
   }
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<int> _putManyAsyncCallback<T>(
+          Store store, _PutManyAsyncArgs<T> args) =>
+      store.box<T>().putMany(args.objects, mode: args.mode);
+
+  /// Like [putMany], but runs in a worker isolate and does not modify the given
+  /// [objects], e.g. to set an assigned ID.
+  ///
+  /// Use [getMany] to get inserted objects with their assigned ID set,
+  /// or use [putAndGetManyAsync] instead.
+  Future<List<int>> putManyAsync(List<T> objects,
+          {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(
+          _putManyAsyncCallback<T>, _PutManyAsyncArgs(objects, mode));
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T> _putAndGetManyAsyncCallback<T>(
+      Store store, _PutManyAsyncArgs<T> args) {
+    store.box<T>().putMany(args.objects, mode: args.mode);
+    return args.objects;
+  }
+
+  /// Like [putManyAsync], but returns a copy of the [objects] with new IDs
+  /// assigned.
+  ///
+  /// If the objects are new (their [Id] property is 0 or null), returns a
+  /// copy of them with the [Id] property set to the assigned ID. This also
+  /// applies to new objects in their relations.
+  Future<List<T>> putAndGetManyAsync(List<T> objects,
+          {PutMode mode = PutMode.put}) async =>
+      await _store.runAsync(
+          _putAndGetManyAsyncCallback<T>, _PutManyAsyncArgs(objects, mode));
 
   // Checks if native obx_*_put_object() was successful (result is a valid ID).
   // Sets the given ID on the object if previous ID was zero (new object).
@@ -226,6 +326,12 @@ class Box<T> {
   /// Returns null if an object with the given ID doesn't exist.
   T? get(int id) => InternalStoreAccess.runInTransaction(
       _store, TxMode.read, (Transaction tx) => tx.cursor(_entity).get(id));
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static T? _getAsyncCallback<T>(Store store, int id) => store.box<T>().get(id);
+
+  /// Like [get], but runs the box operation asynchronously in a worker isolate.
+  Future<T?> getAsync(int id) => _store.runAsync(_getAsyncCallback<T>, id);
 
   /// Returns a list of [ids.length] Objects of type T, each corresponding to
   /// the location of its ID in [ids]. Non-existent IDs become null.
@@ -245,6 +351,17 @@ class Box<T> {
     });
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T?> _getManyAsyncCallback<T>(
+          Store store, _GetManyAsyncArgs args) =>
+      store.box<T>().getMany(args.ids, growableResult: args.growableResult);
+
+  /// Like [getMany], but runs the box operation asynchronously in a worker
+  /// isolate.
+  Future<List<T?>> getManyAsync(List<int> ids, {bool growableResult = false}) =>
+      _store.runAsync(
+          _getManyAsyncCallback<T>, _GetManyAsyncArgs(ids, growableResult));
+
   /// Returns all stored objects in this Box.
   List<T> getAll() => InternalStoreAccess.runInTransaction(_store, TxMode.read,
           (Transaction tx) {
@@ -259,6 +376,15 @@ class Box<T> {
         }
         return result;
       });
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T> _getAllAsyncCallback<T>(Store store, void param) =>
+      store.box<T>().getAll();
+
+  /// Like [getAll], but runs the box operation asynchronously in a worker
+  /// isolate.
+  Future<List<T>> getAllAsync() =>
+      _store.runAsync(_getAllAsyncCallback<T>, null);
 
   /// Returns a builder to create queries for Object matching supplied criteria.
   @pragma('vm:prefer-inline')
@@ -313,7 +439,7 @@ class Box<T> {
   }
 
   /// Removes (deletes) the Object with the given [id]. Returns true if the
-  /// object was present (and thus removed), otherwise returns false.
+  /// object did exist and was removed, otherwise false.
   bool remove(int id) {
     final err = C.box_remove(_cBox, id);
     if (err == OBX_NOT_FOUND) return false;
@@ -321,7 +447,16 @@ class Box<T> {
     return true;
   }
 
-  /// Removes (deletes) by ID, returning a list of IDs of all removed Objects.
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static bool _removeAsyncCallback<T>(Store store, int id) =>
+      store.box<T>().remove(id);
+
+  /// Like [remove], but runs in a worker isolate.
+  Future<bool> removeAsync(int id) async =>
+      await _store.runAsync(_removeAsyncCallback<T>, id);
+
+  /// Removes (deletes) objects with the given [ids] if they exist. Returns the
+  /// number of removed objects.
   int removeMany(List<int> ids) {
     final countRemoved = malloc<Uint64>();
     try {
@@ -334,7 +469,16 @@ class Box<T> {
     }
   }
 
-  /// Removes (deletes) ALL Objects in a single transaction.
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _removeManyAsyncCallback<T>(Store store, List<int> ids) =>
+      store.box<T>().removeMany(ids);
+
+  /// Like [removeMany], but runs in a worker isolate.
+  Future<int> removeManyAsync(List<int> ids) async =>
+      await _store.runAsync(_removeManyAsyncCallback<T>, ids);
+
+  /// Removes (deletes) all objects in this box. Returns the number of removed
+  /// objects.
   int removeAll() {
     final removedItems = malloc<Uint64>();
     try {
@@ -345,24 +489,30 @@ class Box<T> {
     }
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _removeAllAsyncCallback<T>(Store store, void param) =>
+      store.box<T>().removeAll();
+
+  /// Like [removeAll], but runs in a worker isolate.
+  Future<int> removeAllAsync() async =>
+      await _store.runAsync(_removeAllAsyncCallback<T>, null);
+
   void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
-    _entity.toOneRelations(object).forEach((ToOne rel) {
-      if (!rel.hasValue) return;
-      rel.attach(_store);
-      // put new objects
-      if (rel.targetId == 0) {
-        rel.targetId =
-            InternalToOneAccess.targetBox(rel)._put(rel.target, mode, tx);
-      }
-    });
+    for (var toOne in _entity.toOneRelations(object)) {
+      // To avoid all ToOnes obtaining a Store for each put,
+      // pass the store of this box.
+      toOne.applyToDb(_store, mode, tx);
+    }
   }
 
   void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
     _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
       // Always set relation info so ToMany applyToDb can be used after initial put
-      InternalToManyAccess.setRelInfo(rel, _store, info, this);
+      InternalToManyAccess.setRelInfo<T>(rel, _store, info);
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
-        rel.applyToDb(mode: mode, tx: tx);
+        // To avoid all ToManys obtaining a Store for each put,
+        // pass the store of this box.
+        rel.applyToDb(existingStore: _store, mode: mode, tx: tx);
       }
     });
   }
@@ -509,4 +659,26 @@ class InternalBoxAccess {
         }
         return result;
       });
+}
+
+class _PutAsyncArgs<T> {
+  final T object;
+  final PutMode mode;
+
+  _PutAsyncArgs(this.object, this.mode);
+}
+
+class _PutManyAsyncArgs<T> {
+  final List<T> objects;
+  final PutMode mode;
+
+  _PutManyAsyncArgs(this.objects, this.mode);
+}
+
+class _GetManyAsyncArgs {
+  final List<int> ids;
+  final bool growableResult;
+
+  // ignore: avoid_positional_boolean_parameters
+  _GetManyAsyncArgs(this.ids, this.growableResult);
 }

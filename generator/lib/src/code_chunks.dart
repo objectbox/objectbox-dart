@@ -15,7 +15,7 @@ class CodeChunks {
     // With a Dart package, run `dart run build_runner build`.
     // See also https://docs.objectbox.io/getting-started#generate-objectbox-code
 
-    // ignore_for_file: camel_case_types
+    // ignore_for_file: camel_case_types, depend_on_referenced_packages
     // coverage:ignore-file
 
     import 'dart:typed_data';
@@ -329,12 +329,11 @@ class CodeChunks {
       fieldIndexes[propertyFieldName(p)] = index;
 
       String? fbReader;
-      var readFieldOrNull = () =>
+      readFieldOrNull() =>
           'const $fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
-      var readFieldNonNull = ([String? defaultValue]) =>
+      readFieldNonNull([String? defaultValue]) =>
           'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
-      var readField =
-          () => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
+      readField() => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
       final valueVar = '${propertyFieldName(p)}Value';
 
       switch (p.type) {
@@ -461,10 +460,10 @@ class CodeChunks {
     });
 
     postLines.addAll(entity.relations.map((ModelRelation rel) =>
-        'InternalToManyAccess.setRelInfo(object.${rel.name}, store, ${relInfo(entity, rel)}, store.box<${entity.name}>());'));
+        'InternalToManyAccess.setRelInfo<${entity.name}>(object.${rel.name}, store, ${relInfo(entity, rel)});'));
 
     postLines.addAll(entity.backlinks.map((ModelBacklink bl) {
-      return 'InternalToManyAccess.setRelInfo(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)}, store.box<${entity.name}>());';
+      return 'InternalToManyAccess.setRelInfo<${entity.name}>(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)});';
     }));
 
     return '''(Store store, ByteData fbData) {
@@ -478,6 +477,7 @@ class CodeChunks {
   }
 
   static String toOneRelations(ModelEntity entity) =>
+      // ignore: prefer_interpolation_to_compose_strings
       '[' +
       entity.properties
           .where((ModelProperty prop) => prop.isRelation)
@@ -500,7 +500,7 @@ class CodeChunks {
     ModelRelation? srcRel;
     ModelProperty? srcProp;
 
-    final throwAmbiguousError = (String prop, String rel) =>
+    throwAmbiguousError(String prop, String rel) =>
         throw InvalidGenerationSourceError(
             'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
             ' Matching property: $prop.'
@@ -520,7 +520,7 @@ class CodeChunks {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity.findPropertyByName(bl.srcField + 'Id');
+      srcProp = srcEntity.findPropertyByName('${bl.srcField}Id');
       srcRel =
           srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
 

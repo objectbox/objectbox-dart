@@ -10,45 +10,45 @@ import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
 /// Create this in the apps main function.
 class ObjectBox {
   /// The Store of this app.
-  late final Store store;
+  late final Store _store;
 
   // Keeping reference to avoid Admin getting closed.
   // ignore: unused_field
   late final Admin _admin;
 
   /// Two Boxes: one for Tasks, one for Tags.
-  late final Box<Task> taskBox;
-  late final Box<Tag> tagBox;
+  late final Box<Task> _taskBox;
+  late final Box<Tag> _tagBox;
 
-  ObjectBox._create(this.store) {
+  ObjectBox._create(this._store) {
     // Optional: enable ObjectBox Admin on debug builds.
     // https://docs.objectbox.io/data-browser
     if (Admin.isAvailable()) {
       // Keep a reference until no longer needed or manually closed.
-      _admin = Admin(store);
+      _admin = Admin(_store);
     }
 
-    taskBox = Box<Task>(store);
-    tagBox = Box<Tag>(store);
+    _taskBox = Box<Task>(_store);
+    _tagBox = Box<Tag>(_store);
 
     // Add some demo data if the box is empty.
-    if (taskBox.isEmpty()) {
+    if (_taskBox.isEmpty()) {
       _putDemoData();
     }
   }
 
   /// Create an instance of ObjectBox to use throughout the app.
   static Future<ObjectBox> create() async {
-    // Note: on desktop systems this returns the users documents directory,
-    // so make sure to create a unique sub-directory.
-    // On mobile using the default (not supplying any directory) is typically
-    // fine, as apps have their own directory structure.
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final databaseDirectory =
-        p.join(documentsDirectory.path, "obx-demo-relations");
+    // Note: setting a unique directory is recommended if running on desktop
+    // platforms. If none is specified, the default directory is created in the
+    // users documents directory, which will not be unique between apps.
+    // On mobile this is typically fine, as each app has its own directory
+    // structure.
 
     // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
-    final store = await openStore(directory: databaseDirectory);
+    final store = await openStore(
+        directory: p.join((await getApplicationDocumentsDirectory()).path,
+            "obx-demo-relations"));
     return ObjectBox._create(store);
   }
 
@@ -64,14 +64,14 @@ class ObjectBox {
 
     // When the Task is put, its Tag will automatically be put into the Tag Box.
     // Both ToOne and ToMany automatically put new Objects when the Object owning them is put.
-    taskBox.putMany([task1, task2]);
+    _taskBox.putManyAsync([task1, task2]);
   }
 
   Stream<List<Task>> getTasks() {
     // Query for all tasks, sorted by their date.
     // https://docs.objectbox.io/queries
     final qBuilderTasks =
-        taskBox.query().order(Task_.dateCreated, flags: Order.descending);
+        _taskBox.query().order(Task_.dateCreated, flags: Order.descending);
     // Build and watch the query,
     // set triggerImmediately to emit the query immediately on listen.
     return qBuilderTasks
@@ -79,6 +79,8 @@ class ObjectBox {
         // Map it to a list of tasks to be used by a StreamBuilder.
         .map((query) => query.find());
   }
+
+  Task getTask(int id) => _taskBox.get(id)!;
 
   void saveTask(Task? task, String text, Tag tag) {
     if (text.isEmpty) {
@@ -95,15 +97,18 @@ class ObjectBox {
     }
     // Set or update the target of the to-one relation to Tag.
     task.tag.target = tag;
-    taskBox.put(task);
+    _taskBox.putAsync(task);
     debugPrint('Saved task ${task.text} with tag ${task.tag.target!.name}');
   }
 
-  void removeTask(int taskId) {
-    taskBox.remove(taskId);
+  Future<void> finishTask(Task task) async {
+    task.toggleFinished();
+    await _taskBox.putAsync(task);
   }
 
-  int addTag(String name) {
+  void removeTask(int taskId) => _taskBox.removeAsync(taskId);
+
+  Future<int> addTag(String name) async {
     if (name.isEmpty) {
       // Do not allow an empty tag name.
       // A real app might want to display an UI hint about that.
@@ -111,16 +116,24 @@ class ObjectBox {
     }
     // Do not allow adding a tag with an existing name.
     // A real app might want to display an UI hint about that.
-    final existingTags = tagBox.getAll();
+    final existingTags = await _tagBox.getAllAsync();
     for (var existingTag in existingTags) {
       if (existingTag.name == name) {
         return -1;
       }
     }
 
-    final newTagId = tagBox.put(Tag(name));
-    debugPrint("Added tag: ${tagBox.get(newTagId)!.name}");
+    final newTagId = await _tagBox.putAsync(Tag(name));
+    debugPrint("Added tag: ${_tagBox.get(newTagId)!.name}");
 
     return newTagId;
   }
+
+  Tag getTag(int id) => _tagBox.get(id)!;
+
+  Tag getFirstTag() => _tagBox.query().build().findFirst()!;
+
+  List<Tag> getAllTags() => _tagBox.getAll();
+
+  Future<List<Tag>> getAllTagsAsync() => _tagBox.getAllAsync();
 }

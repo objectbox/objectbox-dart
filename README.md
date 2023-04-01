@@ -34,6 +34,8 @@
 
 Database for Flutter / Dart - intuitive APIs, simply fast. Persist local Dart objects with ease & speed, focus on the value your application provides.
 
+ObjectBox provides a store with boxes to put objects into:
+
 ```dart
 // Annotate a Dart class to create a box
 @Entity()
@@ -44,6 +46,8 @@ class Person {
 
   Person({this.id = 0, required this.name});
 }
+
+final box = store.box<Person>();
 
 // Put a new object into the box
 var person = Person(name: "Joe Green");
@@ -57,7 +61,7 @@ person.name = "Joe Black";
 box.put(person);
 
 // Query for objects
-final query = box.query(Person_.name.equal("Joe Black"))
+final query = box.query(Person_.name.equals("Joe Black"))
         .order(Person_.name).build();
 final people = query.find();
 query.close();
@@ -65,7 +69,7 @@ query.close();
 // Remove the object from the box
 box.remove(person.id);
 ```
-Ready? Continue with the **[Getting Started guide](https://docs.objectbox.io/getting-started)**.
+Ready? Continue with the ➡️ **[Getting Started guide](https://docs.objectbox.io/getting-started)**.
 
 ## Why use ObjectBox
 
@@ -97,7 +101,7 @@ Oh, and there is one more thing...
 
 ## Getting Started
 
-Continue with our **[Getting Started guide](https://docs.objectbox.io/getting-started)**. It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
+Continue with our ➡️ **[Getting Started guide](https://docs.objectbox.io/getting-started)**. It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
 ## How does ObjectBox compare to other solutions?
 
@@ -165,7 +169,7 @@ ObjectBox supports multiple platforms and languages:
 ## License
 
 ```text
-Copyright 2019-2022 ObjectBox Ltd. All rights reserved.
+Copyright 2019-2023 ObjectBox Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

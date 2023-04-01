@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -15,10 +17,6 @@ void main() {
   late TestEnv env;
   late Store store;
   late Box<TestEntity> box;
-
-  simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
-      .map((s) => TestEntity(tString: s))
-      .toList();
 
   setUp(() {
     env = TestEnv('box');
@@ -48,12 +46,109 @@ void main() {
   });
 
   test('.putAsync', () async {
+    // Supports relations, so add some.
+    final a = TestEntity(tString: 'Hello A');
+    a.relA.target = RelatedEntityA(tInt: 1);
+    final b = TestEntity(tString: 'Hello B');
+    b.relManyA.add(RelatedEntityA(tInt: 2));
+    // Launch two async puts.
+    Future<int> putA = box.putAsync(a);
+    Future<int> putB = box.putAsync(b);
+    // Async put does not guarantee order, so can't expect ID values.
+    final aId = await putA;
+    final bId = await putB;
+    expect(aId, greaterThan(0));
+    expect(bId, greaterThan(0));
+    // Check new IDs are *not* set on given objects.
+    expect(a.id, 0);
+    expect(b.id, 0);
+    expect(a.relA.target!.id, isNull);
+    expect(b.relManyA[0].id, isNull);
+    // Check objects and relations were saved.
+    expect(box.get(aId)!.relA.target!.tInt, 1);
+    expect(box.get(bId)!.relManyA[0].tInt, 2);
+  });
+
+  test('.putAndGetAsync', () async {
+    // Supports relations, so add some.
+    final a = TestEntity(tString: 'Hello A');
+    a.relA.target = RelatedEntityA(tInt: 1);
+    final b = TestEntity(tString: 'Hello B');
+    b.relManyA.add(RelatedEntityA(tInt: 2));
+    // Launch two async puts.
+    Future<TestEntity> putA = box.putAndGetAsync(a);
+    Future<TestEntity> putB = box.putAndGetAsync(b);
+    // Async put does not guarantee order, so can't expect ID values.
+    final aStored = await putA;
+    final bStored = await putB;
+    expect(aStored.id, greaterThan(0));
+    expect(bStored.id, greaterThan(0));
+    // Check new IDs are *not* set on given objects.
+    expect(a.id, 0);
+    expect(b.id, 0);
+    expect(a.relA.target!.id, isNull);
+    expect(b.relManyA[0].id, isNull);
+    // Check new IDs are set on returned objects.
+    expect(aStored.id, greaterThan(0));
+    expect(bStored.id, greaterThan(0));
+    expect(aStored.relA.target!.id, greaterThan(0));
+    expect(bStored.relManyA[0].id, greaterThan(0));
+    // Check objects and relations were saved.
+    expect(box.get(aStored.id)!.relA.target!.tInt, 1);
+    expect(box.get(bStored.id)!.relManyA[0].tInt, 2);
+  });
+
+  test('.putAsync failures', () async {
+    final box = store.box<TestEntity2>();
+    // FIXME Disable until error overwriting bug is fixed.
+    // await expectLater(
+    //     () async =>
+    //         await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
+    //     throwsA(predicate((ArgumentError e) => e
+    //         .toString()
+    //         .contains('ID is not set (zero) for object to update'))));
+
+    await expectLater(
+        await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert), 1);
+
+    // Note: regular put API used by putAsync returns default error,
+    // unlike queue API which has special errors for ID not found or not new.
+    await expectLater(
+        () async =>
+            await box.putAsync(TestEntity2(id: 5), mode: PutMode.update),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == 'object put failed')));
+
+    expect(box.count(), 1);
+
+    await expectLater(
+        () async =>
+            await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == 'object put failed')));
+
+    {
+      // check unique constraint violation behavior
+      await box.putAsync(TestEntity2(id: 0)..value = 42);
+      final object = TestEntity2(id: 0)..value = 42;
+      final future = box.putAsync(object);
+
+      await expectLater(
+          () async => await future,
+          throwsA(predicate((UniqueViolationException e) =>
+              e.message.contains("Unique constraint"))));
+
+      expect(object.id, 0); // ID must remain unassigned
+    }
+  });
+
+  test('.putQueuedAwaitResult', () async {
     final box = store.box<TestEntityNonRel>();
     final a = TestEntityNonRel.filled(id: 0);
     final b = TestEntityNonRel.filled(id: 0);
-    Future<int> aId = box.putAsync(a);
+    Future<int> aId = box.putQueuedAwaitResult(a);
     expect(a.id, 0);
-    Future<int> bId = box.putAsync(b);
+    Future<int> bId = box.putQueuedAwaitResult(b);
     expect(b.id, 0);
     expect(await aId, 1);
     expect(await bId, 2);
@@ -61,23 +156,25 @@ void main() {
     expect(b.id, 2);
   });
 
-  test('.putAsync failures', () async {
+  test('.putQueuedAwaitResult failures', () async {
     final box = store.box<TestEntity2>();
+    // Note: not using `await expectLater` as putAsync has an
+    // internal queue that guarantees order.
     expect(
         () => box
-            .putAsync(TestEntity2(), mode: PutMode.update)
+            .putQueuedAwaitResult(TestEntity2(), mode: PutMode.update)
             .timeout(defaultTimeout),
         throwsA(predicate(
             (ArgumentError e) => e.toString().contains('ID is not set'))));
 
     expect(
         await box
-            .putAsync(TestEntity2(id: 1), mode: PutMode.insert)
+            .putQueuedAwaitResult(TestEntity2(id: 1), mode: PutMode.insert)
             .timeout(defaultTimeout),
         1);
     expect(
         () async => await box
-            .putAsync(TestEntity2(id: 5), mode: PutMode.update)
+            .putQueuedAwaitResult(TestEntity2(id: 5), mode: PutMode.update)
             .timeout(defaultTimeout),
         throwsA(predicate((ObjectBoxException e) =>
             e.toString().contains('object with the given ID not found'))));
@@ -85,16 +182,16 @@ void main() {
 
     expect(
         () async => await box
-            .putAsync(TestEntity2(id: 1), mode: PutMode.insert)
+            .putQueuedAwaitResult(TestEntity2(id: 1), mode: PutMode.insert)
             .timeout(defaultTimeout),
         throwsA(predicate((ObjectBoxException e) =>
             e.toString().contains('object with the given ID already exists'))));
 
     {
       // check unique constraint violation behavior
-      await box.putAsync(TestEntity2()..value = 42);
+      await box.putQueuedAwaitResult(TestEntity2()..value = 42);
       final object = TestEntity2()..value = 42;
-      final future = box.putAsync(object);
+      final future = box.putQueuedAwaitResult(object);
 
       try {
         await future;
@@ -113,10 +210,11 @@ void main() {
     }
   });
 
-  test('.putAsync many', () async {
+  test('.putQueuedWithFuture many', () async {
     final items = List.generate(
         env.short ? 100 : 1000, (i) => TestEntityNonRel.filled(id: 0));
-    final futures = items.map(store.box<TestEntityNonRel>().putAsync).toList();
+    final futures =
+        items.map(store.box<TestEntityNonRel>().putQueuedAwaitResult).toList();
     print('${futures.length} futures collected');
     final ids = await Future.wait(futures);
     print('${ids.length} futures finished');
@@ -133,7 +231,7 @@ void main() {
     for (int i = 0; i < items.length; i++) {
       expect(items[i].id, ids[i]);
     }
-    store.awaitAsyncSubmitted();
+    store.awaitQueueSubmitted();
     expect(box.count(), items.length);
   });
 
@@ -152,25 +250,31 @@ void main() {
         throwsA(predicate((ArgumentError e) =>
             e.toString().contains('Use ID 0 (zero) to insert new entities'))));
 
-    store.awaitAsyncCompletion();
+    store.awaitQueueCompletion();
     expect(store.box<TestEntity2>().count(), 0);
     expect(store.box<TestEntityNonRel>().count(), 0);
   });
 
-  test('.get() returns the correct item', () {
+  test('.get() returns the correct item', () async {
     final int putId = box.put(TestEntity(
         tString: 'Hello',
         tStrings: ['foo', 'bar'],
         tByteList: [1, 99, -54],
         tUint8List: Uint8List.fromList([2, 50, 78]),
         tInt8List: Int8List.fromList([-16, 20, 43])));
-    final TestEntity item = box.get(putId)!;
-    expect(item.id, equals(putId));
-    expect(item.tString, equals('Hello'));
-    expect(item.tStrings, equals(['foo', 'bar']));
-    expect(item.tByteList, equals([1, 99, -54]));
-    expect(item.tUint8List, equals([2, 50, 78]));
-    expect(item.tInt8List, equals([-16, 20, 43]));
+
+    assertItem(TestEntity? item) {
+      expect(item, isNotNull);
+      expect(item!.id, equals(putId));
+      expect(item.tString, equals('Hello'));
+      expect(item.tStrings, equals(['foo', 'bar']));
+      expect(item.tByteList, equals([1, 99, -54]));
+      expect(item.tUint8List, equals([2, 50, 78]));
+      expect(item.tInt8List, equals([-16, 20, 43]));
+    }
+
+    assertItem(box.get(putId));
+    assertItem(await box.getAsync(putId));
   });
 
   test('.get() returns null on non-existent item', () {
@@ -253,39 +357,86 @@ void main() {
     expect(items.where((i) => i.id == id3).single.tString, equals('Three'));
   });
 
+  assertPutManyItems(List<TestEntity> items, {required bool expectIdSet}) {
+    // Check IDs on objects in relations.
+    final relIdMatcher = expectIdSet ? greaterThan(0) : isNull;
+    expect(items[0].relA.target!.id, relIdMatcher);
+    expect(items[1].relB.target!.id, relIdMatcher);
+    expect(items[2].relManyA[0].id, relIdMatcher);
+
+    // Check objects and relations were inserted.
+    final List<TestEntity> itemsFetched = box.getAll();
+    expect(itemsFetched.length, 3);
+    expect(itemsFetched[0].tString, 'One');
+    expect(itemsFetched[0].relA.target!.tInt, 1);
+    expect(itemsFetched[1].tString, 'Two');
+    expect(itemsFetched[1].relB.target!.tString, "2");
+    expect(itemsFetched[2].tString, 'Three');
+    expect(itemsFetched[2].relManyA[0].tInt, 3);
+  }
+
   test('.putMany inserts multiple items', () {
     final List<TestEntity> items = [
-      TestEntity(tString: 'One'),
-      TestEntity(tString: 'Two'),
-      TestEntity(tString: 'Three')
+      TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
+      TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
     ];
-    box.putMany(items);
-    final List<TestEntity> itemsFetched = box.getAll();
-    expect(itemsFetched.length, equals(items.length));
-    expect(itemsFetched[0].tString, equals(items[0].tString));
-    expect(itemsFetched[1].tString, equals(items[1].tString));
-    expect(itemsFetched[2].tString, equals(items[2].tString));
-  });
+    final ids = box.putMany(items);
 
-  test('.putMany returns the new item IDs', () {
-    final List<TestEntity> items = [
-      'One',
-      'Two',
-      'Three',
-      'Four',
-      'Five',
-      'Six',
-      'Seven'
-    ].map((s) => TestEntity(tString: s)).toList();
-    final List<int> ids = box.putMany(items);
-    expect(ids.length, equals(items.length));
-    for (var i = 0; i < items.length; ++i) {
-      expect(items[i].id, equals(ids[i])); // IDs on the objects are updated
-      expect(box.get(ids[i])!.tString, equals(items[i].tString));
+    // Check returned IDs are valid and set on given objects.
+    for (int i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      expect(id, greaterThan(0));
+      expect(items[i].id, id);
     }
+
+    assertPutManyItems(items, expectIdSet: true);
   });
 
-  test('.getAll/getMany works on large arrays', () {
+  test('.putManyAsync inserts multiple items', () async {
+    // Need to define inside test closure to avoid Dart over-capturing store
+    // and box which can't be sent to worker isolate.
+    final List<TestEntity> items = [
+      TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
+      TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+    ];
+    final ids = await box.putManyAsync(items);
+
+    // Check returned IDs are valid and *not* set on given objects.
+    for (int i = 0; i < ids.length; i++) {
+      var id = ids[i];
+      expect(id, greaterThan(0));
+      expect(items[i].id, 0);
+    }
+
+    assertPutManyItems(items, expectIdSet: false);
+  });
+
+  test('.putAndGetManyAsync inserts multiple items', () async {
+    // Need to define inside test closure to avoid Dart over-capturing store
+    // and box which can't be sent to worker isolate.
+    final List<TestEntity> items = [
+      TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
+      TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+    ];
+    final storedItems = await box.putAndGetManyAsync(items);
+
+    // Check returned IDs are *not* set on given objects.
+    for (final item in items) {
+      expect(item.id, 0);
+    }
+
+    // Check IDs are set on returned objects.
+    for (final item in storedItems) {
+      expect(item.id, greaterThan(0));
+    }
+
+    assertPutManyItems(storedItems, expectIdSet: true);
+  });
+
+  test('.getAll/getMany works on large arrays', () async {
     // This would fail on 32-bit system if objectbox-c
     // obx_supports_bytes_array() wasn't respected
     final length = 10 * 1000;
@@ -295,17 +446,25 @@ void main() {
     box.put(TestEntity(tString: largeString));
     box.put(TestEntity(tString: largeString));
 
-    List<TestEntity?> items = box.getAll();
-    expect(items.length, 2);
-    expect(items[0]!.tString, largeString);
-    expect(items[1]!.tString, largeString);
+    assertGetAll(List<TestEntity> items) {
+      expect(items.length, 2);
+      expect(items[0].tString, largeString);
+      expect(items[1].tString, largeString);
+    }
+
+    assertGetAll(box.getAll());
+    assertGetAll(await box.getAllAsync());
 
     box.put(TestEntity(tString: largeString));
 
-    items = box.getMany([1, 2]);
-    expect(items.length, 2);
-    expect(items[0]!.tString, largeString);
-    expect(items[1]!.tString, largeString);
+    assertGetMany(List<TestEntity?> items) {
+      expect(items.length, 2);
+      expect(items[0]!.tString, largeString);
+      expect(items[1]!.tString, largeString);
+    }
+
+    assertGetMany(box.getMany([1, 2]));
+    assertGetMany(await box.getManyAsync([1, 2]));
   });
 
   test('.getMany correctly handles non-existent items', () {
@@ -499,47 +658,51 @@ void main() {
     expect(contains, equals(false));
   });
 
-  test('.remove(id) works', () {
+  test('.remove(id) works', () async {
     final List<int> ids = box.putMany(simpleItems());
-    //check if single id remove works
+    // Removes existing object
     expect(box.remove(ids[1]), isTrue);
     expect(box.count(), equals(5));
-    //check what happens if id already deleted -> throws OBJBOXEX 404
-    bool success = box.remove(ids[1]);
-    expect(box.count(), equals(5));
-    expect(success, isFalse);
+
+    expect(await box.removeAsync(ids[2]), isTrue);
+    expect(box.count(), equals(4));
+
+    // Fails to remove a not existing object
+    expect(box.remove(ids[1]), isFalse);
+    expect(await box.removeAsync(ids[1]), isFalse);
+    expect(box.count(), equals(4));
   });
 
-  test('.remove() returns false on non-existent item', () {
-    box.removeAll();
-    expect(box.remove(1), isFalse);
-  });
-
-  test('.removeMany(ids) works', () {
+  test('.removeMany(ids) works', () async {
     final List<int> ids = box.putMany(simpleItems());
-    expect(box.count(), equals(6));
-    box.removeMany(ids.sublist(4));
-    expect(box.count(), equals(4));
-    //again test what happens if ids already deleted
-    box.removeMany(ids.sublist(4));
+    // Removes existing objects and returns count.
+    var fiveAndSix = ids.sublist(4);
+    expect(box.removeMany(fiveAndSix), 2);
     expect(box.count(), equals(4));
 
-    // verify the right items were removed
+    expect(await box.removeManyAsync(ids.sublist(0, 2) /* 1 + 2 */), 2);
+    expect(box.count(), equals(2));
+
+    // Does nothing if objects do not exist, returns count of 0.
+    expect(box.removeMany(fiveAndSix), 0);
+    expect(await box.removeManyAsync(fiveAndSix), 0);
+    expect(box.count(), equals(2));
+
+    // Verify the correct items were removed.
     final List<int?> remainingIds = box.getAll().map((o) => o.id).toList();
-    expect(remainingIds, unorderedEquals(ids.sublist(0, 4)));
+    expect(remainingIds, unorderedEquals(ids.sublist(2, 4) /* 2 + 3 */));
   });
 
   test('.removeAll() works', () {
     box.putMany(simpleItems());
-    int removed = box.removeAll();
-    expect(removed, equals(6));
+    expect(box.removeAll(), 6);
+    expect(box.count(), 0);
+  });
+
+  test('.removeAllAsync() works', () async {
+    box.putMany(simpleItems());
+    expect(await box.removeAllAsync(), 6);
     expect(box.count(), equals(0));
-    //try with different number of items
-    List<TestEntity> items =
-        ['one', 'two', 'three'].map((s) => TestEntity(tString: s)).toList();
-    box.putMany(items);
-    removed = box.removeAll();
-    expect(removed, equals(3));
   });
 
   test('simple write in txn works', () {
@@ -562,6 +725,34 @@ void main() {
     await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
     count = box.count();
     expect(count, equals(6));
+  }, skip: notAtLeastDart2_15_0());
+
+  test('async txn - send and receive relations', () async {
+    final testBox = store.box<TestEntity>();
+    testBox.putMany(simpleItems());
+    // Get objects from Box so relations are attached.
+    final testObjects = testBox.getAll();
+
+    List<TestEntity> callback(Store store, List<TestEntity> receivedObjects) {
+      // Check ToOne and ToMany classes can access store.
+      for (var object in receivedObjects) {
+        object.relA.target;
+        object.relManyA.length;
+      }
+
+      // Return objects with attached relations to main isolate.
+      return store.box<TestEntity>().getAll();
+    }
+
+    // Send objects with attached relations to worker isolate.
+    var isolateResponse =
+        await store.runInTransactionAsync(TxMode.read, callback, testObjects);
+    expect(isolateResponse.length, equals(6));
+    // Check ToOne and ToMany classes can access store.
+    for (var object in isolateResponse) {
+      object.relA.target;
+      object.relManyA.length;
+    }
   }, skip: notAtLeastDart2_15_0());
 
   test('failing transactions', () {
@@ -769,3 +960,7 @@ void main() {
     expect(() => box.getAll(), ThrowingInConverters.throwsIn('Setter'));
   });
 }
+
+List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
+    .map((s) => TestEntity(tString: s))
+    .toList();

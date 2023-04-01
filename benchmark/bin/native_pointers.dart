@@ -34,7 +34,7 @@ class AsTypedList extends Benchmark {
   late final Pointer<Uint8> nativePtr;
 
   AsTypedList(this.length)
-      : super('${AsTypedList}[size=$length]', iterations: 1000);
+      : super('$AsTypedList[size=$length]', iterations: 1000);
 
   @override
   void runIteration(int i) {
@@ -58,7 +58,7 @@ class AsTypedListUint64 extends Benchmark {
   late final Pointer<Uint64> nativePtr;
 
   AsTypedListUint64(this.length)
-      : super('${AsTypedListUint64}[size=$length]', iterations: 1000);
+      : super('$AsTypedListUint64[size=$length]', iterations: 1000);
 
   @override
   void runIteration(int i) {
@@ -84,8 +84,7 @@ class TypedListMemCopy extends Benchmark {
   late final ByteBuffer buffer;
   late final ByteData data;
 
-  TypedListMemCopy(this.length)
-      : super('${TypedListMemCopy}', iterations: 1000);
+  TypedListMemCopy(this.length) : super('$TypedListMemCopy', iterations: 1000);
 
   @override
   void runIteration(int i) {

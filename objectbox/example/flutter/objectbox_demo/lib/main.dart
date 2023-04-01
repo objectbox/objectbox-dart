@@ -37,7 +37,7 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   GestureDetector Function(BuildContext, int) _itemBuilder(List<Note> notes) =>
       (BuildContext context, int index) => GestureDetector(
-            onTap: () => objectbox.noteBox.remove(notes[index].id),
+            onTap: () => objectbox.removeNote(notes[index].id),
             child: Row(
               children: <Widget>[
                 Expanded(

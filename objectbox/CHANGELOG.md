@@ -1,6 +1,30 @@
 ## latest
 
 
+## 2.0.0 (2023-03-21)
+
+* **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions` 
+  (or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
+* **Breaking changes to generated code:** run `flutter pub run build_runner build`
+  (or `dart run build_runner build` for Dart Native apps) after updating!
+* Added and updated async APIs in `Box`:
+  * new `getAsync`, `getManyAsync`, `getAllAsync`,
+  * new `putAsync` and `putManyAsync` which support objects with relations,
+  * renamed the former `putAsync` to `putQueuedAwaitResult`,
+  * new `putAndGetAsync` and `putAndGetManyAsync` which return a copy of the given objects with new
+    IDs set.
+  * new `removeAsync`, `removeManyAsync` and `removeAllAsync`.
+* Add new async `Query` APIs: `findAsync`, `findFirstAsync`, `findUniqueAsync`, `findIdsAsync` and 
+  `removeAsync`.
+* Support sending objects containing `ToOne` and `ToMany` across isolates, e.g. when using
+  `store.runInTransactionAsync`. #340
+* `Store.attach` (and `Store.fromReference`) do not longer accept a null model, which was not
+  supported anyhow.
+* **Breaking change:** renamed `store.awaitAsyncSubmitted` and `awaitAsyncCompletion` to
+  `awaitQueueSubmitted` and `awaitQueueCompletion` to avoid any mix-up with the new async methods.
+* Removed deprecated `Store.runIsolated`.
+* Require at least Dart SDK 2.15 (shipped with Flutter 2.8.0).
+
 ## 1.7.2 (2023-01-31)
 
 * Flutter Linux apps do not longer fail to run due to the shared ObjectBox C library not loading. #504
@@ -69,7 +93,7 @@ when initializing ObjectBox. #252
 * Rename `Store.runIsolated` to `runAsync`, drop unused `mode` parameter, propagate errors and
   handle premature isolate exit. #415
 * The native ObjectBox library is also searched for in the `lib` subfolder on desktop OS (macOS,
-  Linux, Windows). This is where the [`install.sh`](/install.sh) script downloads it by default.
+  Linux, Windows). This is where the [`install.sh`](../install.sh) script downloads it by default.
   E.g. it is no longer necessary to install the library globally to run `dart test` or `flutter test`.
 * Windows: Support database directory paths that contain unicode (UTF-8) characters. #406
 * Changed `Query.stream` to collect results in a worker isolate, which should typically be faster. #420

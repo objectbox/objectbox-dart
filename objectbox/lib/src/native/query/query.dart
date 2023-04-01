@@ -618,8 +618,7 @@ class _ConditionGroup<EntityT> extends Condition<EntityT> {
         final cid = _conditions[i]._applyFull(builder, isRoot: false);
         if (cid == 0) {
           builder._throwExceptionIfNecessary();
-          throw StateError(
-              'Failed to create condition ' + _conditions[i].toString());
+          throw StateError('Failed to create condition ${_conditions[i]}');
         }
 
         intArrayPtr[i] = cid;
@@ -671,7 +670,17 @@ class Query<T> {
   Query._(this._store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(C.query(cBuilder), 'create query') {
     initializeDartAPI();
+    _attachFinalizer();
+  }
 
+  Query._fromConfiguration(this._store, _QueryConfiguration<T> configuration)
+      : _cQuery = Pointer.fromAddress(configuration.queryAddress),
+        _entity = configuration.entity {
+    initializeDartAPI();
+    _attachFinalizer();
+  }
+
+  void _attachFinalizer() {
     // Keep the finalizer so we can detach it when close() is called manually.
     _cFinalizer =
         C.dartc_attach_finalizer(this, native_query_close, _cQuery.cast(), 256);
@@ -719,7 +728,7 @@ class Query<T> {
     }
   }
 
-  /// Returns the number of removed Objects.
+  /// Removes all matching objects. Returns the number of removed objects.
   int remove() {
     final ptr = malloc<Uint64>();
     try {
@@ -729,6 +738,15 @@ class Query<T> {
       malloc.free(ptr);
     }
   }
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static int _removeAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, int>(
+          store, configuration, (query) => query.remove());
+
+  /// Like [remove], but runs in a worker isolate.
+  Future<int> removeAsync() => _runAsyncImpl(_removeAsyncCallback<T>);
 
   /// Clones this native query and returns a pointer to the clone.
   ///
@@ -781,6 +799,16 @@ class Query<T> {
     return result;
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static T? _findFirstAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, T?>(
+          store, configuration, (query) => query.findFirst());
+
+  /// Like [findFirst], but runs the query operation asynchronously in a worker
+  /// isolate.
+  Future<T?> findFirstAsync() => _runAsyncImpl(_findFirstAsyncCallback<T>);
+
   /// Finds the only object matching the query. Returns null if there are no
   /// results or throws [NonUniqueResultException] if there are multiple objects
   /// matching.
@@ -813,6 +841,16 @@ class Query<T> {
     return result;
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static T? _findUniqueAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, T?>(
+          store, configuration, (query) => query.findUnique());
+
+  /// Like [findUnique], but runs the query operation asynchronously in a worker
+  /// isolate.
+  Future<T?> findUniqueAsync() => _runAsyncImpl(_findUniqueAsyncCallback<T>);
+
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
@@ -826,6 +864,16 @@ class Query<T> {
     }
   }
 
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<int> _findIdsAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, List<int>>(
+          store, configuration, (query) => query.findIds());
+
+  /// Like [findIds], but runs the query operation asynchronously in a worker
+  /// isolate.
+  Future<List<int>> findIdsAsync() => _runAsyncImpl(_findIdsAsyncCallback<T>);
+
   /// Finds Objects matching the query.
   List<T> find() {
     final result = <T>[];
@@ -836,6 +884,37 @@ class Query<T> {
     reachabilityFence(this);
     return result;
   }
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<T> _findAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, List<T>>(
+          store, configuration, (query) => query.find());
+
+  /// Like [find], but runs the query operation asynchronously in a worker
+  /// isolate.
+  Future<List<T>> findAsync() => _runAsyncImpl(_findAsyncCallback<T>);
+
+  /// Base callback for [_runAsyncImpl] to run a query [action] in a worker
+  /// isolate.
+  ///
+  /// Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static R _asyncCallbackImpl<T, R>(Store store,
+      _QueryConfiguration<T> configuration, R Function(Query<T>) action) {
+    final query = Query._fromConfiguration(store, configuration);
+    try {
+      return action(query);
+    } finally {
+      query.close();
+    }
+  }
+
+  /// Runs the given query callback on a worker isolate and returns the result,
+  /// clones the query to pass it to the worker isolate
+  /// (see [_QueryConfiguration]).
+  Future<R> _runAsyncImpl<R>(
+          R Function(Store, _QueryConfiguration<T>) callback) =>
+      _store.runAsync(callback, _QueryConfiguration(this));
 
   /// Finds Objects matching the query, streaming them while the query executes.
   ///
@@ -1156,4 +1235,14 @@ class _StreamIsolateMessage {
   final List<int> sizes;
 
   const _StreamIsolateMessage(this.dataPtrAddresses, this.sizes);
+}
+
+class _QueryConfiguration<T> {
+  final int queryAddress;
+  final EntityDefinition<T> entity;
+
+  /// Creates a configuration to send to an isolate by cloning the native query.
+  _QueryConfiguration(Query<T> query)
+      : queryAddress = query._clone().address,
+        entity = query._entity;
 }

@@ -53,8 +53,6 @@ Oh, and there is one more thing...
 ## On this page
 - [Sneak peek](#sneak-peek---persist-dart-objects-with-objectbox)
 - [Getting Started](#getting-started)
-  - [Flutter](#flutter)
-  - [Dart Native](#dart-native)
 - [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
 - [Do you 💙 ObjectBox?](#do-you--objectbox)
 - [FAQ](#faq)
@@ -64,6 +62,8 @@ Oh, and there is one more thing...
 ---
 
 ## Sneak peek - persist Dart objects with ObjectBox
+
+ObjectBox provides a store with boxes to put objects into:
 
 ```dart
 // Annotate a Dart class to create a box
@@ -75,6 +75,8 @@ class Person {
 
   Person({this.id = 0, required this.name});
 }
+
+final box = store.box<Person>();
 
 // Put a new object into the box
 var person = Person(name: "Joe Green");
@@ -88,7 +90,7 @@ person.name = "Joe Black";
 box.put(person);
 
 // Query for objects
-final query = box.query(Person_.name.equal("Joe Black"))
+final query = box.query(Person_.name.equals("Joe Black"))
         .order(Person_.name).build();
 final people = query.find();
 query.close();
@@ -99,7 +101,7 @@ box.remove(person.id);
 
 ## Getting Started
 
-Read the **[Getting Started guide](https://docs.objectbox.io/getting-started)**. 
+Read the ➡️ **[Getting Started guide](https://docs.objectbox.io/getting-started)**. 
 
 It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
@@ -148,7 +150,7 @@ See the [FAQ](https://docs.objectbox.io/faq) and [Troubleshooting](https://docs.
 ## License
 
 ```text
-Copyright 2019-2022 ObjectBox Ltd. All rights reserved.
+Copyright 2019-2023 ObjectBox Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

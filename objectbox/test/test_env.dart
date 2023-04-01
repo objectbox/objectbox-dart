@@ -11,7 +11,7 @@ class TestEnv {
   final bool short;
 
   factory TestEnv(String name, {bool? queryCaseSensitive, int? debugFlag}) {
-    final dir = Directory('testdata-' + name);
+    final dir = Directory('testdata-$name');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
     final Store store;
     var modelDefinition = getObjectBoxModel();
@@ -64,7 +64,8 @@ Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 //
 // We need to do this to receive an event in the stream before processing
 // the remainder of the test case.
-final yieldExecution = () async => await Future<void>.delayed(Duration.zero);
+Future<void> yieldExecution() async =>
+    await Future<void>.delayed(Duration.zero);
 
 dynamic notAtLeastDart2_15_0() {
   final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')

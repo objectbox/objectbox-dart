@@ -71,6 +71,36 @@ void main() {
     await received.cancel();
   });
 
+  test('store attach with configuration', () {
+    final env = TestEnv('store');
+    // Get store config.
+    final storeConfig = env.store.configuration();
+    expect(storeConfig.id, isNot(0));
+
+    // Obtain store by ID.
+    var store = StoreInternal.attachByConfiguration(storeConfig);
+    expect(store.configuration().id, storeConfig.id);
+    // Release reference.
+    store.close();
+
+    // Try again to obtain by ID.
+    final store2 = StoreInternal.attachByConfiguration(storeConfig);
+    expect(store2.configuration().id, storeConfig.id);
+    store2.close();
+
+    // Close underlying store, should not longer be able to obtain by ID.
+    env.closeAndDelete();
+    expect(
+        () => StoreInternal.attachByConfiguration(storeConfig),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == "failed to create store")));
+
+    // Re-open underlying store, store ID should have changed.
+    final env2 = TestEnv("store");
+    expect(env2.store.configuration().id, isNot(storeConfig.id));
+    env2.closeAndDelete();
+  });
+
   test('store is open', () {
     expect(false, Store.isOpen(''));
     expect(false, Store.isOpen('testdata-store'));
@@ -93,7 +123,7 @@ void main() {
       final asyncCallbacks = [
         () async => null,
         () => Future<int>.delayed(const Duration(milliseconds: 1)),
-        () => Future<void>.value(),
+        Future<void>.value,
       ];
       for (var callback in asyncCallbacks) {
         expect(
@@ -264,7 +294,7 @@ void main() {
     final parentDir = Directory('unicode-test');
     await parentDir.create();
     final unicodeDir = Directory(
-        parentDir.path + Platform.pathSeparator + 'Îñţérñåţîöñåļîžåţîờñ');
+        '${parentDir.path}${Platform.pathSeparator}Îñţérñåţîöñåļîžåţîờñ');
     final store = Store(getObjectBoxModel(), directory: unicodeDir.path);
     store.close();
 
@@ -276,8 +306,8 @@ void main() {
     expect(paths.length, 3);
     final expectedPaths = [
       unicodeDir.path,
-      File(unicodeDir.path + Platform.pathSeparator + 'data.mdb').path,
-      File(unicodeDir.path + Platform.pathSeparator + 'lock.mdb').path
+      File('${unicodeDir.path}${Platform.pathSeparator}data.mdb').path,
+      File('${unicodeDir.path}${Platform.pathSeparator}lock.mdb').path
     ];
     expect(paths, containsAll(expectedPaths));
 
@@ -322,7 +352,7 @@ void main() {
 Future<String> _readStringAndRemove(Store store, int id) async {
   var box = store.box<TestEntity>();
   var testEntity = box.get(id);
-  final result = testEntity!.tString! + '!';
+  final result = '${testEntity!.tString!}!';
   print('Result in 2nd isolate: $result');
   final removed = box.remove(id);
   print('Removed in 2nd isolate: $removed');

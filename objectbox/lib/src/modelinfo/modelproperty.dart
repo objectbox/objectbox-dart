@@ -169,6 +169,7 @@ class ModelProperty {
     result += ' flags:$flags';
 
     if (hasIndexFlag()) {
+      // ignore: prefer_interpolation_to_compose_strings
       result += ' index:' +
           (hasFlag(OBXPropertyFlags.INDEXED)
               ? 'value'

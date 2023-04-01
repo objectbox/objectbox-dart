@@ -67,7 +67,7 @@ ObjectBoxC? _tryObjectBoxLibFile() {
       // download script installs to as well.
       if (Platform.isMacOS) {
         try {
-          _lib ??= DynamicLibrary.open('/usr/local/lib/' + libName);
+          _lib ??= DynamicLibrary.open('/usr/local/lib/$libName');
         } on ArgumentError {
           // Ignore.
         }
@@ -116,7 +116,7 @@ ObjectBoxC loadObjectBoxLib() {
 }
 
 DynamicLibrary? _lib;
-late final ObjectBoxC C = loadObjectBoxLib();
+final ObjectBoxC C = loadObjectBoxLib();
 
 /// Init DartAPI in C for async callbacks.
 ///
@@ -153,14 +153,17 @@ Object? _dartAPIInitException;
 /// Unfortunately, ffigen keeps those private.
 typedef _NativeClose = Int32 Function(Pointer<Void> ptr);
 
-late final native_store_close =
+final native_store_close =
     _lib!.lookup<NativeFunction<_NativeClose>>('obx_store_close');
-late final native_query_close =
+final native_query_close =
     _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_close');
-late final native_query_prop_close =
+final native_query_prop_close =
     _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_prop_close');
-late final native_admin_close =
+final native_admin_close =
     _lib!.lookup<NativeFunction<_NativeClose>>('obx_admin_close');
+final weak_store_free = _lib!
+    .lookup<NativeFunction<Void Function(Pointer<OBX_weak_store>)>>(
+        'obx_weak_store_free');
 
 /// Keeps `this` alive until this call, preventing finalizers to run.
 /// Necessary for objects with a finalizer attached because the optimizer may

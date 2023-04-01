@@ -14,7 +14,7 @@ void main() async {
 // ~200k per second
 // ~165k with ReceivePort reuse (see this commit)
 class SetupSingle extends DbBenchmark {
-  SetupSingle() : super('${SetupSingle}');
+  SetupSingle() : super('$SetupSingle');
 
   @override
   void runIteration(int i) async {
@@ -28,7 +28,7 @@ class SetupSingle extends DbBenchmark {
 class SetupSingleBasedOnMulti extends DbBenchmark {
   late StreamSubscription multiSub;
 
-  SetupSingleBasedOnMulti() : super('${SetupSingleBasedOnMulti}');
+  SetupSingleBasedOnMulti() : super('$SetupSingleBasedOnMulti');
 
   @override
   void runIteration(int i) async {
@@ -54,7 +54,7 @@ class SetupSingleBasedOnMulti extends DbBenchmark {
 // ~240k per second with [Store.entityChanges]
 // ~610k with ReceivePort reuse (see this commit)
 class SetupMulti extends DbBenchmark {
-  SetupMulti() : super('${SetupMulti}');
+  SetupMulti() : super('$SetupMulti');
 
   @override
   void runIteration(int i) async {
@@ -68,7 +68,7 @@ class SetupMulti extends DbBenchmark {
 class SetupMultiExisting extends DbBenchmark {
   late StreamSubscription multiSub;
 
-  SetupMultiExisting() : super('${SetupMultiExisting}');
+  SetupMultiExisting() : super('$SetupMultiExisting');
 
   @override
   void runIteration(int i) async {
