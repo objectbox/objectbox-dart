@@ -15,10 +15,12 @@ defaults:
 jobs:
   generator:
     runs-on: ubuntu-22.04
-    container:
-      image: dart:2.19.2
     steps:
       - uses: actions/checkout@v3
+      # Prefer running on Ubuntu over Dart Docker image
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 2.19.2
       # Work around for https://github.com/actions/checkout/issues/1169
       - run: git config --system --add safe.directory /__w/objectbox-dart/objectbox-dart
       - name: Install ObjectBox C-API

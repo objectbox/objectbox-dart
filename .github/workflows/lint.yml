@@ -11,10 +11,12 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-22.04
-    container:
-      image: dart:2.19.2
     steps:
       - uses: actions/checkout@v3
+      # Prefer running on Ubuntu over Dart Docker image
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 2.19.2
       - name: Get dependencies
         run: |
           dart pub get --directory=benchmark
@@ -57,10 +59,12 @@ jobs:
 
   coverage:
     runs-on: ubuntu-22.04
-    container:
-      image: dart:2.19.2
     steps:
       - uses: actions/checkout@v3
+      # Prefer running on Ubuntu over Dart Docker image
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 2.19.2
       - name: Install coverage tools
         run: |
           ./tool/apt-install.sh lcov
