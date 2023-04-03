@@ -24,4 +24,4 @@ used to further prepare the environment **before** code generation for the step 
 ```
 Invalid argument(s): Failed to load dynamic library 'lib/objectbox.dll'
 ```
-Ensure `objectbox-c` is installed globally (required on Linux), or in the tested directory run [`../../../install.sh`](../../install.sh).
+Ensure `objectbox-c` is installed globally, or in the tested directory run [`../../../install.sh`](../../install.sh).

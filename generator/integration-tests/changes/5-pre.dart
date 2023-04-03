@@ -16,5 +16,12 @@ class A {
 
   A();
 }
+
+@Entity()
+class A1 {
+  int? id;
+
+  A1();
+}
   ''');
 }
