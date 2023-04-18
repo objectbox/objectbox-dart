@@ -15,12 +15,12 @@ defaults:
 jobs:
   generator:
     runs-on: ubuntu-22.04
-    container:
-      image: dart:2.19.2
     steps:
       - uses: actions/checkout@v3
-      # Work around for https://github.com/actions/checkout/issues/1169
-      - run: git config --system --add safe.directory /__w/objectbox-dart/objectbox-dart
+      # Prefer running on Ubuntu over Dart Docker image
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 2.19.2
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Integration test
@@ -63,10 +63,10 @@ jobs:
           ../tool/pub.sh get
           ../tool/pub.sh run test
       - name: Install ObjectBox C-API
-        working-directory: objectbox
+        working-directory: objectbox_test
         run: ../install.sh
       - name: Library Test
-        working-directory: objectbox
+        working-directory: objectbox_test
         run: |
           ../tool/pub.sh get
           ../tool/pub.sh run build_runner build
@@ -76,22 +76,22 @@ jobs:
 #  valgrind:
 #    runs-on: ubuntu-22.04
 #    steps:
+#      - uses: actions/checkout@v3
 #      - uses: dart-lang/setup-dart@v1
 #        with:
-#          sdk: 2.18.5
-#      - uses: actions/checkout@v3
+#          sdk: 2.19.2
 #      - name: Install ObjectBox C-API
 #        run: ./install.sh
 #      - name: Install Valgrind
 #        run: ./tool/apt-install.sh valgrind
 #      - name: Test
-#        working-directory: objectbox
-#        # let tests know we want a faster/shorter version, if available (to prevent timeouts in CI)
+#        working-directory: objectbox_test
+#        # Run shorter tests, if available (to prevent timeouts in CI).
 #        env:
 #          TEST_SHORT: 1
 #        run: |
-#          ../tool/pub.sh get
-#          ../tool/pub.sh run build_runner build
+#          dart pub get
+#          dart run build_runner build
 #          ./tool/valgrind.sh
 
   flutter-integration-test:

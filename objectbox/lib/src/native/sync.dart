@@ -576,7 +576,6 @@ class Sync {
 }
 
 /// Tests only.
-@internal
 @visibleForTesting
 class InternalSyncTestAccess {
   /// Access credentials internal data representation.

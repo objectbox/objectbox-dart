@@ -11,15 +11,32 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-22.04
-    container:
-      image: dart:2.19.2
     steps:
       - uses: actions/checkout@v3
-      - run: dart run build_runner build
-        working-directory: objectbox
-      - run: dart analyze
-        working-directory: objectbox
-      - run: dart format --set-exit-if-changed --fix .
+      # Prefer running on Ubuntu over Dart Docker image
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 2.19.2
+      - name: Get dependencies
+        run: |
+          dart pub get --directory=benchmark
+          dart pub get --directory=generator
+          dart pub get --directory=objectbox
+          dart pub get --directory=objectbox_test
+      - name: Generate code (benchmark)
+        working-directory: benchmark
+        run: dart run build_runner build
+      - name: Generate code (objectbox_test)
+        working-directory: objectbox_test
+        run: dart run build_runner build
+      - name: Analyze Dart packages
+        run: |
+          dart analyze benchmark
+          dart analyze generator
+          dart analyze objectbox
+          dart analyze objectbox_test
+      - name: Check formatting of all packages
+        run: dart format --set-exit-if-changed --fix .
 
   pana:
     runs-on: ubuntu-22.04
@@ -44,16 +61,27 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
+      # Prefer running on Ubuntu over Dart Docker image
+      - uses: dart-lang/setup-dart@v1
         with:
-          flutter-version: 3.7.3
-          cache: true
-      - name: Generate test coverage
+          sdk: 2.19.2
+      - name: Install coverage tools
+        run: |
+          ./tool/apt-install.sh lcov
+          dart pub global activate coverage
+      - name: Prepare objectbox_test
+        working-directory: objectbox_test
+        run: |
+          dart pub get
+          dart run build_runner build
+      - name: Prepare objectbox
         working-directory: objectbox
         run: |
-          ../tool/apt-install.sh lcov
-          make depend
-          make coverage
+          ../install.sh
+          dart pub get
+      - name: Generate test coverage
+        working-directory: objectbox
+        run: ./tool/coverage.sh
       - uses: devmasx/coverage-check-action@v1.2.0
         with:
           type: lcov

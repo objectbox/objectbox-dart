@@ -1,0 +1,4 @@
+# This is only used for get and upgrade, but ignored by publish https://github.com/dart-lang/pub/pull/3215
+dependency_overrides:
+  objectbox:
+    path: ../objectbox

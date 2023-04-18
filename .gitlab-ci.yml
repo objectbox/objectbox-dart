@@ -22,20 +22,58 @@ variables:
       - $CI_PROJECT_DIR/.pub-cache/hosted/
     key: "linux-x64-dart-$DART_VERSION-pub-cache"
 
-# Analyzes Dart passes all lints rules and is formatted correctly (required to publish to pub.dev).
+# Analyze (only) Dart packages, check formatting in Dart and Flutter packages.
 analyze:
   extends: .cache
   stage: analyze
   tags: [ x64, linux, docker ]
   image: dart:$DART_VERSION
   script:
-    - cd objectbox
+    # Get dependencies
+    - dart pub get --directory=benchmark
+    - dart pub get --directory=generator
+    - dart pub get --directory=objectbox
+    - dart pub get --directory=objectbox_test
+    # Generate code
+    - cd benchmark
     - dart run build_runner build
-    - dart analyze
+    - cd ../objectbox_test
+    - dart run build_runner build
     - cd ..
+    # Analyze Dart packages
+    - dart analyze benchmark
+    - dart analyze generator
+    - dart analyze objectbox
+    - dart analyze objectbox_test
+    # Check formatting of all packages
     - dart format --set-exit-if-changed --fix .
 
-# Runs generator unit and integration tests, e.g. ensures generator works as expected.
+# Runs tests with coverage on the objectbox package.
+coverage:
+  extends: .cache
+  stage: analyze
+  tags: [ x64, linux, docker ]
+  image: dart:$DART_VERSION
+  script:
+    # Install coverage tools
+    - apt-get update
+    - apt-get install --yes --no-install-recommends lcov
+    - dart pub global activate coverage
+    # Prepare objectbox_test
+    - cd objectbox_test
+    - dart pub get
+    - dart run build_runner build
+    # Generate test coverage
+    - cd ../objectbox
+    - ../install.sh
+    - dart pub get
+    - ./tool/coverage.sh
+  coverage: /^\s*lines......:\s*\d+.\d+\%/
+  artifacts:
+    paths:
+      - objectbox/coverage/html/
+
+# Runs generator integration tests, e.g. ensures generator works as expected.
 test-generator:linux:x64:
   extends: .cache
   stage: test
@@ -44,16 +82,19 @@ test-generator:linux:x64:
   script:
     - ./install.sh
     - ./generator/test.sh
-    - cd generator
-    - dart pub get
-    - dart test
 
+# Runs generator and objectbox unit tests.
 .test:
   extends: .cache
   stage: test
   script:
     - ./install.sh
-    - cd objectbox
+    # Generator tests
+    - cd generator
+    - dart pub get
+    - dart test
+    # ObjectBox tests
+    - cd ../objectbox_test
     - dart pub get
     - dart run build_runner build
     # Run only one test suite (== test file) at a time.

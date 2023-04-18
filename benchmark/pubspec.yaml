@@ -14,9 +14,3 @@ dev_dependencies:
   lints: ^2.0.1
   objectbox_generator: any
   build_runner: any
-
-dependency_overrides:
-  objectbox:
-    path: ../objectbox
-  objectbox_generator:
-    path: ../generator
