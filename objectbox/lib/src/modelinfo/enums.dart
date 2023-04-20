@@ -51,6 +51,8 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.Char;
     case PropertyType.int:
       return OBXPropertyType.Int;
+    case PropertyType.long:
+      return OBXPropertyType.Long;
     case PropertyType.float:
       return OBXPropertyType.Float;
     case PropertyType.date:

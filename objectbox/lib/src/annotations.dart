@@ -86,6 +86,9 @@ enum PropertyType {
   /// size: 4-bytes/32-bits
   int,
 
+  /// size: 8-bytes/64-bits
+  long,
+
   // dart type=int, size: 8-bytes/64-bits
   // no need to specify explicitly, just use [int]
   // long,
