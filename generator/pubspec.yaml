@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   objectbox: 2.0.0
-  analyzer: '>=4.0.0 <6.0.0' # v5 requires test version that requires Dart SDK 2.18, allow v4 for some time.
+  analyzer: ^5.2.0 # 5.1.0 has a bug where DartType.element has been removed.
   build: ^2.0.0
   collection: ^1.15.0
   dart_style: ^2.0.0
