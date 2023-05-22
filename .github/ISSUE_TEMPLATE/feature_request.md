@@ -7,21 +7,23 @@ assignees: ''
 
 ---
 
-:rotating_light: First, please check:
+<!--
+BEFORE you submit this issue, please check:
+- existing issues: https://github.com/objectbox/objectbox-dart/issues
+- the FAQ page: https://docs.objectbox.io/faq
+- the Troubleshooting page: https://docs.objectbox.io/troubleshooting
+-->
 
-- existing issues,
-- FAQs https://github.com/objectbox/objectbox-dart#faq
-
-Start with a clear and concise description of what problem you are trying to solve. Often there is already a solution!
+_TODO Clear and concise description of what problem you are trying to solve._
 
 ### Describe the solution you'd like
 
-A clear and concise description of what you want to happen.
+_TODO A clear and concise description of what you want to happen._
 
 ### Describe alternatives you've considered
 
-A clear and concise description of any alternative solutions or features you've considered.
+_TODO A clear and concise description of any alternative solutions or features you've considered._
 
 ### Additional context
 
-Add any other context (e.g. platform or language) about the feature request here.
+_TODO Add any other context (e.g. platform or language) about the feature request here._
