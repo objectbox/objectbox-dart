@@ -5,14 +5,14 @@ import 'dart:io';
 
 /// memset(ptr, value, num) sets the first num bytes of the block of memory
 /// pointed by ptr to the specified value (interpreted as an uint8).
-final _DartMemset memset =
-    _stdlib.lookupFunction<_CMemset, _DartMemset>('memset');
+final DartMemset memset =
+    _stdlib.lookupFunction<_CMemset, DartMemset>('memset');
 
-final _DartMemcpy? _memcpyNative = _lookupMemcpyOrNull();
+final DartMemcpy? _memcpyNative = _lookupMemcpyOrNull();
 
-_DartMemcpy? _lookupMemcpyOrNull() {
+DartMemcpy? _lookupMemcpyOrNull() {
   try {
-    return _stdlib.lookupFunction<_CMemcpy, _DartMemcpy>('memcpy');
+    return _stdlib.lookupFunction<_CMemcpy, DartMemcpy>('memcpy');
   } catch (_) {
     return null;
   }
@@ -23,7 +23,7 @@ _DartMemcpy? _lookupMemcpyOrNull() {
 final isMemcpyNotAvailable = _memcpyNative == null;
 
 // ignore: prefer_function_declarations_over_variables
-final _DartMemcpy _memcpyDart = (dest, src, length) {
+final DartMemcpy _memcpyDart = (dest, src, length) {
   dest
       .asTypedList(length)
       .setAll(0, src.asTypedList(length).getRange(0, length));
@@ -36,13 +36,15 @@ final _DartMemcpy _memcpyDart = (dest, src, length) {
 /// (e.g. for Flutter on iOS 15 simulator), then a Dart implementation is used
 /// to copy data via asTypedList (which is much slower).
 /// https://github.com/objectbox/objectbox-dart/issues/313
-final _DartMemcpy memcpy = _memcpyNative ?? _memcpyDart;
+final DartMemcpy memcpy = _memcpyNative ?? _memcpyDart;
 
 // FFI signature
-typedef _DartMemset = void Function(Pointer<Uint8>, int, int);
+/// Used for internal testing only.
+typedef DartMemset = void Function(Pointer<Uint8>, int, int);
 typedef _CMemset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 
-typedef _DartMemcpy = void Function(Pointer<Uint8>, Pointer<Uint8>, int);
+/// Used internally only.
+typedef DartMemcpy = void Function(Pointer<Uint8>, Pointer<Uint8>, int);
 typedef _CMemcpy = Void Function(Pointer<Uint8>, Pointer<Uint8>, IntPtr);
 
 final DynamicLibrary _stdlib = Platform.isWindows // no .process() on windows
