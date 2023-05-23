@@ -175,5 +175,11 @@ abstract class OBXPropertyType {
   /// < containers (lists and maps). Note: a flex map must use string keys.
   static const int Flex = 13;
   static const int ByteVector = 23;
+  static const int ShortVector = 24;
+  static const int CharVector = 25;
+  static const int IntVector = 26;
+  static const int LongVector = 27;
+  static const int FloatVector = 28;
+  static const int DoubleVector = 29;
   static const int StringVector = 30;
 }
