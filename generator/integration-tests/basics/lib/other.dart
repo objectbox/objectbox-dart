@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 
+/// Entity with non-null properties and constructor with positional parameters.
 @Entity()
 class NonNullA {
   int id;
@@ -67,6 +68,7 @@ class NonNullA {
       this.tDouble = 0]);
 }
 
+/// Entity with non-null properties and constructor with named optional parameters.
 @Entity()
 class NonNullB {
   int id;
