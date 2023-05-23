@@ -1,6 +1,7 @@
 ## latest
 
 * Fix put returning an incorrect error message in a rare case.
+* Require at least Dart SDK 2.16 (shipped with Flutter 2.10.0).
 
 ## 2.0.0 (2023-03-21)
 
