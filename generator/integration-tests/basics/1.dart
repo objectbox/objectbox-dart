@@ -47,9 +47,32 @@ void main() {
     expect(property(model, 'T.tString').type, OBXPropertyType.String);
     expect(property(model, 'T.tDate').type, OBXPropertyType.Date);
     expect(property(model, 'T.tDateNano').type, OBXPropertyType.DateNano);
+
     expect(property(model, 'T.tListInt').type, OBXPropertyType.ByteVector);
     expect(property(model, 'T.tInt8List').type, OBXPropertyType.ByteVector);
     expect(property(model, 'T.tUint8List').type, OBXPropertyType.ByteVector);
+
+    expect(property(model, 'T.tCharList').type, OBXPropertyType.CharVector);
+
+    expect(property(model, 'T.tShortList').type, OBXPropertyType.ShortVector);
+    expect(property(model, 'T.tInt16List').type, OBXPropertyType.ShortVector);
+    expect(property(model, 'T.tUint16List').type, OBXPropertyType.ShortVector);
+
+    expect(property(model, 'T.tIntList').type, OBXPropertyType.IntVector);
+    expect(property(model, 'T.tInt32List').type, OBXPropertyType.IntVector);
+    expect(property(model, 'T.tUint32List').type, OBXPropertyType.IntVector);
+
+    expect(property(model, 'T.tLongList').type, OBXPropertyType.LongVector);
+    expect(property(model, 'T.tInt64List').type, OBXPropertyType.LongVector);
+    expect(property(model, 'T.tUint64List').type, OBXPropertyType.LongVector);
+
+    expect(property(model, 'T.tFloatList').type, OBXPropertyType.FloatVector);
+    expect(property(model, 'T.tFloat32List').type, OBXPropertyType.FloatVector);
+
+    expect(property(model, 'T.tDoubleList').type, OBXPropertyType.DoubleVector);
+    expect(
+        property(model, 'T.tFloat64List').type, OBXPropertyType.DoubleVector);
+
     expect(property(model, 'T.tListString').type, OBXPropertyType.StringVector);
 
     expect(property(model, 'T.id').isSigned, isTrue);

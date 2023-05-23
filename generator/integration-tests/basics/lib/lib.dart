@@ -72,6 +72,30 @@ class T {
 
   Uint8List? tUint8List;
 
+  @Property(type: PropertyType.charVector)
+  List<int>? tCharList;
+
+  @Property(type: PropertyType.shortVector)
+  List<int>? tShortList;
+  Int16List? tInt16List;
+  Uint16List? tUint16List;
+
+  @Property(type: PropertyType.intVector)
+  List<int>? tIntList;
+  Int32List? tInt32List;
+  Uint32List? tUint32List;
+
+  List<int>? tLongList;
+  Int64List? tInt64List;
+  Uint64List? tUint64List;
+
+  @Property(type: PropertyType.floatVector)
+  List<double>? tFloatList;
+  Float32List? tFloat32List;
+
+  List<double>? tDoubleList;
+  Float64List? tFloat64List;
+
   List<String>? tListString;
 }
 
