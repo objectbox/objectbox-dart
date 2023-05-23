@@ -1,7 +1,6 @@
 import 'package:build/build.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:objectbox/internal.dart';
-import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
