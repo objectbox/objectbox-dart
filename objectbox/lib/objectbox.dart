@@ -1,7 +1,7 @@
 /// ObjectBox for Dart is a standalone database storing Dart objects locally,
 /// with strong ACID semantics.
 ///
-/// See the https://docs.objectbox.io/getting-started to get started.
+/// Read the [Getting Started](https://docs.objectbox.io/getting-started) guide.
 library objectbox;
 
 export 'src/admin.dart' show Admin;
