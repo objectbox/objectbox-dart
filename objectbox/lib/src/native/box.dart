@@ -98,6 +98,13 @@ class Box<T> {
   /// Use [get] to get an inserted object with its new ID set,
   /// or use [putAndGetAsync] instead.
   ///
+  /// See [putManyAsync] to put several objects at once with better performance.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [put]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
+  ///
   /// See also [putQueued] which is optimized for running a large number of puts
   /// in parallel.
   Future<int> putAsync(T object, {PutMode mode = PutMode.put}) async =>
@@ -290,6 +297,11 @@ class Box<T> {
   ///
   /// Use [getMany] to get inserted objects with their assigned ID set,
   /// or use [putAndGetManyAsync] instead.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [putMany]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<List<int>> putManyAsync(List<T> objects,
           {PutMode mode = PutMode.put}) async =>
       await _store.runAsync(
@@ -331,6 +343,11 @@ class Box<T> {
   static T? _getAsyncCallback<T>(Store store, int id) => store.box<T>().get(id);
 
   /// Like [get], but runs the box operation asynchronously in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [get]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<T?> getAsync(int id) => _store.runAsync(_getAsyncCallback<T>, id);
 
   /// Returns a list of [ids.length] Objects of type T, each corresponding to
@@ -358,6 +375,11 @@ class Box<T> {
 
   /// Like [getMany], but runs the box operation asynchronously in a worker
   /// isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [getMany]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<List<T?>> getManyAsync(List<int> ids, {bool growableResult = false}) =>
       _store.runAsync(
           _getManyAsyncCallback<T>, _GetManyAsyncArgs(ids, growableResult));
@@ -383,6 +405,11 @@ class Box<T> {
 
   /// Like [getAll], but runs the box operation asynchronously in a worker
   /// isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [getAll]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<List<T>> getAllAsync() =>
       _store.runAsync(_getAllAsyncCallback<T>, null);
 
@@ -452,6 +479,11 @@ class Box<T> {
       store.box<T>().remove(id);
 
   /// Like [remove], but runs in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [remove]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<bool> removeAsync(int id) async =>
       await _store.runAsync(_removeAsyncCallback<T>, id);
 
@@ -474,6 +506,11 @@ class Box<T> {
       store.box<T>().removeMany(ids);
 
   /// Like [removeMany], but runs in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [removeMany]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<int> removeManyAsync(List<int> ids) async =>
       await _store.runAsync(_removeManyAsyncCallback<T>, ids);
 
@@ -494,6 +531,11 @@ class Box<T> {
       store.box<T>().removeAll();
 
   /// Like [removeAll], but runs in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [removeAll]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<int> removeAllAsync() async =>
       await _store.runAsync(_removeAllAsyncCallback<T>, null);
 
