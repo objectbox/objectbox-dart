@@ -34,6 +34,18 @@ String obxPropertyTypeToString(int type) {
       return 'dateNano';
     case OBXPropertyType.ByteVector:
       return 'byteVector';
+    case OBXPropertyType.CharVector:
+      return 'charVector';
+    case OBXPropertyType.ShortVector:
+      return 'shortVector';
+    case OBXPropertyType.IntVector:
+      return 'intVector';
+    case OBXPropertyType.LongVector:
+      return 'longVector';
+    case OBXPropertyType.FloatVector:
+      return 'floatVector';
+    case OBXPropertyType.DoubleVector:
+      return 'doubleVector';
     case OBXPropertyType.StringVector:
       return 'stringVector';
   }
@@ -59,6 +71,14 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.DateNano;
     case PropertyType.byteVector:
       return OBXPropertyType.ByteVector;
+    case PropertyType.charVector:
+      return OBXPropertyType.CharVector;
+    case PropertyType.shortVector:
+      return OBXPropertyType.ShortVector;
+    case PropertyType.intVector:
+      return OBXPropertyType.IntVector;
+    case PropertyType.floatVector:
+      return OBXPropertyType.FloatVector;
     default:
       throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }

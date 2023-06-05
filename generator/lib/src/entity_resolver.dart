@@ -266,12 +266,34 @@ class EntityResolver extends Builder {
       // Dart: 8 bytes
       // ObjectBox: 8 bytes
       return OBXPropertyType.Double;
-    } else if (dartType.isDartCoreList &&
-        listItemType(dartType)!.isDartCoreString) {
-      // List<String>
-      return OBXPropertyType.StringVector;
+    } else if (dartType.isDartCoreList) {
+      final itemType = listItemType(dartType)!;
+      if (itemType.isDartCoreInt) {
+        // List<int>
+        // Dart: 8 bytes
+        // ObjectBox: 8 bytes
+        return OBXPropertyType.LongVector;
+      } else if (itemType.isDartCoreDouble) {
+        // List<double>
+        // Dart: 8 bytes
+        // ObjectBox: 8 bytes
+        return OBXPropertyType.DoubleVector;
+      } else if (itemType.isDartCoreString) {
+        // List<String>
+        return OBXPropertyType.StringVector;
+      }
     } else if (['Int8List', 'Uint8List'].contains(dartType.element!.name)) {
       return OBXPropertyType.ByteVector;
+    } else if (['Int16List', 'Uint16List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.ShortVector;
+    } else if (['Int32List', 'Uint32List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.IntVector;
+    } else if (['Int64List', 'Uint64List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.LongVector;
+    } else if (dartType.element!.name == 'Float32List') {
+      return OBXPropertyType.FloatVector;
+    } else if (dartType.element!.name == 'Float64List') {
+      return OBXPropertyType.DoubleVector;
     } else if (dartType.element!.name == 'DateTime') {
       log.warning(
           "  DateTime property '${f.name}' in entity '$className' is stored and read using millisecond precision. "
@@ -279,9 +301,10 @@ class EntityResolver extends Builder {
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(f)) {
       return OBXPropertyType.Relation;
-    } else {
-      return null;
     }
+
+    // No supported Dart type recognized.
+    return null;
   }
 
   void processIdProperty(ModelEntity entity, ClassElement classElement) {
