@@ -6,6 +6,7 @@ library objectbox_internal;
 
 export 'src/model.dart';
 export 'src/modelinfo/index.dart';
+export 'src/native/bindings/flatbuffers_readers.dart';
 export 'src/native/store.dart' show InternalStoreAccess;
 export 'src/query.dart'
 // don't export the same things as objectbox.dart to avoid docs conflicts

@@ -215,6 +215,22 @@ class CodeChunks {
         return 'Int8List(0)';
       case 'Uint8List':
         return 'Uint8List(0)';
+      case 'Int16List':
+        return 'Int16List(0)';
+      case 'Uint16List':
+        return 'Uint16List(0)';
+      case 'Int32List':
+        return 'Int32List(0)';
+      case 'Uint32List':
+        return 'Uint32List(0)';
+      case 'Int64List':
+        return 'Int64List(0)';
+      case 'Uint64List':
+        return 'Uint64List(0)';
+      case 'Float32List':
+        return 'Float32List(0)';
+      case 'Float64List':
+        return 'Float64List(0)';
       default:
         throw InvalidGenerationSourceError(
             'Cannot figure out default value for field: ${p.fieldType} ${p.name}');
@@ -268,7 +284,18 @@ class CodeChunks {
         case OBXPropertyType.StringVector:
           return '$assignment fbb.writeList($fieldName.map(fbb.writeString).toList(growable: false));';
         case OBXPropertyType.ByteVector:
+        case OBXPropertyType.CharVector:
           return '$assignment fbb.writeListInt8($fieldName);';
+        case OBXPropertyType.ShortVector:
+          return '$assignment fbb.writeListInt16($fieldName);';
+        case OBXPropertyType.IntVector:
+          return '$assignment fbb.writeListInt32($fieldName);';
+        case OBXPropertyType.LongVector:
+          return '$assignment fbb.writeListInt64($fieldName);';
+        case OBXPropertyType.FloatVector:
+          return '$assignment fbb.writeListFloat32($fieldName);';
+        case OBXPropertyType.DoubleVector:
+          return '$assignment fbb.writeListFloat64($fieldName);';
         default:
           offsets.remove(p.id.id);
           return null;
@@ -396,14 +423,55 @@ class CodeChunks {
 
       switch (p.type) {
         case OBXPropertyType.ByteVector:
+        case OBXPropertyType.CharVector:
           if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
-            // Can cast to Int8List or Uint8List as Flatbuffers internally
+            // Can cast to Int8List or Uint8List as FlatBuffers internally
             // uses it, see Int8ListReader and Uint8ListReader.
             return readFieldCodeString(
                 p, 'fb.${p.fieldType}Reader(lazy: false)',
                 castTo: p.fieldType);
           } else {
             return readListCodeString(p, "int", OBXPropertyType.Byte);
+          }
+        case OBXPropertyType.ShortVector:
+          // FlatBuffers has Uint16ListReader, but it does not use Uint16List
+          // internally. Use implementation of objectbox package.
+          if (['Int16List', 'Uint16List'].contains(p.fieldType)) {
+            return readFieldCodeString(p, '${p.fieldType}Reader()');
+          } else {
+            return readListCodeString(p, "int", OBXPropertyType.Short);
+          }
+        case OBXPropertyType.IntVector:
+          if (['Int32List', 'Uint32List'].contains(p.fieldType)) {
+            // FlatBuffers has Uint32ListReader, but it does not use Uint32List
+            // internally. Use implementation of objectbox package.
+            return readFieldCodeString(p, '${p.fieldType}Reader()');
+          } else {
+            return readListCodeString(p, "int", OBXPropertyType.Int);
+          }
+        case OBXPropertyType.LongVector:
+          if (['Int64List', 'Uint64List'].contains(p.fieldType)) {
+            // FlatBuffers has no readers for these.
+            // Use implementation of objectbox package.
+            return readFieldCodeString(p, '${p.fieldType}Reader()');
+          } else {
+            return readListCodeString(p, "int", OBXPropertyType.Long);
+          }
+        case OBXPropertyType.FloatVector:
+          if (p.fieldType == 'Float32List') {
+            // FlatBuffers has Float32ListReader, but it does not use Float32List
+            // internally. Use implementation of objectbox package.
+            return readFieldCodeString(p, 'Float32ListReader()');
+          } else {
+            return readListCodeString(p, "double", OBXPropertyType.Float);
+          }
+        case OBXPropertyType.DoubleVector:
+          if (p.fieldType == 'Float64List') {
+            // FlatBuffers has Float64ListReader, but it does not use Float64List
+            // internally. Use implementation of objectbox package.
+            return readFieldCodeString(p, 'Float64ListReader()');
+          } else {
+            return readListCodeString(p, "double", OBXPropertyType.Double);
           }
         case OBXPropertyType.Relation:
           return readFieldCodeString(
@@ -626,6 +694,16 @@ class CodeChunks {
           break;
         case OBXPropertyType.ByteVector:
           fieldType = 'ByteVector';
+          break;
+        case OBXPropertyType.CharVector:
+        case OBXPropertyType.ShortVector:
+        case OBXPropertyType.IntVector:
+        case OBXPropertyType.LongVector:
+          fieldType = 'IntegerVector';
+          break;
+        case OBXPropertyType.FloatVector:
+        case OBXPropertyType.DoubleVector:
+          fieldType = 'DoubleVector';
           break;
         case OBXPropertyType.StringVector:
           fieldType = 'StringVector';
