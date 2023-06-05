@@ -761,7 +761,7 @@ class Store {
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
   bool awaitQueueCompletion() {
-    final result = C.store_await_async_submitted(_ptr);
+    final result = C.store_await_async_completion(_ptr);
     reachabilityFence(this);
     return result;
   }

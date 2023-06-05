@@ -2,6 +2,8 @@
 
 * Fix put returning an incorrect error message in a rare case.
 * Require at least Dart SDK 2.16 (shipped with Flutter 2.10.0).
+* Let `Store.awaitQueueCompletion` actually wait on the async queue to become idle. It previously
+  behaved like `Store.awaitQueueSubmitted`.
 
 ## 2.0.0 (2023-03-21)
 
