@@ -579,28 +579,29 @@ void main() {
     }
   });
 
-  test('null properties are handled correctly', () {
-    final List<TestEntity> items = [
-      TestEntity(),
-      TestEntity(tLong: 10),
-      TestEntity(tString: 'Hello')
-    ];
-    final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0]!.id, isNotNull);
-    expect(fetchedItems[0]!.tLong, isNull);
-    expect(fetchedItems[0]!.tString, isNull);
-    expect(fetchedItems[0]!.tBool, isNull);
-    expect(fetchedItems[0]!.tDouble, isNull);
-    expect(fetchedItems[1]!.id, isNotNull);
-    expect(fetchedItems[1]!.tLong, isNotNull);
-    expect(fetchedItems[1]!.tString, isNull);
-    expect(fetchedItems[1]!.tBool, isNull);
-    expect(fetchedItems[1]!.tDouble, isNull);
-    expect(fetchedItems[2]!.id, isNotNull);
-    expect(fetchedItems[2]!.tLong, isNull);
-    expect(fetchedItems[2]!.tString, isNotNull);
-    expect(fetchedItems[2]!.tBool, isNull);
-    expect(fetchedItems[2]!.tDouble, isNull);
+  test('null simple types are handled correctly', () {
+    final TestEntity item = box.get(box.put(TestEntity()))!;
+    expect(item.id, isNotNull);
+    expect(item.tString, isNull);
+    expect(item.tLong, isNull);
+    expect(item.tDouble, isNull);
+    expect(item.tBool, isNull);
+    expect(item.tDate, isNull);
+    expect(item.tDateNano, isNull);
+    expect(item.tByte, isNull);
+    expect(item.tShort, isNull);
+    expect(item.tChar, isNull);
+    expect(item.tInt, isNull);
+    expect(item.tFloat, isNull);
+  });
+
+  test('null vector types are handled correctly', () {
+    final TestEntity item = box.get(box.put(TestEntity()))!;
+    expect(item.id, isNotNull);
+    expect(item.tStrings, isNull);
+    expect(item.tByteList, isNull);
+    expect(item.tInt8List, isNull);
+    expect(item.tUint8List, isNull);
   });
 
   test('simple types are handled correctly', () {
