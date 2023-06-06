@@ -313,6 +313,49 @@ class CodeChunks {
     }''';
   }
 
+  /// Builds a code string for reading a field.
+  ///
+  /// Depending on the field being nullable uses FlatBuffers
+  /// `.vTableGetNullable` or `.vTableGet` method.
+  ///
+  /// If the field is non-null will pass [defaultValue] to `.vTableGet`. If not
+  /// provided [fieldDefaultValue].
+  ///
+  /// If [castTo] is given, adds a cast code string (e.g. `as Type?` or
+  /// `as Type`).
+  static String readFieldCodeString(ModelProperty p, String readerCode,
+      {String? defaultValue, String? castTo}) {
+    final buf = StringBuffer();
+    final offset = propertyFlatBuffersvTableOffset(p);
+    buf.write("const $readerCode");
+    if (p.fieldIsNullable) {
+      buf.write('.vTableGetNullable(buffer, rootOffset, $offset)');
+    } else {
+      buf.write(
+          '.vTableGet(buffer, rootOffset, $offset, ${defaultValue ?? fieldDefaultValue(p)})');
+    }
+    if (castTo != null) {
+      // "as Type" or "as Type?"
+      buf.write("as $castTo");
+      if (p.fieldIsNullable && p.entity!.nullSafetyEnabled) {
+        buf.write("?");
+      }
+    }
+    return buf.toString();
+  }
+
+  /// Builds a code string for reading a field with a FlatBuffers ListReader.
+  ///
+  /// E.g. uses `fb.ListReader<int>(fb.Int8Reader(), lazy: false)` as reader
+  /// code string.
+  static String readListCodeString(
+      ModelProperty p, String itemType, int obxPropertyType,
+      {String? defaultValue, String? castTo}) {
+    return readFieldCodeString(p,
+        "fb.ListReader<$itemType>(fb.${_propertyFlatBuffersType[obxPropertyType]}Reader(), lazy: false)",
+        defaultValue: defaultValue, castTo: castTo);
+  }
+
   static String objectFromFB(ModelEntity entity) {
     // collect code for the template at the end of this function
     final constructorLines = <String>[]; // used as constructor arguments
@@ -327,43 +370,14 @@ class CodeChunks {
         entity.properties.mapIndexed((int index, ModelProperty p) {
       fieldIndexes[propertyFieldName(p)] = index;
 
-      String? fbReader;
-      readFieldOrNull() =>
-          'const $fbReader.vTableGetNullable(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)})';
-      readFieldNonNull([String? defaultValue]) =>
-          'const $fbReader.vTableGet(buffer, rootOffset, ${propertyFlatBuffersvTableOffset(p)}, ${defaultValue ?? fieldDefaultValue(p)})';
-      readField() => p.fieldIsNullable ? readFieldOrNull() : readFieldNonNull();
-      final valueVar = '${propertyFieldName(p)}Value';
-
-      switch (p.type) {
-        case OBXPropertyType.ByteVector:
-          if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
-            fbReader = 'fb.${p.fieldType}Reader(lazy: false)';
-            return '${readField()} as ${p.fieldType}${p.fieldIsNullable && p.entity!.nullSafetyEnabled ? "?" : ""}';
-          } else {
-            fbReader = 'fb.ListReader<int>(fb.Int8Reader(), lazy: false)';
-          }
-          break;
-        case OBXPropertyType.Relation:
-          fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
-          return readFieldNonNull('0');
-        case OBXPropertyType.String:
-          // still makes sense to keep `asciiOptimization: true`
-          // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
-          fbReader = 'fb.StringReader(asciiOptimization: true)';
-          break;
-        case OBXPropertyType.StringVector:
-          // still makes sense to keep `asciiOptimization: true`
-          // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
-          fbReader =
-              'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)';
-          break;
-        default:
-          fbReader = 'fb.${_propertyFlatBuffersType[p.type]}Reader()';
-      }
+      // Special handling for DateTime fields.
       if (p.fieldType == 'DateTime') {
+        final readCodeString = readFieldCodeString(
+            p, 'fb.${_propertyFlatBuffersType[p.type]}Reader()',
+            defaultValue: '0');
         if (p.fieldIsNullable) {
-          preLines.add('final $valueVar = ${readFieldOrNull()};');
+          final valueVar = '${propertyFieldName(p)}Value';
+          preLines.add('final $valueVar = $readCodeString;');
           if (p.type == OBXPropertyType.Date) {
             return '$valueVar == null ? null : DateTime.fromMillisecondsSinceEpoch($valueVar)';
           } else if (p.type == OBXPropertyType.DateNano) {
@@ -371,15 +385,44 @@ class CodeChunks {
           }
         } else {
           if (p.type == OBXPropertyType.Date) {
-            return "DateTime.fromMillisecondsSinceEpoch(${readFieldNonNull('0')})";
+            return "DateTime.fromMillisecondsSinceEpoch($readCodeString)";
           } else if (p.type == OBXPropertyType.DateNano) {
-            return "DateTime.fromMicrosecondsSinceEpoch((${readFieldNonNull('0')} / 1000).round())";
+            return "DateTime.fromMicrosecondsSinceEpoch(($readCodeString / 1000).round())";
           }
         }
         throw InvalidGenerationSourceError(
             'Invalid property data type ${p.type} for a DateTime field ${entity.name}.${p.name}');
       }
-      return readField();
+
+      switch (p.type) {
+        case OBXPropertyType.ByteVector:
+          if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
+            // Can cast to Int8List or Uint8List as Flatbuffers internally
+            // uses it, see Int8ListReader and Uint8ListReader.
+            return readFieldCodeString(
+                p, 'fb.${p.fieldType}Reader(lazy: false)',
+                castTo: p.fieldType);
+          } else {
+            return readListCodeString(p, "int", OBXPropertyType.Byte);
+          }
+        case OBXPropertyType.Relation:
+          return readFieldCodeString(
+              p, 'fb.${_propertyFlatBuffersType[p.type]}Reader()',
+              defaultValue: '0');
+        case OBXPropertyType.String:
+          // still makes sense to keep `asciiOptimization: true`
+          // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
+          return readFieldCodeString(
+              p, 'fb.StringReader(asciiOptimization: true)');
+        case OBXPropertyType.StringVector:
+          // still makes sense to keep `asciiOptimization: true`
+          // `readAll` faster(6.1ms) than when false(8.1ms) on Flutter 3.0.1, Dart 2.17.1
+          return readFieldCodeString(p,
+              'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)');
+        default:
+          return readFieldCodeString(
+              p, 'fb.${_propertyFlatBuffersType[p.type]}Reader()');
+      }
     }).toList(growable: false);
 
     // try to initialize as much as possible using the constructor
