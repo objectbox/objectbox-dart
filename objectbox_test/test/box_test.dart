@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
@@ -599,9 +598,32 @@ void main() {
     final TestEntity item = box.get(box.put(TestEntity()))!;
     expect(item.id, isNotNull);
     expect(item.tStrings, isNull);
-    expect(item.tByteList, isNull);
-    expect(item.tInt8List, isNull);
-    expect(item.tUint8List, isNull);
+
+    final vectorBox = store.box<TestEntityScalarVectors>();
+    final item2 = vectorBox.get(vectorBox.put(TestEntityScalarVectors()))!;
+    expect(item2.id, isNotNull);
+    expect(item2.tByteList, isNull);
+    expect(item2.tInt8List, isNull);
+    expect(item2.tUint8List, isNull);
+
+    expect(item2.tCharList, isNull);
+
+    expect(item2.tShortList, isNull);
+    expect(item2.tInt16List, isNull);
+    expect(item2.tUint16List, isNull);
+
+    expect(item2.tIntList, isNull);
+    expect(item2.tInt32List, isNull);
+    expect(item2.tUint32List, isNull);
+
+    expect(item2.tLongList, isNull);
+    expect(item2.tInt64List, isNull);
+    expect(item2.tUint64List, isNull);
+
+    expect(item2.tFloatList, isNull);
+    expect(item2.tFloat32List, isNull);
+    expect(item2.tDoubleList, isNull);
+    expect(item2.tFloat64List, isNull);
   });
 
   test('simple types are handled correctly', () {
@@ -628,18 +650,45 @@ void main() {
   });
 
   test('vector types are handled correctly', () {
-    final id = box.put(TestEntity(
-        tStrings: ['foo', 'bar'],
-        tByteList: [1, 99, -54],
-        tUint8List: Uint8List.fromList([2, 50, 78]),
-        tInt8List: Int8List.fromList([-16, 20, 43])));
+    // String vector
+    final id = box.put(TestEntity(tStrings: ['foo', 'bar']));
 
     final item = box.get(id)!;
     expect(item.id, id);
     expect(item.tStrings, ['foo', 'bar']);
-    expect(item.tByteList, [1, 99, -54]);
-    expect(item.tUint8List, [2, 50, 78]);
-    expect(item.tInt8List, [-16, 20, 43]);
+
+    // Integer and floating point vectors
+    final vectorBox = store.box<TestEntityScalarVectors>();
+    final id2 = vectorBox.put(TestEntityScalarVectors.withData(1));
+
+    final item2 = vectorBox.get(id2)!;
+    expect(item2.id, id2);
+
+    expect(item2.tByteList, [-11, 11]);
+    expect(item2.tInt8List, [-11, 11]);
+    expect(item2.tUint8List, [11, 12]);
+
+    expect(item2.tCharList, [-11, 11]);
+
+    expect(item2.tShortList, [-1001, 1001]);
+    expect(item2.tInt16List, [-1001, 1001]);
+    expect(item2.tUint16List, [1001, 1002]);
+
+    expect(item2.tIntList, [-100001, 100001]);
+    expect(item2.tInt32List, [-100001, 100001]);
+    expect(item2.tUint32List, [100001, 100002]);
+
+    expect(item2.tLongList, [-10000000001, 10000000001]);
+    expect(item2.tInt64List, [-10000000001, 10000000001]);
+    expect(item2.tUint64List, [10000000001, 10000000002]);
+
+    expect(item2.tFloatList![0], closeTo(-20.1, 0.00001));
+    expect(item2.tFloatList![1], closeTo(20.1, 0.00001));
+    expect(item2.tFloat32List![0], closeTo(-20.1, 0.00001));
+    expect(item2.tFloat32List![1], closeTo(20.1, 0.00001));
+
+    expect(item2.tDoubleList, [-2000.00001, 2000.00001]);
+    expect(item2.tFloat64List, [-2000.00001, 2000.00001]);
   });
 
   test('.count() works', () {
