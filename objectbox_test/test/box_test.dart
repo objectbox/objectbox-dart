@@ -274,21 +274,15 @@ void main() {
   });
 
   test('.get() returns the correct item', () async {
-    final int putId = box.put(TestEntity(
-        tString: 'Hello',
-        tStrings: ['foo', 'bar'],
-        tByteList: [1, 99, -54],
-        tUint8List: Uint8List.fromList([2, 50, 78]),
-        tInt8List: Int8List.fromList([-16, 20, 43])));
+    final testEntities = simpleItems();
+    box.putMany(testEntities);
+
+    final int putId = testEntities[2].id;
 
     assertItem(TestEntity? item) {
       expect(item, isNotNull);
       expect(item!.id, equals(putId));
-      expect(item.tString, equals('Hello'));
-      expect(item.tStrings, equals(['foo', 'bar']));
-      expect(item.tByteList, equals([1, 99, -54]));
-      expect(item.tUint8List, equals([2, 50, 78]));
-      expect(item.tInt8List, equals([-16, 20, 43]));
+      expect(item.tString, equals('Three'));
     }
 
     assertItem(box.get(putId));
@@ -609,7 +603,7 @@ void main() {
     expect(fetchedItems[2]!.tDouble, isNull);
   });
 
-  test('all types are handled correctly', () {
+  test('simple types are handled correctly', () {
     TestEntity item = TestEntity(
         tString: 'Hello',
         tLong: 1234,
@@ -630,6 +624,21 @@ void main() {
     expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
     expect(fetchedItem.tInt, equals(789012));
     expect((fetchedItem.tFloat! - (-2.71)).abs(), lessThan(0.0000001));
+  });
+
+  test('vector types are handled correctly', () {
+    final id = box.put(TestEntity(
+        tStrings: ['foo', 'bar'],
+        tByteList: [1, 99, -54],
+        tUint8List: Uint8List.fromList([2, 50, 78]),
+        tInt8List: Int8List.fromList([-16, 20, 43])));
+
+    final item = box.get(id)!;
+    expect(item.id, id);
+    expect(item.tStrings, ['foo', 'bar']);
+    expect(item.tByteList, [1, 99, -54]);
+    expect(item.tUint8List, [2, 50, 78]);
+    expect(item.tInt8List, [-16, 20, 43]);
   });
 
   test('.count() works', () {
