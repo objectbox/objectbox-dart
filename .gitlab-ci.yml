@@ -49,9 +49,11 @@ analyze:
     - dart format --set-exit-if-changed --fix .
 
 # Runs tests with coverage on the objectbox package.
+# Note: As this requires to run tests, make sure this does not block the actual test jobs so test 
+# issues can be seen.
 coverage:
   extends: .cache
-  stage: analyze
+  stage: test
   tags: [ x64, linux, docker ]
   image: dart:$DART_VERSION
   script:
