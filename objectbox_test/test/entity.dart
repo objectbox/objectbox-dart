@@ -382,10 +382,11 @@ class TestEntityScalarVectors {
     tByteList = [-byte, byte];
     tInt8List = Int8List.fromList(tByteList!);
     tUint8List = Uint8List.fromList([byte, byte + 1]);
-    tCharList = [-byte, byte];
 
     // Pick next largest multiple of 10 that does not longer fit smaller integer.
     final short = 1000 + nr;
+    tCharList = [short, short + 1];
+
     tShortList = [-short, short];
     tInt16List = Int16List.fromList(tShortList!);
     tUint16List = Uint16List.fromList([short, short + 1]);

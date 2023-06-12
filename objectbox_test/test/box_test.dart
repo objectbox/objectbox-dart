@@ -668,7 +668,7 @@ void main() {
     expect(item2.tInt8List, [-11, 11]);
     expect(item2.tUint8List, [11, 12]);
 
-    expect(item2.tCharList, [-11, 11]);
+    expect(item2.tCharList, [1001, 1002]);
 
     expect(item2.tShortList, [-1001, 1001]);
     expect(item2.tInt16List, [-1001, 1001]);

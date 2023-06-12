@@ -284,8 +284,8 @@ class CodeChunks {
         case OBXPropertyType.StringVector:
           return '$assignment fbb.writeList($fieldName.map(fbb.writeString).toList(growable: false));';
         case OBXPropertyType.ByteVector:
-        case OBXPropertyType.CharVector:
           return '$assignment fbb.writeListInt8($fieldName);';
+        case OBXPropertyType.CharVector:
         case OBXPropertyType.ShortVector:
           return '$assignment fbb.writeListInt16($fieldName);';
         case OBXPropertyType.IntVector:
@@ -423,7 +423,6 @@ class CodeChunks {
 
       switch (p.type) {
         case OBXPropertyType.ByteVector:
-        case OBXPropertyType.CharVector:
           if (['Int8List', 'Uint8List'].contains(p.fieldType)) {
             // Can cast to Int8List or Uint8List as FlatBuffers internally
             // uses it, see Int8ListReader and Uint8ListReader.
@@ -433,6 +432,11 @@ class CodeChunks {
           } else {
             return readListCodeString(p, "int", OBXPropertyType.Byte);
           }
+        case OBXPropertyType.CharVector:
+          // OBXPropertyType.Char currently incorrectly mapped to Int8,
+          // so explicitly use Uint16Reader for now.
+          return readFieldCodeString(
+              p, "fb.ListReader<int>(fb.Uint16Reader(), lazy: false)");
         case OBXPropertyType.ShortVector:
           // FlatBuffers has Uint16ListReader, but it does not use Uint16List
           // internally. Use implementation of objectbox package.

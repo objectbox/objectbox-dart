@@ -139,8 +139,8 @@ enum PropertyType {
   /// For more efficiency use `Int8List` or `Uint8List` instead.
   byteVector,
 
-  /// Use with [Property.type] to store a `List<int>` as char (8-bit integer)
-  /// array.
+  /// Use with [Property.type] to store a `List<int>` as char (16-bit unsigned
+  /// integer) array.
   charVector,
 
   /// Use with [Property.type] to store a `List<int>` as short (16-bit integer)
