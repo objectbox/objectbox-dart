@@ -4,6 +4,7 @@
 * Require at least Dart SDK 2.16 (shipped with Flutter 2.10.0).
 * Let `Store.awaitQueueCompletion` actually wait on the async queue to become idle. It previously
   behaved like `Store.awaitQueueSubmitted`.
+* Fix analysis event send failure breaking the code generator. #542
 
 ## 2.0.0 (2023-03-21)
 

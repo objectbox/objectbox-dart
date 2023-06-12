@@ -49,15 +49,28 @@ class ObjectBoxAnalysis {
 
     final event = buildEvent("Build", buildProperties.uid, pubspec);
 
-    final response = await sendEvent(event);
-    if (_debug && response != null) {
-      print(
-          "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}");
+    try {
+      final response = await sendEvent(event);
+      if (_debug && response != null) {
+        print(
+            "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}");
+      }
+    } catch (e, s) {
+      // E.g. connection can not be established (offline, TLS issue, ...).
+      // Just swallow the exception, sending the event is not required for the
+      // build to succeed.
+      if (_debug) {
+        print("[ObjectBox] Analysis send failed: $e");
+        print("[ObjectBox] Analysis stack trace:\n$s");
+      }
     }
   }
 
-  /// Sends an [Event] and returns the response. May return null if the API
-  /// token could not be obtained.
+  /// Sends an [Event] and returns the response.
+  ///
+  /// May return null if the API token could not be obtained.
+  ///
+  /// May throw if establishing a connection fails.
   Future<http.Response?> sendEvent(Event event) async {
     final token = await _getToken();
     if (token == null || token.isEmpty) {
