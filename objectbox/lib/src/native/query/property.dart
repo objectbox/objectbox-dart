@@ -122,8 +122,7 @@ extension IntegerPropertyQuery on PropertyQuery<int> {
   List<int> find({int? replaceNullWith}) {
     switch (_type) {
       case OBXPropertyType.Bool:
-      case OBXPropertyType.Byte:
-      case OBXPropertyType.Char: // Int8
+      case OBXPropertyType.Byte: // Int8
         final cDefault = replaceNullWith == null
             ? null
             : (malloc<Int8>()..value = replaceNullWith);
@@ -133,6 +132,7 @@ extension IntegerPropertyQuery on PropertyQuery<int> {
             (Pointer<OBX_int8_array> cItems) =>
                 cItems.ref.items.asTypedList(cItems.ref.count).toList(),
             C.int8_array_free);
+      case OBXPropertyType.Char:
       case OBXPropertyType.Short: // Int16
         final cDefault = replaceNullWith == null
             ? null

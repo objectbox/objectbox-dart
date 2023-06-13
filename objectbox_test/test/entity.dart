@@ -41,7 +41,7 @@ class TestEntity {
   @Property(type: PropertyType.short)
   int? tShort;
 
-  // OBXPropertyType.Char | 1 byte
+  // OBXPropertyType.Char | 16-bit unsigned integer
   @Property(type: PropertyType.char)
   int? tChar;
 
