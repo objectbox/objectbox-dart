@@ -254,7 +254,7 @@ class CodeChunks {
     OBXPropertyType.Bool: 'Bool',
     OBXPropertyType.Byte: 'Int8',
     OBXPropertyType.Short: 'Int16',
-    OBXPropertyType.Char: 'Int8',
+    OBXPropertyType.Char: 'Uint16',
     OBXPropertyType.Int: 'Int32',
     OBXPropertyType.Long: 'Int64',
     OBXPropertyType.Float: 'Float32',
@@ -433,10 +433,7 @@ class CodeChunks {
             return readListCodeString(p, "int", OBXPropertyType.Byte);
           }
         case OBXPropertyType.CharVector:
-          // OBXPropertyType.Char currently incorrectly mapped to Int8,
-          // so explicitly use Uint16Reader for now.
-          return readFieldCodeString(
-              p, "fb.ListReader<int>(fb.Uint16Reader(), lazy: false)");
+          return readListCodeString(p, "int", OBXPropertyType.Char);
         case OBXPropertyType.ShortVector:
           // FlatBuffers has Uint16ListReader, but it does not use Uint16List
           // internally. Use implementation of objectbox package.

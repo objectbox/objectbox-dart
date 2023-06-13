@@ -511,26 +511,27 @@ void main() {
     final int8Max = 127;
     final int16Min = -32768;
     final int16Max = 32767;
+    final uint16Max = 65535;
     final int32Min = -2147483648;
     final int32Max = 2147483647;
     final int64Min = -9223372036854775808;
     final int64Max = 9223372036854775807;
     final List<TestEntity> items = [
-      ...[int8Min, int8Max].map((n) => TestEntity(tChar: n)).toList(),
       ...[int8Min, int8Max].map((n) => TestEntity(tByte: n)).toList(),
       ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)).toList(),
+      ...[0, uint16Max].map((n) => TestEntity(tChar: n)).toList(),
       ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)).toList(),
       ...[int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList()
     ];
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
     final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0]!.tChar, equals(int8Min));
-    expect(fetchedItems[1]!.tChar, equals(int8Max));
-    expect(fetchedItems[2]!.tByte, equals(int8Min));
-    expect(fetchedItems[3]!.tByte, equals(int8Max));
-    expect(fetchedItems[4]!.tShort, equals(int16Min));
-    expect(fetchedItems[5]!.tShort, equals(int16Max));
+    expect(fetchedItems[0]!.tByte, equals(int8Min));
+    expect(fetchedItems[1]!.tByte, equals(int8Max));
+    expect(fetchedItems[2]!.tShort, equals(int16Min));
+    expect(fetchedItems[3]!.tShort, equals(int16Max));
+    expect(fetchedItems[4]!.tChar, equals(0));
+    expect(fetchedItems[5]!.tChar, equals(uint16Max));
     expect(fetchedItems[6]!.tInt, equals(int32Min));
     expect(fetchedItems[7]!.tInt, equals(int32Max));
     expect(fetchedItems[8]!.tLong, equals(int64Min));
@@ -634,7 +635,7 @@ void main() {
         tBool: true,
         tByte: 123,
         tShort: -4567,
-        tChar: 'x'.codeUnitAt(0),
+        tChar: 'Ā'.codeUnitAt(0), // U+0100
         tInt: 789012,
         tFloat: -2.71);
     final fetchedItem = box.get(box.put(item))!;
@@ -644,7 +645,7 @@ void main() {
     expect(fetchedItem.tBool, equals(true));
     expect(fetchedItem.tByte, equals(123));
     expect(fetchedItem.tShort, equals(-4567));
-    expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
+    expect(fetchedItem.tChar, equals('Ā'.codeUnitAt(0)));
     expect(fetchedItem.tInt, equals(789012));
     expect((fetchedItem.tFloat! - (-2.71)).abs(), lessThan(0.0000001));
   });

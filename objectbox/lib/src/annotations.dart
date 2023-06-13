@@ -99,7 +99,7 @@ enum PropertyType {
   /// size: 2-bytes/16-bits
   short,
 
-  /// size: 1-byte/8-bits
+  /// Use with [Property.type] to store [int] as 2 bytes (16-bit unsigned integer).
   char,
 
   /// size: 4-bytes/32-bits

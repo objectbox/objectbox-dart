@@ -168,7 +168,7 @@ abstract class OBXPropertyType {
   /// < 2 bytes
   static const int Short = 3;
 
-  /// < 1 byte
+  /// < 2 bytes
   static const int Char = 4;
 
   /// < 4 bytes
