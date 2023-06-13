@@ -5,7 +5,7 @@ homepage: https://objectbox.io
 version: 2.0.0
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
+  sdk: '>=2.18.0 <4.0.0'
 
 dependencies:
   objectbox: 2.0.0
