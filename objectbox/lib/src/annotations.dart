@@ -139,6 +139,40 @@ enum PropertyType {
   /// For more efficiency use `Int8List` or `Uint8List` instead.
   byteVector,
 
+  /// Use with [Property.type] to store a `List<int>` as char (16-bit unsigned
+  /// integer) array.
+  charVector,
+
+  /// Use with [Property.type] to store a `List<int>` as short (16-bit integer)
+  /// array.
+  ///
+  /// Integers stored in the list are truncated to their lowest 16 bits,
+  /// interpreted as signed 16-bit integer with values in the range of
+  /// -32768 to +32767.
+  ///
+  /// For more efficiency use `Int16List` or `Uint16List` instead.
+  shortVector,
+
+  /// Use with [Property.type] to store a `List<int>` as int (32-bit integer)
+  /// array.
+  ///
+  /// Integers stored in the list are truncated to their lowest 32 bits,
+  /// interpreted as signed 32-bit integer with values in the range of
+  /// -2147483648 to 2147483647.
+  ///
+  /// For more efficiency use `Int32List` or `Uint32List` instead.
+  intVector,
+
+  /// Use with [Property.type] to store a `List<double>` as float (32-bit
+  /// floating point) array.
+  ///
+  /// Double values stored in the list are converted to the nearest
+  /// single-precision value. Values read are converted to a double value with
+  /// the same value.
+  ///
+  /// For more efficiency use `Float32List` instead.
+  floatVector
+
   // dart type=List<String>
   // no need to specify explicitly, just use [List<String>]
   // stringVector

@@ -34,6 +34,18 @@ String obxPropertyTypeToString(int type) {
       return 'dateNano';
     case OBXPropertyType.ByteVector:
       return 'byteVector';
+    case OBXPropertyType.CharVector:
+      return 'charVector';
+    case OBXPropertyType.ShortVector:
+      return 'shortVector';
+    case OBXPropertyType.IntVector:
+      return 'intVector';
+    case OBXPropertyType.LongVector:
+      return 'longVector';
+    case OBXPropertyType.FloatVector:
+      return 'floatVector';
+    case OBXPropertyType.DoubleVector:
+      return 'doubleVector';
     case OBXPropertyType.StringVector:
       return 'stringVector';
   }
@@ -59,6 +71,14 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.DateNano;
     case PropertyType.byteVector:
       return OBXPropertyType.ByteVector;
+    case PropertyType.charVector:
+      return OBXPropertyType.CharVector;
+    case PropertyType.shortVector:
+      return OBXPropertyType.ShortVector;
+    case PropertyType.intVector:
+      return OBXPropertyType.IntVector;
+    case PropertyType.floatVector:
+      return OBXPropertyType.FloatVector;
     default:
       throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }
@@ -175,5 +195,11 @@ abstract class OBXPropertyType {
   /// < containers (lists and maps). Note: a flex map must use string keys.
   static const int Flex = 13;
   static const int ByteVector = 23;
+  static const int ShortVector = 24;
+  static const int CharVector = 25;
+  static const int IntVector = 26;
+  static const int LongVector = 27;
+  static const int FloatVector = 28;
+  static const int DoubleVector = 29;
   static const int StringVector = 30;
 }

@@ -180,6 +180,37 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
       _opList(list, _ConditionOp.notOneOf, alias);
 }
 
+/// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
+/// equal will be supported on elements of the vector (e.g. "has element greater")
+/// in the future.
+class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
+  QueryIntegerVectorProperty(ModelProperty model) : super(model);
+
+// Note: The C library currently does not support queries for integer vector properties.
+
+// Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
+//     _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
+//
+// Condition<EntityT> equals(int p, {String? alias}) =>
+//     _op(_ConditionOp.eq, p, 0, alias);
+//
+// Condition<EntityT> greaterThan(int p, {String? alias}) =>
+//     _op(_ConditionOp.gt, p, 0, alias);
+//
+// Condition<EntityT> greaterOrEqual(int p, {String? alias}) =>
+//     _op(_ConditionOp.greaterOrEq, p, 0, alias);
+//
+// Condition<EntityT> lessThan(int p, {String? alias}) =>
+//     _op(_ConditionOp.lt, p, 0, alias);
+//
+// Condition<EntityT> lessOrEqual(int p, {String? alias}) =>
+//     _op(_ConditionOp.lessOrEq, p, 0, alias);
+//
+// Condition<EntityT> operator <(int p) => lessThan(p);
+//
+// Condition<EntityT> operator >(int p) => greaterThan(p);
+}
+
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   QueryDoubleProperty(ModelProperty model) : super(model);
 
@@ -212,6 +243,35 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   Condition<EntityT> operator <(double p) => lessThan(p);
 
   Condition<EntityT> operator >(double p) => greaterThan(p);
+}
+
+/// For double vectors greater and less queries will be supported on elements of
+/// the vector (e.g. "has element greater") in the future.
+class QueryDoubleVectorProperty<EntityT>
+    extends QueryProperty<EntityT, double> {
+  QueryDoubleVectorProperty(ModelProperty model) : super(model);
+
+// Note: The C library currently does not support queries for floating point vector properties.
+
+// Condition<EntityT> _op(
+//         _ConditionOp op, double p1, double? p2, String? alias) =>
+//     _DoubleCondition<EntityT>(op, this, p1, p2, alias);
+//
+// Condition<EntityT> greaterThan(double p, {String? alias}) =>
+//     _op(_ConditionOp.gt, p, 0, alias);
+//
+// Condition<EntityT> greaterOrEqual(double p, {String? alias}) =>
+//     _op(_ConditionOp.greaterOrEq, p, null, alias);
+//
+// Condition<EntityT> lessThan(double p, {String? alias}) =>
+//     _op(_ConditionOp.lt, p, null, alias);
+//
+// Condition<EntityT> lessOrEqual(double p, {String? alias}) =>
+//     _op(_ConditionOp.lessOrEq, p, null, alias);
+//
+// Condition<EntityT> operator <(double p) => lessThan(p);
+//
+// Condition<EntityT> operator >(double p) => greaterThan(p);
 }
 
 class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
