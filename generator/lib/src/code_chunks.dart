@@ -31,10 +31,17 @@ class CodeChunks {
       ${model.entities.map(createModelEntity).join(',')}
     ];
 
-    /// Open an ObjectBox store with the model declared in this file.
+    /// Shortcut for [Store.new] that passes [getObjectBoxModel] and for Flutter
+    /// apps by default a [directory] using `defaultStoreDirectory()` from the
+    /// ObjectBox Flutter library.
+    ///
+    /// Note: for desktop apps it is recommended to specify a unique [directory].
+    /// 
+    /// See [Store.new] for an explanation of all parameters.
     ${openStore(model, pubspec)}
 
-    /// ObjectBox model definition, pass it to [Store] - Store(getObjectBoxModel())
+    /// Returns the ObjectBox model definition for this project for use with 
+    /// [Store.new].
     ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
 
