@@ -16,7 +16,7 @@ jobs:
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 2.19.6
+          sdk: 3.0.3
       - name: Get dependencies
         run: |
           dart pub get --directory=benchmark
@@ -64,7 +64,7 @@ jobs:
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 2.19.6
+          sdk: 3.0.3
       - name: Install coverage tools
         run: |
           ./tool/apt-install.sh lcov
