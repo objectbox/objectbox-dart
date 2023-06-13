@@ -684,7 +684,7 @@ class Store {
     try {
       // Await isolate spawn to avoid waiting forever if it fails to spawn.
       isolate = await Isolate.spawn(
-          _callFunctionWithStoreInIsolate,
+          _callFunctionWithStoreInIsolate<P, R>,
           _RunAsyncIsolateConfig(
               configuration(), port.sendPort, callback, param),
           errorsAreFatal: true,

@@ -99,19 +99,21 @@ class ModelEntity {
     name = data['name'] as String?;
     flags = data['flags'] as int? ?? 0;
 
-    ArgumentError.checkNotNull(data['properties'], "data['properties']");
-    for (final p in data['properties']) {
+    final properties = data['properties'] as List;
+    for (final p in properties) {
       _properties.add(ModelProperty.fromMap(p as Map<String, dynamic>, this));
     }
 
-    if (data['relations'] != null) {
-      for (final p in data['relations']) {
+    final relations = data['relations'] as List?;
+    if (relations != null) {
+      for (final p in relations) {
         _relations.add(ModelRelation.fromMap(p as Map<String, dynamic>));
       }
     }
 
-    if (data['backlinks'] != null) {
-      for (final p in data['backlinks']) {
+    final backlinks = data['backlinks'] as List?;
+    if (backlinks != null) {
+      for (final p in backlinks) {
         _backlinks.add(ModelBacklink.fromMap(p as Map<String, dynamic>));
       }
     }
@@ -124,8 +126,9 @@ class ModelEntity {
 
     if (check) validate();
 
-    _idProperty =
-        properties.singleWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
+    _idProperty = this
+        .properties
+        .singleWhere((p) => (p.flags & OBXPropertyFlags.ID) != 0);
   }
 
   void validate() {
