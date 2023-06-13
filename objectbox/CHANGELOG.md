@@ -1,4 +1,4 @@
-## latest
+## 2.1.0 (2023-06-13)
 
 * **Support for integer and floating point lists**: store 8-bit, 16-bit, 32-bit and 64-bit integer
   lists as well as 32-bit and 64-bit floating point lists (called "vectors" by ObjectBox).
