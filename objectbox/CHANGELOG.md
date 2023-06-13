@@ -1,5 +1,39 @@
 ## latest
 
+* **Support for integer and floating point lists**: store 8-bit, 16-bit, 32-bit and 64-bit integer
+  lists as well as 32-bit and 64-bit floating point lists (called "vectors" by ObjectBox).
+
+  Use a `typed_data` class like `Int16List`, `Uint16List` or `Float32List` for large lists, it uses
+  less memory and CPU. Otherwise just [use a Dart number list](https://docs.objectbox.io/advanced/custom-types).
+
+  A simple example is a shape entity that stores a palette of RGB colors:
+  ```dart
+  @Entity()
+  class Shape {
+      @Id()
+      int id = 0;
+
+      // An array of RGB color values that are used by this shape.
+      Int32List? palette;
+  }
+  ```
+
+  This can also be useful to store vector embeddings produced by machine learning:
+  ```dart
+  @Entity()
+  class ImageEmbedding {
+      @Id()
+      int id = 0;
+
+      // Link to the actual image, e.g. on Cloud storage
+      String? url;
+
+      // The coordinates computed for this image (vector embedding)
+      @Property(type: PropertyType.floatVector)
+      List<double>? coordinates;
+  }
+  ```
+  Note: for queries currently only the `isNull` and `notNull` conditions are supported.
 * Fix put returning an incorrect error message in a rare case.
 * Require at least Dart SDK 2.16 (shipped with Flutter 2.10.0).
 * Let `Store.awaitQueueCompletion` actually wait on the async queue to become idle. It previously
