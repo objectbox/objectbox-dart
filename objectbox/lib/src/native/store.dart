@@ -104,8 +104,12 @@ class Store {
   ///
   /// ## macOS application group
   ///
-  /// If you're creating a sandboxed macOS app use [macosApplicationGroup] to
-  /// specify the application group. For more details see our online docs.
+  /// When creating a sandboxed macOS app use [macosApplicationGroup] to
+  /// specify the application group. See the info boxes on the
+  /// [Getting Started](https://docs.objectbox.io/getting-started) page for
+  /// details.
+  ///
+  /// Note: due to limitations in macOS this must be 19 characters or shorter.
   ///
   /// ## Maximum database size
   ///
