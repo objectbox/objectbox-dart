@@ -105,7 +105,6 @@ jobs:
           # Always include lowest supported version (based on lowest tested Dart SDK, see lib tests
           # above): https://docs.flutter.dev/development/tools/sdk/releases lists included Dart SDK.
           - 3.7.12
-          - 3.3.10
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
