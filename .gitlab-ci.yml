@@ -48,33 +48,6 @@ analyze:
     # Check formatting of all packages
     - dart format --set-exit-if-changed --fix .
 
-# Runs tests with coverage on the objectbox package.
-# Note: As this requires to run tests, make sure this does not block the actual test jobs so test 
-# issues can be seen.
-coverage:
-  extends: .cache
-  stage: test
-  tags: [ x64, linux, docker ]
-  image: dart:$DART_VERSION
-  script:
-    # Install coverage tools
-    - apt-get update
-    - apt-get install --yes --no-install-recommends lcov
-    - dart pub global activate coverage
-    # Prepare objectbox_test
-    - cd objectbox_test
-    - dart pub get
-    - dart run build_runner build
-    # Generate test coverage
-    - cd ../objectbox
-    - ../install.sh
-    - dart pub get
-    - ./tool/coverage.sh
-  coverage: /^\s*lines......:\s*\d+.\d+\%/
-  artifacts:
-    paths:
-      - objectbox/coverage/html/
-
 # Runs generator integration tests, e.g. ensures generator works as expected.
 test-generator:linux:x64:
   extends: .cache
@@ -116,3 +89,31 @@ test-lib:linux:x64:
       # Always include lowest supported version (see sdk key in objectbox and generator
       # pubspec.yaml, but may be higher due to dependencies).
       - DART_VERSION: [ '2.18.6', '2.19.6' ]
+
+# Runs tests with coverage on the objectbox package.
+# Note: As this requires to run tests, make sure this does not block the actual test jobs so test
+# issues can be seen.
+coverage:
+  extends: .cache
+  stage: test
+  needs: ["test-lib:linux:x64"] # Get test results first
+  tags: [ x64, linux, docker ]
+  image: dart:$DART_VERSION
+  script:
+    # Install coverage tools
+    - apt-get update
+    - apt-get install --yes --no-install-recommends lcov
+    - dart pub global activate coverage
+    # Prepare objectbox_test
+    - cd objectbox_test
+    - dart pub get
+    - dart run build_runner build
+    # Generate test coverage
+    - cd ../objectbox
+    - ../install.sh
+    - dart pub get
+    - ./tool/coverage.sh
+  coverage: /^\s*lines......:\s*\d+.\d+\%/
+  artifacts:
+    paths:
+      - objectbox/coverage/html/
