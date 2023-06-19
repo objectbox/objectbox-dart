@@ -57,14 +57,13 @@ class CodeChunks {
 
   static String openStore(ModelInfo model, Pubspec? pubspec) {
     final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
-    final nullableOperator = model.entities.first.nullSafetyEnabled ? '?' : '';
     return '''${obxFlutter ? 'Future<Store>' : 'Store'} openStore(
-        {String$nullableOperator directory,
-          int$nullableOperator maxDBSizeInKB,
-          int$nullableOperator fileMode,
-          int$nullableOperator maxReaders,
+        {String? directory,
+          int? maxDBSizeInKB,
+          int? fileMode,
+          int? maxReaders,
           bool queriesCaseSensitiveDefault = true,
-          String$nullableOperator macosApplicationGroup})${obxFlutter ? ' async' : ''} =>
+          String? macosApplicationGroup})${obxFlutter ? ' async' : ''} =>
         Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
@@ -245,9 +244,6 @@ class CodeChunks {
   }
 
   static String propertyFieldAccess(ModelProperty p, String suffixIfNullable) {
-    if (!p.entity!.nullSafetyEnabled && suffixIfNullable == '!') {
-      suffixIfNullable = '';
-    }
     return propertyFieldName(p) + (p.fieldIsNullable ? suffixIfNullable : '');
   }
 
@@ -283,7 +279,7 @@ class CodeChunks {
       var assignment = 'final $offsetVar = ';
       if (p.fieldIsNullable) {
         assignment += '$fieldName == null ? null : ';
-        if (p.entity!.nullSafetyEnabled) fieldName += '!';
+        fieldName += '!';
       }
       switch (p.type) {
         case OBXPropertyType.String:
@@ -328,8 +324,7 @@ class CodeChunks {
           } else if (p.type == OBXPropertyType.DateNano) {
             if (p.fieldIsNullable) {
               accessorSuffix =
-                  ' == null ? null : object.${propertyFieldName(p)}';
-              if (p.entity!.nullSafetyEnabled) accessorSuffix += '!';
+                  ' == null ? null : object.${propertyFieldName(p)}!';
             }
             accessorSuffix += '.microsecondsSinceEpoch * 1000';
           }
@@ -371,7 +366,7 @@ class CodeChunks {
     if (castTo != null) {
       // "as Type" or "as Type?"
       buf.write("as $castTo");
-      if (p.fieldIsNullable && p.entity!.nullSafetyEnabled) {
+      if (p.fieldIsNullable) {
         buf.write("?");
       }
     }

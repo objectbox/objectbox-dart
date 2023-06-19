@@ -1,6 +1,3 @@
-// Temporary opt out of null-safety, flutter_driver is not null-safe yet
-// @dart = 2.10
-
 import 'package:flutter_driver/flutter_driver.dart';
 import 'package:test/test.dart';
 
