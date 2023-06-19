@@ -22,9 +22,6 @@ class ModelEntity {
 
   late List<String> constructorParams;
 
-  // whether the library this entity is defined in uses null safety
-  bool nullSafetyEnabled = true;
-
   // whether the user requested UID information (started a rename process)
   final bool uidRequest;
 
@@ -91,7 +88,6 @@ class ModelEntity {
       : _model = model,
         id = IdUid.fromString(data['id'] as String?),
         lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?),
-        nullSafetyEnabled = data['nullSafetyEnabled'] as bool? ?? true,
         uidRequest = data['uidRequest'] as bool? ?? false,
         _properties = [],
         _relations = [],
@@ -185,7 +181,6 @@ class ModelEntity {
     if (!forModelJson) {
       ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
       ret['constructorParams'] = constructorParams;
-      ret['nullSafetyEnabled'] = nullSafetyEnabled;
       ret['uidRequest'] = uidRequest;
     }
     return ret;

@@ -565,7 +565,7 @@ class Store {
     // Whether the function is an `async` function. We can't allow those because
     // the isolate could be transferred to another thread during execution.
     // Checking the return value seems like the only thing we can in Dart v2.12.
-    if (fn is Future Function() && _nullSafetyEnabled) {
+    if (fn is Future Function()) {
       // This is a special case when the given function always throws. Triggered
       //  in our test code. No need to even start a DB transaction in that case.
       if (fn is Never Function()) {
@@ -737,11 +737,6 @@ class Store {
     }
     try {
       final result = fn(tx);
-      if (!_nullSafetyEnabled && result is Future) {
-        // Let's make sure users change their code not to use async.
-        throw UnsupportedError(
-            'Executing an "async" function in a transaction is not allowed.');
-      }
       if (!reused) tx.successAndClose();
       return result;
     } catch (ex) {
@@ -872,12 +867,6 @@ const _int64Size = 8;
 /// Note: this only works for a single isolate. Core would need to support the
 /// same for the check to work across isolates.
 final _openStoreDirectories = HashSet<String>();
-
-/// True if the package enables null-safety (i.e. depends on SDK 2.12+).
-/// Otherwise, it's we can distinguish at runtime whether a function is async.
-final _nullSafetyEnabled = _nullReturningFn is! Future Function();
-// ignore: prefer_function_declarations_over_variables
-final _nullReturningFn = () => null;
 
 // Define type so IDE generates named parameters.
 /// Signature for the callback passed to [Store.runAsync].

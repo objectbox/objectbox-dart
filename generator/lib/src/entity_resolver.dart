@@ -74,12 +74,6 @@ class EntityResolver extends Builder {
     log.info(entity);
 
     entity.constructorParams = constructorParams(findConstructor(classElement));
-    entity.nullSafetyEnabled = nullSafetyEnabled(classElement);
-    if (!entity.nullSafetyEnabled) {
-      log.warning(
-          "Entity '${entity.name}' is in a package that doesn't use null-safety"
-          ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12.');
-    }
 
     // Make sure all stored fields are writable when reading object from DB.
     // Let's filter read-only fields, i.e those that:
@@ -509,13 +503,6 @@ class EntityResolver extends Builder {
       info.writeAll([' ', param.type]);
       return info.toString();
     }).toList(growable: false);
-  }
-
-  // To support apps that don't yet use null-safety (depend on an older SDK),
-  // we generate code without null-safety operators.
-  bool nullSafetyEnabled(Element element) {
-    final sdk = element.library!.languageVersion.effective;
-    return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
   }
 }
 
