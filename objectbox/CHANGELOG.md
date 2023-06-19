@@ -39,7 +39,7 @@
 * Changed `PropertyType.char` from a 8-bit signed integer to a 16-bit unsigned integer to match the 
   ObjectBox database type.
 * Fix put returning an incorrect error message in a rare case.
-* Require at least Dart SDK 2.16 (shipped with Flutter 2.10.0).
+* Require at least Dart SDK 2.18 (shipped with Flutter 3.3.0).
 * Let `Store.awaitQueueCompletion` actually wait on the async queue to become idle. It previously
   behaved like `Store.awaitQueueSubmitted`.
 * Fix analysis event send failure breaking the code generator. #542
