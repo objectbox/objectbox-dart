@@ -619,10 +619,7 @@ class Store {
     } finally {
       store.close();
     }
-
-    // Note: maybe replace with Isolate.exit (and remove kill() call in caller)
-    // once min Dart SDK 2.15.
-    isoPass.resultPort.send(result);
+    Isolate.exit(isoPass.resultPort, result);
   }
 
   /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
@@ -664,9 +661,6 @@ class Store {
   ///
   /// See [SendPort.send] for a discussion on which values can be sent to and
   /// received from isolates.
-  ///
-  /// Note: this requires Dart 2.15.0 or newer
-  /// (shipped with Flutter 2.8.0 or newer).
   Future<R> runAsync<P, R>(RunAsyncCallback<P, R> callback, P param) async {
     final port = RawReceivePort();
     final completer = Completer<dynamic>();
@@ -680,10 +674,9 @@ class Store {
       completer.complete(message);
     };
 
-    final Isolate isolate;
     try {
       // Await isolate spawn to avoid waiting forever if it fails to spawn.
-      isolate = await Isolate.spawn(
+      await Isolate.spawn(
           _callFunctionWithStoreInIsolate<P, R>,
           _RunAsyncIsolateConfig(
               configuration(), port.sendPort, callback, param),
@@ -696,10 +689,6 @@ class Store {
     }
 
     final dynamic response = await completer.future;
-    // Replace with Isolate.exit in _callFunctionWithStoreInIsolate
-    // once min SDK 2.15.
-    isolate.kill();
-
     if (response == null) {
       throw RemoteError('Isolate exited without result or error.', '');
     }

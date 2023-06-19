@@ -80,7 +80,7 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
     dynamic Function(TestEnv) storeRefGetter) async {
   final receivePort = ReceivePort();
   final initMessage = IsolateInitMessage(receivePort.sendPort, storeCreator);
-  final isolate = await Isolate.spawn(createDataIsolate, initMessage);
+  await Isolate.spawn(createDataIsolate, initMessage);
 
   final sendPortCompleter = Completer<SendPort>();
   late Completer<dynamic> responseCompleter;
@@ -128,7 +128,6 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
 
   expect(await call(['close']), equals('done'));
 
-  isolate.kill();
   receivePort.close();
   env.closeAndDelete();
 }
@@ -178,8 +177,7 @@ void createDataIsolate(IsolateInitMessage initMessage) async {
             break;
           case 'close':
             store.close();
-            sendPort.send('done');
-            break;
+            Isolate.exit(sendPort, 'done');
           default:
             sendPort.send('unknown message: $data');
         }
