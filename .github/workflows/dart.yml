@@ -20,7 +20,7 @@ jobs:
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 2.19.6
+          sdk: 3.0.3
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Integration test
@@ -48,6 +48,7 @@ jobs:
         sdk:
           # Always include lowest supported version (see sdk key in objectbox and generator
           # pubspec.yaml, but may be higher due to dependencies).
+          - 3.0.3
           - 2.19.6
           - 2.18.6
     runs-on: ${{ matrix.os }}
