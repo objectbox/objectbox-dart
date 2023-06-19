@@ -114,13 +114,9 @@ class ObjectBoxAnalysis {
       properties["CI"] = ci;
     }
 
-    // If ISO code (xx-XX or xx_XX format), split into lang and region.
-    // Otherwise set to unknown.
-    final locale = Platform.localeName;
-    var splitLocale =
-        locale.contains("_") ? locale.split("_") : locale.split("-");
-    properties["lang"] = splitLocale.isNotEmpty ? splitLocale[0] : "unknown";
-    properties["c"] = splitLocale.length >= 2 ? splitLocale[1] : "unknown";
+    final langAndRegion = LanguageAndRegion();
+    properties["lang"] = langAndRegion.lang;
+    properties["c"] = langAndRegion.region;
 
     return Event(eventName, properties);
   }
@@ -180,4 +176,27 @@ class Event {
 
   @override
   String toString() => toJson();
+}
+
+class LanguageAndRegion {
+  final String lang;
+  final String region;
+
+  /// Extracts language and region classifier from a locale String.
+  ///
+  /// If [localeOrNull] is null, uses [Platform.localeName].
+  factory LanguageAndRegion({String? localeOrNull}) {
+    var locale = localeOrNull ?? Platform.localeName;
+    // Drop .UTF-8 suffix, e.g. of C.UTF-8 or en_US.UTF-8
+    locale = locale.replaceAll(RegExp(RegExp.escape(".UTF-8")), "");
+    // If ISO code (xx-XX or xx_XX format), split into lang and region.
+    // Otherwise set to unknown.
+    var splitLocale =
+        locale.contains("_") ? locale.split("_") : locale.split("-");
+    final lang = splitLocale.isNotEmpty ? splitLocale[0] : "unknown";
+    final region = splitLocale.length >= 2 ? splitLocale[1] : "unknown";
+    return LanguageAndRegion._(lang, region);
+  }
+
+  LanguageAndRegion._(this.lang, this.region);
 }
