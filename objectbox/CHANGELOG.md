@@ -1,5 +1,8 @@
 ## latest
 
+* For Flutter apps running on Android 6 (or older): added `loadObjectBoxLibraryAndroidCompat()` to 
+  `objectbox_flutter_libs` (and `objectbox_sync_flutter_libs`). Use this to fix loading the 
+  ObjectBox library on these devices. [#369](https://github.com/objectbox/objectbox-dart/issues/369)
 * Improve code generator performance if there are many entities with many constructor parameters.
 
 ## 2.1.0 (2023-06-13)
