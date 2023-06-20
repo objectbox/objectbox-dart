@@ -9,6 +9,8 @@ environment:
   flutter: ">=2.0.0"
 
 dependencies:
+  flutter:
+    sdk: flutter
   # This is here just to ensure compatibility between objectbox-dart code and the libraries used
   # You should still depend on objectbox directly in your Flutter application.
   objectbox: 2.1.0
