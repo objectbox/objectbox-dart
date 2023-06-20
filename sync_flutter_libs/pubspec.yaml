@@ -16,6 +16,9 @@ dependencies:
   objectbox: 2.1.0
   path_provider: ^2.0.0
 
+dev_dependencies:
+  flutter_lints: ^2.0.0
+
 flutter:
   plugin:
     platforms:

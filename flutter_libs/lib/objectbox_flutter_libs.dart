@@ -12,6 +12,5 @@ import 'package:path_provider/path_provider.dart';
 /// Note: on desktop platforms this returns a directory in the users documents
 /// directory. It is advised to not use this then and instead create a directory
 /// named specifically for your app.
-Future<Directory> defaultStoreDirectory() async =>
-    Directory((await getApplicationDocumentsDirectory()).path +
-        '/${Store.defaultDirectoryPath}');
+Future<Directory> defaultStoreDirectory() async => Directory(
+    '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}');
