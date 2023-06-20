@@ -7,7 +7,6 @@ function create() {
   cd "$root/$dir" || exit 1
 
   flutter create \
-    --android-language=java \
     --template=plugin \
     --org=io.objectbox \
     --platforms=ios,android,linux,macos,windows \
