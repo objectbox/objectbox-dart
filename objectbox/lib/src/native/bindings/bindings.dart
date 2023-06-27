@@ -149,22 +149,6 @@ void initializeDartAPI() {
 int _dartAPIInitialized = 0;
 Object? _dartAPIInitException;
 
-/// A couple of native functions we need as callbacks to pass back to native.
-/// Unfortunately, ffigen keeps those private.
-typedef _NativeClose = Int Function(Pointer<Void> ptr);
-
-final native_store_close =
-    _lib!.lookup<NativeFunction<_NativeClose>>('obx_store_close');
-final native_query_close =
-    _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_close');
-final native_query_prop_close =
-    _lib!.lookup<NativeFunction<_NativeClose>>('obx_query_prop_close');
-final native_admin_close =
-    _lib!.lookup<NativeFunction<_NativeClose>>('obx_admin_close');
-final weak_store_free = _lib!
-    .lookup<NativeFunction<Void Function(Pointer<OBX_weak_store>)>>(
-        'obx_weak_store_free');
-
 /// Keeps `this` alive until this call, preventing finalizers to run.
 /// Necessary for objects with a finalizer attached because the optimizer may
 /// mark the object as unused (-> GCed -> finalized) even before it's method

@@ -15,7 +15,7 @@ class PropertyQuery<T> {
   PropertyQuery._(this._query, this._cProp, this._type) {
     checkObxPtr(_cProp, 'property query');
     _cFinalizer = C.dartc_attach_finalizer(
-        this, native_query_prop_close, _cProp.cast(), 64);
+        this, C.addresses.query_prop_close.cast(), _cProp.cast(), 64);
     if (_cFinalizer == nullptr) {
       close();
       throwLatestNativeError();

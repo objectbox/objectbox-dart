@@ -39,6 +39,14 @@ ffigen:
     rename:
       'obx_dart_(.*)': 'dartc_$1'
       'obx_(.*)': '$1'
+    # Expose some native pointers to use with NativeFinalizer API.
+    # https://pub.dev/packages/ffigen#how-to-expose-the-native-pointers
+    symbol-address:
+      include:
+        - 'obx_admin_close'
+        - 'obx_query_close'
+        - 'obx_query_prop_close'
+        - 'obx_store_close'
   enums:
     member-rename:
       '(.*)': # Matches any enum.

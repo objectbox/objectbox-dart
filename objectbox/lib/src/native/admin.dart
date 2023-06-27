@@ -55,7 +55,7 @@ class Admin {
 
     // Keep the finalizer so we can detach it when close() is called manually.
     _cFinalizer = C.dartc_attach_finalizer(
-        this, native_admin_close, _cAdmin.cast(), 1024 * 1024);
+        this, C.addresses.admin_close.cast(), _cAdmin.cast(), 1024 * 1024);
     if (_cFinalizer == nullptr) {
       close();
       throwLatestNativeError();

@@ -441,7 +441,7 @@ class Store {
     initializeDartAPI();
     // Keep the finalizer so it can be detached when close() is called.
     _cFinalizer = C.dartc_attach_finalizer(
-        this, native_store_close, _cStore.cast(), 1024 * 1024);
+        this, C.addresses.store_close.cast(), _cStore.cast(), 1024 * 1024);
     if (_cFinalizer == nullptr) {
       close();
       throwLatestNativeError(context: 'attach store finalizer');

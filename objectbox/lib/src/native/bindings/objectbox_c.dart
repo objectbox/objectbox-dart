@@ -8115,6 +8115,21 @@ class ObjectBoxC {
               ffi.Handle)>>('obx_dart_detach_finalizer');
   late final _dartc_detach_finalizer = _dartc_detach_finalizerPtr
       .asFunction<int Function(ffi.Pointer<OBX_dart_finalizer>, Object)>();
+
+  late final addresses = _SymbolAddresses(this);
+}
+
+class _SymbolAddresses {
+  final ObjectBoxC _library;
+  _SymbolAddresses(this._library);
+  ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_store>)>>
+      get store_close => _library._store_closePtr;
+  ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query>)>>
+      get query_close => _library._query_closePtr;
+  ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query_prop>)>>
+      get query_prop_close => _library._query_prop_closePtr;
+  ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_admin>)>>
+      get admin_close => _library._admin_closePtr;
 }
 
 abstract class OBXFeature {

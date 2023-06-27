@@ -737,8 +737,8 @@ class Query<T> {
 
   void _attachFinalizer() {
     // Keep the finalizer so we can detach it when close() is called manually.
-    _cFinalizer =
-        C.dartc_attach_finalizer(this, native_query_close, _cQuery.cast(), 256);
+    _cFinalizer = C.dartc_attach_finalizer(
+        this, C.addresses.query_close.cast(), _cQuery.cast(), 256);
     if (_cFinalizer == nullptr) {
       close();
       throwLatestNativeError();
