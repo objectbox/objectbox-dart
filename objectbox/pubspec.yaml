@@ -43,12 +43,6 @@ ffigen:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
-  # add location to standard library imports, e.g. stddef.h
-  llvm-path:
-    - '/usr/lib/llvm-12'
-  compiler-opts: '-I/usr/lib/clang/12.0.0/include'
-  typedef-map:
-    'size_t': 'IntPtr'
   # pana ignores exclude rules in analysis_options.yaml, explicitly add ignore rules.
   preamble: |
     // ignore_for_file: non_constant_identifier_names, public_member_api_docs, prefer_expression_function_bodies, avoid_positional_boolean_parameters, constant_identifier_names, camel_case_types
