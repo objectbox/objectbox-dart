@@ -368,7 +368,7 @@ abstract class Condition<EntityT> {
     if (cid == 0) builder._throwExceptionIfNecessary();
     if (_alias != null) {
       checkObx(withNativeString(_alias!,
-          (Pointer<Int8> cStr) => C.qb_param_alias(builder._cBuilder, cStr)));
+          (Pointer<Char> cStr) => C.qb_param_alias(builder._cBuilder, cStr)));
     }
     return cid;
   }
@@ -420,7 +420,7 @@ class _StringCondition<EntityT, PropertyDartType>
       : super(op, prop, value, value2, alias);
 
   int _op1(_QueryBuilder builder,
-      int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
+      int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, bool) func) {
     final cStr = _value.toNativeUtf8();
     try {
       return func(builder._cBuilder, _property._model.id.id, cStr.cast(),
@@ -470,7 +470,7 @@ class _StringListCondition<EntityT>
 
   int _oneOf(_QueryBuilder builder) => withNativeStrings(
       _value,
-      (Pointer<Pointer<Int8>> ptr, int size) => C.qb_in_strings(
+      (Pointer<Pointer<Char>> ptr, int size) => C.qb_in_strings(
           builder._cBuilder,
           _property._model.id.id,
           ptr,

@@ -280,7 +280,7 @@ extension StringPropertyQuery on PropertyQuery<String> {
   /// Results are in no particular order. Excludes null values unless you
   /// specify [replaceNullWith].
   List<String> find({String? replaceNullWith}) {
-    final cDefault = replaceNullWith?.toNativeUtf8().cast<Int8>();
+    final cDefault = replaceNullWith?.toNativeUtf8().cast<Char>();
 
     return _find(
         C.query_prop_find_strings,

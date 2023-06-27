@@ -61,24 +61,24 @@ extension QueryParamString on QueryParam<String> {
     if (_alias == null) {
       withNativeString(
           value,
-          (Pointer<Int8> cStr) => checkObx(C.query_param_string(
+          (Pointer<Char> cStr) => checkObx(C.query_param_string(
               _query._ptr, _entityId, _prop._model.id.id, cStr)));
     } else {
       withNativeStrings(
           [_alias!, value],
-          (Pointer<Pointer<Int8>> ptr, int size) => checkObx(
+          (Pointer<Pointer<Char>> ptr, int size) => checkObx(
               C.query_param_alias_string(_query._ptr, ptr[0], ptr[1])));
     }
   }
 
   set values(List<String> values) => withNativeStrings(
       values,
-      (Pointer<Pointer<Int8>> ptr, int size) => checkObx((_alias == null)
+      (Pointer<Pointer<Char>> ptr, int size) => checkObx((_alias == null)
           ? C.query_param_strings(
               _query._ptr, _entityId, _prop._model.id.id, ptr, size)
           : withNativeString(
               _alias!,
-              (Pointer<Int8> cAlias) => C.query_param_alias_strings(
+              (Pointer<Char> cAlias) => C.query_param_alias_strings(
                   _query._ptr, cAlias, ptr, size))));
 }
 
@@ -91,7 +91,7 @@ extension QueryParamBytes on QueryParam<List<int>> {
               _query._ptr, _entityId, _prop._model.id.id, ptr, size)
           : withNativeString(
               _alias!,
-              (Pointer<Int8> cAlias) =>
+              (Pointer<Char> cAlias) =>
                   C.query_param_alias_bytes(_query._ptr, cAlias, ptr, size))));
 }
 
@@ -101,7 +101,7 @@ extension QueryParamInt on QueryParam<int> {
       ? C.query_param_int(_query._ptr, _entityId, _prop._model.id.id, value)
       : withNativeString(
           _alias!,
-          (Pointer<Int8> cAlias) =>
+          (Pointer<Char> cAlias) =>
               C.query_param_alias_int(_query._ptr, cAlias, value)));
 
   set values(List<int> values) {
@@ -125,7 +125,7 @@ extension QueryParamInt on QueryParam<int> {
       } else {
         withNativeString(
             _alias!,
-            (Pointer<Int8> cAlias) => checkObx(is64bit
+            (Pointer<Char> cAlias) => checkObx(is64bit
                 ? C.query_param_alias_int64s(
                     _query._ptr, cAlias, ptr as Pointer<Int64>, values.length)
                 : C.query_param_alias_int32s(_query._ptr, cAlias,
@@ -141,7 +141,7 @@ extension QueryParamInt on QueryParam<int> {
       ? C.query_param_2ints(_query._ptr, _entityId, _prop._model.id.id, a, b)
       : withNativeString(
           _alias!,
-          (Pointer<Int8> cAlias) =>
+          (Pointer<Char> cAlias) =>
               C.query_param_alias_2ints(_query._ptr, cAlias, a, b)));
 }
 
@@ -151,7 +151,7 @@ extension QueryParamDouble on QueryParam<double> {
       ? C.query_param_double(_query._ptr, _entityId, _prop._model.id.id, value)
       : withNativeString(
           _alias!,
-          (Pointer<Int8> cAlias) =>
+          (Pointer<Char> cAlias) =>
               C.query_param_alias_double(_query._ptr, cAlias, value)));
 
   /// set values for condition consisting of two values
@@ -159,7 +159,7 @@ extension QueryParamDouble on QueryParam<double> {
       ? C.query_param_2doubles(_query._ptr, _entityId, _prop._model.id.id, a, b)
       : withNativeString(
           _alias!,
-          (Pointer<Int8> cAlias) =>
+          (Pointer<Char> cAlias) =>
               C.query_param_alias_2doubles(_query._ptr, cAlias, a, b)));
 }
 
@@ -170,6 +170,6 @@ extension QueryParamBool on QueryParam<bool> {
           _query._ptr, _entityId, _prop._model.id.id, value ? 1 : 0)
       : withNativeString(
           _alias!,
-          (Pointer<Int8> cAlias) =>
+          (Pointer<Char> cAlias) =>
               C.query_param_alias_int(_query._ptr, cAlias, value ? 1 : 0)));
 }
