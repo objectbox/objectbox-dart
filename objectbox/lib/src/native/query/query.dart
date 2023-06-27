@@ -658,7 +658,7 @@ class _ByteVectorCondition<EntityT>
 
 class _ConditionGroup<EntityT> extends Condition<EntityT> {
   final List<Condition<EntityT>> _conditions;
-  final int Function(Pointer<OBX_query_builder>, Pointer<Int32>, int) _func;
+  final int Function(Pointer<OBX_query_builder>, Pointer<Int>, int) _func;
 
   _ConditionGroup(this._conditions, this._func) : super(null);
 
@@ -672,7 +672,7 @@ class _ConditionGroup<EntityT> extends Condition<EntityT> {
       return _conditions[0]._applyFull(builder, isRoot: isRoot);
     }
 
-    final intArrayPtr = malloc<Int32>(size);
+    final intArrayPtr = malloc<Int>(size);
     try {
       for (var i = 0; i < size; ++i) {
         final cid = _conditions[i]._applyFull(builder, isRoot: false);
