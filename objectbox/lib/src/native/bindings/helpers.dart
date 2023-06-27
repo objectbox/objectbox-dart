@@ -114,7 +114,7 @@ class CursorHelper<T> {
   final bool _isWrite;
   late final Pointer<Pointer<Uint8>> dataPtrPtr;
 
-  late final Pointer<IntPtr> sizePtr;
+  late final Pointer<Size> sizePtr;
 
   bool _closed = false;
 
