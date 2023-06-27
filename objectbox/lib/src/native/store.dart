@@ -29,7 +29,7 @@ part 'store_config.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
-class Store {
+class Store implements Finalizable {
   /// Path of the default directory, currently 'objectbox'.
   static const String defaultDirectoryPath = 'objectbox';
 
@@ -39,7 +39,13 @@ class Store {
 
   /// Pointer to the C instance of this, access via [_ptr] with closed check.
   late Pointer<OBX_store> _cStore;
-  late final Pointer<OBX_dart_finalizer> _cFinalizer;
+
+  /// Runs native close function on [_cStore] if this is garbage collected.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.store_close.cast());
+
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
 
@@ -438,14 +444,8 @@ class Store {
   /// close() and not rely on garbage collection [to avoid out-of-memory
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
-    initializeDartAPI();
-    // Keep the finalizer so it can be detached when close() is called.
-    _cFinalizer = C.dartc_attach_finalizer(
-        this, C.addresses.store_close.cast(), _cStore.cast(), 1024 * 1024);
-    if (_cFinalizer == nullptr) {
-      close();
-      throwLatestNativeError(context: 'attach store finalizer');
-    }
+    _finalizer.attach(this, _cStore.cast(),
+        detach: this, externalSize: 200 * 1024);
   }
 
   /// Returns if an open store (i.e. opened before and not yet closed) was found
@@ -496,11 +496,7 @@ class Store {
   ///   store.close();
   /// }
   /// ```
-  Pointer<OBX_store> _clone() {
-    final ptr = checkObxPtr(C.store_clone(_ptr));
-    reachabilityFence(this);
-    return ptr;
-  }
+  Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_ptr));
 
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;
@@ -523,12 +519,8 @@ class Store {
 
     if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
-      final errors = List.filled(2, 0);
-      if (_cFinalizer != nullptr) {
-        errors[0] = C.dartc_detach_finalizer(_cFinalizer, this);
-      }
-      errors[1] = C.store_close(_cStore);
-      errors.forEach(checkObx);
+      _finalizer.detach(this);
+      checkObx(C.store_close(_cStore));
     }
     _cStore = nullptr;
   }
@@ -748,11 +740,7 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitQueueCompletion() {
-    final result = C.store_await_async_completion(_ptr);
-    reachabilityFence(this);
-    return result;
-  }
+  bool awaitQueueCompletion() => C.store_await_async_completion(_ptr);
 
   /// Await for previously submitted operations using [Box.putQueued] to be
   /// completed (the queue does not have to become idle).
@@ -761,11 +749,7 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitQueueSubmitted() {
-    final result = C.store_await_async_submitted(_ptr);
-    reachabilityFence(this);
-    return result;
-  }
+  bool awaitQueueSubmitted() => C.store_await_async_submitted(_ptr);
 
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
