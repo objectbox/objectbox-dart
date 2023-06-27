@@ -432,10 +432,10 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = malloc<Uint8>();
+    final isEmpty = malloc<Bool>();
     try {
       checkObx(C.box_is_empty(_cBox, isEmpty));
-      return isEmpty.value == 1;
+      return isEmpty.value;
     } finally {
       malloc.free(isEmpty);
     }
@@ -443,10 +443,10 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = malloc<Uint8>();
+    final contains = malloc<Bool>();
     try {
       checkObx(C.box_contains(_cBox, id, contains));
-      return contains.value == 1;
+      return contains.value;
     } finally {
       malloc.free(contains);
     }
@@ -454,11 +454,11 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids].
   bool containsMany(List<int> ids) {
-    final contains = malloc<Uint8>();
+    final contains = malloc<Bool>();
     try {
       return executeWithIdArray(ids, (ptr) {
         checkObx(C.box_contains_many(_cBox, ptr, contains));
-        return contains.value == 1;
+        return contains.value;
       });
     } finally {
       malloc.free(contains);

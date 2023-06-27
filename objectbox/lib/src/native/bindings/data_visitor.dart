@@ -19,11 +19,11 @@ import 'bindings.dart';
 
 bool Function(Pointer<Uint8> data, int size) _callback = _callback;
 
-int _forwarder(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
-    _callback(dataPtr, size) ? 1 : 0;
+bool _forwarder(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
+    _callback(dataPtr, size);
 
 final Pointer<obx_data_visitor> _nativeVisitor =
-    Pointer.fromFunction(_forwarder, 0);
+    Pointer.fromFunction(_forwarder, false);
 
 /// The callback for reading data one-by-one.
 ///
