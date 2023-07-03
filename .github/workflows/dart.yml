@@ -89,6 +89,7 @@ jobs:
         # Run shorter tests, if available (to prevent timeouts in CI).
         env:
           TEST_SHORT: 1
+          RUNNING_ON_VALGRIND: 1 # Dart VM uses gperftools, tell it Valgrind is used.
         run: |
           dart pub get
           dart run build_runner build
