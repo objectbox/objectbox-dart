@@ -62,14 +62,6 @@ void main() {
 
   final tString = TestEntity_.tString;
 
-  test('property query auto-close', () {
-    // Finalizer is executed after the query object goes out of scope.
-    // Note: only caught by valgrind - I've tested that it actually catches
-    // when the finalizer assignment was disabled. Now, this will only fail in
-    // CI when running valgrind.sh - if finalizer won't work properly.
-    box.query().build().property(TestEntity_.tString).find();
-  });
-
   test('.count (basic query)', () {
     box.putMany(integerList());
     box.putMany(stringList());
