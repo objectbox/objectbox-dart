@@ -148,11 +148,3 @@ void initializeDartAPI() {
 // -1 => failed to initialize - incompatible Dart version
 int _dartAPIInitialized = 0;
 Object? _dartAPIInitException;
-
-/// Keeps `this` alive until this call, preventing finalizers to run.
-/// Necessary for objects with a finalizer attached because the optimizer may
-/// mark the object as unused (-> GCed -> finalized) even before it's method
-/// finished executing.
-/// See https://github.com/dart-lang/sdk/issues/35770#issuecomment-840398463
-@pragma('vm:never-inline')
-Object reachabilityFence(Object obj) => obj;
