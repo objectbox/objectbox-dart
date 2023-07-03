@@ -45,7 +45,7 @@ class Admin {
       checkObx(C.admin_opt_store(opt, InternalStoreAccess.ptr(store)));
       checkObx(C.admin_opt_user_management(opt, false));
       withNativeString(bindUri,
-          (Pointer<Int8> cStr) => checkObx(C.admin_opt_bind(opt, cStr)));
+          (Pointer<Char> cStr) => checkObx(C.admin_opt_bind(opt, cStr)));
     } catch (_) {
       C.admin_opt_free(opt);
       rethrow;

@@ -102,7 +102,7 @@ class ObjectBoxNativeError {
 }
 
 @pragma('vm:prefer-inline')
-String dartStringFromC(Pointer<Int8> charPtr) =>
+String dartStringFromC(Pointer<Char> charPtr) =>
     charPtr.address == 0 ? '' : charPtr.cast<Utf8>().toDartString();
 
 class CursorHelper<T> {
@@ -114,7 +114,7 @@ class CursorHelper<T> {
   final bool _isWrite;
   late final Pointer<Pointer<Uint8>> dataPtrPtr;
 
-  late final Pointer<IntPtr> sizePtr;
+  late final Pointer<Size> sizePtr;
 
   bool _closed = false;
 
@@ -165,7 +165,7 @@ T withNativeBytes<T>(
   }
 }
 
-T withNativeString<T>(String str, T Function(Pointer<Int8> cStr) fn) {
+T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
   final cStr = str.toNativeUtf8();
   try {
     return fn(cStr.cast());
@@ -175,9 +175,9 @@ T withNativeString<T>(String str, T Function(Pointer<Int8> cStr) fn) {
 }
 
 T withNativeStrings<T>(
-    List<String> items, T Function(Pointer<Pointer<Int8>> ptr, int size) fn) {
+    List<String> items, T Function(Pointer<Pointer<Char>> ptr, int size) fn) {
   final size = items.length;
-  final ptr = malloc<Pointer<Int8>>(size);
+  final ptr = malloc<Pointer<Char>>(size);
   try {
     for (var i = 0; i < size; i++) {
       ptr[i] = items[i].toNativeUtf8().cast();

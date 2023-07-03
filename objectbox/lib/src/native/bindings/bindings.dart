@@ -151,7 +151,7 @@ Object? _dartAPIInitException;
 
 /// A couple of native functions we need as callbacks to pass back to native.
 /// Unfortunately, ffigen keeps those private.
-typedef _NativeClose = Int32 Function(Pointer<Void> ptr);
+typedef _NativeClose = Int Function(Pointer<Void> ptr);
 
 final native_store_close =
     _lib!.lookup<NativeFunction<_NativeClose>>('obx_store_close');

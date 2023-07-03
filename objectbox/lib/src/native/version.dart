@@ -7,9 +7,9 @@ import 'bindings/bindings.dart';
 
 /// Returns the underlying ObjectBox-C library version.
 Version libraryVersion() {
-  final majorPtr = malloc<Int32>(),
-      minorPtr = malloc<Int32>(),
-      patchPtr = malloc<Int32>();
+  final majorPtr = malloc<Int>(),
+      minorPtr = malloc<Int>(),
+      patchPtr = malloc<Int>();
 
   try {
     C.version(majorPtr, minorPtr, patchPtr);
