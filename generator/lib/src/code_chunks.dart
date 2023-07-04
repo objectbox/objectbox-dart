@@ -510,7 +510,7 @@ class CodeChunks {
         paramValueCode = fieldReaders[index];
         if (entity.properties[index].isRelation) {
           if (paramDartType.startsWith('ToOne<')) {
-            paramValueCode = 'ToOne(targetId: $paramValueCode)';
+            paramValueCode = '$paramDartType(targetId: $paramValueCode)';
           } else if (paramType == 'optional-named') {
             log.info('Skipping constructor parameter $paramName on '
                 "'${entity.name}': the matching field is a relation but the type "
@@ -519,7 +519,7 @@ class CodeChunks {
           }
         }
       } else if (paramDartType.startsWith('ToMany<')) {
-        paramValueCode = 'ToMany()';
+        paramValueCode = '$paramDartType()';
       } else {
         // If we can't find a positional param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
@@ -533,14 +533,22 @@ class CodeChunks {
         return true; // continue to the next param
       }
 
+      // The Dart Formatter consumes a large amount of time if constructor
+      // parameters are complex expressions, so add a variable for each
+      // parameter instead and pass that to the constructor.
+      // As the parameter name is user supplied add a suffix to avoid collision
+      // with other variables of the generated method.
+      final paramVar = "${paramName}Param";
+      preLines.add("final $paramVar = $paramValueCode;");
+
       switch (paramType) {
         case 'positional':
         case 'optional':
-          constructorLines.add(paramValueCode);
+          constructorLines.add(paramVar);
           break;
         case 'required-named':
         case 'optional-named':
-          constructorLines.add('$paramName: $paramValueCode');
+          constructorLines.add('$paramName: $paramVar');
           break;
         default:
           throw InvalidGenerationSourceError(
