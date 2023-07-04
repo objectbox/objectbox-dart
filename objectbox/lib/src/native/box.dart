@@ -41,6 +41,8 @@ enum PutMode {
 /// ```
 class Box<T> {
   final Store _store;
+
+  /// Pointer to the native instance. Use [_ptr] for safe access instead.
   final Pointer<OBX_box> _cBox;
   final EntityDefinition<T> _entity;
   final bool _hasToOneRelations;
@@ -58,6 +60,16 @@ class Box<T> {
             _entity.model.backlinks.isNotEmpty,
         _cBox = C.box(InternalStoreAccess.ptr(_store), _entity.model.id.id) {
     checkObxPtr(_cBox, 'failed to create box');
+  }
+
+  @pragma("vm:prefer-inline")
+  Pointer<OBX_box> get _ptr {
+    // Box does not have its own closed state as the native store is managing
+    // the box pointers.
+    if (_store.isClosed()) {
+      throw StateError('Store is closed');
+    }
+    return _cBox;
   }
 
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
@@ -228,7 +240,7 @@ class Box<T> {
       if (_hasToOneRelations) {
         // In this case, there may be relation cycles so get the ID first.
         if ((_entity.getId(object) ?? 0) == 0) {
-          final newId = C.box_id_for_put(_cBox, 0);
+          final newId = C.box_id_for_put(_ptr, 0);
           if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
           _entity.setId(object, newId);
         }
@@ -238,7 +250,7 @@ class Box<T> {
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.box_put_object4(
-        _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
+        _ptr, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
     if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
     _builder.resetIfLarge();
@@ -423,7 +435,7 @@ class Box<T> {
   int count({int limit = 0}) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.box_count(_cBox, limit, count));
+      checkObx(C.box_count(_ptr, limit, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -434,7 +446,7 @@ class Box<T> {
   bool isEmpty() {
     final isEmpty = malloc<Bool>();
     try {
-      checkObx(C.box_is_empty(_cBox, isEmpty));
+      checkObx(C.box_is_empty(_ptr, isEmpty));
       return isEmpty.value;
     } finally {
       malloc.free(isEmpty);
@@ -445,7 +457,7 @@ class Box<T> {
   bool contains(int id) {
     final contains = malloc<Bool>();
     try {
-      checkObx(C.box_contains(_cBox, id, contains));
+      checkObx(C.box_contains(_ptr, id, contains));
       return contains.value;
     } finally {
       malloc.free(contains);
@@ -457,7 +469,7 @@ class Box<T> {
     final contains = malloc<Bool>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(C.box_contains_many(_cBox, ptr, contains));
+        checkObx(C.box_contains_many(_ptr, ptr, contains));
         return contains.value;
       });
     } finally {
@@ -468,7 +480,7 @@ class Box<T> {
   /// Removes (deletes) the Object with the given [id]. Returns true if the
   /// object did exist and was removed, otherwise false.
   bool remove(int id) {
-    final err = C.box_remove(_cBox, id);
+    final err = C.box_remove(_ptr, id);
     if (err == OBX_NOT_FOUND) return false;
     checkObx(err); // throws on other errors
     return true;
@@ -493,7 +505,7 @@ class Box<T> {
     final countRemoved = malloc<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(C.box_remove_many(_cBox, ptr, countRemoved));
+        checkObx(C.box_remove_many(_ptr, ptr, countRemoved));
         return countRemoved.value;
       });
     } finally {
@@ -519,7 +531,7 @@ class Box<T> {
   int removeAll() {
     final removedItems = malloc<Uint64>();
     try {
-      checkObx(C.box_remove_all(_cBox, removedItems));
+      checkObx(C.box_remove_all(_ptr, removedItems));
       return removedItems.value;
     } finally {
       malloc.free(removedItems);
@@ -577,7 +589,7 @@ int _getOBXPutMode(PutMode mode) {
 class _AsyncBoxHelper {
   final Pointer<OBX_async> _cAsync;
 
-  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._cBox) {
+  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._ptr) {
     initializeDartAPI();
   }
 
@@ -646,7 +658,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_put(box._cBox, relationId, sourceId, targetId));
+      checkObx(C.box_rel_put(box._ptr, relationId, sourceId, targetId));
 
   /// Remove a standalone relation entry between two objects.
   @pragma('vm:prefer-inline')
@@ -656,7 +668,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_remove(box._cBox, relationId, sourceId, targetId));
+      checkObx(C.box_rel_remove(box._ptr, relationId, sourceId, targetId));
 
   /// Read all objects in this Box related to the given object.
   /// Similar to box.getMany() but loads the OBX_id_array and reads objects
@@ -668,14 +680,14 @@ class InternalBoxAccess {
         Pointer<OBX_id_array> cIdsPtr;
         switch (rel.type) {
           case RelType.toMany:
-            cIdsPtr = C.box_rel_get_ids(box._cBox, rel.id, rel.objectId);
+            cIdsPtr = C.box_rel_get_ids(box._ptr, rel.id, rel.objectId);
             break;
           case RelType.toOneBacklink:
-            cIdsPtr = C.box_get_backlink_ids(box._cBox, rel.id, rel.objectId);
+            cIdsPtr = C.box_get_backlink_ids(box._ptr, rel.id, rel.objectId);
             break;
           case RelType.toManyBacklink:
             cIdsPtr =
-                C.box_rel_get_backlink_ids(box._cBox, rel.id, rel.objectId);
+                C.box_rel_get_backlink_ids(box._ptr, rel.id, rel.objectId);
             break;
           default:
             throw UnimplementedError('Invalid relation type ${rel.type}');
