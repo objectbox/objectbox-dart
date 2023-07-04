@@ -1,5 +1,7 @@
 ## latest
 
+* Improve code generator performance if there are many entities with many constructor parameters.
+
 ## 2.1.0 (2023-06-13)
 
 * **Support for integer and floating point lists**: store 8-bit, 16-bit, 32-bit and 64-bit integer
