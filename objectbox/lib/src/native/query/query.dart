@@ -722,16 +722,6 @@ class Query<T> {
 
   int get entityId => _entity.model.id.id;
 
-  @pragma("vm:prefer-inline")
-  Pointer<OBX_query> get _ptr {
-    // Throw an exception instead of crashing by checking if the store is open.
-    _store.checkOpen();
-    if (_closed) {
-      throw StateError('Query already closed, cannot execute any actions');
-    }
-    return _cQuery;
-  }
-
   Query._(this._store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(C.query(cBuilder), 'create query') {
     initializeDartAPI();
@@ -752,6 +742,20 @@ class Query<T> {
     if (_cFinalizer == nullptr) {
       close();
       throwLatestNativeError();
+    }
+  }
+
+  @pragma("vm:prefer-inline")
+  Pointer<OBX_query> get _ptr {
+    _checkOpen();
+    return _cQuery;
+  }
+
+  void _checkOpen() {
+    // Throw an exception instead of crashing by checking if the store is open.
+    _store.checkOpen();
+    if (_closed) {
+      throw StateError('Query already closed, cannot execute any actions');
     }
   }
 
@@ -1272,7 +1276,7 @@ class Query<T> {
   /// ```
   PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
     final result = PropertyQuery<DartType>._(
-        C.query_prop(_ptr, prop._model.id.id), prop._model.type);
+        this, C.query_prop(_ptr, prop._model.id.id), prop._model.type);
     reachabilityFence(this);
     if (prop._model.type == OBXPropertyType.String) {
       result._caseSensitive = InternalStoreAccess.queryCS(_store);

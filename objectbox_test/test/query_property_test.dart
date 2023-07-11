@@ -462,6 +462,63 @@ void main() {
     queryString.close();
     query.close();
   });
+
+  test('use after close throws', () {
+    // Check for proper error after property query is closed.
+    final query = box.query().build();
+    final propertyQuery = query.property(tInt);
+    propertyQuery.close();
+
+    expectPropQueryClosed(Function function) {
+      expect(
+          function,
+          throwsA(predicate((StateError e) =>
+              e.message ==
+              "Property query already closed, cannot execute any actions")));
+    }
+
+    expectPropQueryClosed(() => propertyQuery.average());
+    expectPropQueryClosed(() => propertyQuery.count());
+    expectPropQueryClosed(() => propertyQuery.min());
+    expectPropQueryClosed(() => propertyQuery.max());
+    expectPropQueryClosed(() => propertyQuery.sum());
+    expectPropQueryClosed(() => propertyQuery.find());
+
+    // Check for proper error after query is closed.
+    final propertyQuery2 = query.property(tDouble);
+    query.close();
+
+    expectQueryClosed(Function function) {
+      expect(
+          function,
+          throwsA(predicate((StateError e) =>
+              e.message ==
+              "Query already closed, cannot execute any actions")));
+    }
+
+    expectQueryClosed(() => propertyQuery2.average());
+    expectQueryClosed(() => propertyQuery2.count());
+    expectQueryClosed(() => propertyQuery2.min());
+    expectQueryClosed(() => propertyQuery2.max());
+    expectQueryClosed(() => propertyQuery2.sum());
+    expectQueryClosed(() => propertyQuery2.find());
+
+    propertyQuery2.close();
+
+    // Check for proper error after store is closed.
+    final propertyQuery3 = box.query().build().property(tString);
+    env.closeAndDelete();
+
+    expectStoreClosed(Function function) {
+      expect(function,
+          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+    }
+
+    expectStoreClosed(() => propertyQuery3.count());
+    expectStoreClosed(() => propertyQuery3.find());
+
+    propertyQuery3.close();
+  });
 }
 
 T _add<T extends num>(T lhs, T rhs) => (lhs + rhs) as T;
