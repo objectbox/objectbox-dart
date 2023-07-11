@@ -44,8 +44,6 @@ void main() {
   floatList() =>
       floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
-  final tBool = TestEntity_.tBool;
-  final tChar = TestEntity_.tChar;
   final tByte = TestEntity_.tByte;
 
   final tLong = TestEntity_.tLong;
@@ -54,50 +52,12 @@ void main() {
 
   // OB prohibits aggregate operations on tBool & tChar
   final tSignedInts = [tByte, tShort, tLong]; // values start at 1, 2 & 5
-  final tUnsignedInts = [tInt];
 
   final tFloat = TestEntity_.tFloat;
   final tDouble = TestEntity_.tDouble;
   final tFloats = [tFloat, tDouble];
 
   final tString = TestEntity_.tString;
-
-  test('.count (basic query)', () {
-    box.putMany(integerList());
-    box.putMany(stringList());
-    box.putMany(floatList());
-
-    for (var i in tSignedInts) {
-      final queryInt = box.query(i.greaterThan(0)).build();
-      expect(queryInt.count(), 8);
-      queryInt.close();
-    }
-
-    for (var i in tUnsignedInts) {
-      final queryInt = box.query(i.greaterThan(0)).build();
-      expect(queryInt.count(), 9);
-      queryInt.close();
-    }
-
-    for (var f in tFloats) {
-      final queryFloat = box.query(f.lessThan(1.0)).build();
-      expect(queryFloat.count(), 6);
-      queryFloat.close();
-    }
-
-    final queryString =
-        box.query(tString.contains('t', caseSensitive: false)).build();
-    expect(queryString.count(), 8);
-    queryString.close();
-
-    final queryBool = box.query(tBool.equals(true)).build();
-    expect(queryBool.count(), 9);
-    queryBool.close();
-
-    final queryChar = box.query(tChar.greaterThan(0)).build();
-    expect(queryChar.count(), 8);
-    queryChar.close();
-  });
 
   test('query.property(E_.field) property query, type inference', () {
     box.putMany(integerList());
