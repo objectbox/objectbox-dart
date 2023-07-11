@@ -19,7 +19,7 @@ dependencies:
   source_gen: ^1.0.0
   pubspec_parse: ^1.0.0
   yaml: ^3.0.0
-  http: ^0.13.5
+  http: '>=0.13.5 <2.0.0'
   cryptography: ^2.0.5
 
 dev_dependencies:
