@@ -930,4 +930,52 @@ void main() {
     expect(query.findFirst, ThrowingInConverters.throwsIn('Setter'));
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
+
+  test('use after close throws', () {
+    // Check for proper error after query is closed.
+    final query = env.box.query().build();
+    query.close();
+
+    expectQueryClosed(Function function) {
+      expect(
+          function,
+          throwsA(predicate((StateError e) =>
+              e.message ==
+              "Query already closed, cannot execute any actions")));
+    }
+
+    expectQueryClosed(() => query.offset = 1);
+    expectQueryClosed(() => query.limit = 1);
+    expectQueryClosed(() => query.count());
+    expectQueryClosed(() => query.remove());
+    expectQueryClosed(() => query.findFirst());
+    expectQueryClosed(() => query.findUnique());
+    expectQueryClosed(() => query.findIds());
+    expectQueryClosed(() => query.find());
+    expectQueryClosed(() => query.describe());
+    expectQueryClosed(() => query.describeParameters());
+    expectQueryClosed(() => query.property(TestEntity_.tString));
+
+    // Check for proper error after store is closed.
+    final query2 = env.box.query().build();
+    env.closeAndDelete();
+
+    expectStoreClosed(Function function) {
+      expect(function,
+          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+    }
+
+    expectStoreClosed(() => query2.offset = 1);
+    expectStoreClosed(() => query2.limit = 1);
+    expectStoreClosed(() => query2.count());
+    expectStoreClosed(() => query2.remove());
+    expectStoreClosed(() => query2.findFirst());
+    expectStoreClosed(() => query2.findUnique());
+    expectStoreClosed(() => query2.findIds());
+    expectStoreClosed(() => query2.find());
+    expectStoreClosed(() => query2.describe());
+    expectStoreClosed(() => query2.describeParameters());
+    expectStoreClosed(() => query2.property(TestEntity_.tString));
+    query2.close();
+  });
 }

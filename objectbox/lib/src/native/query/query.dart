@@ -713,6 +713,8 @@ class _ConditionGroupAll<EntityT> extends _ConditionGroup<EntityT> {
 /// Use [property] to only return values or an aggregate of a single Property.
 class Query<T> {
   bool _closed = false;
+
+  /// Pointer to the native instance. Use [_ptr] for safe access instead.
   final Pointer<OBX_query> _cQuery;
   late final Pointer<OBX_dart_finalizer> _cFinalizer;
   final Store _store;
@@ -720,7 +722,10 @@ class Query<T> {
 
   int get entityId => _entity.model.id.id;
 
+  @pragma("vm:prefer-inline")
   Pointer<OBX_query> get _ptr {
+    // Throw an exception instead of crashing by checking if the store is open.
+    _store.checkOpen();
     if (_closed) {
       throw StateError('Query already closed, cannot execute any actions');
     }

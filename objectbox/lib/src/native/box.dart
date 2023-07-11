@@ -66,9 +66,7 @@ class Box<T> {
   Pointer<OBX_box> get _ptr {
     // Box does not have its own closed state as the native store is managing
     // the box pointers.
-    if (_store.isClosed()) {
-      throw StateError('Store is closed');
-    }
+    _store.checkOpen();
     return _cBox;
   }
 
