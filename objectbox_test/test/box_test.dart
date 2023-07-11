@@ -63,6 +63,35 @@ void main() {
             (ObjectBoxException e) => e.message == 'object put failed')));
   });
 
+  test('use after close throws', () {
+    // Obtain box reference before store is closed.
+    final box = env.box;
+    final boxNonRel = env.store.box<TestEntityNonRel>();
+    env.closeAndDelete();
+
+    expectStoreClosed(Function function) {
+      expect(function,
+          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+    }
+
+    // Use entity with relations to test transaction code path in put.
+    expectStoreClosed(() => box.put(TestEntity(tString: 'Never put')));
+    // Use entity without relations to test non-transaction code path in put.
+    expectStoreClosed(
+        () => boxNonRel.put(TestEntityNonRel.filled(tString: 'Never put')));
+
+    expectStoreClosed(() =>
+        boxNonRel.putQueued(TestEntityNonRel.filled(tString: 'Never put')));
+
+    expectStoreClosed(() => box.count());
+    expectStoreClosed(() => box.isEmpty());
+    expectStoreClosed(() => box.contains(1));
+    expectStoreClosed(() => box.containsMany([1, 2]));
+    expectStoreClosed(() => box.remove(1));
+    expectStoreClosed(() => box.removeMany([1, 2]));
+    expectStoreClosed(() => box.removeAll());
+  });
+
   test('.putAsync', () async {
     // Supports relations, so add some.
     final a = TestEntity(tString: 'Hello A');
@@ -635,7 +664,8 @@ void main() {
         tBool: true,
         tByte: 123,
         tShort: -4567,
-        tChar: 'Ā'.codeUnitAt(0), // U+0100
+        tChar: 'Ā'.codeUnitAt(0),
+        // U+0100
         tInt: 789012,
         tFloat: -2.71);
     final fetchedItem = box.get(box.put(item))!;

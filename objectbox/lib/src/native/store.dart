@@ -769,8 +769,10 @@ class Store {
 
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_store> get _ptr =>
-      isClosed() ? throw StateError('Store is closed') : _cStore;
+  Pointer<OBX_store> get _ptr {
+    checkOpen();
+    return _cStore;
+  }
 }
 
 /// This hides away methods from the public API
@@ -791,6 +793,13 @@ extension StoreInternal on Store {
       throw StateError("This store does not provide a configuration.");
     } else {
       return config;
+    }
+  }
+
+  /// If the store [isClosed] will throw an error.
+  void checkOpen() {
+    if (isClosed()) {
+      throw StateError('Store is closed');
     }
   }
 }

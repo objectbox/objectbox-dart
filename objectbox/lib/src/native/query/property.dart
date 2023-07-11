@@ -2,6 +2,9 @@ part of query;
 
 /// Property query base.
 class PropertyQuery<T> {
+  final Query<dynamic> _query;
+
+  /// Pointer to the native instance. Use [_ptr] for safe access instead.
   final Pointer<OBX_query_prop> _cProp;
   late final Pointer<OBX_dart_finalizer> _cFinalizer;
   bool _closed = false;
@@ -9,7 +12,7 @@ class PropertyQuery<T> {
   bool _distinct = false;
   bool _caseSensitive = false;
 
-  PropertyQuery._(this._cProp, this._type) {
+  PropertyQuery._(this._query, this._cProp, this._type) {
     checkObxPtr(_cProp, 'property query');
     _cFinalizer = C.dartc_attach_finalizer(
         this, native_query_prop_close, _cProp.cast(), 64);
@@ -17,6 +20,16 @@ class PropertyQuery<T> {
       close();
       throwLatestNativeError();
     }
+  }
+
+  @pragma("vm:prefer-inline")
+  Pointer<OBX_query_prop> get _ptr {
+    _query._checkOpen();
+    if (_closed) {
+      throw StateError(
+          'Property query already closed, cannot execute any actions');
+    }
+    return _cProp;
   }
 
   /// Close the property query, freeing its resources
@@ -35,7 +48,7 @@ class PropertyQuery<T> {
   int _count() {
     final ptr = malloc<Uint64>();
     try {
-      checkObx(C.query_prop_count(_cProp, ptr));
+      checkObx(C.query_prop_count(_ptr, ptr));
       reachabilityFence(this);
       return ptr.value;
     } finally {
@@ -51,7 +64,7 @@ class PropertyQuery<T> {
     Pointer<StructT> cItems = nullptr;
     try {
       cItems = checkObxPtr(
-          findFn(_cProp, cDefault ?? nullptr), 'Property query failed');
+          findFn(_ptr, cDefault ?? nullptr), 'Property query failed');
       reachabilityFence(this);
       return listReadFn(cItems);
     } finally {
@@ -63,7 +76,7 @@ class PropertyQuery<T> {
   double _average() {
     final ptr = malloc<Double>();
     try {
-      checkObx(C.query_prop_avg(_cProp, ptr, nullptr));
+      checkObx(C.query_prop_avg(_ptr, ptr, nullptr));
       reachabilityFence(this);
       return ptr.value;
     } finally {
@@ -79,7 +92,7 @@ extension IntegerPropertyQuery on PropertyQuery<int> {
           fn) {
     final ptr = malloc<Int64>();
     try {
-      checkObx(fn(_cProp, ptr, nullptr));
+      checkObx(fn(_ptr, ptr, nullptr));
       reachabilityFence(this);
       return ptr.value;
     } finally {
@@ -102,7 +115,7 @@ extension IntegerPropertyQuery on PropertyQuery<int> {
   /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
-    checkObx(C.query_prop_distinct(_cProp, d));
+    checkObx(C.query_prop_distinct(_ptr, d));
     reachabilityFence(this);
   }
 
@@ -177,7 +190,7 @@ extension DoublePropertyQuery on PropertyQuery<double> {
           fn) {
     final ptr = malloc<Double>();
     try {
-      checkObx(fn(_cProp, ptr, nullptr));
+      checkObx(fn(_ptr, ptr, nullptr));
       reachabilityFence(this);
       return ptr.value;
     } finally {
@@ -200,7 +213,7 @@ extension DoublePropertyQuery on PropertyQuery<double> {
   /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
-    checkObx(C.query_prop_distinct(_cProp, d));
+    checkObx(C.query_prop_distinct(_ptr, d));
     reachabilityFence(this);
   }
 
@@ -252,7 +265,7 @@ extension StringPropertyQuery on PropertyQuery<String> {
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {
     _caseSensitive = caseSensitive;
-    checkObx(C.query_prop_distinct_case(_cProp, _distinct, _caseSensitive));
+    checkObx(C.query_prop_distinct_case(_ptr, _distinct, _caseSensitive));
     reachabilityFence(this);
   }
 
@@ -268,7 +281,7 @@ extension StringPropertyQuery on PropertyQuery<String> {
   /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
-    checkObx(C.query_prop_distinct_case(_cProp, d, _caseSensitive));
+    checkObx(C.query_prop_distinct_case(_ptr, d, _caseSensitive));
     reachabilityFence(this);
   }
 
