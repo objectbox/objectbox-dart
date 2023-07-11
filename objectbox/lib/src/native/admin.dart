@@ -21,9 +21,14 @@ import 'store.dart';
 /// Note: ObjectBox Admin is currently supported for Android apps only.
 /// [Additional configuration](https://docs.objectbox.io/data-browser) is
 /// required.
-class Admin {
+class Admin implements Finalizable {
   late Pointer<OBX_admin> _cAdmin;
-  late final Pointer<OBX_dart_finalizer> _cFinalizer;
+
+  /// Runs native close function on [_cAdmin] if this is garbage collected.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.admin_close.cast());
 
   @pragma('vm:prefer-inline')
   Pointer<OBX_admin> get _ptr =>
@@ -53,26 +58,19 @@ class Admin {
 
     _cAdmin = C.admin(opt);
 
-    // Keep the finalizer so we can detach it when close() is called manually.
-    _cFinalizer = C.dartc_attach_finalizer(
-        this, native_admin_close, _cAdmin.cast(), 1024 * 1024);
-    if (_cFinalizer == nullptr) {
-      close();
-      throwLatestNativeError();
-    }
+    _finalizer.attach(this, _cAdmin.cast(),
+        detach: this, externalSize: 1024 * 1024);
   }
 
   /// Closes and cleans up all resources used by this Admin.
   void close() {
-    if (!isClosed()) {
-      final errors = List.filled(2, 0);
-      if (_cFinalizer != nullptr) {
-        errors[0] = C.dartc_detach_finalizer(_cFinalizer, this);
-      }
-      errors[1] = C.admin_close(_cAdmin);
-      _cAdmin = nullptr;
-      errors.forEach(checkObx);
+    if (isClosed()) {
+      return;
     }
+    _finalizer.detach(this);
+    final error = C.admin_close(_cAdmin);
+    _cAdmin = nullptr;
+    checkObx(error);
   }
 
   /// Returns if the admin is already closed and can no longer be used.
@@ -82,7 +80,6 @@ class Admin {
   /// assigned automatically (a "0" port was used in the [bindUri]).
   late final int port = () {
     final result = C.admin_port(_ptr);
-    reachabilityFence(this);
     if (result == 0) throwLatestNativeError();
     return result;
   }();

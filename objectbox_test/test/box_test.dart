@@ -883,11 +883,14 @@ void main() {
         () async => await store.runInTransactionAsync(TxMode.write,
                 (Store store, List<TestEntity> param) {
               store.box<TestEntity>().putMany(param);
-              // note: we're throwing conditionally (but always true) so that
+              // Note: we're throwing conditionally (but always true) so that
               // the return type is not [Never]. See [Transaction.execute()]
               // testing for the return type to be a [Future]. [Never] is a
               // base class to everything, so a [Future] is also a [Never].
-              if (1 + 1 == 2) throw 'test-exception';
+              // Also not creating exception instance inline to avoid Dart
+              // over-capturing the Store and trying to send it back to the
+              // main isolate [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+              testThrowException();
               return 1;
             }, simpleItems()),
         throwsA('test-exception'));
@@ -1072,3 +1075,7 @@ void main() {
 List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
     .map((s) => TestEntity(tString: s))
     .toList();
+
+void testThrowException() {
+  if (1 + 1 == 2) throw 'test-exception';
+}

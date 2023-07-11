@@ -711,12 +711,18 @@ class _ConditionGroupAll<EntityT> extends _ConditionGroup<EntityT> {
 /// Use [find] or related methods to fetch the latest results from the Box.
 ///
 /// Use [property] to only return values or an aggregate of a single Property.
-class Query<T> {
+class Query<T> implements Finalizable {
   bool _closed = false;
 
   /// Pointer to the native instance. Use [_ptr] for safe access instead.
   final Pointer<OBX_query> _cQuery;
-  late final Pointer<OBX_dart_finalizer> _cFinalizer;
+
+  /// Runs native close function on [_cQuery] if this is garbage collected.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.query_close.cast());
+
   final Store _store;
   final EntityDefinition<T> _entity;
 
@@ -736,13 +742,7 @@ class Query<T> {
   }
 
   void _attachFinalizer() {
-    // Keep the finalizer so we can detach it when close() is called manually.
-    _cFinalizer =
-        C.dartc_attach_finalizer(this, native_query_close, _cQuery.cast(), 256);
-    if (_cFinalizer == nullptr) {
-      close();
-      throwLatestNativeError();
-    }
+    _finalizer.attach(this, _cQuery.cast(), detach: this, externalSize: 256);
   }
 
   @pragma("vm:prefer-inline")
@@ -766,11 +766,7 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set offset=0 to reset to the default - starting from the first element.
-  set offset(int offset) {
-    final result = checkObx(C.query_offset(_ptr, offset));
-    reachabilityFence(this);
-    return result;
-  }
+  set offset(int offset) => checkObx(C.query_offset(_ptr, offset));
 
   /// Configure a [limit] for this query.
   ///
@@ -779,18 +775,13 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set limit=0 to reset to the default behavior - no limit applied.
-  set limit(int limit) {
-    final result = checkObx(C.query_limit(_ptr, limit));
-    reachabilityFence(this);
-    return result;
-  }
+  set limit(int limit) => checkObx(C.query_limit(_ptr, limit));
 
   /// Returns the number of matching Objects.
   int count() {
     final ptr = malloc<Uint64>();
     try {
       checkObx(C.query_count(_ptr, ptr));
-      reachabilityFence(this);
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -829,22 +820,14 @@ class Query<T> {
   /// // Within an isolate re-create the query pointer to be used with the C API.
   /// final queryPtr = Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
   /// ```
-  Pointer<OBX_query> _clone() {
-    final ptr = checkObxPtr(C.query_clone(_ptr));
-    reachabilityFence(this);
-    return ptr;
-  }
+  Pointer<OBX_query> _clone() => checkObxPtr(C.query_clone(_ptr));
 
   /// Close the query and free resources.
   void close() {
     if (!_closed) {
       _closed = true;
-      var err = 0;
-      if (_cFinalizer != nullptr) {
-        err = C.dartc_detach_finalizer(_cFinalizer, this);
-      }
+      _finalizer.detach(this);
       checkObx(C.query_close(_cQuery));
-      checkObx(err);
     }
   }
 
@@ -864,7 +847,6 @@ class Query<T> {
     });
     checkObx(C.query_visit(_ptr, visitor, nullptr));
     if (error != null) throw error!;
-    reachabilityFence(this);
     return result;
   }
 
@@ -905,7 +887,6 @@ class Query<T> {
       }
     });
     checkObx(C.query_visit(_ptr, visitor, nullptr));
-    reachabilityFence(this);
     if (error != null) throw error!;
     return result;
   }
@@ -923,7 +904,6 @@ class Query<T> {
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
-    reachabilityFence(this);
     try {
       final idArray = idArrayPtr.ref;
       final ids = idArray.ids;
@@ -950,7 +930,6 @@ class Query<T> {
     final collector = objectCollector(result, _store, _entity, errorWrapper);
     checkObx(C.query_visit(_ptr, collector, nullptr));
     errorWrapper.throwIfError();
-    reachabilityFence(this);
     return result;
   }
 
@@ -1005,7 +984,6 @@ class Query<T> {
   //     closed = true;
   //     C.dartc_stream_close(cStream);
   //     port.close();
-  //     reachabilityFence(this);
   //   };
   //
   //   try {
@@ -1253,18 +1231,10 @@ class Query<T> {
   }
 
   /// For internal testing purposes.
-  String describe() {
-    final result = dartStringFromC(C.query_describe(_ptr));
-    reachabilityFence(this);
-    return result;
-  }
+  String describe() => dartStringFromC(C.query_describe(_ptr));
 
   /// For internal testing purposes.
-  String describeParameters() {
-    final result = dartStringFromC(C.query_describe_params(_ptr));
-    reachabilityFence(this);
-    return result;
-  }
+  String describeParameters() => dartStringFromC(C.query_describe_params(_ptr));
 
   /// Use the same query conditions but only return a single property (field).
   ///
@@ -1277,7 +1247,6 @@ class Query<T> {
   PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
     final result = PropertyQuery<DartType>._(
         this, C.query_prop(_ptr, prop._model.id.id), prop._model.type);
-    reachabilityFence(this);
     if (prop._model.type == OBXPropertyType.String) {
       result._caseSensitive = InternalStoreAccess.queryCS(_store);
     }
