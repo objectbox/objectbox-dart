@@ -5,6 +5,7 @@
   ObjectBox library on these devices. [#369](https://github.com/objectbox/objectbox-dart/issues/369)
 * Improve code generator performance if there are many entities with many constructor parameters.
 * Throw `StateError` instead of crashing on closed `Box`, `Query` and `PropertyQuery`.
+* Export query property classes to make them usable in user code.
 
 ## 2.1.0 (2023-06-13)
 
