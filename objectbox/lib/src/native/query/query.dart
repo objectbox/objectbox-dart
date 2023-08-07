@@ -838,8 +838,7 @@ class Query<T> implements Finalizable {
     Object? error;
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
       try {
-        result = _entity.objectFromFB(
-            _store, InternalStoreAccess.reader(_store).access(data, size));
+        result = _entity.objectFromData(_store, data, size);
       } catch (e) {
         error = e;
       }
@@ -873,8 +872,7 @@ class Query<T> implements Finalizable {
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
       if (result == null) {
         try {
-          result = _entity.objectFromFB(
-              _store, InternalStoreAccess.reader(_store).access(data, size));
+          result = _entity.objectFromData(_store, data, size);
           return true;
         } catch (e) {
           error = e;
@@ -1129,10 +1127,8 @@ class Query<T> implements Finalizable {
             final dataPtrAddress = message.dataPtrAddresses[i];
             final size = message.sizes[i];
             if (size == 0) break; // Reached last object.
-            streamController.add(_entity.objectFromFB(
-                _store,
-                InternalStoreAccess.reader(_store)
-                    .access(Pointer.fromAddress(dataPtrAddress), size)));
+            streamController.add(_entity.objectFromData(
+                _store, Pointer.fromAddress(dataPtrAddress), size));
           }
           return; // wait for next message.
         } catch (e) {

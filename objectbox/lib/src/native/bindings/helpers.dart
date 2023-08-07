@@ -7,7 +7,6 @@ import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
-import 'flatbuffers.dart';
 
 // ignore_for_file: public_member_api_docs
 
@@ -109,7 +108,6 @@ class CursorHelper<T> {
   final EntityDefinition<T> _entity;
   final Store _store;
   final Pointer<OBX_cursor> ptr;
-  late final ReaderWithCBuffer _reader = InternalStoreAccess.reader(_store);
 
   final bool _isWrite;
   late final Pointer<Pointer<Uint8>> dataPtrPtr;
@@ -129,7 +127,11 @@ class CursorHelper<T> {
     }
   }
 
-  ByteData get readData => _reader.access(dataPtrPtr.value, sizePtr.value);
+  ByteData get readData {
+    int size = sizePtr.value;
+    final uint8List = dataPtrPtr.value.asTypedList(size);
+    return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
+  }
 
   EntityDefinition<T> get entity => _entity;
 
@@ -148,7 +150,7 @@ class CursorHelper<T> {
     final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
-    return _entity.objectFromFB(_store, readData);
+    return _entity.objectFromData(_store, dataPtrPtr.value, sizePtr.value);
   }
 }
 

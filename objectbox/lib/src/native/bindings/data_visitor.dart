@@ -42,8 +42,7 @@ Pointer<obx_data_visitor> objectCollector<T>(List<T> list, Store store,
         EntityDefinition<T> entity, ObjectCollectorError outError) =>
     dataVisitor((Pointer<Uint8> data, int size) {
       try {
-        list.add(entity.objectFromFB(
-            store, InternalStoreAccess.reader(store).access(data, size)));
+        list.add(entity.objectFromData(store, data, size));
         return true;
       } catch (e) {
         outError.error = e;
