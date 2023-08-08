@@ -1,3 +1,5 @@
+## latest
+
 ## 2.3.0 (2023-09-19)
 
 * **Query support for integer and floating point lists**: For integer lists (excluding byte lists)
