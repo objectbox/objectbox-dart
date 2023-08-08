@@ -303,7 +303,6 @@ class InternalToManyAccess {
 }
 
 /// Internal only.
-@internal
 @visibleForTesting
 class InternalToManyTestAccess<EntityT> {
   final ToMany<EntityT> _rel;
