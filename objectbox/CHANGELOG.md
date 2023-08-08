@@ -1,3 +1,5 @@
+## latest
+
 ## 2.2.1 (2023-08-22)
 
 * Resolve an issue where not all query results are returned, when an entity constructor or property 
