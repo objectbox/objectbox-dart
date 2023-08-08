@@ -105,7 +105,7 @@ extension IntegerPropertyQuery on PropertyQuery<int> {
 
   /// Set to only return distinct values.
   ///
-  /// E.g. [1,2,3] instead of [1,1,2,3,3,3].
+  /// E.g. `[1,2,3]` instead of `[1,1,2,3,3,3]`.
   /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
@@ -201,7 +201,7 @@ extension DoublePropertyQuery on PropertyQuery<double> {
 
   /// Set to only return distinct values.
   ///
-  /// E.g. [1,2,3] instead of [1,1,2,3,3,3].
+  /// E.g. `[1,2,3]` instead of `[1,1,2,3,3,3]`.
   /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;
@@ -267,7 +267,7 @@ extension StringPropertyQuery on PropertyQuery<String> {
 
   /// Set to only return distinct values.
   ///
-  /// E.g. [foo, bar] instead of [foo, bar, bar, bar, foo].
+  /// E.g. `[foo, bar]` instead of `[foo, bar, bar, bar, foo]`.
   /// Strings default to case-insensitive comparison.
   set distinct(bool d) {
     _distinct = d;

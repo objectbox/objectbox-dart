@@ -23,7 +23,18 @@ export 'src/query.dart'
         QueryParamBytes,
         QueryParamInt,
         QueryParamBool,
-        QueryParamDouble;
+        QueryParamDouble,
+        QueryProperty,
+        QueryStringProperty,
+        QueryByteVectorProperty,
+        QueryIntegerProperty,
+        QueryIntegerVectorProperty,
+        QueryDoubleProperty,
+        QueryDoubleVectorProperty,
+        QueryBooleanProperty,
+        QueryStringVectorProperty,
+        QueryRelationToOne,
+        QueryRelationToMany;
 export 'src/relations/to_many.dart' show ToMany;
 export 'src/relations/to_one.dart' show ToOne;
 export 'src/store.dart' show Store, ObservableStore;

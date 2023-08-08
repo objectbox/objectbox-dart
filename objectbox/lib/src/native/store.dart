@@ -73,7 +73,7 @@ class Store implements Finalizable {
 
   late final ByteData _reference;
 
-  /// A list of observers of the Store.close() event.
+  /// A list of observers of the [Store.close] event.
   final _onClose = <dynamic, void Function()>{};
 
   /// If true and calling [close] will also close the native Store and
@@ -846,12 +846,12 @@ class InternalStoreAccess {
     return store._entityTypeById!;
   }
 
-  /// Adds a listener to the [store.close()] event.
+  /// Adds a listener to the [Store.close] event.
   static void addCloseListener(
           Store store, dynamic key, void Function() listener) =>
       store._onClose[key] = listener;
 
-  /// Removes a [store.close()] event listener.
+  /// Removes a [Store.close] event listener.
   static void removeCloseListener(Store store, dynamic key) =>
       store._onClose.remove(key);
 

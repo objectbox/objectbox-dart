@@ -37,7 +37,7 @@ class Order {
   static final caseSensitive = 2;
 
   /// For integers only: changes the comparison to unsigned. The default is
-  /// signed, unless the property is annotated with [@Property(signed: false)].
+  /// signed, unless the property is annotated with `@Property(signed: false)`.
   static final unsigned = 4;
 
   /// null values will be put last.

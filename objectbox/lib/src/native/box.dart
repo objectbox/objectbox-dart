@@ -360,10 +360,12 @@ class Box<T> {
   /// to be spawned.
   Future<T?> getAsync(int id) => _store.runAsync(_getAsyncCallback<T>, id);
 
-  /// Returns a list of [ids.length] Objects of type T, each corresponding to
-  /// the location of its ID in [ids]. Non-existent IDs become null.
+  /// Returns a list of Objects of type T, each located at the corresponding
+  /// position of its ID in [ids].
   ///
-  /// Pass growableResult: true for the resulting list to be growable.
+  /// If an object does not exist, null is added to the list instead.
+  ///
+  /// Set [growableResult] to `true` for the returned list to be growable.
   List<T?> getMany(List<int> ids, {bool growableResult = false}) {
     final result = List<T?>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
