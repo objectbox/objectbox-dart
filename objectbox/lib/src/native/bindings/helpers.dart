@@ -109,54 +109,40 @@ class CursorHelper<T> {
   final Store _store;
   final Pointer<OBX_cursor> ptr;
 
-  final bool _isWrite;
-  late final Pointer<Pointer<Uint8>> dataPtrPtr;
-
-  late final Pointer<Size> sizePtr;
-
   bool _closed = false;
 
-  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
-      {required bool isWrite})
+  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity)
       : ptr = checkObxPtr(
-            C.cursor(txn, _entity.model.id.id), 'failed to create cursor'),
-        _isWrite = isWrite {
-    if (!_isWrite) {
-      dataPtrPtr = malloc();
-      sizePtr = malloc();
-    }
-  }
+            C.cursor(txn, _entity.model.id.id), 'failed to create cursor');
 
   EntityDefinition<T> get entity => _entity;
 
   void close() {
     if (_closed) return;
     _closed = true;
-    if (!_isWrite) {
-      malloc.free(dataPtrPtr);
-      malloc.free(sizePtr);
-    }
     checkObx(C.cursor_close(ptr));
   }
 
-  T _deserializeObject() =>
-      _entity.objectFromData(_store, dataPtrPtr.value, sizePtr.value);
+  T _deserializeObject(ReadPointers pointers) => _entity.objectFromData(
+      _store, pointers.dataPtrPtr.value, pointers.sizePtr.value);
 
   @pragma('vm:prefer-inline')
   T? get(int id) {
-    final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
+    final pointers = _store.readPointers();
+    final code = C.cursor_get(ptr, id, pointers.dataPtrPtr, pointers.sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
-    return _deserializeObject();
+    return _deserializeObject(pointers);
   }
 
   List<T> getAll() {
     final result = <T>[];
-    var code = C.cursor_first(ptr, dataPtrPtr, sizePtr);
+    final pointers = _store.readPointers();
+    var code = C.cursor_first(ptr, pointers.dataPtrPtr, pointers.sizePtr);
     while (code != OBX_NOT_FOUND) {
       checkObx(code);
-      result.add(_deserializeObject());
-      code = C.cursor_next(ptr, dataPtrPtr, sizePtr);
+      result.add(_deserializeObject(pointers));
+      code = C.cursor_next(ptr, pointers.dataPtrPtr, pointers.sizePtr);
     }
     return result;
   }

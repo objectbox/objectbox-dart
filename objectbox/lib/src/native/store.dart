@@ -55,6 +55,7 @@ class Store implements Finalizable {
 
   Stream<List<Type>>? _entityChanges;
 
+  final _readPointers = ReadPointers();
   Transaction? _tx;
 
   /// Path to the database directory.
@@ -240,6 +241,7 @@ class Store implements Finalizable {
           queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -368,6 +370,7 @@ class Store implements Finalizable {
           queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -389,6 +392,7 @@ class Store implements Finalizable {
       _configuration = configuration;
       _attachFinalizer();
     } catch (e) {
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -508,6 +512,8 @@ class Store implements Finalizable {
     // Move the list to prevent "Concurrent modification during iteration".
     _onClose.values.toList(growable: false).forEach((listener) => listener());
     _onClose.clear();
+
+    _readPointers.clear();
 
     if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
@@ -751,6 +757,26 @@ class Store implements Finalizable {
   }
 }
 
+/// Internal class to provide re-usable pointers for reading data. This avoids
+/// expensive allocation by only allocating the pointers once for the lifetime
+/// of the store.
+///
+/// [clear] once done using to free native resources (pointer memory).
+class ReadPointers {
+  /// Pointer to use for data.
+  final Pointer<Pointer<Uint8>> dataPtrPtr = malloc();
+
+  /// Pointer to use for size of data.
+  final Pointer<Size> sizePtr = malloc();
+
+  /// Free native resources (pointer memory).
+  /// Pointers can not longer be used afterwards.
+  void clear() {
+    malloc.free(dataPtrPtr);
+    malloc.free(sizePtr);
+  }
+}
+
 /// This hides away methods from the public API
 /// (this is not marked as show in objectbox.dart)
 /// while remaining accessible by other libraries in this package.
@@ -778,6 +804,14 @@ extension StoreInternal on Store {
       throw StateError('Store is closed');
     }
   }
+
+  /// Get re-usable data and size pointers for reading.
+  ///
+  /// Valid until the store is closed.
+  /// Avoids expensive pointer allocation for each read.
+  ///
+  /// See [ReadPointers].
+  ReadPointers readPointers() => _readPointers;
 }
 
 /// Internal only.
