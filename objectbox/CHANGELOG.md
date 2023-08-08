@@ -11,6 +11,8 @@
 * Improve code generator performance if there are many entities with many constructor parameters.
 * Throw `StateError` instead of crashing on closed `Box`, `Query` and `PropertyQuery`.
 * Export query property classes to make them usable in user code.
+* Resolve an issue where unexpected data was returned when doing a read operation in an entity 
+  constructor or property setter. [#550](https://github.com/objectbox/objectbox-dart/issues/550)
 
 ## 2.1.0 (2023-06-13)
 
