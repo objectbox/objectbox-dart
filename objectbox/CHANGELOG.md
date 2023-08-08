@@ -2,7 +2,10 @@
 
 * For Flutter apps running on Android 6 (or older): added `loadObjectBoxLibraryAndroidCompat()` to 
   `objectbox_flutter_libs` (and `objectbox_sync_flutter_libs`). Use this to fix loading the 
-  ObjectBox library on these devices. [#369](https://github.com/objectbox/objectbox-dart/issues/369)
+  ObjectBox library on these devices.
+  
+  Let us know if this works for you in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
+  We might consider calling this automatically in a future release.
 * Improve code generator performance if there are many entities with many constructor parameters.
 * Throw `StateError` instead of crashing on closed `Box`, `Query` and `PropertyQuery`.
 * Export query property classes to make them usable in user code.
