@@ -626,9 +626,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "12:4776026659772255750",
+      "lastPropertyId": "3:1591527272304205650",
+      "name": "TestEntityReadDuringRead",
+      "properties": [
+        {
+          "id": "1:2868510755084849175",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7544499496633853432",
+          "name": "strings2",
+          "type": 30
+        },
+        {
+          "id": "3:1591527272304205650",
+          "name": "strings1",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "11:1888816722266317411",
+  "lastEntityId": "12:4776026659772255750",
   "lastIndexId": "20:4846837430056399798",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",

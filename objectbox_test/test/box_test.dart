@@ -1070,6 +1070,22 @@ void main() {
     expect(() => box.get(2), ThrowingInConverters.throwsIn('Setter'));
     expect(() => box.getAll(), ThrowingInConverters.throwsIn('Setter'));
   });
+
+  // https://github.com/objectbox/objectbox-dart/issues/550
+  test("read during object creation", () {
+    final box = env.store.box<TestEntityReadDuringRead>();
+    final id =
+        box.put(TestEntityReadDuringRead()..strings2 = ["A2", "B2", "C3"]);
+    // Do a database read of another box (to avoid stack overflow)
+    // as part of calling a property setter.
+    env.box.putMany(simpleItems());
+    readDuringReadCalledFromSetter = () {
+      env.box.getAll();
+    };
+    final actual = box.get(id)!;
+    readDuringReadCalledFromSetter = null; // Do not leak the box instance.
+    expect(actual.strings2, hasLength(3));
+  });
 }
 
 List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']

@@ -16,7 +16,6 @@ import '../modelinfo/index.dart';
 import '../transaction.dart';
 import '../util.dart';
 import 'bindings/bindings.dart';
-import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'box.dart';
 import 'model.dart';
@@ -56,8 +55,7 @@ class Store implements Finalizable {
 
   Stream<List<Type>>? _entityChanges;
 
-  /// Should be cleared when this closes to free native resources.
-  final _reader = ReaderWithCBuffer();
+  final _readPointers = ReadPointers();
   Transaction? _tx;
 
   /// Path to the database directory.
@@ -243,7 +241,7 @@ class Store implements Finalizable {
           queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
-      _reader.clear();
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -372,7 +370,7 @@ class Store implements Finalizable {
           queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
-      _reader.clear();
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -394,7 +392,7 @@ class Store implements Finalizable {
       _configuration = configuration;
       _attachFinalizer();
     } catch (e) {
-      _reader.clear();
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -515,7 +513,7 @@ class Store implements Finalizable {
     _onClose.values.toList(growable: false).forEach((listener) => listener());
     _onClose.clear();
 
-    _reader.clear();
+    _readPointers.clear();
 
     if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
@@ -759,6 +757,26 @@ class Store implements Finalizable {
   }
 }
 
+/// Internal class to provide re-usable pointers for reading data. This avoids
+/// expensive allocation by only allocating the pointers once for the lifetime
+/// of the store.
+///
+/// [clear] once done using to free native resources (pointer memory).
+class ReadPointers {
+  /// Pointer to use for data.
+  final Pointer<Pointer<Uint8>> dataPtrPtr = malloc();
+
+  /// Pointer to use for size of data.
+  final Pointer<Size> sizePtr = malloc();
+
+  /// Free native resources (pointer memory).
+  /// Pointers can not longer be used afterwards.
+  void clear() {
+    malloc.free(dataPtrPtr);
+    malloc.free(sizePtr);
+  }
+}
+
 /// This hides away methods from the public API
 /// (this is not marked as show in objectbox.dart)
 /// while remaining accessible by other libraries in this package.
@@ -786,6 +804,14 @@ extension StoreInternal on Store {
       throw StateError('Store is closed');
     }
   }
+
+  /// Get re-usable data and size pointers for reading.
+  ///
+  /// Valid until the store is closed.
+  /// Avoids expensive pointer allocation for each read.
+  ///
+  /// See [ReadPointers].
+  ReadPointers readPointers() => _readPointers;
 }
 
 /// Internal only.
@@ -837,10 +863,6 @@ class InternalStoreAccess {
   @pragma('vm:prefer-inline')
   static bool queryCS(Store store) =>
       store.configuration().queriesCaseSensitiveDefault;
-
-  /// The low-level pointer to this store.
-  @pragma('vm:prefer-inline')
-  static ReaderWithCBuffer reader(Store store) => store._reader;
 }
 
 const _int64Size = 8;

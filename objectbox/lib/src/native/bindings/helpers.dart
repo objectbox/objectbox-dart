@@ -7,7 +7,6 @@ import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
-import 'flatbuffers.dart';
 
 // ignore_for_file: public_member_api_docs
 
@@ -109,46 +108,43 @@ class CursorHelper<T> {
   final EntityDefinition<T> _entity;
   final Store _store;
   final Pointer<OBX_cursor> ptr;
-  late final ReaderWithCBuffer _reader = InternalStoreAccess.reader(_store);
-
-  final bool _isWrite;
-  late final Pointer<Pointer<Uint8>> dataPtrPtr;
-
-  late final Pointer<Size> sizePtr;
 
   bool _closed = false;
 
-  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
-      {required bool isWrite})
+  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity)
       : ptr = checkObxPtr(
-            C.cursor(txn, _entity.model.id.id), 'failed to create cursor'),
-        _isWrite = isWrite {
-    if (!_isWrite) {
-      dataPtrPtr = malloc();
-      sizePtr = malloc();
-    }
-  }
-
-  ByteData get readData => _reader.access(dataPtrPtr.value, sizePtr.value);
+            C.cursor(txn, _entity.model.id.id), 'failed to create cursor');
 
   EntityDefinition<T> get entity => _entity;
 
   void close() {
     if (_closed) return;
     _closed = true;
-    if (!_isWrite) {
-      malloc.free(dataPtrPtr);
-      malloc.free(sizePtr);
-    }
     checkObx(C.cursor_close(ptr));
   }
 
+  T _deserializeObject(ReadPointers pointers) => _entity.objectFromData(
+      _store, pointers.dataPtrPtr.value, pointers.sizePtr.value);
+
   @pragma('vm:prefer-inline')
   T? get(int id) {
-    final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
+    final pointers = _store.readPointers();
+    final code = C.cursor_get(ptr, id, pointers.dataPtrPtr, pointers.sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
-    return _entity.objectFromFB(_store, readData);
+    return _deserializeObject(pointers);
+  }
+
+  List<T> getAll() {
+    final result = <T>[];
+    final pointers = _store.readPointers();
+    var code = C.cursor_first(ptr, pointers.dataPtrPtr, pointers.sizePtr);
+    while (code != OBX_NOT_FOUND) {
+      checkObx(code);
+      result.add(_deserializeObject(pointers));
+      code = C.cursor_next(ptr, pointers.dataPtrPtr, pointers.sizePtr);
+    }
+    return result;
   }
 }
 

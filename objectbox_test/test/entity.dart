@@ -425,3 +425,21 @@ class TestEntityScalarVectors {
         10, (index) => TestEntityScalarVectors.withData(index));
   }
 }
+
+Function? readDuringReadCalledFromSetter;
+
+@Entity()
+class TestEntityReadDuringRead {
+  @Id()
+  int id = 0;
+
+  List<String> get strings1 => ["A1", "B1"];
+
+  set strings1(List<String> values) {
+    if (readDuringReadCalledFromSetter != null) {
+      readDuringReadCalledFromSetter!();
+    }
+  }
+
+  List<String>? strings2;
+}
