@@ -395,19 +395,8 @@ class Box<T> {
           _getManyAsyncCallback<T>, _GetManyAsyncArgs(ids, growableResult));
 
   /// Returns all stored objects in this Box.
-  List<T> getAll() => InternalStoreAccess.runInTransaction(_store, TxMode.read,
-          (Transaction tx) {
-        final cursor = tx.cursor(_entity);
-        final result = <T>[];
-        var code =
-            C.cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-        while (code != OBX_NOT_FOUND) {
-          checkObx(code);
-          result.add(_entity.objectFromFB(_store, cursor.readData));
-          code = C.cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-        }
-        return result;
-      });
+  List<T> getAll() => InternalStoreAccess.runInTransaction(
+      _store, TxMode.read, (Transaction tx) => tx.cursor(_entity).getAll());
 
   // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
   static List<T> _getAllAsyncCallback<T>(Store store, void param) =>
@@ -697,12 +686,9 @@ class InternalBoxAccess {
           if (cIds.count > 0) {
             final cursor = tx.cursor(box._entity);
             for (var i = 0; i < cIds.count; i++) {
-              final code = C.cursor_get(
-                  cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
-              if (code != OBX_NOT_FOUND) {
-                checkObx(code);
-                result
-                    .add(box._entity.objectFromFB(box._store, cursor.readData));
+              final object = cursor.get(cIds.ids[i]);
+              if (object != null) {
+                result.add(object);
               }
             }
           }

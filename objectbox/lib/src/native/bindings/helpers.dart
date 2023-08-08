@@ -127,12 +127,6 @@ class CursorHelper<T> {
     }
   }
 
-  ByteData get readData {
-    int size = sizePtr.value;
-    final uint8List = dataPtrPtr.value.asTypedList(size);
-    return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
-  }
-
   EntityDefinition<T> get entity => _entity;
 
   void close() {
@@ -145,12 +139,26 @@ class CursorHelper<T> {
     checkObx(C.cursor_close(ptr));
   }
 
+  T _deserializeObject() =>
+      _entity.objectFromData(_store, dataPtrPtr.value, sizePtr.value);
+
   @pragma('vm:prefer-inline')
   T? get(int id) {
     final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
-    return _entity.objectFromData(_store, dataPtrPtr.value, sizePtr.value);
+    return _deserializeObject();
+  }
+
+  List<T> getAll() {
+    final result = <T>[];
+    var code = C.cursor_first(ptr, dataPtrPtr, sizePtr);
+    while (code != OBX_NOT_FOUND) {
+      checkObx(code);
+      result.add(_deserializeObject());
+      code = C.cursor_next(ptr, dataPtrPtr, sizePtr);
+    }
+    return result;
   }
 }
 
