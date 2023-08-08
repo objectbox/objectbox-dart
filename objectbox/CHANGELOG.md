@@ -1,4 +1,4 @@
-## latest
+## 2.2.0 (2023-08-08)
 
 * For Flutter apps running on Android 6 (or older): added `loadObjectBoxLibraryAndroidCompat()` to 
   `objectbox_flutter_libs` (and `objectbox_sync_flutter_libs`). Use this to fix loading the 
