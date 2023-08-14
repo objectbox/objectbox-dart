@@ -1,10 +1,7 @@
 import 'dart:ffi';
 
-import '../../modelinfo/entity_definition.dart';
-import '../store.dart';
 import 'bindings.dart';
-
-// ignore_for_file: public_member_api_docs
+import 'helpers.dart';
 
 /// When you want to pass a dart callback to a C function you cannot use lambdas
 /// and instead the callback must be a static function - giving a lambda to
@@ -25,34 +22,26 @@ bool _forwarder(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
 final Pointer<obx_data_visitor> _nativeVisitor =
     Pointer.fromFunction(_forwarder, false);
 
-/// The callback for reading data one-by-one.
+/// Visits query results.
 ///
+/// Pass a [callback] for reading data one-by-one:
 /// - [data] is the read data buffer.
 /// - [size] specifies the length of the read data.
 /// - Return true to keep going, false to cancel.
 @pragma('vm:prefer-inline')
-Pointer<obx_data_visitor> dataVisitor(
+void visit(Pointer<OBX_query> queryPtr,
     bool Function(Pointer<Uint8> data, int size) callback) {
   _callback = callback;
-  return _nativeVisitor;
+  checkObx(C.query_visit(queryPtr, _nativeVisitor, nullptr));
 }
 
-@pragma('vm:prefer-inline')
-Pointer<obx_data_visitor> objectCollector<T>(List<T> list, Store store,
-        EntityDefinition<T> entity, ObjectCollectorError outError) =>
-    dataVisitor((Pointer<Uint8> data, int size) {
-      try {
-        list.add(entity.objectFromData(store, data, size));
-        return true;
-      } catch (e) {
-        outError.error = e;
-        return false;
-      }
-    });
-
+/// Can be used with [visit] to get an error out of the callback.
 class ObjectCollectorError {
+  /// Set this e.g. to an exception that occurred inside the callback.
   Object? error;
 
+  /// Call once visiting is finished. If an exception is set to [error] will
+  /// re-throw it.
   void throwIfError() {
     if (error != null) throw error!;
   }

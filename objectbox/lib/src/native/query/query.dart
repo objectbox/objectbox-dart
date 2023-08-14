@@ -836,15 +836,16 @@ class Query<T> implements Finalizable {
   T? findFirst() {
     T? result;
     Object? error;
-    final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+    visitCallBack(Pointer<Uint8> data, int size) {
       try {
         result = _entity.objectFromData(_store, data, size);
       } catch (e) {
         error = e;
       }
       return false; // we only want to visit the first element
-    });
-    checkObx(C.query_visit(_ptr, visitor, nullptr));
+    }
+
+    visit(_ptr, visitCallBack);
     if (error != null) throw error!;
     return result;
   }
@@ -869,7 +870,7 @@ class Query<T> implements Finalizable {
   T? findUnique() {
     T? result;
     Object? error;
-    final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+    visitCallback(Pointer<Uint8> data, int size) {
       if (result == null) {
         try {
           result = _entity.objectFromData(_store, data, size);
@@ -883,8 +884,9 @@ class Query<T> implements Finalizable {
             'Query findUnique() matched more than one object');
         return false;
       }
-    });
-    checkObx(C.query_visit(_ptr, visitor, nullptr));
+    }
+
+    visit(_ptr, visitCallback);
     if (error != null) throw error!;
     return result;
   }
@@ -925,8 +927,17 @@ class Query<T> implements Finalizable {
   List<T> find() {
     final result = <T>[];
     final errorWrapper = ObjectCollectorError();
-    final collector = objectCollector(result, _store, _entity, errorWrapper);
-    checkObx(C.query_visit(_ptr, collector, nullptr));
+    visitCallback(Pointer<Uint8> data, int size) {
+      try {
+        result.add(_entity.objectFromData(_store, data, size));
+        return true;
+      } catch (e) {
+        errorWrapper.error = e;
+        return false;
+      }
+    }
+
+    visit(_ptr, visitCallback);
     errorWrapper.throwIfError();
     return result;
   }
@@ -1174,7 +1185,7 @@ class Query<T> implements Finalizable {
         var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
         var sizeBatch = List<int>.filled(maxBatchSize, 0);
         var batchSize = 0;
-        final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+        visitCallback(Pointer<Uint8> data, int size) {
           // Currently returning all results, even if the stream has been closed
           // before (e.g. only first element taken). Would need a way to check
           // for exit command on commandPort synchronously.
@@ -1190,11 +1201,12 @@ class Query<T> implements Finalizable {
             batchSize = 0;
           }
           return true;
-        });
+        }
+
         final queryPtr =
             Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
         try {
-          checkObx(C.query_visit(queryPtr, visitor, nullptr));
+          visit(queryPtr, visitCallback);
         } catch (e) {
           resultPort.send(e);
           return;
