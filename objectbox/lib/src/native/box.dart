@@ -41,6 +41,8 @@ enum PutMode {
 /// ```
 class Box<T> {
   final Store _store;
+
+  /// Pointer to the native instance. Use [_ptr] for safe access instead.
   final Pointer<OBX_box> _cBox;
   final EntityDefinition<T> _entity;
   final bool _hasToOneRelations;
@@ -58,6 +60,14 @@ class Box<T> {
             _entity.model.backlinks.isNotEmpty,
         _cBox = C.box(InternalStoreAccess.ptr(_store), _entity.model.id.id) {
     checkObxPtr(_cBox, 'failed to create box');
+  }
+
+  @pragma("vm:prefer-inline")
+  Pointer<OBX_box> get _ptr {
+    // Box does not have its own closed state as the native store is managing
+    // the box pointers.
+    _store.checkOpen();
+    return _cBox;
   }
 
   bool get _hasRelations => _hasToOneRelations || _hasToManyRelations;
@@ -97,6 +107,13 @@ class Box<T> {
   ///
   /// Use [get] to get an inserted object with its new ID set,
   /// or use [putAndGetAsync] instead.
+  ///
+  /// See [putManyAsync] to put several objects at once with better performance.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [put]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   ///
   /// See also [putQueued] which is optimized for running a large number of puts
   /// in parallel.
@@ -221,7 +238,7 @@ class Box<T> {
       if (_hasToOneRelations) {
         // In this case, there may be relation cycles so get the ID first.
         if ((_entity.getId(object) ?? 0) == 0) {
-          final newId = C.box_id_for_put(_cBox, 0);
+          final newId = C.box_id_for_put(_ptr, 0);
           if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
           _entity.setId(object, newId);
         }
@@ -231,7 +248,7 @@ class Box<T> {
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.box_put_object4(
-        _cBox, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
+        _ptr, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
     if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
     _builder.resetIfLarge();
@@ -290,6 +307,11 @@ class Box<T> {
   ///
   /// Use [getMany] to get inserted objects with their assigned ID set,
   /// or use [putAndGetManyAsync] instead.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [putMany]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<List<int>> putManyAsync(List<T> objects,
           {PutMode mode = PutMode.put}) async =>
       await _store.runAsync(
@@ -331,12 +353,19 @@ class Box<T> {
   static T? _getAsyncCallback<T>(Store store, int id) => store.box<T>().get(id);
 
   /// Like [get], but runs the box operation asynchronously in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [get]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<T?> getAsync(int id) => _store.runAsync(_getAsyncCallback<T>, id);
 
-  /// Returns a list of [ids.length] Objects of type T, each corresponding to
-  /// the location of its ID in [ids]. Non-existent IDs become null.
+  /// Returns a list of Objects of type T, each located at the corresponding
+  /// position of its ID in [ids].
   ///
-  /// Pass growableResult: true for the resulting list to be growable.
+  /// If an object does not exist, null is added to the list instead.
+  ///
+  /// Set [growableResult] to `true` for the returned list to be growable.
   List<T?> getMany(List<int> ids, {bool growableResult = false}) {
     final result = List<T?>.filled(ids.length, null, growable: growableResult);
     if (ids.isEmpty) return result;
@@ -358,24 +387,18 @@ class Box<T> {
 
   /// Like [getMany], but runs the box operation asynchronously in a worker
   /// isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [getMany]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<List<T?>> getManyAsync(List<int> ids, {bool growableResult = false}) =>
       _store.runAsync(
           _getManyAsyncCallback<T>, _GetManyAsyncArgs(ids, growableResult));
 
   /// Returns all stored objects in this Box.
-  List<T> getAll() => InternalStoreAccess.runInTransaction(_store, TxMode.read,
-          (Transaction tx) {
-        final cursor = tx.cursor(_entity);
-        final result = <T>[];
-        var code =
-            C.cursor_first(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-        while (code != OBX_NOT_FOUND) {
-          checkObx(code);
-          result.add(_entity.objectFromFB(_store, cursor.readData));
-          code = C.cursor_next(cursor.ptr, cursor.dataPtrPtr, cursor.sizePtr);
-        }
-        return result;
-      });
+  List<T> getAll() => InternalStoreAccess.runInTransaction(
+      _store, TxMode.read, (Transaction tx) => tx.cursor(_entity).getAll());
 
   // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
   static List<T> _getAllAsyncCallback<T>(Store store, void param) =>
@@ -383,6 +406,11 @@ class Box<T> {
 
   /// Like [getAll], but runs the box operation asynchronously in a worker
   /// isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [getAll]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<List<T>> getAllAsync() =>
       _store.runAsync(_getAllAsyncCallback<T>, null);
 
@@ -396,7 +424,7 @@ class Box<T> {
   int count({int limit = 0}) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.box_count(_cBox, limit, count));
+      checkObx(C.box_count(_ptr, limit, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -405,10 +433,10 @@ class Box<T> {
 
   /// Returns true if no objects are in this box.
   bool isEmpty() {
-    final isEmpty = malloc<Uint8>();
+    final isEmpty = malloc<Bool>();
     try {
-      checkObx(C.box_is_empty(_cBox, isEmpty));
-      return isEmpty.value == 1;
+      checkObx(C.box_is_empty(_ptr, isEmpty));
+      return isEmpty.value;
     } finally {
       malloc.free(isEmpty);
     }
@@ -416,10 +444,10 @@ class Box<T> {
 
   /// Returns true if this box contains an Object with the ID [id].
   bool contains(int id) {
-    final contains = malloc<Uint8>();
+    final contains = malloc<Bool>();
     try {
-      checkObx(C.box_contains(_cBox, id, contains));
-      return contains.value == 1;
+      checkObx(C.box_contains(_ptr, id, contains));
+      return contains.value;
     } finally {
       malloc.free(contains);
     }
@@ -427,11 +455,11 @@ class Box<T> {
 
   /// Returns true if this box contains objects with all of the given [ids].
   bool containsMany(List<int> ids) {
-    final contains = malloc<Uint8>();
+    final contains = malloc<Bool>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(C.box_contains_many(_cBox, ptr, contains));
-        return contains.value == 1;
+        checkObx(C.box_contains_many(_ptr, ptr, contains));
+        return contains.value;
       });
     } finally {
       malloc.free(contains);
@@ -441,7 +469,7 @@ class Box<T> {
   /// Removes (deletes) the Object with the given [id]. Returns true if the
   /// object did exist and was removed, otherwise false.
   bool remove(int id) {
-    final err = C.box_remove(_cBox, id);
+    final err = C.box_remove(_ptr, id);
     if (err == OBX_NOT_FOUND) return false;
     checkObx(err); // throws on other errors
     return true;
@@ -452,6 +480,11 @@ class Box<T> {
       store.box<T>().remove(id);
 
   /// Like [remove], but runs in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [remove]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<bool> removeAsync(int id) async =>
       await _store.runAsync(_removeAsyncCallback<T>, id);
 
@@ -461,7 +494,7 @@ class Box<T> {
     final countRemoved = malloc<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(C.box_remove_many(_cBox, ptr, countRemoved));
+        checkObx(C.box_remove_many(_ptr, ptr, countRemoved));
         return countRemoved.value;
       });
     } finally {
@@ -474,6 +507,11 @@ class Box<T> {
       store.box<T>().removeMany(ids);
 
   /// Like [removeMany], but runs in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [removeMany]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<int> removeManyAsync(List<int> ids) async =>
       await _store.runAsync(_removeManyAsyncCallback<T>, ids);
 
@@ -482,7 +520,7 @@ class Box<T> {
   int removeAll() {
     final removedItems = malloc<Uint64>();
     try {
-      checkObx(C.box_remove_all(_cBox, removedItems));
+      checkObx(C.box_remove_all(_ptr, removedItems));
       return removedItems.value;
     } finally {
       malloc.free(removedItems);
@@ -494,6 +532,11 @@ class Box<T> {
       store.box<T>().removeAll();
 
   /// Like [removeAll], but runs in a worker isolate.
+  ///
+  /// If you need to call this multiple times consider using the synchronous
+  /// variant (e.g. [removeAll]) and wrap the calls in [Store.runInTransactionAsync].
+  /// This has typically better performance as only a single worker isolate has
+  /// to be spawned.
   Future<int> removeAllAsync() async =>
       await _store.runAsync(_removeAllAsyncCallback<T>, null);
 
@@ -535,7 +578,7 @@ int _getOBXPutMode(PutMode mode) {
 class _AsyncBoxHelper {
   final Pointer<OBX_async> _cAsync;
 
-  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._cBox) {
+  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._ptr) {
     initializeDartAPI();
   }
 
@@ -604,7 +647,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_put(box._cBox, relationId, sourceId, targetId));
+      checkObx(C.box_rel_put(box._ptr, relationId, sourceId, targetId));
 
   /// Remove a standalone relation entry between two objects.
   @pragma('vm:prefer-inline')
@@ -614,7 +657,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_remove(box._cBox, relationId, sourceId, targetId));
+      checkObx(C.box_rel_remove(box._ptr, relationId, sourceId, targetId));
 
   /// Read all objects in this Box related to the given object.
   /// Similar to box.getMany() but loads the OBX_id_array and reads objects
@@ -626,14 +669,14 @@ class InternalBoxAccess {
         Pointer<OBX_id_array> cIdsPtr;
         switch (rel.type) {
           case RelType.toMany:
-            cIdsPtr = C.box_rel_get_ids(box._cBox, rel.id, rel.objectId);
+            cIdsPtr = C.box_rel_get_ids(box._ptr, rel.id, rel.objectId);
             break;
           case RelType.toOneBacklink:
-            cIdsPtr = C.box_get_backlink_ids(box._cBox, rel.id, rel.objectId);
+            cIdsPtr = C.box_get_backlink_ids(box._ptr, rel.id, rel.objectId);
             break;
           case RelType.toManyBacklink:
             cIdsPtr =
-                C.box_rel_get_backlink_ids(box._cBox, rel.id, rel.objectId);
+                C.box_rel_get_backlink_ids(box._ptr, rel.id, rel.objectId);
             break;
           default:
             throw UnimplementedError('Invalid relation type ${rel.type}');
@@ -645,12 +688,9 @@ class InternalBoxAccess {
           if (cIds.count > 0) {
             final cursor = tx.cursor(box._entity);
             for (var i = 0; i < cIds.count; i++) {
-              final code = C.cursor_get(
-                  cursor.ptr, cIds.ids[i], cursor.dataPtrPtr, cursor.sizePtr);
-              if (code != OBX_NOT_FOUND) {
-                checkObx(code);
-                result
-                    .add(box._entity.objectFromFB(box._store, cursor.readData));
+              final object = cursor.get(cIds.ids[i]);
+              if (object != null) {
+                result.add(object);
               }
             }
           }

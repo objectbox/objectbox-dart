@@ -16,7 +16,6 @@ import '../modelinfo/index.dart';
 import '../transaction.dart';
 import '../util.dart';
 import 'bindings/bindings.dart';
-import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'box.dart';
 import 'model.dart';
@@ -29,7 +28,7 @@ part 'store_config.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
-class Store {
+class Store implements Finalizable {
   /// Path of the default directory, currently 'objectbox'.
   static const String defaultDirectoryPath = 'objectbox';
 
@@ -39,7 +38,13 @@ class Store {
 
   /// Pointer to the C instance of this, access via [_ptr] with closed check.
   late Pointer<OBX_store> _cStore;
-  late final Pointer<OBX_dart_finalizer> _cFinalizer;
+
+  /// Runs native close function on [_cStore] if this is garbage collected.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.store_close.cast());
+
   HashMap<int, Type>? _entityTypeById;
   final _boxes = HashMap<Type, Box>();
 
@@ -50,8 +55,7 @@ class Store {
 
   Stream<List<Type>>? _entityChanges;
 
-  /// Should be cleared when this closes to free native resources.
-  final _reader = ReaderWithCBuffer();
+  final _readPointers = ReadPointers();
   Transaction? _tx;
 
   /// Path to the database directory.
@@ -69,7 +73,7 @@ class Store {
 
   late final ByteData _reference;
 
-  /// A list of observers of the Store.close() event.
+  /// A list of observers of the [Store.close] event.
   final _onClose = <dynamic, void Function()>{};
 
   /// If true and calling [close] will also close the native Store and
@@ -104,8 +108,12 @@ class Store {
   ///
   /// ## macOS application group
   ///
-  /// If you're creating a sandboxed macOS app use [macosApplicationGroup] to
-  /// specify the application group. For more details see our online docs.
+  /// When creating a sandboxed macOS app use [macosApplicationGroup] to
+  /// specify the application group. See the info boxes on the
+  /// [Getting Started](https://docs.objectbox.io/getting-started) page for
+  /// details.
+  ///
+  /// Note: due to limitations in macOS this must be 19 characters or shorter.
   ///
   /// ## Maximum database size
   ///
@@ -233,7 +241,7 @@ class Store {
           queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
-      _reader.clear();
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -362,7 +370,7 @@ class Store {
           queriesCaseSensitiveDefault);
       _attachFinalizer();
     } catch (e) {
-      _reader.clear();
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -384,7 +392,7 @@ class Store {
       _configuration = configuration;
       _attachFinalizer();
     } catch (e) {
-      _reader.clear();
+      _readPointers.clear();
       rethrow;
     }
   }
@@ -434,14 +442,8 @@ class Store {
   /// close() and not rely on garbage collection [to avoid out-of-memory
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
-    initializeDartAPI();
-    // Keep the finalizer so it can be detached when close() is called.
-    _cFinalizer = C.dartc_attach_finalizer(
-        this, native_store_close, _cStore.cast(), 1024 * 1024);
-    if (_cFinalizer == nullptr) {
-      close();
-      throwLatestNativeError(context: 'attach store finalizer');
-    }
+    _finalizer.attach(this, _cStore.cast(),
+        detach: this, externalSize: 200 * 1024);
   }
 
   /// Returns if an open store (i.e. opened before and not yet closed) was found
@@ -492,11 +494,7 @@ class Store {
   ///   store.close();
   /// }
   /// ```
-  Pointer<OBX_store> _clone() {
-    final ptr = checkObxPtr(C.store_clone(_ptr));
-    reachabilityFence(this);
-    return ptr;
-  }
+  Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_ptr));
 
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;
@@ -515,16 +513,12 @@ class Store {
     _onClose.values.toList(growable: false).forEach((listener) => listener());
     _onClose.clear();
 
-    _reader.clear();
+    _readPointers.clear();
 
     if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
-      final errors = List.filled(2, 0);
-      if (_cFinalizer != nullptr) {
-        errors[0] = C.dartc_detach_finalizer(_cFinalizer, this);
-      }
-      errors[1] = C.store_close(_cStore);
-      errors.forEach(checkObx);
+      _finalizer.detach(this);
+      checkObx(C.store_close(_cStore));
     }
     _cStore = nullptr;
   }
@@ -561,7 +555,7 @@ class Store {
     // Whether the function is an `async` function. We can't allow those because
     // the isolate could be transferred to another thread during execution.
     // Checking the return value seems like the only thing we can in Dart v2.12.
-    if (fn is Future Function() && _nullSafetyEnabled) {
+    if (fn is Future Function()) {
       // This is a special case when the given function always throws. Triggered
       //  in our test code. No need to even start a DB transaction in that case.
       if (fn is Never Function()) {
@@ -615,10 +609,7 @@ class Store {
     } finally {
       store.close();
     }
-
-    // Note: maybe replace with Isolate.exit (and remove kill() call in caller)
-    // once min Dart SDK 2.15.
-    isoPass.resultPort.send(result);
+    Isolate.exit(isoPass.resultPort, result);
   }
 
   /// Spawns an isolate, runs [callback] in that isolate passing it [param] with
@@ -660,9 +651,6 @@ class Store {
   ///
   /// See [SendPort.send] for a discussion on which values can be sent to and
   /// received from isolates.
-  ///
-  /// Note: this requires Dart 2.15.0 or newer
-  /// (shipped with Flutter 2.8.0 or newer).
   Future<R> runAsync<P, R>(RunAsyncCallback<P, R> callback, P param) async {
     final port = RawReceivePort();
     final completer = Completer<dynamic>();
@@ -676,11 +664,10 @@ class Store {
       completer.complete(message);
     };
 
-    final Isolate isolate;
     try {
       // Await isolate spawn to avoid waiting forever if it fails to spawn.
-      isolate = await Isolate.spawn(
-          _callFunctionWithStoreInIsolate,
+      await Isolate.spawn(
+          _callFunctionWithStoreInIsolate<P, R>,
           _RunAsyncIsolateConfig(
               configuration(), port.sendPort, callback, param),
           errorsAreFatal: true,
@@ -692,10 +679,6 @@ class Store {
     }
 
     final dynamic response = await completer.future;
-    // Replace with Isolate.exit in _callFunctionWithStoreInIsolate
-    // once min SDK 2.15.
-    isolate.kill();
-
     if (response == null) {
       throw RemoteError('Isolate exited without result or error.', '');
     }
@@ -733,11 +716,6 @@ class Store {
     }
     try {
       final result = fn(tx);
-      if (!_nullSafetyEnabled && result is Future) {
-        // Let's make sure users change their code not to use async.
-        throw UnsupportedError(
-            'Executing an "async" function in a transaction is not allowed.');
-      }
       if (!reused) tx.successAndClose();
       return result;
     } catch (ex) {
@@ -760,11 +738,7 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitQueueCompletion() {
-    final result = C.store_await_async_submitted(_ptr);
-    reachabilityFence(this);
-    return result;
-  }
+  bool awaitQueueCompletion() => C.store_await_async_completion(_ptr);
 
   /// Await for previously submitted operations using [Box.putQueued] to be
   /// completed (the queue does not have to become idle).
@@ -773,16 +747,34 @@ class Store {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitQueueSubmitted() {
-    final result = C.store_await_async_submitted(_ptr);
-    reachabilityFence(this);
-    return result;
-  }
+  bool awaitQueueSubmitted() => C.store_await_async_submitted(_ptr);
 
   /// The low-level pointer to this store.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_store> get _ptr =>
-      isClosed() ? throw StateError('Store is closed') : _cStore;
+  Pointer<OBX_store> get _ptr {
+    checkOpen();
+    return _cStore;
+  }
+}
+
+/// Internal class to provide re-usable pointers for reading data. This avoids
+/// expensive allocation by only allocating the pointers once for the lifetime
+/// of the store.
+///
+/// [clear] once done using to free native resources (pointer memory).
+class ReadPointers {
+  /// Pointer to use for data.
+  final Pointer<Pointer<Uint8>> dataPtrPtr = malloc();
+
+  /// Pointer to use for size of data.
+  final Pointer<Size> sizePtr = malloc();
+
+  /// Free native resources (pointer memory).
+  /// Pointers can not longer be used afterwards.
+  void clear() {
+    malloc.free(dataPtrPtr);
+    malloc.free(sizePtr);
+  }
 }
 
 /// This hides away methods from the public API
@@ -805,10 +797,24 @@ extension StoreInternal on Store {
       return config;
     }
   }
+
+  /// If the store [isClosed] will throw an error.
+  void checkOpen() {
+    if (isClosed()) {
+      throw StateError('Store is closed');
+    }
+  }
+
+  /// Get re-usable data and size pointers for reading.
+  ///
+  /// Valid until the store is closed.
+  /// Avoids expensive pointer allocation for each read.
+  ///
+  /// See [ReadPointers].
+  ReadPointers readPointers() => _readPointers;
 }
 
 /// Internal only.
-@internal
 class InternalStoreAccess {
   /// See [Store._clone].
   static Pointer<OBX_store> clone(Store store) => store._clone();
@@ -840,12 +846,12 @@ class InternalStoreAccess {
     return store._entityTypeById!;
   }
 
-  /// Adds a listener to the [store.close()] event.
+  /// Adds a listener to the [Store.close] event.
   static void addCloseListener(
           Store store, dynamic key, void Function() listener) =>
       store._onClose[key] = listener;
 
-  /// Removes a [store.close()] event listener.
+  /// Removes a [Store.close] event listener.
   static void removeCloseListener(Store store, dynamic key) =>
       store._onClose.remove(key);
 
@@ -857,10 +863,6 @@ class InternalStoreAccess {
   @pragma('vm:prefer-inline')
   static bool queryCS(Store store) =>
       store.configuration().queriesCaseSensitiveDefault;
-
-  /// The low-level pointer to this store.
-  @pragma('vm:prefer-inline')
-  static ReaderWithCBuffer reader(Store store) => store._reader;
 }
 
 const _int64Size = 8;
@@ -869,12 +871,6 @@ const _int64Size = 8;
 /// Note: this only works for a single isolate. Core would need to support the
 /// same for the check to work across isolates.
 final _openStoreDirectories = HashSet<String>();
-
-/// True if the package enables null-safety (i.e. depends on SDK 2.12+).
-/// Otherwise, it's we can distinguish at runtime whether a function is async.
-final _nullSafetyEnabled = _nullReturningFn is! Future Function();
-// ignore: prefer_function_declarations_over_variables
-final _nullReturningFn = () => null;
 
 // Define type so IDE generates named parameters.
 /// Signature for the callback passed to [Store.runAsync].

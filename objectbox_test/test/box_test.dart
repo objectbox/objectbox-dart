@@ -1,7 +1,6 @@
-// ignore_for_file: deprecated_member_use_from_same_package
+// ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
@@ -43,6 +42,54 @@ void main() {
     int putId = box.put(object);
     expect(putId, greaterThan(0));
     expect(object.id, equals(putId)); // ID on the object is updated
+
+    object.tString = "Hello again";
+    int updateId = box.put(object, mode: PutMode.update);
+    expect(updateId, greaterThan(0));
+    expect(object.id, updateId);
+  });
+
+  test('.put() update mode failures', () {
+    final box = store.box<TestEntity2>();
+    expect(
+        () => box.put(TestEntity2(id: 0), mode: PutMode.update),
+        throwsA(predicate((ArgumentError e) => e
+            .toString()
+            .contains('ID is not set (zero) for object to update'))));
+
+    expect(
+        () => box.put(TestEntity2(id: 5), mode: PutMode.update),
+        throwsA(predicate(
+            (ObjectBoxException e) => e.message == 'object put failed')));
+  });
+
+  test('use after close throws', () {
+    // Obtain box reference before store is closed.
+    final box = env.box;
+    final boxNonRel = env.store.box<TestEntityNonRel>();
+    env.closeAndDelete();
+
+    expectStoreClosed(Function function) {
+      expect(function,
+          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+    }
+
+    // Use entity with relations to test transaction code path in put.
+    expectStoreClosed(() => box.put(TestEntity(tString: 'Never put')));
+    // Use entity without relations to test non-transaction code path in put.
+    expectStoreClosed(
+        () => boxNonRel.put(TestEntityNonRel.filled(tString: 'Never put')));
+
+    expectStoreClosed(() =>
+        boxNonRel.putQueued(TestEntityNonRel.filled(tString: 'Never put')));
+
+    expectStoreClosed(() => box.count());
+    expectStoreClosed(() => box.isEmpty());
+    expectStoreClosed(() => box.contains(1));
+    expectStoreClosed(() => box.containsMany([1, 2]));
+    expectStoreClosed(() => box.remove(1));
+    expectStoreClosed(() => box.removeMany([1, 2]));
+    expectStoreClosed(() => box.removeAll());
   });
 
   test('.putAsync', () async {
@@ -100,13 +147,12 @@ void main() {
 
   test('.putAsync failures', () async {
     final box = store.box<TestEntity2>();
-    // FIXME Disable until error overwriting bug is fixed.
-    // await expectLater(
-    //     () async =>
-    //         await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
-    //     throwsA(predicate((ArgumentError e) => e
-    //         .toString()
-    //         .contains('ID is not set (zero) for object to update'))));
+    await expectLater(
+        () async =>
+            await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
+        throwsA(predicate((ArgumentError e) => e
+            .toString()
+            .contains('ID is not set (zero) for object to update'))));
 
     await expectLater(
         await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert), 1);
@@ -256,21 +302,15 @@ void main() {
   });
 
   test('.get() returns the correct item', () async {
-    final int putId = box.put(TestEntity(
-        tString: 'Hello',
-        tStrings: ['foo', 'bar'],
-        tByteList: [1, 99, -54],
-        tUint8List: Uint8List.fromList([2, 50, 78]),
-        tInt8List: Int8List.fromList([-16, 20, 43])));
+    final testEntities = simpleItems();
+    box.putMany(testEntities);
+
+    final int putId = testEntities[2].id;
 
     assertItem(TestEntity? item) {
       expect(item, isNotNull);
       expect(item!.id, equals(putId));
-      expect(item.tString, equals('Hello'));
-      expect(item.tStrings, equals(['foo', 'bar']));
-      expect(item.tByteList, equals([1, 99, -54]));
-      expect(item.tUint8List, equals([2, 50, 78]));
-      expect(item.tInt8List, equals([-16, 20, 43]));
+      expect(item.tString, equals('Three'));
     }
 
     assertItem(box.get(putId));
@@ -500,26 +540,27 @@ void main() {
     final int8Max = 127;
     final int16Min = -32768;
     final int16Max = 32767;
+    final uint16Max = 65535;
     final int32Min = -2147483648;
     final int32Max = 2147483647;
     final int64Min = -9223372036854775808;
     final int64Max = 9223372036854775807;
     final List<TestEntity> items = [
-      ...[int8Min, int8Max].map((n) => TestEntity(tChar: n)).toList(),
       ...[int8Min, int8Max].map((n) => TestEntity(tByte: n)).toList(),
       ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)).toList(),
+      ...[0, uint16Max].map((n) => TestEntity(tChar: n)).toList(),
       ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)).toList(),
       ...[int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList()
     ];
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
     final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0]!.tChar, equals(int8Min));
-    expect(fetchedItems[1]!.tChar, equals(int8Max));
-    expect(fetchedItems[2]!.tByte, equals(int8Min));
-    expect(fetchedItems[3]!.tByte, equals(int8Max));
-    expect(fetchedItems[4]!.tShort, equals(int16Min));
-    expect(fetchedItems[5]!.tShort, equals(int16Max));
+    expect(fetchedItems[0]!.tByte, equals(int8Min));
+    expect(fetchedItems[1]!.tByte, equals(int8Max));
+    expect(fetchedItems[2]!.tShort, equals(int16Min));
+    expect(fetchedItems[3]!.tShort, equals(int16Max));
+    expect(fetchedItems[4]!.tChar, equals(0));
+    expect(fetchedItems[5]!.tChar, equals(uint16Max));
     expect(fetchedItems[6]!.tInt, equals(int32Min));
     expect(fetchedItems[7]!.tInt, equals(int32Max));
     expect(fetchedItems[8]!.tLong, equals(int64Min));
@@ -567,31 +608,55 @@ void main() {
     }
   });
 
-  test('null properties are handled correctly', () {
-    final List<TestEntity> items = [
-      TestEntity(),
-      TestEntity(tLong: 10),
-      TestEntity(tString: 'Hello')
-    ];
-    final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
-    expect(fetchedItems[0]!.id, isNotNull);
-    expect(fetchedItems[0]!.tLong, isNull);
-    expect(fetchedItems[0]!.tString, isNull);
-    expect(fetchedItems[0]!.tBool, isNull);
-    expect(fetchedItems[0]!.tDouble, isNull);
-    expect(fetchedItems[1]!.id, isNotNull);
-    expect(fetchedItems[1]!.tLong, isNotNull);
-    expect(fetchedItems[1]!.tString, isNull);
-    expect(fetchedItems[1]!.tBool, isNull);
-    expect(fetchedItems[1]!.tDouble, isNull);
-    expect(fetchedItems[2]!.id, isNotNull);
-    expect(fetchedItems[2]!.tLong, isNull);
-    expect(fetchedItems[2]!.tString, isNotNull);
-    expect(fetchedItems[2]!.tBool, isNull);
-    expect(fetchedItems[2]!.tDouble, isNull);
+  test('null simple types are handled correctly', () {
+    final TestEntity item = box.get(box.put(TestEntity()))!;
+    expect(item.id, isNotNull);
+    expect(item.tString, isNull);
+    expect(item.tLong, isNull);
+    expect(item.tDouble, isNull);
+    expect(item.tBool, isNull);
+    expect(item.tDate, isNull);
+    expect(item.tDateNano, isNull);
+    expect(item.tByte, isNull);
+    expect(item.tShort, isNull);
+    expect(item.tChar, isNull);
+    expect(item.tInt, isNull);
+    expect(item.tFloat, isNull);
   });
 
-  test('all types are handled correctly', () {
+  test('null vector types are handled correctly', () {
+    final TestEntity item = box.get(box.put(TestEntity()))!;
+    expect(item.id, isNotNull);
+    expect(item.tStrings, isNull);
+
+    final vectorBox = store.box<TestEntityScalarVectors>();
+    final item2 = vectorBox.get(vectorBox.put(TestEntityScalarVectors()))!;
+    expect(item2.id, isNotNull);
+    expect(item2.tByteList, isNull);
+    expect(item2.tInt8List, isNull);
+    expect(item2.tUint8List, isNull);
+
+    expect(item2.tCharList, isNull);
+
+    expect(item2.tShortList, isNull);
+    expect(item2.tInt16List, isNull);
+    expect(item2.tUint16List, isNull);
+
+    expect(item2.tIntList, isNull);
+    expect(item2.tInt32List, isNull);
+    expect(item2.tUint32List, isNull);
+
+    expect(item2.tLongList, isNull);
+    expect(item2.tInt64List, isNull);
+    expect(item2.tUint64List, isNull);
+
+    expect(item2.tFloatList, isNull);
+    expect(item2.tFloat32List, isNull);
+    expect(item2.tDoubleList, isNull);
+    expect(item2.tFloat64List, isNull);
+  });
+
+  test('simple types are handled correctly', () {
     TestEntity item = TestEntity(
         tString: 'Hello',
         tLong: 1234,
@@ -599,7 +664,8 @@ void main() {
         tBool: true,
         tByte: 123,
         tShort: -4567,
-        tChar: 'x'.codeUnitAt(0),
+        tChar: 'Ā'.codeUnitAt(0),
+        // U+0100
         tInt: 789012,
         tFloat: -2.71);
     final fetchedItem = box.get(box.put(item))!;
@@ -609,9 +675,51 @@ void main() {
     expect(fetchedItem.tBool, equals(true));
     expect(fetchedItem.tByte, equals(123));
     expect(fetchedItem.tShort, equals(-4567));
-    expect(fetchedItem.tChar, equals('x'.codeUnitAt(0)));
+    expect(fetchedItem.tChar, equals('Ā'.codeUnitAt(0)));
     expect(fetchedItem.tInt, equals(789012));
     expect((fetchedItem.tFloat! - (-2.71)).abs(), lessThan(0.0000001));
+  });
+
+  test('vector types are handled correctly', () {
+    // String vector
+    final id = box.put(TestEntity(tStrings: ['foo', 'bar']));
+
+    final item = box.get(id)!;
+    expect(item.id, id);
+    expect(item.tStrings, ['foo', 'bar']);
+
+    // Integer and floating point vectors
+    final vectorBox = store.box<TestEntityScalarVectors>();
+    final id2 = vectorBox.put(TestEntityScalarVectors.withData(1));
+
+    final item2 = vectorBox.get(id2)!;
+    expect(item2.id, id2);
+
+    expect(item2.tByteList, [-11, 11]);
+    expect(item2.tInt8List, [-11, 11]);
+    expect(item2.tUint8List, [11, 12]);
+
+    expect(item2.tCharList, [1001, 1002]);
+
+    expect(item2.tShortList, [-1001, 1001]);
+    expect(item2.tInt16List, [-1001, 1001]);
+    expect(item2.tUint16List, [1001, 1002]);
+
+    expect(item2.tIntList, [-100001, 100001]);
+    expect(item2.tInt32List, [-100001, 100001]);
+    expect(item2.tUint32List, [100001, 100002]);
+
+    expect(item2.tLongList, [-10000000001, 10000000001]);
+    expect(item2.tInt64List, [-10000000001, 10000000001]);
+    expect(item2.tUint64List, [10000000001, 10000000002]);
+
+    expect(item2.tFloatList![0], closeTo(-20.1, 0.00001));
+    expect(item2.tFloatList![1], closeTo(20.1, 0.00001));
+    expect(item2.tFloat32List![0], closeTo(-20.1, 0.00001));
+    expect(item2.tFloat32List![1], closeTo(20.1, 0.00001));
+
+    expect(item2.tDoubleList, [-2000.00001, 2000.00001]);
+    expect(item2.tFloat64List, [-2000.00001, 2000.00001]);
   });
 
   test('.count() works', () {
@@ -775,11 +883,14 @@ void main() {
         () async => await store.runInTransactionAsync(TxMode.write,
                 (Store store, List<TestEntity> param) {
               store.box<TestEntity>().putMany(param);
-              // note: we're throwing conditionally (but always true) so that
+              // Note: we're throwing conditionally (but always true) so that
               // the return type is not [Never]. See [Transaction.execute()]
               // testing for the return type to be a [Future]. [Never] is a
               // base class to everything, so a [Future] is also a [Never].
-              if (1 + 1 == 2) throw 'test-exception';
+              // Also not creating exception instance inline to avoid Dart
+              // over-capturing the Store and trying to send it back to the
+              // main isolate [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+              testThrowException();
               return 1;
             }, simpleItems()),
         throwsA('test-exception'));
@@ -959,8 +1070,28 @@ void main() {
     expect(() => box.get(2), ThrowingInConverters.throwsIn('Setter'));
     expect(() => box.getAll(), ThrowingInConverters.throwsIn('Setter'));
   });
+
+  // https://github.com/objectbox/objectbox-dart/issues/550
+  test("read during object creation", () {
+    final box = env.store.box<TestEntityReadDuringRead>();
+    final id =
+        box.put(TestEntityReadDuringRead()..strings2 = ["A2", "B2", "C3"]);
+    // Do a database read of another box (to avoid stack overflow)
+    // as part of calling a property setter.
+    env.box.putMany(simpleItems());
+    readDuringReadCalledFromSetter = () {
+      env.box.getAll();
+    };
+    final actual = box.get(id)!;
+    readDuringReadCalledFromSetter = null; // Do not leak the box instance.
+    expect(actual.strings2, hasLength(3));
+  });
 }
 
 List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
     .map((s) => TestEntity(tString: s))
     .toList();
+
+void testThrowException() {
+  if (1 + 1 == 2) throw 'test-exception';
+}

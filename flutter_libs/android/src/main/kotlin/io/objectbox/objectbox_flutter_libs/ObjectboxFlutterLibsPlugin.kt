@@ -1,5 +1,6 @@
 package io.objectbox.objectbox_flutter_libs
 
+import android.os.Build
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -22,8 +23,20 @@ class ObjectboxFlutterLibsPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
+    if (call.method == "loadObjectBoxLibrary") {
+      // Loading the JNI library through Dart is broken on Android 6 (and maybe earlier).
+      // Try to fix by loading it first via Java API, then again in Dart.
+      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+        result.success(null);
+        return
+      }
+      try {
+        System.loadLibrary("objectbox-jni")
+        println("[ObjectBox] Loaded JNI library via workaround.")
+        result.success(null)
+      } catch (e: Throwable) {
+        result.error("OBX_SO_LOAD_FAILED", e.message, null)
+      }
     } else {
       result.notImplemented()
     }

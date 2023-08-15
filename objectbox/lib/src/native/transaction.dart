@@ -71,8 +71,7 @@ class Transaction {
   /// Note: the cursor may have already been used, don't rely on its state!
   CursorHelper<T> cursor<T>(EntityDefinition<T> entity) {
     if (_firstCursor == null) {
-      return _firstCursor =
-          CursorHelper<T>(_store, _cTxn, entity, isWrite: mode == TxMode.write);
+      return _firstCursor = CursorHelper<T>(_store, _cTxn, entity);
     } else if (_firstCursor!.entity == entity) {
       return _firstCursor as CursorHelper<T>;
     }
@@ -80,8 +79,7 @@ class Transaction {
     final entityId = entity.model.id.id;
     final cursors = _cursors!;
     if (!cursors.containsKey(entityId)) {
-      cursors[entityId] =
-          CursorHelper<T>(_store, _cTxn, entity, isWrite: mode == TxMode.write);
+      cursors[entityId] = CursorHelper<T>(_store, _cTxn, entity);
     }
     return cursors[entityId] as CursorHelper<T>;
   }

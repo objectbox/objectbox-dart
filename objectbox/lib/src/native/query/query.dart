@@ -37,7 +37,7 @@ class Order {
   static final caseSensitive = 2;
 
   /// For integers only: changes the comparison to unsigned. The default is
-  /// signed, unless the property is annotated with [@Property(signed: false)].
+  /// signed, unless the property is annotated with `@Property(signed: false)`.
   static final unsigned = 4;
 
   /// null values will be put last.
@@ -180,6 +180,37 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
       _opList(list, _ConditionOp.notOneOf, alias);
 }
 
+/// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
+/// equal will be supported on elements of the vector (e.g. "has element greater")
+/// in the future.
+class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
+  QueryIntegerVectorProperty(ModelProperty model) : super(model);
+
+// Note: The C library currently does not support queries for integer vector properties.
+
+// Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
+//     _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
+//
+// Condition<EntityT> equals(int p, {String? alias}) =>
+//     _op(_ConditionOp.eq, p, 0, alias);
+//
+// Condition<EntityT> greaterThan(int p, {String? alias}) =>
+//     _op(_ConditionOp.gt, p, 0, alias);
+//
+// Condition<EntityT> greaterOrEqual(int p, {String? alias}) =>
+//     _op(_ConditionOp.greaterOrEq, p, 0, alias);
+//
+// Condition<EntityT> lessThan(int p, {String? alias}) =>
+//     _op(_ConditionOp.lt, p, 0, alias);
+//
+// Condition<EntityT> lessOrEqual(int p, {String? alias}) =>
+//     _op(_ConditionOp.lessOrEq, p, 0, alias);
+//
+// Condition<EntityT> operator <(int p) => lessThan(p);
+//
+// Condition<EntityT> operator >(int p) => greaterThan(p);
+}
+
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   QueryDoubleProperty(ModelProperty model) : super(model);
 
@@ -212,6 +243,35 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   Condition<EntityT> operator <(double p) => lessThan(p);
 
   Condition<EntityT> operator >(double p) => greaterThan(p);
+}
+
+/// For double vectors greater and less queries will be supported on elements of
+/// the vector (e.g. "has element greater") in the future.
+class QueryDoubleVectorProperty<EntityT>
+    extends QueryProperty<EntityT, double> {
+  QueryDoubleVectorProperty(ModelProperty model) : super(model);
+
+// Note: The C library currently does not support queries for floating point vector properties.
+
+// Condition<EntityT> _op(
+//         _ConditionOp op, double p1, double? p2, String? alias) =>
+//     _DoubleCondition<EntityT>(op, this, p1, p2, alias);
+//
+// Condition<EntityT> greaterThan(double p, {String? alias}) =>
+//     _op(_ConditionOp.gt, p, 0, alias);
+//
+// Condition<EntityT> greaterOrEqual(double p, {String? alias}) =>
+//     _op(_ConditionOp.greaterOrEq, p, null, alias);
+//
+// Condition<EntityT> lessThan(double p, {String? alias}) =>
+//     _op(_ConditionOp.lt, p, null, alias);
+//
+// Condition<EntityT> lessOrEqual(double p, {String? alias}) =>
+//     _op(_ConditionOp.lessOrEq, p, null, alias);
+//
+// Condition<EntityT> operator <(double p) => lessThan(p);
+//
+// Condition<EntityT> operator >(double p) => greaterThan(p);
 }
 
 class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
@@ -308,7 +368,7 @@ abstract class Condition<EntityT> {
     if (cid == 0) builder._throwExceptionIfNecessary();
     if (_alias != null) {
       checkObx(withNativeString(_alias!,
-          (Pointer<Int8> cStr) => C.qb_param_alias(builder._cBuilder, cStr)));
+          (Pointer<Char> cStr) => C.qb_param_alias(builder._cBuilder, cStr)));
     }
     return cid;
   }
@@ -360,7 +420,7 @@ class _StringCondition<EntityT, PropertyDartType>
       : super(op, prop, value, value2, alias);
 
   int _op1(_QueryBuilder builder,
-      int Function(Pointer<OBX_query_builder>, int, Pointer<Int8>, bool) func) {
+      int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, bool) func) {
     final cStr = _value.toNativeUtf8();
     try {
       return func(builder._cBuilder, _property._model.id.id, cStr.cast(),
@@ -410,7 +470,7 @@ class _StringListCondition<EntityT>
 
   int _oneOf(_QueryBuilder builder) => withNativeStrings(
       _value,
-      (Pointer<Pointer<Int8>> ptr, int size) => C.qb_in_strings(
+      (Pointer<Pointer<Char>> ptr, int size) => C.qb_in_strings(
           builder._cBuilder,
           _property._model.id.id,
           ptr,
@@ -598,7 +658,7 @@ class _ByteVectorCondition<EntityT>
 
 class _ConditionGroup<EntityT> extends Condition<EntityT> {
   final List<Condition<EntityT>> _conditions;
-  final int Function(Pointer<OBX_query_builder>, Pointer<Int32>, int) _func;
+  final int Function(Pointer<OBX_query_builder>, Pointer<Int>, int) _func;
 
   _ConditionGroup(this._conditions, this._func) : super(null);
 
@@ -612,7 +672,7 @@ class _ConditionGroup<EntityT> extends Condition<EntityT> {
       return _conditions[0]._applyFull(builder, isRoot: isRoot);
     }
 
-    final intArrayPtr = malloc<Int32>(size);
+    final intArrayPtr = malloc<Int>(size);
     try {
       for (var i = 0; i < size; ++i) {
         final cid = _conditions[i]._applyFull(builder, isRoot: false);
@@ -651,21 +711,22 @@ class _ConditionGroupAll<EntityT> extends _ConditionGroup<EntityT> {
 /// Use [find] or related methods to fetch the latest results from the Box.
 ///
 /// Use [property] to only return values or an aggregate of a single Property.
-class Query<T> {
+class Query<T> implements Finalizable {
   bool _closed = false;
+
+  /// Pointer to the native instance. Use [_ptr] for safe access instead.
   final Pointer<OBX_query> _cQuery;
-  late final Pointer<OBX_dart_finalizer> _cFinalizer;
+
+  /// Runs native close function on [_cQuery] if this is garbage collected.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.query_close.cast());
+
   final Store _store;
   final EntityDefinition<T> _entity;
 
   int get entityId => _entity.model.id.id;
-
-  Pointer<OBX_query> get _ptr {
-    if (_closed) {
-      throw StateError('Query already closed, cannot execute any actions');
-    }
-    return _cQuery;
-  }
 
   Query._(this._store, Pointer<OBX_query_builder> cBuilder, this._entity)
       : _cQuery = checkObxPtr(C.query(cBuilder), 'create query') {
@@ -681,12 +742,20 @@ class Query<T> {
   }
 
   void _attachFinalizer() {
-    // Keep the finalizer so we can detach it when close() is called manually.
-    _cFinalizer =
-        C.dartc_attach_finalizer(this, native_query_close, _cQuery.cast(), 256);
-    if (_cFinalizer == nullptr) {
-      close();
-      throwLatestNativeError();
+    _finalizer.attach(this, _cQuery.cast(), detach: this, externalSize: 256);
+  }
+
+  @pragma("vm:prefer-inline")
+  Pointer<OBX_query> get _ptr {
+    _checkOpen();
+    return _cQuery;
+  }
+
+  void _checkOpen() {
+    // Throw an exception instead of crashing by checking if the store is open.
+    _store.checkOpen();
+    if (_closed) {
+      throw StateError('Query already closed, cannot execute any actions');
     }
   }
 
@@ -697,11 +766,7 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set offset=0 to reset to the default - starting from the first element.
-  set offset(int offset) {
-    final result = checkObx(C.query_offset(_ptr, offset));
-    reachabilityFence(this);
-    return result;
-  }
+  set offset(int offset) => checkObx(C.query_offset(_ptr, offset));
 
   /// Configure a [limit] for this query.
   ///
@@ -710,18 +775,13 @@ class Query<T> {
   /// the whole result, e.g. for "result paging".
   ///
   /// Set limit=0 to reset to the default behavior - no limit applied.
-  set limit(int limit) {
-    final result = checkObx(C.query_limit(_ptr, limit));
-    reachabilityFence(this);
-    return result;
-  }
+  set limit(int limit) => checkObx(C.query_limit(_ptr, limit));
 
   /// Returns the number of matching Objects.
   int count() {
     final ptr = malloc<Uint64>();
     try {
       checkObx(C.query_count(_ptr, ptr));
-      reachabilityFence(this);
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -760,22 +820,14 @@ class Query<T> {
   /// // Within an isolate re-create the query pointer to be used with the C API.
   /// final queryPtr = Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
   /// ```
-  Pointer<OBX_query> _clone() {
-    final ptr = checkObxPtr(C.query_clone(_ptr));
-    reachabilityFence(this);
-    return ptr;
-  }
+  Pointer<OBX_query> _clone() => checkObxPtr(C.query_clone(_ptr));
 
   /// Close the query and free resources.
   void close() {
     if (!_closed) {
       _closed = true;
-      var err = 0;
-      if (_cFinalizer != nullptr) {
-        err = C.dartc_detach_finalizer(_cFinalizer, this);
-      }
+      _finalizer.detach(this);
       checkObx(C.query_close(_cQuery));
-      checkObx(err);
     }
   }
 
@@ -786,8 +838,7 @@ class Query<T> {
     Object? error;
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
       try {
-        result = _entity.objectFromFB(
-            _store, InternalStoreAccess.reader(_store).access(data, size));
+        result = _entity.objectFromData(_store, data, size);
       } catch (e) {
         error = e;
       }
@@ -795,7 +846,6 @@ class Query<T> {
     });
     checkObx(C.query_visit(_ptr, visitor, nullptr));
     if (error != null) throw error!;
-    reachabilityFence(this);
     return result;
   }
 
@@ -822,8 +872,7 @@ class Query<T> {
     final visitor = dataVisitor((Pointer<Uint8> data, int size) {
       if (result == null) {
         try {
-          result = _entity.objectFromFB(
-              _store, InternalStoreAccess.reader(_store).access(data, size));
+          result = _entity.objectFromData(_store, data, size);
           return true;
         } catch (e) {
           error = e;
@@ -836,7 +885,6 @@ class Query<T> {
       }
     });
     checkObx(C.query_visit(_ptr, visitor, nullptr));
-    reachabilityFence(this);
     if (error != null) throw error!;
     return result;
   }
@@ -854,7 +902,6 @@ class Query<T> {
   /// Finds Objects matching the query and returns their IDs.
   List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
-    reachabilityFence(this);
     try {
       final idArray = idArrayPtr.ref;
       final ids = idArray.ids;
@@ -881,7 +928,6 @@ class Query<T> {
     final collector = objectCollector(result, _store, _entity, errorWrapper);
     checkObx(C.query_visit(_ptr, collector, nullptr));
     errorWrapper.throwIfError();
-    reachabilityFence(this);
     return result;
   }
 
@@ -936,7 +982,6 @@ class Query<T> {
   //     closed = true;
   //     C.dartc_stream_close(cStream);
   //     port.close();
-  //     reachabilityFence(this);
   //   };
   //
   //   try {
@@ -1082,10 +1127,8 @@ class Query<T> {
             final dataPtrAddress = message.dataPtrAddresses[i];
             final size = message.sizes[i];
             if (size == 0) break; // Reached last object.
-            streamController.add(_entity.objectFromFB(
-                _store,
-                InternalStoreAccess.reader(_store)
-                    .access(Pointer.fromAddress(dataPtrAddress), size)));
+            streamController.add(_entity.objectFromData(
+                _store, Pointer.fromAddress(dataPtrAddress), size));
           }
           return; // wait for next message.
         } catch (e) {
@@ -1184,18 +1227,10 @@ class Query<T> {
   }
 
   /// For internal testing purposes.
-  String describe() {
-    final result = dartStringFromC(C.query_describe(_ptr));
-    reachabilityFence(this);
-    return result;
-  }
+  String describe() => dartStringFromC(C.query_describe(_ptr));
 
   /// For internal testing purposes.
-  String describeParameters() {
-    final result = dartStringFromC(C.query_describe_params(_ptr));
-    reachabilityFence(this);
-    return result;
-  }
+  String describeParameters() => dartStringFromC(C.query_describe_params(_ptr));
 
   /// Use the same query conditions but only return a single property (field).
   ///
@@ -1207,8 +1242,7 @@ class Query<T> {
   /// ```
   PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
     final result = PropertyQuery<DartType>._(
-        C.query_prop(_ptr, prop._model.id.id), prop._model.type);
-    reachabilityFence(this);
+        this, C.query_prop(_ptr, prop._model.id.id), prop._model.type);
     if (prop._model.type == OBXPropertyType.String) {
       result._caseSensitive = InternalStoreAccess.queryCS(_store);
     }

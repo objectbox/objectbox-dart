@@ -1,0 +1,26 @@
+name: objectbox_test
+description: Tests for the objectbox package.
+version: 1.0.0
+publish_to: none
+
+environment:
+  # Minimum Dart SDK required.
+  sdk: '>=2.15.0 <4.0.0'
+
+dependencies:
+  objectbox: any
+
+dev_dependencies:
+  async: ^2.8.2
+  collection: any # via objectbox
+  build_runner: ^2.0.0
+  flat_buffers: any # via objectbox
+  lints: ^2.0.0
+  objectbox_generator: any
+  test: ^1.16.5
+
+dependency_overrides:
+  objectbox:
+    path: ../objectbox
+  objectbox_generator:
+    path: ../generator

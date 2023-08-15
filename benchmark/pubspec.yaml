@@ -3,7 +3,7 @@ description: Simple ObjectBox-Dart performance benchmark
 publish_to: none
 
 environment:
-  sdk: ">=2.14.0 <3.0.0"
+  sdk: '>=2.14.0 <4.0.0'
 
 dependencies:
   objectbox: any
@@ -14,9 +14,3 @@ dev_dependencies:
   lints: ^2.0.1
   objectbox_generator: any
   build_runner: any
-
-dependency_overrides:
-  objectbox:
-    path: ../objectbox
-  objectbox_generator:
-    path: ../generator

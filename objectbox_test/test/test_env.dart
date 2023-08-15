@@ -8,6 +8,11 @@ import 'objectbox.g.dart';
 class TestEnv {
   final Directory dir;
   final Store store;
+
+  /// If environment variable TEST_SHORT=1 is set, this will be true.
+  ///
+  /// If true, try to run tests quicker, e.g. with less objects or iterations.
+  /// This was used to speed up valgrind analysis and avoid CI timeouts.
   final bool short;
 
   factory TestEnv(String name, {bool? queryCaseSensitive, int? debugFlag}) {

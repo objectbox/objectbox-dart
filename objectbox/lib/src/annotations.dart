@@ -36,8 +36,17 @@ class Entity {
   const Entity({this.uid, this.realClass});
 }
 
-/// Property annotation enables you to explicitly configure some details about
+/// Use to (optionally) annotate a field to explicitly configure some details about
 /// how a field is stored in the database.
+///
+/// For example:
+/// ```
+/// // Store int as a byte (8-bit integer)
+/// @Property(type: PropertyType.byte)
+/// int? byteValue;
+/// ```
+/// See [the online docs](https://docs.objectbox.io/advanced/custom-types) for
+/// details.
 class Property {
   /// ObjectBox keeps track of entities and properties by assigning them unique
   /// identifiers, UIDs, during the code-generation phase. All those UIDs are
@@ -51,24 +60,34 @@ class Property {
   /// Property instead of creating a new one.
   final int? uid;
 
-  /// Override dart type with an alternative ObjectBox property type.
+  /// Set to store a Dart type as an alternative ObjectBox [PropertyType].
   ///
-  /// A dart int value can map to different [PropertyType]s,
-  /// e.g. Short (Int16), Int (Int32), Long (Int64), all signed values.
-  /// Also a dart double can also map to e.g. Float and Double
+  /// For example, a Dart [int] (64-bit signed integer) value can be stored as a
+  /// shorter integer value. Or a [double] (64-bit floating point) can be stored
+  /// as float (32-bit).
   ///
-  /// The defaults are e.g. Int -> Int64, double -> Float64, bool -> Bool.
+  /// Set [signed] to `false` to change that integers are treated as unsigned
+  /// when executing queries or creating indexes.
+  /// ```
+  /// // Store int as a byte (8-bit integer)
+  /// @Property(type: PropertyType.byte)
+  /// int? byteValue;
+  ///
+  /// // Same, but treat values as unsigned for queries and indexes
+  /// @Property(type: PropertyType.byte, signed: false)
+  /// int? unsignedByteValue;
+  /// ```
   final PropertyType? type;
 
-  /// For integer property only: indicate how should values be treated when
-  /// executing queries or creating indexes. Defaults to [true].
+  /// For integer property only: set to `false` to treat values as unsigned when
+  /// executing queries or creating indexes. Defaults to `true`.
   final bool signed;
 
-  /// Create a Property annotation.
+  /// See [Property].
   const Property({this.type, this.uid, this.signed = true});
 }
 
-/// Specify ObjectBox property storage type explicitly.
+/// Use with [Property.type].
 enum PropertyType {
   // dart type=bool, size: 1-byte/8-bits
   // no need to specify explicitly, just use [bool]
@@ -80,7 +99,7 @@ enum PropertyType {
   /// size: 2-bytes/16-bits
   short,
 
-  /// size: 1-byte/8-bits
+  /// Use with [Property.type] to store [int] as 2 bytes (16-bit unsigned integer).
   char,
 
   /// size: 4-bytes/32-bits
@@ -110,11 +129,49 @@ enum PropertyType {
   /// Unix timestamp (nanoseconds since 1970), size: 8-bytes/64-bits
   dateNano,
 
-  /// dart type=Uint8List - automatic, no need to specify explicitly
-  /// dart type=Int8List  - automatic, no need to specify explicitly
-  /// dart type=List<int> - specify the type explicitly using @Property(type:)
-  ///                     - values are truncated to 8-bit int (0..255)
+  /// Use with [Property.type] to store a `List<int>` as byte (8-bit integer)
+  /// array.
+  ///
+  /// Integers stored in the list are truncated to their lowest 8 bits,
+  /// interpreted as signed 8-bit integer with values in the range of
+  /// -128 to +127.
+  ///
+  /// For more efficiency use `Int8List` or `Uint8List` instead.
   byteVector,
+
+  /// Use with [Property.type] to store a `List<int>` as char (16-bit unsigned
+  /// integer) array.
+  charVector,
+
+  /// Use with [Property.type] to store a `List<int>` as short (16-bit integer)
+  /// array.
+  ///
+  /// Integers stored in the list are truncated to their lowest 16 bits,
+  /// interpreted as signed 16-bit integer with values in the range of
+  /// -32768 to +32767.
+  ///
+  /// For more efficiency use `Int16List` or `Uint16List` instead.
+  shortVector,
+
+  /// Use with [Property.type] to store a `List<int>` as int (32-bit integer)
+  /// array.
+  ///
+  /// Integers stored in the list are truncated to their lowest 32 bits,
+  /// interpreted as signed 32-bit integer with values in the range of
+  /// -2147483648 to 2147483647.
+  ///
+  /// For more efficiency use `Int32List` or `Uint32List` instead.
+  intVector,
+
+  /// Use with [Property.type] to store a `List<double>` as float (32-bit
+  /// floating point) array.
+  ///
+  /// Double values stored in the list are converted to the nearest
+  /// single-precision value. Values read are converted to a double value with
+  /// the same value.
+  ///
+  /// For more efficiency use `Float32List` instead.
+  floatVector
 
   // dart type=List<String>
   // no need to specify explicitly, just use [List<String>]

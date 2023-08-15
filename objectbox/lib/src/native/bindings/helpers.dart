@@ -7,7 +7,6 @@ import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../store.dart';
 import 'bindings.dart';
-import 'flatbuffers.dart';
 
 // ignore_for_file: public_member_api_docs
 
@@ -37,6 +36,11 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
 Never throwLatestNativeError({String? context, int codeIfMissing = 0}) {
   var code = C.last_error_code();
   var message = dartStringFromC(C.last_error_message());
+
+  // Clear the error as the C API does not update error code on some failures.
+  // If not cleared, this could then cause an incorrect error message to be
+  // returned if the next failure does not update the error code.
+  C.last_error_clear();
 
   if (code == 0 && message.isEmpty) {
     if (codeIfMissing == 0) {
@@ -97,53 +101,50 @@ class ObjectBoxNativeError {
 }
 
 @pragma('vm:prefer-inline')
-String dartStringFromC(Pointer<Int8> charPtr) =>
+String dartStringFromC(Pointer<Char> charPtr) =>
     charPtr.address == 0 ? '' : charPtr.cast<Utf8>().toDartString();
 
 class CursorHelper<T> {
   final EntityDefinition<T> _entity;
   final Store _store;
   final Pointer<OBX_cursor> ptr;
-  late final ReaderWithCBuffer _reader = InternalStoreAccess.reader(_store);
-
-  final bool _isWrite;
-  late final Pointer<Pointer<Uint8>> dataPtrPtr;
-
-  late final Pointer<IntPtr> sizePtr;
 
   bool _closed = false;
 
-  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity,
-      {required bool isWrite})
+  CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity)
       : ptr = checkObxPtr(
-            C.cursor(txn, _entity.model.id.id), 'failed to create cursor'),
-        _isWrite = isWrite {
-    if (!_isWrite) {
-      dataPtrPtr = malloc();
-      sizePtr = malloc();
-    }
-  }
-
-  ByteData get readData => _reader.access(dataPtrPtr.value, sizePtr.value);
+            C.cursor(txn, _entity.model.id.id), 'failed to create cursor');
 
   EntityDefinition<T> get entity => _entity;
 
   void close() {
     if (_closed) return;
     _closed = true;
-    if (!_isWrite) {
-      malloc.free(dataPtrPtr);
-      malloc.free(sizePtr);
-    }
     checkObx(C.cursor_close(ptr));
   }
 
+  T _deserializeObject(ReadPointers pointers) => _entity.objectFromData(
+      _store, pointers.dataPtrPtr.value, pointers.sizePtr.value);
+
   @pragma('vm:prefer-inline')
   T? get(int id) {
-    final code = C.cursor_get(ptr, id, dataPtrPtr, sizePtr);
+    final pointers = _store.readPointers();
+    final code = C.cursor_get(ptr, id, pointers.dataPtrPtr, pointers.sizePtr);
     if (code == OBX_NOT_FOUND) return null;
     checkObx(code);
-    return _entity.objectFromFB(_store, readData);
+    return _deserializeObject(pointers);
+  }
+
+  List<T> getAll() {
+    final result = <T>[];
+    final pointers = _store.readPointers();
+    var code = C.cursor_first(ptr, pointers.dataPtrPtr, pointers.sizePtr);
+    while (code != OBX_NOT_FOUND) {
+      checkObx(code);
+      result.add(_deserializeObject(pointers));
+      code = C.cursor_next(ptr, pointers.dataPtrPtr, pointers.sizePtr);
+    }
+    return result;
   }
 }
 
@@ -160,7 +161,7 @@ T withNativeBytes<T>(
   }
 }
 
-T withNativeString<T>(String str, T Function(Pointer<Int8> cStr) fn) {
+T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
   final cStr = str.toNativeUtf8();
   try {
     return fn(cStr.cast());
@@ -170,9 +171,9 @@ T withNativeString<T>(String str, T Function(Pointer<Int8> cStr) fn) {
 }
 
 T withNativeStrings<T>(
-    List<String> items, T Function(Pointer<Pointer<Int8>> ptr, int size) fn) {
+    List<String> items, T Function(Pointer<Pointer<Char>> ptr, int size) fn) {
   final size = items.length;
-  final ptr = malloc<Pointer<Int8>>(size);
+  final ptr = malloc<Pointer<Char>>(size);
   try {
     for (var i = 0; i < size; i++) {
       ptr[i] = items[i].toNativeUtf8().cast();

@@ -1,5 +1,58 @@
-## latest
+## 2.2.0 (2023-08-08)
 
+* For Flutter apps running on Android 6 (or older): added `loadObjectBoxLibraryAndroidCompat()` to 
+  `objectbox_flutter_libs` (and `objectbox_sync_flutter_libs`). Use this to fix loading the 
+  ObjectBox library on these devices.
+  
+  Let us know if this works for you in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
+  We might consider calling this automatically in a future release.
+* Improve code generator performance if there are many entities with many constructor parameters.
+* Throw `StateError` instead of crashing on closed `Box`, `Query` and `PropertyQuery`.
+* Export query property classes to make them usable in user code.
+
+## 2.1.0 (2023-06-13)
+
+* **Support for integer and floating point lists**: store 8-bit, 16-bit, 32-bit and 64-bit integer
+  lists as well as 32-bit and 64-bit floating point lists (called "vectors" by ObjectBox).
+
+  Use a `typed_data` class like `Int16List`, `Uint16List` or `Float32List` for large lists, it uses
+  less memory and CPU. Otherwise just [use a Dart number list](https://docs.objectbox.io/advanced/custom-types).
+
+  A simple example is a shape entity that stores a palette of RGB colors:
+  ```dart
+  @Entity()
+  class Shape {
+      @Id()
+      int id = 0;
+
+      // An array of RGB color values that are used by this shape.
+      Int32List? palette;
+  }
+  ```
+
+  This can also be useful to store vector embeddings produced by machine learning:
+  ```dart
+  @Entity()
+  class ImageEmbedding {
+      @Id()
+      int id = 0;
+
+      // Link to the actual image, e.g. on Cloud storage
+      String? url;
+
+      // The coordinates computed for this image (vector embedding)
+      @Property(type: PropertyType.floatVector)
+      List<double>? coordinates;
+  }
+  ```
+  Note: for queries currently only the `isNull` and `notNull` conditions are supported.
+* Changed `PropertyType.char` from a 8-bit signed integer to a 16-bit unsigned integer to match the 
+  ObjectBox database type.
+* Fix put returning an incorrect error message in a rare case.
+* Require at least Dart SDK 2.18 (shipped with Flutter 3.3.0).
+* Let `Store.awaitQueueCompletion` actually wait on the async queue to become idle. It previously
+  behaved like `Store.awaitQueueSubmitted`.
+* Fix analysis event send failure breaking the code generator. #542
 
 ## 2.0.0 (2023-03-21)
 

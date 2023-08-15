@@ -101,34 +101,3 @@ class Allocator extends fb.Allocator {
     }
   }
 }
-
-/// Implements a native data access wrapper to circumvent Pointer.asTypedList()
-/// slowness. The idea is to reuse the same buffer and rather memcpy the data,
-/// which ends up being faster than calling asTypedList(). Hopefully, we will
-/// be able to remove this if (when) asTypedList() gets optimized in Dart SDK.
-class ReaderWithCBuffer {
-  // See /benchmark/bin/native_pointers.dart for the max buffer size where it
-  // still makes sense to use memcpy. On Linux, memcpy starts to be slower at
-  // about 10-15 KiB. TODO test on other platforms to find an optimal limit.
-  static const _maxBuffer = 4 * 1024;
-  final _bufferPtr = malloc<Uint8>(_maxBuffer);
-  late final ByteBuffer _buffer = _bufferPtr.asTypedList(_maxBuffer).buffer;
-
-  ReaderWithCBuffer() {
-    assert(_bufferPtr.asTypedList(_maxBuffer).offsetInBytes == 0);
-  }
-
-  void clear() => malloc.free(_bufferPtr);
-
-  ByteData access(Pointer<Uint8> dataPtr, int size) {
-    // If memcpy is not available, instead of using Dart memcpy implementation,
-    // directly convert to view which is a little faster.
-    if (isMemcpyNotAvailable || size > _maxBuffer) {
-      final uint8List = dataPtr.asTypedList(size);
-      return ByteData.view(uint8List.buffer, uint8List.offsetInBytes, size);
-    } else {
-      memcpy(_bufferPtr, dataPtr, size);
-      return ByteData.view(_buffer, 0, size);
-    }
-  }
-}

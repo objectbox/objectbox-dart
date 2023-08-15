@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:objectbox_generator/src/builder_dirs.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:build/build.dart';
 import 'package:build/src/builder/build_step_impl.dart';
@@ -23,7 +24,8 @@ void main() {
       reader,
       writer,
       null,
-      resourceManager);
+      resourceManager,
+      _unsupported);
 
   group('getRootDir and getOutDir', () {
     test('lib', () {
@@ -39,7 +41,8 @@ void main() {
           reader,
           writer,
           null,
-          resourceManager);
+          resourceManager,
+          _unsupported);
       final builderDirs = BuilderDirs(testBuildStepTest, Config());
       expect(builderDirs.root, equals('test'));
       expect(builderDirs.out, equals('test'));
@@ -52,7 +55,8 @@ void main() {
           reader,
           writer,
           null,
-          resourceManager);
+          resourceManager,
+          _unsupported);
       expect(
           () => BuilderDirs(testBuildStepNotSupported, Config()),
           throwsA(predicate((e) =>
@@ -160,4 +164,8 @@ class StubAssetWriter implements AssetWriter {
 
   @override
   Future writeAsString(_, __, {Encoding encoding = utf8}) => Future.value(null);
+}
+
+Future<PackageConfig> _unsupported() {
+  return Future.error(UnsupportedError('stub'));
 }

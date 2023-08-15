@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:objectbox/internal.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -44,8 +43,6 @@ void main() {
   floatList() =>
       floats.map((f) => TestEntity(tFloat: 0.1 + f, tDouble: 0.2 + f)).toList();
 
-  final tBool = TestEntity_.tBool;
-  final tChar = TestEntity_.tChar;
   final tByte = TestEntity_.tByte;
 
   final tLong = TestEntity_.tLong;
@@ -54,58 +51,12 @@ void main() {
 
   // OB prohibits aggregate operations on tBool & tChar
   final tSignedInts = [tByte, tShort, tLong]; // values start at 1, 2 & 5
-  final tUnsignedInts = [tInt];
 
   final tFloat = TestEntity_.tFloat;
   final tDouble = TestEntity_.tDouble;
   final tFloats = [tFloat, tDouble];
 
   final tString = TestEntity_.tString;
-
-  test('property query auto-close', () {
-    // Finalizer is executed after the query object goes out of scope.
-    // Note: only caught by valgrind - I've tested that it actually catches
-    // when the finalizer assignment was disabled. Now, this will only fail in
-    // CI when running valgrind.sh - if finalizer won't work properly.
-    box.query().build().property(TestEntity_.tString).find();
-  });
-
-  test('.count (basic query)', () {
-    box.putMany(integerList());
-    box.putMany(stringList());
-    box.putMany(floatList());
-
-    for (var i in tSignedInts) {
-      final queryInt = box.query(i.greaterThan(0)).build();
-      expect(queryInt.count(), 8);
-      queryInt.close();
-    }
-
-    for (var i in tUnsignedInts) {
-      final queryInt = box.query(i.greaterThan(0)).build();
-      expect(queryInt.count(), 9);
-      queryInt.close();
-    }
-
-    for (var f in tFloats) {
-      final queryFloat = box.query(f.lessThan(1.0)).build();
-      expect(queryFloat.count(), 6);
-      queryFloat.close();
-    }
-
-    final queryString =
-        box.query(tString.contains('t', caseSensitive: false)).build();
-    expect(queryString.count(), 8);
-    queryString.close();
-
-    final queryBool = box.query(tBool.equals(true)).build();
-    expect(queryBool.count(), 9);
-    queryBool.close();
-
-    final queryChar = box.query(tChar.greaterThan(0)).build();
-    expect(queryChar.count(), 8);
-    queryChar.close();
-  });
 
   test('query.property(E_.field) property query, type inference', () {
     box.putMany(integerList());
@@ -509,6 +460,63 @@ void main() {
     testStringPQ(distinct: true, caseSensitive: true);
     queryString.close();
     query.close();
+  });
+
+  test('use after close throws', () {
+    // Check for proper error after property query is closed.
+    final query = box.query().build();
+    final propertyQuery = query.property(tInt);
+    propertyQuery.close();
+
+    expectPropQueryClosed(Function function) {
+      expect(
+          function,
+          throwsA(predicate((StateError e) =>
+              e.message ==
+              "Property query already closed, cannot execute any actions")));
+    }
+
+    expectPropQueryClosed(() => propertyQuery.average());
+    expectPropQueryClosed(() => propertyQuery.count());
+    expectPropQueryClosed(() => propertyQuery.min());
+    expectPropQueryClosed(() => propertyQuery.max());
+    expectPropQueryClosed(() => propertyQuery.sum());
+    expectPropQueryClosed(() => propertyQuery.find());
+
+    // Check for proper error after query is closed.
+    final propertyQuery2 = query.property(tDouble);
+    query.close();
+
+    expectQueryClosed(Function function) {
+      expect(
+          function,
+          throwsA(predicate((StateError e) =>
+              e.message ==
+              "Query already closed, cannot execute any actions")));
+    }
+
+    expectQueryClosed(() => propertyQuery2.average());
+    expectQueryClosed(() => propertyQuery2.count());
+    expectQueryClosed(() => propertyQuery2.min());
+    expectQueryClosed(() => propertyQuery2.max());
+    expectQueryClosed(() => propertyQuery2.sum());
+    expectQueryClosed(() => propertyQuery2.find());
+
+    propertyQuery2.close();
+
+    // Check for proper error after store is closed.
+    final propertyQuery3 = box.query().build().property(tString);
+    env.closeAndDelete();
+
+    expectStoreClosed(Function function) {
+      expect(function,
+          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+    }
+
+    expectStoreClosed(() => propertyQuery3.count());
+    expectStoreClosed(() => propertyQuery3.find());
+
+    propertyQuery3.close();
   });
 }
 

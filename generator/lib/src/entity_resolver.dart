@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
-import 'package:objectbox/src/modelinfo/index.dart';
 import 'package:source_gen/source_gen.dart';
 
 /// EntityResolver finds all classes with an @Entity annotation and generates '.objectbox.info' files in build cache.
@@ -75,12 +74,6 @@ class EntityResolver extends Builder {
     log.info(entity);
 
     entity.constructorParams = constructorParams(findConstructor(classElement));
-    entity.nullSafetyEnabled = nullSafetyEnabled(classElement);
-    if (!entity.nullSafetyEnabled) {
-      log.warning(
-          "Entity '${entity.name}' is in a package that doesn't use null-safety"
-          ' - consider increasing your SDK version to Flutter 2.0/Dart 2.12.');
-    }
 
     // Make sure all stored fields are writable when reading object from DB.
     // Let's filter read-only fields, i.e those that:
@@ -126,6 +119,7 @@ class EntityResolver extends Builder {
         }
       });
 
+      // Get info from @Property annotation
       _propertyChecker.runIfMatches(f, (annotation) {
         propUid = annotation.getField('uid')!.toIntValue();
         fieldType = propertyTypeFromAnnotation(annotation.getField('type')!);
@@ -134,44 +128,20 @@ class EntityResolver extends Builder {
         }
       });
 
+      // If type not specified by @Property annotation, try to detect based
+      // on Dart type.
       if (fieldType == null) {
-        final dartType = f.type;
-
-        if (dartType.isDartCoreInt) {
-          // dart: 8 bytes
-          // ob: 8 bytes
-          fieldType = OBXPropertyType.Long;
-        } else if (dartType.isDartCoreString) {
-          fieldType = OBXPropertyType.String;
-        } else if (dartType.isDartCoreBool) {
-          // dart: 1 byte
-          // ob: 1 byte
-          fieldType = OBXPropertyType.Bool;
-        } else if (dartType.isDartCoreDouble) {
-          // dart: 8 bytes
-          // ob: 8 bytes
-          fieldType = OBXPropertyType.Double;
-        } else if (dartType.isDartCoreList &&
-            listItemType(dartType)!.isDartCoreString) {
-          // List<String>
-          fieldType = OBXPropertyType.StringVector;
-        } else if (['Int8List', 'Uint8List'].contains(dartType.element!.name)) {
-          fieldType = OBXPropertyType.ByteVector;
-        } else if (dartType.element!.name == 'DateTime') {
-          fieldType = OBXPropertyType.Date;
-          log.warning(
-              "  DateTime property '${f.name}' in entity '${classElement.name}' is stored and read using millisecond precision. "
-              'To silence this warning, add an explicit type using @Property(type: PropertyType.date) or @Property(type: PropertyType.dateNano) annotation.');
-        } else if (isToOneRelationField(f)) {
-          fieldType = OBXPropertyType.Relation;
-        } else if (isToManyRelationField(f)) {
+        if (isToManyRelationField(f)) {
           isToManyRel = true;
         } else {
-          log.warning(
-              "  Skipping property '${f.name}': type '$dartType' not supported,"
-              " consider creating a relation for @Entity types (https://docs.objectbox.io/relations),"
-              " or replace with getter/setter converting to a supported type (https://docs.objectbox.io/advanced/custom-types).");
-          continue;
+          fieldType = detectObjectBoxType(f, classElement.name);
+          if (fieldType == null) {
+            log.warning(
+                "  Skipping property '${f.name}': type '${f.type}' not supported,"
+                " consider creating a relation for @Entity types (https://docs.objectbox.io/relations),"
+                " or replace with getter/setter converting to a supported type (https://docs.objectbox.io/advanced/custom-types).");
+            continue;
+          }
         }
       }
 
@@ -268,6 +238,67 @@ class EntityResolver extends Builder {
     }
 
     return entity;
+  }
+
+  /// For fields that do not have a [Property.type] declared in their [Property]
+  /// annotation tries to determine the ObjectBox database type based on the
+  /// Dart type. May return null if no supported type is detected.
+  int? detectObjectBoxType(FieldElement f, String className) {
+    final dartType = f.type;
+
+    if (dartType.isDartCoreInt) {
+      // Dart: 8 bytes
+      // ObjectBox: 8 bytes
+      return OBXPropertyType.Long;
+    } else if (dartType.isDartCoreString) {
+      return OBXPropertyType.String;
+    } else if (dartType.isDartCoreBool) {
+      // Dart: 1 byte
+      // ObjectBox: 1 byte
+      return OBXPropertyType.Bool;
+    } else if (dartType.isDartCoreDouble) {
+      // Dart: 8 bytes
+      // ObjectBox: 8 bytes
+      return OBXPropertyType.Double;
+    } else if (dartType.isDartCoreList) {
+      final itemType = listItemType(dartType)!;
+      if (itemType.isDartCoreInt) {
+        // List<int>
+        // Dart: 8 bytes
+        // ObjectBox: 8 bytes
+        return OBXPropertyType.LongVector;
+      } else if (itemType.isDartCoreDouble) {
+        // List<double>
+        // Dart: 8 bytes
+        // ObjectBox: 8 bytes
+        return OBXPropertyType.DoubleVector;
+      } else if (itemType.isDartCoreString) {
+        // List<String>
+        return OBXPropertyType.StringVector;
+      }
+    } else if (['Int8List', 'Uint8List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.ByteVector;
+    } else if (['Int16List', 'Uint16List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.ShortVector;
+    } else if (['Int32List', 'Uint32List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.IntVector;
+    } else if (['Int64List', 'Uint64List'].contains(dartType.element!.name)) {
+      return OBXPropertyType.LongVector;
+    } else if (dartType.element!.name == 'Float32List') {
+      return OBXPropertyType.FloatVector;
+    } else if (dartType.element!.name == 'Float64List') {
+      return OBXPropertyType.DoubleVector;
+    } else if (dartType.element!.name == 'DateTime') {
+      log.warning(
+          "  DateTime property '${f.name}' in entity '$className' is stored and read using millisecond precision. "
+          'To silence this warning, add an explicit type using @Property(type: PropertyType.date) or @Property(type: PropertyType.dateNano) annotation.');
+      return OBXPropertyType.Date;
+    } else if (isToOneRelationField(f)) {
+      return OBXPropertyType.Relation;
+    }
+
+    // No supported Dart type recognized.
+    return null;
   }
 
   void processIdProperty(ModelEntity entity, ClassElement classElement) {
@@ -472,13 +503,6 @@ class EntityResolver extends Builder {
       info.writeAll([' ', param.type]);
       return info.toString();
     }).toList(growable: false);
-  }
-
-  // To support apps that don't yet use null-safety (depend on an older SDK),
-  // we generate code without null-safety operators.
-  bool nullSafetyEnabled(Element element) {
-    final sdk = element.library!.languageVersion.effective;
-    return sdk.major > 2 || (sdk.major == 2 && sdk.minor >= 12);
   }
 }
 

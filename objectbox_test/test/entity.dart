@@ -41,7 +41,7 @@ class TestEntity {
   @Property(type: PropertyType.short)
   int? tShort;
 
-  // OBXPropertyType.Char | 1 byte
+  // OBXPropertyType.Char | 16-bit unsigned integer
   @Property(type: PropertyType.char)
   int? tChar;
 
@@ -317,4 +317,129 @@ class TestEntityNotNull {
         tByteList = tByteList ?? [],
         tInt8List = tInt8List ?? Int8List(0),
         tUint8List = tUint8List ?? Uint8List(0);
+}
+
+@Entity()
+class TestEntityScalarVectors {
+  @Id()
+  int id = 0;
+
+  // 8-bit integer
+  @Property(type: PropertyType.byteVector)
+  List<int>? tByteList;
+  Int8List? tInt8List;
+  Uint8List? tUint8List;
+  @Property(type: PropertyType.charVector)
+  List<int>? tCharList;
+
+  // 16-bit integer
+  @Property(type: PropertyType.shortVector)
+  List<int>? tShortList;
+  Int16List? tInt16List;
+  Uint16List? tUint16List;
+
+  // 32-bit integer
+  @Property(type: PropertyType.intVector)
+  List<int>? tIntList;
+  Int32List? tInt32List;
+  Uint32List? tUint32List;
+
+  // 64-bit integer
+  List<int>? tLongList;
+  Int64List? tInt64List;
+  Uint64List? tUint64List;
+
+  // 32-bit floating point
+  @Property(type: PropertyType.floatVector)
+  List<double>? tFloatList;
+  Float32List? tFloat32List;
+
+  // 64-bit floating point
+  List<double>? tDoubleList;
+  Float64List? tFloat64List;
+
+  TestEntityScalarVectors(
+      {this.tByteList,
+      this.tInt8List,
+      this.tUint8List,
+      this.tCharList,
+      this.tShortList,
+      this.tInt16List,
+      this.tUint16List,
+      this.tIntList,
+      this.tInt32List,
+      this.tUint32List,
+      this.tLongList,
+      this.tInt64List,
+      this.tUint64List,
+      this.tFloatList,
+      this.tFloat32List,
+      this.tDoubleList,
+      this.tFloat64List});
+
+  TestEntityScalarVectors.withData(int nr) {
+    final byte = 10 + nr;
+    tByteList = [-byte, byte];
+    tInt8List = Int8List.fromList(tByteList!);
+    tUint8List = Uint8List.fromList([byte, byte + 1]);
+
+    // Pick next largest multiple of 10 that does not longer fit smaller integer.
+    final short = 1000 + nr;
+    tCharList = [short, short + 1];
+
+    tShortList = [-short, short];
+    tInt16List = Int16List.fromList(tShortList!);
+    tUint16List = Uint16List.fromList([short, short + 1]);
+
+    final int = 100 * 1000 + nr;
+    tIntList = [-int, int];
+    tInt32List = Int32List.fromList(tIntList!);
+    tUint32List = Uint32List.fromList([int, int + 1]);
+
+    final long = 10 * 1000 * 1000000 + nr;
+    tLongList = [-long, long];
+    tInt64List = Int64List.fromList(tLongList!);
+    tUint64List = Uint64List.fromList([long, long + 1]);
+
+    final float = 20 + nr / 10;
+    tFloatList = [-float, float];
+    tFloat32List = Float32List.fromList(tFloatList!);
+    // 2000.00001 can not longer be represented with 32-bit floating point.
+    final double = 2000 + nr / (100000);
+    tDoubleList = [-double, double];
+    tFloat64List = Float64List.fromList(tDoubleList!);
+  }
+
+  /// Creates test data like:
+  /// ```
+  /// tByteList = [-10,10]..[-19,19]
+  /// tCharList = [-10,10]..[-19,19]
+  /// tShortList = [-1000,1000]..[-1009,1009]
+  /// tIntList = [-100000,100000]..[-100009,100009]
+  /// tLongList = [-10000000000,10000000000]..[-10000000009,10000000009]
+  /// tFloatList = [-20.0,20.0]..[-20.9,20.9]
+  /// tDoubleList = [-2000.0,2000.0]..[-2000.00009,2000.00009]
+  /// ```
+  static List<TestEntityScalarVectors> createTen() {
+    return List.generate(
+        10, (index) => TestEntityScalarVectors.withData(index));
+  }
+}
+
+Function? readDuringReadCalledFromSetter;
+
+@Entity()
+class TestEntityReadDuringRead {
+  @Id()
+  int id = 0;
+
+  List<String> get strings1 => ["A1", "B1"];
+
+  set strings1(List<String> values) {
+    if (readDuringReadCalledFromSetter != null) {
+      readDuringReadCalledFromSetter!();
+    }
+  }
+
+  List<String>? strings2;
 }

@@ -7,21 +7,24 @@ assignees: ''
 
 ---
 
-:rotating_light: First, please check:
+<!--
+BEFORE you submit this issue, please check:
+- existing issues: https://github.com/objectbox/objectbox-dart/issues
+- the FAQ page: https://docs.objectbox.io/faq
+- the Troubleshooting page: https://docs.objectbox.io/troubleshooting
+-->
 
-- existing issues,
-- FAQs https://github.com/objectbox/objectbox-dart#faq
+_TODO Description (clear and concise, in English)_
 
-Start with a clear and concise problem description in English. Then provide the following information, please.
+_TODO Provide the following information as needed_
 
-### Basic info (please complete the following information):
+### Basic info:
 
 - ObjectBox version: [e.g. 0.14.0]
 - Flutter/Dart SDK: [e.g. 2.0.0, or the output of `dart --version` or `flutter --version`]
-- Null-safety enabled: [yes | no]
-- Reproducibility: [e.g. occurred once only | occasionally without visible pattern | always]
-- OS: [e.g. Linux 5.10.23 | Windows 10 | macOs BigSur | Android 10 | ... ]
-- Device/Emulator: [e.g. Galaxy S20]
+- Reproducible: [e.g. occurred once only | occasionally without pattern | always]
+- Build OS: [e.g. Ubuntu 22.04 | Windows 11 | macOs 10.14 ]
+- Deployment device or OS: [e.g. Galaxy S20 | Android 13 | iOS 16.4 ]
 
 Additionally, you can choose to provide more details, e.g. the output of:
 
@@ -30,17 +33,19 @@ Additionally, you can choose to provide more details, e.g. the output of:
 
 ### Steps to reproduce
 
+_TODO_
+
 1. Put '...'
 2. Make changes to '....'
 3. See error
 
 ### Expected behavior
 
-A clear and concise description of what you expected to happen.
+_TODO A clear and concise description of what you expected to happen._
 
 ### Code
 
-If applicable, add code to help explain your problem.
+_TODO If applicable, add code to help explain your problem._
 
 - Include your pubspec.yaml.
 - Include affected entity classes.
@@ -49,12 +54,13 @@ If applicable, add code to help explain your problem.
 
 ### Logs, stack traces
 
-If applicable, add relevant logs, or a stack trace.
+_TODO If applicable, add relevant logs, or a stack trace._
 
 ### Additional context
 
-Add any other context about the problem here.
+_TODO Add any other context about the problem here._
 
 - Is there anything special about your app?
 - May transactions or multi-threading play a role?
 - Did you find any workarounds to prevent the issue?
+

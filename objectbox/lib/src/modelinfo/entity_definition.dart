@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
@@ -30,4 +31,15 @@ class EntityDefinition<T> {
       required this.toManyRelations});
 
   Type type() => T;
+
+  /// Shortcut that creates a [ByteData] view and passes it to [objectFromFB].
+  T objectFromData(Store store, Pointer<Uint8> data, int size) {
+    // There has been a performance improvement in the past using memcpy for
+    // small buffers, but this is not longer faster than asTypedList.
+    // See /benchmark/bin/native_pointers.dart.
+    final uInt8List = data.asTypedList(size);
+    final byteData =
+        ByteData.view(uInt8List.buffer, uInt8List.offsetInBytes, size);
+    return objectFromFB(store, byteData);
+  }
 }

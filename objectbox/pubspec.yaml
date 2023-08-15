@@ -1,34 +1,27 @@
 name: objectbox
 description: Flutter database for super-fast NoSQL ACID compliant object persistence.
 homepage: https://objectbox.io
-repository: https://github.com/objectbox/objectbox-dart
+# Link to actual directory in repository so file links on pub.dev work.
+repository: https://github.com/objectbox/objectbox-dart/tree/main/objectbox
 documentation: https://docs.objectbox.io
-version: 2.0.0
+version: 2.2.0
 
 environment:
   # minimum Dart SDK (also see generator and flutter_libs)
-  sdk: '>=2.15.0 <3.0.0'
+  sdk: '>=2.17.0 <4.0.0'
 
 dependencies:
   collection: ^1.15.0
   # take care updating flatbuffers - keep aligned with other bindings
   flat_buffers: 2.0.5
-  ffi: '>=1.0.0 <3.0.0'
+  ffi: ^2.0.2
   meta: ^1.3.0
   path: ^1.8.0
 
 dev_dependencies:
-  async: ^2.8.2
-  build_runner: ^2.0.0
-  objectbox_generator: any
-  test: ^1.16.5
-  ffigen: ^4.1.3
+  ffigen: ^7.2.11 # v8 requires Dart 3, not requiring it, yet.
   lints: ^2.0.1
-
-# NOTE: remove before publishing
-dependency_overrides:
-  objectbox_generator:
-    path: ../generator
+  test: ^1.16.5 # To run coverage on this package.
 
 ffigen:
   name: 'ObjectBoxC'
@@ -46,17 +39,19 @@ ffigen:
     rename:
       'obx_dart_(.*)': 'dartc_$1'
       'obx_(.*)': '$1'
+    # Expose some native pointers to use with NativeFinalizer API.
+    # https://pub.dev/packages/ffigen#how-to-expose-the-native-pointers
+    symbol-address:
+      include:
+        - 'obx_admin_close'
+        - 'obx_query_close'
+        - 'obx_query_prop_close'
+        - 'obx_store_close'
   enums:
     member-rename:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
         '[^_]+_(.*)': '$1'
-  # add location to standard library imports, e.g. stddef.h
-  llvm-path:
-    - '/usr/lib/llvm-12'
-  compiler-opts: '-I/usr/lib/clang/12.0.0/include'
-  typedef-map:
-    'size_t': 'IntPtr'
   # pana ignores exclude rules in analysis_options.yaml, explicitly add ignore rules.
   preamble: |
     // ignore_for_file: non_constant_identifier_names, public_member_api_docs, prefer_expression_function_bodies, avoid_positional_boolean_parameters, constant_identifier_names, camel_case_types

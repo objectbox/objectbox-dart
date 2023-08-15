@@ -527,9 +527,132 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "11:1888816722266317411",
+      "lastPropertyId": "18:6212942620213696643",
+      "name": "TestEntityScalarVectors",
+      "properties": [
+        {
+          "id": "1:5567025104440192725",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1682323335426931492",
+          "name": "tByteList",
+          "type": 23
+        },
+        {
+          "id": "3:7862681540508610604",
+          "name": "tInt8List",
+          "type": 23
+        },
+        {
+          "id": "4:660455384527838970",
+          "name": "tUint8List",
+          "type": 23
+        },
+        {
+          "id": "5:2324987398682010813",
+          "name": "tCharList",
+          "type": 25
+        },
+        {
+          "id": "6:7552121020552174886",
+          "name": "tShortList",
+          "type": 24
+        },
+        {
+          "id": "7:7928722348856185164",
+          "name": "tInt16List",
+          "type": 24
+        },
+        {
+          "id": "8:4133061016222609474",
+          "name": "tUint16List",
+          "type": 24
+        },
+        {
+          "id": "9:3000738695624523480",
+          "name": "tIntList",
+          "type": 26
+        },
+        {
+          "id": "10:3048081277909356806",
+          "name": "tInt32List",
+          "type": 26
+        },
+        {
+          "id": "11:7743846149976598626",
+          "name": "tUint32List",
+          "type": 26
+        },
+        {
+          "id": "12:8084475505812689676",
+          "name": "tLongList",
+          "type": 27
+        },
+        {
+          "id": "13:1608834111639705934",
+          "name": "tInt64List",
+          "type": 27
+        },
+        {
+          "id": "14:1108778339658250564",
+          "name": "tUint64List",
+          "type": 27
+        },
+        {
+          "id": "15:294530133969776037",
+          "name": "tFloatList",
+          "type": 28
+        },
+        {
+          "id": "16:2496691141154683663",
+          "name": "tFloat32List",
+          "type": 28
+        },
+        {
+          "id": "17:2182252176951213106",
+          "name": "tDoubleList",
+          "type": 29
+        },
+        {
+          "id": "18:6212942620213696643",
+          "name": "tFloat64List",
+          "type": 29
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "12:4776026659772255750",
+      "lastPropertyId": "3:1591527272304205650",
+      "name": "TestEntityReadDuringRead",
+      "properties": [
+        {
+          "id": "1:2868510755084849175",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7544499496633853432",
+          "name": "strings2",
+          "type": 30
+        },
+        {
+          "id": "3:1591527272304205650",
+          "name": "strings1",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "10:8814538095619551454",
+  "lastEntityId": "12:4776026659772255750",
   "lastIndexId": "20:4846837430056399798",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",

@@ -4,12 +4,12 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.14.0 <3.0.0"
+  sdk: ">=2.14.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  objectbox: ^2.0.0
+  objectbox: ^2.2.0
   objectbox_flutter_libs: any
   intl: any
   path_provider: ^2.0.10 # 2.0.11+ requires Flutter 2.8.0

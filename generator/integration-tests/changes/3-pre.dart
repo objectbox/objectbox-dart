@@ -2,10 +2,8 @@ import 'dart:io';
 
 void main() {
   // Goals:
-  // * rename a property
-  // * rename a to-one relation
-  // * rename a to-many relation
-  // * rename an entity
+  // * add a new entity lexicographically in between the existing ones to check
+  //   that IDs are not re-assigned.
 
   File('lib/entities.dart').writeAsStringSync('''
 import 'package:objectbox/objectbox.dart';
@@ -17,24 +15,31 @@ class A {
   String? text1;
 
   @Property(uid: 1003)
-  String? renamed;
+  String? text2;
 
   @Property(uid: 1004)
-  final renamedRelOne = ToOne<Renamed>();
+  final relOne = ToOne<B>();
 
   @Property(uid: 1005)
-  final renamedRelMany = ToMany<Renamed>();
+  final relMany = ToMany<B>();
 
   A();
 }
 
+@Entity()
+class A1 {
+  int? id;
+
+  A1();
+}
+
 @Entity(uid: 2000)
-class Renamed {
+class B {
   int? id;
 
   bool? value;
 
-  Renamed();
+  B();
 }
   ''');
 }

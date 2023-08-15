@@ -70,9 +70,9 @@ class ModelInfo {
         modelVersionParserMinimum =
             data['modelVersionParserMinimum'] as int? ?? _maxModelVersion,
         version = data['version'] as int? ?? 1 {
-    ArgumentError.checkNotNull(data['entities'], "data['entities']");
-    for (final e in data['entities']) {
-      entities.add(ModelEntity.fromMap(e as Map<String, dynamic>,
+    final entities = data['entities'] as List;
+    for (final e in entities) {
+      this.entities.add(ModelEntity.fromMap(e as Map<String, dynamic>,
           model: this, check: check));
     }
     if (check) validate();

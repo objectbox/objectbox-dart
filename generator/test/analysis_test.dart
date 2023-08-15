@@ -56,6 +56,28 @@ void main() {
     expect(response.body, "1");
   });
 
+  test("get lang and region", () {
+    final cUtf8 = LanguageAndRegion(localeOrNull: "C.UTF-8");
+    expect(cUtf8.lang, "C");
+    expect(cUtf8.region, "unknown");
+
+    final enUtf8 = LanguageAndRegion(localeOrNull: "xx_XX.UTF-8");
+    expect(enUtf8.lang, "xx");
+    expect(enUtf8.region, "XX");
+
+    final en = LanguageAndRegion(localeOrNull: "xx");
+    expect(en.lang, "xx");
+    expect(en.region, "unknown");
+
+    final enUS = LanguageAndRegion(localeOrNull: "xx_XX");
+    expect(enUS.lang, "xx");
+    expect(enUS.region, "XX");
+
+    final enDashUS = LanguageAndRegion(localeOrNull: "xx-XX");
+    expect(enDashUS.lang, "xx");
+    expect(enDashUS.region, "XX");
+  });
+
   test("build properties file", () async {
     // Read an existing file.
     final existingTestFile = File("test/analysis_test_uid.json");

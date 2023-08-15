@@ -49,15 +49,28 @@ class ObjectBoxAnalysis {
 
     final event = buildEvent("Build", buildProperties.uid, pubspec);
 
-    final response = await sendEvent(event);
-    if (_debug && response != null) {
-      print(
-          "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}");
+    try {
+      final response = await sendEvent(event);
+      if (_debug && response != null) {
+        print(
+            "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}");
+      }
+    } catch (e, s) {
+      // E.g. connection can not be established (offline, TLS issue, ...).
+      // Just swallow the exception, sending the event is not required for the
+      // build to succeed.
+      if (_debug) {
+        print("[ObjectBox] Analysis send failed: $e");
+        print("[ObjectBox] Analysis stack trace:\n$s");
+      }
     }
   }
 
-  /// Sends an [Event] and returns the response. May return null if the API
-  /// token could not be obtained.
+  /// Sends an [Event] and returns the response.
+  ///
+  /// May return null if the API token could not be obtained.
+  ///
+  /// May throw if establishing a connection fails.
   Future<http.Response?> sendEvent(Event event) async {
     final token = await _getToken();
     if (token == null || token.isEmpty) {
@@ -101,13 +114,9 @@ class ObjectBoxAnalysis {
       properties["CI"] = ci;
     }
 
-    // If ISO code (xx-XX or xx_XX format), split into lang and region.
-    // Otherwise set to unknown.
-    final locale = Platform.localeName;
-    var splitLocale =
-        locale.contains("_") ? locale.split("_") : locale.split("-");
-    properties["lang"] = splitLocale.isNotEmpty ? splitLocale[0] : "unknown";
-    properties["c"] = splitLocale.length >= 2 ? splitLocale[1] : "unknown";
+    final langAndRegion = LanguageAndRegion();
+    properties["lang"] = langAndRegion.lang;
+    properties["c"] = langAndRegion.region;
 
     return Event(eventName, properties);
   }
@@ -167,4 +176,27 @@ class Event {
 
   @override
   String toString() => toJson();
+}
+
+class LanguageAndRegion {
+  final String lang;
+  final String region;
+
+  /// Extracts language and region classifier from a locale String.
+  ///
+  /// If [localeOrNull] is null, uses [Platform.localeName].
+  factory LanguageAndRegion({String? localeOrNull}) {
+    var locale = localeOrNull ?? Platform.localeName;
+    // Drop .UTF-8 suffix, e.g. of C.UTF-8 or en_US.UTF-8
+    locale = locale.replaceAll(RegExp(RegExp.escape(".UTF-8")), "");
+    // If ISO code (xx-XX or xx_XX format), split into lang and region.
+    // Otherwise set to unknown.
+    var splitLocale =
+        locale.contains("_") ? locale.split("_") : locale.split("-");
+    final lang = splitLocale.isNotEmpty ? splitLocale[0] : "unknown";
+    final region = splitLocale.length >= 2 ? splitLocale[1] : "unknown";
+    return LanguageAndRegion._(lang, region);
+  }
+
+  LanguageAndRegion._(this.lang, this.region);
 }
