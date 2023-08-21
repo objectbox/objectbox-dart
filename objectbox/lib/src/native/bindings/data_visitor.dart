@@ -48,7 +48,7 @@ void visit(Pointer<OBX_query> queryPtr, VisitCallback callback) {
 }
 
 /// Can be used with [visit] to get an error out of the callback.
-class ObjectCollectorError {
+class ObjectVisitorError {
   /// Set this e.g. to an exception that occurred inside the callback.
   Object? error;
 

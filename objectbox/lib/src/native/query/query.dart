@@ -835,18 +835,18 @@ class Query<T> implements Finalizable {
   /// results. Note: [offset] and [limit] are respected, if set.
   T? findFirst() {
     T? result;
-    Object? error;
+    final errorWrapper = ObjectVisitorError();
     visitCallBack(Pointer<Uint8> data, int size) {
       try {
         result = _entity.objectFromData(_store, data, size);
       } catch (e) {
-        error = e;
+        errorWrapper.error = e;
       }
       return false; // we only want to visit the first element
     }
 
     visit(_ptr, visitCallBack);
-    if (error != null) throw error!;
+    errorWrapper.throwIfError();
     return result;
   }
 
@@ -869,25 +869,25 @@ class Query<T> implements Finalizable {
   /// higher than one, otherwise the check for non-unique result won't work.
   T? findUnique() {
     T? result;
-    Object? error;
+    final errorWrapper = ObjectVisitorError();
     visitCallback(Pointer<Uint8> data, int size) {
       if (result == null) {
         try {
           result = _entity.objectFromData(_store, data, size);
           return true;
         } catch (e) {
-          error = e;
+          errorWrapper.error = e;
           return false;
         }
       } else {
-        error = NonUniqueResultException(
+        errorWrapper.error = NonUniqueResultException(
             'Query findUnique() matched more than one object');
         return false;
       }
     }
 
     visit(_ptr, visitCallback);
-    if (error != null) throw error!;
+    errorWrapper.throwIfError();
     return result;
   }
 
@@ -926,7 +926,7 @@ class Query<T> implements Finalizable {
   /// Finds Objects matching the query.
   List<T> find() {
     final result = <T>[];
-    final errorWrapper = ObjectCollectorError();
+    final errorWrapper = ObjectVisitorError();
     visitCallback(Pointer<Uint8> data, int size) {
       try {
         result.add(_entity.objectFromData(_store, data, size));
