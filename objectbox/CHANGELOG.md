@@ -1,4 +1,4 @@
-## latest
+## 2.2.1 (2023-08-22)
 
 * Resolve an issue where not all query results are returned, when an entity constructor or property 
   setter itself executes a query. [#550](https://github.com/objectbox/objectbox-dart/issues/550)
