@@ -1072,7 +1072,7 @@ void main() {
   });
 
   // https://github.com/objectbox/objectbox-dart/issues/550
-  test("read during object creation", () {
+  test("get with nested get reads all properties", () {
     final box = env.store.box<TestEntityReadDuringRead>();
     final id =
         box.put(TestEntityReadDuringRead()..strings2 = ["A2", "B2", "C3"]);
@@ -1085,6 +1085,48 @@ void main() {
     final actual = box.get(id)!;
     readDuringReadCalledFromSetter = null; // Do not leak the box instance.
     expect(actual.strings2, hasLength(3));
+  });
+
+  // https://github.com/objectbox/objectbox-dart/issues/550
+  test("query with nested query returns all results", () {
+    final box = env.store.box<TestEntityReadDuringRead>();
+    box.put(TestEntityReadDuringRead());
+    box.put(TestEntityReadDuringRead());
+    // Do a query of another box (to avoid stack overflow)
+    // as part of calling a property setter.
+    env.box.putMany(simpleItems());
+    var nestedCountUnexpected = false;
+    readDuringReadCalledFromSetter = () {
+      final query = env.box.query().build();
+      final count = query.find().length;
+      if (count != 6) nestedCountUnexpected = true;
+      query.close();
+    };
+    final query = box.query().build();
+    final all = query.find();
+    query.close();
+
+    expect(all.length, 2);
+    expect(nestedCountUnexpected, false);
+
+    readDuringReadCalledFromSetter = null; // Do not leak the box instance.
+  });
+
+  // https://github.com/objectbox/objectbox-dart/issues/550
+  test("query with nested throwing query forwards error", () {
+    final box = env.store.box<TestEntityReadDuringRead>();
+    final id = box.put(TestEntityReadDuringRead());
+    // Query for an object that will throw when being read
+    // as part of calling a property setter.
+    final throwingBox = env.store.box<ThrowingInConverters>();
+    throwingBox.put(ThrowingInConverters(throwOnGet: true));
+    readDuringReadCalledFromSetter = () {
+      throwingBox.query().build().find();
+    };
+    // The outer query should forward the exception of the nested query.
+    expect(() => box.get(id), ThrowingInConverters.throwsIn("Setter"));
+
+    readDuringReadCalledFromSetter = null; // Do not leak the box instance.
   });
 }
 

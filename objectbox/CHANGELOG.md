@@ -1,5 +1,8 @@
 ## latest
 
+* Resolve an issue where not all query results are returned, when an entity constructor or property 
+  setter itself executes a query. [#550](https://github.com/objectbox/objectbox-dart/issues/550)
+
 ## 2.2.0 (2023-08-08)
 
 * For Flutter apps running on Android 6 (or older): added `loadObjectBoxLibraryAndroidCompat()` to 
