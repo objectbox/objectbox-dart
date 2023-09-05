@@ -353,6 +353,7 @@ class ObjectBoxC {
       int Function(ffi.Pointer<OBX_model>, ffi.Pointer<ffi.Char>, int, int)>();
 
   /// Refine the definition of the entity declared by the most recent obx_model_entity() call, specifying flags.
+  /// @param flags See OBXEntityFlags for values (use bitwise OR to combine multiple flags)
   int model_entity_flags(
     ffi.Pointer<OBX_model> model,
     int flags,
@@ -366,7 +367,7 @@ class ObjectBoxC {
   late final _model_entity_flagsPtr = _lookup<
       ffi.NativeFunction<
           obx_err Function(
-              ffi.Pointer<OBX_model>, ffi.Int32)>>('obx_model_entity_flags');
+              ffi.Pointer<OBX_model>, ffi.Uint32)>>('obx_model_entity_flags');
   late final _model_entity_flags = _model_entity_flagsPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
 
@@ -400,6 +401,7 @@ class ObjectBoxC {
           ffi.Pointer<OBX_model>, ffi.Pointer<ffi.Char>, int, int, int)>();
 
   /// Refine the definition of the property declared by the most recent obx_model_property() call, specifying flags.
+  /// @param flags See OBXPropertyFlags for values (use bitwise OR to combine multiple flags)
   int model_property_flags(
     ffi.Pointer<OBX_model> model,
     int flags,
@@ -413,7 +415,7 @@ class ObjectBoxC {
   late final _model_property_flagsPtr = _lookup<
       ffi.NativeFunction<
           obx_err Function(
-              ffi.Pointer<OBX_model>, ffi.Int32)>>('obx_model_property_flags');
+              ffi.Pointer<OBX_model>, ffi.Uint32)>>('obx_model_property_flags');
   late final _model_property_flags = _model_property_flagsPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
 
@@ -828,25 +830,47 @@ class ObjectBoxC {
   /// Note: ObjectBox builds upon ACID storage, which guarantees consistency given that the file system is working
   /// correctly (in particular fsync).
   /// @param page_limit limits the number of checked pages (currently defaults to 0, but will be increased in the future)
-  /// @param leaf_level enable for visiting leaf pages (defaults to false)
-  void opt_validate_on_open(
+  /// @param flags flags used to influence how the validation checks are performed;
+  /// see OBXValidateOnOpenPagesFlags for values (use bitwise OR to combine multiple flags)
+  void opt_validate_on_open_pages(
     ffi.Pointer<OBX_store_options> opt,
     int page_limit,
-    bool leaf_level,
+    int flags,
   ) {
-    return _opt_validate_on_open(
+    return _opt_validate_on_open_pages(
       opt,
       page_limit,
-      leaf_level,
+      flags,
     );
   }
 
-  late final _opt_validate_on_openPtr = _lookup<
+  late final _opt_validate_on_open_pagesPtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<OBX_store_options>, ffi.Size,
-              ffi.Bool)>>('obx_opt_validate_on_open');
-  late final _opt_validate_on_open = _opt_validate_on_openPtr
-      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int, bool)>();
+              ffi.Uint32)>>('obx_opt_validate_on_open_pages');
+  late final _opt_validate_on_open_pages = _opt_validate_on_open_pagesPtr
+      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int, int)>();
+
+  /// When the DB is opened initially, ObjectBox can do a validation over the key/value pairs to check, for example,
+  /// whether they're consistent towards our internal specification.
+  /// @param flags flags used to influence how the validation checks are performed;
+  /// see OBXValidateOnOpenKvFlags for values (use bitwise OR to combine multiple flags)
+  void opt_validate_on_open_kv(
+    ffi.Pointer<OBX_store_options> opt,
+    int flags,
+  ) {
+    return _opt_validate_on_open_kv(
+      opt,
+      flags,
+    );
+  }
+
+  late final _opt_validate_on_open_kvPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>,
+              ffi.Uint32)>>('obx_opt_validate_on_open_kv');
+  late final _opt_validate_on_open_kv = _opt_validate_on_open_kvPtr
+      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
 
   /// Don't touch unless you know exactly what you are doing:
   /// Advanced setting typically meant for language bindings (not end users). See OBXPutPaddingMode description.
@@ -1280,6 +1304,32 @@ class ObjectBoxC {
       void Function(ffi.Pointer<OBX_store_options>,
           ffi.Pointer<obx_log_callback>, ffi.Pointer<ffi.Void>)>();
 
+  /// Before opening the database, this options instructs to restore the database content from the given backup file.
+  /// Note: backup is a server-only feature.
+  /// By default, actually restoring the backup is only performed if no database already exists
+  /// (database does not contain data).
+  /// @param flags For default behavior pass 0, or adjust defaults using OBXBackupRestoreFlags bit flags,
+  /// e.g., to overwrite all existing data in the database.
+  void opt_backup_restore(
+    ffi.Pointer<OBX_store_options> opt,
+    ffi.Pointer<ffi.Char> backup_file,
+    int flags,
+  ) {
+    return _opt_backup_restore(
+      opt,
+      backup_file,
+      flags,
+    );
+  }
+
+  late final _opt_backup_restorePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>,
+              ffi.Pointer<ffi.Char>, ffi.Uint32)>>('obx_opt_backup_restore');
+  late final _opt_backup_restore = _opt_backup_restorePtr.asFunction<
+      void Function(
+          ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Char>, int)>();
+
   /// Gets the option for "directory"; this is either the default, or, the value set by obx_opt_directory().
   /// The returned value must not be modified and is only valid for the lifetime of the options or until the value is
   /// changed.
@@ -1605,7 +1655,30 @@ class ObjectBoxC {
   late final _store_await_async_submitted = _store_await_async_submittedPtr
       .asFunction<bool Function(ffi.Pointer<OBX_store>)>();
 
+  /// Backs up the store DB to the given backup-file, using the given flags.
+  /// Note: backup is a server-only feature.
+  /// @param backup_flags 0 for defaults or OBXBackupFlags bit flags
+  int store_back_up_to_file(
+    ffi.Pointer<OBX_store> store,
+    ffi.Pointer<ffi.Char> backup_file,
+    int backup_flags,
+  ) {
+    return _store_back_up_to_file(
+      store,
+      backup_file,
+      backup_flags,
+    );
+  }
+
+  late final _store_back_up_to_filePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_store>, ffi.Pointer<ffi.Char>,
+              ffi.Uint32)>>('obx_store_back_up_to_file');
+  late final _store_back_up_to_file = _store_back_up_to_filePtr.asFunction<
+      int Function(ffi.Pointer<OBX_store>, ffi.Pointer<ffi.Char>, int)>();
+
   /// Configure debug logging
+  /// @param flags See OBXDebugFlags for values (use bitwise OR to combine multiple flags)
   int store_debug_flags(
     ffi.Pointer<OBX_store> store,
     int flags,
@@ -1619,7 +1692,7 @@ class ObjectBoxC {
   late final _store_debug_flagsPtr = _lookup<
       ffi.NativeFunction<
           obx_err Function(
-              ffi.Pointer<OBX_store>, ffi.Int32)>>('obx_store_debug_flags');
+              ffi.Pointer<OBX_store>, ffi.Uint32)>>('obx_store_debug_flags');
   late final _store_debug_flags = _store_debug_flagsPtr
       .asFunction<int Function(ffi.Pointer<OBX_store>, int)>();
 
@@ -1773,7 +1846,7 @@ class ObjectBoxC {
   int txn_data_size(
     ffi.Pointer<OBX_txn> txn,
     ffi.Pointer<ffi.Uint64> out_committed_size,
-    ffi.Pointer<ffi.Uint64> out_size_change,
+    ffi.Pointer<ffi.Int64> out_size_change,
   ) {
     return _txn_data_size(
       txn,
@@ -1785,10 +1858,10 @@ class ObjectBoxC {
   late final _txn_data_sizePtr = _lookup<
       ffi.NativeFunction<
           obx_err Function(ffi.Pointer<OBX_txn>, ffi.Pointer<ffi.Uint64>,
-              ffi.Pointer<ffi.Uint64>)>>('obx_txn_data_size');
+              ffi.Pointer<ffi.Int64>)>>('obx_txn_data_size');
   late final _txn_data_size = _txn_data_sizePtr.asFunction<
       int Function(ffi.Pointer<OBX_txn>, ffi.Pointer<ffi.Uint64>,
-          ffi.Pointer<ffi.Uint64>)>();
+          ffi.Pointer<ffi.Int64>)>();
 
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_cursor> cursor(
@@ -2345,6 +2418,64 @@ class ObjectBoxC {
               obx_schema_id, obx_id)>>('obx_cursor_rel_ids');
   late final _cursor_rel_ids = _cursor_rel_idsPtr.asFunction<
       ffi.Pointer<OBX_id_array> Function(ffi.Pointer<OBX_cursor>, int, int)>();
+
+  /// Gets the first object ID or zero if there was no object
+  int cursor_seek_first_id(
+    ffi.Pointer<OBX_cursor> cursor,
+    ffi.Pointer<obx_id> out_id,
+  ) {
+    return _cursor_seek_first_id(
+      cursor,
+      out_id,
+    );
+  }
+
+  late final _cursor_seek_first_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_cursor>,
+              ffi.Pointer<obx_id>)>>('obx_cursor_seek_first_id');
+  late final _cursor_seek_first_id = _cursor_seek_first_idPtr
+      .asFunction<int Function(ffi.Pointer<OBX_cursor>, ffi.Pointer<obx_id>)>();
+
+  /// Gets the next object ID or zero if there was no next object
+  int cursor_seek_next_id(
+    ffi.Pointer<OBX_cursor> cursor,
+    ffi.Pointer<obx_id> out_id,
+  ) {
+    return _cursor_seek_next_id(
+      cursor,
+      out_id,
+    );
+  }
+
+  late final _cursor_seek_next_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_cursor>,
+              ffi.Pointer<obx_id>)>>('obx_cursor_seek_next_id');
+  late final _cursor_seek_next_id = _cursor_seek_next_idPtr
+      .asFunction<int Function(ffi.Pointer<OBX_cursor>, ffi.Pointer<obx_id>)>();
+
+  /// Gets the object ID at the current position; ensures being up-to-date by verifying against database.
+  /// @param out_id pointer to receive an output. If the cursor is not positioned at an actual object,
+  /// it receives one of two special IDs:
+  /// 0 (OBJECT_ID_BEFORE_START) if the cursor was not yet moved or reached the end (going backwards).
+  /// 0xFFFFFFFFFFFFFFFF (OBJECT_ID_BEYOND_END) if the cursor reached the end (going forwards).
+  int cursor_current_id(
+    ffi.Pointer<OBX_cursor> cursor,
+    ffi.Pointer<obx_id> out_id,
+  ) {
+    return _cursor_current_id(
+      cursor,
+      out_id,
+    );
+  }
+
+  late final _cursor_current_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_cursor>,
+              ffi.Pointer<obx_id>)>>('obx_cursor_current_id');
+  late final _cursor_current_id = _cursor_current_idPtr
+      .asFunction<int Function(ffi.Pointer<OBX_cursor>, ffi.Pointer<obx_id>)>();
 
   /// Time series: get the limits (min/max time values) over all objects
   /// @param out_min_id pointer to receive an output (may be NULL)
@@ -4366,7 +4497,7 @@ class ObjectBoxC {
   late final _qb_relation_count_propertyPtr = _lookup<
       ffi.NativeFunction<
           obx_qb_cond Function(ffi.Pointer<OBX_query_builder>, obx_schema_id,
-              obx_schema_id, ffi.Int32)>>('obx_qb_relation_count_property');
+              obx_schema_id, ffi.Uint32)>>('obx_qb_relation_count_property');
   late final _qb_relation_count_property =
       _qb_relation_count_propertyPtr.asFunction<
           int Function(ffi.Pointer<OBX_query_builder>, int, int, int)>();
@@ -4466,7 +4597,7 @@ class ObjectBoxC {
   late final _qb_orderPtr = _lookup<
       ffi.NativeFunction<
           obx_err Function(ffi.Pointer<OBX_query_builder>, obx_schema_id,
-              ffi.Int32)>>('obx_qb_order');
+              ffi.Uint32)>>('obx_qb_order');
   late final _qb_order = _qb_orderPtr
       .asFunction<int Function(ffi.Pointer<OBX_query_builder>, int, int)>();
 
@@ -6236,6 +6367,27 @@ class ObjectBoxC {
           ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
           ffi.Pointer<ffi.Size>)>();
 
+  /// Gets the full path (from the root) of the given leaf ID.
+  /// @returns If successful, an allocated path is returned (malloc), which must be free()-ed by the caller.
+  /// @returns If not successful, NULL is returned.
+  ffi.Pointer<ffi.Char> tree_cursor_get_leaf_path(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+    int leaf_id,
+  ) {
+    return _tree_cursor_get_leaf_path(
+      cursor,
+      leaf_id,
+    );
+  }
+
+  late final _tree_cursor_get_leaf_pathPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_tree_cursor>,
+              obx_id)>>('obx_tree_cursor_get_leaf_path');
+  late final _tree_cursor_get_leaf_path =
+      _tree_cursor_get_leaf_pathPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_tree_cursor>, int)>();
+
   /// \brief A "low-level" put operation for a tree leaf using given raw FlatBuffer bytes.
   /// Any non-existing branches and meta nodes are put on the fly if an optional meta-leaf FlatBuffers is given.
   /// A typical usage pattern is to first try without the meta-leaf, and if it does not work, create the meta-leaf and
@@ -6321,6 +6473,119 @@ class ObjectBoxC {
   late final _tree_cursor_consolidate_node_conflicts =
       _tree_cursor_consolidate_node_conflictsPtr.asFunction<
           int Function(ffi.Pointer<OBX_tree_cursor>, ffi.Pointer<ffi.Size>)>();
+
+  /// \brief Given an existing path, return all existing leaves with their paths.
+  /// As this traverses the data tree (i.e. not the meta tree), it will only return nodes that exist (obviously).
+  /// Thus, the meta tree may contain additional paths, but these are unused by the data tree (currently at least).
+  /// @param path the branch or leaf path to use. Optional: if no path is given (null), the root node is taken.
+  /// @returns leaf info ordered by path depth (i.e. starting from paths with the smallest number of branches); paths at
+  /// same depth are ordered by id.
+  ffi.Pointer<OBX_tree_leaves_info> tree_cursor_get_child_leaves_info(
+    ffi.Pointer<OBX_tree_cursor> cursor,
+    ffi.Pointer<ffi.Char> path,
+  ) {
+    return _tree_cursor_get_child_leaves_info(
+      cursor,
+      path,
+    );
+  }
+
+  late final _tree_cursor_get_child_leaves_infoPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_tree_leaves_info> Function(
+              ffi.Pointer<OBX_tree_cursor>,
+              ffi.Pointer<ffi.Char>)>>('obx_tree_cursor_get_child_leaves_info');
+  late final _tree_cursor_get_child_leaves_info =
+      _tree_cursor_get_child_leaves_infoPtr.asFunction<
+          ffi.Pointer<OBX_tree_leaves_info> Function(
+              ffi.Pointer<OBX_tree_cursor>, ffi.Pointer<ffi.Char>)>();
+
+  /// Gets the number of leaves from the given leaves info.
+  int tree_leaves_info_size(
+    ffi.Pointer<OBX_tree_leaves_info> leaves_info,
+  ) {
+    return _tree_leaves_info_size(
+      leaves_info,
+    );
+  }
+
+  late final _tree_leaves_info_sizePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Size Function(
+              ffi.Pointer<OBX_tree_leaves_info>)>>('obx_tree_leaves_info_size');
+  late final _tree_leaves_info_size = _tree_leaves_info_sizePtr
+      .asFunction<int Function(ffi.Pointer<OBX_tree_leaves_info>)>();
+
+  /// Gets the path of a given leaf (by index).
+  ffi.Pointer<ffi.Char> tree_leaves_info_path(
+    ffi.Pointer<OBX_tree_leaves_info> leaves_info,
+    int index,
+  ) {
+    return _tree_leaves_info_path(
+      leaves_info,
+      index,
+    );
+  }
+
+  late final _tree_leaves_info_pathPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_tree_leaves_info>,
+              ffi.Size)>>('obx_tree_leaves_info_path');
+  late final _tree_leaves_info_path = _tree_leaves_info_pathPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_tree_leaves_info>, int)>();
+
+  /// Gets the property type (as OBXPropertyType) of a given leaf (by index).
+  /// @returns OBXPropertyType_Unknown if no property type was found.
+  int tree_leaves_info_type(
+    ffi.Pointer<OBX_tree_leaves_info> leaves_info,
+    int index,
+  ) {
+    return _tree_leaves_info_type(
+      leaves_info,
+      index,
+    );
+  }
+
+  late final _tree_leaves_info_typePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<OBX_tree_leaves_info>,
+              ffi.Size)>>('obx_tree_leaves_info_type');
+  late final _tree_leaves_info_type = _tree_leaves_info_typePtr
+      .asFunction<int Function(ffi.Pointer<OBX_tree_leaves_info>, int)>();
+
+  /// Gets the id of a given leaf (by index).
+  int tree_leaves_info_id(
+    ffi.Pointer<OBX_tree_leaves_info> leaves_info,
+    int index,
+  ) {
+    return _tree_leaves_info_id(
+      leaves_info,
+      index,
+    );
+  }
+
+  late final _tree_leaves_info_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_id Function(ffi.Pointer<OBX_tree_leaves_info>,
+              ffi.Size)>>('obx_tree_leaves_info_id');
+  late final _tree_leaves_info_id = _tree_leaves_info_idPtr
+      .asFunction<int Function(ffi.Pointer<OBX_tree_leaves_info>, int)>();
+
+  /// Frees a leaves info reference.
+  void tree_leaves_info_free(
+    ffi.Pointer<OBX_tree_leaves_info> leaves_info,
+  ) {
+    return _tree_leaves_info_free(
+      leaves_info,
+    );
+  }
+
+  late final _tree_leaves_info_freePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<OBX_tree_leaves_info>)>>('obx_tree_leaves_info_free');
+  late final _tree_leaves_info_free = _tree_leaves_info_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_tree_leaves_info>)>();
 
   /// Like obx_tree_cursor_put_raw(), but asynchronous.
   /// @param callback Optional (may be null) function that is called with results once the async operation completes.
@@ -6914,18 +7179,18 @@ class ObjectBoxC {
   late final _admin_close =
       _admin_closePtr.asFunction<int Function(ffi.Pointer<OBX_admin>)>();
 
-  /// Creates a sync client associated with the given store and sync server URI.
+  /// Creates a sync client associated with the given store and sync server URL.
   /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
   /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
   /// By default a sync client automatically receives updates from the server once login succeeded.
   /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
   ffi.Pointer<OBX_sync> sync1(
     ffi.Pointer<OBX_store> store,
-    ffi.Pointer<ffi.Char> server_uri,
+    ffi.Pointer<ffi.Char> server_url,
   ) {
     return _sync1(
       store,
-      server_uri,
+      server_url,
     );
   }
 
@@ -6994,6 +7259,23 @@ class ObjectBoxC {
       'obx_sync_max_messages_in_flight');
   late final _sync_max_messages_in_flight = _sync_max_messages_in_flightPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync>, int)>();
+
+  /// Triggers a reconnection attempt immediately.
+  /// By default, an increasing backoff interval is used for reconnection attempts.
+  /// But sometimes the user of this API has additional knowledge and can initiate a reconnection attempt sooner.
+  int sync_trigger_reconnect(
+    ffi.Pointer<OBX_sync> sync1,
+  ) {
+    return _sync_trigger_reconnect(
+      sync1,
+    );
+  }
+
+  late final _sync_trigger_reconnectPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>)>>(
+          'obx_sync_trigger_reconnect');
+  late final _sync_trigger_reconnect = _sync_trigger_reconnectPtr
+      .asFunction<int Function(ffi.Pointer<OBX_sync>)>();
 
   /// Sets the interval in which the client sends "heartbeat" messages to the server, keeping the connection alive.
   /// To detect disconnects early on the client side, you can also use heartbeats with a smaller interval.
@@ -7283,6 +7565,103 @@ class ObjectBoxC {
   late final _sync_protocol_version_server = _sync_protocol_version_serverPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync>)>();
 
+  /// Start here to prepare an 'objects message'.
+  /// Use obx_sync_msg_objects_builder_add() to set at least one object and then call obx_sync_send_msg_objects() or
+  /// obx_sync_server_send_msg_objects() to initiate the sending process.
+  /// @param topic optional, application-specific message qualifier (may be NULL), usually a string but can also be binary
+  ffi.Pointer<OBX_sync_msg_objects_builder> sync_msg_objects_builder(
+    ffi.Pointer<ffi.Uint8> topic,
+    int topic_size,
+  ) {
+    return _sync_msg_objects_builder(
+      topic,
+      topic_size,
+    );
+  }
+
+  late final _sync_msg_objects_builderPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_sync_msg_objects_builder> Function(
+              ffi.Pointer<ffi.Uint8>,
+              ffi.Size)>>('obx_sync_msg_objects_builder');
+  late final _sync_msg_objects_builder =
+      _sync_msg_objects_builderPtr.asFunction<
+          ffi.Pointer<OBX_sync_msg_objects_builder> Function(
+              ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// Adds an object to the given message (builder). There must be at least one message before sending.
+  /// @param id an optional (pass 0 if you don't need it) value that the application can use identify the object
+  int sync_msg_objects_builder_add(
+    ffi.Pointer<OBX_sync_msg_objects_builder> message,
+    int type,
+    ffi.Pointer<ffi.Uint8> data,
+    int size,
+    int id,
+  ) {
+    return _sync_msg_objects_builder_add(
+      message,
+      type,
+      data,
+      size,
+      id,
+    );
+  }
+
+  late final _sync_msg_objects_builder_addPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_sync_msg_objects_builder>,
+              ffi.Int32,
+              ffi.Pointer<ffi.Uint8>,
+              ffi.Size,
+              ffi.Uint64)>>('obx_sync_msg_objects_builder_add');
+  late final _sync_msg_objects_builder_add =
+      _sync_msg_objects_builder_addPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync_msg_objects_builder>, int,
+              ffi.Pointer<ffi.Uint8>, int, int)>();
+
+  /// Free the given message if you end up not sending it. Sending frees it already so never call this after obx_*_send().
+  int sync_msg_objects_builder_discard(
+    ffi.Pointer<OBX_sync_msg_objects_builder> message,
+  ) {
+    return _sync_msg_objects_builder_discard(
+      message,
+    );
+  }
+
+  late final _sync_msg_objects_builder_discardPtr = _lookup<
+          ffi.NativeFunction<
+              obx_err Function(ffi.Pointer<OBX_sync_msg_objects_builder>)>>(
+      'obx_sync_msg_objects_builder_discard');
+  late final _sync_msg_objects_builder_discard =
+      _sync_msg_objects_builder_discardPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync_msg_objects_builder>)>();
+
+  /// Sends the given 'objects message' from the client to the currently connected server.
+  /// @param message the prepared outgoing message; it will be freed along with any associated resources during this call
+  /// (regardless of the call's success/failure outcome).
+  /// @returns OBX_SUCCESS if the message was scheduled to be sent (no guarantees for actual sending/transmission given).
+  /// @returns OBX_NO_SUCCESS if the message was not sent (no error will be set).
+  /// @returns error code if an unexpected error occurred.
+  int sync_send_msg_objects(
+    ffi.Pointer<OBX_sync> sync1,
+    ffi.Pointer<OBX_sync_msg_objects_builder> message,
+  ) {
+    return _sync_send_msg_objects(
+      sync1,
+      message,
+    );
+  }
+
+  late final _sync_send_msg_objectsPtr = _lookup<
+          ffi.NativeFunction<
+              obx_err Function(ffi.Pointer<OBX_sync>,
+                  ffi.Pointer<OBX_sync_msg_objects_builder>)>>(
+      'obx_sync_send_msg_objects');
+  late final _sync_send_msg_objects = _sync_send_msg_objectsPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_sync>, ffi.Pointer<OBX_sync_msg_objects_builder>)>();
+
   /// Set or overwrite a previously set 'connect' listener.
   /// @param listener set NULL to reset
   /// @param listener_arg is a pass-through argument passed to the listener
@@ -7467,6 +7846,34 @@ class ObjectBoxC {
               ffi.Pointer<OBX_sync_listener_server_time>,
               ffi.Pointer<ffi.Void>)>();
 
+  /// Set or overwrite a previously set 'objects message' listener to receive application specific data objects.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
+  void sync_listener_msg_objects(
+    ffi.Pointer<OBX_sync> sync1,
+    ffi.Pointer<OBX_sync_listener_msg_objects> listener,
+    ffi.Pointer<ffi.Void> listener_arg,
+  ) {
+    return _sync_listener_msg_objects(
+      sync1,
+      listener,
+      listener_arg,
+    );
+  }
+
+  late final _sync_listener_msg_objectsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<OBX_sync>,
+              ffi.Pointer<OBX_sync_listener_msg_objects>,
+              ffi.Pointer<ffi.Void>)>>('obx_sync_listener_msg_objects');
+  late final _sync_listener_msg_objects =
+      _sync_listener_msg_objectsPtr.asFunction<
+          void Function(
+              ffi.Pointer<OBX_sync>,
+              ffi.Pointer<OBX_sync_listener_msg_objects>,
+              ffi.Pointer<ffi.Void>)>();
+
   /// Prepares an ObjectBox Sync Server to run within your application (embedded server) at the given URI.
   /// Note that you need a special sync edition, which includes the server components. Check https://objectbox.io/sync/.
   /// This call opens a store with the given options (also see obx_store_open()).
@@ -7478,24 +7885,24 @@ class ObjectBoxC {
   /// E.g. a client with an incompatible model will be rejected during login.
   /// @param store_options Options for the server's store.
   /// It is freed automatically (same as with obx_store_open()) - don't use or free it afterwards.
-  /// @param uri The URI (following the pattern "protocol://IP:port") the server should listen on.
+  /// @param url The URL (following the pattern "protocol://IP:port") the server should listen on.
   /// Supported \b protocols are "ws" (WebSockets) and "wss" (secure WebSockets).
   /// To use the latter ("wss"), you must also call obx_sync_server_certificate_path().
   /// To bind to all available \b interfaces, including those that are available from the "outside", use 0.0.0.0 as
   /// the IP. On the other hand, "127.0.0.1" is typically (may be OS dependent) only available on the same device.
   /// If you do not require a fixed \b port, use 0 (zero) as a port to tell the server to pick an arbitrary port
   /// that is available. The port can be queried via obx_sync_server_port() once the server was started.
-  /// \b Examples: "ws://0.0.0.0:9999" could be used during development (no certificate config needed),
-  /// while in a production system, you may want to use wss and a specific IP for security reasons.
+  /// \b Examples: "ws://0.0.0.0:9999" could be used during development (WS no certificate config needed),
+  /// while in a production system, you may want to use WSS and a specific IP for security reasons.
   /// @see obx_store_open()
-  /// @returns NULL if server could not be created (e.g. the store could not be opened, bad uri, etc.)
+  /// @returns NULL if server could not be created (e.g. the store could not be opened, bad URL, etc.)
   ffi.Pointer<OBX_sync_server> sync_server(
     ffi.Pointer<OBX_store_options> store_options,
-    ffi.Pointer<ffi.Char> uri,
+    ffi.Pointer<ffi.Char> url,
   ) {
     return _sync_server(
       store_options,
-      uri,
+      url,
     );
   }
 
@@ -7584,6 +7991,52 @@ class ObjectBoxC {
   late final _sync_server_credentials = _sync_server_credentialsPtr.asFunction<
       int Function(
           ffi.Pointer<OBX_sync_server>, int, ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// Sets the number of worker threads. Use before obx_sync_server_start().
+  /// @param thread_count The default is "0" which is hardware dependent, e.g. a multiple of CPU "cores".
+  int sync_server_worker_threads(
+    ffi.Pointer<OBX_sync_server> server,
+    int thread_count,
+  ) {
+    return _sync_server_worker_threads(
+      server,
+      thread_count,
+    );
+  }
+
+  late final _sync_server_worker_threadsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_server>,
+              ffi.Int)>>('obx_sync_server_worker_threads');
+  late final _sync_server_worker_threads = _sync_server_worker_threadsPtr
+      .asFunction<int Function(ffi.Pointer<OBX_sync_server>, int)>();
+
+  /// Sets a maximum size for sync history entries to limit storage: old entries are removed to stay below this limit.
+  /// Deleting older history entries may require clients to do a full sync if they have not contacted the server for
+  /// a certain time.
+  /// @param max_in_kb Once this maximum size is reached, old history entries are deleted (default 0: no limit).
+  /// @param target_in_kb If this value is non-zero, the deletion of old history entries is extended until reaching this
+  /// target (lower than the maximum) allowing deletion "batching", which may be more efficient.
+  /// If zero, the deletion stops already stops when reaching the max size (or lower).
+  int sync_server_history_max_size_in_kb(
+    ffi.Pointer<OBX_sync_server> server,
+    int max_in_kb,
+    int target_in_kb,
+  ) {
+    return _sync_server_history_max_size_in_kb(
+      server,
+      max_in_kb,
+      target_in_kb,
+    );
+  }
+
+  late final _sync_server_history_max_size_in_kbPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_server>, ffi.Uint64,
+              ffi.Uint64)>>('obx_sync_server_history_max_size_in_kb');
+  late final _sync_server_history_max_size_in_kb =
+      _sync_server_history_max_size_in_kbPtr
+          .asFunction<int Function(ffi.Pointer<OBX_sync_server>, int, int)>();
 
   /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
   /// @param listener set NULL to reset
@@ -7703,7 +8156,7 @@ class ObjectBoxC {
       ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_sync_server>)>();
 
   /// Returns a port this server listens on. This is especially useful if the port was assigned arbitrarily
-  /// (a "0" port was used in the URI given to obx_sync_server()).
+  /// (a "0" port was used in the URL given to obx_sync_server()).
   int sync_server_port(
     ffi.Pointer<OBX_sync_server> server,
   ) {
@@ -7755,6 +8208,32 @@ class ObjectBoxC {
       _sync_server_stats_stringPtr.asFunction<
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_sync_server>, bool)>();
 
+  /// Broadcast the given 'objects message' from the server to all currently connected (and logged-in) clients.
+  /// @param message the prepared outgoing message; it will be freed along with any associated resources during this call
+  /// (regardless of the call's success/failure outcome).
+  /// @returns OBX_SUCCESS if the message was scheduled to be sent (no guarantees for actual sending/transmission given).
+  /// @returns OBX_NO_SUCCESS if the message was not sent (no error will be set).
+  /// @returns error code if an unexpected error occurred.
+  int sync_server_send_msg_objects(
+    ffi.Pointer<OBX_sync_server> server,
+    ffi.Pointer<OBX_sync_msg_objects_builder> message,
+  ) {
+    return _sync_server_send_msg_objects(
+      server,
+      message,
+    );
+  }
+
+  late final _sync_server_send_msg_objectsPtr = _lookup<
+          ffi.NativeFunction<
+              obx_err Function(ffi.Pointer<OBX_sync_server>,
+                  ffi.Pointer<OBX_sync_msg_objects_builder>)>>(
+      'obx_sync_server_send_msg_objects');
+  late final _sync_server_send_msg_objects =
+      _sync_server_send_msg_objectsPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync_server>,
+              ffi.Pointer<OBX_sync_msg_objects_builder>)>();
+
   /// Configure admin with a sync server, attaching the store and enabling custom sync-server functionality in the UI.
   /// This is a replacement for obx_admin_opt_store() and obx_admin_opt_store_path() - don't set them for the server.
   /// After configuring, this acts as obx_admin() - see for more details.
@@ -7777,6 +8256,211 @@ class ObjectBoxC {
   late final _sync_server_admin = _sync_server_adminPtr.asFunction<
       ffi.Pointer<OBX_admin> Function(
           ffi.Pointer<OBX_sync_server>, ffi.Pointer<OBX_admin_options>)>();
+
+  /// Must be called to register a protocol for a custom messaging server. Call before starting a server.
+  /// @param protocol the communication protocol to use, e.g. "tcp"
+  /// @param functions the custom server function callbacks
+  /// @param config_user_data user provided data set at registration of custom server
+  /// @returns OBX_SUCCESS if the operation was successful
+  /// @returns Any other fitting error code (OBX_ERROR_*) if the protocol could not be registered
+  int custom_msg_server_register(
+    ffi.Pointer<ffi.Char> protocol,
+    ffi.Pointer<OBX_custom_msg_server_functions> functions,
+    ffi.Pointer<ffi.Void> config_user_data,
+  ) {
+    return _custom_msg_server_register(
+      protocol,
+      functions,
+      config_user_data,
+    );
+  }
+
+  late final _custom_msg_server_registerPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<OBX_custom_msg_server_functions>,
+              ffi.Pointer<ffi.Void>)>>('obx_custom_msg_server_register');
+  late final _custom_msg_server_register =
+      _custom_msg_server_registerPtr.asFunction<
+          int Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<OBX_custom_msg_server_functions>,
+              ffi.Pointer<ffi.Void>)>();
+
+  /// Must be called from the custom server when a new client connection becomes available.
+  /// @param server_id the ID that was assigned to the custom server instance
+  /// @param user_data user provided data set at registration of custom server
+  /// @returns a client connection ID that must be passed on to obx_custom_msg_server_receive_message_from_client().
+  /// @returns 0 in case the operation encountered an exceptional issue
+  int custom_msg_server_add_client_connection(
+    int server_id,
+    ffi.Pointer<ffi.Void> user_data,
+  ) {
+    return _custom_msg_server_add_client_connection(
+      server_id,
+      user_data,
+    );
+  }
+
+  late final _custom_msg_server_add_client_connectionPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Uint64 Function(ffi.Uint64, ffi.Pointer<ffi.Void>)>>(
+      'obx_custom_msg_server_add_client_connection');
+  late final _custom_msg_server_add_client_connection =
+      _custom_msg_server_add_client_connectionPtr
+          .asFunction<int Function(int, ffi.Pointer<ffi.Void>)>();
+
+  /// Must be called from the custom server when a client connection becomes inactive (e.g. closed) and can be removed.
+  /// @param server_id the ID that was assigned to the custom server instance
+  /// @param client_connection_id the ID that was assigned to the custom client connection
+  /// @returns OBX_SUCCESS if the operation was successful
+  /// @returns OBX_NO_SUCCESS if no active server or active connection was found matching the given IDs
+  /// @returns OBX_ERROR_* in case the operation encountered an exceptional issue
+  int custom_msg_server_remove_client_connection(
+    int server_id,
+    int client_connection_id,
+  ) {
+    return _custom_msg_server_remove_client_connection(
+      server_id,
+      client_connection_id,
+    );
+  }
+
+  late final _custom_msg_server_remove_client_connectionPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Uint64, ffi.Uint64)>>(
+          'obx_custom_msg_server_remove_client_connection');
+  late final _custom_msg_server_remove_client_connection =
+      _custom_msg_server_remove_client_connectionPtr
+          .asFunction<int Function(int, int)>();
+
+  /// Must be called from the custom server when a message is received from a client connection.
+  /// @param server_id the ID that was assigned to the custom server instance
+  /// @param client_connection_id the ID that was assigned to the custom client connection
+  /// @param message_data the message data in bytes
+  /// @returns OBX_SUCCESS if the operation was successful
+  /// @returns OBX_NO_SUCCESS if no active server or active connection was found matching the given IDs
+  /// @returns OBX_ERROR_* in case the operation encountered an exceptional issue
+  int custom_msg_server_receive_message_from_client(
+    int server_id,
+    int client_connection_id,
+    ffi.Pointer<ffi.Uint8> message_data,
+    int message_size,
+  ) {
+    return _custom_msg_server_receive_message_from_client(
+      server_id,
+      client_connection_id,
+      message_data,
+      message_size,
+    );
+  }
+
+  late final _custom_msg_server_receive_message_from_clientPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Uint64, ffi.Uint64, ffi.Pointer<ffi.Uint8>,
+              ffi.Size)>>('obx_custom_msg_server_receive_message_from_client');
+  late final _custom_msg_server_receive_message_from_client =
+      _custom_msg_server_receive_message_from_clientPtr
+          .asFunction<int Function(int, int, ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// Must be called to register a protocol for your custom messaging client. Call before starting a client.
+  /// @param protocol the communication protocol to use, e.g. "tcp"
+  /// @returns OBX_SUCCESS if the operation was successful
+  /// @returns Any other fitting error code (OBX_ERROR_*) if the protocol could not be registered
+  int custom_msg_client_register(
+    ffi.Pointer<ffi.Char> protocol,
+    ffi.Pointer<OBX_custom_msg_client_functions> functions,
+    ffi.Pointer<ffi.Void> config_user_data,
+  ) {
+    return _custom_msg_client_register(
+      protocol,
+      functions,
+      config_user_data,
+    );
+  }
+
+  late final _custom_msg_client_registerPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<OBX_custom_msg_client_functions>,
+              ffi.Pointer<ffi.Void>)>>('obx_custom_msg_client_register');
+  late final _custom_msg_client_register =
+      _custom_msg_client_registerPtr.asFunction<
+          int Function(
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<OBX_custom_msg_client_functions>,
+              ffi.Pointer<ffi.Void>)>();
+
+  /// The custom msg client must call this whenever a message is received from the server.
+  /// @param client_id the ID that was assigned to the client instance
+  /// @param message_data the message data in bytes
+  /// @returns OBX_SUCCESS if the given message could be forwarded
+  /// @returns OBX_NO_SUCCESS if no active client or active connection was found matching the given ID
+  /// @returns OBX_ERROR_* in case the operation encountered an exceptional issue
+  int custom_msg_client_receive_message_from_server(
+    int client_id,
+    ffi.Pointer<ffi.Uint8> message_data,
+    int message_size,
+  ) {
+    return _custom_msg_client_receive_message_from_server(
+      client_id,
+      message_data,
+      message_size,
+    );
+  }
+
+  late final _custom_msg_client_receive_message_from_serverPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Uint64, ffi.Pointer<ffi.Uint8>,
+              ffi.Size)>>('obx_custom_msg_client_receive_message_from_server');
+  late final _custom_msg_client_receive_message_from_server =
+      _custom_msg_client_receive_message_from_serverPtr
+          .asFunction<int Function(int, ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// The custom msg client must call this whenever the state (according to given enum values) changes.
+  /// @param client_id the ID that was assigned to the client instance
+  /// @param state the state to transition the custom client to
+  /// @returns OBX_SUCCESS if the client was in a state that allowed the transition to the given state.
+  /// @returns OBX_NO_SUCCESS if no active client or active connection was found matching the given ID.
+  /// @returns OBX_NO_SUCCESS if no state transition was possible from the current to the given state (e.g. an internal
+  /// "closed" state was reached).
+  /// @returns OBX_ERROR_* in case the operation encountered an exceptional issue
+  int custom_msg_client_set_state(
+    int client_id,
+    int state,
+  ) {
+    return _custom_msg_client_set_state(
+      client_id,
+      state,
+    );
+  }
+
+  late final _custom_msg_client_set_statePtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Uint64, ffi.Int32)>>(
+          'obx_custom_msg_client_set_state');
+  late final _custom_msg_client_set_state =
+      _custom_msg_client_set_statePtr.asFunction<int Function(int, int)>();
+
+  /// The custom msg client may call this if it has knowledge when a reconnection attempt makes sense,
+  /// for example, when the network becomes available.
+  /// @param client_id the ID that was assigned to the client instance
+  /// @returns OBX_SUCCESS if a reconnect was actually triggered.
+  /// @returns OBX_NO_SUCCESS if no reconnect was triggered.
+  /// @returns OBX_ERROR_* in case the operation encountered an exceptional issue
+  int custom_msg_client_trigger_reconnect(
+    int client_id,
+  ) {
+    return _custom_msg_client_trigger_reconnect(
+      client_id,
+    );
+  }
+
+  late final _custom_msg_client_trigger_reconnectPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Uint64)>>(
+          'obx_custom_msg_client_trigger_reconnect');
+  late final _custom_msg_client_trigger_reconnect =
+      _custom_msg_client_trigger_reconnectPtr.asFunction<int Function(int)>();
 
   /// Initializes Dart API - call before any other obx_dart_* functions.
   int dartc_init_api(
@@ -8149,14 +8833,29 @@ abstract class OBXFeature {
   /// Check whether debug log can be enabled during runtime.
   static const int DebugLog = 4;
 
-  /// Administration interface (HTTP server) with a database browser.
+  /// Admin UI including a database browser, user management, and more.
+  /// Depends on HttpServer (if Admin is available HttpServer is too).
   static const int Admin = 5;
 
-  /// Tree & GraphQL support
+  /// Tree with special GraphQL support
   static const int Tree = 6;
 
   /// Sync server availability. Visit https://objectbox.io/sync for more details.
   static const int SyncServer = 7;
+
+  /// Implicitly added by Sync or SyncServer; disable via NoWebSockets
+  static const int WebSockets = 8;
+
+  /// Sync Server has cluster functionality.
+  /// Implicitly added by SyncServer; disable via NoCluster
+  static const int Cluster = 9;
+
+  /// Embedded HTTP server.
+  static const int HttpServer = 10;
+
+  /// Embedded GraphQL server (via HTTP).
+  /// Depends on HttpServer (if GraphQL is available HttpServer is too).
+  static const int GraphQL = 11;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -8181,43 +8880,81 @@ abstract class OBXLogLevel {
 typedef obx_err = ffi.Int;
 
 abstract class OBXPropertyType {
-  /// < 1 byte
+  /// < Not a actual type; represents an uninitialized or invalid type
+  static const int Unknown = 0;
+
+  /// < A boolean (flag)
   static const int Bool = 1;
 
-  /// < 1 byte
+  /// < 8-bit integer
   static const int Byte = 2;
 
-  /// < 2 bytes
+  /// < 16-bit integer
   static const int Short = 3;
 
-  /// < 1 byte
+  /// < 16-bit character
   static const int Char = 4;
 
-  /// < 4 bytes
+  /// < 32-bit integer
   static const int Int = 5;
 
-  /// < 8 bytes
+  /// < 64-bit integer
   static const int Long = 6;
 
-  /// < 4 bytes
+  /// < 32-bit floating point number
   static const int Float = 7;
 
-  /// < 8 bytes
+  /// < 64-bit floating point number
   static const int Double = 8;
+
+  /// < UTF-8 encoded string (variable length)
   static const int String = 9;
 
-  /// < Unix timestamp (milliseconds since 1970) in 8 bytes
+  /// < 64-bit (integer) timestamp; milliseconds since 1970-01-01 (unix epoch)
   static const int Date = 10;
+
+  /// < Relation to another entity
   static const int Relation = 11;
 
-  /// < Unix timestamp (nanoseconds since 1970) in 8 bytes
+  /// < High precision 64-bit timestamp; nanoseconds since 1970-01-01 (unix epoch)
   static const int DateNano = 12;
 
   /// < Flexible" type, which may contain scalars (integers, floating points), strings or
   /// < containers (lists and maps). Note: a flex map must use string keys.
   static const int Flex = 13;
+
+  /// < Variable sized vector of Bool values (note: each value is one byte)
+  static const int BoolVector = 22;
+
+  /// < Variable sized vector of Byte values (8-bit integers)
   static const int ByteVector = 23;
+
+  /// < Variable sized vector of Short values (16-bit integers)
+  static const int ShortVector = 24;
+
+  /// < Variable sized vector of Char values (16-bit characters)
+  static const int CharVector = 25;
+
+  /// < Variable sized vector of Int values (32-bit integers)
+  static const int IntVector = 26;
+
+  /// < Variable sized vector of Long values (64-bit integers)
+  static const int LongVector = 27;
+
+  /// < Variable sized vector of Float values (32-bit floating point numbers)
+  static const int FloatVector = 28;
+
+  /// < Variable sized vector of Double values (64-bit floating point numbers)
+  static const int DoubleVector = 29;
+
+  /// < Variable sized vector of String values (UTF-8 encoded strings).
   static const int StringVector = 30;
+
+  /// < Variable sized vector of Date values (64-bit timestamp).
+  static const int DateVector = 31;
+
+  /// < Variable sized vector of Date values (high precision 64-bit timestamp).
+  static const int DateNanoVector = 32;
 }
 
 /// Bit-flags defining the behavior of entities.
@@ -8331,6 +9068,22 @@ abstract class OBXDebugFlags {
   static const int RUN_THREADING_SELF_TEST = 512;
 }
 
+/// Flags used to control pages validation options when opening the store.
+abstract class OBXValidateOnOpenPagesFlags {
+  /// < No special flags
+  static const int None = 0;
+
+  /// Enable validation of leaf pages (by default only branch pages are validated)
+  static const int VisitLeafPages = 1;
+}
+
+/// Flags used to control key/value pairs validation options when opening the store.
+/// Note: this enum does not contain any actual values besides "None" yet; it's only used to future proof the API.
+abstract class OBXValidateOnOpenKvFlags {
+  /// < No special flags
+  static const int None = 0;
+}
+
 /// Defines a padding mode for putting data bytes.
 /// Depending on how that data is created, this mode may optimize data handling by avoiding copying memory.
 /// Internal background: data buffers used by put operations are required to have a size divisible by 4 for an
@@ -8348,6 +9101,16 @@ abstract class OBXPutPaddingMode {
   /// The caller ensures that all data bytes are already padded.
   /// ObjectBox will verify the buffer size and returns an error if it's not divisible by 4.
   static const int PaddingByCaller = 3;
+}
+
+/// Backup flags control how the store creates backup files.
+/// E.g. when you want "deterministic" file content, you can exclude timestamp and salt.
+abstract class OBXBackupFlags {
+  /// Do not include a timestamp in the backup file (time when the backup file is generated).
+  static const int ExcludeTimestamp = 1;
+
+  /// Do not include a random salt in the backup file.
+  static const int ExcludeSalt = 2;
 }
 
 /// Bytes struct is an input/output wrapper typically used for a single object data (represented as FlatBuffers).
@@ -8439,6 +9202,12 @@ class OBX_float_array extends ffi.Struct {
 typedef obx_log_callback = ffi.NativeFunction<
     ffi.Void Function(ffi.Int32 log_level, ffi.Pointer<ffi.Char> message,
         ffi.Size message_size, ffi.Pointer<ffi.Void> user_data)>;
+
+/// Backup restore flags control how backups are restored to the database.
+abstract class OBXBackupRestoreFlags {
+  /// Overwrite any existing database with the content of the backup file.
+  static const int OverwriteExistingData = 1;
+}
 
 class OBX_txn extends ffi.Opaque {}
 
@@ -8552,6 +9321,8 @@ class OBX_tree extends ffi.Opaque {}
 
 class OBX_tree_cursor extends ffi.Opaque {}
 
+class OBX_tree_leaves_info extends ffi.Opaque {}
+
 /// Callback for obx_tree_async_put_raw().
 /// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
 /// during this callback (error state is thread bound and the callback uses an internal thread).
@@ -8663,6 +9434,9 @@ class OBX_sync_msg_objects extends ffi.Struct {
   external int count;
 }
 
+/// An outgoing sync objects-message.
+class OBX_sync_msg_objects_builder extends ffi.Opaque {}
+
 /// Called when connection is established
 /// @param arg is a pass-through argument passed to the called API
 typedef OBX_sync_listener_connect
@@ -8700,12 +9474,203 @@ typedef OBX_sync_listener_change = ffi.NativeFunction<
 /// @param timestamp_ns is timestamp in nanoseconds since Unix epoch
 typedef OBX_sync_listener_server_time = ffi.NativeFunction<
     ffi.Void Function(ffi.Pointer<ffi.Void> arg, ffi.Int64 timestamp_ns)>;
-
-class OBX_sync_server extends ffi.Opaque {}
-
 typedef OBX_sync_listener_msg_objects = ffi.NativeFunction<
     ffi.Void Function(ffi.Pointer<ffi.Void> arg,
         ffi.Pointer<OBX_sync_msg_objects> msg_objects)>;
+
+class OBX_sync_server extends ffi.Opaque {}
+
+/// Struct of the custom server function callbacks. In order to implement the custom server, you must provide
+/// custom methods for each of the members of this struct. This is then passed to obx_custom_msg_server_register()
+/// to register the custom server.
+class OBX_custom_msg_server_functions extends ffi.Struct {
+  /// Must be initialized with sizeof(OBX_custom_msg_server_functions) to "version" the struct.
+  /// This allows the library (whi) to detect older or newer versions and react properly.
+  @ffi.Size()
+  external int version;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_create> func_create;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_start> func_start;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_stop> func_stop;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_shutdown> func_shutdown;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_client_connection_send_async>
+      func_conn_send_async;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_client_connection_close>
+      func_conn_close;
+
+  external ffi.Pointer<OBX_custom_msg_server_func_client_connection_shutdown>
+      func_conn_shutdown;
+}
+
+/// Callback to create a custom messaging server.
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// @param server_id the ID that was assigned to the custom server instance
+/// @param config_user_data user provided data set at registration of the server
+/// @returns server user data, which will be passed on to the subsequent callbacks (OBX_custom_msg_server_func_*)
+/// @returns null to indicate an error that the server could not be created
+typedef OBX_custom_msg_server_func_create = ffi.NativeFunction<
+    ffi.Pointer<ffi.Void> Function(
+        ffi.Uint64 server_id,
+        ffi.Pointer<ffi.Char> url,
+        ffi.Pointer<ffi.Char> cert_path,
+        ffi.Pointer<ffi.Void> config_user_data)>;
+
+/// Callback to start a custom server.
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// @param server_user_data User supplied data returned by the function that created the server
+/// @param out_port When starting, the custom server can optionally supply a port by writing to the given pointer.
+/// The port value is arbitrary and, for now, is only used for debug logs.
+/// @returns OBX_SUCCESS if the server was successfully started
+/// @returns Any other fitting error code (OBX_ERROR_*) if the server could be started
+typedef OBX_custom_msg_server_func_start = ffi.NativeFunction<
+    obx_err Function(ffi.Pointer<ffi.Void> server_user_data,
+        ffi.Pointer<ffi.Uint64> out_port)>;
+
+/// Callback to stop and close the custom server (e.g. further messages delivery will be rejected).
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// This includes the store associated with the server; it gets closed and must not be used anymore after this call.
+/// @param server_user_data User supplied data returned by the function that created the server
+typedef OBX_custom_msg_server_func_stop = ffi
+    .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void> server_user_data)>;
+
+/// Callback to shut the custom server down, freeing its resources (the custom server is not used after this point).
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// @param server_user_data User supplied data returned by the function that created the server
+typedef OBX_custom_msg_server_func_shutdown = ffi
+    .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void> server_user_data)>;
+
+/// Callback to enqueue a message for sending.
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// @param bytes lazy bytes storing the message
+/// @param server_user_data User supplied data returned by the function that created the server
+typedef OBX_custom_msg_server_func_client_connection_send_async
+    = ffi.NativeFunction<
+        ffi.Bool Function(
+            ffi.Pointer<OBX_bytes_lazy> bytes,
+            ffi.Pointer<ffi.Void> server_user_data,
+            ffi.Pointer<ffi.Void> connection_user_data)>;
+
+/// Callback to close the sync client connection to the custom server.
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// @param server_user_data User supplied data returned by the function that created the server
+typedef OBX_custom_msg_server_func_client_connection_close = ffi.NativeFunction<
+    ffi.Void Function(ffi.Pointer<ffi.Void> server_user_data,
+        ffi.Pointer<ffi.Void> connection_user_data)>;
+
+/// Callback to shutdown and free all resources associated with the sync client connection to the custom server.
+/// Note that the custom server may already have been shutdown at this point (e.g. no server user data is supplied).
+/// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
+/// @param server_user_data User supplied data returned by the function that created the server
+typedef OBX_custom_msg_server_func_client_connection_shutdown
+    = ffi.NativeFunction<
+        ffi.Void Function(ffi.Pointer<ffi.Void> connection_user_data)>;
+
+/// Struct of the custom client function callbacks. In order to implement the custom client, you must provide
+/// custom methods for each of the members of this struct. This is then passed to obx_custom_msg_client_register()
+/// to register the custom client.
+class OBX_custom_msg_client_functions extends ffi.Struct {
+  /// Must be initialized with sizeof(OBX_custom_msg_client_functions) to "version" the struct.
+  /// This allows the library to detect older or newer versions and react properly.
+  @ffi.Size()
+  external int version;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_create> func_create;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_start> func_start;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_connect> func_connect;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_disconnect> func_disconnect;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_stop> func_stop;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_join> func_join;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_shutdown> func_shutdown;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_send_async> func_send_async;
+
+  external ffi.Pointer<OBX_custom_msg_client_func_clear_outgoing_messages>
+      func_clear_outgoing_messages;
+}
+
+/// Callback to create a custom messaging client.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_id the ID that was assigned to the client instance
+/// @param config_user_data user provided data set at registration of the client
+/// @returns client user data, which will be passed on to the subsequent callbacks (OBX_custom_msg_client_func_*)
+/// @returns null to indicate an error that the client could not be created
+typedef OBX_custom_msg_client_func_create = ffi.NativeFunction<
+    ffi.Pointer<ffi.Void> Function(
+        ffi.Uint64 client_id,
+        ffi.Pointer<ffi.Char> url,
+        ffi.Pointer<ffi.Char> cert_path,
+        ffi.Pointer<ffi.Void> config_user_data)>;
+
+/// Callback to start the client.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+/// @returns OBX_SUCCESS if the client was successfully started
+/// @returns Any other fitting error code (OBX_ERROR_*) if the client could be started
+typedef OBX_custom_msg_client_func_start = ffi
+    .NativeFunction<obx_err Function(ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Callback that tells the client it shall start trying to connect.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_connect = ffi
+    .NativeFunction<ffi.Bool Function(ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Callback that tells the client it shall disconnect.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_disconnect = ffi.NativeFunction<
+    ffi.Void Function(ffi.Bool clear_outgoing_messages,
+        ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Callback to stop and close the client (e.g. further messages delivery will be rejected).
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_stop = ffi
+    .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_join = ffi
+    .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Callback to shut the custom client down, freeing its resources.
+/// The custom client is not used after this point.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_shutdown = ffi
+    .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Callback to enqueue a message for sending.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param bytes lazy bytes storing the message
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_send_async = ffi.NativeFunction<
+    ffi.Bool Function(ffi.Pointer<OBX_bytes_lazy> bytes,
+        ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// Callback to clear all outgoing messages.
+/// Must be provided to implement a custom client. See notes on OBX_custom_msg_client_functions for more details.
+/// @param client_user_data user supplied data returned by the function that created the client
+typedef OBX_custom_msg_client_func_clear_outgoing_messages = ffi
+    .NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void> client_user_data)>;
+
+/// States of custom msg client that must be forwarded to obx_custom_msg_client_set_state().
+abstract class OBXCustomMsgClientState {
+  static const int Connecting = 1;
+  static const int Connected = 2;
+  static const int Disconnected = 3;
+}
 
 class OBX_dart_sync_listener extends ffi.Opaque {}
 
@@ -8720,7 +9685,7 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 18;
+const int OBX_VERSION_MINOR = 19;
 
 const int OBX_VERSION_PATCH = 0;
 
@@ -8745,6 +9710,10 @@ const int OBX_ERROR_NUMERIC_OVERFLOW = 10004;
 const int OBX_ERROR_FEATURE_NOT_AVAILABLE = 10005;
 
 const int OBX_ERROR_SHUTTING_DOWN = 10006;
+
+const int OBX_ERROR_IO = 10007;
+
+const int OBX_ERROR_BACKUP_FILE_INVALID = 10008;
 
 const int OBX_ERROR_NO_ERROR_INFO = 10097;
 
