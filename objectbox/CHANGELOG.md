@@ -1,5 +1,9 @@
 ## latest
 
+* Update: [objectbox-c 0.19.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.19.0).
+  Notably now requires glibc 2.28 or higher (and GLIBCXX_3.4.25); e.g. at least **Debian Buster 10 
+  (2019) or Ubuntu 20.04**.
+
 ## 2.2.1 (2023-08-22)
 
 * Resolve an issue where not all query results are returned, when an entity constructor or property 
