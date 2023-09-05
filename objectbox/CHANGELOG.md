@@ -1,5 +1,29 @@
 ## latest
 
+* **Query support for integer and floating point lists**: For integer lists (excluding byte lists)
+  greater, less and equal are supported on elements of the vector (e.g. "has element greater").
+  
+  For floating point lists greater and less queries are supported on elements of the vector
+ (e.g. "has element greater").
+
+  A simple example is a shape entity that stores a palette of RGB colors:
+  ```dart
+  @Entity()
+  class Shape {
+      @Id()
+      int id = 0;
+
+      // An array of RGB color values that are used by this shape.
+      Int32List? palette;
+  }
+  
+  // Find all shapes that use red in their palette
+  final query = store.box<Shape>()
+          .query(Shape_.palette.equals(0xFF0000))
+          .build();
+  query.findIds();
+  query.close();
+  ```
 * Update: [objectbox-c 0.19.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.19.0).
   Notably now requires glibc 2.28 or higher (and GLIBCXX_3.4.25); e.g. at least **Debian Buster 10 
   (2019) or Ubuntu 20.04**.
