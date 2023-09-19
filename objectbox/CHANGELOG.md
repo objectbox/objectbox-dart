@@ -27,6 +27,7 @@
 * Update: [objectbox-c 0.19.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.19.0).
   Notably now requires glibc 2.28 or higher (and GLIBCXX_3.4.25); e.g. at least **Debian Buster 10 
   (2019) or Ubuntu 20.04**.
+* Update: [objectbox-swift 1.9.0](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.0).
 * Update: [objectbox-android 3.7.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.7.0).
   If you are [using Admin](https://docs.objectbox.io/data-browser#setup), make sure to update to 
   `io.objectbox:objectbox-android-objectbrowser:3.7.0`.

@@ -20,7 +20,7 @@ Update `flutter_libs` and `sync_flutter_libs` with **compatible library versions
   ```
 - Swift (iOS/macOS) ([view releases](https://github.com/objectbox/objectbox-swift/releases))
   ```
-  ./tool/set-swift-version.sh 1.8.0
+  ./tool/set-swift-version.sh 1.9.0
   ```
 
 ## Dart bindings
