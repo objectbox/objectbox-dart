@@ -59,8 +59,8 @@ void main() {
 
     expect(
         () => box.put(TestEntity2(id: 5), mode: PutMode.update),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == 'object put failed')));
+        throwsA(predicate((StorageException e) =>
+            e.message.contains("object put failed: ID is higher or equal"))));
   });
 
   test('use after close throws', () {
@@ -162,8 +162,8 @@ void main() {
     await expectLater(
         () async =>
             await box.putAsync(TestEntity2(id: 5), mode: PutMode.update),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == 'object put failed')));
+        throwsA(predicate((StorageException e) =>
+            e.message.contains("object put failed: ID is higher or equal"))));
 
     expect(box.count(), 1);
 
@@ -210,8 +210,9 @@ void main() {
         () => box
             .putQueuedAwaitResult(TestEntity2(), mode: PutMode.update)
             .timeout(defaultTimeout),
-        throwsA(predicate(
-            (ArgumentError e) => e.toString().contains('ID is not set'))));
+        throwsA(predicate((ArgumentError e) =>
+            e.message ==
+            "putAsync failed: Putting object failed because ID is not set (zero) for object to update (OBX_ERROR code 10002)")));
 
     expect(
         await box
@@ -222,8 +223,8 @@ void main() {
         () async => await box
             .putQueuedAwaitResult(TestEntity2(id: 5), mode: PutMode.update)
             .timeout(defaultTimeout),
-        throwsA(predicate((ObjectBoxException e) =>
-            e.toString().contains('object with the given ID not found'))));
+        throwsA(predicate((StorageException e) =>
+            e.message.contains("putAsync failed: ID is higher or equal"))));
     expect(box.count(), 1);
 
     expect(

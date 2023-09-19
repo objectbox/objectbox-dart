@@ -135,6 +135,7 @@ void main() {
       env.box.putMany([src1, src2]);
 
       {
+        // find with condition on related entity
         final qb = env.box.query();
         qb.link(TestEntity_.relA, RelatedEntityA_.tInt.equals(10));
         final query = qb.build();
@@ -145,6 +146,7 @@ void main() {
       }
 
       {
+        // find with condition on a nested related entity
         final qb = env.box.query();
         qb
             .link(TestEntity_.relA)
@@ -153,6 +155,41 @@ void main() {
         final found = query.find();
         expect(found.length, 1);
         expect(found[0].tString, 'bar');
+        query.close();
+      }
+    });
+
+    test('query link with regular conditions', () {
+      final a1 = RelatedEntityA(tInt: 1);
+      final apples1 = TestEntity(tString: 'Apples');
+      apples1.relA.target = a1;
+      final oranges1 = TestEntity(tString: 'Oranges');
+      oranges1.relA.target = a1;
+      final a2 = RelatedEntityA(tInt: 2);
+      final apples2 = TestEntity(tString: 'Apples');
+      apples2.relA.target = a2;
+      final bananas2 = TestEntity(tString: 'Bananas');
+      bananas2.relA.target = a2;
+      env.box.putMany([apples1, oranges1, apples2, bananas2]);
+
+      {
+        // link condition matches orders from 2
+        // simple regular condition matches single order for both
+        final qb = env.box.query(TestEntity_.tString.equals("Apples"));
+        qb.link(TestEntity_.relA, RelatedEntityA_.tInt.equals(2));
+        final query = qb.build();
+        expect(query.find().length, 1);
+        query.close();
+      }
+
+      {
+        // link condition matches orders from 2
+        // complex regular conditions matches two orders for 1, one for 2
+        final qb = env.box.query(TestEntity_.tString.equals("Apples") |
+            TestEntity_.tString.equals("Oranges"));
+        qb.link(TestEntity_.relA, RelatedEntityA_.tInt.equals(2));
+        final query = qb.build();
+        expect(query.find().length, 1);
         query.close();
       }
     });

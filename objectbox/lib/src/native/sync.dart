@@ -139,20 +139,20 @@ class SyncClient {
 
   /// Creates a sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
-  SyncClient(this._store, String serverUri, SyncCredentials creds) {
+  SyncClient(this._store, String serverUrl, SyncCredentials creds) {
     if (!Sync.isAvailable()) {
       throw UnsupportedError(
           'Sync is not available in the loaded ObjectBox runtime library. '
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    final cServerUri = serverUri.toNativeUtf8();
+    final cServerUrl = serverUrl.toNativeUtf8();
     try {
       _cSync = checkObxPtr(
-          C.sync1(InternalStoreAccess.ptr(_store), cServerUri.cast()),
+          C.sync1(InternalStoreAccess.ptr(_store), cServerUrl.cast()),
           'failed to create sync client');
     } finally {
-      malloc.free(cServerUri);
+      malloc.free(cServerUrl);
     }
 
     setCredentials(creds);
