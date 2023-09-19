@@ -1,4 +1,4 @@
-## latest
+## 2.3.0 (2023-09-19)
 
 * **Query support for integer and floating point lists**: For integer lists (excluding byte lists)
   greater, less and equal are supported on elements of the vector (e.g. "has element greater").
@@ -24,6 +24,10 @@
   query.findIds();
   query.close();
   ```
+* Queries: all expected results are now returned when using a less-than or less-or-equal condition 
+  for a String property with `IndexType.value`. [#318](https://github.com/objectbox/objectbox-dart/issues/318)
+* Queries: when combining multiple conditions with OR and adding a condition on a related entity
+  ("link condition") the combined conditions are now properly applied. [#546](https://github.com/objectbox/objectbox-dart/issues/546)
 * Update: [objectbox-c 0.19.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.19.0).
   Notably now requires glibc 2.28 or higher (and GLIBCXX_3.4.25); e.g. at least **Debian Buster 10 
   (2019) or Ubuntu 20.04**.
