@@ -724,17 +724,29 @@ class CodeChunks {
               'Unsupported property type (${prop.type}): ${entity.name}.$name');
       }
 
-      var propCode = '''
+      var staticPropCode = '''
         /// see [${entity.name}.${propertyFieldName(prop)}]
-        static final ${propertyFieldName(prop)} = ''';
-      if (prop.isRelation) {
-        propCode +=
+        static final ${propertyFieldName(prop)} = ''';            
+        
+      var instancePropCode = '''/// see [${entity.name}.${propertyFieldName(prop)}]  
+        /// same as [${entity.name}_.${propertyFieldName(prop)}]
+        ''';      
+
+      if (prop.isRelation) {     
+            staticPropCode +=
+            'QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
+            instancePropCode +=
             'QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
       } else {
-        propCode += 'Query${fieldType}Property<${entity.name}>';
+        staticPropCode += 'Query${fieldType}Property<${entity.name}>';
+        instancePropCode += 'Query${fieldType}Property<${entity.name}>';
       }
-      propCode += '(_entities[$i].properties[$p]);';
-      fields.add(propCode);
+      staticPropCode += '(_entities[$i].properties[$p]);';
+
+      instancePropCode += 'get ${propertyFieldName(prop)}\$ => ${entity.name}_.${propertyFieldName(prop)};';
+
+      fields.add(staticPropCode);
+      fields.add(instancePropCode);
     }
 
     for (var r = 0; r < entity.relations.length; r++) {
@@ -745,10 +757,16 @@ class CodeChunks {
           /// see [${entity.name}.${rel.name}]
           static final ${rel.name} = QueryRelationToMany'''
           '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
+
+      fields.add('''/// see [${entity.name}.${rel.name}]
+          /// same as [${entity.name}_.${rel.name}]
+         QueryRelationToMany<${entity.name}, $targetEntityName> get'''
+         '${rel.name}\$ => ${entity.name}_.${rel.name};');
     }
 
     return '''
       /// [${entity.name}] entity fields to define ObjectBox queries.
+      /// _optional:_ create instance or extend original entity to find queries by `property\$`
       class ${entity.name}_ {${fields.join()}}
     ''';
   }
