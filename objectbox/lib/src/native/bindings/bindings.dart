@@ -92,8 +92,19 @@ ObjectBoxC? _tryObjectBoxLibFile() {
   return ObjectBoxC(_lib!);
 }
 
-bool _isSupportedVersion(ObjectBoxC obxc) => obxc.version_is_at_least(
-    OBX_VERSION_MAJOR, OBX_VERSION_MINOR, OBX_VERSION_PATCH);
+bool _isSupportedVersion(ObjectBoxC obxc) {
+  // Default: require "current" version exactly
+  var minMajor = OBX_VERSION_MAJOR;
+  var minMinor = OBX_VERSION_MINOR;
+  var minPatch = OBX_VERSION_PATCH;
+  // Special cases (if any):
+  if (Platform.isAndroid) {
+    minMajor = 0;
+    minMinor = 18;
+    minPatch = 1;
+  }
+  return obxc.version_is_at_least(minMajor, minMinor, minPatch);
+}
 
 ObjectBoxC loadObjectBoxLib() {
   ObjectBoxC? obxc;

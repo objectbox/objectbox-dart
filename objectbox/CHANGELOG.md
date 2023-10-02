@@ -1,4 +1,6 @@
-## latest
+## 2.3.1 (2023-10-02)
+
+* Fix "Loaded ObjectBox core dynamic library has unsupported version 0.18.1" on Android
 
 ## 2.3.0 (2023-09-19)
 

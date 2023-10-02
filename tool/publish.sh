@@ -7,7 +7,7 @@ msys=false
 case "$( uname )" in                #(
   MSYS* | MINGW* )  msys=true    ;; #(
 esac
-if [ $msys ]; then
+if [ "$msys" = true ]; then
   YQCMD="${root}/tool/yq_windows_amd64.exe"
 else
   YQCMD="${root}/tool/yq_linux_amd64"
