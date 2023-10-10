@@ -45,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _addNote() async {
     if (_noteInputController.text.isEmpty) return;
-    await objectbox.addNote(_noteInputController.text);
+    await objectbox.addTask(_noteInputController.text);
     _noteInputController.text = '';
   }
 
@@ -55,9 +55,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  GestureDetector Function(BuildContext, int) _itemBuilder(List<Note> notes) =>
+  GestureDetector Function(BuildContext, int) _itemBuilder(List<Task> notes) =>
       (BuildContext context, int index) => GestureDetector(
-            onTap: () => objectbox.removeNote(notes[index].id),
+            onTap: () => objectbox.removeTask(notes[index].id),
             child: Row(
               children: <Widget>[
                 Expanded(
@@ -141,8 +141,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Expanded(
-              child: StreamBuilder<List<Note>>(
-                  stream: objectbox.getNotes(),
+              child: StreamBuilder<List<Task>>(
+                  stream: objectbox.getTasks(),
                   builder: (context, snapshot) => ListView.builder(
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
