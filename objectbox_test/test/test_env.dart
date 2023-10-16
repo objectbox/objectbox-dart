@@ -82,3 +82,14 @@ dynamic notAtLeastDart2_15_0() {
     return false;
   }
 }
+
+bool atLeastDart(String expectedLowestVersion) {
+  final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
+      .firstMatch(Platform.version)
+      ?.group(0);
+  if (dartVersion != null && dartVersion.compareTo(expectedLowestVersion) > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}

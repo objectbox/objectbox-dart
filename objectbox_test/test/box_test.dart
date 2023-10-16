@@ -240,17 +240,18 @@ void main() {
       final object = TestEntity2()..value = 42;
       final future = box.putQueuedAwaitResult(object);
 
-      try {
-        await future;
-      } catch (e) {
-        // TODO: Mac in GitHub CI (not locally reproducible yet)...
-        if (Platform.isMacOS) {
-          expect(e is ObjectBoxException, isTrue);
-          expect((e as ObjectBoxException).message, '');
-        } else {
-          expect(e is UniqueViolationException, isTrue);
-          expect(e.toString(), contains('Unique constraint'));
-        }
+      if (Platform.isMacOS && !atLeastDart('3.1.0')) {
+        // Before Dart 3.1 an incorrect exception is thrown on macOS.
+        expect(
+            () async => await future,
+            throwsA(
+                predicate((e) => e is ObjectBoxException && e.message == '')));
+      } else {
+        expect(
+            () async => await future,
+            throwsA(predicate((e) =>
+                e is UniqueViolationException &&
+                e.message.contains('Unique constraint'))));
       }
 
       expect(object.id, isNull); // ID must remain unassigned
