@@ -179,7 +179,7 @@ void main() {
       }
     }
     env.closeAndDelete();
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('store multi-open', () {
     final stores = <Store>[];
@@ -323,7 +323,7 @@ void main() {
     expect(x, 'foo!');
     expect(env.box.count(), 0); // Must be removed once awaited
     env.closeAndDelete();
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('store runAsync returns isolate error', () async {
     final env = TestEnv('store');
@@ -334,7 +334,7 @@ void main() {
       // expected
     }
     env.closeAndDelete();
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('store runAsync returns callback error', () async {
     final env = TestEnv('store');
@@ -346,7 +346,7 @@ void main() {
       expect(e, predicate((ArgumentError e) => e.message == 'Return me'));
     }
     env.closeAndDelete();
-  }, skip: notAtLeastDart2_15_0());
+  });
 }
 
 Future<String> _readStringAndRemove(Store store, int id) async {

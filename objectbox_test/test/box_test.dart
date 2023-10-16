@@ -835,7 +835,7 @@ void main() {
     await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
     count = box.count();
     expect(count, equals(6));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('async txn - send and receive relations', () async {
     final testBox = store.box<TestEntity>();
@@ -863,7 +863,7 @@ void main() {
       object.relA.target;
       object.relManyA.length;
     }
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('failing transactions', () {
     expect(
@@ -897,7 +897,7 @@ void main() {
             }, simpleItems()),
         throwsA('test-exception'));
     expect(box.count(), equals(0));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive write in write transaction', () {
     store.runInTransaction(TxMode.write, () {
@@ -923,7 +923,7 @@ void main() {
       });
     }, simpleItems());
     expect(box.count(), equals(12));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive read in write transaction', () {
     int count = store.runInTransaction(TxMode.write, () {
@@ -941,7 +941,7 @@ void main() {
       return store.runInTransaction(TxMode.read, box.count);
     }, simpleItems());
     expect(count, equals(6));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive write in read -> fails during creation', () {
     expect(
@@ -965,7 +965,7 @@ void main() {
             }, simpleItems()),
         throwsA(predicate((StateError e) => e.toString().contains(
             'Bad state: failed to create transaction: Cannot start a write transaction inside a read only transaction (OBX_ERROR code 10001)'))));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('failing in recursive txn', () {
     store.runInTransaction(TxMode.write, () {
