@@ -240,17 +240,18 @@ void main() {
       final object = TestEntity2()..value = 42;
       final future = box.putQueuedAwaitResult(object);
 
-      try {
-        await future;
-      } catch (e) {
-        // TODO: Mac in GitHub CI (not locally reproducible yet)...
-        if (Platform.isMacOS) {
-          expect(e is ObjectBoxException, isTrue);
-          expect((e as ObjectBoxException).message, '');
-        } else {
-          expect(e is UniqueViolationException, isTrue);
-          expect(e.toString(), contains('Unique constraint'));
-        }
+      if (Platform.isMacOS && !atLeastDart('3.1.0')) {
+        // Before Dart 3.1 an incorrect exception is thrown on macOS.
+        expect(
+            () async => await future,
+            throwsA(
+                predicate((e) => e is ObjectBoxException && e.message == '')));
+      } else {
+        expect(
+            () async => await future,
+            throwsA(predicate((e) =>
+                e is UniqueViolationException &&
+                e.message.contains('Unique constraint'))));
       }
 
       expect(object.id, isNull); // ID must remain unassigned
@@ -834,7 +835,7 @@ void main() {
     await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
     count = box.count();
     expect(count, equals(6));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('async txn - send and receive relations', () async {
     final testBox = store.box<TestEntity>();
@@ -862,7 +863,7 @@ void main() {
       object.relA.target;
       object.relManyA.length;
     }
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('failing transactions', () {
     expect(
@@ -896,7 +897,7 @@ void main() {
             }, simpleItems()),
         throwsA('test-exception'));
     expect(box.count(), equals(0));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive write in write transaction', () {
     store.runInTransaction(TxMode.write, () {
@@ -922,7 +923,7 @@ void main() {
       });
     }, simpleItems());
     expect(box.count(), equals(12));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive read in write transaction', () {
     int count = store.runInTransaction(TxMode.write, () {
@@ -940,7 +941,7 @@ void main() {
       return store.runInTransaction(TxMode.read, box.count);
     }, simpleItems());
     expect(count, equals(6));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive write in read -> fails during creation', () {
     expect(
@@ -964,7 +965,7 @@ void main() {
             }, simpleItems()),
         throwsA(predicate((StateError e) => e.toString().contains(
             'Bad state: failed to create transaction: Cannot start a write transaction inside a read only transaction (OBX_ERROR code 10001)'))));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('failing in recursive txn', () {
     store.runInTransaction(TxMode.write, () {

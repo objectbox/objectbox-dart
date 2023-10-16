@@ -1360,8 +1360,8 @@ class ObjectBoxC {
   }
 
   late final _opt_get_max_db_size_in_kbPtr = _lookup<
-          ffi.NativeFunction<
-              ffi.Uint64 Function(ffi.Pointer<OBX_store_options>)>>(
+          ffi
+          .NativeFunction<ffi.Uint64 Function(ffi.Pointer<OBX_store_options>)>>(
       'obx_opt_get_max_db_size_in_kb');
   late final _opt_get_max_db_size_in_kb = _opt_get_max_db_size_in_kbPtr
       .asFunction<int Function(ffi.Pointer<OBX_store_options>)>();
@@ -1377,8 +1377,8 @@ class ObjectBoxC {
   }
 
   late final _opt_get_max_data_size_in_kbPtr = _lookup<
-          ffi.NativeFunction<
-              ffi.Uint64 Function(ffi.Pointer<OBX_store_options>)>>(
+          ffi
+          .NativeFunction<ffi.Uint64 Function(ffi.Pointer<OBX_store_options>)>>(
       'obx_opt_get_max_data_size_in_kb');
   late final _opt_get_max_data_size_in_kb = _opt_get_max_data_size_in_kbPtr
       .asFunction<int Function(ffi.Pointer<OBX_store_options>)>();
@@ -1394,9 +1394,9 @@ class ObjectBoxC {
   }
 
   late final _opt_get_debug_flagsPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint32 Function(
-              ffi.Pointer<OBX_store_options>)>>('obx_opt_get_debug_flags');
+          ffi
+          .NativeFunction<ffi.Uint32 Function(ffi.Pointer<OBX_store_options>)>>(
+      'obx_opt_get_debug_flags');
   late final _opt_get_debug_flags = _opt_get_debug_flagsPtr
       .asFunction<int Function(ffi.Pointer<OBX_store_options>)>();
 
@@ -1411,8 +1411,9 @@ class ObjectBoxC {
   }
 
   late final _opt_freePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<OBX_store_options>)>>('obx_opt_free');
+          ffi
+          .NativeFunction<ffi.Void Function(ffi.Pointer<OBX_store_options>)>>(
+      'obx_opt_free');
   late final _opt_free =
       _opt_freePtr.asFunction<void Function(ffi.Pointer<OBX_store_options>)>();
 
@@ -2193,9 +2194,9 @@ class ObjectBoxC {
   }
 
   late final _cursor_seekPtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(
-              ffi.Pointer<OBX_cursor>, obx_id)>>('obx_cursor_seek');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_cursor>, obx_id)>>(
+      'obx_cursor_seek');
   late final _cursor_seek =
       _cursor_seekPtr.asFunction<int Function(ffi.Pointer<OBX_cursor>, int)>();
 
@@ -2232,9 +2233,9 @@ class ObjectBoxC {
   }
 
   late final _cursor_removePtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(
-              ffi.Pointer<OBX_cursor>, obx_id)>>('obx_cursor_remove');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_cursor>, obx_id)>>(
+      'obx_cursor_remove');
   late final _cursor_remove = _cursor_removePtr
       .asFunction<int Function(ffi.Pointer<OBX_cursor>, int)>();
 
@@ -4779,9 +4780,9 @@ class ObjectBoxC {
   }
 
   late final _query_offsetPtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(
-              ffi.Pointer<OBX_query>, ffi.Size)>>('obx_query_offset');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_query>, ffi.Size)>>(
+      'obx_query_offset');
   late final _query_offset =
       _query_offsetPtr.asFunction<int Function(ffi.Pointer<OBX_query>, int)>();
 
@@ -4822,9 +4823,9 @@ class ObjectBoxC {
   }
 
   late final _query_limitPtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(
-              ffi.Pointer<OBX_query>, ffi.Size)>>('obx_query_limit');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_query>, ffi.Size)>>(
+      'obx_query_limit');
   late final _query_limit =
       _query_limitPtr.asFunction<int Function(ffi.Pointer<OBX_query>, int)>();
 
@@ -7295,9 +7296,9 @@ class ObjectBoxC {
   }
 
   late final _sync_heartbeat_intervalPtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(ffi.Pointer<OBX_sync>,
-              ffi.Uint64)>>('obx_sync_heartbeat_interval');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>, ffi.Uint64)>>(
+      'obx_sync_heartbeat_interval');
   late final _sync_heartbeat_interval = _sync_heartbeat_intervalPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync>, int)>();
 
@@ -7330,9 +7331,9 @@ class ObjectBoxC {
   }
 
   late final _sync_request_updates_modePtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(ffi.Pointer<OBX_sync>,
-              ffi.Int32)>>('obx_sync_request_updates_mode');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>, ffi.Int32)>>(
+      'obx_sync_request_updates_mode');
   late final _sync_request_updates_mode = _sync_request_updates_modePtr
       .asFunction<int Function(ffi.Pointer<OBX_sync>, int)>();
 
@@ -7405,9 +7406,9 @@ class ObjectBoxC {
   }
 
   late final _sync_wait_for_logged_in_statePtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(ffi.Pointer<OBX_sync>,
-              ffi.Uint64)>>('obx_sync_wait_for_logged_in_state');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>, ffi.Uint64)>>(
+      'obx_sync_wait_for_logged_in_state');
   late final _sync_wait_for_logged_in_state = _sync_wait_for_logged_in_statePtr
       .asFunction<int Function(ffi.Pointer<OBX_sync>, int)>();
 
@@ -7428,9 +7429,9 @@ class ObjectBoxC {
   }
 
   late final _sync_updates_requestPtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(
-              ffi.Pointer<OBX_sync>, ffi.Bool)>>('obx_sync_updates_request');
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>, ffi.Bool)>>(
+      'obx_sync_updates_request');
   late final _sync_updates_request = _sync_updates_requestPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync>, bool)>();
 
@@ -8166,9 +8167,9 @@ class ObjectBoxC {
   }
 
   late final _sync_server_portPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint16 Function(
-              ffi.Pointer<OBX_sync_server>)>>('obx_sync_server_port');
+          ffi
+          .NativeFunction<ffi.Uint16 Function(ffi.Pointer<OBX_sync_server>)>>(
+      'obx_sync_server_port');
   late final _sync_server_port = _sync_server_portPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync_server>)>();
 
@@ -8182,9 +8183,9 @@ class ObjectBoxC {
   }
 
   late final _sync_server_connectionsPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Uint64 Function(
-              ffi.Pointer<OBX_sync_server>)>>('obx_sync_server_connections');
+          ffi
+          .NativeFunction<ffi.Uint64 Function(ffi.Pointer<OBX_sync_server>)>>(
+      'obx_sync_server_connections');
   late final _sync_server_connections = _sync_server_connectionsPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync_server>)>();
 
@@ -8805,13 +8806,18 @@ class ObjectBoxC {
 
 class _SymbolAddresses {
   final ObjectBoxC _library;
+
   _SymbolAddresses(this._library);
+
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_store>)>>
       get store_close => _library._store_closePtr;
+
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query>)>>
       get query_close => _library._query_closePtr;
+
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query_prop>)>>
       get query_prop_close => _library._query_prop_closePtr;
+
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_admin>)>>
       get admin_close => _library._admin_closePtr;
 }
@@ -9548,8 +9554,8 @@ typedef OBX_custom_msg_server_func_shutdown = ffi
 /// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
 /// @param bytes lazy bytes storing the message
 /// @param server_user_data User supplied data returned by the function that created the server
-typedef OBX_custom_msg_server_func_client_connection_send_async
-    = ffi.NativeFunction<
+typedef OBX_custom_msg_server_func_client_connection_send_async = ffi
+    .NativeFunction<
         ffi.Bool Function(
             ffi.Pointer<OBX_bytes_lazy> bytes,
             ffi.Pointer<ffi.Void> server_user_data,
@@ -9566,8 +9572,8 @@ typedef OBX_custom_msg_server_func_client_connection_close = ffi.NativeFunction<
 /// Note that the custom server may already have been shutdown at this point (e.g. no server user data is supplied).
 /// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
 /// @param server_user_data User supplied data returned by the function that created the server
-typedef OBX_custom_msg_server_func_client_connection_shutdown
-    = ffi.NativeFunction<
+typedef OBX_custom_msg_server_func_client_connection_shutdown = ffi
+    .NativeFunction<
         ffi.Void Function(ffi.Pointer<ffi.Void> connection_user_data)>;
 
 /// Struct of the custom client function callbacks. In order to implement the custom client, you must provide
