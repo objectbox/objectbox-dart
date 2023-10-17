@@ -1,0 +1,9 @@
+global_options:
+  # Make json_serializable builder run before ObjectBox builder
+  json_serializable:json_serializable:
+    runs_before:
+      - objectbox_generator:resolver
+  # Make freezed builder run before ObjectBox builder
+  freezed:freezed:
+    runs_before:
+      - objectbox_generator:resolver
