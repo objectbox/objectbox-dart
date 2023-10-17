@@ -11,8 +11,8 @@ Also, do check out the [Sync Docs](https://sync.objectbox.io/).
 The basic steps to get this demo running (assuming you have a working Flutter setup):
 
 ```
-# Set up project, get dependencies
-flutter pub get
+# Set up project, get latest dependencies
+flutter pub upgrade
 
 # Generate model and code files for ObjectBox
 flutter pub run build_runner build
