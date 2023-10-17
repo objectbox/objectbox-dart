@@ -126,6 +126,7 @@ class SyncChange {
 }
 
 /// Sync client is used to connect to an ObjectBox sync server.
+/// Use through [Sync].
 class SyncClient {
   final Store _store;
 
@@ -137,25 +138,28 @@ class SyncClient {
       ? _cSync
       : throw StateError('SyncClient already closed');
 
-  /// Creates a sync client associated with the given store and options.
+  /// Creates a Sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
-  SyncClient(this._store, String serverUrl, SyncCredentials creds) {
+  SyncClient._(
+      this._store, List<String> serverUrls, SyncCredentials credentials) {
+    if (serverUrls.isEmpty) {
+      throw ArgumentError.value(
+          serverUrls, "serverUrls", "must contain at least one server URL");
+    }
+
     if (!Sync.isAvailable()) {
       throw UnsupportedError(
           'Sync is not available in the loaded ObjectBox runtime library. '
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    final cServerUrl = serverUrl.toNativeUtf8();
-    try {
-      _cSync = checkObxPtr(
-          C.sync1(InternalStoreAccess.ptr(_store), cServerUrl.cast()),
-          'failed to create sync client');
-    } finally {
-      malloc.free(cServerUrl);
-    }
+    _cSync = withNativeStrings(
+        serverUrls,
+        (ptr, size) => checkObxPtr(
+            C.sync_urls(InternalStoreAccess.ptr(_store), ptr, size),
+            'failed to create Sync client'));
 
-    setCredentials(creds);
+    setCredentials(credentials);
   }
 
   /// Closes and cleans up all resources used by this sync client.
@@ -557,18 +561,23 @@ class Sync {
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() => _syncAvailable;
 
-  /// Creates a sync client associated with the given store and configures it
+  /// Creates a Sync client associated with the given store and configures it
   /// with the given options. This does not initiate any connection attempts
   /// yet, call [SyncClient.start()] to do so.
   ///
   /// Before [SyncClient.start()], you can still configure some aspects of the
   /// client, e.g. its [SyncRequestUpdatesMode] mode.
   static SyncClient client(
-      Store store, String serverUri, SyncCredentials creds) {
+          Store store, String serverUrl, SyncCredentials credentials) =>
+      clientMultiUrls(store, [serverUrl], credentials);
+
+  /// Like [client], but accepts a list of URLs to work with multiple servers.
+  static SyncClient clientMultiUrls(
+      Store store, List<String> serverUrls, SyncCredentials credentials) {
     if (syncClientsStorage.containsKey(store)) {
       throw StateError('Only one sync client can be active for a store');
     }
-    final client = SyncClient(store, serverUri, creds);
+    final client = SyncClient._(store, serverUrls, credentials);
     syncClientsStorage[store] = client;
     InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
