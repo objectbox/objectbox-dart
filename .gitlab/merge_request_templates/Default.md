@@ -1,6 +1,6 @@
 ## What does this MR do?
 
-Adresses #NUMBER+: <!-- Briefly describe what this MR is about. -->
+Addresses #NUMBER+: <!-- Briefly describe what this MR is about. -->
 
 ## Author's checklist
 
