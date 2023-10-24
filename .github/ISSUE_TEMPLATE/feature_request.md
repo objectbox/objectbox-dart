@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea
+about: Suggest an improvement for ObjectBox.
 title: ''
 labels: 'enhancement'
 assignees: ''
@@ -8,21 +8,29 @@ assignees: ''
 ---
 
 <!--
-BEFORE you submit this issue, please check:
-- existing issues: https://github.com/objectbox/objectbox-dart/issues
-- the FAQ page: https://docs.objectbox.io/faq
-- the Troubleshooting page: https://docs.objectbox.io/troubleshooting
+
+If you are looking for support, please check out our documentation:
+- https://docs.objectbox.io
+- https://docs.objectbox.io/faq
+- https://docs.objectbox.io/troubleshooting
+
 -->
 
-_TODO Clear and concise description of what problem you are trying to solve._
+### Is there an existing issue?
 
-### Describe the solution you'd like
+- [ ] I have searched [existing issues](https://github.com/objectbox/objectbox-dart/issues)
 
-_TODO A clear and concise description of what you want to happen._
+### Use case
+
+_TODO Describe what problem you are trying to solve._
+
+### Proposed solution
+
+_TODO Describe what you want to be able to do with ObjectBox._
 
 ### Describe alternatives you've considered
 
-_TODO A clear and concise description of any alternative solutions or features you've considered._
+_TODO Describe any alternative solutions or features you've considered._
 
 ### Additional context
 
