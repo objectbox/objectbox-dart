@@ -1,15 +1,18 @@
-## What does this MR do?
+## What does this merge request do?
 
-Addresses #NUMBER+: <!-- Briefly describe what this MR is about. -->
+Addresses #NUMBER+
+
+<!-- Briefly describe what this merge request is about. -->
 
 ## Author's checklist
 
-- [ ] The MR fully addresses the requirements of the associated task.
+- [ ] The merge request fully addresses the requirements of the associated task.
 - [ ] I did a self-review of the changes and did not spot any issues. Among others, this includes:
   * I added unit tests for new/changed behavior; all test pass.
   * My code conforms to our coding standards and guidelines.
   * My changes are prepared in a way that makes the review straightforward for the reviewer.
 - [ ] I amended [`CHANGELOG.md`](objectbox/CHANGELOG.md) if this affects users in any way.
+- [ ] I assigned a reviewer and added the Review label.
 
 ## Review checklist
 
