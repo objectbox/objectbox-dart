@@ -16,7 +16,7 @@ jobs:
   analyze:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d # v1.6.0
         with:
@@ -47,7 +47,7 @@ jobs:
     permissions:
       checks: write # to publish the report
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: axel-op/dart-package-analyzer@7a6c3c66bce78d82b729a1ffef2d9458fde6c8d2 # v3
         id: analysis # set an id for the current step
         with:
@@ -68,7 +68,7 @@ jobs:
     permissions:
       checks: write # to publish the report
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d # v1.6.0
         with:
