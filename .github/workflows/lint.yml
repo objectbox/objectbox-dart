@@ -96,7 +96,7 @@ jobs:
           result_path: objectbox/coverage/lcov.info
           min_coverage: 90
           token: ${{ github.token }}
-      - uses: danielpalme/ReportGenerator-GitHub-Action@71e61f240f46e4c42f46d2f90c7254202978b05e # v5.1.12
+      - uses: danielpalme/ReportGenerator-GitHub-Action@873ee34c88a6234bdab7fd264d3666fd1ab417f7 # v5.1.26
         with:
           reports: 'objectbox/coverage/lcov.info'
           targetdir: 'coveragereport'
