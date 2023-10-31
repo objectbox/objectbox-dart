@@ -1,5 +1,7 @@
 ## latest
 
+* Fix crash in Flutter plugin when running in debug mode on iOS. [#561](https://github.com/objectbox/objectbox-dart/issues/561)
+
 ## 2.3.1 (2023-10-02)
 
 * Fix "Loaded ObjectBox core dynamic library has unsupported version 0.18.1" on Android
