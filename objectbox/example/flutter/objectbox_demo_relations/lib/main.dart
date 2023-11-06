@@ -46,8 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(widget.title)),
-        body: Column(
-          children: const [
+        body: const Column(
+          children: [
             SizedBox(
               height: 10,
             ),
