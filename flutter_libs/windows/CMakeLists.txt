@@ -4,6 +4,9 @@
 # customers of the plugin.
 cmake_minimum_required(VERSION 3.14)
 
+# Set CMAKE Policy to avoid policy deprecation warning
+cmake_policy(SET CMP0135 NEW)
+
 # Project-level configuration.
 set(PROJECT_NAME "objectbox_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
