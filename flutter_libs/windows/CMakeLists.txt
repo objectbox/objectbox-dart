@@ -4,7 +4,7 @@
 # customers of the plugin.
 cmake_minimum_required(VERSION 3.14)
 
-# Set CMAKE Policy to avoid policy deprecation warning
+# Explicitly set CMake Policy to resolve policy deprecation.
 cmake_policy(SET CMP0135 NEW)
 
 # Project-level configuration.
