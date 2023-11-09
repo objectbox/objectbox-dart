@@ -1,5 +1,10 @@
 ## latest
 
+## 2.3.2 (2023-11-09)
+
+* Fix "The DOWNLOAD_EXTRACT_TIMESTAMP option was not given and policy CMP0135 is
+  not set." warning for Windows debugging.
+
 ## 2.3.1 (2023-10-02)
 
 * Fix "Loaded ObjectBox core dynamic library has unsupported version 0.18.1" on Android
