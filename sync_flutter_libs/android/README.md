@@ -1,4 +1,5 @@
-Contents of this folder is based on `flutter create --template=plugin`.
-It was reduced to the minimum that works for library inclusion by client apps.
+Flutter plugin for Android reduced to the minimum that works for library inclusion by client apps.
+See [packaging.md](/dev-doc/packaging.md).
 
-Notably, the package depends on `io.objectbox:objectbox-android`, a native ObjectBox library distribution. 
+Notably, the Android package depends on `objectbox-sync-android`, the native ObjectBox library
+distribution for Android. 
