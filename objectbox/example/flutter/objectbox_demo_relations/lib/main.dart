@@ -46,8 +46,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(widget.title)),
-        body: const Column(
-          children: [
+        // Note: testing with Flutter 3.7 which still requires const for children.
+        // ignore: prefer_const_constructors
+        body: Column(
+          children: const [
             SizedBox(
               height: 10,
             ),
