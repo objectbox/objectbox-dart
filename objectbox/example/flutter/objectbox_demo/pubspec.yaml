@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.14.0 <4.0.0'
+  sdk: ">=2.18.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,9 +16,6 @@ dependencies:
   path: ^1.8.0
 
 dev_dependencies:
-  flutter_driver:
-    sdk: flutter
-  test: any # Should specify a minimum version; but we use any for easier testing of multiple SDKs.
   flutter_lints: ^2.0.1
   build_runner: ^2.0.0
   objectbox_generator: any
