@@ -36,8 +36,8 @@ with a command similar to
 See the [plugin-update script](../tool/plugin-update.sh). It can also be used to adapt the plugin 
 code files to the latest templates (note that it won't delete e.g. obsolete files).
 
-For now, the Flutter plugin is not used (e.g. method channels), no-op versions are provided because 
-it is required.
+For now, the Flutter plugin is only used on Android (method channels) for a backwards-compatibility
+workaround. No-op versions are provided for other platforms because it is required.
 
 Some additional notes:
 * `name` from pubspec.yaml defines:
