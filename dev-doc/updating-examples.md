@@ -1,10 +1,13 @@
 # Updating Flutter examples
 
-In the example directory delete the platform specific directories.
+First, make sure to switch your Flutter SDK to the lowest version the ObjectBox packages support
+(see pubspec.yaml files).
 
-Then run `flutter create --platforms=android,ios,linux,macos,windows .` to re-create these files.
+Then, in the example directory delete the platform-specific directories.
 
-- Remove the created default test.
+Then, run `flutter create --platforms=android,ios,linux,macos,windows .` to re-create these files.
+
+Then, remove the created default test files and manually review the changes and commit what's necessary.
 
 Check changes do not break the example in any way, make additional changes as required.
 
