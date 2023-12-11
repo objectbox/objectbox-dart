@@ -16,7 +16,7 @@ Update `flutter_libs` and `sync_flutter_libs` with **compatible library versions
   - [sync_flutter_libs Windows](../sync_flutter_libs/windows/CMakeLists.txt)
 - Android ([view releases](https://github.com/objectbox/objectbox-java/releases))
   ```
-  ./tool/set-android-version.sh 3.7.0
+  ./tool/set-android-version.sh 3.7.1
   ```
 - Swift (iOS/macOS) ([view releases](https://github.com/objectbox/objectbox-swift/releases))
   ```
