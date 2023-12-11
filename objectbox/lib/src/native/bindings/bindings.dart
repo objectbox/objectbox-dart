@@ -94,14 +94,14 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 
 // Require the minimum C library version of all supported platform-specific
 // libraries:
-// objectbox-c: 0.19.0 (3.7.0-2023-09-04)
-// ObjectBox Swift 1.9.0: 0.19.0 (3.7.0-2023-09-11)
-// objectbox-android 3.7.0: 0.18.1 (3.7.0-2023-08-22)
+// objectbox-c: 0.20.0 (3.7.1-2023-12-11)
+// ObjectBox Swift 1.9.1: 0.19.0 (3.7.1-2023-11-15)
+// objectbox-android 3.7.1: 0.19.0 (3.7.1-2023-11-07)
 var _obxCminMajor = 0;
-var _obxCminMinor = 18;
-var _obxCminPatch = 1;
+var _obxCminMinor = 19;
+var _obxCminPatch = 0;
 // Require minimum core version guaranteeing actual C API availability.
-var _obxCoreMinVersion = "3.7.0-2023-08-22";
+var _obxCoreMinVersion = "3.7.1-2023-11-07";
 
 bool _isSupportedVersion(ObjectBoxC obxc) {
   if (!obxc.version_is_at_least(_obxCminMajor, _obxCminMinor, _obxCminPatch)) {
