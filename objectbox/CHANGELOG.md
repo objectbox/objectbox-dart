@@ -8,6 +8,9 @@
   If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
   update to `io.objectbox:objectbox-android-objectbrowser:3.7.1` in `android/app/build.gradle`.
   Notably requires Android 4.4 (API 19) or higher.
+* Flutter for iOS/macOS: update to [objectbox-swift 1.9.1](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.1).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
+  Notably requires at least iOS 12.0 and macOS 10.15.
 
 ## 2.3.1 (2023-10-02)
 
