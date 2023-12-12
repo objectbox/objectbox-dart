@@ -2,7 +2,8 @@
 
 * Fix crash in Flutter plugin when running in debug mode on iOS. [#561](https://github.com/objectbox/objectbox-dart/issues/561)
 * Support Flutter projects using Android Gradle Plugin 8. [#581](https://github.com/objectbox/objectbox-dart/issues/581)
-* Flutter for Linux, Windows: fix CMake build deprecation warning. [#522](https://github.com/objectbox/objectbox-dart/issues/522)
+* Flutter for Linux/Windows: fix CMake build deprecation warning. [#522](https://github.com/objectbox/objectbox-dart/issues/522)
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.20.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.20.0).
 
 ## 2.3.1 (2023-10-02)
 
