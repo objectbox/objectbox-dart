@@ -1411,9 +1411,8 @@ class ObjectBoxC {
   }
 
   late final _opt_freePtr = _lookup<
-          ffi
-          .NativeFunction<ffi.Void Function(ffi.Pointer<OBX_store_options>)>>(
-      'obx_opt_free');
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>)>>('obx_opt_free');
   late final _opt_free =
       _opt_freePtr.asFunction<void Function(ffi.Pointer<OBX_store_options>)>();
 
@@ -9554,8 +9553,8 @@ typedef OBX_custom_msg_server_func_shutdown = ffi
 /// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
 /// @param bytes lazy bytes storing the message
 /// @param server_user_data User supplied data returned by the function that created the server
-typedef OBX_custom_msg_server_func_client_connection_send_async = ffi
-    .NativeFunction<
+typedef OBX_custom_msg_server_func_client_connection_send_async
+    = ffi.NativeFunction<
         ffi.Bool Function(
             ffi.Pointer<OBX_bytes_lazy> bytes,
             ffi.Pointer<ffi.Void> server_user_data,
@@ -9572,8 +9571,8 @@ typedef OBX_custom_msg_server_func_client_connection_close = ffi.NativeFunction<
 /// Note that the custom server may already have been shutdown at this point (e.g. no server user data is supplied).
 /// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
 /// @param server_user_data User supplied data returned by the function that created the server
-typedef OBX_custom_msg_server_func_client_connection_shutdown = ffi
-    .NativeFunction<
+typedef OBX_custom_msg_server_func_client_connection_shutdown
+    = ffi.NativeFunction<
         ffi.Void Function(ffi.Pointer<ffi.Void> connection_user_data)>;
 
 /// Struct of the custom client function callbacks. In order to implement the custom client, you must provide
