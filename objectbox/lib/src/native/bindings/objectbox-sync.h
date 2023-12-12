@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 0 && OBX_VERSION_MINOR == 19 && OBX_VERSION_PATCH == 0,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 0 && OBX_VERSION_MINOR == 20 && OBX_VERSION_PATCH == 0,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -167,6 +167,10 @@ typedef void OBX_sync_listener_msg_objects(void* arg, const OBX_sync_msg_objects
 /// By default a sync client automatically receives updates from the server once login succeeded.
 /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
 OBX_C_API OBX_sync* obx_sync(OBX_store* store, const char* server_url);
+
+/// Creates a sync client associated with the given store and a list of sync server URL.
+/// For details, see obx_sync()
+OBX_C_API OBX_sync* obx_sync_urls(OBX_store* store, const char* server_urls[], size_t server_urls_count);
 
 /// Stops and closes (deletes) the sync client, freeing its resources.
 OBX_C_API obx_err obx_sync_close(OBX_sync* sync);

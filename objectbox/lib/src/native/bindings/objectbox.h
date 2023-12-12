@@ -52,7 +52,7 @@ extern "C" {
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 0
-#define OBX_VERSION_MINOR 19
+#define OBX_VERSION_MINOR 20
 #define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
@@ -140,6 +140,13 @@ typedef enum {
     /// Embedded GraphQL server (via HTTP).
     /// Depends on HttpServer (if GraphQL is available HttpServer is too).
     OBXFeature_GraphQL = 11,
+
+    /// Database Backup functionality; typically only enabled in Sync Server builds.
+    OBXFeature_Backup = 12,
+
+    /// The default database "provider"; writes data persistently to disk (ACID).
+    OBXFeature_Lmdb = 13,
+
 } OBXFeature;
 
 /// Checks whether the given feature is available in the currently loaded library.
@@ -192,6 +199,13 @@ OBX_C_API bool obx_debug_log_enabled();
 /// Gets the number, as used by ObjectBox, of the current thread.
 /// This e.g. allows to "associate" the thread with ObjectBox logs (each log entry contains the thread number).
 OBX_C_API int obx_thread_number();
+
+/// Log level as passed to obx_log_callback.
+typedef enum { OBXStoreTypeId_LMDB = 1, OBXStoreTypeId_InMemory = 2 } OBXStoreTypeId;
+
+/// Registers the default DB type, which is used if no other types matched a path prefix.
+/// @param storeTypeId Must be one of OBXStoreTypeId (for now).
+OBX_C_API int obx_store_type_id_register_default(uint32_t storeTypeId);
 
 //----------------------------------------------
 // Return and error codes
@@ -646,7 +660,7 @@ typedef enum {
 /// Flags used to control key/value pairs validation options when opening the store.
 /// Note: this enum does not contain any actual values besides "None" yet; it's only used to future proof the API.
 typedef enum {
-    OBXValidateOnOpenKvFlags_None = 0, ///< No special flags
+    OBXValidateOnOpenKvFlags_None = 0,  ///< No special flags
 } OBXValidateOnOpenKvFlags;
 
 /// Defines a padding mode for putting data bytes.
@@ -820,8 +834,7 @@ OBX_C_API obx_err obx_opt_model_bytes_direct(OBX_store_options* opt, const uint8
 /// @param page_limit limits the number of checked pages (currently defaults to 0, but will be increased in the future)
 /// @param flags flags used to influence how the validation checks are performed;
 ///        see OBXValidateOnOpenPagesFlags for values (use bitwise OR to combine multiple flags)
-OBX_C_API void obx_opt_validate_on_open_pages(OBX_store_options* opt, size_t page_limit,
-                                              uint32_t flags);
+OBX_C_API void obx_opt_validate_on_open_pages(OBX_store_options* opt, size_t page_limit, uint32_t flags);
 
 /// When the DB is opened initially, ObjectBox can do a validation over the key/value pairs to check, for example,
 /// whether they're consistent towards our internal specification.
@@ -921,9 +934,8 @@ OBX_C_API void obx_opt_async_object_bytes_max_size_to_cache(OBX_store_options* o
 /// Note: this does not replace the default logging, which is much more extensive (at least at this point).
 OBX_C_API void obx_opt_log_callback(OBX_store_options* opt, obx_log_callback* callback, void* user_data);
 
-
 /// Backup restore flags control how backups are restored to the database.
-typedef enum  {
+typedef enum {
     /// Overwrite any existing database with the content of the backup file.
     OBXBackupRestoreFlags_OverwriteExistingData = 1,
 } OBXBackupRestoreFlags;
@@ -1002,6 +1014,10 @@ OBX_C_API OBX_store* obx_store_attach_or_open(OBX_store_options* opt, bool check
 /// The IDs are stable and unique during the lifetime of the process.
 /// E.g. these IDs can be shared across threads efficiently and can serve a similar purpose as weak pointers do.
 OBX_C_API uint64_t obx_store_id(OBX_store* store);
+
+/// Gives the store type ID for the given store
+/// @returns One of OBXStoreTypeId
+OBX_C_API uint32_t obx_store_type_id(OBX_store* store);
 
 /// Clone a previously opened store; while a store instance is usable from multiple threads, situations may exist
 /// in which cloning a store simplifies the overall lifecycle.

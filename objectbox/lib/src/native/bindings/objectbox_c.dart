@@ -169,6 +169,22 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('obx_thread_number');
   late final _thread_number = _thread_numberPtr.asFunction<int Function()>();
 
+  /// Registers the default DB type, which is used if no other types matched a path prefix.
+  /// @param storeTypeId Must be one of OBXStoreTypeId (for now).
+  int store_type_id_register_default(
+    int storeTypeId,
+  ) {
+    return _store_type_id_register_default(
+      storeTypeId,
+    );
+  }
+
+  late final _store_type_id_register_defaultPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Uint32)>>(
+          'obx_store_type_id_register_default');
+  late final _store_type_id_register_default =
+      _store_type_id_register_defaultPtr.asFunction<int Function(int)>();
+
   /// Return the error status on the current thread and clear the error state.
   /// The buffer returned in out_message is valid only until the next call into ObjectBox.
   /// @param out_error receives the error code; optional: may be NULL
@@ -1536,6 +1552,22 @@ class ObjectBoxC {
           'obx_store_id');
   late final _store_id =
       _store_idPtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
+
+  /// Gives the store type ID for the given store
+  /// @returns One of OBXStoreTypeId
+  int store_type_id(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _store_type_id(
+      store,
+    );
+  }
+
+  late final _store_type_idPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint32 Function(ffi.Pointer<OBX_store>)>>(
+          'obx_store_type_id');
+  late final _store_type_id =
+      _store_type_idPtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
 
   /// Clone a previously opened store; while a store instance is usable from multiple threads, situations may exist
   /// in which cloning a store simplifies the overall lifecycle.
@@ -7202,6 +7234,28 @@ class ObjectBoxC {
       ffi.Pointer<OBX_sync> Function(
           ffi.Pointer<OBX_store>, ffi.Pointer<ffi.Char>)>();
 
+  /// Creates a sync client associated with the given store and a list of sync server URL.
+  /// For details, see obx_sync()
+  ffi.Pointer<OBX_sync> sync_urls(
+    ffi.Pointer<OBX_store> store,
+    ffi.Pointer<ffi.Pointer<ffi.Char>> server_urls,
+    int server_urls_count,
+  ) {
+    return _sync_urls(
+      store,
+      server_urls,
+      server_urls_count,
+    );
+  }
+
+  late final _sync_urlsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_sync> Function(ffi.Pointer<OBX_store>,
+              ffi.Pointer<ffi.Pointer<ffi.Char>>, ffi.Size)>>('obx_sync_urls');
+  late final _sync_urls = _sync_urlsPtr.asFunction<
+      ffi.Pointer<OBX_sync> Function(
+          ffi.Pointer<OBX_store>, ffi.Pointer<ffi.Pointer<ffi.Char>>, int)>();
+
   /// Stops and closes (deletes) the sync client, freeing its resources.
   int sync_close(
     ffi.Pointer<OBX_sync> sync1,
@@ -8861,6 +8915,12 @@ abstract class OBXFeature {
   /// Embedded GraphQL server (via HTTP).
   /// Depends on HttpServer (if GraphQL is available HttpServer is too).
   static const int GraphQL = 11;
+
+  /// Database Backup functionality; typically only enabled in Sync Server builds.
+  static const int Backup = 12;
+
+  /// The default database "provider"; writes data persistently to disk (ACID).
+  static const int Lmdb = 13;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -8883,6 +8943,12 @@ abstract class OBXLogLevel {
 
 /// Error/success code returned by an obx_* function; see defines OBX_SUCCESS, OBX_NOT_FOUND, and OBX_ERROR_*
 typedef obx_err = ffi.Int;
+
+/// Log level as passed to obx_log_callback.
+abstract class OBXStoreTypeId {
+  static const int LMDB = 1;
+  static const int InMemory = 2;
+}
 
 abstract class OBXPropertyType {
   /// < Not a actual type; represents an uninitialized or invalid type
@@ -9690,7 +9756,7 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 19;
+const int OBX_VERSION_MINOR = 20;
 
 const int OBX_VERSION_PATCH = 0;
 
