@@ -24,7 +24,7 @@ jobs:
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d # v1.6.0
         with:
-          sdk: 3.1.3
+          sdk: 3.2.3
       - name: Install ObjectBox C-API
         run: ./install.sh
       - name: Integration test
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: subosito/flutter-action@cc97e1648fff6ca5cc647fa67f47e70f7895510b # v2.11.0
         with:
-          flutter-version: 3.13.6
+          flutter-version: 3.16.3
           cache: true
       - run: ./tool/init.sh
 
@@ -52,8 +52,8 @@ jobs:
         sdk:
           # Always include lowest supported version (see sdk key in objectbox and generator
           # pubspec.yaml, but may be higher due to dependencies).
-          - 3.1.3
-          - 3.0.3
+          - 3.2.3
+          - 3.1.5
           - 2.18.6
     runs-on: ${{ matrix.os }}
     steps:
@@ -88,7 +88,7 @@ jobs:
           # Include lowest working version (use lowest tested Dart SDK as a guideline, see lib tests
           # above; but may be higher due to dependency conflicts)
           # https://docs.flutter.dev/development/tools/sdk/releases lists included Dart SDK.
-          - 3.13.6
+          - 3.16.3
           - 3.7.12
     runs-on: ${{ matrix.os }}
     steps:
