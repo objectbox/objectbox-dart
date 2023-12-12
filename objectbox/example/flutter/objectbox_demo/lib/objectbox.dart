@@ -31,10 +31,14 @@ class ObjectBox {
     // On mobile this is typically fine, as each app has its own directory
     // structure.
 
+    // Note: set macosApplicationGroup for sandboxed macOS applications, see the
+    // info boxes at https://docs.objectbox.io/getting-started for details.
+
     // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
     final store = await openStore(
-        directory: p.join(
-            (await getApplicationDocumentsDirectory()).path, "obx-demo"));
+        directory:
+            p.join((await getApplicationDocumentsDirectory()).path, "obx-demo"),
+        macosApplicationGroup: "objectbox.demo");
     return ObjectBox._create(store);
   }
 
