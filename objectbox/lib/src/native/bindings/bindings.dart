@@ -92,18 +92,29 @@ ObjectBoxC? _tryObjectBoxLibFile() {
   return ObjectBoxC(_lib!);
 }
 
+// Require the minimum C library version of all supported platform-specific
+// libraries:
+// objectbox-c: 0.19.0 (3.7.0-2023-09-04)
+// ObjectBox Swift 1.9.0: 0.19.0 (3.7.0-2023-09-11)
+// objectbox-android 3.7.0: 0.18.1 (3.7.0-2023-08-22)
+var _obxCminMajor = 0;
+var _obxCminMinor = 18;
+var _obxCminPatch = 1;
+// Require minimum core version guaranteeing actual C API availability.
+var _obxCoreMinVersion = "3.7.0-2023-08-22";
+
 bool _isSupportedVersion(ObjectBoxC obxc) {
-  // Default: require "current" version exactly
-  var minMajor = OBX_VERSION_MAJOR;
-  var minMinor = OBX_VERSION_MINOR;
-  var minPatch = OBX_VERSION_PATCH;
-  // Special cases (if any):
-  if (Platform.isAndroid) {
-    minMajor = 0;
-    minMinor = 18;
-    minPatch = 1;
+  if (!obxc.version_is_at_least(_obxCminMajor, _obxCminMinor, _obxCminPatch)) {
+    return false;
   }
-  return obxc.version_is_at_least(minMajor, minMinor, minPatch);
+  // Require a minimum core version.
+  // As the core version string uses the
+  // "major.minor.build-YYYY-MM-DD (<flags>)"
+  // format it should have a stable order.
+  // Note: if the version+date is the same the compare value will be negative as
+  // the flags make the string longer than the expected min version+date string.
+  final coreVersion = dartStringFromC(obxc.version_core_string());
+  return _obxCoreMinVersion.compareTo(coreVersion) <= 0;
 }
 
 ObjectBoxC loadObjectBoxLib() {
@@ -118,9 +129,12 @@ ObjectBoxC loadObjectBoxLib() {
 
   if (!_isSupportedVersion(obxc)) {
     final version = dartStringFromC(obxc.version_string());
+    final coreVersion = dartStringFromC(obxc.version_core_string());
     throw UnsupportedError(
-        'Loaded ObjectBox core dynamic library has unsupported version $version,'
-        ' expected ^$OBX_VERSION_MAJOR.$OBX_VERSION_MINOR.$OBX_VERSION_PATCH');
+        'ObjectBox platform-specific library not compatible: is $version ($coreVersion),'
+        ' expected $_obxCminMajor.$_obxCminMinor.$_obxCminPatch ($_obxCoreMinVersion) or newer.'
+        ' For Flutter, check if the ObjectBox Pod or objectbox-android-objectbrowser need to be updated.'
+        ' For Dart, re-run the install.sh script to download the latest version.');
   }
 
   return obxc;

@@ -36,3 +36,6 @@ Download source code of an [objectbox-c release version](https://github.com/obje
 - Copy/update enums from [objectbox_c.dart](../objectbox/lib/src/native/bindings/objectbox_c.dart) 
   in [enums.dart](../objectbox/lib/src/modelinfo/enums.dart) that need to be exposed to users.
 - Have a look at the changed files to see if some call sites need to be updated.
+
+Version check:
+- Update minimum C library and core version and notes in [bindings.dart](../objectbox/lib/src/native/bindings/bindings.dart).
