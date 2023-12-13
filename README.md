@@ -16,9 +16,6 @@
   <a href="https://pub.dev/packages/objectbox">
     <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart&style=flat-square" alt="pub.dev package">
   </a>
-  <a href="https://github.com/objectbox/objectbox-dart/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache&style=flat-square" alt="Apache 2.0 license">
-  </a>
   <a href="https://twitter.com/ObjectBox_io">
     <img src="https://img.shields.io/twitter/follow/objectbox_io?color=%20%2300aced&logo=twitter&style=flat-square" alt="Follow @ObjectBox_io">
   </a>
