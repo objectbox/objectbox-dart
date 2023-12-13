@@ -45,7 +45,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 19 // ObjectBox Android requires Android 4.4 (API level 19)
     }
 
     dependencies {
