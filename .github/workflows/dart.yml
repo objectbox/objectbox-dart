@@ -25,7 +25,7 @@ jobs:
       - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d # v1.6.0
         with:
           sdk: 3.2.3
-      - name: Install ObjectBox C-API
+      - name: Install ObjectBox C library
         run: ./install.sh
       - name: Integration test
         run: ./generator/test.sh
@@ -66,7 +66,7 @@ jobs:
         run: |
           ../tool/pub.sh get
           ../tool/pub.sh run test
-      - name: Install ObjectBox C-API
+      - name: Install ObjectBox C library
         working-directory: objectbox_test
         run: ../install.sh
       - name: Library Test
