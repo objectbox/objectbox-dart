@@ -1,4 +1,4 @@
-## latest
+## 2.4.0 (2023-12-13)
 
 * Fix crash in Flutter plugin when running in debug mode on iOS. [#561](https://github.com/objectbox/objectbox-dart/issues/561)
 * Support Flutter projects using Android Gradle Plugin 8. [#581](https://github.com/objectbox/objectbox-dart/issues/581)
