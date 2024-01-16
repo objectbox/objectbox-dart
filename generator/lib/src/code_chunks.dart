@@ -5,6 +5,14 @@ import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
 class CodeChunks {
+  /// Alias for objectbox.dart import. Prefix classes from it like '$obx.Class'.
+  static String obx = "obx";
+
+  /// Alias for internal.dart import. Prefix classes from it like '$obxInt.Class'.
+  static String obxInt = "obx_int";
+
+  /// Note: objectbox imports in generated code are aliased to avoid name
+  /// collisions with entity classes.
   static String objectboxDart(
           ModelInfo model, List<String> imports, Pubspec? pubspec) =>
       """
@@ -20,14 +28,14 @@ class CodeChunks {
     import 'dart:typed_data';
 
     import 'package:flat_buffers/flat_buffers.dart' as fb;
-    import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
-    import 'package:objectbox/objectbox.dart';${pubspec?.obxFlutterImport}
+    import 'package:objectbox/internal.dart' as $obxInt; // generated code can access "internal" functionality
+    import 'package:objectbox/objectbox.dart' as $obx;${pubspec?.obxFlutterImport}
 
     import '${sorted(imports).join("';\n import '")}';
 
     export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
-    final _entities = <ModelEntity>[
+    final _entities = <$obxInt.ModelEntity>[
       ${model.entities.map(createModelEntity).join(',')}
     ];
 
@@ -42,14 +50,14 @@ class CodeChunks {
 
     /// Returns the ObjectBox model definition for this project for use with 
     /// [Store.new].
-    ModelDefinition getObjectBoxModel() {
+    $obxInt.ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
 
-      final bindings = <Type, EntityDefinition>{
+      final bindings = <Type, $obxInt.EntityDefinition>{
         ${model.entities.mapIndexed((i, entity) => "${entity.name}: ${entityBinding(i, entity)}").join(",\n")}
       };
 
-      return ModelDefinition(model, bindings);
+      return $obxInt.ModelDefinition(model, bindings);
     }
 
     ${model.entities.mapIndexed(_metaClass).join("\n")}
@@ -57,14 +65,14 @@ class CodeChunks {
 
   static String openStore(ModelInfo model, Pubspec? pubspec) {
     final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
-    return '''${obxFlutter ? 'Future<Store>' : 'Store'} openStore(
+    return '''${obxFlutter ? 'Future<$obx.Store>' : '$obx.Store'} openStore(
         {String? directory,
           int? maxDBSizeInKB,
           int? fileMode,
           int? maxReaders,
           bool queriesCaseSensitiveDefault = true,
           String? macosApplicationGroup})${obxFlutter ? ' async' : ''} =>
-        Store(getObjectBoxModel(),
+        $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
             fileMode: fileMode,
@@ -81,7 +89,7 @@ class CodeChunks {
 
   static String defineModel(ModelInfo model) {
     return '''
-    final model = ModelInfo(
+    final model = $obxInt.ModelInfo(
       entities: _entities,
       lastEntityId: ${createIdUid(model.lastEntityId)},
       lastIndexId: ${createIdUid(model.lastIndexId)},
@@ -98,23 +106,23 @@ class CodeChunks {
   }
 
   static String createIdUid(IdUid value) {
-    return 'const IdUid(${value.id}, ${value.uid})';
+    return 'const $obxInt.IdUid(${value.id}, ${value.uid})';
   }
 
   static String createModelEntity(ModelEntity entity) {
     return '''
-    ModelEntity(
+    $obxInt.ModelEntity(
       id: ${createIdUid(entity.id)},
       name: '${entity.name}',
       lastPropertyId: ${createIdUid(entity.lastPropertyId)},
       flags: ${entity.flags},
-      properties: <ModelProperty>[
+      properties: <$obxInt.ModelProperty>[
         ${entity.properties.map(createModelProperty).join(',')}
       ],
-      relations: <ModelRelation>[
+      relations: <$obxInt.ModelRelation>[
         ${entity.relations.map(createModelRelation).join(',')}
       ],
-      backlinks: <ModelBacklink>[
+      backlinks: <$obxInt.ModelBacklink>[
         ${entity.backlinks.map(createModelBacklink).join(',')}
       ]
     )
@@ -131,7 +139,7 @@ class CodeChunks {
       additionalArgs += ", relationTarget: '${property.relationTarget!}'";
     }
     return '''
-    ModelProperty(
+    $obxInt.ModelProperty(
       id: ${createIdUid(property.id)},
       name: '${property.name}',
       type: ${property.type},
@@ -143,7 +151,7 @@ class CodeChunks {
 
   static String createModelRelation(ModelRelation relation) {
     return '''
-    ModelRelation(
+    $obxInt.ModelRelation(
       id: ${createIdUid(relation.id)},
       name: '${relation.name}',
       targetId: ${createIdUid(relation.targetId)}
@@ -153,7 +161,7 @@ class CodeChunks {
 
   static String createModelBacklink(ModelBacklink backlink) {
     return '''
-    ModelBacklink(
+    $obxInt.ModelBacklink(
       name: '${backlink.name}',
       srcEntity: '${backlink.srcEntity}',
       srcField: '${backlink.srcField}'
@@ -164,7 +172,7 @@ class CodeChunks {
   static String entityBinding(int i, ModelEntity entity) {
     final name = entity.name;
     return '''
-      EntityDefinition<$name>(
+      $obxInt.EntityDefinition<$name>(
         model: _entities[$i],
         toOneRelations: ($name object) => ${toOneRelations(entity)},
         toManyRelations: ($name object) => ${toManyRelations(entity)},
@@ -440,7 +448,7 @@ class CodeChunks {
           // FlatBuffers has Uint16ListReader, but it does not use Uint16List
           // internally. Use implementation of objectbox package.
           if (['Int16List', 'Uint16List'].contains(p.fieldType)) {
-            return readFieldCodeString(p, '${p.fieldType}Reader()');
+            return readFieldCodeString(p, '$obxInt.${p.fieldType}Reader()');
           } else {
             return readListCodeString(p, "int", OBXPropertyType.Short);
           }
@@ -448,7 +456,7 @@ class CodeChunks {
           if (['Int32List', 'Uint32List'].contains(p.fieldType)) {
             // FlatBuffers has Uint32ListReader, but it does not use Uint32List
             // internally. Use implementation of objectbox package.
-            return readFieldCodeString(p, '${p.fieldType}Reader()');
+            return readFieldCodeString(p, '$obxInt.${p.fieldType}Reader()');
           } else {
             return readListCodeString(p, "int", OBXPropertyType.Int);
           }
@@ -456,7 +464,7 @@ class CodeChunks {
           if (['Int64List', 'Uint64List'].contains(p.fieldType)) {
             // FlatBuffers has no readers for these.
             // Use implementation of objectbox package.
-            return readFieldCodeString(p, '${p.fieldType}Reader()');
+            return readFieldCodeString(p, '$obxInt.${p.fieldType}Reader()');
           } else {
             return readListCodeString(p, "int", OBXPropertyType.Long);
           }
@@ -464,7 +472,7 @@ class CodeChunks {
           if (p.fieldType == 'Float32List') {
             // FlatBuffers has Float32ListReader, but it does not use Float32List
             // internally. Use implementation of objectbox package.
-            return readFieldCodeString(p, 'Float32ListReader()');
+            return readFieldCodeString(p, '$obxInt.Float32ListReader()');
           } else {
             return readListCodeString(p, "double", OBXPropertyType.Float);
           }
@@ -472,7 +480,7 @@ class CodeChunks {
           if (p.fieldType == 'Float64List') {
             // FlatBuffers has Float64ListReader, but it does not use Float64List
             // internally. Use implementation of objectbox package.
-            return readFieldCodeString(p, 'Float64ListReader()');
+            return readFieldCodeString(p, '$obxInt.Float64ListReader()');
           } else {
             return readListCodeString(p, "double", OBXPropertyType.Double);
           }
@@ -510,7 +518,7 @@ class CodeChunks {
         paramValueCode = fieldReaders[index];
         if (entity.properties[index].isRelation) {
           if (paramDartType.startsWith('ToOne<')) {
-            paramValueCode = '$paramDartType(targetId: $paramValueCode)';
+            paramValueCode = '$obx.$paramDartType(targetId: $paramValueCode)';
           } else if (paramType == 'optional-named') {
             log.info('Skipping constructor parameter $paramName on '
                 "'${entity.name}': the matching field is a relation but the type "
@@ -519,7 +527,7 @@ class CodeChunks {
           }
         }
       } else if (paramDartType.startsWith('ToMany<')) {
-        paramValueCode = '$paramDartType()';
+        paramValueCode = '$obx.$paramDartType()';
       } else {
         // If we can't find a positional param, we can't use the constructor at all.
         if (paramType == 'positional' || paramType == 'required-named') {
@@ -581,13 +589,13 @@ class CodeChunks {
     });
 
     postLines.addAll(entity.relations.map((ModelRelation rel) =>
-        'InternalToManyAccess.setRelInfo<${entity.name}>(object.${rel.name}, store, ${relInfo(entity, rel)});'));
+        '$obxInt.InternalToManyAccess.setRelInfo<${entity.name}>(object.${rel.name}, store, ${relInfo(entity, rel)});'));
 
     postLines.addAll(entity.backlinks.map((ModelBacklink bl) {
-      return 'InternalToManyAccess.setRelInfo<${entity.name}>(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)});';
+      return '$obxInt.InternalToManyAccess.setRelInfo<${entity.name}>(object.${bl.name}, store, ${backlinkRelInfo(entity, bl)});';
     }));
 
-    return '''(Store store, ByteData fbData) {
+    return '''($obx.Store store, ByteData fbData) {
       final buffer = fb.BufferContext(fbData);
       final rootOffset = buffer.derefObject(0);
       ${preLines.join('\n')}
@@ -607,7 +615,7 @@ class CodeChunks {
       ']';
 
   static String relInfo(ModelEntity entity, ModelRelation rel) =>
-      'RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
+      '$obxInt.RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
 
   static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
     final srcEntity = entity.model.findEntityByName(bl.srcEntity);
@@ -651,10 +659,10 @@ class CodeChunks {
     }
 
     if (srcRel != null) {
-      return 'RelInfo<${srcEntity.name}>.toManyBacklink('
+      return '$obxInt.RelInfo<${srcEntity.name}>.toManyBacklink('
           '${srcRel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
     } else if (srcProp != null) {
-      return 'RelInfo<${srcEntity.name}>.toOneBacklink('
+      return '$obxInt.RelInfo<${srcEntity.name}>.toOneBacklink('
           '${srcProp.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')}, '
           '(${srcEntity.name} srcObject) => srcObject.${propertyFieldName(srcProp)})';
     } else {
@@ -729,9 +737,9 @@ class CodeChunks {
         static final ${propertyFieldName(prop)} = ''';
       if (prop.isRelation) {
         propCode +=
-            'QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
+            '$obx.QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
       } else {
-        propCode += 'Query${fieldType}Property<${entity.name}>';
+        propCode += '$obx.Query${fieldType}Property<${entity.name}>';
       }
       propCode += '(_entities[$i].properties[$p]);';
       fields.add(propCode);
@@ -743,7 +751,7 @@ class CodeChunks {
           entity.model.findEntityByUid(rel.targetId.uid)!.name;
       fields.add('''
           /// see [${entity.name}.${rel.name}]
-          static final ${rel.name} = QueryRelationToMany'''
+          static final ${rel.name} = $obx.QueryRelationToMany'''
           '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
     }
 

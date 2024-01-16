@@ -1,5 +1,7 @@
 ## latest
 
+* Avoid conflicts with entity class names in generated code [#519](https://github.com/objectbox/objectbox-dart/issues/519)
+
 ## 2.4.0 (2023-12-13)
 
 * Fix crash in Flutter plugin when running in debug mode on iOS. [#561](https://github.com/objectbox/objectbox-dart/issues/561)

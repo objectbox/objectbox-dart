@@ -650,9 +650,23 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "13:6993522656119709507",
+      "lastPropertyId": "1:8762967666524898059",
+      "name": "Condition",
+      "properties": [
+        {
+          "id": "1:8762967666524898059",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "12:4776026659772255750",
+  "lastEntityId": "13:6993522656119709507",
   "lastIndexId": "20:4846837430056399798",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",

@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
-import 'entity.dart';
+import 'entity.dart' hide Condition;
 import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
