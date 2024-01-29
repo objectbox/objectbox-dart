@@ -310,6 +310,35 @@ class QueryRelationToMany<Source, Target> {
   QueryRelationToMany(this._model);
 }
 
+class QueryBacklinkToMany<Source, Target> {
+  late final int _relationPropertyId;
+
+  QueryBacklinkToMany(QueryRelationToOne<Source, Target> relProp) {
+    _relationPropertyId = relProp._model.id.id;
+  }
+
+  /// Creates a condition to match objects that have [relationCount] related
+  /// objects pointing to them.
+  ///
+  /// ```
+  /// // match customers with two orders
+  /// box.query(Customer_.orders.relationCount(2));
+  /// ```
+  ///
+  /// The relation count may be 0 to match objects that do not have any related
+  /// objects. It typically should be a low number.
+  ///
+  /// This condition has some limitations:
+  /// - only 1:N (ToMany using @Backlink) relations are supported,
+  /// - the complexity is `O(n * (relationCount + 1))` and cannot be improved
+  ///   via indexes,
+  /// - the relation count cannot be changed with `param()` once the query is
+  ///   built.
+  Condition<Target> relationCount(int relationCount, {String? alias}) =>
+      _RelationCountCondition<Source, Target>(
+          _relationPropertyId, relationCount, alias);
+}
+
 enum _ConditionOp {
   isNull,
   notNull,
@@ -385,6 +414,24 @@ class _NullCondition<EntityT, DartType> extends Condition<EntityT> {
       default:
         throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
+  }
+}
+
+/// See [QueryBacklinkToMany.relationCount].
+class _RelationCountCondition<Source, Target> extends Condition<Target> {
+  final int _relationPropertyId;
+  final int _relationCount;
+
+  _RelationCountCondition(
+      this._relationPropertyId, this._relationCount, String? alias)
+      : super(alias);
+
+  @override
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
+    int relationEntityId =
+        InternalStoreAccess.entityDef<Source>(builder._store).model.id.id;
+    return C.qb_relation_count_property(builder._cBuilder, relationEntityId,
+        _relationPropertyId, _relationCount);
   }
 }
 

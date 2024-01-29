@@ -9,6 +9,11 @@
   If your code was calling the compat method manually, remove the call and re-run above command.
 
   Let us know if there are issues with this change in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
+* Add `relationCount()` query condition to match objects that have a certain number of related
+  objects pointing to them. E.g. `Customer_.orders.relationCount(2)` will match all customers with
+  two orders. `Customer_.orders.relationCount(0)` will match all customers with no associated order.
+  This can be useful to find objects where the relation was dissolved, e.g. after the related object
+  was removed.
 
 ## 2.4.0 (2023-12-13)
 

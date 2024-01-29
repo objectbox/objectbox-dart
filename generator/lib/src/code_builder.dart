@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:build/build.dart';
+import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:objectbox_generator/src/analysis/analysis.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
@@ -89,6 +90,7 @@ class CodeBuilder extends Builder {
 
     // merge existing model and annotated model that was just read, then write new final model to file
     merge(model, entities);
+    _resolveRelations(model);
     model.validate();
 
     // write model info
@@ -179,18 +181,6 @@ class CodeBuilder extends Builder {
           'Entity ${entity.name}(${entity.id}) not found in the code, removing from the model');
       model.removeEntity(entity);
     });
-
-    // finally, update relation targets, now that all entities are resolved
-    for (var entity in model.entities) {
-      for (var rel in entity.relations) {
-        final targetEntity = model.findEntityByName(rel.targetName);
-        if (targetEntity == null) {
-          throw InvalidGenerationSourceError(
-              "entity ${entity.name} relation ${rel.name}: cannot find target entity '${rel.targetName}");
-        }
-        rel.targetId = targetEntity.id;
-      }
-    }
   }
 
   void mergeProperty(ModelEntity entityInModel, ModelProperty prop) {
@@ -307,6 +297,81 @@ class CodeBuilder extends Builder {
     entityInModel.backlinks.addAll(entity.backlinks);
 
     return entityInModel.id;
+  }
+
+  /// For standalone to-many relations, verifies and sets the target entity ID.
+  /// For to-many relations based on a backlink, verifies and sets the source
+  /// relation.
+  void _resolveRelations(ModelInfo model) {
+    for (var entity in model.entities) {
+      for (var rel in entity.relations) {
+        final targetEntity = model.findEntityByName(rel.targetName);
+        if (targetEntity == null) {
+          throw InvalidGenerationSourceError(
+              "entity ${entity.name} relation ${rel.name}: cannot find target entity '${rel.targetName}");
+        }
+        rel.targetId = targetEntity.id;
+      }
+
+      for (var backlink in entity.backlinks) {
+        backlink.source = _findBacklinkSource(model, entity, backlink);
+      }
+    }
+  }
+
+  /// For a backlink, finds the (to-one) property or the (to-many) relation
+  /// the backlink is from. If given, uses the 'srcField' name to find it.
+  /// Otherwise, tries to find a match by type (to-one) or entity ID (to-many).
+  /// Throws if there are multiple matches or no match.
+  BacklinkSource _findBacklinkSource(
+      ModelInfo model, ModelEntity entity, ModelBacklink bl) {
+    final srcEntity = model.findEntityByName(bl.srcEntity);
+    if (srcEntity == null) {
+      throw InvalidGenerationSourceError(
+          "Invalid relation backlink '${entity.name}.${bl.name}': cannot find source entity '${bl.srcEntity}'");
+    }
+
+    // either of these will be set, based on the source field that matches
+    ModelRelation? srcRel;
+    ModelProperty? srcProp;
+
+    throwAmbiguousError(String prop, String rel) =>
+        throw InvalidGenerationSourceError(
+            "Ambiguous relation backlink source for '${entity.name}.${bl.name}':"
+            " Found matching property '$prop' and to-many relation '$rel'."
+            " Maybe specify source name in @Backlink() annotation.");
+
+    if (bl.srcField.isEmpty) {
+      final matchingProps = srcEntity.properties
+          .where((p) => p.isRelation && p.relationTarget == entity.name);
+      final matchingRels =
+          srcEntity.relations.where((r) => r.targetId == entity.id);
+      final candidatesCount = matchingProps.length + matchingRels.length;
+      if (candidatesCount > 1) {
+        throwAmbiguousError(matchingProps.toString(), matchingRels.toString());
+      } else if (matchingProps.isNotEmpty) {
+        srcProp = matchingProps.first;
+      } else if (matchingRels.isNotEmpty) {
+        srcRel = matchingRels.first;
+      }
+    } else {
+      srcProp = srcEntity.findPropertyByName('${bl.srcField}Id');
+      srcRel =
+          srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
+
+      if (srcProp != null && srcRel != null) {
+        throwAmbiguousError(srcProp.toString(), srcRel.toString());
+      }
+    }
+
+    if (srcRel != null) {
+      return BacklinkSourceRelation(srcRel);
+    } else if (srcProp != null) {
+      return BacklinkSourceProperty(srcProp);
+    } else {
+      throw InvalidGenerationSourceError(
+          "Unknown relation backlink source for '${entity.name}.${bl.name}'");
+    }
   }
 }
 
