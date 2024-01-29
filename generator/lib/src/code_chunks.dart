@@ -46,6 +46,10 @@ class CodeChunks {
     /// Note: for desktop apps it is recommended to specify a unique [directory].
     /// 
     /// See [Store.new] for an explanation of all parameters.
+    /// 
+    /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
+    /// the ObjectBox Flutter library to fix loading the native ObjectBox library
+    /// on Android 6 and older.
     ${openStore(model, pubspec)}
 
     /// Returns the ObjectBox model definition for this project for use with 
@@ -63,6 +67,11 @@ class CodeChunks {
     ${model.entities.mapIndexed(_metaClass).join("\n")}
     """;
 
+  /// Builds openStore method code string wrapping the [Store] constructor.
+  ///
+  /// If the ObjectBox Flutter dependency is detected in [pubspec], will
+  /// add its compat loading for the Android library and use its default
+  /// directory detection. Also the method will become async.
   static String openStore(ModelInfo model, Pubspec? pubspec) {
     final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
     return '''${obxFlutter ? 'Future<$obx.Store>' : '$obx.Store'} openStore(
@@ -71,15 +80,16 @@ class CodeChunks {
           int? fileMode,
           int? maxReaders,
           bool queriesCaseSensitiveDefault = true,
-          String? macosApplicationGroup})${obxFlutter ? ' async' : ''} =>
-        $obx.Store(getObjectBoxModel(),
+          String? macosApplicationGroup})${obxFlutter ? ' async' : ''} {
+        ${obxFlutter ? 'await loadObjectBoxLibraryAndroidCompat();' : ''}
+        return $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
             fileMode: fileMode,
             maxReaders: maxReaders,
             queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
             macosApplicationGroup: macosApplicationGroup);
-            ''';
+    }''';
   }
 
   static List<T> sorted<T>(List<T> list) {
