@@ -14,6 +14,10 @@
   two orders. `Customer_.orders.relationCount(0)` will match all customers with no associated order.
   This can be useful to find objects where the relation was dissolved, e.g. after the related object
   was removed.
+* Support for setting a maximum data size via the `maxDataSizeInKB` property when building a `Store`.
+  This is different from the existing `maxDBSizeInKB` property in that it is possible to remove data
+  after reaching the limit and continue to use the database. See the `Store` documentation for more
+  details.
 
 ## 2.4.0 (2023-12-13)
 

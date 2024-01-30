@@ -290,6 +290,37 @@ void main() {
     store.box<TestEntity>().put(testEntity2);
   });
 
+  test('store maxDataSizeInKB', () {
+    final testDir = Directory('db-data-size-test');
+    if (testDir.existsSync()) testDir.deleteSync(recursive: true);
+
+    // Throws if setting both maxDBSizeInKB and maxDataSizeInKB
+    // and data size is larger.
+    expect(
+        () => Store(getObjectBoxModel(),
+            directory: testDir.path, maxDBSizeInKB: 10, maxDataSizeInKB: 11),
+        throwsA(isArgumentError.having(
+            (e) => e.message,
+            'message',
+            contains(
+                'Maximum data size option must not exceed the maximum DB size'))));
+
+    // Throws special Dart exception if put exceeds data size
+    final store =
+        Store(getObjectBoxModel(), directory: testDir.path, maxDataSizeInKB: 1);
+    final longString =
+        "ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform apps.";
+    final box = store.box<TestEntity>();
+    box.put(TestEntity.filled(id: 0, tString: longString));
+    box.put(TestEntity.filled(id: 0, tString: longString));
+    box.put(TestEntity.filled(id: 0, tString: longString));
+    expect(
+        () => box.put(TestEntity.filled(id: 0, tString: longString)),
+        throwsA(isA<DbMaxDataSizeExceededException>().having((e) => e.message,
+            "message", contains("Exceeded user-set maximum by [bytes]"))));
+    store.close();
+  });
+
   test('store open in unicode symbol path', () async {
     final parentDir = Directory('unicode-test');
     await parentDir.create();

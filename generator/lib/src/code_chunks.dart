@@ -77,6 +77,7 @@ class CodeChunks {
     return '''${obxFlutter ? 'Future<$obx.Store>' : '$obx.Store'} openStore(
         {String? directory,
           int? maxDBSizeInKB,
+          int? maxDataSizeInKB,
           int? fileMode,
           int? maxReaders,
           bool queriesCaseSensitiveDefault = true,
@@ -85,6 +86,7 @@ class CodeChunks {
         return $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
+            maxDataSizeInKB: maxDataSizeInKB,
             fileMode: fileMode,
             maxReaders: maxReaders,
             queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,

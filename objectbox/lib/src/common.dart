@@ -56,6 +56,14 @@ class DbFullException extends StorageException {
   DbFullException(String message, int errorCode) : super(message, errorCode);
 }
 
+/// Thrown when applying a transaction would exceed the `maxDataSizeInKByte`
+/// configured when calling [Store.new].
+class DbMaxDataSizeExceededException extends StorageException {
+  /// See [DbMaxDataSizeExceededException].
+  DbMaxDataSizeExceededException(String message, int errorCode)
+      : super(message, errorCode);
+}
+
 /// Thrown when the maximum amount of readers (read transactions) was exceeded.
 ///
 /// Verify that your code only uses a reasonable amount of threads.

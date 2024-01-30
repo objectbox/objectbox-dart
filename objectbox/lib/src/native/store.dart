@@ -128,6 +128,22 @@ class Store implements Finalizable {
   /// This value can be changed, so increased or also decreased, each time when
   /// opening a store.
   ///
+  /// ## Maximum data size
+  ///
+  /// [maxDataSizeInKB] sets the maximum size the data stored in the database
+  /// can grow to. When applying a transaction (e.g. putting an object) would
+  /// exceed it a [DbMaxDataSizeExceededException] is thrown.
+  ///
+  /// Must be below [maxDBSizeInKB].
+  ///
+  /// Different from [maxDBSizeInKB] this only counts bytes stored in objects,
+  /// excluding system and metadata. However, it is more involved than database
+  /// size tracking, e.g. it stores an internal counter. Only use this if a
+  /// stricter, more accurate limit is required.
+  ///
+  /// When the data limit is reached, data can be removed to get below the limit
+  /// again (assuming the database size limit is not also reached).
+  ///
   /// ## File mode
   ///
   /// Specify [unix-style file permissions](https://en.wikipedia.org/wiki/File_system_permissions#Numeric_notation)
@@ -164,6 +180,7 @@ class Store implements Finalizable {
   Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
+      int? maxDataSizeInKB,
       int? fileMode,
       int? maxReaders,
       int? debugFlags,
@@ -205,6 +222,9 @@ class Store implements Finalizable {
         }
         if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
           C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
+        }
+        if (maxDataSizeInKB != null && maxDataSizeInKB > 0) {
+          C.opt_max_data_size_in_kb(opt, maxDataSizeInKB);
         }
         if (fileMode != null && fileMode >= 0) {
           C.opt_file_mode(opt, fileMode);
