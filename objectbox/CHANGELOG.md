@@ -1,6 +1,14 @@
 ## latest
 
 * Avoid conflicts with entity class names in generated code [#519](https://github.com/objectbox/objectbox-dart/issues/519)
+* For Flutter apps: `loadObjectBoxLibraryAndroidCompat()` is now called by default when using
+  `openStore()` (effective after re-running `flutter pub run build_runner build`). For devices
+  running Android 6 or older this will pre-load the ObjectBox library in Java to prevent errors when
+  loading it in Dart.
+
+  If your code was calling the compat method manually, remove the call and re-run above command.
+
+  Let us know if there are issues with this change in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
 
 ## 2.4.0 (2023-12-13)
 
