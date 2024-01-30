@@ -8,6 +8,14 @@ class TestingUnknownAnnotation {
   const TestingUnknownAnnotation();
 }
 
+/// An unused entity to test there are no name conflicts with ObjectBox classes
+/// in generated code. Matches `Condition` in query.dart.
+@Entity()
+class Condition {
+  @Id()
+  int id = 0;
+}
+
 @Entity()
 @TestingUnknownAnnotation()
 class TestEntity {
