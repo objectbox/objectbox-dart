@@ -46,7 +46,7 @@ class StorageException extends ObjectBoxException {
   StorageException(String message, this.errorCode) : super(message);
 
   @override
-  String toString() => 'StorageException: $message (OBX_ERROR code $errorCode)';
+  String toString() => '$runtimeType: $message (OBX_ERROR code $errorCode)';
 }
 
 /// Thrown when applying a transaction (e.g. putting an object) would exceed the
