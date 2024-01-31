@@ -472,6 +472,30 @@ void main() {
       expect(b.first.tString, 'bar B');
       query.close();
     });
+
+    test('query relation count', () {
+      // find B not referenced by any TestEntity
+      final queryNoRef =
+          boxB.query(RelatedEntityB_.testEntities.relationCount(0)).build();
+      final bWithNoRef = queryNoRef.find();
+      expect(bWithNoRef.length, 1);
+      expect(bWithNoRef[0].tString, 'not referenced');
+      queryNoRef.close();
+
+      // find B referenced by two TestEntity
+      final queryTwoRef =
+          boxB.query(RelatedEntityB_.testEntities.relationCount(2)).build();
+      final bWithTwoRef = queryTwoRef.find();
+      expect(bWithTwoRef.length, 1);
+      expect(bWithTwoRef[0].tString, 'bar B');
+      queryTwoRef.close();
+
+      // find no B referenced by three TestEntity
+      final queryThreeRef =
+          boxB.query(RelatedEntityB_.testEntities.relationCount(3)).build();
+      expect(queryThreeRef.count(), 0);
+      queryThreeRef.close();
+    });
   });
 
   group('to-many backlink', () {

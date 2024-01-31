@@ -77,6 +77,7 @@ class CodeChunks {
     return '''${obxFlutter ? 'Future<$obx.Store>' : '$obx.Store'} openStore(
         {String? directory,
           int? maxDBSizeInKB,
+          int? maxDataSizeInKB,
           int? fileMode,
           int? maxReaders,
           bool queriesCaseSensitiveDefault = true,
@@ -85,6 +86,7 @@ class CodeChunks {
         return $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
+            maxDataSizeInKB: maxDataSizeInKB,
             fileMode: fileMode,
             maxReaders: maxReaders,
             queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
@@ -628,53 +630,14 @@ class CodeChunks {
       '$obxInt.RelInfo<${entity.name}>.toMany(${rel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
 
   static String backlinkRelInfo(ModelEntity entity, ModelBacklink bl) {
-    final srcEntity = entity.model.findEntityByName(bl.srcEntity);
-    if (srcEntity == null) {
-      throw InvalidGenerationSourceError(
-          'Invalid relation backlink ${entity.name}.${bl.name} '
-          '- source entity ${bl.srcEntity} not found.');
-    }
-
-    // either of these will be set, based on the source field that matches
-    ModelRelation? srcRel;
-    ModelProperty? srcProp;
-
-    throwAmbiguousError(String prop, String rel) =>
-        throw InvalidGenerationSourceError(
-            'Ambiguous relation backlink source for ${entity.name}.${bl.name}.'
-            ' Matching property: $prop.'
-            ' Matching standalone relation: $rel.');
-
-    if (bl.srcField.isEmpty) {
-      final matchingProps = srcEntity.properties
-          .where((p) => p.isRelation && p.relationTarget == entity.name);
-      final matchingRels =
-          srcEntity.relations.where((r) => r.targetId == entity.id);
-      final candidatesCount = matchingProps.length + matchingRels.length;
-      if (candidatesCount > 1) {
-        throwAmbiguousError(matchingProps.toString(), matchingRels.toString());
-      } else if (matchingProps.isNotEmpty) {
-        srcProp = matchingProps.first;
-      } else if (matchingRels.isNotEmpty) {
-        srcRel = matchingRels.first;
-      }
-    } else {
-      srcProp = srcEntity.findPropertyByName('${bl.srcField}Id');
-      srcRel =
-          srcEntity.relations.firstWhereOrNull((r) => r.name == bl.srcField);
-
-      if (srcProp != null && srcRel != null) {
-        throwAmbiguousError(srcProp.toString(), srcRel.toString());
-      }
-    }
-
-    if (srcRel != null) {
-      return '$obxInt.RelInfo<${srcEntity.name}>.toManyBacklink('
-          '${srcRel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
-    } else if (srcProp != null) {
-      return '$obxInt.RelInfo<${srcEntity.name}>.toOneBacklink('
-          '${srcProp.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')}, '
-          '(${srcEntity.name} srcObject) => srcObject.${propertyFieldName(srcProp)})';
+    final source = bl.source;
+    if (source is BacklinkSourceRelation) {
+      return '$obxInt.RelInfo<${bl.srcEntity}>.toManyBacklink('
+          '${source.srcRel.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')})';
+    } else if (source is BacklinkSourceProperty) {
+      return '$obxInt.RelInfo<${bl.srcEntity}>.toOneBacklink('
+          '${source.srcProp.id.id}, object.${propertyFieldAccess(entity.idProperty, '!')}, '
+          '(${bl.srcEntity} srcObject) => srcObject.${propertyFieldName(source.srcProp)})';
     } else {
       throw InvalidGenerationSourceError(
           'Unknown relation backlink source for ${entity.name}.${bl.name}');
@@ -763,6 +726,22 @@ class CodeChunks {
           /// see [${entity.name}.${rel.name}]
           static final ${rel.name} = $obx.QueryRelationToMany'''
           '<${entity.name}, $targetEntityName>(_entities[$i].relations[$r]);');
+    }
+
+    // Add fields for to-many based on to-one backlinks
+    for (var backlink in entity.backlinks) {
+      final source = backlink.source;
+      // Query conditions only supported for backlinks from a to-one,
+      // also there is currently no common super type of QueryRelationToOne
+      // and QueryRelationToMany.
+      if (source is BacklinkSourceProperty) {
+        // /// see [Entity.backlinkName]
+        // static final backlinkName = QueryBacklinkToMany<Source, Entity>(Source_.srcField);
+        fields.add('''
+          /// see [${entity.name}.${backlink.name}]
+          static final ${backlink.name} = $obx.QueryBacklinkToMany<${backlink.srcEntity}, ${entity.name}>(${backlink.srcEntity}_.${propertyFieldName(source.srcProp)});
+        ''');
+      }
     }
 
     return '''

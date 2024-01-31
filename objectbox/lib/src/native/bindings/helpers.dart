@@ -78,6 +78,8 @@ class ObjectBoxNativeError {
         throw NumericOverflowException(messageWithContext);
       case OBX_ERROR_DB_FULL:
         throw DbFullException(messageWithContext, code);
+      case OBX_ERROR_MAX_DATA_SIZE_EXCEEDED:
+        throw DbMaxDataSizeExceededException(messageWithContext, code);
       case OBX_ERROR_MAX_READERS_EXCEEDED:
         throw DbMaxReadersExceededException(messageWithContext, code);
       case OBX_ERROR_STORE_MUST_SHUTDOWN:
