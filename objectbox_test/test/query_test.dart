@@ -195,6 +195,34 @@ void main() {
     expect(box.query(TestEntity_.tInt.between(3, 7)).build().count(), 3);
   });
 
+  test('date and date nano convenience conditions', () {
+    const count = 6;
+    final dates = [for (var i = 1; i <= count; i++) DateTime.utc(2000, 1, i)];
+    box.putMany([for (var d in dates) TestEntity(tDate: d, tDateNano: d)]);
+
+    queryAndAssert(QueryBuilder<TestEntity> builder) {
+      final items = builder.build().find();
+      expect(items.length, 3);
+      expect(items[0].tDate!.day, 3);
+      expect(items[1].tDate!.day, 4);
+      expect(items[2].tDate!.day, 5);
+    }
+
+    final from = dates[2];
+    final to = dates[4];
+
+    // With the existing QueryIntegerProperty (now a super type)
+    queryAndAssert(box.query(TestEntity_.tDate
+        .between(from.millisecondsSinceEpoch, to.millisecondsSinceEpoch)));
+    queryAndAssert(box.query(TestEntity_.tDateNano.between(
+        from.microsecondsSinceEpoch * 1000, to.microsecondsSinceEpoch * 1000)));
+    // With the new QueryDateProperty
+    queryAndAssert(box.query(TestEntity_.tDate.betweenMilliseconds(from, to)));
+    // With the new QueryDateNanoProperty
+    queryAndAssert(
+        box.query(TestEntity_.tDateNano.betweenNanoseconds(from, to)));
+  });
+
   test('.count matches of `greater` and `less`', () {
     box.putMany(<TestEntity>[
       TestEntity(tLong: 1336, tString: 'mord'),

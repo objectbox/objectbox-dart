@@ -677,9 +677,13 @@ class CodeChunks {
         case OBXPropertyType.Char:
         case OBXPropertyType.Int:
         case OBXPropertyType.Long:
-        case OBXPropertyType.Date:
-        case OBXPropertyType.DateNano:
           fieldType = 'Integer';
+          break;
+        case OBXPropertyType.Date:
+          fieldType = 'Date';
+          break;
+        case OBXPropertyType.DateNano:
+          fieldType = 'DateNano';
           break;
         case OBXPropertyType.Relation:
           fieldType = 'Relation';
