@@ -73,6 +73,7 @@ class Store implements Finalizable {
   }
 
   /// Absolute path to the database directory, used for open check.
+  /// For an in-memory database just the [inMemoryPrefix] and identifier.
   final String _absoluteDirectoryPath;
 
   late final ByteData _reference;
@@ -86,6 +87,15 @@ class Store implements Finalizable {
 
   static String _safeDirectoryPath(String? path) =>
       (path == null || path.isEmpty) ? defaultDirectoryPath : path;
+
+  /// Like [_safeDirectoryPath], but returns an absolute path if [dbPath] is not
+  /// prefixed with [inMemoryPrefix] to use with [_absoluteDirectoryPath].
+  static String _safeAbsoluteDirectoryPath(String? dbPath) {
+    final safePath = _safeDirectoryPath(dbPath);
+    return safePath.startsWith(inMemoryPrefix)
+        ? safePath
+        : path.context.canonicalize(safePath);
+  }
 
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file in the given [directory] path
@@ -209,7 +219,7 @@ class Store implements Finalizable {
       : _closesNativeStore = true,
         _absoluteDirectoryPath = inMemoryIdentifier != null
             ? "$inMemoryPrefix$inMemoryIdentifier"
-            : path.context.canonicalize(_safeDirectoryPath(directory)) {
+            : _safeAbsoluteDirectoryPath(directory) {
     try {
       if (Platform.isMacOS && macosApplicationGroup != null) {
         if (!macosApplicationGroup.endsWith('/')) {
@@ -382,8 +392,7 @@ class Store implements Finalizable {
   Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath =
-            path.context.canonicalize(_safeDirectoryPath(directoryPath)) {
+        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directoryPath) {
     try {
       // Do not allow attaching to a store that is already open in the current
       // isolate. While technically possible this is not the intended usage
