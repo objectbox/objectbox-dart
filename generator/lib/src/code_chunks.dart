@@ -76,6 +76,7 @@ class CodeChunks {
     final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
     return '''${obxFlutter ? 'Future<$obx.Store>' : '$obx.Store'} openStore(
         {String? directory,
+          String? inMemoryIdentifier,
           int? maxDBSizeInKB,
           int? maxDataSizeInKB,
           int? fileMode,
@@ -85,6 +86,7 @@ class CodeChunks {
         ${obxFlutter ? 'await loadObjectBoxLibraryAndroidCompat();' : ''}
         return $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
+            inMemoryIdentifier: inMemoryIdentifier,
             maxDBSizeInKB: maxDBSizeInKB,
             maxDataSizeInKB: maxDataSizeInKB,
             fileMode: fileMode,

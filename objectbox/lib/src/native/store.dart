@@ -32,6 +32,10 @@ class Store implements Finalizable {
   /// Path of the default directory, currently 'objectbox'.
   static const String defaultDirectoryPath = 'objectbox';
 
+  /// Pass this together with a String identifier as the directory path to use
+  /// a file-less in-memory database.
+  static const String inMemoryPrefix = 'memory:';
+
   /// Enables a couple of debug logs.
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
@@ -97,6 +101,21 @@ class Store implements Finalizable {
   /// Or for a Dart app:
   /// ```dart
   /// final store = Store(getObjectBoxModel());
+  /// ```
+  ///
+  /// ## In-memory database
+  /// To use a file-less in-memory database, instead of a directory path pass an
+  /// identifier to [inMemoryIdentifier]:
+  /// ```dart
+  /// final inMemoryStore =
+  ///     Store(getObjectBoxModel(), inMemoryIdentifier: "test-db");
+  /// ```
+  ///
+  /// Alternatively, pass [inMemoryPrefix] together with an identifier string
+  /// as the [directory]:
+  /// ```dart
+  /// final inMemoryStore =
+  ///     Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
   /// ```
   ///
   /// ## Case insensitive queries
@@ -179,6 +198,7 @@ class Store implements Finalizable {
   /// See our examples for more details.
   Store(ModelDefinition modelDefinition,
       {String? directory,
+      String? inMemoryIdentifier,
       int? maxDBSizeInKB,
       int? maxDataSizeInKB,
       int? fileMode,
@@ -187,8 +207,9 @@ class Store implements Finalizable {
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath =
-            path.context.canonicalize(_safeDirectoryPath(directory)) {
+        _absoluteDirectoryPath = inMemoryIdentifier != null
+            ? "$inMemoryPrefix$inMemoryIdentifier"
+            : path.context.canonicalize(_safeDirectoryPath(directory)) {
     try {
       if (Platform.isMacOS && macosApplicationGroup != null) {
         if (!macosApplicationGroup.endsWith('/')) {
@@ -207,7 +228,9 @@ class Store implements Finalizable {
       }
       _checkStoreDirectoryNotOpen();
       final model = Model(modelDefinition.model);
-      final safeDirectoryPath = _safeDirectoryPath(directory);
+      final safeDirectoryPath = inMemoryIdentifier != null
+          ? "$inMemoryPrefix$inMemoryIdentifier"
+          : _safeDirectoryPath(directory);
 
       final opt = C.opt();
       checkObxPtr(opt, 'failed to create store options');

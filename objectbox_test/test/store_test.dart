@@ -28,6 +28,15 @@ void main() {
     env.closeAndDelete();
   });
 
+  test('in-memory store does not create files', () {
+    final store =
+        Store(getObjectBoxModel(), inMemoryIdentifier: "in-memory-test");
+    expect(Directory("in-memory-test").existsSync(), false);
+    expect(Directory("memory").existsSync(), false);
+    expect(Directory("memory:in-memory-test").existsSync(), false);
+    store.close();
+  });
+
   test('store attach fails if same isolate', () {
     final env = TestEnv('store');
     expect(

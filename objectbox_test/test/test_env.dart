@@ -20,7 +20,7 @@ class TestEnv {
   final bool short;
 
   static String testDbDirPath(String name, {bool inMemory = false}) =>
-      inMemory ? "memory:testdata-$name" : "testdata-$name";
+      inMemory ? "${Store.inMemoryPrefix}testdata-$name" : "testdata-$name";
 
   factory TestEnv(String name, {bool? queryCaseSensitive, int? debugFlag}) {
     final inMemory = Platform.environment["OBX_IN_MEMORY"] == "true";
