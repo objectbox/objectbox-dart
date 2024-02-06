@@ -13,7 +13,7 @@ import 'test_env.dart';
 
 void main() {
   test('store reference', () {
-    final env = TestEnv('store');
+    final env = TestEnv('store-ref');
     final store1 = env.store;
     final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
     expect(store1, isNot(store2));
@@ -31,19 +31,19 @@ void main() {
   test('store attach fails if same isolate', () {
     final env = TestEnv('store');
     expect(
-        () => Store.attach(getObjectBoxModel(), env.dir.path),
+        () => Store.attach(getObjectBoxModel(), env.dbDirPath),
         throwsA(predicate((UnsupportedError e) =>
             e.message!.contains('Cannot create multiple Store instances'))));
     env.closeAndDelete();
   });
 
   test('store attach remains open if main store closed', () async {
-    final env = TestEnv('store');
+    final env = TestEnv('store-attach');
     final store1 = env.store;
     final receivePort = ReceivePort();
     final received = StreamQueue<dynamic>(receivePort);
     await Isolate.spawn(storeAttachIsolate,
-        StoreAttachIsolateInit(receivePort.sendPort, env.dir.path));
+        StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath));
     final commandPort = await received.next as SendPort;
 
     // Check native instance pointer is different.
@@ -54,7 +54,7 @@ void main() {
     expect(id, 1);
     // Close original store to test store remains open until all refs closed.
     store1.close();
-    expect(true, Store.isOpen('testdata-store'));
+    expect(Store.isOpen(env.dbDirPath), true);
 
     // Read data with attached store.
     commandPort.send(id);
@@ -65,14 +65,14 @@ void main() {
     // Close attached store, should close store completely.
     commandPort.send(null);
     await received.next;
-    expect(false, Store.isOpen('testdata-store'));
+    expect(Store.isOpen(env.dbDirPath), false);
 
     // Dispose StreamQueue.
     await received.cancel();
   });
 
   test('store attach with configuration', () {
-    final env = TestEnv('store');
+    final env = TestEnv('store-config');
     // Get store config.
     final storeConfig = env.store.configuration();
     expect(storeConfig.id, isNot(0));
@@ -102,18 +102,20 @@ void main() {
   });
 
   test('store is open', () {
-    expect(false, Store.isOpen(''));
-    expect(false, Store.isOpen('testdata-store'));
-    final env = TestEnv('store');
-    expect(false, env.store.isClosed());
-    expect(true, Store.isOpen('testdata-store'));
+    final name = 'store-open';
+    expect(Store.isOpen(''), false);
+    expect(Store.isOpen(TestEnv.testDbDirPath(name)), false);
+    expect(Store.isOpen(TestEnv.testDbDirPath(name, inMemory: true)), false);
+    final env = TestEnv(name);
+    expect(env.store.isClosed(), false);
+    expect(Store.isOpen(env.dbDirPath), true);
     env.closeAndDelete();
-    expect(true, env.store.isClosed());
-    expect(false, Store.isOpen('testdata-store'));
+    expect(env.store.isClosed(), true);
+    expect(Store.isOpen(env.dbDirPath), false);
   });
 
   test('transactions', () {
-    final env = TestEnv('store');
+    final env = TestEnv('store-tx');
     expect(TxMode.values.length, 2);
     for (var mode in TxMode.values) {
       // Returned value falls through.
@@ -143,7 +145,7 @@ void main() {
   });
 
   test('async transactions', () async {
-    final env = TestEnv('store');
+    final env = TestEnv('store-async-tx');
     expect(TxMode.values.length, 2);
     for (var mode in TxMode.values) {
       // Returned value falls through.
@@ -346,7 +348,7 @@ void main() {
   });
 
   test('store run in isolate', () async {
-    final env = TestEnv('store');
+    final env = TestEnv('store-isolate');
     final id = env.box.put(TestEntity(tString: 'foo'));
     final futureResult = env.store.runAsync(_readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
@@ -357,7 +359,7 @@ void main() {
   });
 
   test('store runAsync returns isolate error', () async {
-    final env = TestEnv('store');
+    final env = TestEnv('store-run-async-isolate');
     try {
       await env.store.runAsync(_producesIsolateError, 'nothing');
       fail("Should throw RemoteError");
@@ -368,7 +370,7 @@ void main() {
   });
 
   test('store runAsync returns callback error', () async {
-    final env = TestEnv('store');
+    final env = TestEnv('store-run-async-callback');
     try {
       await env.store.runAsync(_producesCallbackError, 'nothing');
       fail("Should throw error produced by callback");

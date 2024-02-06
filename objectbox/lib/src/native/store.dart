@@ -484,6 +484,29 @@ class Store implements Finalizable {
     }
   }
 
+  /// Danger zone! This will delete all files in the given directory!
+  ///
+  /// If an in-memory database identifier is given (using [inMemoryPrefix]),
+  /// this will just clean up the in-memory database.
+  ///
+  /// No [Store] may be alive using the given [directoryPath]. This means this
+  /// should be called before creating a store.
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
+  static void removeDbFiles(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    final cStr = path.toNativeUtf8();
+    try {
+      checkObx(C.remove_db_files(cStr.cast()));
+    } finally {
+      malloc.free(cStr);
+    }
+  }
+
   /// Returns a store reference you can use to create a new store instance with
   /// a single underlying native store. See [Store.fromReference] for more details.
   ByteData get reference => _reference;
