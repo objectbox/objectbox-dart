@@ -217,10 +217,9 @@ void main() {
     queryAndAssert(box.query(TestEntity_.tDateNano.between(
         from.microsecondsSinceEpoch * 1000, to.microsecondsSinceEpoch * 1000)));
     // With the new QueryDateProperty
-    queryAndAssert(box.query(TestEntity_.tDate.betweenMilliseconds(from, to)));
+    queryAndAssert(box.query(TestEntity_.tDate.betweenDate(from, to)));
     // With the new QueryDateNanoProperty
-    queryAndAssert(
-        box.query(TestEntity_.tDateNano.betweenNanoseconds(from, to)));
+    queryAndAssert(box.query(TestEntity_.tDateNano.betweenDate(from, to)));
   });
 
   test('.count matches of `greater` and `less`', () {
