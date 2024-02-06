@@ -72,8 +72,8 @@ test-generator:linux:x64:
     - cd ../objectbox_test
     - dart pub get
     - dart run build_runner build
-    # Run only one test suite (== test file) at a time.
-    # Print log for every completed test.
+    # Set concurrency=1 to run only one test suite (== test file) at a time.
+    # Set --reporter expanded to print log for every completed test.
     # Together, this will produce sequential log output, making it easier to attribute native logs.
     - dart test --concurrency=1 --reporter expanded
     # Run again using in-memory database

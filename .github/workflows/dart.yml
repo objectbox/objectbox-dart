@@ -71,10 +71,16 @@ jobs:
         run: ../install.sh
       - name: Library Test
         working-directory: objectbox_test
+        # Set concurrency=1 to run only one test suite (== test file) at a time to make it easier to
+        # attribute native logs. Note that on GitHub Actions this currently makes no difference as
+        # Dart defaults to concurrency=1.
+        # Run again with OBX_IN_MEMORY=true using in-memory database.
         run: |
           ../tool/pub.sh get
           ../tool/pub.sh run build_runner build
-          ../tool/pub.sh run test
+          ../tool/pub.sh run test --concurrency=1
+          export OBX_IN_MEMORY=true
+          ../tool/pub.sh run test --concurrency=1
 
   flutter-integration-test:
     strategy:
