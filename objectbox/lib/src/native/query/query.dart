@@ -180,6 +180,108 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
       _opList(list, _ConditionOp.notOneOf, alias);
 }
 
+/// This wraps [QueryIntegerProperty] for [DateTime] properties to avoid
+/// having to manually convert to [DateTime.millisecondsSinceEpoch] when
+/// creating query conditions.
+class QueryDateProperty<EntityT> extends QueryIntegerProperty<EntityT> {
+  QueryDateProperty(super.model);
+
+  int _convert(DateTime value) => value.millisecondsSinceEpoch;
+
+  /// Like [equals], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> equalsDate(DateTime value, {String? alias}) =>
+      equals(_convert(value), alias: alias);
+
+  /// Like [notEquals], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> notEqualsDate(DateTime value, {String? alias}) =>
+      notEquals(_convert(value), alias: alias);
+
+  /// Like [greaterThan], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> greaterThanDate(DateTime value, {String? alias}) =>
+      greaterThan(_convert(value), alias: alias);
+
+  /// Like [greaterOrEqual], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> greaterOrEqualDate(DateTime value, {String? alias}) =>
+      greaterOrEqual(_convert(value), alias: alias);
+
+  /// Like [lessThan], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> lessThanDate(DateTime value, {String? alias}) =>
+      lessThan(_convert(value), alias: alias);
+
+  /// Like [lessOrEqual], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> lessOrEqualDate(DateTime value, {String? alias}) =>
+      lessOrEqual(_convert(value), alias: alias);
+
+  /// Like [between], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> betweenDate(DateTime value1, DateTime value2,
+          {String? alias}) =>
+      between(_convert(value1), _convert(value2), alias: alias);
+
+  /// Like [oneOf], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> oneOfDate(List<DateTime> values, {String? alias}) =>
+      oneOf(values.map(_convert).toList(), alias: alias);
+
+  /// Like [notOneOf], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> notOneOfDate(List<DateTime> values, {String? alias}) =>
+      notOneOf(values.map(_convert).toList(), alias: alias);
+}
+
+/// This wraps [QueryIntegerProperty] for [DateTime] properties annotated with
+/// `@Property(type: PropertyType.dateNano)` to avoid having to manually convert
+/// to nanoseconds ([DateTime.microsecondsSinceEpoch] `* 1000`) when creating
+/// query conditions.
+class QueryDateNanoProperty<EntityT> extends QueryIntegerProperty<EntityT> {
+  QueryDateNanoProperty(super.model);
+
+  int _convert(DateTime value) => value.microsecondsSinceEpoch * 1000;
+
+  /// Like [equals], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> equalsDate(DateTime value, {String? alias}) =>
+      equals(_convert(value), alias: alias);
+
+  /// Like [notEquals], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> notEqualsDate(DateTime value, {String? alias}) =>
+      notEquals(_convert(value), alias: alias);
+
+  /// Like [greaterThan], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> greaterThanDate(DateTime value, {String? alias}) =>
+      greaterThan(_convert(value), alias: alias);
+
+  /// Like [greaterOrEqual], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> greaterOrEqualDate(DateTime value, {String? alias}) =>
+      greaterOrEqual(_convert(value), alias: alias);
+
+  /// Like [lessThan], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> lessThanDate(DateTime value, {String? alias}) =>
+      lessThan(_convert(value), alias: alias);
+
+  /// Like [lessOrEqual], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> lessOrEqualDate(DateTime value, {String? alias}) =>
+      lessOrEqual(_convert(value), alias: alias);
+
+  /// Like [between], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> betweenDate(DateTime value1, DateTime value2,
+          {String? alias}) =>
+      between(_convert(value1), _convert(value2), alias: alias);
+
+  /// Like [oneOf], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> oneOfDate(List<DateTime> values, {String? alias}) =>
+      oneOf(values.map(_convert).toList(), alias: alias);
+
+  /// Like [notOneOf], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> notOneOfDate(List<DateTime> values, {String? alias}) =>
+      notOneOf(values.map(_convert).toList(), alias: alias);
+}
+
 /// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
 /// equal are supported on elements of the vector (e.g. "has element greater").
 class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {

@@ -28,6 +28,8 @@ export 'src/query.dart'
         QueryStringProperty,
         QueryByteVectorProperty,
         QueryIntegerProperty,
+        QueryDateProperty,
+        QueryDateNanoProperty,
         QueryIntegerVectorProperty,
         QueryDoubleProperty,
         QueryDoubleVectorProperty,

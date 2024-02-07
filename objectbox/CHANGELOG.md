@@ -18,6 +18,14 @@
   This is different from the existing `maxDBSizeInKB` property in that it is possible to remove data
   after reaching the limit and continue to use the database. See the `Store` documentation for more
   details.
+* For `DateTime` properties new convenience query conditions are generated that accept `DateTime`
+  and auto-convert to milliseconds (or nanoseconds for `@Property(type: PropertyType.dateNano)`) [#287](https://github.com/objectbox/objectbox-dart/issues/287)
+  ```dart
+  // For example instead of:
+  Order_.date.between(DateTime(2024, 1).millisecondsSinceEpoch, DateTime(2024, 2).millisecondsSinceEpoch)
+  // You can now just write:
+  Order_.date.betweenMilliseconds(DateTime(2024, 1), DateTime(2024, 2))
+  ```
 
 ## 2.4.0 (2023-12-13)
 
