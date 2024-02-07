@@ -170,6 +170,7 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
 
   Condition<EntityT> operator >(int p) => greaterThan(p);
 
+  /// Finds objects with property value between and including the first and second value.
   Condition<EntityT> between(int p1, int p2, {String? alias}) =>
       _op(_ConditionOp.between, p1, p2, alias);
 
@@ -317,6 +318,7 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
           _ConditionOp op, double p1, double? p2, String? alias) =>
       _DoubleCondition<EntityT>(op, this, p1, p2, alias);
 
+  /// Finds objects with property value between and including the first and second value.
   Condition<EntityT> between(double p1, double p2, {String? alias}) =>
       _op(_ConditionOp.between, p1, p2, alias);
 
@@ -709,6 +711,8 @@ class _IntegerListCondition<EntityT>
             return _opList(builder, malloc<Int32>(_value.length),
                 C.qb_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
+          case OBXPropertyType.Date:
+          case OBXPropertyType.DateNano:
             return _opList(builder, malloc<Int64>(_value.length),
                 C.qb_in_int64s, opListSetIndexInt64);
           default:
@@ -721,6 +725,8 @@ class _IntegerListCondition<EntityT>
             return _opList(builder, malloc<Int32>(_value.length),
                 C.qb_not_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
+          case OBXPropertyType.Date:
+          case OBXPropertyType.DateNano:
             return _opList(builder, malloc<Int64>(_value.length),
                 C.qb_not_in_int64s, opListSetIndexInt64);
           default:
