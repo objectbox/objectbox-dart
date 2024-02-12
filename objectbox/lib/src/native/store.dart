@@ -504,6 +504,28 @@ class Store implements Finalizable {
     }
   }
 
+  /// Returns the file size in bytes of the main database file for the given
+  /// [directoryPath], or 0 if the file does not exist or some error occurred.
+  ///
+  /// For in-memory databases, it is supported to pass the [inMemoryPrefix] and
+  /// the identifier. The rough size in bytes of the in-memory database will be
+  /// reported instead.
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
+  static int dbFileSize(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    final cStr = path.toNativeUtf8();
+    try {
+      return C.db_file_size(cStr.cast());
+    } finally {
+      malloc.free(cStr);
+    }
+  }
+
   /// Danger zone! This will delete all files in the given directory!
   ///
   /// If an in-memory database identifier is given (using [inMemoryPrefix]),

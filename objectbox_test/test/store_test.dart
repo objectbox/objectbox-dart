@@ -291,6 +291,12 @@ void main() {
     Directory('store').deleteSync(recursive: true);
   });
 
+  test('store dbFileSize', () {
+    final testEnv = TestEnv("db-file-size");
+    expect(Store.dbFileSize(testEnv.dbDirPath), isPositive);
+    testEnv.closeAndDelete();
+  });
+
   test('store maxDBSizeInKB', () {
     final testDir = Directory('db-size-test');
     if (testDir.existsSync()) testDir.deleteSync(recursive: true);
