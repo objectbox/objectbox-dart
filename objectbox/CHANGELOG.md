@@ -40,12 +40,13 @@
   int get computedValue => TODO;
   set computedValue(int value) => TODO;
   ```
-* Use a file-less in-memory database, for example for testing, by setting `inMemoryIdentifier` when
-  creating a `Store` instead of a `directory`. See the `Store` documentation for details.
+* Support creating file-less in-memory databases, for example for testing. To create one pass an 
+  in-memory identifier together with `Store.inMemoryPrefix` as the `directory`:
   ```dart
    final inMemoryStore =
-       Store(getObjectBoxModel(), inMemoryIdentifier: "test-db");
+       Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
   ```
+  See the `Store` documentation for details.
 * Add `Store.removeDbFiles()` to conveniently delete database files or an in-memory database.
 
 ## 2.4.0 (2023-12-13)

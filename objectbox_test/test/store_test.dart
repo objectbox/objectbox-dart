@@ -30,8 +30,8 @@ void main() {
   });
 
   test('in-memory store does not create files', () {
-    final store =
-        Store(getObjectBoxModel(), inMemoryIdentifier: "in-memory-test");
+    final store = Store(getObjectBoxModel(),
+        directory: "${Store.inMemoryPrefix}in-memory-test");
     addTearDown(() => store.close());
     expect(Directory("in-memory-test").existsSync(), false);
     expect(Directory("memory").existsSync(), false);

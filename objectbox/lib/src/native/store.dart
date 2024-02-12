@@ -114,15 +114,8 @@ class Store implements Finalizable {
   /// ```
   ///
   /// ## In-memory database
-  /// To use a file-less in-memory database, instead of a directory path pass an
-  /// identifier to [inMemoryIdentifier]:
-  /// ```dart
-  /// final inMemoryStore =
-  ///     Store(getObjectBoxModel(), inMemoryIdentifier: "test-db");
-  /// ```
-  ///
-  /// Alternatively, pass [inMemoryPrefix] together with an identifier string
-  /// as the [directory]:
+  /// To use a file-less in-memory database, instead of a directory path pass
+  /// [inMemoryPrefix] together with an identifier string as the [directory]:
   /// ```dart
   /// final inMemoryStore =
   ///     Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
@@ -208,7 +201,6 @@ class Store implements Finalizable {
   /// See our examples for more details.
   Store(ModelDefinition modelDefinition,
       {String? directory,
-      String? inMemoryIdentifier,
       int? maxDBSizeInKB,
       int? maxDataSizeInKB,
       int? fileMode,
@@ -217,9 +209,7 @@ class Store implements Finalizable {
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath = inMemoryIdentifier != null
-            ? "$inMemoryPrefix$inMemoryIdentifier"
-            : _safeAbsoluteDirectoryPath(directory) {
+        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directory) {
     try {
       if (Platform.isMacOS && macosApplicationGroup != null) {
         if (!macosApplicationGroup.endsWith('/')) {
@@ -238,9 +228,7 @@ class Store implements Finalizable {
       }
       _checkStoreDirectoryNotOpen();
       final model = Model(modelDefinition.model);
-      final safeDirectoryPath = inMemoryIdentifier != null
-          ? "$inMemoryPrefix$inMemoryIdentifier"
-          : _safeDirectoryPath(directory);
+      final safeDirectoryPath = _safeDirectoryPath(directory);
 
       final opt = C.opt();
       checkObxPtr(opt, 'failed to create store options');
