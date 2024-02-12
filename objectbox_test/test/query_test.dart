@@ -216,10 +216,47 @@ void main() {
         .between(from.millisecondsSinceEpoch, to.millisecondsSinceEpoch)));
     queryAndAssert(box.query(TestEntity_.tDateNano.between(
         from.microsecondsSinceEpoch * 1000, to.microsecondsSinceEpoch * 1000)));
+
     // With the new QueryDateProperty
     queryAndAssert(box.query(TestEntity_.tDate.betweenDate(from, to)));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .equalsDate(from)
+        .or(TestEntity_.tDate.equalsDate(dates[3]))
+        .or(TestEntity_.tDate.equalsDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .notEqualsDate(dates[0])
+        .and(TestEntity_.tDate.notEqualsDate(dates[1]))
+        .and(TestEntity_.tDate.notEqualsDate(dates[5]))));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .greaterOrEqualDate(from)
+        .and(TestEntity_.tDate.lessOrEqualDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .greaterThanDate(dates[1])
+        .and(TestEntity_.tDate.lessThanDate(dates[5]))));
+    queryAndAssert(box.query(TestEntity_.tDate.oneOfDate(dates.slice(2, 5))));
+    queryAndAssert(box
+        .query(TestEntity_.tDate.notOneOfDate([dates[0], dates[1], dates[5]])));
+
     // With the new QueryDateNanoProperty
     queryAndAssert(box.query(TestEntity_.tDateNano.betweenDate(from, to)));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .equalsDate(from)
+        .or(TestEntity_.tDateNano.equalsDate(dates[3]))
+        .or(TestEntity_.tDateNano.equalsDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .notEqualsDate(dates[0])
+        .and(TestEntity_.tDateNano.notEqualsDate(dates[1]))
+        .and(TestEntity_.tDateNano.notEqualsDate(dates[5]))));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .greaterOrEqualDate(from)
+        .and(TestEntity_.tDateNano.lessOrEqualDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .greaterThanDate(dates[1])
+        .and(TestEntity_.tDateNano.lessThanDate(dates[5]))));
+    queryAndAssert(
+        box.query(TestEntity_.tDateNano.oneOfDate(dates.slice(2, 5))));
+    queryAndAssert(box.query(
+        TestEntity_.tDateNano.notOneOfDate([dates[0], dates[1], dates[5]])));
   });
 
   test('.count matches of `greater` and `less`', () {
