@@ -26,6 +26,20 @@
   // You can now just write:
   Order_.date.betweenMilliseconds(DateTime(2024, 1), DateTime(2024, 2))
   ```
+* When defining a property with a getter and setter instead of a field, support annotating the
+  getter to configure or ignore the property [#392](https://github.com/objectbox/objectbox-dart/issues/392)
+  
+  For example, it is now possible to do this:
+  ```dart
+  @Property(type: PropertyType.date)
+  @Index()
+  DateTime get date => TODO;
+  set date(DateTime value) => TODO;
+  
+  @Transient()
+  int get computedValue => TODO;
+  set computedValue(int value) => TODO;
+  ```
 
 ## 2.4.0 (2023-12-13)
 

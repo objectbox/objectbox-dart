@@ -1,0 +1,8 @@
+# start with an empty project, without a objectbox-model.json
+objectbox-model.json
+testdata
+objectbox.*
+# Do not remove native library to allow running with non-globally installed version.
+!objectbox.dll
+!objectbox.lib
+!libobjectbox.*

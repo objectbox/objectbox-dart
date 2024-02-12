@@ -92,7 +92,13 @@ class EntityResolver extends Builder {
 
     // read all suitable annotated properties
     for (var f in classElement.fields) {
-      if (_transientChecker.hasAnnotationOfExact(f)) {
+      // The field might be implicitly defined by a getter, aka it is synthetic
+      // and does not exist in code. So always resolve the actual non-synthetic
+      // element that exists in code (here a getter) as only it will have any
+      // annotations.
+      final annotated = f.nonSynthetic;
+
+      if (_transientChecker.hasAnnotationOfExact(annotated)) {
         log.info("  Skipping property '${f.name}': annotated with @Transient.");
         continue;
       }
@@ -112,7 +118,8 @@ class EntityResolver extends Builder {
       var flags = 0;
       int? propUid;
 
-      _idChecker.runIfMatches(f, (annotation) {
+      // Check for @Id annotation
+      _idChecker.runIfMatches(annotated, (annotation) {
         flags |= OBXPropertyFlags.ID;
         if (annotation.getField('assignable')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.ID_SELF_ASSIGNABLE;
@@ -120,7 +127,7 @@ class EntityResolver extends Builder {
       });
 
       // Get info from @Property annotation
-      _propertyChecker.runIfMatches(f, (annotation) {
+      _propertyChecker.runIfMatches(annotated, (annotation) {
         propUid = annotation.getField('uid')!.toIntValue();
         fieldType = propertyTypeFromAnnotation(annotation.getField('type')!);
         if (!annotation.getField('signed')!.toBoolValue()!) {
@@ -156,7 +163,8 @@ class EntityResolver extends Builder {
             (f.type as ParameterizedType).typeArguments[0].element!.name;
       }
 
-      final backlinkAnnotations = _backlinkChecker.annotationsOfExact(f);
+      final backlinkAnnotations =
+          _backlinkChecker.annotationsOfExact(annotated);
       if (backlinkAnnotations.isNotEmpty) {
         if (!isToManyRel) {
           log.severe(
@@ -196,7 +204,8 @@ class EntityResolver extends Builder {
         }
 
         // Index and unique annotation.
-        processAnnotationIndexUnique(f, fieldType, classElement, prop);
+        processAnnotationIndexUnique(
+            f, annotated, fieldType, classElement, prop);
 
         // for code generation
         prop.dartFieldType =
@@ -339,12 +348,14 @@ class EntityResolver extends Builder {
     idProperty.flags &= ~OBXPropertyFlags.UNSIGNED;
   }
 
-  void processAnnotationIndexUnique(
-      FieldElement f, int? fieldType, Element elementBare, ModelProperty prop) {
+  void processAnnotationIndexUnique(FieldElement f, Element annotatedElement,
+      int? fieldType, Element elementBare, ModelProperty prop) {
     IndexType? indexType;
 
-    final indexAnnotation = _indexChecker.firstAnnotationOfExact(f);
-    final uniqueAnnotation = _uniqueChecker.firstAnnotationOfExact(f);
+    final indexAnnotation =
+        _indexChecker.firstAnnotationOfExact(annotatedElement);
+    final uniqueAnnotation =
+        _uniqueChecker.firstAnnotationOfExact(annotatedElement);
     if (indexAnnotation == null && uniqueAnnotation == null) return;
 
     // Throw if property type does not support any index.
