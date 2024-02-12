@@ -5,6 +5,23 @@ import 'package:test/test.dart';
 import 'entity.dart';
 import 'objectbox.g.dart';
 
+/// Test environment for ObjectBox. Call [closeAndDelete] to clean up after
+/// a test.
+///
+/// For a test file or group of tests:
+/// ```
+/// late TestEnv env;
+/// setUp(() {
+///   env = TestEnv('name');
+/// });
+/// tearDown(() => env.closeAndDelete());
+/// ```
+///
+/// For a single test:
+/// ```
+/// final env = TestEnv('name');
+/// addTearDown(() => env.closeAndDelete());
+/// ```
 class TestEnv {
   /// If environment variable OBX_IN_MEMORY=true is set, this will be true.
   ///
@@ -22,6 +39,8 @@ class TestEnv {
   static String testDbDirPath(String name, {bool inMemory = false}) =>
       inMemory ? "${Store.inMemoryPrefix}testdata-$name" : "testdata-$name";
 
+  /// Creates a store in a directory based on the given [name], or if in-memory
+  /// with name as the identifier. Deletes any database files before.
   factory TestEnv(String name, {bool? queryCaseSensitive, int? debugFlag}) {
     final inMemory = Platform.environment["OBX_IN_MEMORY"] == "true";
     if (inMemory) {
@@ -57,7 +76,8 @@ class TestEnv {
 
   Box<TestEntity> get box => store.box();
 
-  /// Call once done with this to clean up.
+  /// Call once done with this to clean up, for example in [tearDown] or using
+  /// [addTearDown]. Safe to call multiple times.
   void closeAndDelete() {
     store.close();
     _cleanUpDatabase(isInMemory, dbDirPath);

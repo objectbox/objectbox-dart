@@ -13,7 +13,9 @@ import 'test_env.dart';
 
 void main() {
   test('store reference', () {
-    final env = TestEnv('store-ref');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     final store1 = env.store;
     final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
     expect(store1, isNot(store2));
@@ -25,29 +27,31 @@ void main() {
     expect(read, isNotNull);
     expect(read!.tString, 'foo');
     store2.close();
-    env.closeAndDelete();
   });
 
   test('in-memory store does not create files', () {
     final store =
         Store(getObjectBoxModel(), inMemoryIdentifier: "in-memory-test");
+    addTearDown(() => store.close());
     expect(Directory("in-memory-test").existsSync(), false);
     expect(Directory("memory").existsSync(), false);
     expect(Directory("memory:in-memory-test").existsSync(), false);
-    store.close();
   });
 
   test('store attach fails if same isolate', () {
     final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     expect(
         () => Store.attach(getObjectBoxModel(), env.dbDirPath),
         throwsA(predicate((UnsupportedError e) =>
             e.message!.contains('Cannot create multiple Store instances'))));
-    env.closeAndDelete();
   });
 
   test('store attach remains open if main store closed', () async {
-    final env = TestEnv('store-attach');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     final store1 = env.store;
     final receivePort = ReceivePort();
     final received = StreamQueue<dynamic>(receivePort);
@@ -81,7 +85,11 @@ void main() {
   });
 
   test('store attach with configuration', () {
-    final env = TestEnv('store-config');
+    final name = "store";
+    final env = TestEnv(name);
+    // Closing manually below, but clean up if any expect fails before
+    addTearDown(() => env.closeAndDelete());
+
     // Get store config.
     final storeConfig = env.store.configuration();
     expect(storeConfig.id, isNot(0));
@@ -105,26 +113,34 @@ void main() {
             (ObjectBoxException e) => e.message == "failed to create store")));
 
     // Re-open underlying store, store ID should have changed.
-    final env2 = TestEnv("store");
+    final env2 = TestEnv(name);
+    addTearDown(() => env2.closeAndDelete());
     expect(env2.store.configuration().id, isNot(storeConfig.id));
-    env2.closeAndDelete();
   });
 
   test('store is open', () {
-    final name = 'store-open';
+    final name = 'store';
     expect(Store.isOpen(''), false);
     expect(Store.isOpen(TestEnv.testDbDirPath(name)), false);
     expect(Store.isOpen(TestEnv.testDbDirPath(name, inMemory: true)), false);
+
     final env = TestEnv(name);
+    // Closing manually below, but clean up if any expect fails before
+    addTearDown(() => env.closeAndDelete());
+
     expect(env.store.isClosed(), false);
     expect(Store.isOpen(env.dbDirPath), true);
+
     env.closeAndDelete();
+
     expect(env.store.isClosed(), true);
     expect(Store.isOpen(env.dbDirPath), false);
   });
 
   test('transactions', () {
-    final env = TestEnv('store-tx');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     expect(TxMode.values.length, 2);
     for (var mode in TxMode.values) {
       // Returned value falls through.
@@ -150,11 +166,12 @@ void main() {
               .toString()
               .contains('Given transaction callback always fails.'))));
     }
-    env.closeAndDelete();
   });
 
   test('async transactions', () async {
-    final env = TestEnv('store-async-tx');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     expect(TxMode.values.length, 2);
     for (var mode in TxMode.values) {
       // Returned value falls through.
@@ -189,7 +206,6 @@ void main() {
         expect(e.message, 'Given transaction callback always fails.');
       }
     }
-    env.closeAndDelete();
   });
 
   test('store multi-open', () {
@@ -357,29 +373,33 @@ void main() {
   });
 
   test('store run in isolate', () async {
-    final env = TestEnv('store-isolate');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     final id = env.box.put(TestEntity(tString: 'foo'));
     final futureResult = env.store.runAsync(_readStringAndRemove, id);
     print('Count in main isolate: ${env.box.count()}');
     final String x = await futureResult;
     expect(x, 'foo!');
     expect(env.box.count(), 0); // Must be removed once awaited
-    env.closeAndDelete();
   });
 
   test('store runAsync returns isolate error', () async {
-    final env = TestEnv('store-run-async-isolate');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     try {
       await env.store.runAsync(_producesIsolateError, 'nothing');
       fail("Should throw RemoteError");
     } on RemoteError {
       // expected
     }
-    env.closeAndDelete();
   });
 
   test('store runAsync returns callback error', () async {
-    final env = TestEnv('store-run-async-callback');
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
     try {
       await env.store.runAsync(_producesCallbackError, 'nothing');
       fail("Should throw error produced by callback");
@@ -387,7 +407,6 @@ void main() {
       expect(e, isA<ArgumentError>());
       expect(e, predicate((ArgumentError e) => e.message == 'Return me'));
     }
-    env.closeAndDelete();
   });
 }
 

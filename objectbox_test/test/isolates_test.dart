@@ -104,8 +104,9 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
 
   // Pass the store to the isolate
   final env = TestEnv('isolates');
-  expect(Store.isOpen(env.dbDirPath), true);
+  addTearDown(() => env.closeAndDelete());
 
+  expect(Store.isOpen(env.dbDirPath), true);
   expect(await call(storeRefGetter(env)), equals('store set'));
 
   {
@@ -129,7 +130,6 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
   expect(await call(['close']), equals('done'));
 
   receivePort.close();
-  env.closeAndDelete();
 }
 
 // Echoes back any received message.
