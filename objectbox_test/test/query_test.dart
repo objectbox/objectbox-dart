@@ -125,14 +125,13 @@ void main() {
 
     final env1 = TestEnv('query1', queryCaseSensitive: true);
     final env2 = TestEnv('query2', queryCaseSensitive: false);
+    addTearDown(() => env1.closeAndDelete());
+    addTearDown(() => env2.closeAndDelete());
 
     // current default: case insensitive
     testCaseSensitivity(env.box, defaultIsTrue: true);
     testCaseSensitivity(env1.box, defaultIsTrue: true);
     testCaseSensitivity(env2.box, defaultIsTrue: false);
-
-    env1.closeAndDelete();
-    env2.closeAndDelete();
   });
 
   test('.count doubles and booleans', () {

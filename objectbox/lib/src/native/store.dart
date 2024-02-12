@@ -32,6 +32,10 @@ class Store implements Finalizable {
   /// Path of the default directory, currently 'objectbox'.
   static const String defaultDirectoryPath = 'objectbox';
 
+  /// Pass this together with a String identifier as the directory path to use
+  /// a file-less in-memory database.
+  static const String inMemoryPrefix = 'memory:';
+
   /// Enables a couple of debug logs.
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
@@ -69,6 +73,7 @@ class Store implements Finalizable {
   }
 
   /// Absolute path to the database directory, used for open check.
+  /// For an in-memory database just the [inMemoryPrefix] and identifier.
   final String _absoluteDirectoryPath;
 
   late final ByteData _reference;
@@ -82,6 +87,15 @@ class Store implements Finalizable {
 
   static String _safeDirectoryPath(String? path) =>
       (path == null || path.isEmpty) ? defaultDirectoryPath : path;
+
+  /// Like [_safeDirectoryPath], but returns an absolute path if [dbPath] is not
+  /// prefixed with [inMemoryPrefix] to use with [_absoluteDirectoryPath].
+  static String _safeAbsoluteDirectoryPath(String? dbPath) {
+    final safePath = _safeDirectoryPath(dbPath);
+    return safePath.startsWith(inMemoryPrefix)
+        ? safePath
+        : path.context.canonicalize(safePath);
+  }
 
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file in the given [directory] path
@@ -97,6 +111,14 @@ class Store implements Finalizable {
   /// Or for a Dart app:
   /// ```dart
   /// final store = Store(getObjectBoxModel());
+  /// ```
+  ///
+  /// ## In-memory database
+  /// To use a file-less in-memory database, instead of a directory path pass
+  /// [inMemoryPrefix] together with an identifier string as the [directory]:
+  /// ```dart
+  /// final inMemoryStore =
+  ///     Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
   /// ```
   ///
   /// ## Case insensitive queries
@@ -187,8 +209,7 @@ class Store implements Finalizable {
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath =
-            path.context.canonicalize(_safeDirectoryPath(directory)) {
+        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directory) {
     try {
       if (Platform.isMacOS && macosApplicationGroup != null) {
         if (!macosApplicationGroup.endsWith('/')) {
@@ -359,8 +380,7 @@ class Store implements Finalizable {
   Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath =
-            path.context.canonicalize(_safeDirectoryPath(directoryPath)) {
+        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directoryPath) {
     try {
       // Do not allow attaching to a store that is already open in the current
       // isolate. While technically possible this is not the intended usage
@@ -479,6 +499,29 @@ class Store implements Finalizable {
     final cStr = path.toNativeUtf8();
     try {
       return C.store_is_open(cStr.cast());
+    } finally {
+      malloc.free(cStr);
+    }
+  }
+
+  /// Danger zone! This will delete all files in the given directory!
+  ///
+  /// If an in-memory database identifier is given (using [inMemoryPrefix]),
+  /// this will just clean up the in-memory database.
+  ///
+  /// No [Store] may be alive using the given [directoryPath]. This means this
+  /// should be called before creating a store.
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
+  static void removeDbFiles(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    final cStr = path.toNativeUtf8();
+    try {
+      checkObx(C.remove_db_files(cStr.cast()));
     } finally {
       malloc.free(cStr);
     }

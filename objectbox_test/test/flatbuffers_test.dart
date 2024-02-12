@@ -62,6 +62,8 @@ void main() {
 
   test('generated code', () {
     final env = TestEnv('fb');
+    // Closing manually below, but clean up if any expect fails before
+    addTearDown(() => env.closeAndDelete());
 
     final binding = getObjectBoxModel().bindings[TestEntityNonRel]
         as EntityDefinition<TestEntityNonRel>;
