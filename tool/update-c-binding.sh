@@ -5,7 +5,7 @@
 # copies the header files, makes some required modifications
 # and runs the ffigen binding generator on them.
 
-cLibVersion=0.20.0
+cLibVersion=0.21.0
 echo "Downloading C library source files from GitHub..."
 
 # Note: the release archives do not contain objectbox-dart.h, so get the full sources.
