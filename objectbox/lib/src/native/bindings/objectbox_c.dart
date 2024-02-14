@@ -169,22 +169,6 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<ffi.Int Function()>>('obx_thread_number');
   late final _thread_number = _thread_numberPtr.asFunction<int Function()>();
 
-  /// Registers the default DB type, which is used if no other types matched a path prefix.
-  /// @param storeTypeId Must be one of OBXStoreTypeId (for now).
-  int store_type_id_register_default(
-    int storeTypeId,
-  ) {
-    return _store_type_id_register_default(
-      storeTypeId,
-    );
-  }
-
-  late final _store_type_id_register_defaultPtr =
-      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Uint32)>>(
-          'obx_store_type_id_register_default');
-  late final _store_type_id_register_default =
-      _store_type_id_register_defaultPtr.asFunction<int Function(int)>();
-
   /// Return the error status on the current thread and clear the error state.
   /// The buffer returned in out_message is valid only until the next call into ObjectBox.
   /// @param out_error receives the error code; optional: may be NULL
@@ -649,6 +633,7 @@ class ObjectBoxC {
       _optPtr.asFunction<ffi.Pointer<OBX_store_options> Function()>();
 
   /// Set the store directory on the options. The default is "objectbox".
+  /// Use prefix "memory:" to open an in-memory database, e.g. "memory:myApp" (see docs for details).
   int opt_directory(
     ffi.Pointer<OBX_store_options> opt,
     ffi.Pointer<ffi.Char> dir,
@@ -706,7 +691,7 @@ class ObjectBoxC {
   late final _opt_max_data_size_in_kb = _opt_max_data_size_in_kbPtr
       .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
 
-  /// Set the file mode on the options. The default is 0644 (unix-style)
+  /// Set the file mode on the options. The default is 0644 (unix-style).
   void opt_file_mode(
     ffi.Pointer<OBX_store_options> opt,
     int file_mode,
@@ -1435,7 +1420,7 @@ class ObjectBoxC {
   /// Opens (creates) a "store", which represents an ObjectBox database instance in a given directory.
   /// The store is an entry point to data access APIs such as box (obx_box_*), query (obx_qb_* and obx_query_*),
   /// and transaction (obx_txn_*).
-  /// It's possible open multiple stores in different directories, e.g. at the same time.
+  /// It's possible to open multiple stores in different directories, e.g. at the same time.
   /// See also obx_store_close() to close a previously opened store.
   /// Note: the given options are always freed by this function, including when an error occurs.
   /// @param opt required parameter holding the data model (obx_opt_model()) and optional options (see obx_opt_*())
@@ -1554,7 +1539,7 @@ class ObjectBoxC {
       _store_idPtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
 
   /// Gives the store type ID for the given store
-  /// @returns One of OBXStoreTypeId
+  /// @returns One of ::OBXStoreTypeId
   int store_type_id(
     ffi.Pointer<OBX_store> store,
   ) {
@@ -1780,6 +1765,22 @@ class ObjectBoxC {
           'obx_store_close');
   late final _store_close =
       _store_closePtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
+
+  /// Registers the default DB type, which is used if no other types matched a path prefix.
+  /// @param storeTypeId Must be one of OBXStoreTypeId (for now).
+  int store_type_id_register_default(
+    int storeTypeId,
+  ) {
+    return _store_type_id_register_default(
+      storeTypeId,
+    );
+  }
+
+  late final _store_type_id_register_defaultPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function(ffi.Uint32)>>(
+          'obx_store_type_id_register_default');
+  late final _store_type_id_register_default =
+      _store_type_id_register_defaultPtr.asFunction<int Function(int)>();
 
   /// Create a write transaction (read and write).
   /// Transaction creation can be nested (recursive), however only the outermost transaction is relevant on the DB level.
@@ -7033,7 +7034,7 @@ class ObjectBoxC {
 
   /// Set the address and port on which the underlying http-server should server the admin web UI.
   /// Defaults to "http://127.0.0.1:8081"
-  /// @note: you can use for e.g. "http://127.0.0.1:0" for automatic free port assignment - see obx_admin_bound_port().
+  /// @note: you can use for e.g. "http://127.0.0.1:0" for automatic free port assignment - see obx_admin_port().
   int admin_opt_bind(
     ffi.Pointer<OBX_admin_options> opt,
     ffi.Pointer<ffi.Char> uri,
@@ -7295,6 +7296,37 @@ class ObjectBoxC {
               ffi.Pointer<ffi.Uint8>, ffi.Size)>>('obx_sync_credentials');
   late final _sync_credentials = _sync_credentialsPtr.asFunction<
       int Function(ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// Set username/password credentials to authenticate the client with the server.
+  /// This is suitable for OBXSyncCredentialsType_OBX_ADMIN_USER and OBXSyncCredentialsType_USER_PASSWORD credential
+  /// types. Use obx_sync_credentials() for other credential types.
+  /// @param type should be OBXSyncCredentialsType_OBX_ADMIN_USER or OBXSyncCredentialsType_USER_PASSWORD
+  /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if credential type does not support username/password authentication.
+  int sync_credentials_user_password(
+    ffi.Pointer<OBX_sync> sync1,
+    int type,
+    ffi.Pointer<ffi.Char> username,
+    ffi.Pointer<ffi.Char> password,
+  ) {
+    return _sync_credentials_user_password(
+      sync1,
+      type,
+      username,
+      password,
+    );
+  }
+
+  late final _sync_credentials_user_passwordPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_sync>,
+              ffi.Int32,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('obx_sync_credentials_user_password');
+  late final _sync_credentials_user_password =
+      _sync_credentials_user_passwordPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
 
   /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.
   /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the range 1-20
@@ -7928,6 +7960,55 @@ class ObjectBoxC {
               ffi.Pointer<OBX_sync_listener_msg_objects>,
               ffi.Pointer<ffi.Void>)>();
 
+  /// Set or overwrite a previously set 'error' listener - provides information about occurred sync-level errors.
+  /// @param listener set NULL to reset
+  /// @param listener_arg is a pass-through argument passed to the listener
+  void sync_listener_error(
+    ffi.Pointer<OBX_sync> sync1,
+    ffi.Pointer<OBX_sync_listener_error> error,
+    ffi.Pointer<ffi.Void> listener_arg,
+  ) {
+    return _sync_listener_error(
+      sync1,
+      error,
+      listener_arg,
+    );
+  }
+
+  late final _sync_listener_errorPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<OBX_sync>,
+              ffi.Pointer<OBX_sync_listener_error>,
+              ffi.Pointer<ffi.Void>)>>('obx_sync_listener_error');
+  late final _sync_listener_error = _sync_listener_errorPtr.asFunction<
+      void Function(ffi.Pointer<OBX_sync>, ffi.Pointer<OBX_sync_listener_error>,
+          ffi.Pointer<ffi.Void>)>();
+
+  /// Get u64 value for sync statistics.
+  /// @param counter_type the counter value to be read.
+  /// @param out_count receives the counter value.
+  /// @return OBX_SUCCESS if the counter has been successfully retrieved.
+  /// @return OBX_ERROR_ILLEGAL_ARGUMENT if counter_type is undefined.
+  int sync_stats_u64(
+    ffi.Pointer<OBX_sync> sync1,
+    int counter_type,
+    ffi.Pointer<ffi.Uint64> out_count,
+  ) {
+    return _sync_stats_u64(
+      sync1,
+      counter_type,
+      out_count,
+    );
+  }
+
+  late final _sync_stats_u64Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync>, ffi.Int32,
+              ffi.Pointer<ffi.Uint64>)>>('obx_sync_stats_u64');
+  late final _sync_stats_u64 = _sync_stats_u64Ptr.asFunction<
+      int Function(ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Uint64>)>();
+
   /// Prepares an ObjectBox Sync Server to run within your application (embedded server) at the given URI.
   /// Note that you need a special sync edition, which includes the server components. Check https://objectbox.io/sync/.
   /// This call opens a store with the given options (also see obx_store_open()).
@@ -8045,6 +8126,27 @@ class ObjectBoxC {
   late final _sync_server_credentials = _sync_server_credentialsPtr.asFunction<
       int Function(
           ffi.Pointer<OBX_sync_server>, int, ffi.Pointer<ffi.Uint8>, int)>();
+
+  /// Enables authenticator for server. Can be called multiple times. Use before obx_sync_server_start().
+  /// Use obx_sync_server_credentials() for authenticators which requires additional credentials data (i.e. Google Auth
+  /// and shared secrets authenticators).
+  /// @param type should be one of the available authentications, it should not be OBXSyncCredentialsType_USER_PASSWORD.
+  int sync_server_enable_auth(
+    ffi.Pointer<OBX_sync_server> server,
+    int type,
+  ) {
+    return _sync_server_enable_auth(
+      server,
+      type,
+    );
+  }
+
+  late final _sync_server_enable_authPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_server>,
+              ffi.Int32)>>('obx_sync_server_enable_auth');
+  late final _sync_server_enable_auth = _sync_server_enable_authPtr
+      .asFunction<int Function(ffi.Pointer<OBX_sync_server>, int)>();
 
   /// Sets the number of worker threads. Use before obx_sync_server_start().
   /// @param thread_count The default is "0" which is hardware dependent, e.g. a multiple of CPU "cores".
@@ -8241,6 +8343,58 @@ class ObjectBoxC {
       'obx_sync_server_connections');
   late final _sync_server_connections = _sync_server_connectionsPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync_server>)>();
+
+  /// Get u64 value for sync server statistics.
+  /// @param counter_type the counter value to be read (make sure to choose a uint64_t (u64) metric value type).
+  /// @param out_count receives the counter value.
+  /// @return OBX_SUCCESS if the counter has been successfully retrieved.
+  /// @return OBX_ERROR_ILLEGAL_ARGUMENT if counter_type is undefined (this also happens if the wrong type is requested)
+  /// @return OBX_ERROR_ILLEGAL_STATE if the server is not started.
+  int sync_server_stats_u64(
+    ffi.Pointer<OBX_sync_server> server,
+    int counter_type,
+    ffi.Pointer<ffi.Uint64> out_value,
+  ) {
+    return _sync_server_stats_u64(
+      server,
+      counter_type,
+      out_value,
+    );
+  }
+
+  late final _sync_server_stats_u64Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_server>, ffi.Int32,
+              ffi.Pointer<ffi.Uint64>)>>('obx_sync_server_stats_u64');
+  late final _sync_server_stats_u64 = _sync_server_stats_u64Ptr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_sync_server>, int, ffi.Pointer<ffi.Uint64>)>();
+
+  /// Get double value for sync server statistics.
+  /// @param counter_type the counter value to be read (make sure to use a double (f64) metric value type).
+  /// @param out_count receives the counter value.
+  /// @return OBX_SUCCESS if the counter has been successfully retrieved.
+  /// @return OBX_ERROR_ILLEGAL_ARGUMENT if counter_type is undefined (this also happens if the wrong type is requested)
+  /// @return OBX_ERROR_ILLEGAL_STATE if the server is not started.
+  int sync_server_stats_f64(
+    ffi.Pointer<OBX_sync_server> server,
+    int counter_type,
+    ffi.Pointer<ffi.Double> out_value,
+  ) {
+    return _sync_server_stats_f64(
+      server,
+      counter_type,
+      out_value,
+    );
+  }
+
+  late final _sync_server_stats_f64Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_server>, ffi.Int32,
+              ffi.Pointer<ffi.Double>)>>('obx_sync_server_stats_f64');
+  late final _sync_server_stats_f64 = _sync_server_stats_f64Ptr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_sync_server>, int, ffi.Pointer<ffi.Double>)>();
 
   /// Get server runtime statistics.
   /// The returned char* is valid until another call to obx_sync_server_stats_string() or the server is closed.
@@ -8859,18 +9013,13 @@ class ObjectBoxC {
 
 class _SymbolAddresses {
   final ObjectBoxC _library;
-
   _SymbolAddresses(this._library);
-
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_store>)>>
       get store_close => _library._store_closePtr;
-
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query>)>>
       get query_close => _library._query_closePtr;
-
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query_prop>)>>
       get query_prop_close => _library._query_prop_closePtr;
-
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_admin>)>>
       get admin_close => _library._admin_closePtr;
 }
@@ -8921,6 +9070,9 @@ abstract class OBXFeature {
 
   /// The default database "provider"; writes data persistently to disk (ACID).
   static const int Lmdb = 13;
+
+  /// Vector search functionality; enables indexing for nearest neighbor search.
+  static const int VectorSearch = 14;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -8943,12 +9095,6 @@ abstract class OBXLogLevel {
 
 /// Error/success code returned by an obx_* function; see defines OBX_SUCCESS, OBX_NOT_FOUND, and OBX_ERROR_*
 typedef obx_err = ffi.Int;
-
-/// Log level as passed to obx_log_callback.
-abstract class OBXStoreTypeId {
-  static const int LMDB = 1;
-  static const int InMemory = 2;
-}
 
 abstract class OBXPropertyType {
   /// < Not a actual type; represents an uninitialized or invalid type
@@ -9280,6 +9426,15 @@ abstract class OBXBackupRestoreFlags {
   static const int OverwriteExistingData = 1;
 }
 
+/// Store type to be registered with obx_store_type_id_register_default().
+abstract class OBXStoreTypeId {
+  /// Default store type: persistent data storage (based on LMDB)
+  static const int LMDB = 1;
+
+  /// Store type ID for in-memory database (non-persistent)
+  static const int InMemory = 2;
+}
+
 class OBX_txn extends ffi.Opaque {}
 
 class OBX_cursor extends ffi.Opaque {}
@@ -9412,10 +9567,16 @@ class OBX_admin extends ffi.Opaque {}
 
 class OBX_sync extends ffi.Opaque {}
 
+/// Specifies user-side credential types as well as server-side authenticator types.
+/// Some credentail types do not make sense as authenticators such as OBXSyncCredentialsType_USER_PASSWORD which
+/// specifies a generic client-side credential type.
 abstract class OBXSyncCredentialsType {
   static const int NONE = 1;
   static const int SHARED_SECRET = 2;
   static const int GOOGLE_AUTH = 3;
+  static const int SHARED_SECRET_SIPPED = 4;
+  static const int OBX_ADMIN_USER = 5;
+  static const int USER_PASSWORD = 6;
 }
 
 abstract class OBXRequestUpdatesMode {
@@ -9449,6 +9610,13 @@ abstract class OBXSyncCode {
   static const int BAD_VERSION = 55;
   static const int CLIENT_ID_TAKEN = 61;
   static const int TX_VIOLATED_UNIQUE = 71;
+}
+
+/// Sync-level error reporting codes, passed via obx_sync_listener_error().
+abstract class OBXSyncError {
+  /// Sync client received rejection of transaction writes due to missing permissions.
+  /// Until reconnecting with new credentials client will run in receive-only mode.
+  static const int REJECT_TX_NO_PERMISSION = 1;
 }
 
 abstract class OBXSyncObjectType {
@@ -9549,7 +9717,203 @@ typedef OBX_sync_listener_msg_objects = ffi.NativeFunction<
     ffi.Void Function(ffi.Pointer<ffi.Void> arg,
         ffi.Pointer<OBX_sync_msg_objects> msg_objects)>;
 
+/// Callend when sync-level errors occur
+/// @param arg is a pass-through argument passed to the called API
+/// @param error error code indicating sync-level error events
+typedef OBX_sync_listener_error = ffi.NativeFunction<
+    ffi.Void Function(ffi.Pointer<ffi.Void> arg, ffi.Int32 error)>;
+
+/// Stats counter type IDs as passed to obx_sync_stats_u64().
+abstract class OBXSyncStats {
+  /// Total number of connects (u64)
+  static const int connects = 1;
+
+  /// Total number of succesful logins (u64)
+  static const int logins = 2;
+
+  /// Total number of messages received (u64)
+  static const int messagesReceived = 3;
+
+  /// Total number of messages sent (u64)
+  static const int messagesSent = 4;
+
+  /// Total number of errors during message sending (u64)
+  static const int messageSendFailures = 5;
+
+  /// Total number of bytes received via messages.
+  /// Note: this is measured on the application level and thus may not match e.g. the network level. (u64)
+  static const int messageBytesReceived = 6;
+
+  /// Total number of bytes sent via messages.
+  /// Note: this is measured on the application level and thus may not match e.g. the network level.
+  /// E.g. messages may be still enqueued so at least the timing will differ. (u64)
+  static const int messageBytesSent = 7;
+}
+
 class OBX_sync_server extends ffi.Opaque {}
+
+/// Stats counter type IDs as passed to obx_sync_server_stats_u64() (for u64 values) and obx_sync_server_stats_f64()
+/// (for double (f64) values).
+abstract class OBXSyncServerStats {
+  /// Total number of client connections established (u64)
+  static const int connects = 1;
+
+  /// Total number of messages received from clients (u64)
+  static const int messagesReceived = 2;
+
+  /// Total number of messages sent to clients (u64)
+  static const int messagesSent = 3;
+
+  /// Total number of bytes received from clients via messages. (u64)
+  /// Note: this is measured on the application level and thus may not match e.g. the network level.
+  static const int messageBytesReceived = 4;
+
+  /// Total number of bytes sent to clients via messages. (u64)
+  /// Note: this is measured on the application level and thus may not match e.g. the network level.
+  /// E.g. messages may be still enqueued so at least the timing will differ.
+  static const int messageBytesSent = 5;
+
+  /// Full syncs performed (u64)
+  static const int fullSyncs = 6;
+
+  /// Processing was aborted due to clients disconnected (u64)
+  static const int disconnectAborts = 7;
+
+  /// Total number of client transactions applied (u64)
+  static const int clientTxsApplied = 8;
+
+  /// Total size in bytes of client transactions applied (u64)
+  static const int clientTxBytesApplied = 9;
+
+  /// Total size in number of operations of transactions applied (u64)
+  static const int clientTxOpsApplied = 10;
+
+  /// Total number of local (server initiated) transactions applied (u64)
+  static const int localTxsApplied = 11;
+
+  /// AsyncQ committed TXs (u64)
+  static const int asyncDbCommits = 12;
+
+  /// Total number of skipped transactions duplicates (have been already applied before) (u64)
+  static const int skippedTxDups = 13;
+
+  /// Total number of login successes (u64)
+  static const int loginSuccesses = 14;
+
+  /// Total number of login failures (u64)
+  static const int loginFailures = 15;
+
+  /// Total number of login failures due to bad user credentials (u64)
+  static const int loginFailuresUserBadCredentials = 16;
+
+  /// Total number of login failures due to authenticator not available (u64)
+  static const int loginFailuresAuthUnavailable = 17;
+
+  /// Total number of login failures due to user has no permissions (u64)
+  static const int loginFailuresUserNoPermission = 18;
+
+  /// Total number of errors during message sending (u64)
+  static const int messageSendFailures = 19;
+
+  /// Total number of protocol errors; e.g. offending clients (u64)
+  static const int errorsProtocol = 20;
+
+  /// Total number of errors in message handlers (u64)
+  static const int errorsInHandlers = 21;
+
+  /// Total number of times a client has been disconnected due to heart failure (u64)
+  static const int heartbeatFailures = 22;
+
+  /// Total number of received client heartbeats (u64)
+  static const int heartbeatsReceived = 23;
+
+  /// Total APPLY_TX messages HistoryPusher has sent out (u64)
+  static const int historicUpdateTxsSent = 24;
+
+  /// Total APPLY_TX messages newDataPusher has sent out (u64)
+  static const int newUpdateTxsSent = 25;
+
+  /// Total number of messages received from clients (u64)
+  static const int forwardedMessagesReceived = 26;
+
+  /// Total number of messages sent to clients (u64)
+  static const int forwardedMessagesSent = 27;
+
+  /// Total number of global-to-local cache hits (u64)
+  static const int cacheGlobalToLocalHits = 28;
+
+  /// Total number of global-to-local cache misses (u64)
+  static const int cacheGlobalToLocalMisses = 29;
+
+  /// Internal dev stat for ID Map caching  (u64)
+  static const int cacheGlobalToLocalSize = 30;
+
+  /// Internal dev stat for ID Map caching  (u64)
+  static const int cachePeerToLocalHits = 31;
+
+  /// Internal dev stat for ID Map caching  (u64)
+  static const int cachePeerToLocalMisses = 32;
+
+  /// Internal dev stat for ID Map caching  (u64)
+  static const int cacheLocalToPeerHits = 33;
+
+  /// Internal dev stat for ID Map caching  (u64)
+  static const int cacheLocalToPeerMisses = 34;
+
+  /// Internal dev stat for ID Map caching  (u64)
+  static const int cachePeerSize = 35;
+
+  /// Current cluster peer state (0 = unknown, 1 = leader, 2 = follower, 3 = candidate) (u64)
+  static const int clusterPeerState = 36;
+
+  /// Number of transactions between the current Tx and the oldest Tx currently ACKed on any client (current)
+  /// (f64)
+  static const int clientTxsBehind = 37;
+
+  /// Number of transactions between the current Tx and the oldest Tx currently ACKed on any client (minimum)
+  /// (u64)
+  static const int clientTxsBehind_min = 38;
+
+  /// Number of transactions between the current Tx and the oldest Tx currently ACKed on any client (maximum)
+  /// (u64)
+  static const int clientTxsBehind_max = 39;
+
+  /// Number of connected clients (current) (f64)
+  static const int connectedClients = 40;
+
+  /// Number of connected clients (minimum) (u64)
+  static const int connectedClients_min = 41;
+
+  /// Number of connected clients (maximum) (u64)
+  static const int connectedClients_max = 42;
+
+  /// Length of the queue for regular Tasks (current) (f64)
+  static const int queueLength = 43;
+
+  /// Length of the queue for regular Tasks (minimum) (u64)
+  static const int queueLength_min = 44;
+
+  /// Length of the queue for regular Tasks (maximum) (u64)
+  static const int queueLength_max = 45;
+
+  /// Length of the async queue (current) (f64)
+  static const int queueLengthAsync = 46;
+
+  /// Length of the async queue (minimum) (u64)
+  static const int queueLengthAsync_min = 47;
+
+  /// Length of the async queue (maximum) (u64)
+  static const int queueLengthAsync_max = 48;
+
+  /// Sequence number of TX log history (current) (f64)
+  static const int txHistorySequence = 49;
+
+  /// Sequence number of TX log history (minimum) (u64)
+  static const int txHistorySequence_min = 50;
+
+  /// Sequence number of TX log history (maximum) (u64)
+  static const int txHistorySequence_max = 51;
+}
 
 /// Struct of the custom server function callbacks. In order to implement the custom server, you must provide
 /// custom methods for each of the members of this struct. This is then passed to obx_custom_msg_server_register()
@@ -9756,7 +10120,7 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 0;
 
-const int OBX_VERSION_MINOR = 20;
+const int OBX_VERSION_MINOR = 21;
 
 const int OBX_VERSION_PATCH = 0;
 

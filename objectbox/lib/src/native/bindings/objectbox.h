@@ -52,7 +52,7 @@ extern "C" {
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 0
-#define OBX_VERSION_MINOR 20
+#define OBX_VERSION_MINOR 21
 #define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
@@ -147,6 +147,9 @@ typedef enum {
     /// The default database "provider"; writes data persistently to disk (ACID).
     OBXFeature_Lmdb = 13,
 
+    /// Vector search functionality; enables indexing for nearest neighbor search.
+    OBXFeature_VectorSearch = 14,
+
 } OBXFeature;
 
 /// Checks whether the given feature is available in the currently loaded library.
@@ -199,13 +202,6 @@ OBX_C_API bool obx_debug_log_enabled();
 /// Gets the number, as used by ObjectBox, of the current thread.
 /// This e.g. allows to "associate" the thread with ObjectBox logs (each log entry contains the thread number).
 OBX_C_API int obx_thread_number();
-
-/// Log level as passed to obx_log_callback.
-typedef enum { OBXStoreTypeId_LMDB = 1, OBXStoreTypeId_InMemory = 2 } OBXStoreTypeId;
-
-/// Registers the default DB type, which is used if no other types matched a path prefix.
-/// @param storeTypeId Must be one of OBXStoreTypeId (for now).
-OBX_C_API int obx_store_type_id_register_default(uint32_t storeTypeId);
 
 //----------------------------------------------
 // Return and error codes
@@ -615,7 +611,8 @@ OBX_C_API obx_err obx_model_entity_last_property_id(OBX_model* model, obx_schema
 
 struct OBX_store;  // doxygen (only) picks up the typedef struct below
 
-/// \brief A ObjectBox store represents a database storing data in a given directory on a local file system.
+/// \brief A ObjectBox store represents a database storing data in a given directory on a local file system or in-memory
+/// using "memory:" directory prefix.
 ///
 /// Once opened using obx_store_open(), it's an entry point to data access APIs such as box, query, cursor, transaction.
 /// After your work is done, you must close obx_store_close() to safely release all the handles and avoid data loss.
@@ -776,6 +773,7 @@ typedef struct OBX_float_array {
 OBX_C_API OBX_store_options* obx_opt();
 
 /// Set the store directory on the options. The default is "objectbox".
+/// Use prefix "memory:" to open an in-memory database, e.g. "memory:myApp" (see docs for details).
 OBX_C_API obx_err obx_opt_directory(OBX_store_options* opt, const char* dir);
 
 /// Set the maximum db size on the options. The default is 1Gb.
@@ -788,7 +786,7 @@ OBX_C_API void obx_opt_max_db_size_in_kb(OBX_store_options* opt, uint64_t size_i
 /// Max data and DB sizes can be combined; data size must be below the DB size.
 OBX_C_API void obx_opt_max_data_size_in_kb(OBX_store_options* opt, uint64_t size_in_kb);
 
-/// Set the file mode on the options. The default is 0644 (unix-style)
+/// Set the file mode on the options. The default is 0644 (unix-style).
 OBX_C_API void obx_opt_file_mode(OBX_store_options* opt, unsigned int file_mode);
 
 /// Set the maximum number of readers (related to read transactions) on the given options.
@@ -977,7 +975,7 @@ OBX_C_API void obx_opt_free(OBX_store_options* opt);
 /// Opens (creates) a "store", which represents an ObjectBox database instance in a given directory.
 /// The store is an entry point to data access APIs such as box (obx_box_*), query (obx_qb_* and obx_query_*),
 /// and transaction (obx_txn_*).
-/// It's possible open multiple stores in different directories, e.g. at the same time.
+/// It's possible to open multiple stores in different directories, e.g. at the same time.
 /// See also obx_store_close() to close a previously opened store.
 /// Note: the given options are always freed by this function, including when an error occurs.
 /// @param opt required parameter holding the data model (obx_opt_model()) and optional options (see obx_opt_*())
@@ -1016,7 +1014,7 @@ OBX_C_API OBX_store* obx_store_attach_or_open(OBX_store_options* opt, bool check
 OBX_C_API uint64_t obx_store_id(OBX_store* store);
 
 /// Gives the store type ID for the given store
-/// @returns One of OBXStoreTypeId
+/// @returns One of ::OBXStoreTypeId
 OBX_C_API uint32_t obx_store_type_id(OBX_store* store);
 
 /// Clone a previously opened store; while a store instance is usable from multiple threads, situations may exist
@@ -1079,6 +1077,21 @@ OBX_C_API obx_err obx_store_prepare_to_close(OBX_store* store);
 /// \note This waits for write transactions to finish before returning from this call.
 /// @param store may be NULL
 OBX_C_API obx_err obx_store_close(OBX_store* store);
+
+/// Store type to be registered with obx_store_type_id_register_default().
+typedef enum {
+
+    /// Default store type: persistent data storage (based on LMDB)
+    OBXStoreTypeId_LMDB = 1,
+
+    /// Store type ID for in-memory database (non-persistent)
+    OBXStoreTypeId_InMemory = 2
+
+} OBXStoreTypeId;
+
+/// Registers the default DB type, which is used if no other types matched a path prefix.
+/// @param storeTypeId Must be one of OBXStoreTypeId (for now).
+OBX_C_API int obx_store_type_id_register_default(uint32_t storeTypeId);
 
 //----------------------------------------------
 // Transaction
@@ -2417,7 +2430,7 @@ OBX_C_API obx_err obx_admin_opt_store_path(OBX_admin_options* opt, const char* d
 
 /// Set the address and port on which the underlying http-server should server the admin web UI.
 /// Defaults to "http://127.0.0.1:8081"
-/// @note: you can use for e.g. "http://127.0.0.1:0" for automatic free port assignment - see obx_admin_bound_port().
+/// @note: you can use for e.g. "http://127.0.0.1:0" for automatic free port assignment - see obx_admin_port().
 OBX_C_API obx_err obx_admin_opt_bind(OBX_admin_options* opt, const char* uri);
 
 /// Configure the server to use SSL, with the given certificate.

@@ -50,6 +50,12 @@
 * Add `Store.removeDbFiles()` to conveniently delete database files or an in-memory database.
 * Add `Store.dbFileSize()` to get the size in bytes of the main database file or memory occupied by
   an in-memory database.
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.21.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.21.0).
+* Flutter for Android: update to [objectbox-android 3.8.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.8.0).
+  If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:3.8.0` in `android/app/build.gradle`.
+* Flutter for iOS/macOS: update to [objectbox-swift 1.9.2](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.2).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
 
 ## 2.4.0 (2023-12-13)
 
