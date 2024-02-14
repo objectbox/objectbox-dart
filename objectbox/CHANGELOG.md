@@ -1,3 +1,5 @@
+## latest
+
 ## 2.5.0 (2024-02-14)
 
 * Support creating file-less in-memory databases, for example for caching or testing. To create one
