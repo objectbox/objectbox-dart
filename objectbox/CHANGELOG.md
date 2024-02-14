@@ -54,6 +54,8 @@
 * Flutter for Android: update to [objectbox-android 3.8.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.8.0).
   If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
   update to `io.objectbox:objectbox-android-objectbrowser:3.8.0` in `android/app/build.gradle`.
+* Flutter for iOS/macOS: update to [objectbox-swift 1.9.2](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.2).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
 
 ## 2.4.0 (2023-12-13)
 
