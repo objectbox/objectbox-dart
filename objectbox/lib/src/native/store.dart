@@ -219,12 +219,7 @@ class Store implements Finalizable {
           ArgumentError.value(macosApplicationGroup, 'macosApplicationGroup',
               'Must be at most 20 characters long');
         }
-        final cStr = macosApplicationGroup.toNativeUtf8();
-        try {
-          C.posix_sem_prefix_set(cStr.cast());
-        } finally {
-          malloc.free(cStr);
-        }
+        withNativeString(macosApplicationGroup, C.posix_sem_prefix_set);
       }
       _checkStoreDirectoryNotOpen();
       final model = Model(modelDefinition.model);
@@ -235,12 +230,8 @@ class Store implements Finalizable {
 
       try {
         checkObx(C.opt_model(opt, model.ptr));
-        final cStr = safeDirectoryPath.toNativeUtf8();
-        try {
-          checkObx(C.opt_directory(opt, cStr.cast()));
-        } finally {
-          malloc.free(cStr);
-        }
+        checkObx(withNativeString(
+            safeDirectoryPath, (cStr) => C.opt_directory(opt, cStr)));
         if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
           C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
         }
@@ -389,16 +380,13 @@ class Store implements Finalizable {
       _checkStoreDirectoryNotOpen();
 
       final safeDirectoryPath = _safeDirectoryPath(directoryPath);
-      final pathCStr = safeDirectoryPath.toNativeUtf8();
-      try {
+      withNativeString(safeDirectoryPath, (cStr) {
         if (debugLogs) {
-          final isOpen = C.store_is_open(pathCStr.cast());
+          final isOpen = C.store_is_open(cStr);
           print('Attaching to store... path=$safeDirectoryPath isOpen=$isOpen');
         }
-        _cStore = C.store_attach(pathCStr.cast());
-      } finally {
-        malloc.free(pathCStr);
-      }
+        _cStore = C.store_attach(cStr);
+      });
 
       checkObxPtr(_cStore,
           'could not attach to the store at given path - please ensure it was opened before');
@@ -496,12 +484,24 @@ class Store implements Finalizable {
   /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
   static bool isOpen(String? directoryPath) {
     final path = _safeDirectoryPath(directoryPath);
-    final cStr = path.toNativeUtf8();
-    try {
-      return C.store_is_open(cStr.cast());
-    } finally {
-      malloc.free(cStr);
-    }
+    return withNativeString(path, C.store_is_open);
+  }
+
+  /// Returns the file size in bytes of the main database file for the given
+  /// [directoryPath], or 0 if the file does not exist or some error occurred.
+  ///
+  /// For in-memory databases, it is supported to pass the [inMemoryPrefix] and
+  /// the identifier. The rough size in bytes of the in-memory database will be
+  /// reported instead.
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
+  static int dbFileSize(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    return withNativeString(path, C.db_file_size);
   }
 
   /// Danger zone! This will delete all files in the given directory!
@@ -519,12 +519,7 @@ class Store implements Finalizable {
   /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
   static void removeDbFiles(String? directoryPath) {
     final path = _safeDirectoryPath(directoryPath);
-    final cStr = path.toNativeUtf8();
-    try {
-      checkObx(C.remove_db_files(cStr.cast()));
-    } finally {
-      malloc.free(cStr);
-    }
+    checkObx(withNativeString(path, C.remove_db_files));
   }
 
   /// Returns a store reference you can use to create a new store instance with
