@@ -52,6 +52,6 @@ android {
         // ObjectBox Android library that includes an ObjectBox C library version compatible with
         // the C API binding of the ObjectBox Dart package.
         // https://central.sonatype.com/search?q=g:io.objectbox%20objectbox-android
-        implementation "io.objectbox:objectbox-android:3.7.1"
+        implementation "io.objectbox:objectbox-android:3.8.0"
     }
 }
