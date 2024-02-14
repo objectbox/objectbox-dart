@@ -37,8 +37,8 @@ Then manually:
   from [objectbox_c.dart](../objectbox/lib/src/native/bindings/objectbox_c.dart) 
   to [enums.dart](../objectbox/lib/src/modelinfo/enums.dart).
 - Check the changed files, make any required changes in the Dart library (like method signature changes).
-- ⚠️ Update minimum C library and core version and notes as needed in [bindings.dart](../objectbox/lib/src/native/bindings/bindings.dart).
+- ⚠️ Update minimum C API and core version and notes as needed in [bindings.dart](../objectbox/lib/src/native/bindings/bindings.dart).
   
-  Note: the embedded C library and core version can be looked up
+  Note: the embedded C API and core version can be looked up
   for Android from the relevant core repository release tag and
   for Swift from its repos release tag and the core commit it points to.
