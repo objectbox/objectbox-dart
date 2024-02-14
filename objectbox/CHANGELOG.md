@@ -1,14 +1,15 @@
 ## latest
 
-* Avoid conflicts with entity class names in generated code [#519](https://github.com/objectbox/objectbox-dart/issues/519)
-* For Flutter apps: `loadObjectBoxLibraryAndroidCompat()` is now called by default when using
-  `openStore()` (effective after re-running `flutter pub run build_runner build`). For devices
-  running Android 6 or older this will pre-load the ObjectBox library in Java to prevent errors when
-  loading it in Dart.
-
-  If your code was calling the compat method manually, remove the call and re-run above command.
-
-  Let us know if there are issues with this change in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
+* Support creating file-less in-memory databases, for example for caching or testing. To create one
+  pass an in-memory identifier together with `Store.inMemoryPrefix` as the `directory`:
+  ```dart
+   final inMemoryStore =
+       Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
+  ```
+  See the `Store` documentation for details.
+* Add `Store.removeDbFiles()` to conveniently delete database files or an in-memory database.
+* Add `Store.dbFileSize()` to get the size in bytes of the main database file or memory occupied by
+  an in-memory database.
 * Add `relationCount()` query condition to match objects that have a certain number of related
   objects pointing to them. E.g. `Customer_.orders.relationCount(2)` will match all customers with
   two orders. `Customer_.orders.relationCount(0)` will match all customers with no associated order.
@@ -40,16 +41,15 @@
   int get computedValue => TODO;
   set computedValue(int value) => TODO;
   ```
-* Support creating file-less in-memory databases, for example for testing. To create one pass an 
-  in-memory identifier together with `Store.inMemoryPrefix` as the `directory`:
-  ```dart
-   final inMemoryStore =
-       Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
-  ```
-  See the `Store` documentation for details.
-* Add `Store.removeDbFiles()` to conveniently delete database files or an in-memory database.
-* Add `Store.dbFileSize()` to get the size in bytes of the main database file or memory occupied by
-  an in-memory database.
+* For Flutter apps: `loadObjectBoxLibraryAndroidCompat()` is now called by default when using
+  `openStore()` (effective after re-running `flutter pub run build_runner build`). For devices
+  running Android 6 or older this will pre-load the ObjectBox library in Java to prevent errors when
+  loading it in Dart.
+
+  If your code was calling the compat method manually, remove the call and re-run above command.
+
+  Let us know if there are issues with this change in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
+* Avoid conflicts with entity class names in generated code [#519](https://github.com/objectbox/objectbox-dart/issues/519)
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.21.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.21.0).
 * Flutter for Android: update to [objectbox-android 3.8.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.8.0).
   If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
