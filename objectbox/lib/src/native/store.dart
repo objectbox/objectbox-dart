@@ -115,10 +115,10 @@ class Store implements Finalizable {
   ///
   /// ## In-memory database
   /// To use a file-less in-memory database, instead of a directory path pass
-  /// [inMemoryPrefix] together with an identifier string as the [directory]:
+  /// `memory:` together with an identifier string as the [directory]:
   /// ```dart
   /// final inMemoryStore =
-  ///     Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
+  ///     Store(getObjectBoxModel(), directory: "memory:test-db");
   /// ```
   ///
   /// ## Case insensitive queries
