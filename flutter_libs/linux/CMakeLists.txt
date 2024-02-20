@@ -7,6 +7,9 @@ cmake_minimum_required(VERSION 3.10)
 set(PROJECT_NAME "objectbox_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+# Enable new CMake policies to avoid FetchContent deprecation warnings
+cmake_policy(VERSION 3.10...3.24)
+
 # This value is used when generating builds using this plugin, so it must
 # not be changed.
 set(PLUGIN_NAME "objectbox_flutter_libs_plugin")
@@ -41,11 +44,13 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
 # ----------------------------------------------------------------------
 # Download and add objectbox-c prebuilt library.
 
-set(OBJECTBOX_VERSION 0.18.1)
+set(OBJECTBOX_VERSION 0.21.0)
 
 set(OBJECTBOX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${OBJECTBOX_ARCH} MATCHES "x86_64")
     set(OBJECTBOX_ARCH x64)
+elseif (${OBJECTBOX_ARCH} MATCHES "^arm64" OR ${OBJECTBOX_ARCH} MATCHES "^armv8")
+    set(OBJECTBOX_ARCH aarch64)
 elseif (${OBJECTBOX_ARCH} MATCHES "^armv7")
     set(OBJECTBOX_ARCH armv7hf)
 elseif (${OBJECTBOX_ARCH} MATCHES "^arm")

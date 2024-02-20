@@ -59,8 +59,8 @@ void main() {
 
     expect(
         () => box.put(TestEntity2(id: 5), mode: PutMode.update),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == 'object put failed')));
+        throwsA(predicate((StorageException e) =>
+            e.message.contains("object put failed: ID is higher or equal"))));
   });
 
   test('use after close throws', () {
@@ -162,8 +162,8 @@ void main() {
     await expectLater(
         () async =>
             await box.putAsync(TestEntity2(id: 5), mode: PutMode.update),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == 'object put failed')));
+        throwsA(predicate((StorageException e) =>
+            e.message.contains("object put failed: ID is higher or equal"))));
 
     expect(box.count(), 1);
 
@@ -210,8 +210,9 @@ void main() {
         () => box
             .putQueuedAwaitResult(TestEntity2(), mode: PutMode.update)
             .timeout(defaultTimeout),
-        throwsA(predicate(
-            (ArgumentError e) => e.toString().contains('ID is not set'))));
+        throwsA(predicate((ArgumentError e) =>
+            e.message ==
+            "putAsync failed: Putting object failed because ID is not set (zero) for object to update (OBX_ERROR code 10002)")));
 
     expect(
         await box
@@ -222,8 +223,8 @@ void main() {
         () async => await box
             .putQueuedAwaitResult(TestEntity2(id: 5), mode: PutMode.update)
             .timeout(defaultTimeout),
-        throwsA(predicate((ObjectBoxException e) =>
-            e.toString().contains('object with the given ID not found'))));
+        throwsA(predicate((StorageException e) =>
+            e.message.contains("putAsync failed: ID is higher or equal"))));
     expect(box.count(), 1);
 
     expect(
@@ -239,17 +240,18 @@ void main() {
       final object = TestEntity2()..value = 42;
       final future = box.putQueuedAwaitResult(object);
 
-      try {
-        await future;
-      } catch (e) {
-        // TODO: Mac in GitHub CI (not locally reproducible yet)...
-        if (Platform.isMacOS) {
-          expect(e is ObjectBoxException, isTrue);
-          expect((e as ObjectBoxException).message, '');
-        } else {
-          expect(e is UniqueViolationException, isTrue);
-          expect(e.toString(), contains('Unique constraint'));
-        }
+      if (Platform.isMacOS && !atLeastDart('3.1.0')) {
+        // Before Dart 3.1 an incorrect exception is thrown on macOS.
+        expect(
+            () async => await future,
+            throwsA(
+                predicate((e) => e is ObjectBoxException && e.message == '')));
+      } else {
+        expect(
+            () async => await future,
+            throwsA(predicate((e) =>
+                e is UniqueViolationException &&
+                e.message.contains('Unique constraint'))));
       }
 
       expect(object.id, isNull); // ID must remain unassigned
@@ -833,7 +835,7 @@ void main() {
     await store.runInTransactionAsync(TxMode.write, callback, simpleItems());
     count = box.count();
     expect(count, equals(6));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('async txn - send and receive relations', () async {
     final testBox = store.box<TestEntity>();
@@ -861,7 +863,7 @@ void main() {
       object.relA.target;
       object.relManyA.length;
     }
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('failing transactions', () {
     expect(
@@ -895,7 +897,7 @@ void main() {
             }, simpleItems()),
         throwsA('test-exception'));
     expect(box.count(), equals(0));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive write in write transaction', () {
     store.runInTransaction(TxMode.write, () {
@@ -921,7 +923,7 @@ void main() {
       });
     }, simpleItems());
     expect(box.count(), equals(12));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive read in write transaction', () {
     int count = store.runInTransaction(TxMode.write, () {
@@ -939,7 +941,7 @@ void main() {
       return store.runInTransaction(TxMode.read, box.count);
     }, simpleItems());
     expect(count, equals(6));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('recursive write in read -> fails during creation', () {
     expect(
@@ -963,7 +965,7 @@ void main() {
             }, simpleItems()),
         throwsA(predicate((StateError e) => e.toString().contains(
             'Bad state: failed to create transaction: Cannot start a write transaction inside a read only transaction (OBX_ERROR code 10001)'))));
-  }, skip: notAtLeastDart2_15_0());
+  });
 
   test('failing in recursive txn', () {
     store.runInTransaction(TxMode.write, () {
@@ -1072,7 +1074,7 @@ void main() {
   });
 
   // https://github.com/objectbox/objectbox-dart/issues/550
-  test("read during object creation", () {
+  test("get with nested get reads all properties", () {
     final box = env.store.box<TestEntityReadDuringRead>();
     final id =
         box.put(TestEntityReadDuringRead()..strings2 = ["A2", "B2", "C3"]);
@@ -1085,6 +1087,48 @@ void main() {
     final actual = box.get(id)!;
     readDuringReadCalledFromSetter = null; // Do not leak the box instance.
     expect(actual.strings2, hasLength(3));
+  });
+
+  // https://github.com/objectbox/objectbox-dart/issues/550
+  test("query with nested query returns all results", () {
+    final box = env.store.box<TestEntityReadDuringRead>();
+    box.put(TestEntityReadDuringRead());
+    box.put(TestEntityReadDuringRead());
+    // Do a query of another box (to avoid stack overflow)
+    // as part of calling a property setter.
+    env.box.putMany(simpleItems());
+    var nestedCountUnexpected = false;
+    readDuringReadCalledFromSetter = () {
+      final query = env.box.query().build();
+      final count = query.find().length;
+      if (count != 6) nestedCountUnexpected = true;
+      query.close();
+    };
+    final query = box.query().build();
+    final all = query.find();
+    query.close();
+
+    expect(all.length, 2);
+    expect(nestedCountUnexpected, false);
+
+    readDuringReadCalledFromSetter = null; // Do not leak the box instance.
+  });
+
+  // https://github.com/objectbox/objectbox-dart/issues/550
+  test("query with nested throwing query forwards error", () {
+    final box = env.store.box<TestEntityReadDuringRead>();
+    final id = box.put(TestEntityReadDuringRead());
+    // Query for an object that will throw when being read
+    // as part of calling a property setter.
+    final throwingBox = env.store.box<ThrowingInConverters>();
+    throwingBox.put(ThrowingInConverters(throwOnGet: true));
+    readDuringReadCalledFromSetter = () {
+      throwingBox.query().build().find();
+    };
+    // The outer query should forward the exception of the nested query.
+    expect(() => box.get(id), ThrowingInConverters.throwsIn("Setter"));
+
+    readDuringReadCalledFromSetter = null; // Do not leak the box instance.
   });
 }
 

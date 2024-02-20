@@ -25,6 +25,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    if (project.android.hasProperty("namespace")) {
+        namespace 'io.objectbox.objectbox_flutter_libs'
+    }
+
     compileSdkVersion 31
 
     compileOptions {
@@ -41,11 +45,13 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 19 // ObjectBox Android requires Android 4.4 (API level 19)
     }
 
     dependencies {
-        // https://search.maven.org/search?q=g:io.objectbox%20objectbox-android
-        implementation "io.objectbox:objectbox-android:3.5.1"
+        // ObjectBox Android library that includes an ObjectBox C library version compatible with
+        // the C API binding of the ObjectBox Dart package.
+        // https://central.sonatype.com/search?q=g:io.objectbox%20objectbox-android
+        implementation "io.objectbox:objectbox-android:3.8.0"
     }
 }

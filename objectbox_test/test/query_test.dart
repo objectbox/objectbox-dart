@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
-import 'entity.dart';
+import 'entity.dart' hide Condition;
 import 'entity2.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
@@ -125,14 +125,13 @@ void main() {
 
     final env1 = TestEnv('query1', queryCaseSensitive: true);
     final env2 = TestEnv('query2', queryCaseSensitive: false);
+    addTearDown(() => env1.closeAndDelete());
+    addTearDown(() => env2.closeAndDelete());
 
     // current default: case insensitive
     testCaseSensitivity(env.box, defaultIsTrue: true);
     testCaseSensitivity(env1.box, defaultIsTrue: true);
     testCaseSensitivity(env2.box, defaultIsTrue: false);
-
-    env1.closeAndDelete();
-    env2.closeAndDelete();
   });
 
   test('.count doubles and booleans', () {
@@ -193,6 +192,70 @@ void main() {
     ]);
 
     expect(box.query(TestEntity_.tInt.between(3, 7)).build().count(), 3);
+  });
+
+  test('date and date nano convenience conditions', () {
+    const count = 6;
+    final dates = [for (var i = 1; i <= count; i++) DateTime.utc(2000, 1, i)];
+    box.putMany([for (var d in dates) TestEntity(tDate: d, tDateNano: d)]);
+
+    queryAndAssert(QueryBuilder<TestEntity> builder) {
+      final items = builder.build().find();
+      expect(items.length, 3);
+      expect(items[0].tDate!.day, 3);
+      expect(items[1].tDate!.day, 4);
+      expect(items[2].tDate!.day, 5);
+    }
+
+    final from = dates[2];
+    final to = dates[4];
+
+    // With the existing QueryIntegerProperty (now a super type)
+    queryAndAssert(box.query(TestEntity_.tDate
+        .between(from.millisecondsSinceEpoch, to.millisecondsSinceEpoch)));
+    queryAndAssert(box.query(TestEntity_.tDateNano.between(
+        from.microsecondsSinceEpoch * 1000, to.microsecondsSinceEpoch * 1000)));
+
+    // With the new QueryDateProperty
+    queryAndAssert(box.query(TestEntity_.tDate.betweenDate(from, to)));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .equalsDate(from)
+        .or(TestEntity_.tDate.equalsDate(dates[3]))
+        .or(TestEntity_.tDate.equalsDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .notEqualsDate(dates[0])
+        .and(TestEntity_.tDate.notEqualsDate(dates[1]))
+        .and(TestEntity_.tDate.notEqualsDate(dates[5]))));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .greaterOrEqualDate(from)
+        .and(TestEntity_.tDate.lessOrEqualDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDate
+        .greaterThanDate(dates[1])
+        .and(TestEntity_.tDate.lessThanDate(dates[5]))));
+    queryAndAssert(box.query(TestEntity_.tDate.oneOfDate(dates.slice(2, 5))));
+    queryAndAssert(box
+        .query(TestEntity_.tDate.notOneOfDate([dates[0], dates[1], dates[5]])));
+
+    // With the new QueryDateNanoProperty
+    queryAndAssert(box.query(TestEntity_.tDateNano.betweenDate(from, to)));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .equalsDate(from)
+        .or(TestEntity_.tDateNano.equalsDate(dates[3]))
+        .or(TestEntity_.tDateNano.equalsDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .notEqualsDate(dates[0])
+        .and(TestEntity_.tDateNano.notEqualsDate(dates[1]))
+        .and(TestEntity_.tDateNano.notEqualsDate(dates[5]))));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .greaterOrEqualDate(from)
+        .and(TestEntity_.tDateNano.lessOrEqualDate(to))));
+    queryAndAssert(box.query(TestEntity_.tDateNano
+        .greaterThanDate(dates[1])
+        .and(TestEntity_.tDateNano.lessThanDate(dates[5]))));
+    queryAndAssert(
+        box.query(TestEntity_.tDateNano.oneOfDate(dates.slice(2, 5))));
+    queryAndAssert(box.query(
+        TestEntity_.tDateNano.notOneOfDate([dates[0], dates[1], dates[5]])));
   });
 
   test('.count matches of `greater` and `less`', () {

@@ -46,7 +46,7 @@ class StorageException extends ObjectBoxException {
   StorageException(String message, this.errorCode) : super(message);
 
   @override
-  String toString() => 'StorageException: $message (OBX_ERROR code $errorCode)';
+  String toString() => '$runtimeType: $message (OBX_ERROR code $errorCode)';
 }
 
 /// Thrown when applying a transaction (e.g. putting an object) would exceed the
@@ -54,6 +54,14 @@ class StorageException extends ObjectBoxException {
 class DbFullException extends StorageException {
   /// See [DbFullException].
   DbFullException(String message, int errorCode) : super(message, errorCode);
+}
+
+/// Thrown when applying a transaction would exceed the `maxDataSizeInKByte`
+/// configured when calling [Store.new].
+class DbMaxDataSizeExceededException extends StorageException {
+  /// See [DbMaxDataSizeExceededException].
+  DbMaxDataSizeExceededException(String message, int errorCode)
+      : super(message, errorCode);
 }
 
 /// Thrown when the maximum amount of readers (read transactions) was exceeded.

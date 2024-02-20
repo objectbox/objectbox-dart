@@ -50,6 +50,13 @@ void main() {
     expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
+  test('Sync.clientMulti throws if empty URL list', () {
+    expect(
+        () => Sync.clientMultiUrls(store, [], SyncCredentials.none()),
+        throwsA(isArgumentError.having((e) => e.message, 'message',
+            contains('must contain at least one server URL'))));
+  });
+
   test('SyncCredentials string encoding', () {
     // Let's check some special characters and verify the data is how it would
     // look like if the same shared secret was provided to the sync-server via

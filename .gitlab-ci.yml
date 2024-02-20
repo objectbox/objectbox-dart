@@ -5,7 +5,7 @@ stages:
 variables:
   # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
   #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-  DART_VERSION: '3.0.3'
+  DART_VERSION: '3.2.3'
 
 # Make PUB_CACHE cacheable in GitLab;
 # see also https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77791/diffs and
@@ -72,9 +72,12 @@ test-generator:linux:x64:
     - cd ../objectbox_test
     - dart pub get
     - dart run build_runner build
-    # Run only one test suite (== test file) at a time.
-    # Print log for every completed test.
+    # Set concurrency=1 to run only one test suite (== test file) at a time.
+    # Set --reporter expanded to print log for every completed test.
     # Together, this will produce sequential log output, making it easier to attribute native logs.
+    - dart test --concurrency=1 --reporter expanded
+    # Run again using in-memory database
+    - export OBX_IN_MEMORY=true
     - dart test --concurrency=1 --reporter expanded
 
 test-lib:linux:x64:
@@ -88,7 +91,7 @@ test-lib:linux:x64:
       # pulled due to "if-not-present" pull policy. Check https://hub.docker.com/_/dart?tab=tags.
       # Always include lowest supported version (see sdk key in objectbox and generator
       # pubspec.yaml, but may be higher due to dependencies).
-      - DART_VERSION: [ '2.18.6', '2.19.6', '3.0.3' ]
+      - DART_VERSION: [ '2.18.6', '3.1.5', '3.2.3' ]
 
 # Runs tests with coverage on the objectbox package.
 # Note: As this requires to run tests, make sure this does not block the actual test jobs so test

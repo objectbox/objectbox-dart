@@ -20,3 +20,9 @@ Or for better log output (e.g. to attribute native logs to a test):
 # Print log for every completed test.
 dart test --concurrency=1 --reporter expanded
 ```
+
+To run tests using an in-memory database:
+```
+export OBX_IN_MEMORY=true
+dart test
+```

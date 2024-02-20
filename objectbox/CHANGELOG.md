@@ -1,3 +1,127 @@
+## latest
+
+## 2.5.0 (2024-02-14)
+
+* Support creating file-less in-memory databases, for example for caching or testing. To create one
+  pass an in-memory identifier together with `Store.inMemoryPrefix` as the `directory`:
+  ```dart
+   final inMemoryStore =
+       Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
+  ```
+  See the `Store` documentation for details.
+* Add `Store.removeDbFiles()` to conveniently delete database files or an in-memory database.
+* Add `Store.dbFileSize()` to get the size in bytes of the main database file or memory occupied by
+  an in-memory database.
+* Add `relationCount()` query condition to match objects that have a certain number of related
+  objects pointing to them. E.g. `Customer_.orders.relationCount(2)` will match all customers with
+  two orders. `Customer_.orders.relationCount(0)` will match all customers with no associated order.
+  This can be useful to find objects where the relation was dissolved, e.g. after the related object
+  was removed.
+* Support for setting a maximum data size via the `maxDataSizeInKB` property when building a `Store`.
+  This is different from the existing `maxDBSizeInKB` property in that it is possible to remove data
+  after reaching the limit and continue to use the database. See the `Store` documentation for more
+  details.
+* For `DateTime` properties new convenience query conditions are generated that accept `DateTime`
+  and auto-convert to milliseconds (or nanoseconds for `@Property(type: PropertyType.dateNano)`) [#287](https://github.com/objectbox/objectbox-dart/issues/287)
+  ```dart
+  // For example instead of:
+  Order_.date.between(DateTime(2024, 1).millisecondsSinceEpoch, DateTime(2024, 2).millisecondsSinceEpoch)
+  // You can now just write:
+  Order_.date.betweenMilliseconds(DateTime(2024, 1), DateTime(2024, 2))
+  ```
+* When defining a property with a getter and setter instead of a field, support annotating the
+  getter to configure or ignore the property [#392](https://github.com/objectbox/objectbox-dart/issues/392)
+  
+  For example, it is now possible to do this:
+  ```dart
+  @Property(type: PropertyType.date)
+  @Index()
+  DateTime get date => TODO;
+  set date(DateTime value) => TODO;
+  
+  @Transient()
+  int get computedValue => TODO;
+  set computedValue(int value) => TODO;
+  ```
+* For Flutter apps: `loadObjectBoxLibraryAndroidCompat()` is now called by default when using
+  `openStore()` (effective after re-running `flutter pub run build_runner build`). For devices
+  running Android 6 or older this will pre-load the ObjectBox library in Java to prevent errors when
+  loading it in Dart.
+
+  If your code was calling the compat method manually, remove the call and re-run above command.
+
+  Let us know if there are issues with this change in [#369](https://github.com/objectbox/objectbox-dart/issues/369)!
+* Avoid conflicts with entity class names in generated code [#519](https://github.com/objectbox/objectbox-dart/issues/519)
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.21.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.21.0).
+* Flutter for Android: update to [objectbox-android 3.8.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.8.0).
+  If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:3.8.0` in `android/app/build.gradle`.
+* Flutter for iOS/macOS: update to [objectbox-swift 1.9.2](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.2).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
+
+## 2.4.0 (2023-12-13)
+
+* Fix crash in Flutter plugin when running in debug mode on iOS. [#561](https://github.com/objectbox/objectbox-dart/issues/561)
+* Support Flutter projects using Android Gradle Plugin 8. [#581](https://github.com/objectbox/objectbox-dart/issues/581)
+* Flutter for Linux/Windows: fix CMake build deprecation warning. [#522](https://github.com/objectbox/objectbox-dart/issues/522)
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.20.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.20.0).
+* Flutter for Android: update to [objectbox-android 3.7.1](https://github.com/objectbox/objectbox-java/releases/tag/V3.7.1).
+  If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:3.7.1` in `android/app/build.gradle`.
+  Notably requires Android 4.4 (API 19) or higher.
+* Flutter for iOS/macOS: update to [objectbox-swift 1.9.1](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.1).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
+  Notably requires at least iOS 12.0 and macOS 10.15.
+* Sync: add `Sync.clientMultiUrls` to work with multiple servers.
+
+## 2.3.1 (2023-10-02)
+
+* Fix "Loaded ObjectBox core dynamic library has unsupported version 0.18.1" on Android
+
+## 2.3.0 (2023-09-19)
+
+* **Query support for integer and floating point lists**: For integer lists (excluding byte lists)
+  greater, less and equal are supported on elements of the vector (e.g. "has element greater").
+  
+  For floating point lists greater and less queries are supported on elements of the vector
+ (e.g. "has element greater").
+
+  A simple example is a shape entity that stores a palette of RGB colors:
+  ```dart
+  @Entity()
+  class Shape {
+      @Id()
+      int id = 0;
+
+      // An array of RGB color values that are used by this shape.
+      Int32List? palette;
+  }
+  
+  // Find all shapes that use red in their palette
+  final query = store.box<Shape>()
+          .query(Shape_.palette.equals(0xFF0000))
+          .build();
+  query.findIds();
+  query.close();
+  ```
+* Queries: all expected results are now returned when using a less-than or less-or-equal condition 
+  for a String property with `IndexType.value`. [#318](https://github.com/objectbox/objectbox-dart/issues/318)
+* Queries: when combining multiple conditions with OR and adding a condition on a related entity
+  ("link condition") the combined conditions are now properly applied. [#546](https://github.com/objectbox/objectbox-dart/issues/546)
+* Update: [objectbox-c 0.19.0](https://github.com/objectbox/objectbox-c/releases/tag/v0.19.0).
+  Notably now requires glibc 2.28 or higher (and GLIBCXX_3.4.25); e.g. at least **Debian Buster 10 
+  (2019) or Ubuntu 20.04**.
+* Update: [objectbox-swift 1.9.0](https://github.com/objectbox/objectbox-swift/releases/tag/v1.9.0).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
+* Update: [objectbox-android 3.7.0](https://github.com/objectbox/objectbox-java/releases/tag/V3.7.0).
+  If you are [using Admin](https://docs.objectbox.io/data-browser#setup), make sure to update to 
+  `io.objectbox:objectbox-android-objectbrowser:3.7.0`.
+
+## 2.2.1 (2023-08-22)
+
+* Resolve an issue where not all query results are returned, when an entity constructor or property 
+  setter itself executes a query. [#550](https://github.com/objectbox/objectbox-dart/issues/550)
+
 ## 2.2.0 (2023-08-08)
 
 * For Flutter apps running on Android 6 (or older): added `loadObjectBoxLibraryAndroidCompat()` to 
@@ -9,6 +133,8 @@
 * Improve code generator performance if there are many entities with many constructor parameters.
 * Throw `StateError` instead of crashing on closed `Box`, `Query` and `PropertyQuery`.
 * Export query property classes to make them usable in user code.
+* Resolve an issue where unexpected data was returned when doing a read operation in an entity 
+  constructor or property setter. [#550](https://github.com/objectbox/objectbox-dart/issues/550)
 
 ## 2.1.0 (2023-06-13)
 
@@ -85,6 +211,7 @@
   iOS and some Android devices. #485
 * Update: [objectbox-c 0.18.1](https://github.com/objectbox/objectbox-c/releases/tag/v0.18.1).
 * Update: [objectbox-swift 1.8.1](https://github.com/objectbox/objectbox-swift/releases/tag/v1.8.1).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
 * Update: [objectbox-android 3.5.1](https://github.com/objectbox/objectbox-java/releases/tag/V3.5.1).
   If you are using Admin, make sure to [update your `objectbox-android-objectbrowser` dependency](https://docs.objectbox.io/data-browser#setup).
 

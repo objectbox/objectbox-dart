@@ -8,6 +8,9 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "objectbox_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+# Enable new CMake policies to avoid FetchContent deprecation warnings
+cmake_policy(VERSION 3.14...3.24)
+
 # This value is used when generating builds using this plugin, so it must
 # not be changed
 set(PLUGIN_NAME "objectbox_flutter_libs_plugin")
@@ -47,7 +50,7 @@ set(objectbox_flutter_libs_bundled_libraries
 # ----------------------------------------------------------------------
 # Download and add objectbox-c prebuilt library.
 
-set(OBJECTBOX_VERSION 0.18.1)
+set(OBJECTBOX_VERSION 0.21.0)
 
 set(OBJECTBOX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${OBJECTBOX_ARCH} MATCHES "AMD64")

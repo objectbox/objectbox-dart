@@ -8,9 +8,9 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
-  <key>com.apple.security.application-groups</key>
-  <array>
-    <string>objectbox.demo</string>
-  </array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>objectbox.demo</string>
+	</array>
 </dict>
 </plist>

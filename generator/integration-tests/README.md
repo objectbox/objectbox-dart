@@ -18,6 +18,11 @@ Each subdirectory contains a test case, a complete dart package (with some share
     but not removed between test-case runs
 * additionally, there may be `[0-9]-pre.dart` command-line apps, which are executed `dart N-pre.dart` - these may be 
 used to further prepare the environment **before** code generation for the step `N` is issued and `N.dart` test is run
+
+## Development
+
+To enable Dart Analysis, including code auto-complete, temporarily remove the `exclude` for this directory in
+the parent [analysis_options.yaml](../analysis_options.yaml).
   
 ## Troubleshooting
 

@@ -4,6 +4,10 @@ on:
     - cron: "20 1 * * *" # “At 01:20.” Avoid using top of the hour to reduce load on GitHub.
   workflow_dispatch: # To support running manually.
 
+# Minimal access by default
+permissions:
+  contents: read
+
 jobs:
   close-issues:
     runs-on: ubuntu-latest
@@ -12,7 +16,7 @@ jobs:
       pull-requests: write
     steps:
       # https://github.com/marketplace/actions/close-stale-issues
-      - uses: actions/stale@v7
+      - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e # v9.0.0
         with:
           days-before-stale: -1 # Add the stale label manually.
           days-before-close: 21

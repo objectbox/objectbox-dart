@@ -16,9 +16,6 @@
   <a href="https://pub.dev/packages/objectbox">
     <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart&style=flat-square" alt="pub.dev package">
   </a>
-  <a href="https://github.com/objectbox/objectbox-dart/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/objectbox/objectbox-dart?logo=apache&style=flat-square" alt="Apache 2.0 license">
-  </a>
   <a href="https://twitter.com/ObjectBox_io">
     <img src="https://img.shields.io/twitter/follow/objectbox_io?color=%20%2300aced&logo=twitter&style=flat-square" alt="Follow @ObjectBox_io">
   </a>
@@ -150,7 +147,7 @@ See the [FAQ](https://docs.objectbox.io/faq) and [Troubleshooting](https://docs.
 ## License
 
 ```text
-Copyright 2019-2023 ObjectBox Ltd. All rights reserved.
+Copyright 2019-2024 ObjectBox Ltd. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -163,3 +160,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+```
+
+Note that this license applies to the code in this repository only.
+See our website on details about all [licenses for ObjectBox components](https://objectbox.io/faq/#license-pricing).

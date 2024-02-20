@@ -170,6 +170,7 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
 
   Condition<EntityT> operator >(int p) => greaterThan(p);
 
+  /// Finds objects with property value between and including the first and second value.
   Condition<EntityT> between(int p1, int p2, {String? alias}) =>
       _op(_ConditionOp.between, p1, p2, alias);
 
@@ -180,35 +181,134 @@ class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
       _opList(list, _ConditionOp.notOneOf, alias);
 }
 
+/// This wraps [QueryIntegerProperty] for [DateTime] properties to avoid
+/// having to manually convert to [DateTime.millisecondsSinceEpoch] when
+/// creating query conditions.
+class QueryDateProperty<EntityT> extends QueryIntegerProperty<EntityT> {
+  QueryDateProperty(super.model);
+
+  int _convert(DateTime value) => value.millisecondsSinceEpoch;
+
+  /// Like [equals], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> equalsDate(DateTime value, {String? alias}) =>
+      equals(_convert(value), alias: alias);
+
+  /// Like [notEquals], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> notEqualsDate(DateTime value, {String? alias}) =>
+      notEquals(_convert(value), alias: alias);
+
+  /// Like [greaterThan], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> greaterThanDate(DateTime value, {String? alias}) =>
+      greaterThan(_convert(value), alias: alias);
+
+  /// Like [greaterOrEqual], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> greaterOrEqualDate(DateTime value, {String? alias}) =>
+      greaterOrEqual(_convert(value), alias: alias);
+
+  /// Like [lessThan], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> lessThanDate(DateTime value, {String? alias}) =>
+      lessThan(_convert(value), alias: alias);
+
+  /// Like [lessOrEqual], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> lessOrEqualDate(DateTime value, {String? alias}) =>
+      lessOrEqual(_convert(value), alias: alias);
+
+  /// Like [between], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> betweenDate(DateTime value1, DateTime value2,
+          {String? alias}) =>
+      between(_convert(value1), _convert(value2), alias: alias);
+
+  /// Like [oneOf], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> oneOfDate(List<DateTime> values, {String? alias}) =>
+      oneOf(values.map(_convert).toList(), alias: alias);
+
+  /// Like [notOneOf], but first converts to [DateTime.millisecondsSinceEpoch].
+  Condition<EntityT> notOneOfDate(List<DateTime> values, {String? alias}) =>
+      notOneOf(values.map(_convert).toList(), alias: alias);
+}
+
+/// This wraps [QueryIntegerProperty] for [DateTime] properties annotated with
+/// `@Property(type: PropertyType.dateNano)` to avoid having to manually convert
+/// to nanoseconds ([DateTime.microsecondsSinceEpoch] `* 1000`) when creating
+/// query conditions.
+class QueryDateNanoProperty<EntityT> extends QueryIntegerProperty<EntityT> {
+  QueryDateNanoProperty(super.model);
+
+  int _convert(DateTime value) => value.microsecondsSinceEpoch * 1000;
+
+  /// Like [equals], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> equalsDate(DateTime value, {String? alias}) =>
+      equals(_convert(value), alias: alias);
+
+  /// Like [notEquals], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> notEqualsDate(DateTime value, {String? alias}) =>
+      notEquals(_convert(value), alias: alias);
+
+  /// Like [greaterThan], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> greaterThanDate(DateTime value, {String? alias}) =>
+      greaterThan(_convert(value), alias: alias);
+
+  /// Like [greaterOrEqual], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> greaterOrEqualDate(DateTime value, {String? alias}) =>
+      greaterOrEqual(_convert(value), alias: alias);
+
+  /// Like [lessThan], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> lessThanDate(DateTime value, {String? alias}) =>
+      lessThan(_convert(value), alias: alias);
+
+  /// Like [lessOrEqual], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> lessOrEqualDate(DateTime value, {String? alias}) =>
+      lessOrEqual(_convert(value), alias: alias);
+
+  /// Like [between], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> betweenDate(DateTime value1, DateTime value2,
+          {String? alias}) =>
+      between(_convert(value1), _convert(value2), alias: alias);
+
+  /// Like [oneOf], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> oneOfDate(List<DateTime> values, {String? alias}) =>
+      oneOf(values.map(_convert).toList(), alias: alias);
+
+  /// Like [notOneOf], but first converts to nanoseconds
+  /// ([DateTime.microsecondsSinceEpoch] `* 1000`).
+  Condition<EntityT> notOneOfDate(List<DateTime> values, {String? alias}) =>
+      notOneOf(values.map(_convert).toList(), alias: alias);
+}
+
 /// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
-/// equal will be supported on elements of the vector (e.g. "has element greater")
-/// in the future.
+/// equal are supported on elements of the vector (e.g. "has element greater").
 class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
   QueryIntegerVectorProperty(ModelProperty model) : super(model);
 
-// Note: The C library currently does not support queries for integer vector properties.
+  Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
+      _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
 
-// Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
-//     _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
-//
-// Condition<EntityT> equals(int p, {String? alias}) =>
-//     _op(_ConditionOp.eq, p, 0, alias);
-//
-// Condition<EntityT> greaterThan(int p, {String? alias}) =>
-//     _op(_ConditionOp.gt, p, 0, alias);
-//
-// Condition<EntityT> greaterOrEqual(int p, {String? alias}) =>
-//     _op(_ConditionOp.greaterOrEq, p, 0, alias);
-//
-// Condition<EntityT> lessThan(int p, {String? alias}) =>
-//     _op(_ConditionOp.lt, p, 0, alias);
-//
-// Condition<EntityT> lessOrEqual(int p, {String? alias}) =>
-//     _op(_ConditionOp.lessOrEq, p, 0, alias);
-//
-// Condition<EntityT> operator <(int p) => lessThan(p);
-//
-// Condition<EntityT> operator >(int p) => greaterThan(p);
+  Condition<EntityT> equals(int p, {String? alias}) =>
+      _op(_ConditionOp.eq, p, 0, alias);
+
+  Condition<EntityT> greaterThan(int p, {String? alias}) =>
+      _op(_ConditionOp.gt, p, 0, alias);
+
+  Condition<EntityT> greaterOrEqual(int p, {String? alias}) =>
+      _op(_ConditionOp.greaterOrEq, p, 0, alias);
+
+  Condition<EntityT> lessThan(int p, {String? alias}) =>
+      _op(_ConditionOp.lt, p, 0, alias);
+
+  Condition<EntityT> lessOrEqual(int p, {String? alias}) =>
+      _op(_ConditionOp.lessOrEq, p, 0, alias);
+
+  Condition<EntityT> operator <(int p) => lessThan(p);
+
+  Condition<EntityT> operator >(int p) => greaterThan(p);
 }
 
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
@@ -218,6 +318,7 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
           _ConditionOp op, double p1, double? p2, String? alias) =>
       _DoubleCondition<EntityT>(op, this, p1, p2, alias);
 
+  /// Finds objects with property value between and including the first and second value.
   Condition<EntityT> between(double p1, double p2, {String? alias}) =>
       _op(_ConditionOp.between, p1, p2, alias);
 
@@ -245,33 +346,31 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
   Condition<EntityT> operator >(double p) => greaterThan(p);
 }
 
-/// For double vectors greater and less queries will be supported on elements of
-/// the vector (e.g. "has element greater") in the future.
+/// For double vectors greater and less queries are supported on elements of
+/// the vector (e.g. "has element greater").
 class QueryDoubleVectorProperty<EntityT>
     extends QueryProperty<EntityT, double> {
   QueryDoubleVectorProperty(ModelProperty model) : super(model);
 
-// Note: The C library currently does not support queries for floating point vector properties.
+  Condition<EntityT> _op(
+          _ConditionOp op, double p1, double? p2, String? alias) =>
+      _DoubleCondition<EntityT>(op, this, p1, p2, alias);
 
-// Condition<EntityT> _op(
-//         _ConditionOp op, double p1, double? p2, String? alias) =>
-//     _DoubleCondition<EntityT>(op, this, p1, p2, alias);
-//
-// Condition<EntityT> greaterThan(double p, {String? alias}) =>
-//     _op(_ConditionOp.gt, p, 0, alias);
-//
-// Condition<EntityT> greaterOrEqual(double p, {String? alias}) =>
-//     _op(_ConditionOp.greaterOrEq, p, null, alias);
-//
-// Condition<EntityT> lessThan(double p, {String? alias}) =>
-//     _op(_ConditionOp.lt, p, null, alias);
-//
-// Condition<EntityT> lessOrEqual(double p, {String? alias}) =>
-//     _op(_ConditionOp.lessOrEq, p, null, alias);
-//
-// Condition<EntityT> operator <(double p) => lessThan(p);
-//
-// Condition<EntityT> operator >(double p) => greaterThan(p);
+  Condition<EntityT> greaterThan(double p, {String? alias}) =>
+      _op(_ConditionOp.gt, p, 0, alias);
+
+  Condition<EntityT> greaterOrEqual(double p, {String? alias}) =>
+      _op(_ConditionOp.greaterOrEq, p, null, alias);
+
+  Condition<EntityT> lessThan(double p, {String? alias}) =>
+      _op(_ConditionOp.lt, p, null, alias);
+
+  Condition<EntityT> lessOrEqual(double p, {String? alias}) =>
+      _op(_ConditionOp.lessOrEq, p, null, alias);
+
+  Condition<EntityT> operator <(double p) => lessThan(p);
+
+  Condition<EntityT> operator >(double p) => greaterThan(p);
 }
 
 class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
@@ -313,6 +412,35 @@ class QueryRelationToMany<Source, Target> {
   final ModelRelation _model;
 
   QueryRelationToMany(this._model);
+}
+
+class QueryBacklinkToMany<Source, Target> {
+  late final int _relationPropertyId;
+
+  QueryBacklinkToMany(QueryRelationToOne<Source, Target> relProp) {
+    _relationPropertyId = relProp._model.id.id;
+  }
+
+  /// Creates a condition to match objects that have [relationCount] related
+  /// objects pointing to them.
+  ///
+  /// ```
+  /// // match customers with two orders
+  /// box.query(Customer_.orders.relationCount(2));
+  /// ```
+  ///
+  /// The relation count may be 0 to match objects that do not have any related
+  /// objects. It typically should be a low number.
+  ///
+  /// This condition has some limitations:
+  /// - only 1:N (ToMany using @Backlink) relations are supported,
+  /// - the complexity is `O(n * (relationCount + 1))` and cannot be improved
+  ///   via indexes,
+  /// - the relation count cannot be changed with `param()` once the query is
+  ///   built.
+  Condition<Target> relationCount(int relationCount, {String? alias}) =>
+      _RelationCountCondition<Source, Target>(
+          _relationPropertyId, relationCount, alias);
 }
 
 enum _ConditionOp {
@@ -390,6 +518,24 @@ class _NullCondition<EntityT, DartType> extends Condition<EntityT> {
       default:
         throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
+  }
+}
+
+/// See [QueryBacklinkToMany.relationCount].
+class _RelationCountCondition<Source, Target> extends Condition<Target> {
+  final int _relationPropertyId;
+  final int _relationCount;
+
+  _RelationCountCondition(
+      this._relationPropertyId, this._relationCount, String? alias)
+      : super(alias);
+
+  @override
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
+    int relationEntityId =
+        InternalStoreAccess.entityDef<Source>(builder._store).model.id.id;
+    return C.qb_relation_count_property(builder._cBuilder, relationEntityId,
+        _relationPropertyId, _relationCount);
   }
 }
 
@@ -565,6 +711,8 @@ class _IntegerListCondition<EntityT>
             return _opList(builder, malloc<Int32>(_value.length),
                 C.qb_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
+          case OBXPropertyType.Date:
+          case OBXPropertyType.DateNano:
             return _opList(builder, malloc<Int64>(_value.length),
                 C.qb_in_int64s, opListSetIndexInt64);
           default:
@@ -577,6 +725,8 @@ class _IntegerListCondition<EntityT>
             return _opList(builder, malloc<Int32>(_value.length),
                 C.qb_not_in_int32s, opListSetIndexInt32);
           case OBXPropertyType.Long:
+          case OBXPropertyType.Date:
+          case OBXPropertyType.DateNano:
             return _opList(builder, malloc<Int64>(_value.length),
                 C.qb_not_in_int64s, opListSetIndexInt64);
           default:
@@ -835,17 +985,18 @@ class Query<T> implements Finalizable {
   /// results. Note: [offset] and [limit] are respected, if set.
   T? findFirst() {
     T? result;
-    Object? error;
-    final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+    final errorWrapper = ObjectVisitorError();
+    visitCallBack(Pointer<Uint8> data, int size) {
       try {
         result = _entity.objectFromData(_store, data, size);
       } catch (e) {
-        error = e;
+        errorWrapper.error = e;
       }
       return false; // we only want to visit the first element
-    });
-    checkObx(C.query_visit(_ptr, visitor, nullptr));
-    if (error != null) throw error!;
+    }
+
+    visit(_ptr, visitCallBack);
+    errorWrapper.throwIfError();
     return result;
   }
 
@@ -868,24 +1019,25 @@ class Query<T> implements Finalizable {
   /// higher than one, otherwise the check for non-unique result won't work.
   T? findUnique() {
     T? result;
-    Object? error;
-    final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+    final errorWrapper = ObjectVisitorError();
+    visitCallback(Pointer<Uint8> data, int size) {
       if (result == null) {
         try {
           result = _entity.objectFromData(_store, data, size);
           return true;
         } catch (e) {
-          error = e;
+          errorWrapper.error = e;
           return false;
         }
       } else {
-        error = NonUniqueResultException(
+        errorWrapper.error = NonUniqueResultException(
             'Query findUnique() matched more than one object');
         return false;
       }
-    });
-    checkObx(C.query_visit(_ptr, visitor, nullptr));
-    if (error != null) throw error!;
+    }
+
+    visit(_ptr, visitCallback);
+    errorWrapper.throwIfError();
     return result;
   }
 
@@ -924,9 +1076,18 @@ class Query<T> implements Finalizable {
   /// Finds Objects matching the query.
   List<T> find() {
     final result = <T>[];
-    final errorWrapper = ObjectCollectorError();
-    final collector = objectCollector(result, _store, _entity, errorWrapper);
-    checkObx(C.query_visit(_ptr, collector, nullptr));
+    final errorWrapper = ObjectVisitorError();
+    visitCallback(Pointer<Uint8> data, int size) {
+      try {
+        result.add(_entity.objectFromData(_store, data, size));
+        return true;
+      } catch (e) {
+        errorWrapper.error = e;
+        return false;
+      }
+    }
+
+    visit(_ptr, visitCallback);
     errorWrapper.throwIfError();
     return result;
   }
@@ -1174,7 +1335,7 @@ class Query<T> implements Finalizable {
         var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
         var sizeBatch = List<int>.filled(maxBatchSize, 0);
         var batchSize = 0;
-        final visitor = dataVisitor((Pointer<Uint8> data, int size) {
+        visitCallback(Pointer<Uint8> data, int size) {
           // Currently returning all results, even if the stream has been closed
           // before (e.g. only first element taken). Would need a way to check
           // for exit command on commandPort synchronously.
@@ -1190,11 +1351,12 @@ class Query<T> implements Finalizable {
             batchSize = 0;
           }
           return true;
-        });
+        }
+
         final queryPtr =
             Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
         try {
-          checkObx(C.query_visit(queryPtr, visitor, nullptr));
+          visit(queryPtr, visitCallback);
         } catch (e) {
           resultPort.send(e);
           return;

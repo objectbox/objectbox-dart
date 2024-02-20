@@ -92,8 +92,30 @@ ObjectBoxC? _tryObjectBoxLibFile() {
   return ObjectBoxC(_lib!);
 }
 
-bool _isSupportedVersion(ObjectBoxC obxc) => obxc.version_is_at_least(
-    OBX_VERSION_MAJOR, OBX_VERSION_MINOR, OBX_VERSION_PATCH);
+// Require the minimum C API version of all supported platform-specific
+// libraries:
+// objectbox-c: 0.21.0 (3.8.0-2024-02-13)
+// ObjectBox Swift 1.9.2: 0.21.0 (3.8.0-2024-02-13)
+// objectbox-android 3.8.0: 0.21.0 (3.8.0-2024-02-13)
+var _obxCminMajor = 0;
+var _obxCminMinor = 21;
+var _obxCminPatch = 0;
+// Require minimum core version guaranteeing actual C API availability.
+var _obxCoreMinVersion = "3.8.0-2024-02-13";
+
+bool _isSupportedVersion(ObjectBoxC obxc) {
+  if (!obxc.version_is_at_least(_obxCminMajor, _obxCminMinor, _obxCminPatch)) {
+    return false;
+  }
+  // Require a minimum core version.
+  // As the core version string uses the
+  // "major.minor.build-YYYY-MM-DD (<flags>)"
+  // format it should have a stable order.
+  // Note: if the version+date is the same the compare value will be negative as
+  // the flags make the string longer than the expected min version+date string.
+  final coreVersion = dartStringFromC(obxc.version_core_string());
+  return _obxCoreMinVersion.compareTo(coreVersion) <= 0;
+}
 
 ObjectBoxC loadObjectBoxLib() {
   ObjectBoxC? obxc;
@@ -107,9 +129,12 @@ ObjectBoxC loadObjectBoxLib() {
 
   if (!_isSupportedVersion(obxc)) {
     final version = dartStringFromC(obxc.version_string());
+    final coreVersion = dartStringFromC(obxc.version_core_string());
     throw UnsupportedError(
-        'Loaded ObjectBox core dynamic library has unsupported version $version,'
-        ' expected ^$OBX_VERSION_MAJOR.$OBX_VERSION_MINOR.$OBX_VERSION_PATCH');
+        'ObjectBox platform-specific library not compatible: is $version ($coreVersion),'
+        ' expected $_obxCminMajor.$_obxCminMinor.$_obxCminPatch ($_obxCoreMinVersion) or newer.'
+        ' For Flutter, check if the ObjectBox Pod or objectbox-android-objectbrowser need to be updated.'
+        ' For Dart, re-run the install.sh script to download the latest version.');
   }
 
   return obxc;

@@ -32,6 +32,10 @@ class Store implements Finalizable {
   /// Path of the default directory, currently 'objectbox'.
   static const String defaultDirectoryPath = 'objectbox';
 
+  /// Pass this together with a String identifier as the directory path to use
+  /// a file-less in-memory database.
+  static const String inMemoryPrefix = 'memory:';
+
   /// Enables a couple of debug logs.
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
@@ -69,6 +73,7 @@ class Store implements Finalizable {
   }
 
   /// Absolute path to the database directory, used for open check.
+  /// For an in-memory database just the [inMemoryPrefix] and identifier.
   final String _absoluteDirectoryPath;
 
   late final ByteData _reference;
@@ -82,6 +87,15 @@ class Store implements Finalizable {
 
   static String _safeDirectoryPath(String? path) =>
       (path == null || path.isEmpty) ? defaultDirectoryPath : path;
+
+  /// Like [_safeDirectoryPath], but returns an absolute path if [dbPath] is not
+  /// prefixed with [inMemoryPrefix] to use with [_absoluteDirectoryPath].
+  static String _safeAbsoluteDirectoryPath(String? dbPath) {
+    final safePath = _safeDirectoryPath(dbPath);
+    return safePath.startsWith(inMemoryPrefix)
+        ? safePath
+        : path.context.canonicalize(safePath);
+  }
 
   /// Creates a BoxStore using the model definition from your
   /// `objectbox.g.dart` file in the given [directory] path
@@ -97,6 +111,14 @@ class Store implements Finalizable {
   /// Or for a Dart app:
   /// ```dart
   /// final store = Store(getObjectBoxModel());
+  /// ```
+  ///
+  /// ## In-memory database
+  /// To use a file-less in-memory database, instead of a directory path pass
+  /// [inMemoryPrefix] together with an identifier string as the [directory]:
+  /// ```dart
+  /// final inMemoryStore =
+  ///     Store(getObjectBoxModel(), directory: "${Store.inMemoryPrefix}test-db");
   /// ```
   ///
   /// ## Case insensitive queries
@@ -127,6 +149,22 @@ class Store implements Finalizable {
   ///
   /// This value can be changed, so increased or also decreased, each time when
   /// opening a store.
+  ///
+  /// ## Maximum data size
+  ///
+  /// [maxDataSizeInKB] sets the maximum size the data stored in the database
+  /// can grow to. When applying a transaction (e.g. putting an object) would
+  /// exceed it a [DbMaxDataSizeExceededException] is thrown.
+  ///
+  /// Must be below [maxDBSizeInKB].
+  ///
+  /// Different from [maxDBSizeInKB] this only counts bytes stored in objects,
+  /// excluding system and metadata. However, it is more involved than database
+  /// size tracking, e.g. it stores an internal counter. Only use this if a
+  /// stricter, more accurate limit is required.
+  ///
+  /// When the data limit is reached, data can be removed to get below the limit
+  /// again (assuming the database size limit is not also reached).
   ///
   /// ## File mode
   ///
@@ -164,14 +202,14 @@ class Store implements Finalizable {
   Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
+      int? maxDataSizeInKB,
       int? fileMode,
       int? maxReaders,
       int? debugFlags,
       bool queriesCaseSensitiveDefault = true,
       String? macosApplicationGroup})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath =
-            path.context.canonicalize(_safeDirectoryPath(directory)) {
+        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directory) {
     try {
       if (Platform.isMacOS && macosApplicationGroup != null) {
         if (!macosApplicationGroup.endsWith('/')) {
@@ -181,12 +219,7 @@ class Store implements Finalizable {
           ArgumentError.value(macosApplicationGroup, 'macosApplicationGroup',
               'Must be at most 20 characters long');
         }
-        final cStr = macosApplicationGroup.toNativeUtf8();
-        try {
-          C.posix_sem_prefix_set(cStr.cast());
-        } finally {
-          malloc.free(cStr);
-        }
+        withNativeString(macosApplicationGroup, C.posix_sem_prefix_set);
       }
       _checkStoreDirectoryNotOpen();
       final model = Model(modelDefinition.model);
@@ -197,14 +230,13 @@ class Store implements Finalizable {
 
       try {
         checkObx(C.opt_model(opt, model.ptr));
-        final cStr = safeDirectoryPath.toNativeUtf8();
-        try {
-          checkObx(C.opt_directory(opt, cStr.cast()));
-        } finally {
-          malloc.free(cStr);
-        }
+        checkObx(withNativeString(
+            safeDirectoryPath, (cStr) => C.opt_directory(opt, cStr)));
         if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
           C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
+        }
+        if (maxDataSizeInKB != null && maxDataSizeInKB > 0) {
+          C.opt_max_data_size_in_kb(opt, maxDataSizeInKB);
         }
         if (fileMode != null && fileMode >= 0) {
           C.opt_file_mode(opt, fileMode);
@@ -339,8 +371,7 @@ class Store implements Finalizable {
   Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
-        _absoluteDirectoryPath =
-            path.context.canonicalize(_safeDirectoryPath(directoryPath)) {
+        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directoryPath) {
     try {
       // Do not allow attaching to a store that is already open in the current
       // isolate. While technically possible this is not the intended usage
@@ -349,16 +380,13 @@ class Store implements Finalizable {
       _checkStoreDirectoryNotOpen();
 
       final safeDirectoryPath = _safeDirectoryPath(directoryPath);
-      final pathCStr = safeDirectoryPath.toNativeUtf8();
-      try {
+      withNativeString(safeDirectoryPath, (cStr) {
         if (debugLogs) {
-          final isOpen = C.store_is_open(pathCStr.cast());
+          final isOpen = C.store_is_open(cStr);
           print('Attaching to store... path=$safeDirectoryPath isOpen=$isOpen');
         }
-        _cStore = C.store_attach(pathCStr.cast());
-      } finally {
-        malloc.free(pathCStr);
-      }
+        _cStore = C.store_attach(cStr);
+      });
 
       checkObxPtr(_cStore,
           'could not attach to the store at given path - please ensure it was opened before');
@@ -456,12 +484,42 @@ class Store implements Finalizable {
   /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
   static bool isOpen(String? directoryPath) {
     final path = _safeDirectoryPath(directoryPath);
-    final cStr = path.toNativeUtf8();
-    try {
-      return C.store_is_open(cStr.cast());
-    } finally {
-      malloc.free(cStr);
-    }
+    return withNativeString(path, C.store_is_open);
+  }
+
+  /// Returns the file size in bytes of the main database file for the given
+  /// [directoryPath], or 0 if the file does not exist or some error occurred.
+  ///
+  /// For in-memory databases, it is supported to pass the [inMemoryPrefix] and
+  /// the identifier. The rough size in bytes of the in-memory database will be
+  /// reported instead.
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
+  static int dbFileSize(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    return withNativeString(path, C.db_file_size);
+  }
+
+  /// Danger zone! This will delete all files in the given directory!
+  ///
+  /// If an in-memory database identifier is given (using [inMemoryPrefix]),
+  /// this will just clean up the in-memory database.
+  ///
+  /// No [Store] may be alive using the given [directoryPath]. This means this
+  /// should be called before creating a store.
+  ///
+  /// For Flutter apps, the default [directoryPath] can be obtained with
+  /// `(await defaultStoreDirectory()).path` from `objectbox_flutter_libs`
+  /// (or `objectbox_sync_flutter_libs`).
+  ///
+  /// For Dart Native apps, pass null to use the [defaultDirectoryPath].
+  static void removeDbFiles(String? directoryPath) {
+    final path = _safeDirectoryPath(directoryPath);
+    checkObx(withNativeString(path, C.remove_db_files));
   }
 
   /// Returns a store reference you can use to create a new store instance with

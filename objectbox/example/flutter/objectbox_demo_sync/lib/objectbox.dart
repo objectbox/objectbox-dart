@@ -13,11 +13,11 @@ class ObjectBox {
   /// The Store of this app.
   late final Store _store;
 
-  /// A Box of notes.
-  late final Box<Note> _noteBox;
+  /// A Box of tasks.
+  late final Box<Task> _taskBox;
 
   ObjectBox._create(this._store) {
-    _noteBox = Box<Note>(_store);
+    _taskBox = _store.box();
 
     // TODO configure actual sync server address and authentication
     // For configuration and docs, see objectbox/lib/src/sync.dart
@@ -37,17 +37,22 @@ class ObjectBox {
     // On mobile this is typically fine, as each app has its own directory
     // structure.
 
+    // Note: set macosApplicationGroup for sandboxed macOS applications, see the
+    // info boxes at https://docs.objectbox.io/getting-started for details.
+
     // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
     final store = await openStore(
         directory: p.join(
-            (await getApplicationDocumentsDirectory()).path, "obx-demo-sync"));
+            (await getApplicationDocumentsDirectory()).path, "obx-demo-sync"),
+        macosApplicationGroup: "objectbox.demo");
     return ObjectBox._create(store);
   }
 
-  Stream<List<Note>> getNotes() {
-    // Query for all notes, sorted by their date.
+  Stream<List<Task>> getTasks() {
+    // Query for all tasks, sorted by their date.
     // https://docs.objectbox.io/queries
-    final builder = _noteBox.query().order(Note_.date, flags: Order.descending);
+    final builder =
+        _taskBox.query().order(Task_.dateCreated, flags: Order.descending);
     // Build and watch the query,
     // set triggerImmediately to emit the query immediately on listen.
     return builder
@@ -56,13 +61,18 @@ class ObjectBox {
         .map((query) => query.find());
   }
 
-  /// Add a note.
+  /// Add a task.
   ///
   /// To avoid frame drops, run ObjectBox operations that take longer than a
   /// few milliseconds, e.g. putting many objects, asynchronously.
   /// For this example only a single object is put which would also be fine if
   /// done using [Box.put].
-  Future<void> addNote(String text) => _noteBox.putAsync(Note(text));
+  Future<void> addTask(String text) => _taskBox.putAsync(Task(text));
 
-  Future<void> removeNote(int id) => _noteBox.removeAsync(id);
+  Future<void> removeTask(int id) => _taskBox.removeAsync(id);
+
+  Future<void> changeTaskFinished(Task task, bool isFinished) {
+    task.setIsFinished(isFinished);
+    return _taskBox.putAsync(task);
+  }
 }

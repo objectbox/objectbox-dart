@@ -156,50 +156,86 @@ abstract class OBXPropertyFlags {
 
   /// Unique on-conflict strategy: the object being put replaces any existing conflicting object (deletes it).
   static const int UNIQUE_ON_CONFLICT_REPLACE = 32768;
+
+  /// If a date property has this flag (max. one per entity type), the date value specifies the time by which
+  /// the object expires, at which point it MAY be removed (deleted), which can be triggered by an API call.
+  static const int EXPIRATION_TIME = 65536;
 }
 
 abstract class OBXPropertyType {
-  /// < 1 byte
+  /// < Not a actual type; represents an uninitialized or invalid type
+  static const int Unknown = 0;
+
+  /// < A boolean (flag)
   static const int Bool = 1;
 
-  /// < 1 byte
+  /// < 8-bit integer
   static const int Byte = 2;
 
-  /// < 2 bytes
+  /// < 16-bit integer
   static const int Short = 3;
 
-  /// < 2 bytes
+  /// < 16-bit character
   static const int Char = 4;
 
-  /// < 4 bytes
+  /// < 32-bit integer
   static const int Int = 5;
 
-  /// < 8 bytes
+  /// < 64-bit integer
   static const int Long = 6;
 
-  /// < 4 bytes
+  /// < 32-bit floating point number
   static const int Float = 7;
 
-  /// < 8 bytes
+  /// < 64-bit floating point number
   static const int Double = 8;
+
+  /// < UTF-8 encoded string (variable length)
   static const int String = 9;
 
-  /// < Unix timestamp (milliseconds since 1970) in 8 bytes
+  /// < 64-bit (integer) timestamp; milliseconds since 1970-01-01 (unix epoch)
   static const int Date = 10;
+
+  /// < Relation to another entity
   static const int Relation = 11;
 
-  /// < Unix timestamp (nanoseconds since 1970) in 8 bytes
+  /// < High precision 64-bit timestamp; nanoseconds since 1970-01-01 (unix epoch)
   static const int DateNano = 12;
 
   /// < Flexible" type, which may contain scalars (integers, floating points), strings or
   /// < containers (lists and maps). Note: a flex map must use string keys.
   static const int Flex = 13;
+
+  /// < Variable sized vector of Bool values (note: each value is one byte)
+  static const int BoolVector = 22;
+
+  /// < Variable sized vector of Byte values (8-bit integers)
   static const int ByteVector = 23;
+
+  /// < Variable sized vector of Short values (16-bit integers)
   static const int ShortVector = 24;
+
+  /// < Variable sized vector of Char values (16-bit characters)
   static const int CharVector = 25;
+
+  /// < Variable sized vector of Int values (32-bit integers)
   static const int IntVector = 26;
+
+  /// < Variable sized vector of Long values (64-bit integers)
   static const int LongVector = 27;
+
+  /// < Variable sized vector of Float values (32-bit floating point numbers)
   static const int FloatVector = 28;
+
+  /// < Variable sized vector of Double values (64-bit floating point numbers)
   static const int DoubleVector = 29;
+
+  /// < Variable sized vector of String values (UTF-8 encoded strings).
   static const int StringVector = 30;
+
+  /// < Variable sized vector of Date values (64-bit timestamp).
+  static const int DateVector = 31;
+
+  /// < Variable sized vector of Date values (high precision 64-bit timestamp).
+  static const int DateNanoVector = 32;
 }
