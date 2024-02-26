@@ -15,7 +15,7 @@ dev_dependencies:
   collection: any # via objectbox
   build_runner: ^2.0.0
   flat_buffers: any # via objectbox
-  lints: ^2.0.0
+  lints: ^3.0.0 # Requires Dart 3, but running analyzer only during development and with latest SDK
   objectbox_generator: any
   test: ^1.16.5
 

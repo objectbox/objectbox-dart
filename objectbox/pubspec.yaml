@@ -20,7 +20,7 @@ dependencies:
 
 dev_dependencies:
   ffigen: ^7.2.11 # v8 requires Dart 3, not requiring it, yet.
-  lints: ^2.0.1
+  lints: ^3.0.0 # Requires Dart 3, but running analyzer only during development and with latest SDK
   test: ^1.16.5 # To run coverage on this package.
 
 ffigen:
