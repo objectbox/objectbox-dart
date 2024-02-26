@@ -13,7 +13,7 @@ environment:
 dependencies:
   collection: ^1.15.0
   # take care updating flatbuffers - keep aligned with other bindings
-  flat_buffers: 2.0.5
+  flat_buffers: 23.5.26
   ffi: ^2.0.2
   meta: ^1.3.0
   path: ^1.8.0

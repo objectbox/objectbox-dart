@@ -5,7 +5,7 @@ stages:
 variables:
   # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
   #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-  DART_VERSION: '3.2.3'
+  DART_VERSION: '3.3.0'
 
 # Make PUB_CACHE cacheable in GitLab;
 # see also https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77791/diffs and
@@ -91,7 +91,7 @@ test-lib:linux:x64:
       # pulled due to "if-not-present" pull policy. Check https://hub.docker.com/_/dart?tab=tags.
       # Always include lowest supported version (see sdk key in objectbox and generator
       # pubspec.yaml, but may be higher due to dependencies).
-      - DART_VERSION: [ '2.18.6', '3.1.5', '3.2.3' ]
+      - DART_VERSION: [ '2.18.6', '3.2.3', '3.3.0' ]
 
 # Runs tests with coverage on the objectbox package.
 # Note: As this requires to run tests, make sure this does not block the actual test jobs so test
