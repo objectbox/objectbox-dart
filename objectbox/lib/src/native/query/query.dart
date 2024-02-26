@@ -62,7 +62,7 @@ class QueryProperty<EntityT, DartType> {
 }
 
 class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
-  QueryStringProperty(ModelProperty model) : super(model);
+  QueryStringProperty(super.model);
 
   Condition<EntityT> _op(String p, _ConditionOp cop, String? alias,
           {bool? caseSensitive}) =>
@@ -118,7 +118,7 @@ class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
 
 class QueryByteVectorProperty<EntityT>
     extends QueryProperty<EntityT, Uint8List> {
-  QueryByteVectorProperty(ModelProperty model) : super(model);
+  QueryByteVectorProperty(super.model);
 
   Condition<EntityT> _op(List<int> val, _ConditionOp cop, String? alias) =>
       _ByteVectorCondition<EntityT>(cop, this, Uint8List.fromList(val), alias);
@@ -140,7 +140,7 @@ class QueryByteVectorProperty<EntityT>
 }
 
 class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
-  QueryIntegerProperty(ModelProperty model) : super(model);
+  QueryIntegerProperty(super.model);
 
   Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
       _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
@@ -286,7 +286,7 @@ class QueryDateNanoProperty<EntityT> extends QueryIntegerProperty<EntityT> {
 /// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
 /// equal are supported on elements of the vector (e.g. "has element greater").
 class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
-  QueryIntegerVectorProperty(ModelProperty model) : super(model);
+  QueryIntegerVectorProperty(super.model);
 
   Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
       _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
@@ -312,7 +312,7 @@ class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
 }
 
 class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
-  QueryDoubleProperty(ModelProperty model) : super(model);
+  QueryDoubleProperty(super.model);
 
   Condition<EntityT> _op(
           _ConditionOp op, double p1, double? p2, String? alias) =>
@@ -350,7 +350,7 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
 /// the vector (e.g. "has element greater").
 class QueryDoubleVectorProperty<EntityT>
     extends QueryProperty<EntityT, double> {
-  QueryDoubleVectorProperty(ModelProperty model) : super(model);
+  QueryDoubleVectorProperty(super.model);
 
   Condition<EntityT> _op(
           _ConditionOp op, double p1, double? p2, String? alias) =>
@@ -374,7 +374,7 @@ class QueryDoubleVectorProperty<EntityT>
 }
 
 class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
-  QueryBooleanProperty(ModelProperty model) : super(model);
+  QueryBooleanProperty(super.model);
 
   // ignore: avoid_positional_boolean_parameters
   Condition<EntityT> equals(bool p, {String? alias}) =>
@@ -389,7 +389,7 @@ class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
 
 class QueryStringVectorProperty<EntityT>
     extends QueryProperty<EntityT, List<String>> {
-  QueryStringVectorProperty(ModelProperty model) : super(model);
+  QueryStringVectorProperty(super.model);
 
   @Deprecated(
       'Use `containsElement` instead. Will be removed in a future release.')
@@ -405,7 +405,7 @@ class QueryStringVectorProperty<EntityT>
 }
 
 class QueryRelationToOne<Source, Target> extends QueryIntegerProperty<Source> {
-  QueryRelationToOne(ModelProperty model) : super(model);
+  QueryRelationToOne(super.model);
 }
 
 class QueryRelationToMany<Source, Target> {
@@ -556,14 +556,8 @@ class _StringCondition<EntityT, PropertyDartType>
     extends _PropertyCondition<EntityT, PropertyDartType, String> {
   bool? caseSensitive;
 
-  _StringCondition(
-      _ConditionOp op,
-      QueryProperty<EntityT, PropertyDartType> prop,
-      String value,
-      String? value2,
-      String? alias,
-      {this.caseSensitive})
-      : super(op, prop, value, value2, alias);
+  _StringCondition(super.op, super.prop, super.value, super.value2, super.alias,
+      {this.caseSensitive});
 
   int _op1(_QueryBuilder builder,
       int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, bool) func) {
@@ -637,12 +631,7 @@ class _StringListCondition<EntityT>
 class _IntegerCondition<EntityT, PropertyDartType>
     extends _PropertyCondition<EntityT, PropertyDartType, int> {
   _IntegerCondition(
-      _ConditionOp op,
-      QueryProperty<EntityT, PropertyDartType> prop,
-      int value,
-      int? value2,
-      String? alias)
-      : super(op, prop, value, value2, alias);
+      super.op, super.prop, super.value, super.value2, super.alias);
 
   int _op1(_QueryBuilder builder,
           int Function(Pointer<OBX_query_builder>, int, int) func) =>

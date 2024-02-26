@@ -34,7 +34,7 @@ class ObjectBoxException implements Exception {
 /// a result due to a number type overflowing.
 class NumericOverflowException extends ObjectBoxException {
   /// See [NumericOverflowException].
-  NumericOverflowException(String message) : super(message);
+  NumericOverflowException(super.message);
 }
 
 /// ObjectBox database exception with an OBX_ERROR code.
@@ -43,7 +43,7 @@ class StorageException extends ObjectBoxException {
   final int errorCode;
 
   /// Create with a message and OBX_ERROR code.
-  StorageException(String message, this.errorCode) : super(message);
+  StorageException(super.message, this.errorCode);
 
   @override
   String toString() => '$runtimeType: $message (OBX_ERROR code $errorCode)';
@@ -53,15 +53,14 @@ class StorageException extends ObjectBoxException {
 /// `maxDBSizeInKB` configured when calling [Store.new].
 class DbFullException extends StorageException {
   /// See [DbFullException].
-  DbFullException(String message, int errorCode) : super(message, errorCode);
+  DbFullException(super.message, super.errorCode);
 }
 
 /// Thrown when applying a transaction would exceed the `maxDataSizeInKByte`
 /// configured when calling [Store.new].
 class DbMaxDataSizeExceededException extends StorageException {
   /// See [DbMaxDataSizeExceededException].
-  DbMaxDataSizeExceededException(String message, int errorCode)
-      : super(message, errorCode);
+  DbMaxDataSizeExceededException(super.message, super.errorCode);
 }
 
 /// Thrown when the maximum amount of readers (read transactions) was exceeded.
@@ -72,8 +71,7 @@ class DbMaxDataSizeExceededException extends StorageException {
 /// setting `maxReaders` when calling [Store.new].
 class DbMaxReadersExceededException extends StorageException {
   /// See [DbMaxReadersExceededException].
-  DbMaxReadersExceededException(String message, int errorCode)
-      : super(message, errorCode);
+  DbMaxReadersExceededException(super.message, super.errorCode);
 }
 
 /// Thrown when an error occurred that requires the store to be closed.
@@ -82,14 +80,13 @@ class DbMaxReadersExceededException extends StorageException {
 /// this exit the app or try to reopen the store.
 class DbShutdownException extends StorageException {
   /// See [DbShutdownException].
-  DbShutdownException(String message, int errorCode)
-      : super(message, errorCode);
+  DbShutdownException(super.message, super.errorCode);
 }
 
 /// A unique constraint would have been violated by this database operation.
 class UniqueViolationException extends ObjectBoxException {
   /// Create a new exception.
-  UniqueViolationException(String message) : super(message);
+  UniqueViolationException(super.message);
 }
 
 /// Thrown when there is an error with the data schema (data model).
@@ -101,30 +98,28 @@ class UniqueViolationException extends ObjectBoxException {
 /// on why this can happen and how to resolve such conflicts.
 class SchemaException extends ObjectBoxException {
   /// See [SchemaException].
-  SchemaException(String message) : super(message);
+  SchemaException(super.message);
 }
 
 /// Errors were detected in a database file, e.g. illegal values or structural
 /// inconsistencies.
 class DbFileCorruptException extends StorageException {
   /// See [DbFileCorruptException].
-  DbFileCorruptException(String message, int errorCode)
-      : super(message, errorCode);
+  DbFileCorruptException(super.message, super.errorCode);
 }
 
 /// Errors related to pages were detected in a database file, e.g. bad page refs
 /// outside of the file.
 class DbPagesCorruptException extends DbFileCorruptException {
   /// See [DbPagesCorruptException].
-  DbPagesCorruptException(String message, int errorCode)
-      : super(message, errorCode);
+  DbPagesCorruptException(super.message, super.errorCode);
 }
 
 /// Thrown if `Query.findUnique()` is called, but the query matches more than
 /// one object.
 class NonUniqueResultException extends ObjectBoxException {
   /// See [NonUniqueResultException].
-  NonUniqueResultException(String message) : super(message);
+  NonUniqueResultException(super.message);
 }
 
 /// Passed as `debugFlags` when calling [Store.new] to enable debug options.
