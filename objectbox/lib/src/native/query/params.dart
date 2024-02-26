@@ -1,4 +1,4 @@
-part of query;
+part of 'query.dart';
 
 /// Adds capabilities to set query parameters
 extension QuerySetParam on Query {

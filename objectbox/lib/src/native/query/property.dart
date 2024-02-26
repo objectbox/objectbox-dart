@@ -1,4 +1,4 @@
-part of query;
+part of 'query.dart';
 
 /// Property query base.
 class PropertyQuery<T> implements Finalizable {
