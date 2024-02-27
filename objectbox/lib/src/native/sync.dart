@@ -5,7 +5,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:meta/meta.dart';
 
 import '../common.dart';
 import '../util.dart';
@@ -16,32 +15,61 @@ import 'store.dart';
 /// Credentials used to authenticate a sync client against a server.
 class SyncCredentials {
   final int _type;
-  final Uint8List _data;
 
-  SyncCredentials._(this._type, String data)
-      : _data = Uint8List.fromList(utf8.encode(data));
+  SyncCredentials._(this._type);
 
   /// No credentials - usually only for development purposes with a server
   /// configured to accept all connections without authentication.
-  SyncCredentials.none()
-      : _type = OBXSyncCredentialsType.NONE,
-        _data = Uint8List(0);
+  static SyncCredentials none() => _SyncCredentialsNone._();
 
   /// Shared secret authentication.
-  SyncCredentials.sharedSecretUint8List(this._data)
-      : _type = OBXSyncCredentialsType.SHARED_SECRET_SIPPED;
+  static SyncCredentials sharedSecretUint8List(Uint8List data) =>
+      SyncCredentialsSecret._(
+          OBXSyncCredentialsType.SHARED_SECRET_SIPPED, data);
 
   /// Shared secret authentication.
-  SyncCredentials.sharedSecretString(String data)
-      : this._(OBXSyncCredentialsType.SHARED_SECRET_SIPPED, data);
+  static SyncCredentials sharedSecretString(String data) =>
+      SyncCredentialsSecret._encode(
+          OBXSyncCredentialsType.SHARED_SECRET_SIPPED, data);
 
   /// Google authentication.
-  SyncCredentials.googleAuthUint8List(this._data)
-      : _type = OBXSyncCredentialsType.GOOGLE_AUTH;
+  static SyncCredentials googleAuthUint8List(Uint8List data) =>
+      SyncCredentialsSecret._(OBXSyncCredentialsType.GOOGLE_AUTH, data);
 
   /// Google authentication.
-  SyncCredentials.googleAuthString(String data)
-      : this._(OBXSyncCredentialsType.GOOGLE_AUTH, data);
+  static SyncCredentials googleAuthString(String data) =>
+      SyncCredentialsSecret._encode(OBXSyncCredentialsType.GOOGLE_AUTH, data);
+
+  /// Username and password authentication.
+  static SyncCredentials userAndPassword(String user, String password) =>
+      _SyncCredentialsUserPassword._(
+          OBXSyncCredentialsType.USER_PASSWORD, user, password);
+}
+
+class _SyncCredentialsNone extends SyncCredentials {
+  _SyncCredentialsNone._() : super._(OBXSyncCredentialsType.NONE);
+}
+
+/// Do not export, internal use only.
+///
+/// Sync credential that is a single secret string.
+class SyncCredentialsSecret extends SyncCredentials {
+  /// UTF-8 encoded string.
+  final Uint8List data;
+
+  SyncCredentialsSecret._(super.type, this.data) : super._();
+
+  SyncCredentialsSecret._encode(super.type, String data)
+      : data = Uint8List.fromList(utf8.encode(data)),
+        super._();
+}
+
+class _SyncCredentialsUserPassword extends SyncCredentials {
+  final String _user;
+  final String _password;
+
+  _SyncCredentialsUserPassword._(super._type, this._user, this._password)
+      : super._();
 }
 
 /// Current state of the [SyncClient].
@@ -205,11 +233,18 @@ class SyncClient {
 
   /// Configure authentication credentials, depending on your server config.
   void setCredentials(SyncCredentials creds) {
-    if (creds._type == OBXSyncCredentialsType.NONE) {
+    if (creds is _SyncCredentialsNone) {
       checkObx(C.sync_credentials(_ptr, creds._type, nullptr, 0));
-    } else {
+    } else if (creds is _SyncCredentialsUserPassword) {
+      withNativeString(
+          creds._user,
+          (userCStr) => withNativeString(
+              creds._password,
+              (passwordCStr) => C.sync_credentials_user_password(
+                  _ptr, creds._type, userCStr, passwordCStr)));
+    } else if (creds is SyncCredentialsSecret) {
       withNativeBytes(
-          creds._data,
+          creds.data,
           (Pointer<Uint8> credsPtr, int credsSize) => checkObx(
               C.sync_credentials(_ptr, creds._type, credsPtr, credsSize)));
     }
@@ -582,11 +617,4 @@ class Sync {
     InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
   }
-}
-
-/// Tests only.
-@visibleForTesting
-class InternalSyncTestAccess {
-  /// Access credentials internal data representation.
-  static Uint8List credentialsData(SyncCredentials creds) => creds._data;
 }

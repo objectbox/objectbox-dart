@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/store.dart';
+import 'package:objectbox/src/native/sync.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
@@ -63,8 +64,7 @@ void main() {
     // an utf-8 encoded json file (i.e. the usual way).
     final str = 'uũú';
     expect(
-        InternalSyncTestAccess.credentialsData(
-            SyncCredentials.sharedSecretString(str)),
+        (SyncCredentials.sharedSecretString(str) as SyncCredentialsSecret).data,
         equals(Uint8List.fromList([117, 197, 169, 195, 186])));
   });
 
@@ -159,6 +159,7 @@ void main() {
           SyncCredentials.googleAuthUint8List(Uint8List.fromList([13, 0, 25])));
       c.setCredentials(SyncCredentials.sharedSecretUint8List(
           Uint8List.fromList([13, 0, 25])));
+      c.setCredentials(SyncCredentials.userAndPassword('obx', 'secret'));
       c.setCredentials(SyncCredentials.none());
       c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
       c.start();
