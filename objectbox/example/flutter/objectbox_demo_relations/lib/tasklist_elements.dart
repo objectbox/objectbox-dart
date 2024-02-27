@@ -9,7 +9,7 @@ import 'task_elements.dart';
 /// Each task has a check button to mark it completed and an edit button to
 /// update it. A task can also be swiped away to remove it.
 class TaskList extends StatefulWidget {
-  const TaskList({Key? key}) : super(key: key);
+  const TaskList({super.key});
 
   @override
   State<TaskList> createState() => _TaskListState();
@@ -131,7 +131,7 @@ class _TaskListState extends State<TaskList> {
 }
 
 class SwipeLeftNotification extends StatelessWidget {
-  const SwipeLeftNotification({Key? key}) : super(key: key);
+  const SwipeLeftNotification({super.key});
 
   @override
   Widget build(BuildContext context) {
