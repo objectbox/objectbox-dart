@@ -13,7 +13,7 @@ class TaskInput extends StatefulWidget {
 
   /// If [taskId] is not null, the id of the task to edit.
   /// Otherwise, will create a new task.
-  const TaskInput({Key? key, this.taskId}) : super(key: key);
+  const TaskInput({super.key, this.taskId});
 
   @override
   State<TaskInput> createState() => _TaskInputState();

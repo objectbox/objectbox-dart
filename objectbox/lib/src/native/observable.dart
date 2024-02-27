@@ -1,4 +1,4 @@
-part of store;
+part of 'store.dart';
 
 /// Simple wrapper used below in ObservableStore to reduce code duplication.
 /// Contains shared code for single-entity observer and the generic/global one.

@@ -7,7 +7,7 @@ class NewTag extends StatefulWidget {
   final void Function(int) updateTags;
 
   /// [updateTags] returns the ID of the added tag.
-  const NewTag({Key? key, required this.updateTags}) : super(key: key);
+  const NewTag({super.key, required this.updateTags});
 
   @override
   State<NewTag> createState() => _NewTagState();

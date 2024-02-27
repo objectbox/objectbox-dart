@@ -548,11 +548,11 @@ void main() {
     final int64Min = -9223372036854775808;
     final int64Max = 9223372036854775807;
     final List<TestEntity> items = [
-      ...[int8Min, int8Max].map((n) => TestEntity(tByte: n)).toList(),
-      ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)).toList(),
-      ...[0, uint16Max].map((n) => TestEntity(tChar: n)).toList(),
-      ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)).toList(),
-      ...[int64Min, int64Max].map((n) => TestEntity(tLong: n)).toList()
+      ...[int8Min, int8Max].map((n) => TestEntity(tByte: n)),
+      ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)),
+      ...[0, uint16Max].map((n) => TestEntity(tChar: n)),
+      ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)),
+      ...[int64Min, int64Max].map((n) => TestEntity(tLong: n))
     ];
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
@@ -587,8 +587,8 @@ void main() {
       double.negativeInfinity
     ];
     final List<TestEntity> items = [
-      ...valsFloat.map((n) => TestEntity(tFloat: n)).toList(),
-      ...valsDouble.map((n) => TestEntity(tDouble: n)).toList()
+      ...valsFloat.map((n) => TestEntity(tFloat: n)),
+      ...valsDouble.map((n) => TestEntity(tDouble: n))
     ];
     final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
     List<double> fetchedVals = [];

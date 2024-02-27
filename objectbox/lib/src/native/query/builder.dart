@@ -1,4 +1,4 @@
-part of query;
+part of 'query.dart';
 
 /// Query builder allows creating reusable queries.
 class QueryBuilder<T> extends _QueryBuilder<T> {
