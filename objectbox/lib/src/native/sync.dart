@@ -29,11 +29,11 @@ class SyncCredentials {
 
   /// Shared secret authentication.
   SyncCredentials.sharedSecretUint8List(this._data)
-      : _type = OBXSyncCredentialsType.SHARED_SECRET;
+      : _type = OBXSyncCredentialsType.SHARED_SECRET_SIPPED;
 
   /// Shared secret authentication.
   SyncCredentials.sharedSecretString(String data)
-      : this._(OBXSyncCredentialsType.SHARED_SECRET, data);
+      : this._(OBXSyncCredentialsType.SHARED_SECRET_SIPPED, data);
 
   /// Google authentication.
   SyncCredentials.googleAuthUint8List(this._data)
