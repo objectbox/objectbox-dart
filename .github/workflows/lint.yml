@@ -42,26 +42,28 @@ jobs:
       - name: Check formatting of all packages
         run: dart format --set-exit-if-changed --fix .
 
-  pana:
-    runs-on: ubuntu-22.04
-    permissions:
-      checks: write # to publish the report
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - uses: axel-op/dart-package-analyzer@7a6c3c66bce78d82b729a1ffef2d9458fde6c8d2 # v3
-        id: analysis # set an id for the current step
-        with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          relativePath: objectbox
-      # You can then use this id to retrieve the outputs in the next steps.
-      # The following step shows how to exit the workflow with an error if a score is below 100:
-      - name: Check scores
-        shell: bash
-        run: |
-          if (( ${{ steps.analysis.outputs.total }} < 100 )); then
-            echo "Expected score 130, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
-            exit 1
-          fi
+# Temporarily disable until axel-op/dart-package-analyzer fix for
+# https://github.com/axel-op/dart-package-analyzer/issues/27 ships.
+#  pana:
+#    runs-on: ubuntu-22.04
+#    permissions:
+#      checks: write # to publish the report
+#    steps:
+#      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+#      - uses: axel-op/dart-package-analyzer@7a6c3c66bce78d82b729a1ffef2d9458fde6c8d2 # v3
+#        id: analysis # set an id for the current step
+#        with:
+#          githubToken: ${{ secrets.GITHUB_TOKEN }}
+#          relativePath: objectbox
+#      # You can then use this id to retrieve the outputs in the next steps.
+#      # The following step shows how to exit the workflow with an error if a score is below 100:
+#      - name: Check scores
+#        shell: bash
+#        run: |
+#          if (( ${{ steps.analysis.outputs.total }} < 100 )); then
+#            echo "Expected score 130, got ${{ steps.analysis.outputs.total }}, please check the analysis report and resolve the issues"
+#            exit 1
+#          fi
 
   coverage:
     runs-on: ubuntu-22.04
