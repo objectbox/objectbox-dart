@@ -1,4 +1,4 @@
-## latest
+## 2.5.1 (2024-03-04)
 
 * Add `SyncCredentials.userAndPassword()`.
 * Change `SyncCredentials` from constructors to static methods. This should not require any changes
