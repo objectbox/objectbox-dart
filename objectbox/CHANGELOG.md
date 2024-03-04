@@ -1,5 +1,9 @@
 ## latest
 
+* Add `SyncCredentials.userAndPassword()`.
+* Change `SyncCredentials` from constructors to static methods. This should not require any changes
+  in your code.
+
 ## 2.5.0 (2024-02-14)
 
 * Support creating file-less in-memory databases, for example for caching or testing. To create one

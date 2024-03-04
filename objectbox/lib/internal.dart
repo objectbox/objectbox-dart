@@ -8,4 +8,3 @@ export 'src/native/store.dart' show InternalStoreAccess;
 export 'src/relations/info.dart';
 export 'src/relations/to_many.dart'
     show InternalToManyAccess, InternalToManyTestAccess;
-export 'src/sync.dart' show InternalSyncTestAccess;
