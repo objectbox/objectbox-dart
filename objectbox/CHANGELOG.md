@@ -1,3 +1,5 @@
+## latest
+
 ## 2.5.1 (2024-03-04)
 
 * Add `SyncCredentials.userAndPassword()`.
