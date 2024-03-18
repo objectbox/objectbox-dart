@@ -22,6 +22,9 @@ import 'code_chunks.dart';
 class CodeBuilder extends Builder {
   final Config _config;
 
+  /// Model exposed for testing.
+  ModelInfo? model;
+
   CodeBuilder(this._config);
 
   @override
@@ -57,6 +60,7 @@ class CodeBuilder extends Builder {
 
     // update the model JSON with the read entities
     final model = await updateModel(entities, buildStep, builderDirs);
+    this.model = model;
 
     Pubspec? pubspec;
     try {
