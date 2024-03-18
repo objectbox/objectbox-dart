@@ -168,6 +168,11 @@ class ModelEntity {
     }
   }
 
+  /// Convert this to a string map. Set [forModelJson] to exclude some keys that
+  /// should not be part of the model JSON file.
+  ///
+  /// Note: this is used by EntityResolver for model persistence in cache files
+  /// and indirectly by CodeBuilder when generating objectbox-model.json.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();

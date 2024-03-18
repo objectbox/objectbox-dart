@@ -100,8 +100,8 @@ class CodeBuilder extends Builder {
     // write model info
     // Can't use output, it's removed before each build, though writing to FS is explicitly forbidden by package:build.
     // await buildStep.writeAsString(jsonId, JsonEncoder.withIndent('  ').convert(model.toMap()));
-    await File(jsonId.path).writeAsString(
-        JsonEncoder.withIndent('  ').convert(model.toMap(forModelJson: true)));
+    await File(jsonId.path)
+        .writeAsString(JsonEncoder.withIndent('  ').convert(model.toMap()));
 
     return model;
   }
