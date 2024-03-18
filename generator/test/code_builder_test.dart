@@ -1,15 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:objectbox_generator/src/builder_dirs.dart';
-import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as path;
 import 'package:build/build.dart';
 import 'package:build/src/builder/build_step_impl.dart';
-import 'package:crypto/src/digest.dart';
-import 'package:glob/glob.dart';
+import 'package:build_test/build_test.dart';
+import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
 import 'package:objectbox_generator/src/config.dart';
+import 'package:package_config/package_config.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
@@ -131,39 +129,6 @@ void main() {
           equals('../../'));
     });
   });
-}
-
-/// A no-op implementation of [AssetReader].
-class StubAssetReader extends AssetReader implements MultiPackageAssetReader {
-  StubAssetReader();
-
-  @override
-  Future<bool> canRead(AssetId id) => Future.value(false);
-
-  @override
-  Future<List<int>> readAsBytes(AssetId id) => Future.value([]);
-
-  @override
-  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) =>
-      Future.value('');
-
-  @override
-  Stream<AssetId> findAssets(Glob glob, {String? package}) =>
-      const Stream<Never>.empty();
-
-  @override
-  Future<Digest> digest(AssetId id) => Future.value(Digest([1, 2, 3]));
-}
-
-/// A no-op implementation of [AssetWriter].
-class StubAssetWriter implements AssetWriter {
-  const StubAssetWriter();
-
-  @override
-  Future writeAsBytes(_, __) => Future.value(null);
-
-  @override
-  Future writeAsString(_, __, {Encoding encoding = utf8}) => Future.value(null);
 }
 
 Future<PackageConfig> _unsupported() {
