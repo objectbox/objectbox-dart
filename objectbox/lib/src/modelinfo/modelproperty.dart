@@ -1,5 +1,6 @@
 import 'enums.dart';
 import 'iduid.dart';
+import 'model_hnsw_params.dart';
 import 'modelentity.dart';
 
 // ignore_for_file: public_member_api_docs
@@ -14,6 +15,7 @@ class ModelProperty {
   IdUid? _indexId;
   ModelEntity? entity;
   String? relationTarget;
+  ModelHnswParams? hnswParams;
 
   /// Type used in the source dart code - used by the code generator.
   /// Starts with [_fieldReadOnlyPrefix] if the field (currently IDs only) is
@@ -111,22 +113,27 @@ class ModelProperty {
       required int type,
       required int flags,
       IdUid? indexId,
-      this.relationTarget})
+      this.relationTarget,
+      this.hnswParams})
       : _name = name,
         _type = type,
         _flags = flags,
         _indexId = indexId,
         uidRequest = false;
 
-  ModelProperty.fromMap(Map<String, dynamic> data, ModelEntity? entity)
-      : this.create(IdUid.fromString(data['id'] as String?),
-            data['name'] as String?, data['type'] as int?,
-            flags: data['flags'] as int? ?? 0,
-            indexId: data['indexId'] as String?,
-            entity: entity,
-            dartFieldType: data['dartFieldType'] as String?,
-            relationTarget: data['relationTarget'] as String?,
-            uidRequest: data['uidRequest'] as bool? ?? false);
+  ModelProperty.fromMap(Map<String, dynamic> data, this.entity)
+      : id = IdUid.fromString(data['id'] as String?),
+        relationTarget = data['relationTarget'] as String?,
+        _dartFieldType = data['dartFieldType'] as String?,
+        uidRequest = data['uidRequest'] as bool? ?? false,
+        hnswParams = ModelHnswParams.fromMap(
+            data['hnswParams'] as Map<String, dynamic>?) {
+    name = data['name'] as String?;
+    type = data['type'] as int?;
+    flags = data['flags'] as int? ?? 0;
+    final indexId = data['indexId'] as String?;
+    this.indexId = indexId == null ? null : IdUid.fromString(indexId);
+  }
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
@@ -136,9 +143,14 @@ class ModelProperty {
     if (flags != 0) ret['flags'] = flags;
     if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
-    if (!forModelJson && _dartFieldType != null) {
-      ret['dartFieldType'] = _dartFieldType;
+    if (!forModelJson) {
+      if (_dartFieldType != null) {
+        ret['dartFieldType'] = _dartFieldType;
+      }
       ret['uidRequest'] = uidRequest;
+      if (hnswParams != null) {
+        ret['hnswParams'] = hnswParams!.toMap();
+      }
     }
     return ret;
   }
@@ -168,20 +180,24 @@ class ModelProperty {
     if (!isSigned) result += ' unsigned';
     result += ' flags:$flags';
 
-    if (hasIndexFlag()) {
-      // ignore: prefer_interpolation_to_compose_strings
-      result += ' index:' +
-          (hasFlag(OBXPropertyFlags.INDEXED)
-              ? 'value'
-              : hasFlag(OBXPropertyFlags.INDEX_HASH)
-                  ? 'hash'
-                  : hasFlag(OBXPropertyFlags.INDEX_HASH64)
-                      ? 'hash64'
-                      : 'unknown');
+    if (hasIndexFlag() || hnswParams != null) {
+      String type;
+      if (hasFlag(OBXPropertyFlags.INDEXED)) {
+        type = 'value';
+      } else if (hasFlag(OBXPropertyFlags.INDEX_HASH)) {
+        type = 'hash';
+      } else if (hasFlag(OBXPropertyFlags.INDEX_HASH64)) {
+        type = 'hash64';
+      } else if (hnswParams != null) {
+        type = 'hnsw';
+      } else {
+        type = 'unknown';
+      }
+      result += ' index:$type';
     }
 
     if (relationTarget != null) {
-      result += ' relTarget: $relationTarget';
+      result += ' relTarget:$relationTarget';
     }
 
     return result;

@@ -313,3 +313,93 @@ class Backlink {
   /// the field name of the desired source relation: Backlink('sourceField').
   const Backlink([this.to = '']);
 }
+
+/// The distance algorithm used by an [HnswIndex] (vector search).
+enum HnswDistanceType {
+  /// The default; typically "Euclidean squared" internally.
+  euclidean
+}
+
+/// Flags as a part of the [HnswIndex] configuration.
+class HnswFlags {
+  /// Enables debug logs.
+  final bool debugLogs;
+
+  /// Enables "high volume" debug logs, e.g. individual gets/puts.
+  final bool debugLogsDetailed;
+
+  /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
+  final bool vectorCacheSimdPaddingOff;
+
+  /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
+  /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
+  /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
+  final bool reparationLimitCandidates;
+
+  /// Create flags for the [HnswIndex] annotation.
+  const HnswFlags(
+      {this.debugLogs = false,
+      this.debugLogsDetailed = false,
+      this.vectorCacheSimdPaddingOff = false,
+      this.reparationLimitCandidates = false});
+}
+
+/// See [HnswIndex.new].
+class HnswIndex {
+  /// Dimensions of vectors; vector data with fewer dimensions are ignored.
+  /// Vectors with more dimensions than specified here are only evaluated up to the given dimension value.
+  /// Changing this value causes re-indexing.
+  final int dimensions;
+
+  /// Aka "M": the max number of connections per node (default: 30).
+  /// Higher numbers increase the graph connectivity, which can lead to more accurate search results.
+  /// However, higher numbers also increase the indexing time and resource usage.
+  /// Try e.g. 16 for faster but less accurate results, or 64 for more accurate results.
+  /// Changing this value causes re-indexing.
+  final int? neighborsPerNode;
+
+  /// Aka "efConstruction": the number of neighbor searched for while indexing (default: 100).
+  /// The higher the value, the more accurate the search, but the longer the indexing.
+  /// If indexing time is not a major concern, a value of at least 200 is recommended to improve search quality.
+  /// Changing this value causes re-indexing.
+  final int? indexingSearchCount;
+
+  /// See [HnswFlags.new].
+  final HnswFlags? flags;
+
+  /// The distance type used for the HNSW index; for now only "Euclidean" is supported.
+  /// Changing this value causes re-indexing.
+  final HnswDistanceType? distanceType;
+
+  /// When repairing the graph after a node was removed, this gives the probability of adding backlinks to the
+  /// repaired neighbors.
+  /// The default is 1.0 (aka "always") as this should be worth a bit of extra costs as it improves the graph's
+  /// quality.
+  final double? reparationBacklinkProbability;
+
+  /// A non-binding hint at the maximum size of the vector cache in KB (default: 2097152 or 2 GB/GiB).
+  /// The actual size max cache size may be altered according to device and/or runtime settings.
+  /// The vector cache is used to store vectors in memory to speed up search and indexing.
+  ///
+  /// Note 1: cache chunks are allocated only on demand, when they are actually used.
+  ///         Thus, smaller datasets will use less memory.
+  ///
+  /// Note 2: the cache is for one specific HNSW index; e.g. each index has its own cache.
+  ///
+  /// Note 3: the memory consumption can temporarily exceed the cache size,
+  ///         e.g. for large changes, it can double due to multi-version transactions.
+  final int? vectorCacheHintSizeKB;
+
+  /// Parameters to configure HNSW-based approximate nearest neighbor (ANN) search.
+  /// Some of the parameters can influence index construction and searching.
+  /// Changing these values causes re-indexing, which can take a while due to the
+  /// complex nature of HNSW.
+  const HnswIndex(
+      {required this.dimensions,
+      this.neighborsPerNode,
+      this.indexingSearchCount,
+      this.flags,
+      this.distanceType,
+      this.reparationBacklinkProbability,
+      this.vectorCacheHintSizeKB});
+}

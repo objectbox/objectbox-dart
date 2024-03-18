@@ -242,6 +242,116 @@ void main() {
       List<String>? tStrings;
       ''');
     });
+
+    test('HNSW annotation on unsupported type errors', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @HnswIndex(dimensions: 3)
+        List<double>? coordinates;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await expectLater(
+          () async => await testEnv.run(source),
+          throwsA(isA<InvalidGenerationSourceError>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                  "@HnswIndex is only supported for float vector properties."))));
+    });
+
+    test('HNSW annotation default', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @Property(type: PropertyType.floatVector)
+        @HnswIndex(dimensions: 3)
+        List<double>? coordinates;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      // Assert final model created by generator
+      final vectorProperty = testEnv.model.entities[0].properties
+          .firstWhere((element) => element.name == "coordinates");
+      expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
+      expect(vectorProperty.indexId, isNotNull);
+      expect(vectorProperty.hnswParams, isNotNull);
+      expect(vectorProperty.hnswParams!.dimensions, 3);
+      expect(vectorProperty.hnswParams!.neighborsPerNode, isNull);
+      expect(vectorProperty.hnswParams!.indexingSearchCount, isNull);
+      expect(vectorProperty.hnswParams!.flags, isNull);
+      expect(vectorProperty.hnswParams!.distanceType, isNull);
+      expect(vectorProperty.hnswParams!.reparationBacklinkProbability, isNull);
+      expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, isNull);
+    });
+
+    test('HNSW annotation with all properties', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @Property(type: PropertyType.floatVector)
+        @HnswIndex(
+            dimensions: 3,
+            neighborsPerNode: 30,
+            indexingSearchCount: 100,
+            flags: HnswFlags(
+                debugLogs: true,
+                debugLogsDetailed: true,
+                vectorCacheSimdPaddingOff: true,
+                reparationLimitCandidates: true),
+            distanceType: HnswDistanceType.euclidean,
+            reparationBacklinkProbability: 0.95,
+            vectorCacheHintSizeKB: 2097152)
+        List<double>? coordinates;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      // Assert final model created by generator
+      final vectorProperty = testEnv.model.entities[0].properties
+          .firstWhere((element) => element.name == "coordinates");
+      expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
+      expect(vectorProperty.indexId, isNotNull);
+      expect(vectorProperty.hnswParams, isNotNull);
+      expect(vectorProperty.hnswParams!.dimensions, 3);
+      expect(vectorProperty.hnswParams!.neighborsPerNode, 30);
+      expect(vectorProperty.hnswParams!.indexingSearchCount, 100);
+      final flags = vectorProperty.hnswParams!.flags;
+      expect(flags, isNotNull);
+      expect(flags! & OBXHnswFlags.DebugLogs != 0, true);
+      expect(flags & OBXHnswFlags.DebugLogsDetailed != 0, true);
+      expect(flags & OBXHnswFlags.VectorCacheSimdPaddingOff != 0, true);
+      expect(flags & OBXHnswFlags.ReparationLimitCandidates != 0, true);
+      expect(vectorProperty.hnswParams!.distanceType,
+          OBXHnswDistanceType.Euclidean);
+      expect(vectorProperty.hnswParams!.reparationBacklinkProbability, 0.95);
+      expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, 2097152);
+    });
   });
 }
 

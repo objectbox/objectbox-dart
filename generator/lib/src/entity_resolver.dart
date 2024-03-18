@@ -27,6 +27,7 @@ class EntityResolver extends Builder {
   final _uniqueChecker = const TypeChecker.fromRuntime(Unique);
   final _indexChecker = const TypeChecker.fromRuntime(Index);
   final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
+  final _hnswChecker = const TypeChecker.fromRuntime(HnswIndex);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -67,6 +68,7 @@ class EntityResolver extends Builder {
         null,
         uidRequest: !entityUid.isNull && entityUid.intValue == 0);
 
+    // Sync: check if enabled
     if (_syncChecker.hasAnnotationOfExact(classElement)) {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;
     }
@@ -206,6 +208,20 @@ class EntityResolver extends Builder {
         // Index and unique annotation.
         processAnnotationIndexUnique(
             f, annotated, fieldType, classElement, prop);
+
+        // Vector database: check for any HNSW index params
+        _hnswChecker.runIfMatches(annotated, (annotation) {
+          // Note: using other index annotations on FloatVector currently
+          // errors, so no need to integrate with regular index processing.
+          if (fieldType != OBXPropertyType.FloatVector) {
+            throw InvalidGenerationSourceError(
+                "'${classElement.name}.${f.name}': @HnswIndex is only supported for float vector properties.",
+                element: f);
+          }
+          // Create an index
+          prop.flags |= OBXPropertyFlags.INDEXED;
+          _readHnswIndexParams(annotation, prop);
+        });
 
         // for code generation
         prop.dartFieldType =
@@ -522,11 +538,50 @@ class EntityResolver extends Builder {
       return info.toString();
     }).toList(growable: false);
   }
+
+  void _readHnswIndexParams(DartObject annotation, ModelProperty property) {
+    final hnswRestored = HnswIndex(
+        dimensions: annotation.getField('dimensions')!.toIntValue()!,
+        neighborsPerNode: annotation.getField('neighborsPerNode')!.toIntValue(),
+        indexingSearchCount:
+            annotation.getField('indexingSearchCount')!.toIntValue(),
+        flags: _HnswFlagsState.fromState(annotation.getField('flags')!),
+        distanceType: _HnswDistanceTypeState.fromState(
+            annotation.getField('distanceType')!),
+        reparationBacklinkProbability: annotation
+            .getField('reparationBacklinkProbability')!
+            .toDoubleValue(),
+        vectorCacheHintSizeKB:
+            annotation.getField('vectorCacheHintSizeKB')!.toIntValue());
+    property.hnswParams = ModelHnswParams.fromAnnotation(hnswRestored);
+  }
 }
 
 extension _TypeCheckerExtensions on TypeChecker {
   void runIfMatches(Element element, void Function(DartObject) fn) {
     final annotations = annotationsOfExact(element);
     if (annotations.isNotEmpty) fn(annotations.first);
+  }
+}
+
+extension _HnswFlagsState on HnswFlags {
+  static HnswFlags? fromState(DartObject state) {
+    if (state.isNull) return null;
+    return HnswFlags(
+        debugLogs: state.getField('debugLogs')!.toBoolValue() ?? false,
+        debugLogsDetailed:
+            state.getField('debugLogsDetailed')!.toBoolValue() ?? false,
+        vectorCacheSimdPaddingOff:
+            state.getField('vectorCacheSimdPaddingOff')!.toBoolValue() ?? false,
+        reparationLimitCandidates:
+            state.getField('reparationLimitCandidates')!.toBoolValue() ??
+                false);
+  }
+}
+
+extension _HnswDistanceTypeState on HnswDistanceType {
+  static HnswDistanceType? fromState(DartObject state) {
+    if (state.isNull) return null;
+    return HnswDistanceType.values[state.getField("index")!.toIntValue()!];
   }
 }
