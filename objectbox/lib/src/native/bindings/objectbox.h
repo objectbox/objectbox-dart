@@ -67,6 +67,15 @@ typedef uint64_t obx_uid;
 /// ID of a single Object stored in the database
 typedef uint64_t obx_id;
 
+/// Object ID with its associated query score, which is used for special query results.
+typedef struct OBX_id_score {
+    obx_id id;
+
+    /// The query score indicates some quality measurement.
+    /// E.g. for vector nearest neighbor searches, the score is the distance to the given vector.
+    double score;
+} OBX_id_score;
+
 /// Error/success code returned by an obx_* function; see defines OBX_SUCCESS, OBX_NOT_FOUND, and OBX_ERROR_*
 typedef int obx_err;
 
@@ -435,6 +444,56 @@ typedef enum {
     OBXPropertyType_DateNanoVector = 32,  ///< Variable sized vector of Date values (high precision 64-bit timestamp).
 } OBXPropertyType;
 
+/// The distance algorithm used by an HNSW index (vector search).
+typedef enum {
+    /// Not a real type, just best practice (e.g. forward compatibility)
+    OBXHnswDistanceType_Unknown = 0,
+
+    /// The default; typically "Euclidean squared" internally.
+    OBXHnswDistanceType_Euclidean = 1,
+
+    /// Cosine similarity compares two vectors irrespective of their magnitude (compares the angle of two vectors).
+    /// Often used for document or semantic similarity.
+    /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+    OBXHnswDistanceType_Cosine = 2,
+
+    /// For normalized vectors (vector length == 1.0), the dot product is equivalent to the cosine similarity.
+    /// Because of this, the dot product is often preferred as it performs better.
+    /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+    OBXHnswDistanceType_DotProduct = 3,
+
+
+    OBXHnswDistanceType_Manhattan = 4,
+    OBXHnswDistanceType_Hamming = 5,
+
+    /// A custom dot product similarity measure that does not require the vectors to be normalized.
+    /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
+    /// The non-linear conversion provides a high precision over the entire float range (for the raw dot product).
+    /// The higher the dot product, the lower the distance is (the nearer the vectors are).
+    /// The more negative the dot product, the higher the distance is (the farther the vectors are).
+    /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
+    OBXHnswDistanceType_DotProductNonNormalized = 10,
+} OBXHnswDistanceType;
+
+/// Bit-flags to influence the behavior of HNSW index (vector search).
+typedef enum {
+    OBXHnswFlags_None = 0,
+
+    /// Enables debug logs.
+    OBXHnswFlags_DebugLogs = 1,
+
+    /// Enables "high volume" debug logs, e.g. individual gets/puts.
+    OBXHnswFlags_DebugLogsDetailed = 2,
+
+    /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
+    ObxHnswFlags_VectorCacheSimdPaddingOff = 4,
+
+    /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
+    /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
+    /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
+    ObxHnswFlags_ReparationLimitCandidates = 8,
+} OBXHnswFlags;
+
 /// Bit-flags defining the behavior of entities.
 /// Note: Numbers indicate the bit position
 typedef enum {
@@ -581,6 +640,44 @@ OBX_C_API obx_err obx_model_property_relation(OBX_model* model, const char* targ
 /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
 OBX_C_API obx_err obx_model_property_index_id(OBX_model* model, obx_schema_id index_id, obx_uid index_uid);
 
+/// Sets the vector dimensionality for the HNSW index of the latest property (must be of a supported vector type).
+/// This a mandatory option for all HNSW indexes.
+/// Note 1: vectors with higher dimensions than this value are also indexed (ignoring the higher elements).
+/// Note 2: vectors with lower dimensions than this value are completely ignored for indexing.
+OBX_C_API obx_err obx_model_property_index_hnsw_dimensions(OBX_model* model, size_t value);
+
+/// Sets the max number of neighbors per node (aka "M") for the HNSW index of the latest property.
+/// Higher number increases the graph connectivity which can lead to better results, but higher resources usage.
+/// If no value is set, a default value taken (currently 30).
+/// Try e.g. 16 for faster but less accurate results, or 64 for more accurate results.
+OBX_C_API obx_err obx_model_property_index_hnsw_neighbors_per_node(OBX_model* model, uint32_t value);
+
+/// Sets the max number of neighbors searched while indexing (aka "efConstruction") for the HNSW index of the latest
+/// property.
+/// If no value is set, a default value taken (currently 100, which can change in future version).
+/// The default value serves as a starting point that can likely be optimized for specific datasets and use cases.
+/// The higher the value, the more accurate the search, but the longer the indexing will take.
+/// If indexing time is not a major concern, a value of at least 200 is recommended to improve search quality.
+OBX_C_API obx_err obx_model_property_index_hnsw_indexing_search_count(OBX_model* model, uint32_t value);
+
+/// Sets flags for the HNSW index of the latest property ().
+/// For details see OBXHnswFlags and its individual values.
+/// @param flags See OBXHnswFlags for values (use bitwise OR to combine multiple flags)
+OBX_C_API obx_err obx_model_property_index_hnsw_flags(OBX_model* model, uint32_t flags);
+
+/// Sets the distance type for the HNSW index of the latest property.
+OBX_C_API obx_err obx_model_property_index_hnsw_distance_type(OBX_model* model, OBXHnswDistanceType value);
+
+/// Sets the reparation backlink probability, for the HNSW index of the latest property.
+/// When repairing the graph after a node was removed, this gives the probability of adding backlinks to the repaired
+/// neighbors. The default is 1.0 (aka "always") as this should be worth a bit of extra costs as it improves the graph's
+/// quality.
+OBX_C_API obx_err obx_model_property_index_hnsw_reparation_backlink_probability(OBX_model* model, float value);
+
+/// Sets the vector cache hint size for the HNSW index of the latest property.
+/// This is a non-binding hint of the maximum size of the vector cache in KB (default: 2097152 or 2 GB/GiB).
+OBX_C_API obx_err obx_model_property_index_hnsw_vector_cache_hint_size_kb(OBX_model* model, size_t value);
+
 /// Add a standalone relation between the active entity and the target entity to the model
 /// @param relation_id Must be unique within this version of the model
 /// @param relation_uid Used to identify relations between versions of the model. Must be globally unique.
@@ -689,17 +786,35 @@ typedef enum {
     OBXBackupFlags_ExcludeSalt = 0x2,
 } OBXBackupFlags;
 
-/// Bytes struct is an input/output wrapper typically used for a single object data (represented as FlatBuffers).
+/// This bytes struct is an input/output wrapper used for a single data object (represented as FlatBuffers).
 typedef struct OBX_bytes {
     const uint8_t* data;
     size_t size;
 } OBX_bytes;
 
-/// Bytes array struct is an input/output wrapper for multiple FlatBuffers object data representation.
+/// This bytes array struct is an input/output wrapper for multiple data objects (represented as FlatBuffers).
 typedef struct OBX_bytes_array {
     OBX_bytes* bytes;
     size_t count;
 } OBX_bytes_array;
+
+/// This bytes score struct is an input/output wrapper used for a single data object (represented as FlatBuffers)
+/// with its associated query score, which is used for special query results.
+typedef struct OBX_bytes_score {
+    const uint8_t* data;
+    size_t size;
+
+    /// The query score indicates some quality measurement.
+    /// E.g. for vector nearest neighbor searches, the score is the distance to the given vector.
+    double score;
+} OBX_bytes_score;
+
+/// This bytes score array struct is an input/output wrapper pointing to multiple OBX_bytes_score instances.
+/// If count is zero, bytes_scores is allowed to be invalid.
+typedef struct OBX_bytes_score_array {
+    OBX_bytes_score* bytes_scores;
+    size_t count;
+} OBX_bytes_score_array;
 
 struct OBX_bytes_lazy;  // doxygen (only) picks up the typedef struct below
 
@@ -721,6 +836,13 @@ typedef struct OBX_id_array {
     obx_id* ids;
     size_t count;
 } OBX_id_array;
+
+/// ID score array struct is an input/output wrapper for an array of OBX_id_score structs.
+/// If count is zero, bytes_scores is allowed to be invalid.
+typedef struct OBX_id_score_array {
+    OBX_id_score* ids_scores;
+    size_t count;
+} OBX_id_score_array;
 
 /// String array struct is an input/output wrapper for an array of character strings.
 typedef struct OBX_string_array {
@@ -1012,6 +1134,15 @@ OBX_C_API OBX_store* obx_store_attach_or_open(OBX_store_options* opt, bool check
 /// The IDs are stable and unique during the lifetime of the process.
 /// E.g. these IDs can be shared across threads efficiently and can serve a similar purpose as weak pointers do.
 OBX_C_API uint64_t obx_store_id(OBX_store* store);
+
+/// Get the size of the store. For a disk-based store type, this corresponds to the size on disk, and for the
+/// in-memory store type, this is roughly the used memory bytes occupied by the data.
+/// @returns the size in bytes of the database, or 0 if the file does not exist or some error occurred.
+OBX_C_API uint64_t obx_store_size(OBX_store* store);
+
+/// The size in bytes occupied by the database on disk (if any).
+/// @returns 0 if the underlying database is in-memory only, or the size could not be determined.
+OBX_C_API uint64_t obx_store_size_on_disk(OBX_store* store);
 
 /// Gives the store type ID for the given store
 /// @returns One of ::OBXStoreTypeId
@@ -1820,6 +1951,18 @@ OBX_C_API OBX_query_builder* obx_qb_backlink_standalone(OBX_query_builder* build
 OBX_C_API OBX_query_builder* obx_qb_link_time(OBX_query_builder* builder, obx_schema_id linked_entity_id,
                                               obx_schema_id begin_property_id, obx_schema_id end_property_id);
 
+/// Performs an approximate nearest neighbor (ANN) search to find objects near to the given query_vector.
+/// This requires the vector property to have a HNSW index.
+/// @param vector_property_id the vector property ID of the entity
+/// @param query_vector the query vector; its dimensions should be at least the dimensions of the vector property.
+/// @param max_result_count maximum number of objects to return by the ANN condition.
+///        Hint: it can also be used as the "ef" HNSW parameter to increase the search quality in combination with a
+///        query limit.
+///        For example, use 100 here with a query limit of 10 to have 10 results that are of potentially better quality
+///        than just passing in 10 here (quality/performance tradeoff).
+OBX_C_API obx_qb_cond obx_qb_nearest_neighbors_f32(OBX_query_builder* builder, obx_schema_id vector_property_id,
+                                                   const float* query_vector, size_t max_result_count);
+
 //----------------------------------------------
 // Query
 //----------------------------------------------
@@ -1857,8 +2000,18 @@ OBX_C_API obx_err obx_query_offset_limit(OBX_query* query, size_t offset, size_t
 /// Call with limit=0 to reset to the default behavior - zero limit means no limit applied.
 OBX_C_API obx_err obx_query_limit(OBX_query* query, size_t limit);
 
-/// Find entities matching the query. NOTE: the returned data is only valid as long the transaction is active!
+/// Find objects matching the query.
+/// NOTE: You must use an explicit transaction and the returned data is only valid as long the transaction is active!
+/// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
 OBX_C_API OBX_bytes_array* obx_query_find(OBX_query* query);
+
+/// Find objects matching the query associated to their query score (e.g. distance in NN search).
+/// The resulting array is sorted by score in ascending order (unlike obx_query_find()).
+OBX_C_API OBX_bytes_score_array* obx_query_find_with_scores(OBX_query* query);
+
+/// Find object IDs matching the query associated to their query score (e.g. distance in NN search).
+/// The resulting array is sorted by score in ascending order (unlike obx_query_find_ids()).
+OBX_C_API OBX_id_score_array* obx_query_find_ids_with_scores(OBX_query* query);
 
 /// Find the first object matching the query.
 /// @returns OBX_NOT_FOUND if no object matches.
@@ -1876,10 +2029,12 @@ OBX_C_API obx_err obx_query_find_first(OBX_query* query, const uint8_t** data, s
 ///            operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
 OBX_C_API obx_err obx_query_find_unique(OBX_query* query, const uint8_t** data, size_t* size);
 
-/// Walk over matching objects using the given data visitor
+/// Walk over matching objects using the given data visitor.
+/// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
 OBX_C_API obx_err obx_query_visit(OBX_query* query, obx_data_visitor* visitor, void* user_data);
 
-/// Return the IDs of all matching objects
+/// Return the IDs of all matching objects.
+/// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
 OBX_C_API OBX_id_array* obx_query_find_ids(OBX_query* query);
 
 /// Return the number of matching objects
@@ -1935,6 +2090,8 @@ OBX_C_API obx_err obx_query_param_2doubles(OBX_query* query, obx_schema_id entit
                                            double value_a, double value_b);
 OBX_C_API obx_err obx_query_param_bytes(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
                                         const uint8_t* value, size_t size);
+OBX_C_API obx_err obx_query_param_vector_float32(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
+                                                 const float* value, size_t element_count);
 
 /// Gets the size of the property type used in a query condition.
 /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
@@ -1959,6 +2116,8 @@ OBX_C_API obx_err obx_query_param_alias_int32s(OBX_query* query, const char* ali
 OBX_C_API obx_err obx_query_param_alias_double(OBX_query* query, const char* alias, double value);
 OBX_C_API obx_err obx_query_param_alias_2doubles(OBX_query* query, const char* alias, double value_a, double value_b);
 OBX_C_API obx_err obx_query_param_alias_bytes(OBX_query* query, const char* alias, const uint8_t* value, size_t size);
+OBX_C_API obx_err obx_query_param_alias_vector_float32(OBX_query* query, const char* alias, const float* value,
+                                                       size_t element_count);
 
 /// Gets the size of the property type used in a query condition.
 /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
@@ -2363,6 +2522,9 @@ OBX_C_API OBX_store* obx_weak_store_lock(OBX_weak_store* weak_store);
 //----------------------------------------------
 OBX_C_API void obx_bytes_free(OBX_bytes* bytes);
 
+/// Free the array struct
+OBX_C_API void obx_bytes_score_array_free(OBX_bytes_score_array* array);
+
 /// Allocate a bytes array struct of the given size, ready for the data to be pushed
 /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
 OBX_C_API OBX_bytes_array* obx_bytes_array(size_t count);
@@ -2382,6 +2544,9 @@ OBX_C_API void obx_id_array_free(OBX_id_array* array);
 
 /// Free the array struct
 OBX_C_API void obx_string_array_free(OBX_string_array* array);
+
+/// Free the array struct
+OBX_C_API void obx_id_score_array_free(OBX_id_score_array* array);
 
 /// Free the array struct
 OBX_C_API void obx_int64_array_free(OBX_int64_array* array);
