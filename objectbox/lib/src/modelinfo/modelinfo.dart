@@ -138,30 +138,24 @@ class ModelInfo {
     }
   }
 
-  // Note: this function is used when generating objectbox-model.json as well as
-  // for model persistence in build_runner cache files.
-  Map<String, dynamic> toMap({bool forModelJson = false}) {
+  /// Convert to a string map to be used in the model JSON file.
+  Map<String, dynamic> toMap() {
     final ret = <String, dynamic>{};
-    if (forModelJson) {
-      ret['_note1'] = notes[0];
-      ret['_note2'] = notes[1];
-      ret['_note3'] = notes[2];
-    }
-    ret['entities'] =
-        entities.map((e) => e.toMap(forModelJson: forModelJson)).toList();
+    ret['_note1'] = notes[0];
+    ret['_note2'] = notes[1];
+    ret['_note3'] = notes[2];
+    ret['entities'] = entities.map((e) => e.toMap(forModelJson: true)).toList();
     ret['lastEntityId'] = lastEntityId.toString();
     ret['lastIndexId'] = lastIndexId.toString();
     ret['lastRelationId'] = lastRelationId.toString();
     ret['lastSequenceId'] = lastSequenceId.toString();
     ret['modelVersion'] = modelVersion;
-    if (forModelJson) {
-      ret['modelVersionParserMinimum'] = modelVersionParserMinimum;
-      ret['retiredEntityUids'] = retiredEntityUids;
-      ret['retiredIndexUids'] = retiredIndexUids;
-      ret['retiredPropertyUids'] = retiredPropertyUids;
-      ret['retiredRelationUids'] = retiredRelationUids;
-      ret['version'] = version;
-    }
+    ret['modelVersionParserMinimum'] = modelVersionParserMinimum;
+    ret['retiredEntityUids'] = retiredEntityUids;
+    ret['retiredIndexUids'] = retiredIndexUids;
+    ret['retiredPropertyUids'] = retiredPropertyUids;
+    ret['retiredRelationUids'] = retiredRelationUids;
+    ret['version'] = version;
     return ret;
   }
 

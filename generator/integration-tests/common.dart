@@ -11,6 +11,7 @@ ModelInfo readModelJson(String dir) {
 }
 
 /// Configures test cases to check that the model is specified correctly
+/// Note: there are tests asserting the generator model in test/generator_test_env.dart
 commonModelTests(ModelDefinition defs, ModelInfo jsonModel) {
   test('model bindings', () {
     expect(defs.bindings.length, defs.model.entities.length);

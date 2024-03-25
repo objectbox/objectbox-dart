@@ -65,7 +65,7 @@ class TestEnv {
         print("$dir exists: ${dir.existsSync()}");
       }
       print("Store is open: ${Store.isOpen(dbDirPath)}");
-      print("Model Info: ${modelDefinition.model.toMap(forModelJson: true)}");
+      print("Model Info: ${modelDefinition.model.toMap()}");
       rethrow;
     }
     return TestEnv._(inMemory, dbDirPath, store,

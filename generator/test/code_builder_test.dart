@@ -1,17 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:objectbox_generator/src/builder_dirs.dart';
-import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as path;
 import 'package:build/build.dart';
 import 'package:build/src/builder/build_step_impl.dart';
-import 'package:crypto/src/digest.dart';
-import 'package:glob/glob.dart';
+import 'package:build_test/build_test.dart';
+import 'package:objectbox/internal.dart';
+import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
 import 'package:objectbox_generator/src/config.dart';
+import 'package:package_config/package_config.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
+
+import 'generator_test_env.dart';
 
 void main() {
   var reader = StubAssetReader();
@@ -131,39 +132,43 @@ void main() {
           equals('../../'));
     });
   });
-}
 
-/// A no-op implementation of [AssetReader].
-class StubAssetReader extends AssetReader implements MultiPackageAssetReader {
-  StubAssetReader();
+  /// Major testing is still done with the code in generator/integration-tests,
+  /// but using testBuilder from build_test is a replacement which allows
+  /// debugging. Future code generator tests should probably use it.
+  group('code generator', () {
+    test('simple entity', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        // implicit PropertyType.bool
+        bool? tBool;
+        
+        // implicitly determined types
+        String? tString;
+      }
+      ''';
 
-  @override
-  Future<bool> canRead(AssetId id) => Future.value(false);
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
 
-  @override
-  Future<List<int>> readAsBytes(AssetId id) => Future.value([]);
-
-  @override
-  Future<String> readAsString(AssetId id, {Encoding encoding = utf8}) =>
-      Future.value('');
-
-  @override
-  Stream<AssetId> findAssets(Glob glob, {String? package}) =>
-      const Stream<Never>.empty();
-
-  @override
-  Future<Digest> digest(AssetId id) => Future.value(Digest([1, 2, 3]));
-}
-
-/// A no-op implementation of [AssetWriter].
-class StubAssetWriter implements AssetWriter {
-  const StubAssetWriter();
-
-  @override
-  Future writeAsBytes(_, __) => Future.value(null);
-
-  @override
-  Future writeAsString(_, __, {Encoding encoding = utf8}) => Future.value(null);
+      // Assert final model created by generator
+      expect(testEnv.model.entities.length, 1);
+      final exampleEntity = testEnv.model.entities[0];
+      expect(exampleEntity.name, "Example");
+      expect(exampleEntity.flags, 0);
+      expect(exampleEntity.findPropertyByName("tBool")!.type,
+          OBXPropertyType.Bool);
+      expect(exampleEntity.findPropertyByName("tString")!.type,
+          OBXPropertyType.String);
+    });
+  });
 }
 
 Future<PackageConfig> _unsupported() {
