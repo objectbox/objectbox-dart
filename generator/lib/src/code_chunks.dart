@@ -719,6 +719,8 @@ class CodeChunks {
       if (prop.isRelation) {
         propCode +=
             '$obx.QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
+      } else if (prop.hnswParams != null) {
+        propCode += '$obx.QueryHnswProperty<${entity.name}>';
       } else {
         propCode += '$obx.Query${fieldType}Property<${entity.name}>';
       }

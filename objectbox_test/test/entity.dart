@@ -453,3 +453,15 @@ class TestEntityReadDuringRead {
 
   List<String>? strings2;
 }
+
+@Entity()
+class HnswObject {
+  @Id()
+  int id = 0;
+
+  String? name;
+
+  @Property(type: PropertyType.floatVector)
+  @HnswIndex(dimensions: 2)
+  List<double>? floatVector;
+}

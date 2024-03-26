@@ -161,6 +161,25 @@ extension QueryParamDouble on QueryParam<double> {
           _alias!,
           (Pointer<Char> cAlias) =>
               C.query_param_alias_2doubles(_query._ptr, cAlias, a, b)));
+
+  /// Set values for the nearest neighbor condition.
+  void nearestNeighborsF32(List<double> queryVector, int maxResultCount) {
+    withNativeFloats(queryVector, (floatsPtr, size) {
+      if (_alias == null) {
+        checkObx(C.query_param_vector_float32(
+            _query._ptr, _entityId, _prop._model.id.id, floatsPtr, size));
+        checkObx(C.query_param_int(
+            _query._ptr, _entityId, _prop._model.id.id, maxResultCount));
+      } else {
+        withNativeString(_alias!, (aliasPtr) {
+          checkObx(C.query_param_alias_vector_float32(
+              _query._ptr, aliasPtr, floatsPtr, size));
+          checkObx(
+              C.query_param_alias_int(_query._ptr, aliasPtr, maxResultCount));
+        });
+      }
+    });
+  }
 }
 
 /// QueryParam for boolean properties

@@ -664,10 +664,36 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "14:880388751413233760",
+      "lastPropertyId": "3:1316805984869681992",
+      "name": "HnswObject",
+      "properties": [
+        {
+          "id": "1:1348878976678803406",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8283934827571126007",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:1316805984869681992",
+          "name": "floatVector",
+          "type": 28,
+          "flags": 8,
+          "indexId": "21:979541882805401029"
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "13:6993522656119709507",
-  "lastIndexId": "20:4846837430056399798",
+  "lastEntityId": "14:880388751413233760",
+  "lastIndexId": "21:979541882805401029",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
