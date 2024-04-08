@@ -71,4 +71,81 @@ void main() {
     final closest2 = query.findUnique()!;
     expect(closest2.name, "node8");
   });
+
+  test('find offset limit', () {
+    box.putMany(List.generate(15, (index) {
+      final i = index + 1; // start at 1
+      final value = i.toDouble();
+      return HnswObject()
+        ..name = "node_$i"
+        ..floatVector = [value, value];
+    }));
+
+    final searchVector = [3.1, 3.1];
+    final maxResultCount = 4;
+    final query = box
+        .query(HnswObject_.floatVector
+            .nearestNeighborsF32(searchVector, maxResultCount))
+        .build();
+    addTearDown(() => query.close());
+
+    // No offset
+    // Note: score-based find defaults to score-based result ordering
+    final expectedNoOffset = [3, 4, 2, 5];
+    expect(query.findWithScores().map((e) => e.object.id), expectedNoOffset);
+    expect(query.findIdsWithScores().map((e) => e.id), expectedNoOffset);
+    expect(query.findIds(), [2, 3, 4, 5]);
+
+    // Offset 1
+    query.offset = 1;
+    final expectedOffset1 = [4, 2, 5];
+    expect(query.findWithScores().map((e) => e.object.id), expectedOffset1);
+    expect(query.findIdsWithScores().map((e) => e.id), expectedOffset1);
+    expect(query.findIds(), [3, 4, 5]);
+
+    // Offset = nearest-neighbour max search count
+    query.offset = maxResultCount;
+    final empty = [];
+    expect(query.findWithScores().map((e) => e.object.id), empty);
+    expect(query.findIdsWithScores().map((e) => e.id), empty);
+    expect(query.findIds(), empty);
+
+    // Offset out of bounds
+    query.offset = 100;
+    expect(query.findWithScores().map((e) => e.object.id), empty);
+    expect(query.findIdsWithScores().map((e) => e.id), empty);
+    expect(query.findIds(), empty);
+
+    // Check limit 5 to 1
+    query.offset = 0;
+    query.param(HnswObject_.floatVector).nearestNeighborsF32([8.9, 8.8], 5);
+    final expectedLimit = [9, 8, 10, 7, 11];
+    for (int limit = 5; limit > 0; --limit) {
+      query.limit = limit;
+      expect(query.findWithScores().map((e) => e.object.id), expectedLimit);
+      expect(query.findIdsWithScores().map((e) => e.id), expectedLimit);
+
+      expectedLimit.removeLast(); // for next iteration
+    }
+
+    // Check offset & limit together
+    query
+      ..offset = 1
+      ..limit = 5;
+    final expectedSkip1 = [8, 10, 7, 11];
+    expect(query.findWithScores().map((e) => e.object.id), expectedSkip1);
+    expect(query.findIdsWithScores().map((e) => e.id), expectedSkip1);
+
+    query.limit = 3;
+    final expectedSkip1Limit3 = [8, 10, 7];
+    expect(query.findWithScores().map((e) => e.object.id), expectedSkip1Limit3);
+    expect(query.findIdsWithScores().map((e) => e.id), expectedSkip1Limit3);
+
+    query
+      ..offset = 2
+      ..limit = 2;
+    final expectedSkip2Limit2 = [10, 7];
+    expect(query.findWithScores().map((e) => e.object.id), expectedSkip2Limit2);
+    expect(query.findIdsWithScores().map((e) => e.id), expectedSkip2Limit2);
+  });
 }
