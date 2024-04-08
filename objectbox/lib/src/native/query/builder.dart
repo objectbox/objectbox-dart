@@ -145,12 +145,21 @@ class _QueryBuilder<T> {
   @pragma('vm:prefer-inline')
   void _applyCondition() => _queryCondition?._applyFull(this, isRoot: true);
 
+  /// Based on a to-one relation [rel] of this entity, creates a link to another
+  /// entity, for which conditions using the returned builder can be described.
+  ///
+  /// ```
+  /// final builder = orderBox.query(Order_.name.equals('Misc'));
+  /// builder.link(Order_.customer, Customer_.name.equals('Jane'));
+  /// final query = builder.build();
+  /// ```
   _QueryBuilder<TargetEntityT> link<TargetEntityT>(
           QueryRelationToOne<T, TargetEntityT> rel,
           [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
           this, qc, C.qb_link_property(_cBuilder, rel._model.id.id));
 
+  /// Like [link], but where the to-one relation is defined in the other object.
   _QueryBuilder<SourceEntityT> backlink<SourceEntityT>(
           QueryRelationToOne<SourceEntityT, T> rel,
           [Condition<SourceEntityT>? qc]) =>
@@ -162,12 +171,21 @@ class _QueryBuilder<T> {
               InternalStoreAccess.entityDef<SourceEntityT>(_store).model.id.id,
               rel._model.id.id));
 
+  /// Based on a to-many relation [rel] of this entity, creates a link to another
+  /// entity, for which conditions using the returned builder can be described.
+  ///
+  /// ```
+  /// final builder = personBox.query(Person_.name.equals('Elmo'));
+  /// builder.linkMany(Person_.addresses, Address_.street.equals('Sesame Street'));
+  /// final query = builder.build();
+  /// ```
   _QueryBuilder<TargetEntityT> linkMany<TargetEntityT>(
           QueryRelationToMany<T, TargetEntityT> rel,
           [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
           this, qc, C.qb_link_standalone(_cBuilder, rel._model.id.id));
 
+  /// Like [linkMany], but where the to-many relation is defined in the other object.
   _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT>(
           QueryRelationToMany<SourceEntityT, T> rel,
           [Condition<SourceEntityT>? qc]) =>

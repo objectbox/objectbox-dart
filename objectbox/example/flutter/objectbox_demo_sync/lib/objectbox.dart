@@ -4,7 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'model.dart';
-import 'objectbox.g.dart'; // created by `flutter pub run build_runner build`
+import 'objectbox.g.dart'; // created by `dart run build_runner build`
 
 /// Provides access to the ObjectBox Store throughout the app.
 ///

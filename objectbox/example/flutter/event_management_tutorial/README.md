@@ -34,7 +34,7 @@ flutter pub get
 ### Generate the binding code :
 
 ```
-flutter pub run build_runner build
+dart run build_runner build
 ```
 
 ### Run the project on your preferred emulator:
