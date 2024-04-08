@@ -15,7 +15,7 @@ The basic steps to get this demo running (assuming you have a working Flutter se
 flutter pub upgrade
 
 # Generate model and code files for ObjectBox
-flutter pub run build_runner build
+dart run build_runner build
 
 # Run the app in debug mode
 flutter run
