@@ -414,7 +414,20 @@ class Box<T> {
   Future<List<T>> getAllAsync() =>
       _store.runAsync(_getAllAsyncCallback<T>, null);
 
-  /// Returns a builder to create queries for Object matching supplied criteria.
+  /// Starts building a query which returns objects matching the supplied
+  /// conditions.
+  ///
+  /// For example:
+  /// ```
+  /// final query = userBox
+  ///     .query(User_.firstName.equals('Joe')
+  ///         .and(User_.lastName.startsWith("O")))
+  ///     .build();
+  /// final joes = query.find();
+  /// query.close();
+  /// ```
+  ///
+  /// For more examples and options see https://docs.objectbox.io/queries.
   @pragma('vm:prefer-inline')
   QueryBuilder<T> query([Condition<T>? qc]) =>
       QueryBuilder<T>(_store, _entity, qc);
