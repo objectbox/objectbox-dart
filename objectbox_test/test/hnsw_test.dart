@@ -148,4 +148,121 @@ void main() {
     expect(query.findWithScores().map((e) => e.object.id), expectedSkip2Limit2);
     expect(query.findIdsWithScores().map((e) => e.id), expectedSkip2Limit2);
   });
+
+  test('filtered search name', () {
+    final ids = env.store.box<RelatedNamedEntity>().putMany([
+      RelatedNamedEntity()..name = "Apple",
+      RelatedNamedEntity()..name = "Banana",
+      RelatedNamedEntity()..name = "Misc"
+    ]);
+    final appleGroupId = ids[0];
+    final bananaGroupId = ids[1];
+    final miscGroupId = ids[2];
+
+    box.putMany([
+      HnswObject()
+        ..name = "Banana tree"
+        ..floatVector = [-1.5, -1.5]
+        ..rel.targetId = bananaGroupId,
+      HnswObject()
+        ..name = "Bunch of banana"
+        ..floatVector = [-0.5, -0.5]
+        ..rel.targetId = bananaGroupId,
+      HnswObject()
+        ..name = "Apple seed"
+        ..floatVector = [0.5, 0.5]
+        ..rel.targetId = appleGroupId,
+      HnswObject()
+        ..name = "Banana"
+        ..floatVector = [1.5, 1.5]
+        ..rel.targetId = bananaGroupId,
+      HnswObject()
+        ..name = "Apple"
+        ..floatVector = [2.5, 2.5]
+        ..rel.targetId = appleGroupId,
+      HnswObject()
+        ..name = "Apple juice"
+        ..floatVector = [3.5, 3.5]
+        ..rel.targetId = appleGroupId,
+      HnswObject()
+        ..name = "Peach"
+        ..floatVector = [4.5, 4.5]
+        ..rel.targetId = miscGroupId,
+      HnswObject()
+        ..name = "appleication"
+        ..floatVector = [5.5, 5.5]
+        ..rel.targetId = miscGroupId,
+      HnswObject()
+        ..name = "One banana"
+        ..floatVector = [6.5, 6.5]
+        ..rel.targetId = miscGroupId
+    ]);
+
+    // Search nearest starting with "Apple"
+    final queryApple = box
+        .query(HnswObject_.floatVector.nearestNeighborsF32(
+            [2.7, 2.5], 9).and(HnswObject_.name.startsWith("Apple")))
+        .build();
+    addTearDown(() => queryApple.close());
+    final apples = queryApple.findWithScores();
+    expect(apples.length, 3);
+    expect(apples[0].object.id, 5);
+    expect(apples[0].object.name, "Apple");
+    expect(apples[1].object.id, 6);
+    expect(apples[1].object.name, "Apple juice");
+    expect(apples[2].object.id, 3);
+    expect(apples[2].object.name, "Apple seed");
+
+    // Search nearest ending with "banana" (ignore case)
+    final queryBanana = box
+        .query(HnswObject_.floatVector.nearestNeighborsF32([2.7, 2.5], 9).and(
+            HnswObject_.name.endsWith("Banana", caseSensitive: false)))
+        .build();
+    addTearDown(() => queryBanana.close());
+    final bananas = queryBanana.findWithScores();
+    expect(bananas.length, 3);
+    expect(bananas[0].object.id, 4);
+    expect(bananas[0].object.name, "Banana");
+    expect(bananas[1].object.id, 2);
+    expect(bananas[1].object.name, "Bunch of banana");
+    expect(bananas[2].object.id, 9);
+    expect(bananas[2].object.name, "One banana");
+
+    // Search nearest equals to "Peach"
+    final queryPeach = box
+        .query(HnswObject_.floatVector.nearestNeighborsF32(
+            [2.7, 2.5], 9).and(HnswObject_.name.equals("Peach")))
+        .build();
+    addTearDown(() => queryPeach.close());
+    final peaches = queryPeach.findWithScores();
+    expect(peaches.length, 1);
+    expect(peaches[0].object.id, 7);
+    expect(peaches[0].object.name, "Peach");
+
+    // Get nearest items that either ends with "juice" or "banana"
+    final queryEnds = box
+        .query(HnswObject_.floatVector.nearestNeighborsF32([2.7, 2.5], 9).and(
+            HnswObject_.name
+                .endsWith("juice")
+                .or(HnswObject_.name.endsWith("banana", caseSensitive: false))))
+        .build();
+    addTearDown(() => queryEnds.close());
+    final ends = queryEnds.findWithScores();
+    expect(ends.length, 4);
+    expect(ends[0].object.name, "Apple juice");
+    expect(ends[1].object.name, "Banana");
+    expect(ends[2].object.name, "Bunch of banana");
+    expect(ends[3].object.name, "One banana");
+
+    // Get "Apple" group elements and among those, take the one that ends with "juice"
+    final builder = box.query(HnswObject_.floatVector.nearestNeighborsF32(
+        [2.7, 2.5], 9).and(HnswObject_.name.endsWith("juice")));
+    builder.link(HnswObject_.rel, RelatedNamedEntity_.name.equals("Apple"));
+    final queryRel = builder.build();
+    addTearDown(() => queryRel.close());
+    final juice = queryRel.findWithScores();
+    expect(juice.length, 1);
+    expect(juice[0].object.id, 6);
+    expect(juice[0].object.name, "Apple juice");
+  });
 }
