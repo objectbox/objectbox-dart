@@ -41,4 +41,31 @@ void main() {
     expect(converted.reparationBacklinkProbability, 0.95);
     expect(converted.vectorCacheHintSizeKB, 2097152);
   });
+
+  test("ModelHnswParams rejects illegal values", () {
+    expect(
+        () => ModelHnswParams.fromAnnotation(HnswIndex(dimensions: 0)),
+        throwsA(
+            isA<ArgumentError>().having((e) => e.name, "name", "dimensions")));
+    expect(
+        () => ModelHnswParams.fromAnnotation(
+            HnswIndex(dimensions: 1, neighborsPerNode: 0)),
+        throwsA(isA<ArgumentError>()
+            .having((e) => e.name, "name", "neighborsPerNode")));
+    expect(
+        () => ModelHnswParams.fromAnnotation(
+            HnswIndex(dimensions: 1, indexingSearchCount: 0)),
+        throwsA(isA<ArgumentError>()
+            .having((e) => e.name, "name", "indexingSearchCount")));
+    expect(
+        () => ModelHnswParams.fromAnnotation(
+            HnswIndex(dimensions: 1, reparationBacklinkProbability: -1.0)),
+        throwsA(isA<ArgumentError>()
+            .having((e) => e.name, "name", "reparationBacklinkProbability")));
+    expect(
+        () => ModelHnswParams.fromAnnotation(
+            HnswIndex(dimensions: 1, vectorCacheHintSizeKB: 0)),
+        throwsA(isA<ArgumentError>()
+            .having((e) => e.name, "name", "vectorCacheHintSizeKB")));
+  });
 }
