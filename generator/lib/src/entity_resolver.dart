@@ -399,8 +399,9 @@ class EntityResolver extends Builder {
 
     // If available use index type from annotation.
     if (indexAnnotation != null && !indexAnnotation.isNull) {
-      final enumValItem = enumValueItem(indexAnnotation.getField('type')!);
-      if (enumValItem != null) indexType = IndexType.values[enumValItem];
+      final typeIndex =
+          _enumValueIndex(indexAnnotation.getField('type')!, "Index.type");
+      if (typeIndex != null) indexType = IndexType.values[typeIndex];
     }
 
     // Fall back to index type based on property type.
@@ -424,10 +425,11 @@ class EntityResolver extends Builder {
     if (uniqueAnnotation != null && !uniqueAnnotation.isNull) {
       prop.flags |= OBXPropertyFlags.UNIQUE;
       // Determine unique conflict resolution.
-      final onConflictVal =
-          enumValueItem(uniqueAnnotation.getField('onConflict')!);
-      if (onConflictVal != null &&
-          ConflictStrategy.values[onConflictVal] == ConflictStrategy.replace) {
+      final onConflictIndex = _enumValueIndex(
+          uniqueAnnotation.getField('onConflict')!, "Unique.onConflict");
+      if (onConflictIndex != null &&
+          ConflictStrategy.values[onConflictIndex] ==
+              ConflictStrategy.replace) {
         prop.flags |= OBXPropertyFlags.UNIQUE_ON_CONFLICT_REPLACE;
       }
     }
@@ -475,28 +477,22 @@ class EntityResolver extends Builder {
     }
   }
 
-  int? enumValueItem(DartObject typeField) {
-    if (!typeField.isNull) {
-      final enumValues = (typeField.type as InterfaceType)
-          .element
-          .fields
-          .where((f) => f.isEnumConstant)
-          .toList();
-
-      // Find the index of the matching enum constant.
-      for (var i = 0; i < enumValues.length; i++) {
-        if (enumValues[i].computeConstantValue() == typeField) {
-          return i;
-        }
-      }
+  /// If not null, returns the index of the enum value.
+  int? _enumValueIndex(DartObject enumState, String fieldName) {
+    if (enumState.isNull) return null;
+    // All enum classes implement the Enum interface
+    // which has the index property.
+    final index = enumState.getField("index")?.toIntValue();
+    if (index == null) {
+      throw ArgumentError.value(enumState, fieldName,
+          "Dart object state does not appear to represent an enum");
     }
-
-    return null;
+    return index;
   }
 
   // find out @Property(type:) field value - its an enum PropertyType
   int? propertyTypeFromAnnotation(DartObject typeField) {
-    final item = enumValueItem(typeField);
+    final item = _enumValueIndex(typeField, "Property.type");
     return item == null
         ? null
         : propertyTypeToOBXPropertyType(PropertyType.values[item]);
@@ -540,14 +536,19 @@ class EntityResolver extends Builder {
   }
 
   void _readHnswIndexParams(DartObject annotation, ModelProperty property) {
+    final distanceTypeIndex = _enumValueIndex(
+        annotation.getField('distanceType')!, "HnswIndex.distanceType");
+    final distanceType = distanceTypeIndex != null
+        ? HnswDistanceType.values[distanceTypeIndex]
+        : null;
+
     final hnswRestored = HnswIndex(
         dimensions: annotation.getField('dimensions')!.toIntValue()!,
         neighborsPerNode: annotation.getField('neighborsPerNode')!.toIntValue(),
         indexingSearchCount:
             annotation.getField('indexingSearchCount')!.toIntValue(),
         flags: _HnswFlagsState.fromState(annotation.getField('flags')!),
-        distanceType: _HnswDistanceTypeState.fromState(
-            annotation.getField('distanceType')!),
+        distanceType: distanceType,
         reparationBacklinkProbability: annotation
             .getField('reparationBacklinkProbability')!
             .toDoubleValue(),
@@ -576,12 +577,5 @@ extension _HnswFlagsState on HnswFlags {
         reparationLimitCandidates:
             state.getField('reparationLimitCandidates')!.toBoolValue() ??
                 false);
-  }
-}
-
-extension _HnswDistanceTypeState on HnswDistanceType {
-  static HnswDistanceType? fromState(DartObject state) {
-    if (state.isNull) return null;
-    return HnswDistanceType.values[state.getField("index")!.toIntValue()!];
   }
 }
