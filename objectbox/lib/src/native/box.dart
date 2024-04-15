@@ -74,14 +74,22 @@ class Box<T> {
 
   /// Puts the given [object] and returns its (new) ID.
   ///
-  /// If the object is new (its [Id] property is 0 or null), it is inserted and
-  /// assigned a new ID. The new ID is set on the object. This also applies to
-  /// new objects in its relations.
+  /// This means that if its [Id] property is 0 or null, it is inserted as a new
+  /// object and assigned the next available ID. For example, if there is an
+  /// object with ID 1 and another with ID 100, it will be assigned ID 101. The
+  /// new ID is also set on the given object before this returns.
   ///
-  /// If an object with the same ID is already in the box, it will be updated.
-  /// Otherwise the put will fail. This does not apply to existing objects in
-  /// its relations, in this case only the relation is updated to point to the
-  /// new target object(s).
+  /// If instead the object has an assigned ID set, if an object with the same
+  /// ID exists it will be updated. Otherwise, it will be inserted with that ID.
+  ///
+  /// If the ID was not assigned before a [StorageException] is thrown.
+  ///
+  /// When the object contains [ToOne] or [ToMany] relations, they are created
+  /// (or updated) to point to the (new) target objects.
+  /// The target objects themselves are not updated or removed.
+  /// To do so, put or remove them using their box.
+  /// However, for convenience, if a target object is new, it will be inserted
+  /// and assigned an ID in its box before creating or updating the relation.
   ///
   /// Change [mode] to specify explicitly that only an insert or update should
   /// occur.
@@ -479,8 +487,14 @@ class Box<T> {
     }
   }
 
-  /// Removes (deletes) the Object with the given [id]. Returns true if the
-  /// object did exist and was removed, otherwise false.
+  /// Removes (deletes) the object with the given [id].
+  ///
+  /// If the object is part of a relation, it will be removed from that relation
+  /// as well.
+  ///
+  /// Returns true if the object did exist and was removed, otherwise false.
+  ///
+  /// For an async variant see [removeAsync].
   bool remove(int id) {
     final err = C.box_remove(_ptr, id);
     if (err == OBX_NOT_FOUND) return false;
