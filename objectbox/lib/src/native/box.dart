@@ -80,16 +80,18 @@ class Box<T> {
   /// new ID is also set on the given object before this returns.
   ///
   /// If instead the object has an assigned ID set, if an object with the same
-  /// ID exists it will be updated. Otherwise, it will be inserted with that ID.
+  /// ID exists it is updated. Otherwise, it is inserted with that ID.
   ///
   /// If the ID was not assigned before a [StorageException] is thrown.
   ///
   /// When the object contains [ToOne] or [ToMany] relations, they are created
   /// (or updated) to point to the (new) target objects.
-  /// The target objects themselves are not updated or removed.
-  /// To do so, put or remove them using their box.
+  /// The target objects themselves are typically not updated or removed.
+  /// To do so, put or remove them using their [Box].
   /// However, for convenience, if a target object is new, it will be inserted
-  /// and assigned an ID in its box before creating or updating the relation.
+  /// and assigned an ID in its Box before creating or updating the relation.
+  /// Also, for ToMany relations based on a [Backlink] from a ToOne, the target
+  /// objects are updated (to store changes in the linked ToOne relation).
   ///
   /// Change [mode] to specify explicitly that only an insert or update should
   /// occur.
