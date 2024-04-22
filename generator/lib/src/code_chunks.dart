@@ -38,13 +38,13 @@ class CodeChunks {
       ${model.entities.map(createModelEntity).join(',')}
     ];
 
-    /// Shortcut for [Store.new] that passes [getObjectBoxModel] and for Flutter
+    /// Shortcut for [$obx.Store.new] that passes [getObjectBoxModel] and for Flutter
     /// apps by default a [directory] using `defaultStoreDirectory()` from the
     /// ObjectBox Flutter library.
     ///
     /// Note: for desktop apps it is recommended to specify a unique [directory].
     /// 
-    /// See [Store.new] for an explanation of all parameters.
+    /// See [$obx.Store.new] for an explanation of all parameters.
     /// 
     /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
     /// the ObjectBox Flutter library to fix loading the native ObjectBox library
@@ -52,7 +52,7 @@ class CodeChunks {
     ${openStore(model, pubspec)}
 
     /// Returns the ObjectBox model definition for this project for use with 
-    /// [Store.new].
+    /// [$obx.Store.new].
     $obxInt.ModelDefinition getObjectBoxModel() {
       ${defineModel(model)}
 
@@ -709,7 +709,7 @@ class CodeChunks {
       }
 
       var propCode = '''
-        /// see [${entity.name}.${propertyFieldName(prop)}]
+        /// See [${entity.name}.${propertyFieldName(prop)}].
         static final ${propertyFieldName(prop)} = ''';
       if (prop.isRelation) {
         propCode +=
