@@ -79,6 +79,7 @@ _TODO Add relevant logs, a stack trace or crash report._
 - ObjectBox logs are tagged with e.g. Box.
 - If an iOS device crashes, attach the device crash log: https://help.apple.com/xcode/mac/current/#/dev0f3181c2c
 - If an iOS simulator crashes, attach the crash log from `~/Library/Logs/DiagnosticReports`.
+- If a macOS device crashes, attach the crash report from Console: https://support.apple.com/guide/console/reports-cnsl664be99a/mac
 
 You can choose to provide more details, e.g. the output of:
 
