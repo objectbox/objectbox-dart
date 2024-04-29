@@ -168,6 +168,80 @@ void main() {
       expect(exampleEntity.findPropertyByName("tString")!.type,
           OBXPropertyType.String);
     });
+
+    test('index on unsupported type errors', () async {
+      final testEnv = GeneratorTestEnv();
+
+      testUnsupportedIndex(String unsupportedField) async {
+        final source = '''
+        library example;     
+        import 'package:objectbox/objectbox.dart';
+        
+        @Entity()
+        class Example {
+          @Id()
+          int id = 0;
+        
+          $unsupportedField
+        }
+        ''';
+
+        await expectLater(
+            () async => await testEnv.run(source),
+            throwsA(isA<InvalidGenerationSourceError>().having((e) => e.message,
+                'message', contains("@Index/@Unique is not supported"))));
+      }
+
+      // floating point types
+      await testUnsupportedIndex('''
+      @Property(type: PropertyType.float)
+      @Index()
+      double? tFloat;
+      ''');
+      await testUnsupportedIndex('''
+      @Index()
+      double? tDouble;
+      ''');
+
+      // vector types
+      await testUnsupportedIndex('''
+      @Property(type: PropertyType.byteVector)
+      @Index()
+      List<int>? tByteList;
+      ''');
+      await testUnsupportedIndex('''
+      @Property(type: PropertyType.charVector)
+      @Index()
+      List<int>? tCharList;
+      ''');
+      await testUnsupportedIndex('''
+      @Property(type: PropertyType.shortVector)
+      @Index()
+      List<int>? tShortList;
+      ''');
+      await testUnsupportedIndex('''
+      @Property(type: PropertyType.intVector)
+      @Index()
+      List<int>? tIntList;
+      ''');
+      await testUnsupportedIndex('''
+      @Index()
+      List<int>? tLongList;
+      ''');
+      await testUnsupportedIndex('''
+      @Property(type: PropertyType.floatVector)
+      @Index()
+      List<double>? tFloatList;
+      ''');
+      await testUnsupportedIndex('''
+      @Index()
+      List<double>? tDoubleList;
+      ''');
+      await testUnsupportedIndex('''
+      @Index()
+      List<String>? tStrings;
+      ''');
+    });
   });
 }
 

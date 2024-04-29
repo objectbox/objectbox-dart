@@ -1,5 +1,7 @@
 ## latest
 
+* The generator correctly errors when using an index on any vector type.
+
 ## 2.5.1 (2024-03-04)
 
 * Add `SyncCredentials.userAndPassword()`.
