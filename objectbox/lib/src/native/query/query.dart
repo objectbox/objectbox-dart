@@ -18,6 +18,7 @@ import '../../transaction.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
+import '../box.dart';
 
 part 'builder.dart';
 
@@ -898,22 +899,14 @@ class Query<T> implements Finalizable {
     }
   }
 
-  /// Configure an [offset] for this query.
+  /// If greater than 0, Query methods will skip [offset] number of results.
   ///
-  /// All methods that support offset will return/process Objects starting at
-  /// this offset. Example use case: use together with limit to get a slice of
-  /// the whole result, e.g. for "result paging".
-  ///
-  /// Set offset=0 to reset to the default - starting from the first element.
+  /// Use together with [limit] to get a slice of the whole result, e.g. for "result paging".
   set offset(int offset) => checkObx(C.query_offset(_ptr, offset));
 
-  /// Configure a [limit] for this query.
+  /// If greater than 0, Query methods will return at most [limit] many results.
   ///
-  /// All methods that support limit will return/process only the given number
-  /// of Objects. Example use case: use together with offset to get a slice of
-  /// the whole result, e.g. for "result paging".
-  ///
-  /// Set limit=0 to reset to the default behavior - no limit applied.
+  /// Use together with [offset] to get a slice of the whole result, e.g. for "result paging".
   set limit(int limit) => checkObx(C.query_limit(_ptr, limit));
 
   /// Returns the number of matching Objects.
@@ -970,8 +963,12 @@ class Query<T> implements Finalizable {
     }
   }
 
-  /// Finds the first object matching the query. Returns null if there are no
-  /// results. Note: [offset] and [limit] are respected, if set.
+  /// Finds the first object matching this query.
+  ///
+  /// Returns `null` if no object matches.
+  ///
+  /// Note: if no [QueryBuilder.order] conditions are present, which object is the first one
+  /// might be arbitrary (sometimes the one with the lowest ID, but never guaranteed to be).
   T? findFirst() {
     T? result;
     final errorWrapper = ObjectVisitorError();
@@ -999,13 +996,13 @@ class Query<T> implements Finalizable {
   /// isolate.
   Future<T?> findFirstAsync() => _runAsyncImpl(_findFirstAsyncCallback<T>);
 
-  /// Finds the only object matching the query. Returns null if there are no
-  /// results or throws [NonUniqueResultException] if there are multiple objects
-  /// matching.
+  /// Finds the only object matching this query.
   ///
-  /// Note: [offset] and [limit] are respected, if set. Because [limit] affects
-  /// the number of matched objects, make sure you leave it at zero or set it
-  /// higher than one, otherwise the check for non-unique result won't work.
+  /// Returns the object if a single object matches. `null` if no object matches.
+  /// Throws [NonUniqueResultException] if there are multiple objects matching the query.
+  ///
+  /// Note: Because [limit] affects the number of matched objects, make sure to leave it
+  /// at zero or set it higher than one, otherwise the check for non-unique result won't work.
   T? findUnique() {
     T? result;
     final errorWrapper = ObjectVisitorError();
@@ -1040,7 +1037,13 @@ class Query<T> implements Finalizable {
   /// isolate.
   Future<T?> findUniqueAsync() => _runAsyncImpl(_findUniqueAsyncCallback<T>);
 
-  /// Finds Objects matching the query and returns their IDs.
+  /// Like [find], but returns just the IDs of the objects.
+  ///
+  /// Returns a list of IDs of matching objects. An empty array if no objects match.
+  ///
+  /// IDs can later be used to [Box.get] objects.
+  ///
+  /// This is very efficient as no objects are created.
   List<int> findIds() {
     final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
     try {
@@ -1062,7 +1065,12 @@ class Query<T> implements Finalizable {
   /// isolate.
   Future<List<int>> findIdsAsync() => _runAsyncImpl(_findIdsAsyncCallback<T>);
 
-  /// Finds Objects matching the query.
+  /// Finds objects matching the query.
+  ///
+  /// Returns a list of matching objects. An empty list if no object matches.
+  ///
+  /// Note: if no [QueryBuilder.order] conditions are present, the order is arbitrary
+  /// (sometimes ordered by ID, but never guaranteed to).
   List<T> find() {
     final result = <T>[];
     final errorWrapper = ObjectVisitorError();
