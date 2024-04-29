@@ -1,6 +1,7 @@
 ## latest
 
 * The generator correctly errors when using an index on any vector type.
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.21.1-alpha1](https://github.com/objectbox/objectbox-c/releases/tag/v0.21.1-alpha1).
 
 ## 2.5.1 (2024-03-04)
 

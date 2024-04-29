@@ -301,9 +301,9 @@ void main() {
     final testDir = Directory('db-size-test');
     if (testDir.existsSync()) testDir.deleteSync(recursive: true);
 
-    // Empty file is around 24 KB, object below adds about 12 KB each.
+    // Empty file is around 24 KB, object below adds about 16 KB.
     var store =
-        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 40);
+        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 50);
     var box = store.box<TestEntity>();
     box.put(TestEntity.filled(id: 0));
 

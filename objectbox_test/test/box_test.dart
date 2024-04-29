@@ -296,7 +296,7 @@ void main() {
             .box<TestEntityNonRel>()
             .putQueued(TestEntityNonRel.filled(id: 5), mode: PutMode.insert),
         throwsA(isA<ArgumentError>().having((e) => e.message, "message",
-            contains("Use ID 0 (zero) to insert new entities"))));
+            contains("Use ID 0 (zero) to insert new objects"))));
 
     store.awaitQueueCompletion();
     expect(store.box<TestEntity2>().count(), 0);

@@ -50,7 +50,7 @@ set(objectbox_sync_flutter_libs_bundled_libraries
 # ----------------------------------------------------------------------
 # Download and add objectbox-c prebuilt library.
 
-set(OBJECTBOX_VERSION 0.21.0)
+set(OBJECTBOX_VERSION 0.21.1-alpha1)
 
 set(OBJECTBOX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${OBJECTBOX_ARCH} MATCHES "AMD64")
