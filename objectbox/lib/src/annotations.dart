@@ -317,7 +317,31 @@ class Backlink {
 /// The distance algorithm used by an [HnswIndex] (vector search).
 enum HnswDistanceType {
   /// The default; typically "Euclidean squared" internally.
-  euclidean
+  euclidean,
+
+  /// Cosine similarity compares two vectors irrespective of their magnitude (compares the angle of two vectors).
+  ///
+  /// Often used for document or semantic similarity.
+  ///
+  /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  cosine,
+
+  /// For normalized vectors (vector length == 1.0), the dot product is equivalent to the cosine similarity.
+  ///
+  /// Because of this, the dot product is often preferred as it performs better.
+  ///
+  /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  dotProduct,
+
+  /// A custom dot product similarity measure that does not require the vectors to be normalized.
+  ///
+  /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
+  /// The non-linear conversion provides a high precision over the entire float range (for the raw dot product).
+  /// The higher the dot product, the lower the distance is (the nearer the vectors are).
+  /// The more negative the dot product, the higher the distance is (the farther the vectors are).
+  ///
+  /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
+  dotProductNonNormalized
 }
 
 /// Flags as a part of the [HnswIndex] configuration.
@@ -367,7 +391,8 @@ class HnswIndex {
   /// See [HnswFlags.new].
   final HnswFlags? flags;
 
-  /// The distance type used for the HNSW index; for now only "Euclidean" is supported.
+  /// The distance type used for the HNSW index; if none is given, the default [HnswDistanceType.euclidean] is used.
+  ///
   /// Changing this value causes re-indexing.
   final HnswDistanceType? distanceType;
 

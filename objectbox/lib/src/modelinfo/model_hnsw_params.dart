@@ -183,6 +183,12 @@ extension ModelHnswDistanceType on HnswDistanceType {
   int toConstant() {
     if (this == HnswDistanceType.euclidean) {
       return OBXHnswDistanceType.Euclidean;
+    } else if (this == HnswDistanceType.cosine) {
+      return OBXHnswDistanceType.Cosine;
+    } else if (this == HnswDistanceType.dotProduct) {
+      return OBXHnswDistanceType.DotProduct;
+    } else if (this == HnswDistanceType.dotProductNonNormalized) {
+      return OBXHnswDistanceType.DotProductNonNormalized;
     } else {
       throw ArgumentError.value(this, "distanceType");
     }

@@ -16,6 +16,11 @@ void main() {
   test("HnswDistanceType mapped as expected", () {
     expect(
         HnswDistanceType.euclidean.toConstant(), OBXHnswDistanceType.Euclidean);
+    expect(HnswDistanceType.cosine.toConstant(), OBXHnswDistanceType.Cosine);
+    expect(HnswDistanceType.dotProduct.toConstant(),
+        OBXHnswDistanceType.DotProduct);
+    expect(HnswDistanceType.dotProductNonNormalized.toConstant(),
+        OBXHnswDistanceType.DotProductNonNormalized);
   });
 
   test("ModelHnswParams maps values", () {
