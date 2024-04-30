@@ -288,15 +288,15 @@ void main() {
         () => store
             .box<TestEntity2>()
             .putQueued(TestEntity2(), mode: PutMode.update),
-        throwsA(predicate(
-            (ArgumentError e) => e.toString().contains('ID is not set'))));
+        throwsA(isA<ArgumentError>()
+            .having((e) => e.message, "message", contains("ID is not set"))));
 
     expect(
         () => store
             .box<TestEntityNonRel>()
             .putQueued(TestEntityNonRel.filled(id: 5), mode: PutMode.insert),
-        throwsA(predicate((ArgumentError e) =>
-            e.toString().contains('Use ID 0 (zero) to insert new entities'))));
+        throwsA(isA<ArgumentError>().having((e) => e.message, "message",
+            contains("Use ID 0 (zero) to insert new entities"))));
 
     store.awaitQueueCompletion();
     expect(store.box<TestEntity2>().count(), 0);
