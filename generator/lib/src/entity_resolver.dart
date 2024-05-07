@@ -539,7 +539,7 @@ class EntityResolver extends Builder {
     final distanceTypeIndex = _enumValueIndex(
         annotation.getField('distanceType')!, "HnswIndex.distanceType");
     final distanceType = distanceTypeIndex != null
-        ? HnswDistanceType.values[distanceTypeIndex]
+        ? VectorDistanceType.values[distanceTypeIndex]
         : null;
 
     final hnswRestored = HnswIndex(

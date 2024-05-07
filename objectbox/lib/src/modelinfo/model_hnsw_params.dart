@@ -178,17 +178,17 @@ extension ModelHnswFlags on HnswFlags {
 }
 
 /// Adds mapping to internal constants.
-extension ModelHnswDistanceType on HnswDistanceType {
+extension ModelVectorDistanceType on VectorDistanceType {
   /// Convert to internal constant value.
   int toConstant() {
-    if (this == HnswDistanceType.euclidean) {
-      return OBXHnswDistanceType.Euclidean;
-    } else if (this == HnswDistanceType.cosine) {
-      return OBXHnswDistanceType.Cosine;
-    } else if (this == HnswDistanceType.dotProduct) {
-      return OBXHnswDistanceType.DotProduct;
-    } else if (this == HnswDistanceType.dotProductNonNormalized) {
-      return OBXHnswDistanceType.DotProductNonNormalized;
+    if (this == VectorDistanceType.euclidean) {
+      return OBXVectorDistanceType.Euclidean;
+    } else if (this == VectorDistanceType.cosine) {
+      return OBXVectorDistanceType.Cosine;
+    } else if (this == VectorDistanceType.dotProduct) {
+      return OBXVectorDistanceType.DotProduct;
+    } else if (this == VectorDistanceType.dotProductNonNormalized) {
+      return OBXVectorDistanceType.DotProductNonNormalized;
     } else {
       throw ArgumentError.value(this, "distanceType");
     }

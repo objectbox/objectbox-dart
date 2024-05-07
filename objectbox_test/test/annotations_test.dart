@@ -13,14 +13,15 @@ void main() {
         OBXHnswFlags.DebugLogs | OBXHnswFlags.VectorCacheSimdPaddingOff);
   });
 
-  test("HnswDistanceType mapped as expected", () {
+  test("Distance type mapped as expected", () {
+    expect(VectorDistanceType.euclidean.toConstant(),
+        OBXVectorDistanceType.Euclidean);
     expect(
-        HnswDistanceType.euclidean.toConstant(), OBXHnswDistanceType.Euclidean);
-    expect(HnswDistanceType.cosine.toConstant(), OBXHnswDistanceType.Cosine);
-    expect(HnswDistanceType.dotProduct.toConstant(),
-        OBXHnswDistanceType.DotProduct);
-    expect(HnswDistanceType.dotProductNonNormalized.toConstant(),
-        OBXHnswDistanceType.DotProductNonNormalized);
+        VectorDistanceType.cosine.toConstant(), OBXVectorDistanceType.Cosine);
+    expect(VectorDistanceType.dotProduct.toConstant(),
+        OBXVectorDistanceType.DotProduct);
+    expect(VectorDistanceType.dotProductNonNormalized.toConstant(),
+        OBXVectorDistanceType.DotProductNonNormalized);
   });
 
   test("ModelHnswParams maps values", () {
@@ -30,7 +31,7 @@ void main() {
         neighborsPerNode: 30,
         indexingSearchCount: 100,
         flags: flags,
-        distanceType: HnswDistanceType.euclidean,
+        distanceType: VectorDistanceType.euclidean,
         reparationBacklinkProbability: 0.95,
         vectorCacheHintSizeKB: 2097152);
 
@@ -42,7 +43,7 @@ void main() {
     expect(converted.neighborsPerNode, 30);
     expect(converted.indexingSearchCount, 100);
     expect(converted.flags, flags.toFlags());
-    expect(converted.distanceType, OBXHnswDistanceType.Euclidean);
+    expect(converted.distanceType, OBXVectorDistanceType.Euclidean);
     expect(converted.reparationBacklinkProbability, 0.95);
     expect(converted.vectorCacheHintSizeKB, 2097152);
   });

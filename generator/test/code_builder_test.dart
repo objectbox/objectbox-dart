@@ -322,7 +322,7 @@ void main() {
                 debugLogsDetailed: true,
                 vectorCacheSimdPaddingOff: true,
                 reparationLimitCandidates: true),
-            distanceType: HnswDistanceType.euclidean,
+            distanceType: VectorDistanceType.euclidean,
             reparationBacklinkProbability: 0.95,
             vectorCacheHintSizeKB: 2097152)
         List<double>? coordinates;
@@ -348,7 +348,7 @@ void main() {
       expect(flags & OBXHnswFlags.VectorCacheSimdPaddingOff != 0, true);
       expect(flags & OBXHnswFlags.ReparationLimitCandidates != 0, true);
       expect(vectorProperty.hnswParams!.distanceType,
-          OBXHnswDistanceType.Euclidean);
+          OBXVectorDistanceType.Euclidean);
       expect(vectorProperty.hnswParams!.reparationBacklinkProbability, 0.95);
       expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, 2097152);
     });

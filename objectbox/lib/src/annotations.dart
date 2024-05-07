@@ -314,8 +314,8 @@ class Backlink {
   const Backlink([this.to = '']);
 }
 
-/// The distance algorithm used by an [HnswIndex] (vector search).
-enum HnswDistanceType {
+/// The vector distance algorithm used by an [HnswIndex] (vector search).
+enum VectorDistanceType {
   /// The default; typically "Euclidean squared" internally.
   euclidean,
 
@@ -391,10 +391,10 @@ class HnswIndex {
   /// See [HnswFlags.new].
   final HnswFlags? flags;
 
-  /// The distance type used for the HNSW index; if none is given, the default [HnswDistanceType.euclidean] is used.
+  /// The distance type used for the HNSW index; if none is given, the default [VectorDistanceType.euclidean] is used.
   ///
   /// Changing this value causes re-indexing.
-  final HnswDistanceType? distanceType;
+  final VectorDistanceType? distanceType;
 
   /// When repairing the graph after a node was removed, this gives the probability of adding backlinks to the
   /// repaired neighbors.
