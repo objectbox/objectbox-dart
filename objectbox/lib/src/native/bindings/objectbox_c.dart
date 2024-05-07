@@ -263,6 +263,62 @@ class ObjectBoxC {
   late final _last_error_set = _last_error_setPtr
       .asFunction<bool Function(int, int, ffi.Pointer<ffi.Char>)>();
 
+  /// Utility function to calculate the distance of two given vectors.
+  /// Note: the memory of the two vectors may not overlap!
+  /// @param type The distance type that is to be used for the calculation.
+  /// @param dimension The dimension of the vectors (number of elements).
+  /// @returns A distance measure that is dependent on the distance type.
+  /// @returns NaN on error; e.g. if the distance type is unknown, or the vector search feature is unavailable.
+  double vector_distance_float32(
+    int type,
+    ffi.Pointer<ffi.Float> vector1,
+    ffi.Pointer<ffi.Float> vector2,
+    int dimension,
+  ) {
+    return _vector_distance_float32(
+      type,
+      vector1,
+      vector2,
+      dimension,
+    );
+  }
+
+  late final _vector_distance_float32Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Float Function(
+              ffi.Int32,
+              ffi.Pointer<ffi.Float>,
+              ffi.Pointer<ffi.Float>,
+              ffi.Size)>>('obx_vector_distance_float32');
+  late final _vector_distance_float32 = _vector_distance_float32Ptr.asFunction<
+      double Function(
+          int, ffi.Pointer<ffi.Float>, ffi.Pointer<ffi.Float>, int)>();
+
+  /// Utility function to convert a vector distance (e.g. scores from query results) to a relevance score.
+  /// The relevance score is a value between 0.0 and 1.0, with 1.0 indicating the most relevant.
+  /// Note: the higher a distance (score), the lower the relevance score.
+  /// Note: while the distance (score) is potentially unbound (e.g. Euclidean and dot product) and dependent on the type,
+  /// relevance score always has fixed range (0.0 to 1.0).
+  /// @param type The distance type indicates how the given distance score was calculated.
+  /// @param distance distance score to convert (0.0 is the nearest; upper bound depends on the distance type).
+  /// @returns a relevance score between 0.0 and 1.0 (1.0 is the most relevant).
+  /// @returns NaN on error; e.g. if the distance type is unknown, or the vector search feature is unavailable.
+  double vector_distance_to_relevance(
+    int type,
+    double distance,
+  ) {
+    return _vector_distance_to_relevance(
+      type,
+      distance,
+    );
+  }
+
+  late final _vector_distance_to_relevancePtr =
+      _lookup<ffi.NativeFunction<ffi.Float Function(ffi.Int32, ffi.Float)>>(
+          'obx_vector_distance_to_relevance');
+  late final _vector_distance_to_relevance = _vector_distance_to_relevancePtr
+      .asFunction<double Function(int, double)>();
+
   /// Create an (empty) data meta model which is to be consumed by obx_opt_model().
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details.
   /// Note that obx_model_* functions handle OBX_model NULL pointers (will indicate an error but not crash).
@@ -9533,8 +9589,8 @@ abstract class OBXPropertyType {
   static const int DateNanoVector = 32;
 }
 
-/// The distance algorithm used by an HNSW index (vector search).
-abstract class OBXHnswDistanceType {
+/// The vector distance algorithm used by an HNSW index (vector search).
+abstract class OBXVectorDistanceType {
   /// Not a real type, just best practice (e.g. forward compatibility)
   static const int Unknown = 0;
 

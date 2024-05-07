@@ -444,27 +444,26 @@ typedef enum {
     OBXPropertyType_DateNanoVector = 32,  ///< Variable sized vector of Date values (high precision 64-bit timestamp).
 } OBXPropertyType;
 
-/// The distance algorithm used by an HNSW index (vector search).
+/// The vector distance algorithm used by an HNSW index (vector search).
 typedef enum {
     /// Not a real type, just best practice (e.g. forward compatibility)
-    OBXHnswDistanceType_Unknown = 0,
+    OBXVectorDistanceType_Unknown = 0,
 
     /// The default; typically "Euclidean squared" internally.
-    OBXHnswDistanceType_Euclidean = 1,
+    OBXVectorDistanceType_Euclidean = 1,
 
     /// Cosine similarity compares two vectors irrespective of their magnitude (compares the angle of two vectors).
     /// Often used for document or semantic similarity.
     /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
-    OBXHnswDistanceType_Cosine = 2,
+    OBXVectorDistanceType_Cosine = 2,
 
     /// For normalized vectors (vector length == 1.0), the dot product is equivalent to the cosine similarity.
     /// Because of this, the dot product is often preferred as it performs better.
     /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
-    OBXHnswDistanceType_DotProduct = 3,
+    OBXVectorDistanceType_DotProduct = 3,
 
-
-    OBXHnswDistanceType_Manhattan = 4,
-    OBXHnswDistanceType_Hamming = 5,
+    OBXVectorDistanceType_Manhattan = 4,
+    OBXVectorDistanceType_Hamming = 5,
 
     /// A custom dot product similarity measure that does not require the vectors to be normalized.
     /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
@@ -472,8 +471,28 @@ typedef enum {
     /// The higher the dot product, the lower the distance is (the nearer the vectors are).
     /// The more negative the dot product, the higher the distance is (the farther the vectors are).
     /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
-    OBXHnswDistanceType_DotProductNonNormalized = 10,
-} OBXHnswDistanceType;
+    OBXVectorDistanceType_DotProductNonNormalized = 10,
+} OBXVectorDistanceType;
+
+/// Utility function to calculate the distance of two given vectors.
+/// Note: the memory of the two vectors may not overlap!
+/// @param type The distance type that is to be used for the calculation.
+/// @param dimension The dimension of the vectors (number of elements).
+/// @returns A distance measure that is dependent on the distance type.
+/// @returns NaN on error; e.g. if the distance type is unknown, or the vector search feature is unavailable.
+OBX_C_API float obx_vector_distance_float32(OBXVectorDistanceType type, const float* vector1, const float* vector2,
+                                            size_t dimension);
+
+/// Utility function to convert a vector distance (e.g. scores from query results) to a relevance score.
+/// The relevance score is a value between 0.0 and 1.0, with 1.0 indicating the most relevant.
+/// Note: the higher a distance (score), the lower the relevance score.
+/// Note: while the distance (score) is potentially unbound (e.g. Euclidean and dot product) and dependent on the type,
+///       relevance score always has fixed range (0.0 to 1.0).
+/// @param type The distance type indicates how the given distance score was calculated.
+/// @param distance distance score to convert (0.0 is the nearest; upper bound depends on the distance type).
+/// @returns a relevance score between 0.0 and 1.0 (1.0 is the most relevant).
+/// @returns NaN on error; e.g. if the distance type is unknown, or the vector search feature is unavailable.
+OBX_C_API float obx_vector_distance_to_relevance(OBXVectorDistanceType type, float distance);
 
 /// Bit-flags to influence the behavior of HNSW index (vector search).
 typedef enum {
@@ -486,12 +505,12 @@ typedef enum {
     OBXHnswFlags_DebugLogsDetailed = 2,
 
     /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
-    ObxHnswFlags_VectorCacheSimdPaddingOff = 4,
+    OBXHnswFlags_VectorCacheSimdPaddingOff = 4,
 
     /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
     /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
     /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
-    ObxHnswFlags_ReparationLimitCandidates = 8,
+    OBXHnswFlags_ReparationLimitCandidates = 8,
 } OBXHnswFlags;
 
 /// Bit-flags defining the behavior of entities.
@@ -666,7 +685,7 @@ OBX_C_API obx_err obx_model_property_index_hnsw_indexing_search_count(OBX_model*
 OBX_C_API obx_err obx_model_property_index_hnsw_flags(OBX_model* model, uint32_t flags);
 
 /// Sets the distance type for the HNSW index of the latest property.
-OBX_C_API obx_err obx_model_property_index_hnsw_distance_type(OBX_model* model, OBXHnswDistanceType value);
+OBX_C_API obx_err obx_model_property_index_hnsw_distance_type(OBX_model* model, OBXVectorDistanceType value);
 
 /// Sets the reparation backlink probability, for the HNSW index of the latest property.
 /// When repairing the graph after a node was removed, this gives the probability of adding backlinks to the repaired
