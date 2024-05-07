@@ -8,18 +8,28 @@ import '../store.dart';
 import '../transaction.dart';
 import 'info.dart';
 
-/// Manages a to-many relation, an unidirectional link from a "source" entity to
-/// multiple objects of a "target" entity.
+/// A lazily loaded `List` of target objects representing a to-many relation,
+/// a unidirectional link from a "source" entity to multiple objects of a
+/// "target" entity.
+///
+/// It tracks changes (adds and removes) that can be later applied (persisted)
+/// to the database. This happens either when the source entity of this relation
+/// is put or using [applyToDb]. For some important details about applying
+/// changes, see the notes about relations of [Box.put].
+///
+/// The objects are loaded lazily on first access of this list, and then cached.
+/// Subsequent calls to any method, like [length], do not query the database,
+/// even if the relation was changed elsewhere. To get the latest data [Box.get]
+/// the source object again.
 ///
 /// You can:
-///   - [add()] new objects to the relation.
-///   - [removeAt()] target objects from the relation at a specific list index.
-///   - [remove(id:)] target objects from the relation by an ID.
+///   - [add] new objects to the relation.
+///   - [removeAt] target objects from the relation at a specific list index.
+///   - [remove] target objects from the relation by an ID.
 ///
 /// ```
 /// class Student {
 ///   final teachers = ToMany<Teacher>();
-///   ...
 /// }
 ///
 /// // Example 1: create a relation
@@ -36,9 +46,7 @@ import 'info.dart';
 /// // saves students as well as teachers in the database
 /// store.box<Student>().putMany([student1, student2]);
 ///
-///
 /// // Example 2: remove a relation
-///
 /// student.teachers.removeAt(index)
 /// student.teachers.applyToDb(); // or store.box<Student>().put(student);
 /// ```
@@ -149,14 +157,16 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// True if there are any changes not yet saved in DB.
   bool get _hasPendingDbChanges => _counts.values.any((c) => c != 0);
 
-  /// Save changes made to this ToMany relation to the database.
+  /// Saves changes (added and removed entities) made to this relation to the
+  /// database. For some important details, see the notes about relations of
+  /// [Box.put].
   ///
-  /// This is an alternative to calling `box.put(object)` where `object` is the
-  /// object owning this ToMany.
+  /// Note that this is called already when the object that contains this ToMany
+  /// is put. However, if only this ToMany has changed, it is more efficient to
+  /// just use this method.
   ///
-  /// If this contains new objects (IDs set to 0) they will be put. This
-  /// requires the object owning this ToMany to already be stored because its ID
-  /// is required.
+  /// Throws [StateError] if the object that contains this ToMany has no ID
+  /// assigned (it must have been put before).
   void applyToDb(
       {Store? existingStore, PutMode mode = PutMode.put, Transaction? tx}) {
     if (!_hasPendingDbChanges) return;

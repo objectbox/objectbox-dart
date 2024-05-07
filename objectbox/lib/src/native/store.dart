@@ -131,11 +131,23 @@ class Store implements Finalizable {
   /// ## macOS application group
   ///
   /// When creating a sandboxed macOS app use [macosApplicationGroup] to
-  /// specify the application group. See the info boxes on the
-  /// [Getting Started](https://docs.objectbox.io/getting-started) page for
-  /// details.
+  /// specify the application group.
   ///
-  /// Note: due to limitations in macOS this must be 19 characters or shorter.
+  /// This string value is the `DEVELOPMENT_TEAM` you can find in your Xcode
+  /// settings, plus an application-specific suffix.
+  /// Also check that all `macos/Runner/*.entitlements` contain a <dict> section
+  /// with this value, for example:
+  ///
+  /// ```
+  /// <dict>
+  ///   <key>com.apple.security.application-groups</key>
+  ///   <array>
+  ///     <string>FGDTDLOBXDJ.demo</string>
+  ///   </array>
+  /// </dict>
+  /// ```
+  ///
+  /// Note: due to limitations in macOS the value must be at most 19 characters.
   ///
   /// ## Maximum database size
   ///
