@@ -358,10 +358,17 @@ class EntityResolver extends Builder {
         _uniqueChecker.firstAnnotationOfExact(annotatedElement);
     if (indexAnnotation == null && uniqueAnnotation == null) return;
 
-    // Throw if property type does not support any index.
+    // Throw if property type does not support a regular index (value/hash-based)
     if (fieldType == OBXPropertyType.Float ||
         fieldType == OBXPropertyType.Double ||
-        fieldType == OBXPropertyType.ByteVector) {
+        fieldType == OBXPropertyType.ByteVector ||
+        fieldType == OBXPropertyType.ShortVector ||
+        fieldType == OBXPropertyType.CharVector ||
+        fieldType == OBXPropertyType.IntVector ||
+        fieldType == OBXPropertyType.LongVector ||
+        fieldType == OBXPropertyType.FloatVector ||
+        fieldType == OBXPropertyType.DoubleVector ||
+        fieldType == OBXPropertyType.StringVector) {
       throw InvalidGenerationSourceError(
           "Entity '${elementBare.name}': @Index/@Unique is not supported for type '${f.type}' of field '${f.name}'.",
           element: f);
