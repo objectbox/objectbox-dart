@@ -15,13 +15,11 @@ location vector:
 ```dart
 @Entity()
 class City {
-  // ...
 
   @HnswIndex(dimensions: 2)
   @Property(type: PropertyType.floatVector)
   List<double>? location;
-  
-  // ...
+
 }
 ```
 
