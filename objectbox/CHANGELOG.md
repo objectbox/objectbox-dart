@@ -10,16 +10,13 @@
   ```dart
   @Entity()
   class City {
-    @Id()
-    int id = 0;
-  
-    String? name;
+    // ...
   
     @HnswIndex(dimensions: 2)
     @Property(type: PropertyType.floatVector)
     List<double>? location;
     
-    City(this.name, this.location);
+    // ...
   }
   ```
   
@@ -28,23 +25,11 @@
   query vector). For example, find the 2 closest cities:
   
   ```dart
-  final madrid = [40.416775, -3.703790]; // query vector
-  // Prepare a Query object to search for the 2 closest neighbors:
+  final madrid = [40.416775, -3.703790];
   final query = box
       .query(City_.location.nearestNeighborsF32(madrid, 2))
       .build();
-  
-  // Retrieve IDs
-  final results = query.findIdsWithScores();
-  for (final result in results) {
-    print("City ID: ${result.id}, distance: ${result.score}");
-  }
-  
-  // Retrieve objects
-  final results = query.findWithScores();
-  for (final result in results) {
-    print("City: ${result.object.name}, distance: ${result.score}");
-  }
+  final closest = query.findWithScores()[0].object;
   ```
 
   For an introduction to vector search, more details and other supported languages see the 
