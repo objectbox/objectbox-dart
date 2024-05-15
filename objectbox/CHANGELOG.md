@@ -1,39 +1,45 @@
 ## latest
 
-* **ObjectBox now supports [Vector Search](https://docs.objectbox.io/ann-vector-search)** to enable efficient similarity searches.
-  This is particularly useful for AI/ML/RAG applications, e.g. image, audio, or text similarity. Other use cases include sematic search or recommendation engines.
-  See https://docs.objectbox.io/ann-vector-search for details.
+**To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions`
+  (or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
 
-  Create a Vector (HNSW) index for a floating point vector property. For example, a `City` with a
-  location vector:
+**ObjectBox now supports [Vector Search](https://docs.objectbox.io/ann-vector-search)** to enable 
+efficient similarity searches.
 
-  ```dart
-  @Entity()
-  class City {
-    // ...
-  
-    @HnswIndex(dimensions: 2)
-    @Property(type: PropertyType.floatVector)
-    List<double>? location;
-    
-    // ...
-  }
-  ```
-  
-  Perform a nearest neighbor search using the new `nearestNeighborsF32(queryVector, maxResultCount)`
-  query condition and the new "find with scores" query methods (the score is the distance to the 
-  query vector). For example, find the 2 closest cities:
-  
-  ```dart
-  final madrid = [40.416775, -3.703790];
-  final query = box
-      .query(City_.location.nearestNeighborsF32(madrid, 2))
-      .build();
-  final closest = query.findWithScores()[0].object;
-  ```
+This is particularly useful for AI/ML/RAG applications, e.g. image, audio, or text similarity. Other
+use cases include semantic search or recommendation engines.
 
-  For an introduction to vector search, more details and other supported languages see the 
-  [Vector Search documentation](https://docs.objectbox.io/ann-vector-search).
+Create a Vector (HNSW) index for a floating point vector property. For example, a `City` with a
+location vector:
+
+```dart
+@Entity()
+class City {
+  // ...
+
+  @HnswIndex(dimensions: 2)
+  @Property(type: PropertyType.floatVector)
+  List<double>? location;
+  
+  // ...
+}
+```
+
+Perform a nearest neighbor search using the new `nearestNeighborsF32(queryVector, maxResultCount)`
+query condition and the new "find with scores" query methods (the score is the distance to the 
+query vector). For example, find the 2 closest cities:
+
+```dart
+final madrid = [40.416775, -3.703790];
+final query = box
+    .query(City_.location.nearestNeighborsF32(madrid, 2))
+    .build();
+final closest = query.findWithScores()[0].object;
+```
+
+For an introduction to Vector Search, more details and other supported languages see the 
+[Vector Search documentation](https://docs.objectbox.io/ann-vector-search).
+
 * The generator correctly errors when using an index on any vector type.
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.0).
 * Flutter for Android: update to [objectbox-android 4.0.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.0).
