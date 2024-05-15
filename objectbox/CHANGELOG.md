@@ -38,7 +38,7 @@ final closest = query.findWithScores()[0].object;
 For an introduction to Vector Search, more details and other supported languages see the 
 [Vector Search documentation](https://docs.objectbox.io/ann-vector-search).
 
-* The generator correctly errors when using an index on any vector type.
+* The generator correctly errors when using an unsupported index on a vector type.
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.0).
 * Flutter for Android: update to [objectbox-android 4.0.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.0).
   If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
