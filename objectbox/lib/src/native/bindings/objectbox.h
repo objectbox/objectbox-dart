@@ -51,8 +51,8 @@ extern "C" {
 
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
-#define OBX_VERSION_MAJOR 0
-#define OBX_VERSION_MINOR 21
+#define OBX_VERSION_MAJOR 4
+#define OBX_VERSION_MINOR 0
 #define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
@@ -2031,6 +2031,11 @@ OBX_C_API OBX_bytes_score_array* obx_query_find_with_scores(OBX_query* query);
 /// Find object IDs matching the query associated to their query score (e.g. distance in NN search).
 /// The resulting array is sorted by score in ascending order (unlike obx_query_find_ids()).
 OBX_C_API OBX_id_score_array* obx_query_find_ids_with_scores(OBX_query* query);
+
+/// Find object IDs matching the query ordered by their query score (e.g. distance in NN search).
+/// The resulting array is sorted by score in ascending order (unlike obx_query_find_ids()).
+/// Unlike obx_query_find_ids_with_scores(), this method returns a simple array of IDs without scores.
+OBX_C_API OBX_id_array* obx_query_find_ids_by_score(OBX_query* query);
 
 /// Find the first object matching the query.
 /// @returns OBX_NOT_FOUND if no object matches.

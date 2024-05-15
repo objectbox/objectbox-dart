@@ -5189,6 +5189,24 @@ class ObjectBoxC {
       _query_find_ids_with_scoresPtr.asFunction<
           ffi.Pointer<OBX_id_score_array> Function(ffi.Pointer<OBX_query>)>();
 
+  /// Find object IDs matching the query ordered by their query score (e.g. distance in NN search).
+  /// The resulting array is sorted by score in ascending order (unlike obx_query_find_ids()).
+  /// Unlike obx_query_find_ids_with_scores(), this method returns a simple array of IDs without scores.
+  ffi.Pointer<OBX_id_array> query_find_ids_by_score(
+    ffi.Pointer<OBX_query> query,
+  ) {
+    return _query_find_ids_by_score(
+      query,
+    );
+  }
+
+  late final _query_find_ids_by_scorePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_id_array> Function(
+              ffi.Pointer<OBX_query>)>>('obx_query_find_ids_by_score');
+  late final _query_find_ids_by_score = _query_find_ids_by_scorePtr
+      .asFunction<ffi.Pointer<OBX_id_array> Function(ffi.Pointer<OBX_query>)>();
+
   /// Find the first object matching the query.
   /// @returns OBX_NOT_FOUND if no object matches.
   /// The exposed data comes directly from the OS to allow zero-copy access, which limits the data lifetime:
@@ -10610,9 +10628,9 @@ class OBX_dart_finalizer extends ffi.Opaque {}
 typedef obx_dart_closer
     = ffi.NativeFunction<obx_err Function(ffi.Pointer<ffi.Void> native_object)>;
 
-const int OBX_VERSION_MAJOR = 0;
+const int OBX_VERSION_MAJOR = 4;
 
-const int OBX_VERSION_MINOR = 21;
+const int OBX_VERSION_MINOR = 0;
 
 const int OBX_VERSION_PATCH = 0;
 
