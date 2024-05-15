@@ -37,7 +37,8 @@ export 'src/query.dart'
         QueryStringVectorProperty,
         QueryRelationToOne,
         QueryRelationToMany,
-        QueryBacklinkToMany;
+        QueryBacklinkToMany,
+        QueryHnswProperty;
 export 'src/relations/to_many.dart' show ToMany;
 export 'src/relations/to_one.dart' show ToOne;
 export 'src/store.dart' show Store, ObservableStore;

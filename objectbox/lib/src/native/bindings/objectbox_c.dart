@@ -263,6 +263,62 @@ class ObjectBoxC {
   late final _last_error_set = _last_error_setPtr
       .asFunction<bool Function(int, int, ffi.Pointer<ffi.Char>)>();
 
+  /// Utility function to calculate the distance of two given vectors.
+  /// Note: the memory of the two vectors may not overlap!
+  /// @param type The distance type that is to be used for the calculation.
+  /// @param dimension The dimension of the vectors (number of elements).
+  /// @returns A distance measure that is dependent on the distance type.
+  /// @returns NaN on error; e.g. if the distance type is unknown, or the vector search feature is unavailable.
+  double vector_distance_float32(
+    int type,
+    ffi.Pointer<ffi.Float> vector1,
+    ffi.Pointer<ffi.Float> vector2,
+    int dimension,
+  ) {
+    return _vector_distance_float32(
+      type,
+      vector1,
+      vector2,
+      dimension,
+    );
+  }
+
+  late final _vector_distance_float32Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Float Function(
+              ffi.Int32,
+              ffi.Pointer<ffi.Float>,
+              ffi.Pointer<ffi.Float>,
+              ffi.Size)>>('obx_vector_distance_float32');
+  late final _vector_distance_float32 = _vector_distance_float32Ptr.asFunction<
+      double Function(
+          int, ffi.Pointer<ffi.Float>, ffi.Pointer<ffi.Float>, int)>();
+
+  /// Utility function to convert a vector distance (e.g. scores from query results) to a relevance score.
+  /// The relevance score is a value between 0.0 and 1.0, with 1.0 indicating the most relevant.
+  /// Note: the higher a distance (score), the lower the relevance score.
+  /// Note: while the distance (score) is potentially unbound (e.g. Euclidean and dot product) and dependent on the type,
+  /// relevance score always has fixed range (0.0 to 1.0).
+  /// @param type The distance type indicates how the given distance score was calculated.
+  /// @param distance distance score to convert (0.0 is the nearest; upper bound depends on the distance type).
+  /// @returns a relevance score between 0.0 and 1.0 (1.0 is the most relevant).
+  /// @returns NaN on error; e.g. if the distance type is unknown, or the vector search feature is unavailable.
+  double vector_distance_to_relevance(
+    int type,
+    double distance,
+  ) {
+    return _vector_distance_to_relevance(
+      type,
+      distance,
+    );
+  }
+
+  late final _vector_distance_to_relevancePtr =
+      _lookup<ffi.NativeFunction<ffi.Float Function(ffi.Int32, ffi.Float)>>(
+          'obx_vector_distance_to_relevance');
+  late final _vector_distance_to_relevance = _vector_distance_to_relevancePtr
+      .asFunction<double Function(int, double)>();
+
   /// Create an (empty) data meta model which is to be consumed by obx_opt_model().
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details.
   /// Note that obx_model_* functions handle OBX_model NULL pointers (will indicate an error but not crash).
@@ -466,6 +522,157 @@ class ObjectBoxC {
               obx_uid)>>('obx_model_property_index_id');
   late final _model_property_index_id = _model_property_index_idPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int, int)>();
+
+  /// Sets the vector dimensionality for the HNSW index of the latest property (must be of a supported vector type).
+  /// This a mandatory option for all HNSW indexes.
+  /// Note 1: vectors with higher dimensions than this value are also indexed (ignoring the higher elements).
+  /// Note 2: vectors with lower dimensions than this value are completely ignored for indexing.
+  int model_property_index_hnsw_dimensions(
+    ffi.Pointer<OBX_model> model,
+    int value,
+  ) {
+    return _model_property_index_hnsw_dimensions(
+      model,
+      value,
+    );
+  }
+
+  late final _model_property_index_hnsw_dimensionsPtr = _lookup<
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_model>, ffi.Size)>>(
+      'obx_model_property_index_hnsw_dimensions');
+  late final _model_property_index_hnsw_dimensions =
+      _model_property_index_hnsw_dimensionsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
+  /// Sets the max number of neighbors per node (aka "M") for the HNSW index of the latest property.
+  /// Higher number increases the graph connectivity which can lead to better results, but higher resources usage.
+  /// If no value is set, a default value taken (currently 30).
+  /// Try e.g. 16 for faster but less accurate results, or 64 for more accurate results.
+  int model_property_index_hnsw_neighbors_per_node(
+    ffi.Pointer<OBX_model> model,
+    int value,
+  ) {
+    return _model_property_index_hnsw_neighbors_per_node(
+      model,
+      value,
+    );
+  }
+
+  late final _model_property_index_hnsw_neighbors_per_nodePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>,
+              ffi.Uint32)>>('obx_model_property_index_hnsw_neighbors_per_node');
+  late final _model_property_index_hnsw_neighbors_per_node =
+      _model_property_index_hnsw_neighbors_per_nodePtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
+  /// Sets the max number of neighbors searched while indexing (aka "efConstruction") for the HNSW index of the latest
+  /// property.
+  /// If no value is set, a default value taken (currently 100, which can change in future version).
+  /// The default value serves as a starting point that can likely be optimized for specific datasets and use cases.
+  /// The higher the value, the more accurate the search, but the longer the indexing will take.
+  /// If indexing time is not a major concern, a value of at least 200 is recommended to improve search quality.
+  int model_property_index_hnsw_indexing_search_count(
+    ffi.Pointer<OBX_model> model,
+    int value,
+  ) {
+    return _model_property_index_hnsw_indexing_search_count(
+      model,
+      value,
+    );
+  }
+
+  late final _model_property_index_hnsw_indexing_search_countPtr = _lookup<
+          ffi.NativeFunction<
+              obx_err Function(ffi.Pointer<OBX_model>, ffi.Uint32)>>(
+      'obx_model_property_index_hnsw_indexing_search_count');
+  late final _model_property_index_hnsw_indexing_search_count =
+      _model_property_index_hnsw_indexing_search_countPtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
+  /// Sets flags for the HNSW index of the latest property ().
+  /// For details see OBXHnswFlags and its individual values.
+  /// @param flags See OBXHnswFlags for values (use bitwise OR to combine multiple flags)
+  int model_property_index_hnsw_flags(
+    ffi.Pointer<OBX_model> model,
+    int flags,
+  ) {
+    return _model_property_index_hnsw_flags(
+      model,
+      flags,
+    );
+  }
+
+  late final _model_property_index_hnsw_flagsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>,
+              ffi.Uint32)>>('obx_model_property_index_hnsw_flags');
+  late final _model_property_index_hnsw_flags =
+      _model_property_index_hnsw_flagsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
+  /// Sets the distance type for the HNSW index of the latest property.
+  int model_property_index_hnsw_distance_type(
+    ffi.Pointer<OBX_model> model,
+    int value,
+  ) {
+    return _model_property_index_hnsw_distance_type(
+      model,
+      value,
+    );
+  }
+
+  late final _model_property_index_hnsw_distance_typePtr = _lookup<
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_model>, ffi.Int32)>>(
+      'obx_model_property_index_hnsw_distance_type');
+  late final _model_property_index_hnsw_distance_type =
+      _model_property_index_hnsw_distance_typePtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
+  /// Sets the reparation backlink probability, for the HNSW index of the latest property.
+  /// When repairing the graph after a node was removed, this gives the probability of adding backlinks to the repaired
+  /// neighbors. The default is 1.0 (aka "always") as this should be worth a bit of extra costs as it improves the graph's
+  /// quality.
+  int model_property_index_hnsw_reparation_backlink_probability(
+    ffi.Pointer<OBX_model> model,
+    double value,
+  ) {
+    return _model_property_index_hnsw_reparation_backlink_probability(
+      model,
+      value,
+    );
+  }
+
+  late final _model_property_index_hnsw_reparation_backlink_probabilityPtr =
+      _lookup<
+              ffi.NativeFunction<
+                  obx_err Function(ffi.Pointer<OBX_model>, ffi.Float)>>(
+          'obx_model_property_index_hnsw_reparation_backlink_probability');
+  late final _model_property_index_hnsw_reparation_backlink_probability =
+      _model_property_index_hnsw_reparation_backlink_probabilityPtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, double)>();
+
+  /// Sets the vector cache hint size for the HNSW index of the latest property.
+  /// This is a non-binding hint of the maximum size of the vector cache in KB (default: 2097152 or 2 GB/GiB).
+  int model_property_index_hnsw_vector_cache_hint_size_kb(
+    ffi.Pointer<OBX_model> model,
+    int value,
+  ) {
+    return _model_property_index_hnsw_vector_cache_hint_size_kb(
+      model,
+      value,
+    );
+  }
+
+  late final _model_property_index_hnsw_vector_cache_hint_size_kbPtr = _lookup<
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_model>, ffi.Size)>>(
+      'obx_model_property_index_hnsw_vector_cache_hint_size_kb');
+  late final _model_property_index_hnsw_vector_cache_hint_size_kb =
+      _model_property_index_hnsw_vector_cache_hint_size_kbPtr
+          .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
 
   /// Add a standalone relation between the active entity and the target entity to the model
   /// @param relation_id Must be unique within this version of the model
@@ -1537,6 +1744,39 @@ class ObjectBoxC {
           'obx_store_id');
   late final _store_id =
       _store_idPtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
+
+  /// Get the size of the store. For a disk-based store type, this corresponds to the size on disk, and for the
+  /// in-memory store type, this is roughly the used memory bytes occupied by the data.
+  /// @returns the size in bytes of the database, or 0 if the file does not exist or some error occurred.
+  int store_size(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _store_size(
+      store,
+    );
+  }
+
+  late final _store_sizePtr =
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<OBX_store>)>>(
+          'obx_store_size');
+  late final _store_size =
+      _store_sizePtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
+
+  /// The size in bytes occupied by the database on disk (if any).
+  /// @returns 0 if the underlying database is in-memory only, or the size could not be determined.
+  int store_size_on_disk(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _store_size_on_disk(
+      store,
+    );
+  }
+
+  late final _store_size_on_diskPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<OBX_store>)>>(
+          'obx_store_size_on_disk');
+  late final _store_size_on_disk =
+      _store_size_on_diskPtr.asFunction<int Function(ffi.Pointer<OBX_store>)>();
 
   /// Gives the store type ID for the given store
   /// @returns One of ::OBXStoreTypeId
@@ -4751,6 +4991,41 @@ class ObjectBoxC {
       ffi.Pointer<OBX_query_builder> Function(
           ffi.Pointer<OBX_query_builder>, int, int, int)>();
 
+  /// Performs an approximate nearest neighbor (ANN) search to find objects near to the given query_vector.
+  /// This requires the vector property to have a HNSW index.
+  /// @param vector_property_id the vector property ID of the entity
+  /// @param query_vector the query vector; its dimensions should be at least the dimensions of the vector property.
+  /// @param max_result_count maximum number of objects to return by the ANN condition.
+  /// Hint: it can also be used as the "ef" HNSW parameter to increase the search quality in combination with a
+  /// query limit.
+  /// For example, use 100 here with a query limit of 10 to have 10 results that are of potentially better quality
+  /// than just passing in 10 here (quality/performance tradeoff).
+  int qb_nearest_neighbors_f32(
+    ffi.Pointer<OBX_query_builder> builder,
+    int vector_property_id,
+    ffi.Pointer<ffi.Float> query_vector,
+    int max_result_count,
+  ) {
+    return _qb_nearest_neighbors_f32(
+      builder,
+      vector_property_id,
+      query_vector,
+      max_result_count,
+    );
+  }
+
+  late final _qb_nearest_neighbors_f32Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Float>,
+              ffi.Size)>>('obx_qb_nearest_neighbors_f32');
+  late final _qb_nearest_neighbors_f32 =
+      _qb_nearest_neighbors_f32Ptr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Float>, int)>();
+
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_query> query(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4861,7 +5136,9 @@ class ObjectBoxC {
   late final _query_limit =
       _query_limitPtr.asFunction<int Function(ffi.Pointer<OBX_query>, int)>();
 
-  /// Find entities matching the query. NOTE: the returned data is only valid as long the transaction is active!
+  /// Find objects matching the query.
+  /// NOTE: You must use an explicit transaction and the returned data is only valid as long the transaction is active!
+  /// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
   ffi.Pointer<OBX_bytes_array> query_find(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -4876,6 +5153,59 @@ class ObjectBoxC {
               ffi.Pointer<OBX_query>)>>('obx_query_find');
   late final _query_find = _query_findPtr.asFunction<
       ffi.Pointer<OBX_bytes_array> Function(ffi.Pointer<OBX_query>)>();
+
+  /// Find objects matching the query associated to their query score (e.g. distance in NN search).
+  /// The resulting array is sorted by score in ascending order (unlike obx_query_find()).
+  ffi.Pointer<OBX_bytes_score_array> query_find_with_scores(
+    ffi.Pointer<OBX_query> query,
+  ) {
+    return _query_find_with_scores(
+      query,
+    );
+  }
+
+  late final _query_find_with_scoresPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_bytes_score_array> Function(
+              ffi.Pointer<OBX_query>)>>('obx_query_find_with_scores');
+  late final _query_find_with_scores = _query_find_with_scoresPtr.asFunction<
+      ffi.Pointer<OBX_bytes_score_array> Function(ffi.Pointer<OBX_query>)>();
+
+  /// Find object IDs matching the query associated to their query score (e.g. distance in NN search).
+  /// The resulting array is sorted by score in ascending order (unlike obx_query_find_ids()).
+  ffi.Pointer<OBX_id_score_array> query_find_ids_with_scores(
+    ffi.Pointer<OBX_query> query,
+  ) {
+    return _query_find_ids_with_scores(
+      query,
+    );
+  }
+
+  late final _query_find_ids_with_scoresPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_id_score_array> Function(
+              ffi.Pointer<OBX_query>)>>('obx_query_find_ids_with_scores');
+  late final _query_find_ids_with_scores =
+      _query_find_ids_with_scoresPtr.asFunction<
+          ffi.Pointer<OBX_id_score_array> Function(ffi.Pointer<OBX_query>)>();
+
+  /// Find object IDs matching the query ordered by their query score (e.g. distance in NN search).
+  /// The resulting array is sorted by score in ascending order (unlike obx_query_find_ids()).
+  /// Unlike obx_query_find_ids_with_scores(), this method returns a simple array of IDs without scores.
+  ffi.Pointer<OBX_id_array> query_find_ids_by_score(
+    ffi.Pointer<OBX_query> query,
+  ) {
+    return _query_find_ids_by_score(
+      query,
+    );
+  }
+
+  late final _query_find_ids_by_scorePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_id_array> Function(
+              ffi.Pointer<OBX_query>)>>('obx_query_find_ids_by_score');
+  late final _query_find_ids_by_score = _query_find_ids_by_scorePtr
+      .asFunction<ffi.Pointer<OBX_id_array> Function(ffi.Pointer<OBX_query>)>();
 
   /// Find the first object matching the query.
   /// @returns OBX_NOT_FOUND if no object matches.
@@ -4933,7 +5263,8 @@ class ObjectBoxC {
       int Function(ffi.Pointer<OBX_query>, ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
           ffi.Pointer<ffi.Size>)>();
 
-  /// Walk over matching objects using the given data visitor
+  /// Walk over matching objects using the given data visitor.
+  /// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
   int query_visit(
     ffi.Pointer<OBX_query> query,
     ffi.Pointer<obx_data_visitor> visitor,
@@ -4956,7 +5287,8 @@ class ObjectBoxC {
       int Function(ffi.Pointer<OBX_query>, ffi.Pointer<obx_data_visitor>,
           ffi.Pointer<ffi.Void>)>();
 
-  /// Return the IDs of all matching objects
+  /// Return the IDs of all matching objects.
+  /// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
   ffi.Pointer<OBX_id_array> query_find_ids(
     ffi.Pointer<OBX_query> query,
   ) {
@@ -5381,6 +5713,35 @@ class ObjectBoxC {
       int Function(
           ffi.Pointer<OBX_query>, int, int, ffi.Pointer<ffi.Uint8>, int)>();
 
+  int query_param_vector_float32(
+    ffi.Pointer<OBX_query> query,
+    int entity_id,
+    int property_id,
+    ffi.Pointer<ffi.Float> value,
+    int element_count,
+  ) {
+    return _query_param_vector_float32(
+      query,
+      entity_id,
+      property_id,
+      value,
+      element_count,
+    );
+  }
+
+  late final _query_param_vector_float32Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_query>,
+              obx_schema_id,
+              obx_schema_id,
+              ffi.Pointer<ffi.Float>,
+              ffi.Size)>>('obx_query_param_vector_float32');
+  late final _query_param_vector_float32 =
+      _query_param_vector_float32Ptr.asFunction<
+          int Function(
+              ffi.Pointer<OBX_query>, int, int, ffi.Pointer<ffi.Float>, int)>();
+
   /// Gets the size of the property type used in a query condition.
   /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
   /// if the language has a bias towards another type (e.g. 64 bit ints).
@@ -5612,6 +5973,32 @@ class ObjectBoxC {
   late final _query_param_alias_bytes = _query_param_alias_bytesPtr.asFunction<
       int Function(ffi.Pointer<OBX_query>, ffi.Pointer<ffi.Char>,
           ffi.Pointer<ffi.Uint8>, int)>();
+
+  int query_param_alias_vector_float32(
+    ffi.Pointer<OBX_query> query,
+    ffi.Pointer<ffi.Char> alias,
+    ffi.Pointer<ffi.Float> value,
+    int element_count,
+  ) {
+    return _query_param_alias_vector_float32(
+      query,
+      alias,
+      value,
+      element_count,
+    );
+  }
+
+  late final _query_param_alias_vector_float32Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_query>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Float>,
+              ffi.Size)>>('obx_query_param_alias_vector_float32');
+  late final _query_param_alias_vector_float32 =
+      _query_param_alias_vector_float32Ptr.asFunction<
+          int Function(ffi.Pointer<OBX_query>, ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Float>, int)>();
 
   /// Gets the size of the property type used in a query condition.
   /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
@@ -6771,6 +7158,22 @@ class ObjectBoxC {
   late final _bytes_free =
       _bytes_freePtr.asFunction<void Function(ffi.Pointer<OBX_bytes>)>();
 
+  /// Free the array struct
+  void bytes_score_array_free(
+    ffi.Pointer<OBX_bytes_score_array> array,
+  ) {
+    return _bytes_score_array_free(
+      array,
+    );
+  }
+
+  late final _bytes_score_array_freePtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Pointer<OBX_bytes_score_array>)>>(
+      'obx_bytes_score_array_free');
+  late final _bytes_score_array_free = _bytes_score_array_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_bytes_score_array>)>();
+
   /// Allocate a bytes array struct of the given size, ready for the data to be pushed
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_bytes_array> bytes_array(
@@ -6873,6 +7276,22 @@ class ObjectBoxC {
       'obx_string_array_free');
   late final _string_array_free = _string_array_freePtr
       .asFunction<void Function(ffi.Pointer<OBX_string_array>)>();
+
+  /// Free the array struct
+  void id_score_array_free(
+    ffi.Pointer<OBX_id_score_array> array,
+  ) {
+    return _id_score_array_free(
+      array,
+    );
+  }
+
+  late final _id_score_array_freePtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Void Function(ffi.Pointer<OBX_id_score_array>)>>(
+      'obx_id_score_array_free');
+  late final _id_score_array_free = _id_score_array_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_id_score_array>)>();
 
   /// Free the array struct
   void int64_array_free(
@@ -9024,6 +9443,20 @@ class _SymbolAddresses {
       get admin_close => _library._admin_closePtr;
 }
 
+/// Object ID with its associated query score, which is used for special query results.
+class OBX_id_score extends ffi.Struct {
+  @obx_id()
+  external int id;
+
+  /// The query score indicates some quality measurement.
+  /// E.g. for vector nearest neighbor searches, the score is the distance to the given vector.
+  @ffi.Double()
+  external double score;
+}
+
+/// ID of a single Object stored in the database
+typedef obx_id = ffi.Uint64;
+
 abstract class OBXFeature {
   /// Functions that are returning multiple results (e.g. multiple objects) can be only used if this is available.
   /// This is only available for 64-bit OSes and is the opposite of "chunked mode", which forces to consume results
@@ -9172,6 +9605,54 @@ abstract class OBXPropertyType {
 
   /// < Variable sized vector of Date values (high precision 64-bit timestamp).
   static const int DateNanoVector = 32;
+}
+
+/// The vector distance algorithm used by an HNSW index (vector search).
+abstract class OBXVectorDistanceType {
+  /// Not a real type, just best practice (e.g. forward compatibility)
+  static const int Unknown = 0;
+
+  /// The default; typically "Euclidean squared" internally.
+  static const int Euclidean = 1;
+
+  /// Cosine similarity compares two vectors irrespective of their magnitude (compares the angle of two vectors).
+  /// Often used for document or semantic similarity.
+  /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  static const int Cosine = 2;
+
+  /// For normalized vectors (vector length == 1.0), the dot product is equivalent to the cosine similarity.
+  /// Because of this, the dot product is often preferred as it performs better.
+  /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  static const int DotProduct = 3;
+  static const int Manhattan = 4;
+  static const int Hamming = 5;
+
+  /// A custom dot product similarity measure that does not require the vectors to be normalized.
+  /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
+  /// The non-linear conversion provides a high precision over the entire float range (for the raw dot product).
+  /// The higher the dot product, the lower the distance is (the nearer the vectors are).
+  /// The more negative the dot product, the higher the distance is (the farther the vectors are).
+  /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
+  static const int DotProductNonNormalized = 10;
+}
+
+/// Bit-flags to influence the behavior of HNSW index (vector search).
+abstract class OBXHnswFlags {
+  static const int None = 0;
+
+  /// Enables debug logs.
+  static const int DebugLogs = 1;
+
+  /// Enables "high volume" debug logs, e.g. individual gets/puts.
+  static const int DebugLogsDetailed = 2;
+
+  /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
+  static const int VectorCacheSimdPaddingOff = 4;
+
+  /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
+  /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
+  /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
+  static const int ReparationLimitCandidates = 8;
 }
 
 /// Bit-flags defining the behavior of entities.
@@ -9330,7 +9811,7 @@ abstract class OBXBackupFlags {
   static const int ExcludeSalt = 2;
 }
 
-/// Bytes struct is an input/output wrapper typically used for a single object data (represented as FlatBuffers).
+/// This bytes struct is an input/output wrapper used for a single data object (represented as FlatBuffers).
 class OBX_bytes extends ffi.Struct {
   external ffi.Pointer<ffi.Uint8> data;
 
@@ -9338,9 +9819,32 @@ class OBX_bytes extends ffi.Struct {
   external int size;
 }
 
-/// Bytes array struct is an input/output wrapper for multiple FlatBuffers object data representation.
+/// This bytes array struct is an input/output wrapper for multiple data objects (represented as FlatBuffers).
 class OBX_bytes_array extends ffi.Struct {
   external ffi.Pointer<OBX_bytes> bytes;
+
+  @ffi.Size()
+  external int count;
+}
+
+/// This bytes score struct is an input/output wrapper used for a single data object (represented as FlatBuffers)
+/// with its associated query score, which is used for special query results.
+class OBX_bytes_score extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> data;
+
+  @ffi.Size()
+  external int size;
+
+  /// The query score indicates some quality measurement.
+  /// E.g. for vector nearest neighbor searches, the score is the distance to the given vector.
+  @ffi.Double()
+  external double score;
+}
+
+/// This bytes score array struct is an input/output wrapper pointing to multiple OBX_bytes_score instances.
+/// If count is zero, bytes_scores is allowed to be invalid.
+class OBX_bytes_score_array extends ffi.Struct {
+  external ffi.Pointer<OBX_bytes_score> bytes_scores;
 
   @ffi.Size()
   external int count;
@@ -9356,8 +9860,14 @@ class OBX_id_array extends ffi.Struct {
   external int count;
 }
 
-/// ID of a single Object stored in the database
-typedef obx_id = ffi.Uint64;
+/// ID score array struct is an input/output wrapper for an array of OBX_id_score structs.
+/// If count is zero, bytes_scores is allowed to be invalid.
+class OBX_id_score_array extends ffi.Struct {
+  external ffi.Pointer<OBX_id_score> ids_scores;
+
+  @ffi.Size()
+  external int count;
+}
 
 /// String array struct is an input/output wrapper for an array of character strings.
 class OBX_string_array extends ffi.Struct {
@@ -10118,9 +10628,9 @@ class OBX_dart_finalizer extends ffi.Opaque {}
 typedef obx_dart_closer
     = ffi.NativeFunction<obx_err Function(ffi.Pointer<ffi.Void> native_object)>;
 
-const int OBX_VERSION_MAJOR = 0;
+const int OBX_VERSION_MAJOR = 4;
 
-const int OBX_VERSION_MINOR = 21;
+const int OBX_VERSION_MINOR = 0;
 
 const int OBX_VERSION_PATCH = 0;
 

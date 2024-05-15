@@ -9,17 +9,17 @@ For Dart Native and unit tests ([install.sh](../install.sh)),
 for the binding update script (see below) and
 for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:  
 ```
-./tool/set-c-version.sh 0.21.0
+./tool/set-c-version.sh 4.0.0
 ```
 
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 ```
-./tool/set-android-version.sh 3.8.0
+./tool/set-android-version.sh 4.0.0
 ```
 
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 ```
-./tool/set-swift-version.sh 1.9.2
+./tool/set-swift-version.sh 2.0.0
 ```
 
 For each, add an entry (see previous releases) to the [CHANGELOG](../objectbox/CHANGELOG.md).

@@ -86,6 +86,35 @@ class Model {
     if (prop.flags != 0) {
       _check(C.model_property_flags(_cModel, prop.flags));
     }
+
+    final hnswParams = prop.hnswParams;
+    if (hnswParams != null) {
+      _check(C.model_property_index_hnsw_dimensions(
+          _cModel, hnswParams.dimensions));
+      if (hnswParams.neighborsPerNode != null) {
+        _check(C.model_property_index_hnsw_neighbors_per_node(
+            _cModel, hnswParams.neighborsPerNode!));
+      }
+      if (hnswParams.indexingSearchCount != null) {
+        _check(C.model_property_index_hnsw_indexing_search_count(
+            _cModel, hnswParams.indexingSearchCount!));
+      }
+      if (hnswParams.flags != null) {
+        _check(C.model_property_index_hnsw_flags(_cModel, hnswParams.flags!));
+      }
+      if (hnswParams.distanceType != null) {
+        _check(C.model_property_index_hnsw_distance_type(
+            _cModel, hnswParams.distanceType!));
+      }
+      if (hnswParams.reparationBacklinkProbability != null) {
+        _check(C.model_property_index_hnsw_reparation_backlink_probability(
+            _cModel, hnswParams.reparationBacklinkProbability!));
+      }
+      if (hnswParams.vectorCacheHintSizeKB != null) {
+        _check(C.model_property_index_hnsw_vector_cache_hint_size_kb(
+            _cModel, hnswParams.vectorCacheHintSizeKB!));
+      }
+    }
   }
 
   void addRelation(ModelRelation rel) {

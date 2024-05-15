@@ -189,6 +189,18 @@ T withNativeStrings<T>(
   }
 }
 
+T withNativeFloats<T>(
+    List<double> items, T Function(Pointer<Float> ptr, int size) fn) {
+  final size = items.length;
+  final ptr = malloc<Float>(size);
+  try {
+    ptr.asTypedList(size).setAll(0, items);
+    return fn(ptr, size);
+  } finally {
+    malloc.free(ptr);
+  }
+}
+
 /// Execute the given function, managing the resources consistently
 R executeWithIdArray<R>(List<int> items, R Function(Pointer<OBX_id_array>) fn) {
   // allocate a temporary structure

@@ -1,6 +1,46 @@
 ## latest
 
+* **ObjectBox now supports [Vector Search](https://docs.objectbox.io/ann-vector-search)** to enable efficient similarity searches.
+  This is particularly useful for AI/ML/RAG applications, e.g. image, audio, or text similarity. Other use cases include sematic search or recommendation engines.
+  See https://docs.objectbox.io/ann-vector-search for details.
+
+  Create a Vector (HNSW) index for a floating point vector property. For example, a `City` with a
+  location vector:
+
+  ```dart
+  @Entity()
+  class City {
+    // ...
+  
+    @HnswIndex(dimensions: 2)
+    @Property(type: PropertyType.floatVector)
+    List<double>? location;
+    
+    // ...
+  }
+  ```
+  
+  Perform a nearest neighbor search using the new `nearestNeighborsF32(queryVector, maxResultCount)`
+  query condition and the new "find with scores" query methods (the score is the distance to the 
+  query vector). For example, find the 2 closest cities:
+  
+  ```dart
+  final madrid = [40.416775, -3.703790];
+  final query = box
+      .query(City_.location.nearestNeighborsF32(madrid, 2))
+      .build();
+  final closest = query.findWithScores()[0].object;
+  ```
+
+  For an introduction to vector search, more details and other supported languages see the 
+  [Vector Search documentation](https://docs.objectbox.io/ann-vector-search).
 * The generator correctly errors when using an index on any vector type.
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.0).
+* Flutter for Android: update to [objectbox-android 4.0.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.0).
+  If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:4.0.0` in `android/app/build.gradle`.
+* Flutter for iOS/macOS: update to [objectbox-swift 2.0.0](https://github.com/objectbox/objectbox-swift/releases/tag/v2.0.0).
+  Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
 
 ## 2.5.1 (2024-03-04)
 

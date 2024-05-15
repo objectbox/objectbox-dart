@@ -211,6 +211,7 @@ class CodeBuilder extends Builder {
     propInModel.flags = prop.flags;
     propInModel.dartFieldType = prop.dartFieldType;
     propInModel.relationTarget = prop.relationTarget;
+    propInModel.hnswParams = prop.hnswParams;
 
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();

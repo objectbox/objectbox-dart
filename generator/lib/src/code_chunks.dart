@@ -1,6 +1,7 @@
 import 'package:build/build.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart' show InvalidGenerationSourceError;
 
@@ -148,6 +149,10 @@ class CodeChunks {
     if (property.relationTarget != null &&
         property.relationTarget!.isNotEmpty) {
       additionalArgs += ", relationTarget: '${property.relationTarget!}'";
+    }
+    if (property.hnswParams != null) {
+      additionalArgs +=
+          ", hnswParams: ${property.hnswParams!.toCodeString(obxInt)}";
     }
     return '''
     $obxInt.ModelProperty(
@@ -714,6 +719,8 @@ class CodeChunks {
       if (prop.isRelation) {
         propCode +=
             '$obx.QueryRelationToOne<${entity.name}, ${prop.relationTarget}>';
+      } else if (prop.hnswParams != null) {
+        propCode += '$obx.QueryHnswProperty<${entity.name}>';
       } else {
         propCode += '$obx.Query${fieldType}Property<${entity.name}>';
       }

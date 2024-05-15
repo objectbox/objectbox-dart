@@ -82,5 +82,5 @@ dependencies {
     // Add objectbox-android-objectbrowser only for debug builds.
     // Warning: when objectbox_flutter_libs updates check if version
     // needs update, e.g. check https://github.com/objectbox/objectbox-dart/releases.
-    debugImplementation("io.objectbox:objectbox-android-objectbrowser:3.8.0")
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:4.0.0")
 }

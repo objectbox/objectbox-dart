@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../../annotations.dart';
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
 import '../../modelinfo/modelproperty.dart';
@@ -19,6 +20,7 @@ import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 import '../box.dart';
+import 'vector_search_results.dart';
 
 part 'builder.dart';
 
@@ -372,6 +374,45 @@ class QueryDoubleVectorProperty<EntityT>
   Condition<EntityT> operator <(double p) => lessThan(p);
 
   Condition<EntityT> operator >(double p) => greaterThan(p);
+}
+
+/// Nearest neighbor search condition for use with [QueryHnswProperty].
+class _NearestNeighborsCondition<EntityT> extends Condition<EntityT> {
+  final QueryHnswProperty<EntityT> property;
+  final List<double> queryVector;
+  final int maxResultCount;
+
+  _NearestNeighborsCondition(
+      this.property, this.queryVector, this.maxResultCount, String? alias)
+      : super(alias);
+
+  @override
+  int _apply(_QueryBuilder<dynamic> builder, {required bool isRoot}) =>
+      withNativeFloats<int>(
+          queryVector,
+          (ptr, size) => C.qb_nearest_neighbors_f32(
+              builder._cBuilder, property._model.id.id, ptr, maxResultCount));
+}
+
+/// Provides extra conditions for float vector properties with an [HnswIndex].
+class QueryHnswProperty<EntityT> extends QueryDoubleVectorProperty<EntityT> {
+  QueryHnswProperty(super.model);
+
+  /// Performs an approximate nearest neighbor (ANN) search to find objects near to the given [queryVector].
+  ///
+  /// This requires the vector property to have an [HnswIndex].
+  ///
+  /// The dimensions of the query vector should be at least the dimensions of this vector property.
+  ///
+  /// Use [maxResultCount] to set the maximum number of objects to return by the ANN condition.
+  /// Hint: it can also be used as the "ef" HNSW parameter to increase the search quality in combination with a
+  /// query limit.
+  /// For example, use maxResultCount of 100 with a [Query.limit] of 10 to have 10 results that are of potentially better quality
+  /// than just passing in 10 for maxResultCount (quality/performance tradeoff).
+  Condition<EntityT> nearestNeighborsF32(
+          List<double> queryVector, int maxResultCount,
+          {String? alias}) =>
+      _NearestNeighborsCondition(this, queryVector, maxResultCount, alias);
 }
 
 class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
@@ -1098,6 +1139,75 @@ class Query<T> implements Finalizable {
   /// Like [find], but runs the query operation asynchronously in a worker
   /// isolate.
   Future<List<T>> findAsync() => _runAsyncImpl(_findAsyncCallback<T>);
+
+  /// Finds IDs of objects matching the query associated to their query score (e. g. distance in NN search).
+  ///
+  /// Returns a list of [IdWithScore] that wraps IDs of matching objects and their score,
+  /// sorted by score in ascending order.
+  ///
+  /// This only works on objects with a property with an [HnswIndex].
+  List<IdWithScore> findIdsWithScores() {
+    final resultPtr = checkObxPtr(C.query_find_ids_with_scores(_ptr));
+    try {
+      final items = resultPtr.ref.ids_scores;
+      final count = resultPtr.ref.count;
+      return List.generate(count, (i) {
+        // items[i] only available with Dart 3.3
+        final item = items.elementAt(i).ref;
+        final id = item.id;
+        final score = item.score;
+        return IdWithScore(id, score);
+      }, growable: false);
+    } finally {
+      C.id_score_array_free(resultPtr);
+    }
+  }
+
+  /// Like [findIdsWithScores], but runs the query operation asynchronously in a
+  /// worker isolate.
+  Future<List<IdWithScore>> findIdsWithScoresAsync() =>
+      _runAsyncImpl(_findIdsWithScoresAsyncCallback<T>);
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<IdWithScore> _findIdsWithScoresAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, List<IdWithScore>>(
+          store, configuration, (query) => query.findIdsWithScores());
+
+  /// Finds objects matching the query associated to their query score (e. g. distance in NN search).
+  /// The resulting list is sorted by score in ascending order.
+  ///
+  /// Returns a list of [ObjectWithScore] that matching objects and their score,
+  /// sorted by score in ascending order.
+  ///
+  /// This only works on objects with a property with an [HnswIndex].
+  List<ObjectWithScore<T>> findWithScores() {
+    final resultPtr = checkObxPtr(C.query_find_with_scores(_ptr));
+    try {
+      final items = resultPtr.ref.bytes_scores;
+      final count = resultPtr.ref.count;
+      return List.generate(count, (i) {
+        // items[i] only available with Dart 3.3
+        final item = items.elementAt(i).ref;
+        final object = _entity.objectFromData(_store, item.data, item.size);
+        final score = item.score;
+        return ObjectWithScore(object, score);
+      }, growable: false);
+    } finally {
+      C.bytes_score_array_free(resultPtr);
+    }
+  }
+
+  /// Like [findWithScores], but runs the query operation asynchronously in a
+  /// worker isolate.
+  Future<List<ObjectWithScore<T>>> findWithScoresAsync() =>
+      _runAsyncImpl(_findWithScoresAsyncCallback<T>);
+
+  // Static callback to avoid over-capturing due to [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+  static List<ObjectWithScore<T>> _findWithScoresAsyncCallback<T>(
+          Store store, _QueryConfiguration<T> configuration) =>
+      _asyncCallbackImpl<T, List<ObjectWithScore<T>>>(
+          store, configuration, (query) => query.findWithScores());
 
   /// Base callback for [_runAsyncImpl] to run a query [action] in a worker
   /// isolate.
