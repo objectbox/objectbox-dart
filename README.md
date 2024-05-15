@@ -27,7 +27,8 @@
 
 
 
-Very first on-device vector database for Flutter / Dart AI apps. Intuitive APIs, simply fast. Persist local Dart objects with ease & speed, efficiently manage vectors.
+Very first on-device vector database for Flutter / Dart AI apps. Intuitive APIs, simply fast. 
+Persist local Dart objects with ease & speed, efficiently manage vectors.
 
 ObjectBox provides a store with boxes to put objects into:
 
