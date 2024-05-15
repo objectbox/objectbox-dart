@@ -21,19 +21,19 @@
   </a>
 </p>
 
-# Flutter database for Dart-native objects 💙
+# Flutter database for Dart-native objects and on-device vector management 💙
 
-ObjectBox Flutter database is an excellent choice for storing Dart objects in cross-platform 
-applications. Designed for high performance, the ObjectBox Flutter database is excellent for mobile
-and IoT devices. ObjectBox consumes minimal CPU, memory, and battery, ensuring that your software is
-not only efficient but also sustainable. By storing data locally on the device, ObjectBox allows you
-to cut cloud expenditures and create an app that does not require a connection. Get started with our
-intuitive native Dart API in minutes, without the hassle of SQL.
-Plus: We built a data synchronization solution that allows you to keep data in sync across devices 
-and servers, both online and offline.
+The ObjectBox Flutter database is a great choice for managing Dart objects in cross-platform and AI-driven applications.
+Its advanced vector search empowers on-device AI for a variety of applications, including RAG AI, generative AI,
+and similarity searches. Designed for high performance, the ObjectBox Flutter database is excellent for mobile and IoT devices,
+minimizing CPU, memory, and battery usage to enhance device efficiency and sustainability.
+As an offline-first solution, ObjectBox makes sure your app reliably works offline as well as online. 
+
+Build smarter apps with our easy-to-use native Dart API, and enjoy our seamless Data Sync, which provides data consistency across devices.
 
 ## Features
 
+🧠 **Artificial Intelligence** - superfast vector search.\
 🏁 **Super fast** - 10X faster than SQLite - see the [performance benchmarks](#flutter-database-performance-benchmarks).\
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
 💻 **Cross-platform** - Android, iOS, macOS, Linux, Windows.\

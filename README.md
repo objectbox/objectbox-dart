@@ -23,15 +23,11 @@
   </a>
 </p>
 
-# Flutter database - easy to use & fast Dart object persistence 💙
+# Flutter database with vector support - easy to use & fast Dart object persistence, plus on-device vector search 💙
 
----
 
-💙 Jobs: We're looking for a [Flutter Developer Relations Manager](https://objectbox.io/jobs/developer-relations-manager-evangelist-advocate/)! 💙
 
----
-
-Database for Flutter / Dart - intuitive APIs, simply fast. Persist local Dart objects with ease & speed, focus on the value your application provides.
+Very first on-device vector database for Flutter / Dart AI apps. Intuitive APIs, simply fast. Persist local Dart objects with ease & speed, efficiently manage vectors.
 
 ObjectBox provides a store with boxes to put objects into:
 
@@ -73,15 +69,17 @@ Ready? Continue with the ➡️ **[Getting Started guide](https://docs.objectbox
 ## Why use ObjectBox
 
 ObjectBox Flutter database is an excellent choice for storing Dart objects in cross-platform
-applications. Designed for high performance, the ObjectBox Flutter database is excellent for mobile
+applications and the only on-device database that offers you vector support for your on-device AI apps.
+Designed for high performance, the ObjectBox Flutter database is excellent for mobile
 and IoT devices. ObjectBox consumes minimal CPU, memory, and battery, ensuring that your software is
 not only efficient but also sustainable. By storing data locally on the device, ObjectBox allows you
-to cut cloud expenditures and create an app that does not require a connection. Get started with our
+to cut cloud costs and create an app that does not require a connection. Get started with our
 intuitive native Dart API in minutes, without the hassle of SQL.
 Plus: We built a data synchronization solution that allows you to keep data in sync across devices
 and servers, both online and offline.
 
 ### Features
+🏁 **Very first on-device vector database** - for AI apps that work any place.\
 
 🏁 **High performance** - superfast response rates enabling real-time applications.\
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
