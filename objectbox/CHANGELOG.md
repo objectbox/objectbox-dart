@@ -35,7 +35,7 @@
   For an introduction to vector search, more details and other supported languages see the 
   [Vector Search documentation](https://docs.objectbox.io/ann-vector-search).
 * The generator correctly errors when using an index on any vector type.
-* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 0.21.1-alpha2](https://github.com/objectbox/objectbox-c/releases/tag/v0.21.1-alpha2).
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.0).
 
 ## 2.5.1 (2024-03-04)
 
