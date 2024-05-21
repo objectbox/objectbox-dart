@@ -21,6 +21,7 @@ versionDartExpr="s/current = \".*\"/current = \"${version}\"/g"
 update generator/lib/src/version.dart "${versionDartExpr}"
 
 dependencyHigherExpr="s/objectbox: \^.*/objectbox: ^${version}/g"
+update objectbox/example/dart-native/vectorsearch_cities/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/event_management_tutorial/event_manager/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/event_management_tutorial/many_to_many/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/objectbox_demo/pubspec.yaml "${dependencyHigherExpr}"
