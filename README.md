@@ -80,7 +80,7 @@ Plus: We built a data synchronization solution that allows you to keep data in s
 and servers, both online and offline.
 
 ### Features
-🏁 **Very first on-device vector database** - for AI apps that work any place.\
+🏁 **Very first [on-device vector database](https://docs.objectbox.io/on-device-ann-vector-search)** - for AI apps that work any place.\
 
 🏁 **High performance** - superfast response rates enabling real-time applications.\
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\

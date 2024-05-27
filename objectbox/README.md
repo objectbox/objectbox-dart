@@ -33,7 +33,7 @@ Build smarter apps with our easy-to-use native Dart API, and enjoy our seamless 
 
 ## Features
 
-🧠 **Artificial Intelligence** - superfast vector search.\
+🧠 **Artificial Intelligence** - superfast [on-device vector search](https://docs.objectbox.io/on-device-ann-vector-search).\
 🏁 **Super fast** - 10X faster than SQLite - see the [performance benchmarks](#flutter-database-performance-benchmarks).\
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
 💻 **Cross-platform** - Android, iOS, macOS, Linux, Windows.\

@@ -8,7 +8,7 @@
 **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions`
   (or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
 
-**ObjectBox now supports [Vector Search](https://docs.objectbox.io/ann-vector-search)** to enable 
+**ObjectBox now supports on-device [Vector Search](https://docs.objectbox.io/on-device-ann-vector-search)** to enable 
 efficient similarity searches.
 
 This is particularly useful for AI/ML/RAG applications, e.g. image, audio, or text similarity. Other
@@ -41,7 +41,7 @@ final closest = query.findWithScores()[0].object;
 ```
 
 For an introduction to Vector Search, more details and other supported languages see the 
-[Vector Search documentation](https://docs.objectbox.io/ann-vector-search).
+[Vector Search documentation](https://docs.objectbox.io/on-device-ann-vector-search).
 
 * The generator correctly errors when using an unsupported index on a vector type.
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.0).
