@@ -1,7 +1,11 @@
-## latest
+## 4.0.1 (2024-05-27)
 
-* Export `ObjectWithScore` and `IdWithScore` used by the new find with score `Query` methods. [#637]
+* Export `ObjectWithScore` and `IdWithScore` used by the new find with score `Query` methods. [#637](https://github.com/objectbox/objectbox-dart/issues/637)
 * Add simple `vectorsearch_cities` Dart Native example application.
+
+Note: this release includes the same versions of the Android library and ObjectBox pod as
+[release 4.0.0](https://github.com/objectbox/objectbox-dart/releases/tag/v4.0.0).
+See update instructions there.
 
 ## 4.0.0 (2024-05-15)
 
