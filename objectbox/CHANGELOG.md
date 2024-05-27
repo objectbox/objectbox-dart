@@ -1,3 +1,5 @@
+## latest
+
 ## 4.0.1 (2024-05-27)
 
 * Export `ObjectWithScore` and `IdWithScore` used by the new find with score `Query` methods. [#637](https://github.com/objectbox/objectbox-dart/issues/637)
