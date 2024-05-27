@@ -1,49 +1,48 @@
+import '../annotations.dart';
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
 import '../native/transaction.dart';
 import '../store.dart';
 
-/// Manages a to-one relation, an unidirectional link from a "source" entity to
-/// a "target" entity. The target object is referenced by its ID, which is
-/// persisted in the source object.
+/// A to-one relation of an entity that references one object of a "target" entity [EntityT].
 ///
-/// You can:
-///   - set [target]=null or [targetId]=0 to remove the relation.
-///   - set [target] to an object to set the relation.
-///     Call [Box<SourceEntity>.put()] to persist the changes. If the target
-///     object is a new one (its ID is 0), it will be also saved automatically.
-///   - set [targetId] to an existing object's ID to set the relation.
-///     Call [Box<SourceEntity>.put()] to persist the changes.
-///
+/// Example:
 /// ```
 /// @Entity()
 /// class Order {
 ///   final customer = ToOne<Customer>();
-///   ...
 /// }
+/// ```
 ///
+/// Uses lazy initialization.
+/// The [target] object is only read from the database when it is first accessed.
+///
+/// Common usage:
+///   - set the [target] object to create a relation.
+///     When the object with the ToOne is put, if the target object is new (its ID is 0), it will be put as well.
+///     Otherwise, only the target ID in the database is updated.
+///   - set the [targetId] of the target object to create a relation.
+///   - set [target] to `null` or [targetId] to `0` to remove the relation.
+///
+/// Then, to persist the changes [Box.put] the object with the ToOne.
+///
+/// ```
 /// // Example 1: create a relation
-/// final order = Order(...);
-/// final customer = Customer();
 /// order.customer.target = customer;
-///
-/// // Or you could create the target object in place:
-/// // order.customer.target = Customer()
-///
-/// // attach() must be called when creating new instances. On objects (e.g.
-/// // "orders" in this example) read with box.get() its done automatically.
-/// order.customer.attach(store);
-///
-/// // saves both [customer] and [order] in the database
+/// // or order.customer.targetId = customerId;
 /// store.box<Order>().put(order);
 ///
-///
-/// // Example 2: remove a relation
-///
+/// // Example 2: remove the relation
 /// order.customer.target = null
-/// // ... or ...
-/// order.customer.targetId = 0
+/// // or order.customer.targetId = 0
+/// store.box<Order>().put(order);
 /// ```
+///
+/// The target object is referenced by its ID.
+/// This [targetId] is persisted as part of the object with the ToOne in a special
+/// property created for each ToOne (named like "customerId").
+///
+/// To get all objects with a ToOne that reference a target object, see [Backlink].
 class ToOne<EntityT> {
   /// Store-related configuration attached to this.
   ///

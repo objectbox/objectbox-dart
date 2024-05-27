@@ -8,48 +8,43 @@ import '../store.dart';
 import '../transaction.dart';
 import 'info.dart';
 
-/// A lazily loaded `List` of target objects representing a to-many relation,
-/// a unidirectional link from a "source" entity to multiple objects of a
-/// "target" entity.
+/// A to-many relation of an entity that references multiple objects of a "target" entity [EntityT].
 ///
-/// It tracks changes (adds and removes) that can be later applied (persisted)
-/// to the database. This happens either when the source entity of this relation
-/// is put or using [applyToDb]. For some important details about applying
-/// changes, see the notes about relations of [Box.put].
-///
-/// The objects are loaded lazily on first access of this list, and then cached.
-/// Subsequent calls to any method, like [length], do not query the database,
-/// even if the relation was changed elsewhere. To get the latest data [Box.get]
-/// the source object again.
-///
-/// You can:
-///   - [add] new objects to the relation.
-///   - [removeAt] target objects from the relation at a specific list index.
-///   - [remove] target objects from the relation by an ID.
-///
+/// Example:
 /// ```
+/// @Entity()
 /// class Student {
 ///   final teachers = ToMany<Teacher>();
 /// }
-///
-/// // Example 1: create a relation
-/// final teacher1 = Teacher();
-/// final teacher2 = Teacher();
-///
-/// final student1 = Student();
-/// student1.teachers.add(teacher1);
-/// student1.teachers.add(teacher2);
-///
-/// final student2 = Student();
-/// student2.teachers.add(teacher2);
-///
-/// // saves students as well as teachers in the database
-/// store.box<Student>().putMany([student1, student2]);
-///
-/// // Example 2: remove a relation
-/// student.teachers.removeAt(index)
-/// student.teachers.applyToDb(); // or store.box<Student>().put(student);
 /// ```
+///
+/// Implements the `List` interface and uses lazy initialization.
+/// The target objects are only read from the database when the list is first accessed.
+///
+/// Tracks when target objects are added and removed. Common usage:
+///   - [add] target objects to the relation.
+///   - [remove] target objects from the relation.
+///   - [removeAt] target objects at a specific index.
+///
+/// To apply (persist) the changes to the database, call [applyToDb] or put the object with the ToMany.
+/// For important details, see the notes about relations of [Box.put].
+///
+/// ```
+/// // Example 1: add target objects to a relation
+/// student.teachers.add(teacher1);
+/// student.teachers.add(teacher2);
+/// store.box<Student>().put(student);
+///
+/// // Example 2: remove a target object from the relation
+/// student.teachers.removeAt(index);
+/// student.teachers.applyToDb();
+/// // or store.box<Student>().put(student);
+/// ```
+///
+/// In the database, the target objects are referenced by their IDs, which are
+/// persisted as part of the relation of the object with the ToMany.
+///
+/// To get all objects with a ToMany that reference a target object, see [Backlink].
 class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// Store-related configuration attached to this.
   ///
