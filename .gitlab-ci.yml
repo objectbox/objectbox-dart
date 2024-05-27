@@ -34,17 +34,21 @@ analyze:
     - dart pub get --directory=generator
     - dart pub get --directory=objectbox
     - dart pub get --directory=objectbox_test
+    - dart pub get --directory=objectbox/example/dart-native/vectorsearch_cities
     # Generate code
     - cd benchmark
     - dart run build_runner build
     - cd ../objectbox_test
     - dart run build_runner build
-    - cd ..
+    - cd ../objectbox/example/dart-native/vectorsearch_cities
+    - dart run build_runner build
+    - cd ../../../.. # back to repo root
     # Analyze Dart packages
     - dart analyze benchmark
     - dart analyze generator
     - dart analyze objectbox
     - dart analyze objectbox_test
+    - dart analyze objectbox/example/dart-native/vectorsearch_cities
     # Check formatting of all packages
     - dart format --set-exit-if-changed --fix .
 
@@ -120,3 +124,18 @@ coverage:
   artifacts:
     paths:
       - objectbox/coverage/html/
+
+# For the Dart Native example compiles and runs the executable (analysis and code formatting is 
+# checked by analyze job).
+dart-examples-test:
+  extends: .cache
+  stage: test
+  tags: [ x64, linux, docker ]
+  image: dart:$DART_VERSION
+  script:
+    - cd objectbox/example/dart-native/vectorsearch_cities
+    - dart pub get
+    - dart run build_runner build
+    - ../../../../install.sh
+    - dart compile exe bin/vectorsearch_cities.dart
+    - ./bin/vectorsearch_cities.exe

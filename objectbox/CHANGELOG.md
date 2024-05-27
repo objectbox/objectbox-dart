@@ -1,6 +1,7 @@
 ## latest
 
 * Export `ObjectWithScore` and `IdWithScore` used by the new find with score `Query` methods. [#637]
+* Add simple `vectorsearch_cities` Dart Native example application.
 
 ## 4.0.0 (2024-05-15)
 

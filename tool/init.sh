@@ -40,6 +40,7 @@ initialize dart objectbox
 initialize dart generator
 initialize dart objectbox_test generate
 initialize dart benchmark generate
+initialize dart objectbox/example/dart-native/vectorsearch_cities generate
 initialize flutter objectbox/example/flutter/objectbox_demo generate
 initialize flutter objectbox/example/flutter/objectbox_demo_relations generate
 initialize flutter objectbox/example/flutter/objectbox_demo_sync generate
