@@ -1,5 +1,7 @@
 ## latest
 
+* Export `ObjectWithScore` and `IdWithScore` used by the new find with score `Query` methods. [#637]
+
 ## 4.0.0 (2024-05-15)
 
 **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions`
