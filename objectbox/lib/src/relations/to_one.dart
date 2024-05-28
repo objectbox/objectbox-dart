@@ -72,7 +72,9 @@ class ToOne<EntityT> {
     }
   }
 
-  /// Get target object. If it's the first access, this reads from DB.
+  /// Returns the target object or `null` if there is none.
+  ///
+  /// [ToOne] uses lazy initialization, so on first access this will read the target object from the database.
   EntityT? get target {
     if (_value._state == _ToOneState.lazy) {
       final configuration = _getStoreConfigOrThrow();
@@ -91,8 +93,11 @@ class ToOne<EntityT> {
     return _value._object;
   }
 
-  /// Set relation target object. Note: this does not store the change yet, use
-  /// [Box.put()] on the containing (relation source) object.
+  /// Prepares to set the target object of this relation.
+  /// Pass `null` to remove an existing one.
+  ///
+  /// To apply changes, put the object with the ToOne.
+  /// For important details, see the notes about relations of [Box.put].
   set target(EntityT? object) {
     // If not attached, yet, avoid throwing and set the ID to unknown instead.
     // If the targetId getter is used later, it will call this to re-try
@@ -122,8 +127,11 @@ class ToOne<EntityT> {
     return _value._id;
   }
 
-  /// Set ID of a relation target object. Note: this does not store the change
-  /// yet, use [Box.put()] on the containing (relation source) object.
+  /// Prepares to set the target of this relation to the object with the given [id].
+  /// Pass `0` to remove an existing one.
+  ///
+  /// To apply changes, put the object with the ToOne.
+  /// For important details, see the notes about relations of [Box.put].
   set targetId(int? id) {
     id ??= 0;
     if (id == 0) {
