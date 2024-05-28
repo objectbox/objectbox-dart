@@ -87,6 +87,9 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     _items.length = newLength;
   }
 
+  /// Gets the target object at the given index.
+  ///
+  /// [ToMany] uses lazy initialization, so on first access this will read the target objects from the database.
   @override
   EntityT operator [](int index) => _items[index];
 
@@ -104,6 +107,10 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     _track(element, 1);
   }
 
+  /// Prepares to add the given target object to this relation.
+  ///
+  /// To apply changes, call [applyToDb] or put the object with the ToMany.
+  /// For important details, see the notes about relations of [Box.put].
   @override
   void add(EntityT element) {
     ArgumentError.checkNotNull(element, 'element');
@@ -116,6 +123,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     }
   }
 
+  /// Like [add], but for multiple target objects.
   @override
   void addAll(Iterable<EntityT> iterable) {
     iterable.forEach(_track);
@@ -127,8 +135,11 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     }
   }
 
-  // note: to override, arg must be "Object", same as in the base class.
-  @override
+  /// Prepares to remove the target object from this relation.
+  ///
+  /// To apply changes, call [applyToDb] or put the object with the ToMany.
+  /// For important details, see the notes about relations of [Box.put].
+  @override // note: to override, arg must be "Object", same as in the base class.
   bool remove(Object? element) {
     if (!_items.remove(element)) return false;
     if (element != null) _track(element as EntityT, -1);
