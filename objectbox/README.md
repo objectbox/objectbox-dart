@@ -64,37 +64,35 @@ Oh, and there is one more thing...
 ObjectBox provides a store with boxes to put objects into:
 
 ```dart
-// Annotate a Dart class to create a box
+// Annotate a Dart class to create a Box
 @Entity()
 class Person {
-  @Id() 
+  @Id()
   int id;
-  String name;
+  String firstName;
+  String lastName;
 
-  Person({this.id = 0, required this.name});
+  Person({this.id = 0, required this.firstName, required this.lastName});
 }
 
+final Store store = await openStore(directory: 'person-db');
 final box = store.box<Person>();
 
-// Put a new object into the box
-var person = Person(name: "Joe Green");
-final id = box.put(person);
+var person = Person(firstName: 'Joe', lastName: 'Green');
+final id = box.put(person); // Create
 
-// Get the object back from the box
-person = box.get(id)!;
+person = box.get(id)!;      // Read
 
-// Update the object
-person.name = "Joe Black";
-box.put(person);
+person.lastName = 'Black';
+box.put(person);            // Update
 
-// Query for objects
-final query = box.query(Person_.name.equals("Joe Black"))
-        .order(Person_.name).build();
-final people = query.find();
+box.remove(person.id);      // Delete
+
+final query = box           // Query
+    .query(Person_.firstName.equals('Joe') & Person_.lastName.startsWith('B'))
+    .build();
+final List<Person> people = query.find();
 query.close();
-
-// Remove the object from the box
-box.remove(person.id);
 ```
 
 ## Getting Started
