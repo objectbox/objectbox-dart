@@ -352,6 +352,31 @@ void main() {
       expect(vectorProperty.hnswParams!.reparationBacklinkProbability, 0.95);
       expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, 2097152);
     });
+
+    test('Sync annotation with shared global IDs', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      @Sync(sharedGlobalIds: true)
+      class Example {
+        @Id(assignable: true)
+        int id = 0;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      // Assert final model created by generator
+      var entity = testEnv.model.entities[0];
+      expect(entity.flags & OBXEntityFlags.SYNC_ENABLED != 0, true);
+      expect(entity.flags & OBXEntityFlags.SHARED_GLOBAL_IDS != 0, true);
+      // Only a single property
+      final idProperty = testEnv.model.entities[0].properties[0];
+      expect(idProperty.flags & OBXPropertyFlags.ID_SELF_ASSIGNABLE != 0, true);
+    });
   });
 }
 

@@ -583,13 +583,33 @@ class _SyncListenerGroup<StreamValueType> {
   }
 }
 
+// Note: because in Dart can't have two classes exported with the same name,
+// this class doubles as the annotation class (compare annotations.dart) and
+// configuration class for Sync.
+
 /// [ObjectBox Sync](https://objectbox.io/sync/) makes data available and
 /// synchronized across devices, online and offline.
 ///
 /// Start a client using [Sync.client()] and connect to a remote server.
 class Sync {
-  /// Create a Sync annotation, enabling synchronization for an entity.
-  const Sync();
+  /// Set to `true` to enable shared global IDs for a Sync-enabled entity class.
+  ///
+  /// By default, each Sync client has its own local ID space for Objects.
+  /// IDs are mapped to global IDs when syncing behind the scenes.
+  /// Turn this on to treat Object IDs as global and turn of ID mapping.
+  /// The ID of an Object will then be the same on all clients.
+  ///
+  /// When using this, it is recommended to use assignable IDs (`@Id(assignable: true)`)
+  /// to turn off automatically assigned IDs. Without special care, two Sync
+  /// clients are likely to overwrite each others Objects if IDs are assigned
+  /// automatically.
+  final bool sharedGlobalIds;
+
+  /// Enables sync for an `@Entity` class.
+  ///
+  /// Note that currently sync can not be enabled or disabled for existing entities.
+  /// Also synced entities can not have relations to non-synced entities.
+  const Sync({this.sharedGlobalIds = false});
 
   static final bool _syncAvailable = C.has_feature(OBXFeature.Sync);
 
