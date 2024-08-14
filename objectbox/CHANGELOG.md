@@ -1,3 +1,5 @@
+## latest
+
 ## 4.0.2 (2024-08-14)
 
 * Sync: support option to enable [shared global IDs](https://sync.objectbox.io/advanced/object-ids#shared-global-ids).
