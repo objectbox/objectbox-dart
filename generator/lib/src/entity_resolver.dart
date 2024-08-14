@@ -68,10 +68,13 @@ class EntityResolver extends Builder {
         null,
         uidRequest: !entityUid.isNull && entityUid.intValue == 0);
 
-    // Sync: check if enabled
-    if (_syncChecker.hasAnnotationOfExact(classElement)) {
+    // Sync: check if enabled and options
+    _syncChecker.runIfMatches(classElement, (annotation) {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;
-    }
+      if (annotation.getField('sharedGlobalIds')!.toBoolValue()!) {
+        entity.flags |= OBXEntityFlags.SHARED_GLOBAL_IDS;
+      }
+    });
 
     log.info(entity);
 

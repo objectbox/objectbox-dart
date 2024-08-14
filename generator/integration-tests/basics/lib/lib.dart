@@ -29,6 +29,15 @@ class D {
 }
 
 @Entity()
+@Sync(sharedGlobalIds: true)
+class E {
+  @Id(assignable: true)
+  int id = 0;
+
+  E({this.id = 0});
+}
+
+@Entity()
 class T {
   int? id;
 
