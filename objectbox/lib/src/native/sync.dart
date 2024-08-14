@@ -583,6 +583,10 @@ class _SyncListenerGroup<StreamValueType> {
   }
 }
 
+// Note: because in Dart can't have two classes exported with the same name,
+// this class doubles as the annotation class (compare annotations.dart) and
+// configuration class for Sync.
+
 /// [ObjectBox Sync](https://objectbox.io/sync/) makes data available and
 /// synchronized across devices, online and offline.
 ///
