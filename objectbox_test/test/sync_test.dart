@@ -290,18 +290,32 @@ void main() {
         final box = env.store.box<TestEntitySynced>();
         final box2 = env2.store.box<TestEntitySynced>();
         expect(box.isEmpty(), isTrue);
-        int id = box.put(TestEntitySynced(value: 100));
+        // Do multiple changes to verify only a single completion event is sent
+        // after all changes are received.
+        box.put(TestEntitySynced(value: 1));
+        box.put(TestEntitySynced(value: 100));
 
         // Note: wait for the client to finish sending to the server.
         // There's currently no other way to recognize this.
         sleep(const Duration(milliseconds: 100));
         client.close();
 
-        final client2 = loggedInClient(env2.store);
-        await client2.completionEvents.first.timeout(defaultTimeout);
-        client2.close();
+        final client2 = createClient(env2.store);
+        var receivedEvents = 0;
+        final subscription =
+            client2.completionEvents.listen((event) => receivedEvents++);
 
-        expect(box2.get(id)!.value, 100);
+        client2.start();
+        waitUntilLoggedIn(client2);
+
+        // Yield and wait for event(s) to come in
+        await Future.delayed(Duration(milliseconds: 200));
+        await subscription.cancel();
+        client2.close();
+        expect(receivedEvents, 1);
+
+        // Note: the ID just happens to be the same as the box was unused
+        expect(box2.get(2)!.value, 100);
       });
 
       test('SyncClient listeners: changes', () async {
