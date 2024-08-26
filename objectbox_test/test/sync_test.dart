@@ -32,6 +32,10 @@ void main() {
     env2.closeAndDelete();
   });
 
+  waitUntilLoggedIn(SyncClient client) {
+    expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+  }
+
   // lambda to easily create clients in the test below
   SyncClient createClient(Store s) =>
       Sync.client(s, 'ws://127.0.0.1:$serverPort', SyncCredentials.none());
@@ -40,7 +44,7 @@ void main() {
   SyncClient loggedInClient(Store s) {
     final client = createClient(s);
     client.start();
-    expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+    waitUntilLoggedIn(client);
     return client;
   }
 
@@ -215,7 +219,7 @@ void main() {
         await server.online();
         client.start();
 
-        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        waitUntilLoggedIn(client);
         await yieldExecution();
         expect(events, equals([SyncConnectionEvent.connected]));
         expect(events2, equals([SyncConnectionEvent.connected]));
@@ -237,7 +241,7 @@ void main() {
         await server.start(keepDb: true);
         await server.online();
 
-        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        waitUntilLoggedIn(client);
         await yieldExecution();
 
         expect(
@@ -270,7 +274,7 @@ void main() {
 
         client.setCredentials(SyncCredentials.none());
 
-        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        waitUntilLoggedIn(client);
         await yieldExecution();
         expect(
             events,
