@@ -287,6 +287,9 @@ void main() {
       test('SyncClient listeners: completion', () async {
         await server.online();
         final client = loggedInClient(store);
+        addTearDown(() {
+          client.close();
+        });
         final box = env.store.box<TestEntitySynced>();
         final box2 = env2.store.box<TestEntitySynced>();
         expect(box.isEmpty(), isTrue);
@@ -298,9 +301,11 @@ void main() {
         // Note: wait for the client to finish sending to the server.
         // There's currently no other way to recognize this.
         sleep(const Duration(milliseconds: 100));
-        client.close();
 
         final client2 = createClient(env2.store);
+        addTearDown(() {
+          client2.close();
+        });
         var receivedEvents = 0;
         final subscription =
             client2.completionEvents.listen((event) => receivedEvents++);
@@ -310,12 +315,16 @@ void main() {
 
         // Yield and wait for event(s) to come in
         await Future.delayed(Duration(milliseconds: 200));
-        await subscription.cancel();
-        client2.close();
         expect(receivedEvents, 1);
-
         // Note: the ID just happens to be the same as the box was unused
         expect(box2.get(2)!.value, 100);
+
+        // Do another change
+        box.put(TestEntitySynced(value: 200));
+        // Yield and wait for event(s) to come in
+        await Future.delayed(Duration(milliseconds: 200));
+        await subscription.cancel();
+        expect(receivedEvents, 2);
       });
 
       test('SyncClient listeners: changes', () async {
