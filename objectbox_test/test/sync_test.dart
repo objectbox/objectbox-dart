@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -306,14 +307,21 @@ void main() {
         addTearDown(() {
           client2.close();
         });
+        final Completer firstEvent = Completer();
         var receivedEvents = 0;
-        final subscription =
-            client2.completionEvents.listen((event) => receivedEvents++);
+        final subscription = client2.completionEvents.listen((event) {
+          if (!firstEvent.isCompleted) {
+            firstEvent.complete();
+          }
+          receivedEvents++;
+        });
 
         client2.start();
         waitUntilLoggedIn(client2);
 
-        // Yield and wait for event(s) to come in
+        // Yield and wait for the first event...
+        await firstEvent.future.timeout(defaultTimeout);
+        // ...and some more on any additional events (should be none)
         await Future.delayed(Duration(milliseconds: 200));
         expect(receivedEvents, 1);
         // Note: the ID just happens to be the same as the box was unused
