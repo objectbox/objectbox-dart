@@ -450,9 +450,13 @@ class SyncServer {
             await httpClient.get('127.0.0.1', _port!, '');
             break;
           } on SocketException catch (e) {
-            // only retry if "connection refused"
-            if (e.osError!.errorCode != 111) rethrow;
-            await Future<void>.delayed(const Duration(milliseconds: 1));
+            // Only retry if "Connection refused" (not using error codes as they
+            // differ by platform).
+            if (e.osError!.message.contains('Connection refused')) {
+              await Future<void>.delayed(const Duration(milliseconds: 1));
+            } else {
+              rethrow;
+            }
           }
         }
         httpClient.close(force: true);
