@@ -1,8 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:objectbox/objectbox.dart';
 
-import 'objectbox.g.dart';
-
 @Entity() // Signals ObjectBox to create a Box for this class.
 class Tag {
   // Every @Entity requires an int property named 'id'

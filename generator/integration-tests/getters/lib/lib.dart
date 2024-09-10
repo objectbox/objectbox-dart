@@ -1,7 +1,5 @@
 import 'package:objectbox/objectbox.dart';
 
-import 'objectbox.g.dart';
-
 /// Test annotations on getters are applied to properties when using
 /// getter + setter combos to create synthetic fields.
 @Entity()

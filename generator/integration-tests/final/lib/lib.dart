@@ -2,8 +2,6 @@ import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 
-import 'objectbox.g.dart';
-
 // Test all final fields; Id must be self-assigned.
 @Entity()
 class A {

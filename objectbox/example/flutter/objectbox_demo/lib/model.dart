@@ -1,8 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:objectbox/objectbox.dart';
 
-import 'objectbox.g.dart';
-
 // ignore_for_file: public_member_api_docs
 
 @Entity()
