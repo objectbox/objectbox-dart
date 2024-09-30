@@ -104,7 +104,7 @@ jobs:
           flutter-version: ${{ matrix.flutter-version }}
           cache: true
       # windows-2022 defaults to Java 8, but Android Plugin requires at least 11.
-      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+      - uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4.4.0
         with:
           distribution: 'temurin'
           java-version: '17'
