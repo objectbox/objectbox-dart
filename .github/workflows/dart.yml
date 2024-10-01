@@ -47,7 +47,7 @@ jobs:
       matrix:
         os:
           - windows-2022
-          - macos-13
+          - macos-14
           - ubuntu-24.04
         sdk:
           # Always include lowest supported version (see sdk key in objectbox and generator
@@ -87,7 +87,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-13
+          - macos-14
           - ubuntu-24.04
           - windows-2022 # Flutter 2.9 and newer need Visual Studio 2022 to build desktop.
         flutter-version:
