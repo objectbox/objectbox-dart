@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   generator:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
       # Prefer running on Ubuntu over Dart Docker image
@@ -32,7 +32,7 @@ jobs:
 
   # make sure the init script doesn't stop working - it's not something we usually run during normal development
   init-script:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1 # v2.16.0
@@ -48,7 +48,7 @@ jobs:
         os:
           - windows-2022
           - macos-13
-          - ubuntu-22.04
+          - ubuntu-24.04
         sdk:
           # Always include lowest supported version (see sdk key in objectbox and generator
           # pubspec.yaml, but may be higher due to dependencies).
@@ -88,7 +88,7 @@ jobs:
       matrix:
         os:
           - macos-13
-          - ubuntu-22.04
+          - ubuntu-24.04
           - windows-2022 # Flutter 2.9 and newer need Visual Studio 2022 to build desktop.
         flutter-version:
           # Include lowest working version (use lowest tested Dart SDK as a guideline, see lib tests
