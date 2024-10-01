@@ -26,7 +26,7 @@ jobs:
         with:
           sdk: 3.5.2
       - name: Install ObjectBox C library
-        run: ./install.sh
+        run: ./install.sh --install # Install globally for generator integration tests
       - name: Integration test
         run: ./generator/test.sh
 
