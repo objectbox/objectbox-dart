@@ -60,7 +60,7 @@ jobs:
       matrix:
         os:
           - windows-2022
-          - macos-13
+          - macos-14
           - ubuntu-24.04
         sdk:
           # Test latest available and lowest supported SDK (see dev-doc/updating-dart-flutter-and-dependencies.md).
@@ -102,7 +102,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-13
+          - macos-14
           - ubuntu-24.04
           - windows-2022 # Flutter 2.9 and newer need Visual Studio 2022 to build for desktop
         flutter-version:
