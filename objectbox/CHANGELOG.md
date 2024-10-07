@@ -1,5 +1,7 @@
 ## latest
 
+* Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)
+
 ## 4.0.2 (2024-08-14)
 
 * Sync: support option to enable [shared global IDs](https://sync.objectbox.io/advanced/object-ids#shared-global-ids).
