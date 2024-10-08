@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
 import 'package:http/http.dart' as http;
+import 'package:pointycastle/api.dart';
+import 'package:pointycastle/macs/poly1305.dart';
+import 'package:pointycastle/stream/chacha20poly1305.dart';
+import 'package:pointycastle/stream/chacha7539.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
 import '../version.dart';
@@ -130,7 +134,7 @@ class ObjectBoxAnalysis {
         if (await file.exists()) {
           final lines = await file.readAsLines();
           if (lines.length >= 2) {
-            return decryptToken(lines[0], lines[1]);
+            return decryptAndVerifyToken(lines[0], lines[1]);
           }
         }
       } catch (e) {
@@ -140,23 +144,46 @@ class ObjectBoxAnalysis {
     return null;
   }
 
-  /// Takes a Base64 encoded secret key and secret text (which is a [SecretBox]
-  /// concatenation) and returns the decrypted text.
-  Future<String> decryptToken(
-      String secretKeyBase64, String secretTextBase64) async {
-    final algorithm = Chacha20.poly1305Aead();
-    var secretKeyBytes = base64Decode(secretKeyBase64);
-    final secretKey = SecretKeyData(secretKeyBytes);
+  /// Takes a Base64 encoded key and concatenation of nonce, encrypted token and
+  /// MAC and returns the decrypted token.
+  String decryptAndVerifyToken(
+      String keyBase64, String nonceEncryptedTokenAndMacBase64) {
+    final key = base64Decode(keyBase64);
+    // Create copies of nonce and encrypted text with MAC to operate on
+    final nonceEncryptedAndMac = base64Decode(nonceEncryptedTokenAndMacBase64);
+    final nonce = Uint8List.fromList(Uint8List.view(
+      nonceEncryptedAndMac.buffer,
+      nonceEncryptedAndMac.offsetInBytes,
+      ObfuscatedToken.nonceLengthBytes,
+    ));
+    final encryptedAndMac = Uint8List.fromList(Uint8List.view(
+        nonceEncryptedAndMac.buffer,
+        nonceEncryptedAndMac.offsetInBytes + ObfuscatedToken.nonceLengthBytes,
+        nonceEncryptedAndMac.length - ObfuscatedToken.nonceLengthBytes));
 
-    final secretBox = SecretBox.fromConcatenation(
-        base64Decode(secretTextBase64),
-        nonceLength: algorithm.nonceLength,
-        macLength: algorithm.macAlgorithm.macLength);
+    final algorithm = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305());
+    var params = AEADParameters(
+        KeyParameter(key), ObfuscatedToken.macLengthBits, nonce, Uint8List(0));
+    algorithm.init(false /* decrypt */, params);
 
-    final clearText = await algorithm.decrypt(secretBox, secretKey: secretKey);
+    final decrypted =
+        Uint8List(algorithm.getOutputSize(encryptedAndMac.length));
+    final outLen = algorithm.processBytes(
+        encryptedAndMac, 0, encryptedAndMac.length, decrypted, 0);
+    algorithm.doFinal(decrypted, outLen);
 
-    return utf8.decode(clearText);
+    return utf8.decode(decrypted);
   }
+}
+
+class ObfuscatedToken {
+  static const int nonceLengthBytes = 12;
+  static const int macLengthBits = 16 * 8 /* 16 bytes */;
+
+  final String dataBase64;
+  final String keyBase64;
+
+  ObfuscatedToken(this.dataBase64, this.keyBase64);
 }
 
 /// Wrapper for data to be sent for analysis. Use [toJson] to return a
