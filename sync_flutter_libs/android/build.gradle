@@ -2,7 +2,7 @@ group 'io.objectbox.objectbox_sync_flutter_libs'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.7.0'
     repositories {
         google()
         mavenCentral()
