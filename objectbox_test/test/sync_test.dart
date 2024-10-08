@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -32,6 +33,10 @@ void main() {
     env2.closeAndDelete();
   });
 
+  waitUntilLoggedIn(SyncClient client) {
+    expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+  }
+
   // lambda to easily create clients in the test below
   SyncClient createClient(Store s) =>
       Sync.client(s, 'ws://127.0.0.1:$serverPort', SyncCredentials.none());
@@ -40,7 +45,7 @@ void main() {
   SyncClient loggedInClient(Store s) {
     final client = createClient(s);
     client.start();
-    expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+    waitUntilLoggedIn(client);
     return client;
   }
 
@@ -215,7 +220,7 @@ void main() {
         await server.online();
         client.start();
 
-        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        waitUntilLoggedIn(client);
         await yieldExecution();
         expect(events, equals([SyncConnectionEvent.connected]));
         expect(events2, equals([SyncConnectionEvent.connected]));
@@ -237,7 +242,7 @@ void main() {
         await server.start(keepDb: true);
         await server.online();
 
-        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        waitUntilLoggedIn(client);
         await yieldExecution();
 
         expect(
@@ -270,7 +275,7 @@ void main() {
 
         client.setCredentials(SyncCredentials.none());
 
-        expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
+        waitUntilLoggedIn(client);
         await yieldExecution();
         expect(
             events,
@@ -283,21 +288,51 @@ void main() {
       test('SyncClient listeners: completion', () async {
         await server.online();
         final client = loggedInClient(store);
+        addTearDown(() {
+          client.close();
+        });
         final box = env.store.box<TestEntitySynced>();
         final box2 = env2.store.box<TestEntitySynced>();
         expect(box.isEmpty(), isTrue);
-        int id = box.put(TestEntitySynced(value: 100));
+        // Do multiple changes to verify only a single completion event is sent
+        // after all changes are received.
+        box.put(TestEntitySynced(value: 1));
+        box.put(TestEntitySynced(value: 100));
 
         // Note: wait for the client to finish sending to the server.
         // There's currently no other way to recognize this.
         sleep(const Duration(milliseconds: 100));
-        client.close();
 
-        final client2 = loggedInClient(env2.store);
-        await client2.completionEvents.first.timeout(defaultTimeout);
-        client2.close();
+        final client2 = createClient(env2.store);
+        addTearDown(() {
+          client2.close();
+        });
+        final Completer firstEvent = Completer();
+        var receivedEvents = 0;
+        final subscription = client2.completionEvents.listen((event) {
+          if (!firstEvent.isCompleted) {
+            firstEvent.complete();
+          }
+          receivedEvents++;
+        });
 
-        expect(box2.get(id)!.value, 100);
+        client2.start();
+        waitUntilLoggedIn(client2);
+
+        // Yield and wait for the first event...
+        await firstEvent.future.timeout(defaultTimeout);
+        // ...and some more on any additional events (should be none)
+        await Future.delayed(Duration(milliseconds: 200));
+        expect(receivedEvents, 1);
+        // Note: the ID just happens to be the same as the box was unused
+        expect(box2.get(2)!.value, 100);
+
+        // Do another change
+        box.put(TestEntitySynced(value: 200));
+        // Yield and wait for event(s) to come in
+        await Future.delayed(Duration(milliseconds: 200));
+        await subscription.cancel();
+        expect(receivedEvents, 2);
       });
 
       test('SyncClient listeners: changes', () async {
@@ -415,9 +450,13 @@ class SyncServer {
             await httpClient.get('127.0.0.1', _port!, '');
             break;
           } on SocketException catch (e) {
-            // only retry if "connection refused"
-            if (e.osError!.errorCode != 111) rethrow;
-            await Future<void>.delayed(const Duration(milliseconds: 1));
+            // Only retry if "Connection refused" (not using error codes as they
+            // differ by platform).
+            if (e.osError!.message.contains('Connection refused')) {
+              await Future<void>.delayed(const Duration(milliseconds: 1));
+            } else {
+              rethrow;
+            }
           }
         }
         httpClient.close(force: true);

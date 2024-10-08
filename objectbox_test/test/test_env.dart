@@ -111,10 +111,10 @@ bool waitUntil(bool Function() predicate, {Duration timeout = defaultTimeout}) {
 /// same as package:test unorderedEquals() but statically typed
 Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 
-// Yield execution to other isolates.
-//
-// We need to do this to receive an event in the stream before processing
-// the remainder of the test case.
+/// Yield execution to other isolates.
+///
+/// Do this to receive an event in the stream before processing
+/// the remainder of the test case.
 Future<void> yieldExecution() async =>
     await Future<void>.delayed(Duration.zero);
 
