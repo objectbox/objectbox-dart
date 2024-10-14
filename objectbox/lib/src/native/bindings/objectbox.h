@@ -53,7 +53,7 @@ extern "C" {
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 4
 #define OBX_VERSION_MINOR 0
-#define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
+#define OBX_VERSION_PATCH 1  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
 // Common types
@@ -79,12 +79,18 @@ typedef struct OBX_id_score {
 /// Error/success code returned by an obx_* function; see defines OBX_SUCCESS, OBX_NOT_FOUND, and OBX_ERROR_*
 typedef int obx_err;
 
-/// The callback for reading data one-by-one
+/// The callback for reading data (i.e. object bytes) one-by-one.
 /// @param data is the read data buffer
 /// @param size specifies the length of the read data
 /// @param user_data is a pass-through argument passed to the called API
-/// @return true to keep going, false to cancel.
+/// @return The visitor returns true to keep going or false to cancel.
 typedef bool obx_data_visitor(const uint8_t* data, size_t size, void* user_data);
+
+/// The callback for reading data (i.e. object bytes) with a search score one-by-one.
+/// @param data contains the current data with score element
+/// @param user_data is a pass-through argument passed to the called API
+/// @return The visitor returns true to keep going or false to cancel.
+typedef bool obx_data_score_visitor(const struct OBX_bytes_score* data, void* user_data);
 
 //----------------------------------------------
 // Runtime library information
@@ -805,6 +811,15 @@ typedef enum {
     OBXBackupFlags_ExcludeSalt = 0x2,
 } OBXBackupFlags;
 
+/// WAL flags control how the store handles WAL files.
+typedef enum {
+    /// Enable Wal
+    OBXWalFlags_EnableWal = 0x1,
+
+    /// Does not wait for the disk to acknowledge; faster but not ACID compliant (not generally recommended).
+    OBXWalFlags_NoSyncFile = 0x2,
+} OBXWalFlags;
+
 /// This bytes struct is an input/output wrapper used for a single data object (represented as FlatBuffers).
 typedef struct OBX_bytes {
     const uint8_t* data;
@@ -1087,6 +1102,23 @@ typedef enum {
 ///        e.g., to overwrite all existing data in the database.
 OBX_C_API void obx_opt_backup_restore(OBX_store_options* opt, const char* backup_file, uint32_t flags);
 
+/// Enables Write-ahead logging (WAL) if OBXWalFlags_EnableWal is given.
+/// For now this is only supported for in-memory DBs.
+/// @param flags OBXWalFlags_EnableWal with optional other flags (bitwise OR).
+OBX_C_API void obx_opt_wal(OBX_store_options* opt, uint32_t flags);
+
+/// The WAL file gets consolidated when it reached this size limit when opening the database.
+/// This setting is meant for applications that prefer to consolidate on startup,
+/// which may avoid consolidations on commits while the application is running.
+/// The default is 4096 (4 MB).
+OBX_C_API void obx_opt_wal_max_file_size_on_open_in_kb(OBX_store_options* opt, uint64_t size_in_kb);
+
+/// The WAL file gets consolidated when it reaches this size limit after a commit.
+/// As consolidation takes some time, it is a trade-off between accumulating enough data
+/// and the time the consolidation takes (longer with more data).
+/// The default is 16384 (16 MB).
+OBX_C_API void obx_opt_wal_max_file_size_in_kb(OBX_store_options* opt, uint64_t size_in_kb);
+
 /// Gets the option for "directory"; this is either the default, or, the value set by obx_opt_directory().
 /// The returned value must not be modified and is only valid for the lifetime of the options or until the value is
 /// changed.
@@ -1235,7 +1267,10 @@ typedef enum {
     OBXStoreTypeId_LMDB = 1,
 
     /// Store type ID for in-memory database (non-persistent)
-    OBXStoreTypeId_InMemory = 2
+    OBXStoreTypeId_InMemory = 2,
+
+    /// Store type ID for in-memory WAL-enabled (persistent)
+    OBXStoreTypeId_InMemoryWal = 3
 
 } OBXStoreTypeId;
 
@@ -2053,9 +2088,13 @@ OBX_C_API obx_err obx_query_find_first(OBX_query* query, const uint8_t** data, s
 ///            operation (e.g. put/remove) was executed. Accessing data after this is undefined behavior.
 OBX_C_API obx_err obx_query_find_unique(OBX_query* query, const uint8_t** data, size_t* size);
 
-/// Walk over matching objects using the given data visitor.
+/// Walk over matching objects one-by-one using the given data visitor (a callback function).
 /// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
 OBX_C_API obx_err obx_query_visit(OBX_query* query, obx_data_visitor* visitor, void* user_data);
+
+/// Walk over matching objects with their query score one-by-one using the given data visitor (a callback function).
+/// Note: the elements are ordered by the score (ascending).
+OBX_C_API obx_err obx_query_visit_with_score(OBX_query* query, obx_data_score_visitor* visitor, void* user_data);
 
 /// Return the IDs of all matching objects.
 /// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
@@ -2491,6 +2530,29 @@ OBX_C_API obx_id obx_tree_leaves_info_id(OBX_tree_leaves_info* leaves_info, size
 
 /// Frees a leaves info reference.
 OBX_C_API void obx_tree_leaves_info_free(OBX_tree_leaves_info* leaves_info);
+
+/// Callback for obx_tree_async_get_raw().
+/// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
+/// during this callback (error state is thread bound and the callback uses an internal thread).
+/// @param status The result status of the async operation
+/// @param id If the operation was successful, the ID of the leaf, which was get (otherwise zero).
+/// @param path The leafs path as string.
+/// @param leaf_data The leafs data flatbuffer pointer.
+/// @param leaf_data_size The leafs data flatbuffer size.
+/// @param leaf_metadata The leafs metadata flatbuffer pointer.
+/// @param leaf_metadata_size The leafs meatdata flatbuffer size.
+/// @param user_data The data initially passed to the async function call is passed back.
+typedef void obx_tree_async_get_callback(obx_err status, obx_id id, const char* path, const uint8_t* leaf_data,
+                                         size_t leaf_data_size, const uint8_t* leaf_metadata, size_t leaf_metadata_size,
+                                         void* user_data);
+
+/// Like obx_tree_cursor_get_raw(), but asynchronous.
+/// @param with_metadata Flag if the callback also wants to receive the metadata (also as raw FlatBuffers).
+/// @param callback Optional (may be null) function that is called with results once the async operation completes.
+/// @param callback_user_data Any value you can supply, which is passed on to the callback (e.g. to identify user
+///        specific context).
+OBX_C_API obx_err obx_tree_async_get_raw(OBX_tree* tree, const char* path, bool with_metadata,
+                                         obx_tree_async_get_callback* callback, void* callback_user_data);
 
 /// Callback for obx_tree_async_put_raw().
 /// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
