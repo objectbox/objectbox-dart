@@ -1182,20 +1182,24 @@ class Query<T> implements Finalizable {
   ///
   /// This only works on objects with a property with an [HnswIndex].
   List<ObjectWithScore<T>> findWithScores() {
-    final resultPtr = checkObxPtr(C.query_find_with_scores(_ptr));
-    try {
-      final items = resultPtr.ref.bytes_scores;
-      final count = resultPtr.ref.count;
-      return List.generate(count, (i) {
-        // items[i] only available with Dart 3.3
-        final item = items.elementAt(i).ref;
+    final result = <ObjectWithScore<T>>[];
+    final errorWrapper = ObjectVisitorError();
+    visitCallback(Pointer<OBX_bytes_score> data) {
+      try {
+        final item = data.ref;
         final object = _entity.objectFromData(_store, item.data, item.size);
         final score = item.score;
-        return ObjectWithScore(object, score);
-      }, growable: false);
-    } finally {
-      C.bytes_score_array_free(resultPtr);
+        result.add(ObjectWithScore(object, score));
+        return true;
+      } catch (e) {
+        errorWrapper.error = e;
+        return false;
+      }
     }
+
+    visitWithScore(_ptr, visitCallback);
+    errorWrapper.throwIfError();
+    return result;
   }
 
   /// Like [findWithScores], but runs the query operation asynchronously in a

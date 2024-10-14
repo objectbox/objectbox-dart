@@ -3,8 +3,11 @@ import 'dart:ffi';
 import 'bindings.dart';
 import 'helpers.dart';
 
-/// Callback for reading data one-by-one, see [visit].
+/// Callback for reading query results one-by-one, see [visit].
 typedef VisitCallback = bool Function(Pointer<Uint8> data, int size);
+
+/// Callback for reading query results one-by-one, see [visitWithScore].
+typedef VisitWithScoreCallback = bool Function(Pointer<OBX_bytes_score> data);
 
 /// Currently FFI's Pointer.fromFunction only allows to pass a static Dart
 /// callback function. When passing a closure it would throw at runtime:
@@ -18,31 +21,68 @@ typedef VisitCallback = bool Function(Pointer<Uint8> data, int size);
 ///   and visits its results (e.g. query run in entity constructor or setter) and
 /// - Dart code within an isolate is executed synchronously:
 ///
-/// Create a single static callback function [_callbackWrapper] that wraps
+/// Create a single static callback function [_visitCallbackWrapper] that wraps
 /// the actual Dart callback of the query currently visiting results.
-/// Keep callbacks on a [_callbackStack] to restore the callback of an outer
+/// Keep callbacks on a [_visitCallbackStack] to restore the callback of an outer
 /// query once a nested query is finished visiting results.
-List<VisitCallback> _callbackStack = [];
+List<VisitCallback> _visitCallbackStack = [];
 
-bool _callbackWrapper(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
-    _callbackStack.last(dataPtr, size);
+/// Like [_visitCallbackStack], but for [VisitWithScoreCallback].
+List<VisitWithScoreCallback> _visitWithScoreCallbackStack = [];
 
-final Pointer<obx_data_visitor> _callbackWrapperPtr =
-    Pointer.fromFunction(_callbackWrapper, false);
+bool _visitCallbackWrapper(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
+    _visitCallbackStack.last(dataPtr, size);
 
-/// Visits query results.
+bool _visitWithScoreCallbackWrapper(
+        Pointer<OBX_bytes_score> dataPtr, Pointer<Void> _) =>
+    _visitWithScoreCallbackStack.last(dataPtr);
+
+final Pointer<obx_data_visitor> _visitCallbackWrapperPtr =
+    Pointer.fromFunction(_visitCallbackWrapper, false);
+
+final Pointer<obx_data_score_visitor> _visitWithScoreCallbackWrapperPtr =
+    Pointer.fromFunction(_visitWithScoreCallbackWrapper, false);
+
+/// Visits query results to read results one by one (in chunks).
 ///
-/// Pass a [callback] for reading data one-by-one:
+/// This is useful to support large objects in 32-bit mode.
+///
+/// Pass a [callback] for reading data one by one:
 /// - [data] is the read data buffer.
 /// - [size] specifies the length of the read data.
 /// - Return true to keep going, false to cancel.
+///
+/// Use [ObjectVisitorError] to get an error out of the callback.
 @pragma('vm:prefer-inline')
 void visit(Pointer<OBX_query> queryPtr, VisitCallback callback) {
   // Keep callback in case another query is created and visits results
   // within the callback.
-  _callbackStack.add(callback);
-  final code = C.query_visit(queryPtr, _callbackWrapperPtr, nullptr);
-  _callbackStack.removeLast();
+  _visitCallbackStack.add(callback);
+  final code = C.query_visit(queryPtr, _visitCallbackWrapperPtr, nullptr);
+  _visitCallbackStack.removeLast();
+  // Clean callback from stack before potentially throwing.
+  checkObx(code);
+}
+
+/// Visits query with score results to read results one by one (in chunks).
+///
+/// This is useful to support large objects in 32-bit mode.
+///
+/// Pass a [callback] for reading data one by one.
+/// - [data] is a [OBX_bytes_score] that iself contains data of the object and
+/// the length of the data.
+/// - Return true to keep going, false to cancel.
+///
+/// Use [ObjectVisitorError] to get an error out of the callback.
+@pragma('vm:prefer-inline')
+void visitWithScore(
+    Pointer<OBX_query> queryPtr, VisitWithScoreCallback callback) {
+  // Keep callback in case another query is created and visits results
+  // within the callback.
+  _visitWithScoreCallbackStack.add(callback);
+  final code = C.query_visit_with_score(
+      queryPtr, _visitWithScoreCallbackWrapperPtr, nullptr);
+  _visitWithScoreCallbackStack.removeLast();
   // Clean callback from stack before potentially throwing.
   checkObx(code);
 }
