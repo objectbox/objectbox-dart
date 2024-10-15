@@ -1538,6 +1538,69 @@ class ObjectBoxC {
       void Function(
           ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Char>, int)>();
 
+  /// Enables Write-ahead logging (WAL) if OBXWalFlags_EnableWal is given.
+  /// For now this is only supported for in-memory DBs.
+  /// @param flags OBXWalFlags_EnableWal with optional other flags (bitwise OR).
+  void opt_wal(
+    ffi.Pointer<OBX_store_options> opt,
+    int flags,
+  ) {
+    return _opt_wal(
+      opt,
+      flags,
+    );
+  }
+
+  late final _opt_walPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<OBX_store_options>, ffi.Uint32)>>('obx_opt_wal');
+  late final _opt_wal = _opt_walPtr
+      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
+
+  /// The WAL file gets consolidated when it reached this size limit when opening the database.
+  /// This setting is meant for applications that prefer to consolidate on startup,
+  /// which may avoid consolidations on commits while the application is running.
+  /// The default is 4096 (4 MB).
+  void opt_wal_max_file_size_on_open_in_kb(
+    ffi.Pointer<OBX_store_options> opt,
+    int size_in_kb,
+  ) {
+    return _opt_wal_max_file_size_on_open_in_kb(
+      opt,
+      size_in_kb,
+    );
+  }
+
+  late final _opt_wal_max_file_size_on_open_in_kbPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>,
+              ffi.Uint64)>>('obx_opt_wal_max_file_size_on_open_in_kb');
+  late final _opt_wal_max_file_size_on_open_in_kb =
+      _opt_wal_max_file_size_on_open_in_kbPtr
+          .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
+
+  /// The WAL file gets consolidated when it reaches this size limit after a commit.
+  /// As consolidation takes some time, it is a trade-off between accumulating enough data
+  /// and the time the consolidation takes (longer with more data).
+  /// The default is 16384 (16 MB).
+  void opt_wal_max_file_size_in_kb(
+    ffi.Pointer<OBX_store_options> opt,
+    int size_in_kb,
+  ) {
+    return _opt_wal_max_file_size_in_kb(
+      opt,
+      size_in_kb,
+    );
+  }
+
+  late final _opt_wal_max_file_size_in_kbPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<OBX_store_options>,
+              ffi.Uint64)>>('obx_opt_wal_max_file_size_in_kb');
+  late final _opt_wal_max_file_size_in_kb = _opt_wal_max_file_size_in_kbPtr
+      .asFunction<void Function(ffi.Pointer<OBX_store_options>, int)>();
+
   /// Gets the option for "directory"; this is either the default, or, the value set by obx_opt_directory().
   /// The returned value must not be modified and is only valid for the lifetime of the options or until the value is
   /// changed.
@@ -5263,7 +5326,7 @@ class ObjectBoxC {
       int Function(ffi.Pointer<OBX_query>, ffi.Pointer<ffi.Pointer<ffi.Uint8>>,
           ffi.Pointer<ffi.Size>)>();
 
-  /// Walk over matching objects using the given data visitor.
+  /// Walk over matching objects one-by-one using the given data visitor (a callback function).
   /// Note: if no order conditions is present, the order is arbitrary (sometimes ordered by ID, but never guaranteed to).
   int query_visit(
     ffi.Pointer<OBX_query> query,
@@ -5285,6 +5348,30 @@ class ObjectBoxC {
               ffi.Pointer<ffi.Void>)>>('obx_query_visit');
   late final _query_visit = _query_visitPtr.asFunction<
       int Function(ffi.Pointer<OBX_query>, ffi.Pointer<obx_data_visitor>,
+          ffi.Pointer<ffi.Void>)>();
+
+  /// Walk over matching objects with their query score one-by-one using the given data visitor (a callback function).
+  /// Note: the elements are ordered by the score (ascending).
+  int query_visit_with_score(
+    ffi.Pointer<OBX_query> query,
+    ffi.Pointer<obx_data_score_visitor> visitor,
+    ffi.Pointer<ffi.Void> user_data,
+  ) {
+    return _query_visit_with_score(
+      query,
+      visitor,
+      user_data,
+    );
+  }
+
+  late final _query_visit_with_scorePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_query>,
+              ffi.Pointer<obx_data_score_visitor>,
+              ffi.Pointer<ffi.Void>)>>('obx_query_visit_with_score');
+  late final _query_visit_with_score = _query_visit_with_scorePtr.asFunction<
+      int Function(ffi.Pointer<OBX_query>, ffi.Pointer<obx_data_score_visitor>,
           ffi.Pointer<ffi.Void>)>();
 
   /// Return the IDs of all matching objects.
@@ -7006,6 +7093,39 @@ class ObjectBoxC {
               ffi.Pointer<OBX_tree_leaves_info>)>>('obx_tree_leaves_info_free');
   late final _tree_leaves_info_free = _tree_leaves_info_freePtr
       .asFunction<void Function(ffi.Pointer<OBX_tree_leaves_info>)>();
+
+  /// Like obx_tree_cursor_get_raw(), but asynchronous.
+  /// @param with_metadata Flag if the callback also wants to receive the metadata (also as raw FlatBuffers).
+  /// @param callback Optional (may be null) function that is called with results once the async operation completes.
+  /// @param callback_user_data Any value you can supply, which is passed on to the callback (e.g. to identify user
+  /// specific context).
+  int tree_async_get_raw(
+    ffi.Pointer<OBX_tree> tree,
+    ffi.Pointer<ffi.Char> path,
+    bool with_metadata,
+    ffi.Pointer<obx_tree_async_get_callback> callback,
+    ffi.Pointer<ffi.Void> callback_user_data,
+  ) {
+    return _tree_async_get_raw(
+      tree,
+      path,
+      with_metadata,
+      callback,
+      callback_user_data,
+    );
+  }
+
+  late final _tree_async_get_rawPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_tree>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool,
+              ffi.Pointer<obx_tree_async_get_callback>,
+              ffi.Pointer<ffi.Void>)>>('obx_tree_async_get_raw');
+  late final _tree_async_get_raw = _tree_async_get_rawPtr.asFunction<
+      int Function(ffi.Pointer<OBX_tree>, ffi.Pointer<ffi.Char>, bool,
+          ffi.Pointer<obx_tree_async_get_callback>, ffi.Pointer<ffi.Void>)>();
 
   /// Like obx_tree_cursor_put_raw(), but asynchronous.
   /// @param callback Optional (may be null) function that is called with results once the async operation completes.
@@ -9457,6 +9577,20 @@ class OBX_id_score extends ffi.Struct {
 /// ID of a single Object stored in the database
 typedef obx_id = ffi.Uint64;
 
+/// This bytes score struct is an input/output wrapper used for a single data object (represented as FlatBuffers)
+/// with its associated query score, which is used for special query results.
+class OBX_bytes_score extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> data;
+
+  @ffi.Size()
+  external int size;
+
+  /// The query score indicates some quality measurement.
+  /// E.g. for vector nearest neighbor searches, the score is the distance to the given vector.
+  @ffi.Double()
+  external double score;
+}
+
 abstract class OBXFeature {
   /// Functions that are returning multiple results (e.g. multiple objects) can be only used if this is available.
   /// This is only available for 64-bit OSes and is the opposite of "chunked mode", which forces to consume results
@@ -9811,6 +9945,15 @@ abstract class OBXBackupFlags {
   static const int ExcludeSalt = 2;
 }
 
+/// WAL flags control how the store handles WAL files.
+abstract class OBXWalFlags {
+  /// Enable Wal
+  static const int EnableWal = 1;
+
+  /// Does not wait for the disk to acknowledge; faster but not ACID compliant (not generally recommended).
+  static const int NoSyncFile = 2;
+}
+
 /// This bytes struct is an input/output wrapper used for a single data object (represented as FlatBuffers).
 class OBX_bytes extends ffi.Struct {
   external ffi.Pointer<ffi.Uint8> data;
@@ -9825,20 +9968,6 @@ class OBX_bytes_array extends ffi.Struct {
 
   @ffi.Size()
   external int count;
-}
-
-/// This bytes score struct is an input/output wrapper used for a single data object (represented as FlatBuffers)
-/// with its associated query score, which is used for special query results.
-class OBX_bytes_score extends ffi.Struct {
-  external ffi.Pointer<ffi.Uint8> data;
-
-  @ffi.Size()
-  external int size;
-
-  /// The query score indicates some quality measurement.
-  /// E.g. for vector nearest neighbor searches, the score is the distance to the given vector.
-  @ffi.Double()
-  external double score;
 }
 
 /// This bytes score array struct is an input/output wrapper pointing to multiple OBX_bytes_score instances.
@@ -9943,6 +10072,9 @@ abstract class OBXStoreTypeId {
 
   /// Store type ID for in-memory database (non-persistent)
   static const int InMemory = 2;
+
+  /// Store type ID for in-memory WAL-enabled (persistent)
+  static const int InMemoryWal = 3;
 }
 
 class OBX_txn extends ffi.Opaque {}
@@ -9962,11 +10094,11 @@ abstract class OBXPutMode {
 
 class OBX_box extends ffi.Opaque {}
 
-/// The callback for reading data one-by-one
+/// The callback for reading data (i.e. object bytes) one-by-one.
 /// @param data is the read data buffer
 /// @param size specifies the length of the read data
 /// @param user_data is a pass-through argument passed to the called API
-/// @return true to keep going, false to cancel.
+/// @return The visitor returns true to keep going or false to cancel.
 typedef obx_data_visitor = ffi.NativeFunction<
     ffi.Bool Function(ffi.Pointer<ffi.Uint8> data, ffi.Size size,
         ffi.Pointer<ffi.Void> user_data)>;
@@ -10007,6 +10139,14 @@ abstract class OBXOrderFlags {
 typedef obx_qb_cond = ffi.Int;
 
 class OBX_query extends ffi.Opaque {}
+
+/// The callback for reading data (i.e. object bytes) with a search score one-by-one.
+/// @param data contains the current data with score element
+/// @param user_data is a pass-through argument passed to the called API
+/// @return The visitor returns true to keep going or false to cancel.
+typedef obx_data_score_visitor = ffi.NativeFunction<
+    ffi.Bool Function(
+        ffi.Pointer<OBX_bytes_score> data, ffi.Pointer<ffi.Void> user_data)>;
 
 class OBX_query_prop extends ffi.Opaque {}
 
@@ -10058,6 +10198,28 @@ class OBX_tree extends ffi.Opaque {}
 class OBX_tree_cursor extends ffi.Opaque {}
 
 class OBX_tree_leaves_info extends ffi.Opaque {}
+
+/// Callback for obx_tree_async_get_raw().
+/// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
+/// during this callback (error state is thread bound and the callback uses an internal thread).
+/// @param status The result status of the async operation
+/// @param id If the operation was successful, the ID of the leaf, which was get (otherwise zero).
+/// @param path The leafs path as string.
+/// @param leaf_data The leafs data flatbuffer pointer.
+/// @param leaf_data_size The leafs data flatbuffer size.
+/// @param leaf_metadata The leafs metadata flatbuffer pointer.
+/// @param leaf_metadata_size The leafs meatdata flatbuffer size.
+/// @param user_data The data initially passed to the async function call is passed back.
+typedef obx_tree_async_get_callback = ffi.NativeFunction<
+    ffi.Void Function(
+        obx_err status,
+        obx_id id,
+        ffi.Pointer<ffi.Char> path,
+        ffi.Pointer<ffi.Uint8> leaf_data,
+        ffi.Size leaf_data_size,
+        ffi.Pointer<ffi.Uint8> leaf_metadata,
+        ffi.Size leaf_metadata_size,
+        ffi.Pointer<ffi.Void> user_data)>;
 
 /// Callback for obx_tree_async_put_raw().
 /// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
@@ -10632,7 +10794,7 @@ const int OBX_VERSION_MAJOR = 4;
 
 const int OBX_VERSION_MINOR = 0;
 
-const int OBX_VERSION_PATCH = 0;
+const int OBX_VERSION_PATCH = 1;
 
 const int OBX_ID_NEW = -1;
 
