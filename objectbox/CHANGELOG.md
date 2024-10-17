@@ -4,7 +4,7 @@
 * iOS: support `Query.findWithScores()` with big objects (> 4 KB), previously would throw a
   `StorageException: Do not use vector-based find on 32 bit systems with big objects`. [#676](https://github.com/objectbox/objectbox-dart/issues/676)
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.2](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.2).
-* Flutter for iOS/macOS: update to [objectbox-swift 4.0.0](https://github.com/objectbox/objectbox-swift/releases/tag/v4.0.0).
+* Flutter for iOS/macOS: update to [objectbox-swift 4.0.1](https://github.com/objectbox/objectbox-swift/releases/tag/v4.0.1).
   Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
 * Flutter for Android: update to [objectbox-android 4.0.2](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.2).
   If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
