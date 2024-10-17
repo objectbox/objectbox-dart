@@ -95,7 +95,7 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // Require the minimum C API version of all supported platform-specific
 // libraries.
 // Library | C API version | Core version
-// objectbox-c             | 4.0.1 | 4.0.1-2024-07-17
+// objectbox-c             | 4.0.2 | 4.0.2-2024-10-15
 // ObjectBox Swift 4.0.0   | 4.0.1 | 4.0.1-2024-07-17
 // objectbox-android 4.0.2 | 4.0.1 | 4.0.2-2024-08-19
 var _obxCminMajor = 4;

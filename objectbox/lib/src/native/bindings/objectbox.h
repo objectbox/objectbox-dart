@@ -53,7 +53,7 @@ extern "C" {
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 4
 #define OBX_VERSION_MINOR 0
-#define OBX_VERSION_PATCH 1  // values >= 100 are reserved for dev releases leading to the next minor/major increase
+#define OBX_VERSION_PATCH 2  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
 // Common types
@@ -85,6 +85,8 @@ typedef int obx_err;
 /// @param user_data is a pass-through argument passed to the called API
 /// @return The visitor returns true to keep going or false to cancel.
 typedef bool obx_data_visitor(const uint8_t* data, size_t size, void* user_data);
+
+struct OBX_bytes_score;  // Forward declaration for the obx_data_score_visitor typedef
 
 /// The callback for reading data (i.e. object bytes) with a search score one-by-one.
 /// @param data contains the current data with score element
@@ -164,6 +166,13 @@ typedef enum {
 
     /// Vector search functionality; enables indexing for nearest neighbor search.
     OBXFeature_VectorSearch = 14,
+
+    /// WAL (write-ahead logging).
+    OBXFeature_Wal = 15,
+
+    /// Sync connector to integrate MongoDB with SyncServer.
+    OBXFeature_SyncMongoDb = 16,
+
 
 } OBXFeature;
 

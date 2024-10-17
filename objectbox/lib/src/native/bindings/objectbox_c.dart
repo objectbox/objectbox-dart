@@ -8588,6 +8588,32 @@ class ObjectBoxC {
       ffi.Pointer<OBX_sync_server> Function(
           ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Char>)>();
 
+  /// Like obx_sync_server(), but retrieves its options for the Sync Server from the given FlatBuffers options.
+  /// @param flat_options FlatBuffers serialized options for the server (start of the bytes buffer, not the "table").
+  /// @param flat_options_size Size of the FlatBuffers serialized options.
+  ffi.Pointer<OBX_sync_server> sync_server_from_flat_options(
+    ffi.Pointer<OBX_store_options> store_options,
+    ffi.Pointer<ffi.Uint8> flat_options,
+    int flat_options_size,
+  ) {
+    return _sync_server_from_flat_options(
+      store_options,
+      flat_options,
+      flat_options_size,
+    );
+  }
+
+  late final _sync_server_from_flat_optionsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_sync_server> Function(
+              ffi.Pointer<OBX_store_options>,
+              ffi.Pointer<ffi.Uint8>,
+              ffi.Size)>>('obx_sync_server_from_flat_options');
+  late final _sync_server_from_flat_options =
+      _sync_server_from_flat_optionsPtr.asFunction<
+          ffi.Pointer<OBX_sync_server> Function(
+              ffi.Pointer<OBX_store_options>, ffi.Pointer<ffi.Uint8>, int)>();
+
   /// Stops and closes (deletes) the sync server, freeing its resources.
   /// This includes the store associated with the server; it gets closed and must not be used anymore after this call.
   int sync_server_close(
@@ -8732,6 +8758,63 @@ class ObjectBoxC {
   late final _sync_server_history_max_size_in_kb =
       _sync_server_history_max_size_in_kbPtr
           .asFunction<int Function(ffi.Pointer<OBX_sync_server>, int, int)>();
+
+  /// Configures the cluster ID for the given embedded server (the cluster feature must be enabled).
+  /// @param id A user defined string to identify the cluster (all cluster peer must share the same ID).
+  int sync_server_cluster_id(
+    ffi.Pointer<OBX_sync_server> server,
+    ffi.Pointer<ffi.Char> id,
+  ) {
+    return _sync_server_cluster_id(
+      server,
+      id,
+    );
+  }
+
+  late final _sync_server_cluster_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_server>,
+              ffi.Pointer<ffi.Char>)>>('obx_sync_server_cluster_id');
+  late final _sync_server_cluster_id = _sync_server_cluster_idPtr.asFunction<
+      int Function(ffi.Pointer<OBX_sync_server>, ffi.Pointer<ffi.Char>)>();
+
+  /// Adds a remote cluster peer that can be connected to using the given URL and credentials.
+  /// Call this method multiple times to add multiple peers (at least 2 times for a cluster of 3).
+  /// @param url URL to the remote cluster peer used to connect it.
+  /// @param flags For now, always pass 0.
+  /// @param credentials the credentials provided to the remote peer to login (it must match the remote's configuration).
+  /// May be NULL in combination with OBXSyncCredentialsType_NONE.
+  int sync_server_add_cluster_peer(
+    ffi.Pointer<OBX_sync_server> server,
+    ffi.Pointer<ffi.Char> url,
+    int credentials_type,
+    ffi.Pointer<ffi.Uint8> credentials,
+    int credentials_size,
+    int flags,
+  ) {
+    return _sync_server_add_cluster_peer(
+      server,
+      url,
+      credentials_type,
+      credentials,
+      credentials_size,
+      flags,
+    );
+  }
+
+  late final _sync_server_add_cluster_peerPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_sync_server>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int32,
+              ffi.Pointer<ffi.Uint8>,
+              ffi.Size,
+              ffi.Uint32)>>('obx_sync_server_add_cluster_peer');
+  late final _sync_server_add_cluster_peer =
+      _sync_server_add_cluster_peerPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync_server>, ffi.Pointer<ffi.Char>, int,
+              ffi.Pointer<ffi.Uint8>, int, int)>();
 
   /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
   /// @param listener set NULL to reset
@@ -9640,6 +9723,12 @@ abstract class OBXFeature {
 
   /// Vector search functionality; enables indexing for nearest neighbor search.
   static const int VectorSearch = 14;
+
+  /// WAL (write-ahead logging).
+  static const int Wal = 15;
+
+  /// Sync connector to integrate MongoDB with SyncServer.
+  static const int SyncMongoDb = 16;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -10240,7 +10329,7 @@ class OBX_admin extends ffi.Opaque {}
 class OBX_sync extends ffi.Opaque {}
 
 /// Specifies user-side credential types as well as server-side authenticator types.
-/// Some credentail types do not make sense as authenticators such as OBXSyncCredentialsType_USER_PASSWORD which
+/// Some credential types do not make sense as authenticators such as OBXSyncCredentialsType_USER_PASSWORD which
 /// specifies a generic client-side credential type.
 abstract class OBXSyncCredentialsType {
   static const int NONE = 1;
@@ -10794,7 +10883,7 @@ const int OBX_VERSION_MAJOR = 4;
 
 const int OBX_VERSION_MINOR = 0;
 
-const int OBX_VERSION_PATCH = 1;
+const int OBX_VERSION_PATCH = 2;
 
 const int OBX_ID_NEW = -1;
 

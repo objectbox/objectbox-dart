@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 ObjectBox Ltd. All rights reserved.
+ * Copyright 2018-2024 ObjectBox Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 4 && OBX_VERSION_MINOR == 0 && OBX_VERSION_PATCH == 1,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 4 && OBX_VERSION_MINOR == 0 && OBX_VERSION_PATCH == 2,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -52,7 +52,7 @@ struct OBX_sync;
 typedef struct OBX_sync OBX_sync;
 
 /// Specifies user-side credential types as well as server-side authenticator types.
-/// Some credentail types do not make sense as authenticators such as OBXSyncCredentialsType_USER_PASSWORD which
+/// Some credential types do not make sense as authenticators such as OBXSyncCredentialsType_USER_PASSWORD which
 /// specifies a generic client-side credential type.
 typedef enum {
     OBXSyncCredentialsType_NONE = 1,
@@ -444,6 +444,12 @@ typedef struct OBX_sync_server OBX_sync_server;
 /// @returns NULL if server could not be created (e.g. the store could not be opened, bad URL, etc.)
 OBX_C_API OBX_sync_server* obx_sync_server(OBX_store_options* store_options, const char* url);
 
+/// Like obx_sync_server(), but retrieves its options for the Sync Server from the given FlatBuffers options.
+/// @param flat_options FlatBuffers serialized options for the server (start of the bytes buffer, not the "table").
+/// @param flat_options_size Size of the FlatBuffers serialized options.
+OBX_C_API OBX_sync_server* obx_sync_server_from_flat_options(OBX_store_options* store_options, const uint8_t* flat_options,
+                                                             size_t flat_options_size);
+
 /// Stops and closes (deletes) the sync server, freeing its resources.
 /// This includes the store associated with the server; it gets closed and must not be used anymore after this call.
 OBX_C_API obx_err obx_sync_server_close(OBX_sync_server* server);
@@ -478,6 +484,20 @@ OBX_C_API obx_err obx_sync_server_worker_threads(OBX_sync_server* server, int th
 ///                     If zero, the deletion stops already stops when reaching the max size (or lower).
 OBX_C_API obx_err obx_sync_server_history_max_size_in_kb(OBX_sync_server* server, uint64_t max_in_kb,
                                                          uint64_t target_in_kb);
+
+/// Configures the cluster ID for the given embedded server (the cluster feature must be enabled).
+/// @param id A user defined string to identify the cluster (all cluster peer must share the same ID).
+OBX_C_API obx_err obx_sync_server_cluster_id(OBX_sync_server* server, const char* id);
+
+/// Adds a remote cluster peer that can be connected to using the given URL and credentials.
+/// Call this method multiple times to add multiple peers (at least 2 times for a cluster of 3).
+/// @param url URL to the remote cluster peer used to connect it.
+/// @param flags For now, always pass 0.
+/// @param credentials the credentials provided to the remote peer to login (it must match the remote's configuration).
+///        May be NULL in combination with OBXSyncCredentialsType_NONE.
+OBX_C_API obx_err obx_sync_server_add_cluster_peer(OBX_sync_server* server, const char* url,
+                                                   OBXSyncCredentialsType credentials_type, const uint8_t* credentials,
+                                                   size_t credentials_size, uint32_t flags);
 
 /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
 /// @param listener set NULL to reset
