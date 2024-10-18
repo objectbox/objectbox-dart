@@ -1,4 +1,4 @@
-## 4.0.3-dev.0 (2024-10-17)
+## 4.0.3 (2024-10-17)
 
 * Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)
 * iOS: support `Query.findWithScores()` with big objects (> 4 KB), previously would throw a
