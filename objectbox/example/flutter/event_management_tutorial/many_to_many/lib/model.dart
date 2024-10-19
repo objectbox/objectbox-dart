@@ -30,8 +30,6 @@ class Owner {
   String name;
 
   // Relationships can be accessed in the reverse direction via Backlinks()
-  @Backlink()
-  final tasks = ToMany<Task>();
 
   Owner(this.name, {this.id = 0});
 }
