@@ -3,16 +3,19 @@
 * Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)
 * iOS: support `Query.findWithScores()` with big objects (> 4 KB), previously would throw a
   `StorageException: Do not use vector-based find on 32 bit systems with big objects`. [#676](https://github.com/objectbox/objectbox-dart/issues/676)
-* Made closing the store more robust; e.g. it waits for ongoing queries and transactions to finish
-  (please still ensure to clean up properly on your side, this is an additional safety net)
+* Make closing the Store more robust. It waits for ongoing queries and transactions to finish.
+  This is just an additional safety net. Your code should still make sure to finish all Store
+  operations, like queries, before closing it.
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.2](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.2).
 * Flutter for iOS/macOS: update to [objectbox-swift 4.0.1](https://github.com/objectbox/objectbox-swift/releases/tag/v4.0.1).
   Existing projects may have to run `pod repo update` and `pod update ObjectBox`.
 * Flutter for Android: update to [objectbox-android 4.0.3](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.3).
   If you are [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
   update to `io.objectbox:objectbox-android-objectbrowser:4.0.3` in `android/app/build.gradle`.
-* Sync: Fixed a serious regression; please update to the latest version asap!
-* Sync: Added a special compression for tiny transactions (internally)
+
+### Sync
+* **Fix a serious regression, please update as soon as possible.**
+* Add special compression for tiny transactions (internally).
 
 ## 4.0.2 (2024-08-14)
 
