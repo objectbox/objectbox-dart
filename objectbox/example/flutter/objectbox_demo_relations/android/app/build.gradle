@@ -47,7 +47,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         // minSdkVersion flutter.minSdkVersion
-        minSdkVersion flutter.minSdkVersion // ObjectBox requires at least SDK 19 (Android 4.4)
+        minSdkVersion 19 // ObjectBox requires at least SDK 19 (Android 4.4)
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
