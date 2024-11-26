@@ -91,11 +91,10 @@ jobs:
           - ubuntu-24.04
           - windows-2022 # Flutter 2.9 and newer need Visual Studio 2022 to build desktop.
         flutter-version:
-          # Include lowest working version (use lowest tested Dart SDK as a guideline, see lib tests
-          # above; but may be higher due to dependency conflicts)
+          # Include lowest working version supported by examples;
           # https://docs.flutter.dev/development/tools/sdk/releases lists included Dart SDK.
           - 3.24.2
-          - 3.7.12
+          - 3.16.9
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
@@ -103,7 +102,7 @@ jobs:
         with:
           flutter-version: ${{ matrix.flutter-version }}
           cache: true
-      # windows-2022 defaults to Java 8, but Android Plugin requires at least 11.
+      # windows-2022 defaults to Java 8, but Android Plugin 8.2.1 requires at least 17
       - uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4.4.0
         with:
           distribution: 'temurin'
