@@ -24,13 +24,16 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.objectbox_demo_relations"
-    compileSdkVersion flutter.compileSdkVersion
-    // ndkVersion flutter.ndkVersion
-    // Flutter defaults to NDK 23.1.7779620, but
+    // ObjectBox: set compileSdkVersion 34 for path_provider_android plugin;
+    // this can be removed once minimum tested Flutter version is 3.19.0.
+    // compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 34
+    // ObjectBox: Flutter defaults to NDK 23.1.7779620, but
     // - objectbox_flutter_libs requires Android NDK 25.1.8937393
     // - path_provider_android requires Android NDK 25.1.8937393
     // Until Flutter uses a newer version (https://github.com/flutter/flutter/commit/919bed6e0a18bd5b76fb581ede10121f8c14a6f7)
     // manually set the required one:
+    // ndkVersion flutter.ndkVersion
     ndkVersion = "25.1.8937393"
 
     compileOptions {
