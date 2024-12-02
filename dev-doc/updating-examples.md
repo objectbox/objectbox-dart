@@ -1,15 +1,31 @@
 # Updating Flutter examples
 
-First, make sure to switch your Flutter SDK to the lowest version the ObjectBox packages support
-(see pubspec.yaml files).
+First, make sure to switch your Flutter SDK to the lowest version that should be supported
+(at minimum what the Flutter packages require, see their pubspec.yaml files; but typically higher
+due to dependency or tooling requirements):
 
-Then, in the example directory delete the platform-specific directories.
+```shell
+# Make sure to close IDEs or tools using the Flutter or Dart SDK first.
+# Then, in the Flutter SDK directory:
+git checkout 3.16.9
+flutter doctor
+```
 
-Then, run `flutter create --platforms=android,ios,linux,macos,windows .` to re-create these files.
+Then, for an example in its directory delete the platform-specific directories and the
 
-Then, remove the created default test files and manually review the changes and commit what's necessary.
+- `.gitignore`
+- `analysis_options.yaml`
+- `pubspec.yaml`
 
-Check changes do not break the example in any way, make additional changes as required.
+files.
 
-Compare against a clean Flutter template (run `create` in an empty folder) to see if updates to
-other files like pubspec.yaml are needed.
+Then, run `flutter create --platforms=android,ios,linux,macos,windows .` to create empty example
+files.
+
+Then, remove the created default widget test file. Review the changes, restore any required changes
+(like in Podfile, build scripts, project files, the files mentioned above...). This can be helped by
+running `flutter pub upgrade` and `flutter run` on each platform (with the same Flutter SDK version!).
+
+Then, commit only what's necessary.
+
+Then, adjust the other examples accordingly.
