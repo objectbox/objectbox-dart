@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-. "$(dirname "$0")"/common.sh
-
 if [[ "$#" -ne "1" ]]; then
-  echo "usage: $0 <app-dir>"
-  echo "e.g. $0 example/objectbox_demo"
+  echo "Usage: $0 <app-dir>"
+  echo ""
+  echo "For example run:"
+  echo "    $0 example/flutter/objectbox_demo_relations"
   exit 1
 fi
 
-set -x
+. "$(dirname "$0")"/common.sh
+
+echo ""
+echo "ℹ️ Testing the example in $1"
+echo ""
+
+set -x # Print commands to terminal
 
 cd "${root}/$1"
 flutter clean
