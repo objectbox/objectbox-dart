@@ -79,7 +79,7 @@ class _TaskInputState extends State<TaskInput> {
                     items: tags.map(buildMenuItem).toList(),
                     underline: Container(
                       height: 2,
-                      color: Colors.blueAccent,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     onChanged: (value) => {
                           setState(
