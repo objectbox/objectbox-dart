@@ -9,13 +9,16 @@
 .vscode/
 *.iml
 
+# ObjectBox install.sh (or rather download.sh) script
+# - download location
 download/
-lib/*.dll
-*.dll
-lib/*.dylib
-lib/*.so
-lib/*.a
+# - installed library files
+libobjectbox.dylib
+libobjectbox.so
+objectbox.dll
+objectbox.lib
 
+# Dart generated files: would commit for a user project, but not here to test code generation
 **/*.g.dart
 
 # backup created by publish.sh - ignore to avoid publishing
