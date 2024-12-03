@@ -1,5 +1,8 @@
 ## latest
 
+* Examples: demos are compatible with Android Studio Ladybug and JDK 21, require Flutter SDK 3.16.9
+  (with Dart SDK 3.2.6) or newer.
+
 ## 4.0.3 (2024-10-17)
 
 * Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)

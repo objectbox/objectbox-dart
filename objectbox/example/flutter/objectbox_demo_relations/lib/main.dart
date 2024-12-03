@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'Task-list app example',
-        theme: ThemeData(primarySwatch: Colors.blue),
+        theme: ThemeData(primarySwatch: Colors.teal),
         home: const MyHomePage(title: 'ObjectBox Example'),
       );
 }
@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
         floatingActionButton: FloatingActionButton.extended(
           key: const Key('add'),
           label: const Text('Add Task'),
+          icon: const Icon(Icons.add),
           heroTag: null,
           onPressed: () {
             Navigator.of(context).push(
