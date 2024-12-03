@@ -27,6 +27,7 @@ class _NewTagState extends State<NewTag> {
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       label: const Text('New Tag'),
+      icon: const Icon(Icons.add),
       heroTag: null,
       onPressed: () async {
         final dialog = await showDialog(

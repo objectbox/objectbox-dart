@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
         floatingActionButton: FloatingActionButton.extended(
           key: const Key('add'),
           label: const Text('Add Task'),
+          icon: const Icon(Icons.add),
           heroTag: null,
           onPressed: () {
             Navigator.of(context).push(
