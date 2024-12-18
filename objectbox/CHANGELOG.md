@@ -1,5 +1,7 @@
 ## latest
 
+* Vector Search: You can now use the new `VectorDistanceType.GEO` distance-type to perform vector searches on
+  geographical coordinates. This is particularly useful for location-based applications.
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
 * Flutter for Android: update to [objectbox-android 4.1.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.1.0).
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to

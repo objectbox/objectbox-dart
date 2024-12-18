@@ -72,6 +72,41 @@ void main() {
     expect(closest2.name, "node8");
   });
 
+  test('vectorSearchCitiesGeo', () {
+    // capital cities across Europe
+    List<String> cities = ["Berlin", "Paris", "Rome", "Madrid", "London"];
+    List<List<double>> coordinates = [
+      [52.5200, 13.4050],
+      [48.8566, 2.3522],
+      [41.9028, 12.4964],
+      [40.4168, -3.7038],
+      [51.5074, -0.1278]
+    ];
+
+    box.putMany(List.generate(cities.length, (i) {
+      return HnswObject()
+        ..name = cities[i]
+        ..floatVectorGeoCoordinates = coordinates[i];
+    }));
+
+    // lat/lng for Munich
+    final List<double> searchVector = [48.1371, 11.5754];
+
+    final query = box
+        .query(HnswObject_.floatVectorGeoCoordinates
+            .nearestNeighborsF32(searchVector, 5))
+        .build();
+    addTearDown(() => query.close());
+
+    final nearestCities = query.find();
+    expect(nearestCities.length, 5);
+    expect(nearestCities[0].name, "Berlin");
+    expect(nearestCities[1].name, "Paris");
+    expect(nearestCities[2].name, "Rome");
+    expect(nearestCities[3].name, "Madrid");
+    expect(nearestCities[4].name, "London");
+  });
+
   test('find offset limit', () {
     box.putMany(List.generate(15, (index) {
       final i = index + 1; // start at 1

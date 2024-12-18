@@ -189,6 +189,8 @@ extension ModelVectorDistanceType on VectorDistanceType {
       return OBXVectorDistanceType.DotProduct;
     } else if (this == VectorDistanceType.dotProductNonNormalized) {
       return OBXVectorDistanceType.DotProductNonNormalized;
+    } else if (this == VectorDistanceType.geo) {
+      return OBXVectorDistanceType.Geo;
     } else {
       throw ArgumentError.value(this, "distanceType");
     }

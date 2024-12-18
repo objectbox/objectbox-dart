@@ -465,6 +465,10 @@ class HnswObject {
   @HnswIndex(dimensions: 2)
   List<double>? floatVector;
 
+  @Property(type: PropertyType.floatVector)
+  @HnswIndex(dimensions: 2, distanceType: VectorDistanceType.geo)
+  List<double>? floatVectorGeoCoordinates;
+
   final rel = ToOne<RelatedNamedEntity>();
 }
 

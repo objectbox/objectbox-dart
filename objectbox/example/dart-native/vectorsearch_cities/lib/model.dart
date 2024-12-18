@@ -7,7 +7,7 @@ class City {
 
   String? name;
 
-  @HnswIndex(dimensions: 2)
+  @HnswIndex(dimensions: 2, distanceType: VectorDistanceType.geo)
   @Property(type: PropertyType.floatVector)
   List<double>? location;
 
