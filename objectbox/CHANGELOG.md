@@ -9,6 +9,7 @@
 
 ### Sync
 
+* Add [JWT authentication](https://sync.objectbox.io/sync-server-configuration/jwt-authentication).
 * Sync clients can send multiple credentials for login.
 
 ## 4.0.3 (2024-10-17)

@@ -37,9 +37,13 @@ void main() {
     expect(waitUntil(() => client.state() == SyncState.loggedIn), isTrue);
   }
 
-  // lambda to easily create clients in the test below
+  // lambda to easily create clients in the tests below
+  SyncClient createAuthenticatedClient(
+          Store s, List<SyncCredentials> credentials) =>
+      Sync.clientMultiCredentials(s, 'ws://127.0.0.1:$serverPort', credentials);
+
   SyncClient createClient(Store s) =>
-      Sync.client(s, 'ws://127.0.0.1:$serverPort', SyncCredentials.none());
+      createAuthenticatedClient(s, [SyncCredentials.none()]);
 
   // lambda to easily create clients in the test below
   SyncClient loggedInClient(Store s) {
@@ -202,6 +206,10 @@ void main() {
       c.setCredentials(SyncCredentials.sharedSecretUint8List(
           Uint8List.fromList([13, 0, 25])));
       c.setCredentials(SyncCredentials.userAndPassword('obx', 'secret'));
+      c.setCredentials(SyncCredentials.jwtIdToken('id-token'));
+      c.setCredentials(SyncCredentials.jwtAccessToken('access-token'));
+      c.setCredentials(SyncCredentials.jwtRefreshToken('refresh-token'));
+      c.setCredentials(SyncCredentials.jwtCustomToken('custom-token'));
 
       c.setCredentials(SyncCredentials.none());
       c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
@@ -232,218 +240,329 @@ void main() {
       c.setMultipleCredentials([
         SyncCredentials.googleAuthString('secret'),
         SyncCredentials.sharedSecretString('secret'),
-        SyncCredentials.userAndPassword('obx', 'secret')
+        SyncCredentials.userAndPassword('obx', 'secret'),
+        SyncCredentials.jwtIdToken('id-token'),
+        SyncCredentials.jwtAccessToken('access-token'),
+        SyncCredentials.jwtRefreshToken('refresh-token'),
+        SyncCredentials.jwtCustomToken('custom-token')
       ]);
     });
 
     group('Sync tests with server', () {
-      late SyncServer server;
+      group('Sync tests with server (no auth)', () {
+        late SyncServer server;
 
-      setUp(() async {
-        server = SyncServer();
-        serverPort = await server.start();
-      });
-
-      tearDown(() async => await server.stop());
-
-      test('SyncClient data sync', () async {
-        await server.online();
-        final client1 = loggedInClient(env.store);
-        final client2 = loggedInClient(env2.store);
-
-        final box = env.store.box<TestEntitySynced>();
-        final box2 = env2.store.box<TestEntitySynced>();
-        int id = box.put(TestEntitySynced(value: Random().nextInt(1 << 32)));
-        expect(waitUntil(() => box2.get(id) != null), isTrue);
-
-        TestEntitySynced? read1 = box.get(id);
-        TestEntitySynced? read2 = box2.get(id);
-        expect(read1, isNotNull);
-        expect(read2, isNotNull);
-        expect(read1!.id, equals(read2!.id));
-        expect(read1.value, equals(read2.value));
-        client1.close();
-        client2.close();
-      });
-
-      test('SyncClient listeners: connection', () async {
-        final client = createClient(env.store);
-
-        // collect connection events
-        final events = <SyncConnectionEvent>[];
-        final streamSub = client.connectionEvents.listen(events.add);
-
-        // multiple subscriptions work as well
-        final events2 = <SyncConnectionEvent>[];
-        final streamSub2 = client.connectionEvents.listen(events2.add);
-
-        await server.online();
-        client.start();
-
-        waitUntilLoggedIn(client);
-        await yieldExecution();
-        expect(events, equals([SyncConnectionEvent.connected]));
-        expect(events2, equals([SyncConnectionEvent.connected]));
-
-        await streamSub2.cancel();
-
-        await server.stop(keepDb: true);
-
-        expect(
-            waitUntil(() => client.state() == SyncState.disconnected), isTrue);
-        await yieldExecution();
-        expect(
-            events,
-            equals([
-              SyncConnectionEvent.connected,
-              SyncConnectionEvent.disconnected
-            ]));
-
-        await server.start(keepDb: true);
-        await server.online();
-
-        waitUntilLoggedIn(client);
-        await yieldExecution();
-
-        expect(
-            events,
-            equals([
-              SyncConnectionEvent.connected,
-              SyncConnectionEvent.disconnected,
-              SyncConnectionEvent.connected
-            ]));
-        expect(events2, equals([SyncConnectionEvent.connected]));
-
-        await streamSub.cancel();
-        client.close();
-      });
-
-      test('SyncClient listeners: login', () async {
-        final client = createClient(env.store);
-
-        client.setCredentials(SyncCredentials.sharedSecretString('foo'));
-
-        // collect login events
-        final events = <SyncLoginEvent>[];
-        client.loginEvents.listen(events.add);
-
-        await server.online();
-        client.start();
-
-        expect(await client.loginEvents.first.timeout(defaultTimeout),
-            equals(SyncLoginEvent.credentialsRejected));
-
-        client.setCredentials(SyncCredentials.none());
-
-        waitUntilLoggedIn(client);
-        await yieldExecution();
-        expect(
-            events,
-            equals(
-                [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
-
-        client.close();
-      });
-
-      test('SyncClient listeners: completion', () async {
-        await server.online();
-        final client = loggedInClient(store);
-        addTearDown(() {
-          client.close();
+        setUp(() async {
+          server = SyncServer();
+          serverPort = await server.start();
         });
-        final box = env.store.box<TestEntitySynced>();
-        final box2 = env2.store.box<TestEntitySynced>();
-        expect(box.isEmpty(), isTrue);
-        // Do multiple changes to verify only a single completion event is sent
-        // after all changes are received.
-        box.put(TestEntitySynced(value: 1));
-        box.put(TestEntitySynced(value: 100));
 
-        // Note: wait for the client to finish sending to the server.
-        // There's currently no other way to recognize this.
-        sleep(const Duration(milliseconds: 100));
+        tearDown(() async => await server.stop());
 
-        final client2 = createClient(env2.store);
-        addTearDown(() {
+        test('SyncClient data sync', () async {
+          await server.online();
+          final client1 = loggedInClient(env.store);
+          final client2 = loggedInClient(env2.store);
+
+          final box = env.store.box<TestEntitySynced>();
+          final box2 = env2.store.box<TestEntitySynced>();
+          int id = box.put(TestEntitySynced(value: Random().nextInt(1 << 32)));
+          expect(waitUntil(() => box2.get(id) != null), isTrue);
+
+          TestEntitySynced? read1 = box.get(id);
+          TestEntitySynced? read2 = box2.get(id);
+          expect(read1, isNotNull);
+          expect(read2, isNotNull);
+          expect(read1!.id, equals(read2!.id));
+          expect(read1.value, equals(read2.value));
+          client1.close();
           client2.close();
         });
-        final Completer firstEvent = Completer();
-        var receivedEvents = 0;
-        final subscription = client2.completionEvents.listen((event) {
-          if (!firstEvent.isCompleted) {
-            firstEvent.complete();
-          }
-          receivedEvents++;
+
+        test('SyncClient listeners: connection', () async {
+          final client = createClient(env.store);
+
+          // collect connection events
+          final events = <SyncConnectionEvent>[];
+          final streamSub = client.connectionEvents.listen(events.add);
+
+          // multiple subscriptions work as well
+          final events2 = <SyncConnectionEvent>[];
+          final streamSub2 = client.connectionEvents.listen(events2.add);
+
+          await server.online();
+          client.start();
+
+          waitUntilLoggedIn(client);
+          await yieldExecution();
+          expect(events, equals([SyncConnectionEvent.connected]));
+          expect(events2, equals([SyncConnectionEvent.connected]));
+
+          await streamSub2.cancel();
+
+          await server.stop(keepDb: true);
+
+          expect(waitUntil(() => client.state() == SyncState.disconnected),
+              isTrue);
+          await yieldExecution();
+          expect(
+              events,
+              equals([
+                SyncConnectionEvent.connected,
+                SyncConnectionEvent.disconnected
+              ]));
+
+          await server.start(keepDb: true);
+          await server.online();
+
+          waitUntilLoggedIn(client);
+          await yieldExecution();
+
+          expect(
+              events,
+              equals([
+                SyncConnectionEvent.connected,
+                SyncConnectionEvent.disconnected,
+                SyncConnectionEvent.connected
+              ]));
+          expect(events2, equals([SyncConnectionEvent.connected]));
+
+          await streamSub.cancel();
+          client.close();
         });
 
-        client2.start();
-        waitUntilLoggedIn(client2);
+        test('SyncClient listeners: login', () async {
+          final client = createClient(env.store);
 
-        // Yield and wait for the first event...
-        await firstEvent.future.timeout(defaultTimeout);
-        // ...and some more on any additional events (should be none)
-        await Future.delayed(Duration(milliseconds: 200));
-        expect(receivedEvents, 1);
-        // Note: the ID just happens to be the same as the box was unused
-        expect(box2.get(2)!.value, 100);
+          client.setCredentials(SyncCredentials.sharedSecretString('foo'));
 
-        // Do another change
-        box.put(TestEntitySynced(value: 200));
-        // Yield and wait for event(s) to come in
-        await Future.delayed(Duration(milliseconds: 200));
-        await subscription.cancel();
-        expect(receivedEvents, 2);
+          // collect login events
+          final events = <SyncLoginEvent>[];
+          client.loginEvents.listen(events.add);
+
+          await server.online();
+          client.start();
+
+          expect(await client.loginEvents.first.timeout(defaultTimeout),
+              equals(SyncLoginEvent.credentialsRejected));
+
+          client.setCredentials(SyncCredentials.none());
+
+          waitUntilLoggedIn(client);
+          await yieldExecution();
+          expect(
+              events,
+              equals([
+                SyncLoginEvent.credentialsRejected,
+                SyncLoginEvent.loggedIn
+              ]));
+
+          client.close();
+        });
+
+        test('SyncClient listeners: completion', () async {
+          await server.online();
+          final client = loggedInClient(store);
+          addTearDown(() {
+            client.close();
+          });
+          final box = env.store.box<TestEntitySynced>();
+          final box2 = env2.store.box<TestEntitySynced>();
+          expect(box.isEmpty(), isTrue);
+          // Do multiple changes to verify only a single completion event is sent
+          // after all changes are received.
+          box.put(TestEntitySynced(value: 1));
+          box.put(TestEntitySynced(value: 100));
+
+          // Note: wait for the client to finish sending to the server.
+          // There's currently no other way to recognize this.
+          sleep(const Duration(milliseconds: 100));
+
+          final client2 = createClient(env2.store);
+          addTearDown(() {
+            client2.close();
+          });
+          final Completer firstEvent = Completer();
+          var receivedEvents = 0;
+          final subscription = client2.completionEvents.listen((event) {
+            if (!firstEvent.isCompleted) {
+              firstEvent.complete();
+            }
+            receivedEvents++;
+          });
+
+          client2.start();
+          waitUntilLoggedIn(client2);
+
+          // Yield and wait for the first event...
+          await firstEvent.future.timeout(defaultTimeout);
+          // ...and some more on any additional events (should be none)
+          await Future.delayed(Duration(milliseconds: 200));
+          expect(receivedEvents, 1);
+          // Note: the ID just happens to be the same as the box was unused
+          expect(box2.get(2)!.value, 100);
+
+          // Do another change
+          box.put(TestEntitySynced(value: 200));
+          // Yield and wait for event(s) to come in
+          await Future.delayed(Duration(milliseconds: 200));
+          await subscription.cancel();
+          expect(receivedEvents, 2);
+        });
+
+        test('SyncClient listeners: changes', () async {
+          await server.online();
+          final client = loggedInClient(store);
+          final client2 = loggedInClient(env2.store);
+
+          final events = <List<SyncChange>>[];
+          client2.changeEvents.listen(events.add);
+
+          expect(env2.store.box<TestEntitySynced>().get(1), isNull);
+          final box = env.store.box<TestEntitySynced>();
+          final box2 = env2.store.box<TestEntitySynced>();
+          box.put(TestEntitySynced(value: 10));
+          env.store.runInTransaction(TxMode.write, () {
+            Box<TestEntity>(env.store).put(TestEntity()); // not synced
+            box.put(TestEntitySynced(value: 20));
+            box.put(TestEntitySynced(value: 1));
+            expect(box.remove(1), isTrue);
+          });
+
+          // wait for the data to be transferred
+          expect(waitUntil(() => box2.count() == 2), isTrue);
+
+          // check the events
+          await yieldExecution();
+          expect(events.length, 2);
+
+          // box.put(TestEntitySynced(value: 10));
+          expect(events[0].length, 1);
+          expect(events[0][0].entity, TestEntitySynced);
+          expect(
+              events[0][0].entityId,
+              InternalStoreAccess.entityDef<TestEntitySynced>(store)
+                  .model
+                  .id
+                  .id);
+          expect(events[0][0].puts, [1]);
+          expect(events[0][0].removals, isEmpty);
+
+          // env.store.runInTransaction(TxMode.Write, () {
+          //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
+          //   box.put(TestEntitySynced(value: 20));
+          //   box.put(TestEntitySynced(value: 1));
+          //   expect(box.remove(1), isTrue);
+          // });
+          expect(events[1].length, 1);
+          expect(events[1][0].entity, TestEntitySynced);
+          expect(
+              events[1][0].entityId,
+              InternalStoreAccess.entityDef<TestEntitySynced>(store)
+                  .model
+                  .id
+                  .id);
+          expect(events[1][0].puts, [2, 3]);
+          expect(events[1][0].removals, [1]);
+
+          client.close();
+          client2.close();
+        });
       });
 
-      test('SyncClient listeners: changes', () async {
-        await server.online();
-        final client = loggedInClient(store);
-        final client2 = loggedInClient(env2.store);
+      group('Sync tests with auth', () {
+        /// The following JWT tokens are generated with https://token.dev.
+        ///
+        /// Use the following RSA256 private key to sign the JWTs:
+        ///
+        /// -----BEGIN PRIVATE KEY-----
+        /// MIIEwAIBADANBgkqhkiG9w0BAQEFAASCBKowggSmAgEAAoIBAQDpLtqxS7OrlD/d
+        /// T2tuz4+QNUh2OCa2Bat4bmpY+wL3FdkqIxXUCJX0tfKpCwBikKoQMzddt+ZmoZvj
+        /// zIuFv9eploqBJhoL+HYOMzuWCshACn33TZGvx9SYs3aK+vm2cvFRQ6cw5zZJC2v1
+        /// 2DNM41hblm7c/DK8BaTkPq54hSEu1jOlwH562g10vcivbvjoojL9VSwPAAzt2Gup
+        /// IrxTbEUIaVq7iKQ5O2/MOjCcAwcyt8TurUHpZlAMBCUGbFFCzIqWfkMiwq/rFq42
+        /// wdGAEApy1TFkbwzhAkjHdLoC6CF3dFkLgJrkB7193wvyaU1gEKtCE5nt1LR/hq3h
+        /// quUtxqO3AgMBAAECggEBANX6C+7EA/TADrbcCT7fMuNnMb5iGovPuiDCWc6bUIZC
+        /// Q0yac45l7o1nZWzfzpOkIprJFNZoSgIF7NJmQeYTPCjAHwsSVraDYnn3Y4d1D3tM
+        /// 5XjJcpX2bs1NactxMTLOWUl0JnkGwtbWp1Qq+DBnMw6ghc09lKTbHQvhxSKNL/0U
+        /// C+YmCYT5ODmxzLBwkzN5RhxQZNqol/4LYVdji9bS7N/UITw5E6LGDOo/hZHWqJsE
+        /// fgrJTPsuCyrYlwrNkgmV2KpRrGz5MpcRM7XHgnqVym+HyD/r9E7MEFdTLEaiiHcm
+        /// Ish1usJDEJMFIWkF+rnEoJkQHbqiKlQBcoqSbCmoMWECgYEA/4379mMPF0JJ/EER
+        /// 4VH7/ZYxjdyphenx2VYCWY/uzT0KbCWQF8KXckuoFrHAIP3EuFn6JNoIbja0NbhI
+        /// HGrU29BZkATG8h/xjFy/zPBauxTQmM+yS2T37XtMoXNZNS/ubz2lJXMOapQQiXVR
+        /// l/tzzpyWaCe9j0NT7DAU0ZFmDbECgYEA6ZbjkcOs2jwHsOwwfamFm4VpUFxYtED7
+        /// 9vKzq5d7+Ii1kPKHj5fDnYkZd+mNwNZ02O6OGxh40EDML+i6nOABPg/FmXeVCya9
+        /// Vump2Yqr2fAK3xm6QY5KxAjWWq2kVqmdRmICSL2Z9rBzpXmD5o06y9viOwd2bhBo
+        /// 0wB02416GecCgYEA+S/ZoEa3UFazDeXlKXBn5r2tVEb2hj24NdRINkzC7h23K/z0
+        /// pDZ6tlhPbtGkJodMavZRk92GmvF8h2VJ62vAYxamPmhqFW5Qei12WL+FuSZywI7F
+        /// q/6oQkkYT9XKBrLWLGJPxlSKmiIGfgKHrUrjgXPutWEK1ccw7f10T2UXvgECgYEA
+        /// nXqLa58G7o4gBUgGnQFnwOSdjn7jkoppFCClvp4/BtxrxA+uEsGXMKLYV75OQd6T
+        /// IhkaFuxVrtiwj/APt2lRjRym9ALpqX3xkiGvz6ismR46xhQbPM0IXMc0dCeyrnZl
+        /// QKkcrxucK/Lj1IBqy0kVhZB1IaSzVBqeAPrCza3AzqsCgYEAvSiEjDvGLIlqoSvK
+        /// MHEVe8PBGOZYLcAdq4YiOIBgddoYyRsq5bzHtTQFgYQVK99Cnxo+PQAvzGb+dpjN
+        /// /LIEAS2LuuWHGtOrZlwef8ZpCQgrtmp/phXfVi6llcZx4mMm7zYmGhh2AsA9yEQc
+        /// acgc4kgDThAjD7VlXad9UHpNMO8=
+        /// -----END PRIVATE KEY-----
+        ///
+        /// The expired JWT token is obtained by setting `iat` and `exp` to the
+        /// same value, which is a time since Unix Epoch.
+        final String testJwtToken =
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIn0.YZSt5XIp7KLSIEtYegEGInea2IvyZajEOWEXcH8p0kYTvhU07LFcxbPWxnNeBtQSjkGp0U0XQUQkCaRjRbNDiHKHCtQHOsUtLefAfQc-WENzSSrGqbb7YKw7FHgsGCQX7FRblcdw3ExU9w8NBgt0xQaDqnwBYfltfu6bmJG5QabGnljcmLGB3Q5EcppxBgWZdLzhmVRiqkiIsCp8kBtELz3Lk8a2LIJP80khJWdls1zIK_NR0XtV6Dbbac1fFN0v5F2VN61VjL9HXZWm68zf2ueW_jobN8IBcJkOAfefgsQu_1e5B0iVAxyRki6F99V1B8Ci_5wbTXRs4bob1Nsl2Q";
+        final String testExpiredJwtToken =
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIiwiZXhwIjoxNzM4MjE1NjAwLCJpYXQiOjE3MzgyMTc0MDN9.3auqtgaSEqpFqXhuCyoDM-LbfTOIEGGF6X0AjCcykJ2Nv1WN6LaVbuMDjMf-tKSLyeqFkzQbIckP4FvLHh7wQJ6rafDiT4H2pb6xhouU1QH3szK2S_7VDl_4BhxRbW5pEUt9086HXaVFHEZVS0417pxomlPHxrc1n4Z_A4QxZM5_xh5xcHV8PiGgXWb6_2basjBj5z6POTrazRs67IOQ-ob6ROIsOUGu3om6b8i0h_QSMmeJbujfr2EZqhYWTKijeyidbjRWZ97NFxtGRYN_jPOvy-T3gANXs2a32Er8XvgZTjr_-O8tl_1fHPo2kDE-UCNdwUfBQFhTokDUdJ81bg";
+        final String testJwtPublicKey = '''
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6S7asUuzq5Q/3U9rbs+P
+        kDVIdjgmtgWreG5qWPsC9xXZKiMV1AiV9LXyqQsAYpCqEDM3XbfmZqGb48yLhb/X
+        qZaKgSYaC/h2DjM7lgrIQAp9902Rr8fUmLN2ivr5tnLxUUOnMOc2SQtr9dgzTONY
+        W5Zu3PwyvAWk5D6ueIUhLtYzpcB+etoNdL3Ir2746KIy/VUsDwAM7dhrqSK8U2xF
+        CGlau4ikOTtvzDownAMHMrfE7q1B6WZQDAQlBmxRQsyKln5DIsKv6xauNsHRgBAK
+        ctUxZG8M4QJIx3S6Aughd3RZC4Ca5Ae9fd8L8mlNYBCrQhOZ7dS0f4at4arlLcaj
+        twIDAQAB
+        -----END PUBLIC KEY-----
+        ''';
 
-        final events = <List<SyncChange>>[];
-        client2.changeEvents.listen(events.add);
+        test('Auth with JSON Web Token (JWT)', () async {
+          // Note: the objectbox project covers all cases, this test just
+          // ensures the Dart parts work as expected.
+          final server = SyncServer();
+          final publicKeyString = testJwtPublicKey.replaceAll(" ", "");
+          serverPort = await server.start(authArguments: [
+            "--jwt-public-key $publicKeyString",
+            "--jwt-claim-aud sync-server",
+            "--jwt-claim-iss objectbox-auth"
+          ]);
+          await server.online();
+          addTearDown(() async => await server.stop());
 
-        expect(env2.store.box<TestEntitySynced>().get(1), isNull);
-        final box = env.store.box<TestEntitySynced>();
-        final box2 = env2.store.box<TestEntitySynced>();
-        box.put(TestEntitySynced(value: 10));
-        env.store.runInTransaction(TxMode.write, () {
-          Box<TestEntity>(env.store).put(TestEntity()); // not synced
-          box.put(TestEntitySynced(value: 20));
-          box.put(TestEntitySynced(value: 1));
-          expect(box.remove(1), isTrue);
+          // expired token should fail to log in
+          var client = createAuthenticatedClient(
+              env.store, [SyncCredentials.jwtIdToken(testExpiredJwtToken)]);
+
+          final events = <SyncLoginEvent>[];
+          client.loginEvents.listen(events.add);
+          client.start();
+          addTearDown(() => client.close());
+
+          expect(
+              await client.loginEvents.first.timeout(defaultTimeout,
+                  onTimeout: () => throw TimeoutException(
+                      "Did not receive login event within $defaultTimeout")),
+              equals(SyncLoginEvent.credentialsRejected));
+
+          // valid token should succeed to log in
+          client.setCredentials(SyncCredentials.jwtIdToken(testJwtToken));
+
+          waitUntilLoggedIn(client);
+          await yieldExecution();
+
+          expect(
+              events,
+              equals([
+                SyncLoginEvent.credentialsRejected,
+                SyncLoginEvent.loggedIn
+              ]));
         });
-
-        // wait for the data to be transferred
-        expect(waitUntil(() => box2.count() == 2), isTrue);
-
-        // check the events
-        await yieldExecution();
-        expect(events.length, 2);
-
-        // box.put(TestEntitySynced(value: 10));
-        expect(events[0].length, 1);
-        expect(events[0][0].entity, TestEntitySynced);
-        expect(events[0][0].entityId,
-            InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
-        expect(events[0][0].puts, [1]);
-        expect(events[0][0].removals, isEmpty);
-
-        // env.store.runInTransaction(TxMode.Write, () {
-        //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
-        //   box.put(TestEntitySynced(value: 20));
-        //   box.put(TestEntitySynced(value: 1));
-        //   expect(box.remove(1), isTrue);
-        // });
-        expect(events[1].length, 1);
-        expect(events[1][0].entity, TestEntitySynced);
-        expect(events[1][0].entityId,
-            InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
-        expect(events[1][0].puts, [2, 3]);
-        expect(events[1][0].removals, [1]);
-
-        client.close();
-        client2.close();
       });
     },
         skip: SyncServer.isAvailable()
@@ -483,19 +602,27 @@ class SyncServer {
     }
   }
 
-  Future<int> start({bool keepDb = false}) async {
+  Future<int> start(
+      {bool keepDb = false, List<String> authArguments = const []}) async {
     _port ??= await _getUnusedPort();
 
     _dir ??= Directory('testdata-sync-server-$_port');
     if (!keepDb) _deleteDb();
 
-    _process = Process.start('sync-server', [
-      '--unsecured-no-authentication',
+    final arguments = [
       '--db-directory=${_dir!.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
       '--bind=ws://127.0.0.1:$_port',
       '--admin-bind=http://127.0.0.1:${await _getUnusedPort()}'
-    ]);
+    ];
+    if (authArguments.isNotEmpty) {
+      arguments.addAll(authArguments);
+    } else {
+      arguments.add('--unsecured-no-authentication');
+    }
+
+    print("Starting Sync server with arguments: $arguments");
+    _process = Process.start('sync-server', arguments);
 
     return _port!;
   }

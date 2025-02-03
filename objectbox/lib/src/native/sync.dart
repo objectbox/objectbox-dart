@@ -44,6 +44,28 @@ class SyncCredentials {
   static SyncCredentials userAndPassword(String user, String password) =>
       _SyncCredentialsUserPassword._(
           OBXSyncCredentialsType.USER_PASSWORD, user, password);
+
+  /// JSON Web Token (JWT): an ID token that typically provides identity
+  /// information about the authenticated user.
+  static SyncCredentials jwtIdToken(String jwtIdToken) =>
+      SyncCredentialsSecret._encode(OBXSyncCredentialsType.JWT_ID, jwtIdToken);
+
+  /// JSON Web Token (JWT): an access token that is used to access resources.
+  static SyncCredentials jwtAccessToken(String jwtAccessToken) =>
+      SyncCredentialsSecret._encode(
+          OBXSyncCredentialsType.JWT_ACCESS, jwtAccessToken);
+
+  /// JSON Web Token (JWT): a refresh token that is used to obtain a new
+  /// access token.
+  static SyncCredentials jwtRefreshToken(String jwtRefreshToken) =>
+      SyncCredentialsSecret._encode(
+          OBXSyncCredentialsType.JWT_REFRESH, jwtRefreshToken);
+
+  /// JSON Web Token (JWT): a token that is neither an ID, access,
+  /// nor refresh token.
+  static SyncCredentials jwtCustomToken(String jwtCustomToken) =>
+      SyncCredentialsSecret._encode(
+          OBXSyncCredentialsType.JWT_CUSTOM, jwtCustomToken);
 }
 
 class _SyncCredentialsNone extends SyncCredentials {
