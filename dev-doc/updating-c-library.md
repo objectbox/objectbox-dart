@@ -5,40 +5,96 @@ Dart won't error on C function signature mismatch, leading to obscure memory bug
 
 ## C libraries
 
+For each:
+
+- Update versions below
+- Run update script
+- Add [CHANGELOG](../objectbox/CHANGELOG.md) entry
+- Commit changes
+
+### Desktop, Scripts
+
 For Dart Native and unit tests ([install.sh](../install.sh)),
 for the binding update script (see below) and
-for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:  
-```
+for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:
+
+```bash
 ./tool/set-c-version.sh 4.0.2
 ```
 
-For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
+```text
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.2](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.2).
 ```
+
+```text
+Update C library [4.0.1 -> 4.0.2]
+```
+
+### Android
+
+For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
+
+```bash
 ./tool/set-android-version.sh 4.0.3
 ```
 
-For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
+```text
+* Flutter for Android: update to [objectbox-android 4.0.3](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.3).
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:4.0.3` in `android/app/build.gradle`.
 ```
+
+```text
+Update objectbox-android [4.0.2 -> 4.0.3]
+
+Bundled with C API 4.0.1 and ObjectBox 4.0.2-2024-10-15
+```
+
+Note: the embedded C API and ObjectBox version can be looked up
+from the relevant objectbox repository release tag (like `java-4.0.3`).
+
+### Apple OSs
+
+For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
+
+```bash
 ./tool/set-swift-version.sh 4.0.1
 ```
 
-For each, add an entry (see previous releases) to the [CHANGELOG](../objectbox/CHANGELOG.md).
+```text
+* Flutter for iOS/macOS: update to [objectbox-swift 4.0.1](https://github.com/objectbox/objectbox-swift/releases/tag/v4.0.1).
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+```
+
+```text
+Update ObjectBox Swift [4.0.0 -> 4.0.1]
+
+Bundled with C API 4.0.2 and ObjectBox 4.0.2-2024-10-15
+```
+
+Note: the embedded C API and ObjectBox version can be looked up 
+from the objectbox-swift release tag (like `v4.0.1`) and 
+the objectbox commit it points to (see `external/objectbox`).
 
 ## Dart C API bindings
+
 To download the C library header files and generate bindings with ffigen (requires LLVM libraries,
 see [ffigen docs](https://pub.dev/packages/ffigen#installing-llvm)
 and the ffigen section in [pubspec.yaml](../objectbox/pubspec.yaml)):
-```
+
+```bash
 ./tool/update-c-binding.sh
 ```
 
 Then manually:
+
 - Copy/update enums that need to be exposed to users
   from [objectbox_c.dart](../objectbox/lib/src/native/bindings/objectbox_c.dart) 
   to [enums.dart](../objectbox/lib/src/modelinfo/enums.dart).
 - Check the changed files, make any required changes in the Dart library (like method signature changes).
 - ⚠️ Update minimum C API and core version and notes as needed in [bindings.dart](../objectbox/lib/src/native/bindings/bindings.dart).
-  
-  Note: the embedded C API and core version can be looked up
-  for Android from the relevant core repository release tag and
-  for Swift from its repos release tag and the core commit it points to.
+- Commit as
+
+```text
+Update C-API [4.0.1 -> 4.0.2]
+```
