@@ -58,22 +58,22 @@ from the relevant objectbox repository release tag (like `java-4.1.0`).
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 
 ```bash
-./tool/set-swift-version.sh 4.0.1
+./tool/set-swift-version.sh 4.1.0
 ```
 
 ```text
-* Flutter for iOS/macOS: update to [objectbox-swift 4.0.1](https://github.com/objectbox/objectbox-swift/releases/tag/v4.0.1).
+* Flutter for iOS/macOS: update to [objectbox-swift 4.1.0](https://github.com/objectbox/objectbox-swift/releases/tag/v4.1.0).
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 ```
 
 ```text
 Update ObjectBox Swift [4.0.0 -> 4.0.1]
 
-Bundled with C API 4.0.2 and ObjectBox 4.0.2-2024-10-15
+Bundled with C API 4.1.0 and ObjectBox 4.1.0-2025-01-30
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 
-from the objectbox-swift release tag (like `v4.0.1`) and 
+from the objectbox-swift release tag (like `v4.1.0`) and 
 the objectbox commit it points to (see `external/objectbox`).
 
 ## Dart C API bindings
