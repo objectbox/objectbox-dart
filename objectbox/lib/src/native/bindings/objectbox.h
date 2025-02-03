@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 ObjectBox Ltd. All rights reserved.
+ * Copyright 2018-2025 ObjectBox Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ extern "C" {
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 4
-#define OBX_VERSION_MINOR 0
-#define OBX_VERSION_PATCH 2  // values >= 100 are reserved for dev releases leading to the next minor/major increase
+#define OBX_VERSION_MINOR 1
+#define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
 // Common types
@@ -173,6 +173,8 @@ typedef enum {
     /// Sync connector to integrate MongoDB with SyncServer.
     OBXFeature_SyncMongoDb = 16,
 
+    /// Enables additional authentication/authorization methods for sync login, e.g. JWT based methods.
+    OBXFeature_Auth = 17,
 
 } OBXFeature;
 
@@ -480,6 +482,11 @@ typedef enum {
     OBXVectorDistanceType_Manhattan = 4,
     OBXVectorDistanceType_Hamming = 5,
 
+    /// For geospatial coordinates aka latitude/longitude pairs.
+    /// Note, that the vector dimension must be 2, with the latitude being the first element and longitude the second.
+    /// Internally, this uses haversine distance.
+    OBXVectorDistanceType_Geo = 6,
+
     /// A custom dot product similarity measure that does not require the vectors to be normalized.
     /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
     /// The non-linear conversion provides a high precision over the entire float range (for the raw dot product).
@@ -487,6 +494,7 @@ typedef enum {
     /// The more negative the dot product, the higher the distance is (the farther the vectors are).
     /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
     OBXVectorDistanceType_DotProductNonNormalized = 10,
+
 } OBXVectorDistanceType;
 
 /// Utility function to calculate the distance of two given vectors.
@@ -1857,9 +1865,119 @@ OBX_C_API obx_qb_cond obx_qb_contains_string(OBX_query_builder* builder, obx_sch
 OBX_C_API obx_qb_cond obx_qb_contains_element_string(OBX_query_builder* builder, obx_schema_id property_id,
                                                      const char* value, bool case_sensitive);
 
-/// For flex properties that have a map as root value, this looks for matching key/value pair.
+/// @Deprecated use obx_qb_equals_key_value_string instead
 OBX_C_API obx_qb_cond obx_qb_contains_key_value_string(OBX_query_builder* builder, obx_schema_id property_id,
                                                        const char* key, const char* value, bool case_sensitive);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must equal this one.
+/// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+OBX_C_API obx_qb_cond obx_qb_equals_key_value_string(OBX_query_builder* builder, obx_schema_id property_id,
+                                                     const char* key, const char* value, bool case_sensitive);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must equal this one.
+OBX_C_API obx_qb_cond obx_qb_equals_key_value_int(OBX_query_builder* builder, obx_schema_id property_id,
+                                                  const char* key, int64_t value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must equal this one.
+OBX_C_API obx_qb_cond obx_qb_equals_key_value_double(OBX_query_builder* builder, obx_schema_id property_id,
+                                                     const char* key, double value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being greater than the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be greater than this one.
+/// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+OBX_C_API obx_qb_cond obx_qb_greater_key_value_string(OBX_query_builder* builder, obx_schema_id property_id,
+                                                      const char* key, const char* value, bool case_sensitive);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being greater than the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be greater than this one.
+OBX_C_API obx_qb_cond obx_qb_greater_key_value_int(OBX_query_builder* builder, obx_schema_id property_id,
+                                                   const char* key, int64_t value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being greater than the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be greater than this one.
+OBX_C_API obx_qb_cond obx_qb_greater_key_value_double(OBX_query_builder* builder, obx_schema_id property_id,
+                                                      const char* key, double value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being greater than or equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be greater than or equal to this one.
+/// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+OBX_C_API obx_qb_cond obx_qb_greater_or_equal_key_value_string(OBX_query_builder* builder, obx_schema_id property_id,
+                                                               const char* key, const char* value, bool case_sensitive);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being greater than or equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be greater than or equal to this one.
+OBX_C_API obx_qb_cond obx_qb_greater_or_equal_key_value_int(OBX_query_builder* builder, obx_schema_id property_id,
+                                                            const char* key, int64_t value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being greater than or equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be greater than or equal to this one.
+OBX_C_API obx_qb_cond obx_qb_greater_or_equal_key_value_double(OBX_query_builder* builder, obx_schema_id property_id,
+                                                               const char* key, double value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being lesser than the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be lesser than this one.
+/// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+OBX_C_API obx_qb_cond obx_qb_less_than_key_value_string(OBX_query_builder* builder, obx_schema_id property_id,
+                                                        const char* key, const char* value, bool case_sensitive);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being lesser than the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be lesser than this one.
+OBX_C_API obx_qb_cond obx_qb_less_than_key_value_int(OBX_query_builder* builder, obx_schema_id property_id,
+                                                     const char* key, int64_t value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being lesser than the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be lesser than this one.
+OBX_C_API obx_qb_cond obx_qb_less_than_key_value_double(OBX_query_builder* builder, obx_schema_id property_id,
+                                                        const char* key, double value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being lesser than or equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be lesser than or equal to this one.
+/// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+OBX_C_API obx_qb_cond obx_qb_less_or_equal_key_value_string(OBX_query_builder* builder, obx_schema_id property_id,
+                                                            const char* key, const char* value, bool case_sensitive);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being lesser than or equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be lesser than or equal to this one.
+OBX_C_API obx_qb_cond obx_qb_less_or_equal_key_value_int(OBX_query_builder* builder, obx_schema_id property_id,
+                                                         const char* key, int64_t value);
+
+/// For flex properties that have a map as root value, this looks for a matching key/value pair,
+/// with the map value being lesser than or equal to the given one.
+/// @param key must be an exact match exactly (case-sensitive)
+/// @param value the map's value must be lesser than or equal to this one.
+OBX_C_API obx_qb_cond obx_qb_less_or_equal_key_value_double(OBX_query_builder* builder, obx_schema_id property_id,
+                                                            const char* key, double value);
 
 OBX_C_API obx_qb_cond obx_qb_starts_with_string(OBX_query_builder* builder, obx_schema_id property_id,
                                                 const char* value, bool case_sensitive);
