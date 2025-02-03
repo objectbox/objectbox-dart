@@ -240,8 +240,8 @@ class SyncClient {
           creds._user,
           (userCStr) => withNativeString(
               creds._password,
-              (passwordCStr) => C.sync_credentials_user_password(
-                  _ptr, creds._type, userCStr, passwordCStr)));
+              (passwordCStr) => checkObx(C.sync_credentials_user_password(
+                  _ptr, creds._type, userCStr, passwordCStr))));
     } else if (creds is SyncCredentialsSecret) {
       withNativeBytes(
           creds.data,
