@@ -1,6 +1,9 @@
 ## latest
 
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
+* Flutter for Android: update to [objectbox-android 4.1.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.1.0).
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:4.1.0` in `android/app/build.gradle`.
 
 ## 4.0.3 (2024-10-17)
 

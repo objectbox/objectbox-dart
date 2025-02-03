@@ -35,23 +35,23 @@ Update C library [4.0.2 -> 4.1.0]
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 
 ```bash
-./tool/set-android-version.sh 4.0.3
+./tool/set-android-version.sh 4.1.0
 ```
 
 ```text
-* Flutter for Android: update to [objectbox-android 4.0.3](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.3).
+* Flutter for Android: update to [objectbox-android 4.1.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.1.0).
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
-  update to `io.objectbox:objectbox-android-objectbrowser:4.0.3` in `android/app/build.gradle`.
+  update to `io.objectbox:objectbox-android-objectbrowser:4.1.0` in `android/app/build.gradle`.
 ```
 
 ```text
-Update objectbox-android [4.0.2 -> 4.0.3]
+Update objectbox-android [4.0.3 -> 4.1.0]
 
-Bundled with C API 4.0.1 and ObjectBox 4.0.2-2024-10-15
+Bundled with C API 4.1.0 and ObjectBox 4.1.0-2025-01-28
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
-from the relevant objectbox repository release tag (like `java-4.0.3`).
+from the relevant objectbox repository release tag (like `java-4.1.0`).
 
 ### Apple OSs
 
