@@ -1,5 +1,7 @@
 ## latest
 
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
+
 ## 4.0.3 (2024-10-17)
 
 * Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)

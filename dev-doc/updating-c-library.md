@@ -19,15 +19,15 @@ for the binding update script (see below) and
 for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:
 
 ```bash
-./tool/set-c-version.sh 4.0.2
+./tool/set-c-version.sh 4.1.0
 ```
 
 ```text
-* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.2](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.2).
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
 ```
 
 ```text
-Update C library [4.0.1 -> 4.0.2]
+Update C library [4.0.2 -> 4.1.0]
 ```
 
 ### Android
