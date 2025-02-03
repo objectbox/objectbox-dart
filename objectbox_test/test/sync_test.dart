@@ -57,10 +57,18 @@ void main() {
   });
 
   test('Sync.clientMulti throws if empty URL list', () {
+    // Note: this test works with a library that does not have the Sync
+    // feature, because the URLs are checked before checking for the feature.
     expect(
         () => Sync.clientMultiUrls(store, [], SyncCredentials.none()),
         throwsA(isArgumentError.having((e) => e.message, 'message',
-            contains('must contain at least one server URL'))));
+            contains('Provide at least one server URL'))));
+
+    expect(
+        () => Sync.clientMultiCredentialsMultiUrls(
+            store, [], [SyncCredentials.none()]),
+        throwsA(isArgumentError.having((e) => e.message, 'message',
+            contains('Provide at least one server URL'))));
   });
 
   test('SyncCredentials string encoding', () {
@@ -114,6 +122,18 @@ void main() {
       expect(store.syncClient(), isNull);
     });
 
+    test('Sync.clientMulti throws if empty credential list', () {
+      expect(
+          () => Sync.clientMultiCredentials(store, 'test-url', []),
+          throwsA(isArgumentError.having((e) => e.message, 'message',
+              contains('Provide at least one credential'))));
+
+      expect(
+          () => Sync.clientMultiCredentialsMultiUrls(store, ['test-url'], []),
+          throwsA(isArgumentError.having((e) => e.message, 'message',
+              contains('Provide at least one credential'))));
+    });
+
     test('SyncClient is closed when a store is closed', () {
       final client = createClient(env2.store);
       env2.closeAndDelete();
@@ -150,13 +170,30 @@ void main() {
       expect(() => c.cancelUpdates(), error);
       expect(() => c.requestUpdates(subscribeForFuturePushes: true), error);
       expect(() => c.outgoingMessageCount(), error);
+
       expect(() => c.setCredentials(SyncCredentials.none()), error);
+      expect(
+          () => c.setCredentials(SyncCredentials.sharedSecretString('secret')),
+          error);
+      expect(
+          () => c
+              .setCredentials(SyncCredentials.userAndPassword('obx', 'secret')),
+          error);
+
+      expect(
+          () => c.setMultipleCredentials([
+                SyncCredentials.sharedSecretString('secret'),
+                SyncCredentials.userAndPassword('obx', 'secret')
+              ]),
+          error);
+
       expect(() => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto), error);
     });
 
     test('SyncClient simple coverage (no server available)', () {
       SyncClient c = createClient(store);
       expect(c.isClosed(), isFalse);
+
       c.setCredentials(SyncCredentials.none());
       c.setCredentials(SyncCredentials.googleAuthString('secret'));
       c.setCredentials(SyncCredentials.sharedSecretString('secret'));
@@ -165,6 +202,7 @@ void main() {
       c.setCredentials(SyncCredentials.sharedSecretUint8List(
           Uint8List.fromList([13, 0, 25])));
       c.setCredentials(SyncCredentials.userAndPassword('obx', 'secret'));
+
       c.setCredentials(SyncCredentials.none());
       c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
       c.start();
@@ -174,6 +212,28 @@ void main() {
       expect(c.outgoingMessageCount(), isZero);
       c.stop();
       expect(c.state(), equals(SyncState.stopped));
+    });
+
+    test('SyncClient setMultipleCredentials', () {
+      SyncClient c = createClient(store);
+
+      expect(
+          () => c.setMultipleCredentials([]),
+          throwsA(isA<ArgumentError>()
+              .having((e) => e.name, "name", "credentials")));
+
+      // none() not supported
+      expect(
+          () => c.setMultipleCredentials([SyncCredentials.none()]),
+          throwsA(isA<ArgumentError>()
+              .having((e) => e.name, "name", "credentials")));
+
+      // Not throwing in Dart for any supported type
+      c.setMultipleCredentials([
+        SyncCredentials.googleAuthString('secret'),
+        SyncCredentials.sharedSecretString('secret'),
+        SyncCredentials.userAndPassword('obx', 'secret')
+      ]);
     });
 
     group('Sync tests with server', () {

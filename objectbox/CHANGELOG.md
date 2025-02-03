@@ -7,6 +7,10 @@
 * Flutter for iOS/macOS: update to [objectbox-swift 4.1.0](https://github.com/objectbox/objectbox-swift/releases/tag/v4.1.0).
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 
+### Sync
+
+* Sync clients can send multiple credentials for login.
+
 ## 4.0.3 (2024-10-17)
 
 * Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)

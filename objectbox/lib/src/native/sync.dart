@@ -169,10 +169,10 @@ class SyncClient {
   /// Creates a Sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
   SyncClient._(
-      this._store, List<String> serverUrls, SyncCredentials credentials) {
+      this._store, List<String> serverUrls, List<SyncCredentials> credentials) {
     if (serverUrls.isEmpty) {
       throw ArgumentError.value(
-          serverUrls, "serverUrls", "must contain at least one server URL");
+          serverUrls, "serverUrls", "Provide at least one server URL");
     }
 
     if (!Sync.isAvailable()) {
@@ -187,7 +187,12 @@ class SyncClient {
             C.sync_urls(InternalStoreAccess.ptr(_store), ptr, size),
             'failed to create Sync client'));
 
-    setCredentials(credentials);
+    if (credentials.length == 1) {
+      setCredentials(credentials[0]);
+    } else {
+      // also covers the length == 0 case
+      setMultipleCredentials(credentials);
+    }
   }
 
   /// Closes and cleans up all resources used by this sync client.
@@ -247,6 +252,54 @@ class SyncClient {
           creds.data,
           (Pointer<Uint8> credsPtr, int credsSize) => checkObx(
               C.sync_credentials(_ptr, creds._type, credsPtr, credsSize)));
+    }
+  }
+
+  /// Like [setCredentials], but accepts multiple credentials.
+  ///
+  /// However, does **not** support [SyncCredentials.none()].
+  void setMultipleCredentials(List<SyncCredentials> credentials) {
+    if (credentials.isEmpty) {
+      throw ArgumentError.value(
+          credentials, "credentials", "Provide at least one credential");
+    }
+
+    var length = credentials.length;
+    for (int i = 0; i < length; i++) {
+      final isLast = i + 1 == length;
+      var credential = credentials[i];
+
+      if (credential is _SyncCredentialsNone) {
+        throw ArgumentError.value(credentials, "credentials",
+            "SyncCredentials.none() is not supported, use setCredentials() instead");
+      }
+
+      try {
+        if (credential is _SyncCredentialsUserPassword) {
+          withNativeString(
+              credential._user,
+              (userCStr) => withNativeString(
+                  credential._password,
+                  (passwordCStr) => checkObx(
+                      C.sync_credentials_add_user_password(_ptr,
+                          credential._type, userCStr, passwordCStr, isLast))));
+        } else if (credential is SyncCredentialsSecret) {
+          withNativeBytes(
+              credential.data,
+              (Pointer<Uint8> credsPtr, int credsSize) => checkObx(
+                  C.sync_credentials_add(
+                      _ptr, credential._type, credsPtr, credsSize, isLast)));
+        }
+      } catch (e) {
+        // To make exceptions related to a credential easier to attribute,
+        // wrap in an ArgumentError and give the position in the list.
+        if (e is StateError) {
+          // State errors should not be specific to a credential, so rethrow
+          rethrow;
+        } else {
+          throw ArgumentError.value(credential, "credentials[$i]", "$e");
+        }
+      }
     }
   }
 
@@ -626,9 +679,26 @@ class Sync {
           Store store, String serverUrl, SyncCredentials credentials) =>
       clientMultiUrls(store, [serverUrl], credentials);
 
+  /// Like [client], but accepts a list of credentials.
+  ///
+  /// When passing multiple credentials, does **not** support
+  /// [SyncCredentials.none()].
+  static SyncClient clientMultiCredentials(
+          Store store, String serverUrl, List<SyncCredentials> credentials) =>
+      clientMultiCredentialsMultiUrls(store, [serverUrl], credentials);
+
   /// Like [client], but accepts a list of URLs to work with multiple servers.
   static SyncClient clientMultiUrls(
-      Store store, List<String> serverUrls, SyncCredentials credentials) {
+          Store store, List<String> serverUrls, SyncCredentials credentials) =>
+      clientMultiCredentialsMultiUrls(store, serverUrls, [credentials]);
+
+  /// Like [client], but accepts a list of credentials and a list of URLs to
+  /// work with multiple servers.
+  ///
+  /// When passing multiple credentials, does **not** support
+  /// [SyncCredentials.none()].
+  static SyncClient clientMultiCredentialsMultiUrls(
+      Store store, List<String> serverUrls, List<SyncCredentials> credentials) {
     if (syncClientsStorage.containsKey(store)) {
       throw StateError('Only one sync client can be active for a store');
     }
