@@ -1,5 +1,17 @@
 ## latest
 
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
+* Flutter for Android: update to [objectbox-android 4.1.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.1.0).
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
+  update to `io.objectbox:objectbox-android-objectbrowser:4.1.0` in `android/app/build.gradle`.
+* Flutter for iOS/macOS: update to [objectbox-swift 4.1.0](https://github.com/objectbox/objectbox-swift/releases/tag/v4.1.0).
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+
+### Sync
+
+* Add [JWT authentication](https://sync.objectbox.io/sync-server-configuration/jwt-authentication).
+* Sync clients can send multiple credentials for login.
+
 ## 4.0.3 (2024-10-17)
 
 * Generator: replace cryptography library, allows to use newer versions of the transitive `js` dependency. [#638](https://github.com/objectbox/objectbox-dart/issues/638)

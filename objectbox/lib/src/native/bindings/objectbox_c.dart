@@ -4152,7 +4152,7 @@ class ObjectBoxC {
           int Function(ffi.Pointer<OBX_query_builder>, int,
               ffi.Pointer<ffi.Char>, bool)>();
 
-  /// For flex properties that have a map as root value, this looks for matching key/value pair.
+  /// @Deprecated use obx_qb_equals_key_value_string instead
   int qb_contains_key_value_string(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -4181,6 +4181,475 @@ class ObjectBoxC {
       _qb_contains_key_value_stringPtr.asFunction<
           int Function(ffi.Pointer<OBX_query_builder>, int,
               ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must equal this one.
+  /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+  int qb_equals_key_value_string(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    ffi.Pointer<ffi.Char> value,
+    bool case_sensitive,
+  ) {
+    return _qb_equals_key_value_string(
+      builder,
+      property_id,
+      key,
+      value,
+      case_sensitive,
+    );
+  }
+
+  late final _qb_equals_key_value_stringPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool)>>('obx_qb_equals_key_value_string');
+  late final _qb_equals_key_value_string =
+      _qb_equals_key_value_stringPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must equal this one.
+  int qb_equals_key_value_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    int value,
+  ) {
+    return _qb_equals_key_value_int(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_equals_key_value_intPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int64)>>('obx_qb_equals_key_value_int');
+  late final _qb_equals_key_value_int = _qb_equals_key_value_intPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_query_builder>, int, ffi.Pointer<ffi.Char>, int)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must equal this one.
+  int qb_equals_key_value_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    double value,
+  ) {
+    return _qb_equals_key_value_double(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_equals_key_value_doublePtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Double)>>('obx_qb_equals_key_value_double');
+  late final _qb_equals_key_value_double =
+      _qb_equals_key_value_doublePtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, double)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being greater than the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be greater than this one.
+  /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+  int qb_greater_key_value_string(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    ffi.Pointer<ffi.Char> value,
+    bool case_sensitive,
+  ) {
+    return _qb_greater_key_value_string(
+      builder,
+      property_id,
+      key,
+      value,
+      case_sensitive,
+    );
+  }
+
+  late final _qb_greater_key_value_stringPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool)>>('obx_qb_greater_key_value_string');
+  late final _qb_greater_key_value_string =
+      _qb_greater_key_value_stringPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being greater than the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be greater than this one.
+  int qb_greater_key_value_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    int value,
+  ) {
+    return _qb_greater_key_value_int(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_greater_key_value_intPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int64)>>('obx_qb_greater_key_value_int');
+  late final _qb_greater_key_value_int =
+      _qb_greater_key_value_intPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, int)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being greater than the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be greater than this one.
+  int qb_greater_key_value_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    double value,
+  ) {
+    return _qb_greater_key_value_double(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_greater_key_value_doublePtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Double)>>('obx_qb_greater_key_value_double');
+  late final _qb_greater_key_value_double =
+      _qb_greater_key_value_doublePtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, double)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being greater than or equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be greater than or equal to this one.
+  /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+  int qb_greater_or_equal_key_value_string(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    ffi.Pointer<ffi.Char> value,
+    bool case_sensitive,
+  ) {
+    return _qb_greater_or_equal_key_value_string(
+      builder,
+      property_id,
+      key,
+      value,
+      case_sensitive,
+    );
+  }
+
+  late final _qb_greater_or_equal_key_value_stringPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool)>>('obx_qb_greater_or_equal_key_value_string');
+  late final _qb_greater_or_equal_key_value_string =
+      _qb_greater_or_equal_key_value_stringPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being greater than or equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be greater than or equal to this one.
+  int qb_greater_or_equal_key_value_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    int value,
+  ) {
+    return _qb_greater_or_equal_key_value_int(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_greater_or_equal_key_value_intPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int64)>>('obx_qb_greater_or_equal_key_value_int');
+  late final _qb_greater_or_equal_key_value_int =
+      _qb_greater_or_equal_key_value_intPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, int)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being greater than or equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be greater than or equal to this one.
+  int qb_greater_or_equal_key_value_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    double value,
+  ) {
+    return _qb_greater_or_equal_key_value_double(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_greater_or_equal_key_value_doublePtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Double)>>('obx_qb_greater_or_equal_key_value_double');
+  late final _qb_greater_or_equal_key_value_double =
+      _qb_greater_or_equal_key_value_doublePtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, double)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being lesser than the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be lesser than this one.
+  /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+  int qb_less_than_key_value_string(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    ffi.Pointer<ffi.Char> value,
+    bool case_sensitive,
+  ) {
+    return _qb_less_than_key_value_string(
+      builder,
+      property_id,
+      key,
+      value,
+      case_sensitive,
+    );
+  }
+
+  late final _qb_less_than_key_value_stringPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool)>>('obx_qb_less_than_key_value_string');
+  late final _qb_less_than_key_value_string =
+      _qb_less_than_key_value_stringPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being lesser than the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be lesser than this one.
+  int qb_less_than_key_value_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    int value,
+  ) {
+    return _qb_less_than_key_value_int(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_less_than_key_value_intPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int64)>>('obx_qb_less_than_key_value_int');
+  late final _qb_less_than_key_value_int =
+      _qb_less_than_key_value_intPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, int)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being lesser than the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be lesser than this one.
+  int qb_less_than_key_value_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    double value,
+  ) {
+    return _qb_less_than_key_value_double(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_less_than_key_value_doublePtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Double)>>('obx_qb_less_than_key_value_double');
+  late final _qb_less_than_key_value_double =
+      _qb_less_than_key_value_doublePtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, double)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being lesser than or equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be lesser than or equal to this one.
+  /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
+  int qb_less_or_equal_key_value_string(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    ffi.Pointer<ffi.Char> value,
+    bool case_sensitive,
+  ) {
+    return _qb_less_or_equal_key_value_string(
+      builder,
+      property_id,
+      key,
+      value,
+      case_sensitive,
+    );
+  }
+
+  late final _qb_less_or_equal_key_value_stringPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool)>>('obx_qb_less_or_equal_key_value_string');
+  late final _qb_less_or_equal_key_value_string =
+      _qb_less_or_equal_key_value_stringPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being lesser than or equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be lesser than or equal to this one.
+  int qb_less_or_equal_key_value_int(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    int value,
+  ) {
+    return _qb_less_or_equal_key_value_int(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_less_or_equal_key_value_intPtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int64)>>('obx_qb_less_or_equal_key_value_int');
+  late final _qb_less_or_equal_key_value_int =
+      _qb_less_or_equal_key_value_intPtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, int)>();
+
+  /// For flex properties that have a map as root value, this looks for a matching key/value pair,
+  /// with the map value being lesser than or equal to the given one.
+  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param value the map's value must be lesser than or equal to this one.
+  int qb_less_or_equal_key_value_double(
+    ffi.Pointer<OBX_query_builder> builder,
+    int property_id,
+    ffi.Pointer<ffi.Char> key,
+    double value,
+  ) {
+    return _qb_less_or_equal_key_value_double(
+      builder,
+      property_id,
+      key,
+      value,
+    );
+  }
+
+  late final _qb_less_or_equal_key_value_doublePtr = _lookup<
+      ffi.NativeFunction<
+          obx_qb_cond Function(
+              ffi.Pointer<OBX_query_builder>,
+              obx_schema_id,
+              ffi.Pointer<ffi.Char>,
+              ffi.Double)>>('obx_qb_less_or_equal_key_value_double');
+  late final _qb_less_or_equal_key_value_double =
+      _qb_less_or_equal_key_value_doublePtr.asFunction<
+          int Function(ffi.Pointer<OBX_query_builder>, int,
+              ffi.Pointer<ffi.Char>, double)>();
 
   int qb_starts_with_string(
     ffi.Pointer<OBX_query_builder> builder,
@@ -7812,7 +8281,10 @@ class ObjectBoxC {
       _sync_closePtr.asFunction<int Function(ffi.Pointer<OBX_sync>)>();
 
   /// Sets credentials to authenticate the client with the server.
-  /// See OBXSyncCredentialsType for available options.
+  /// Any credentials that were set before are replaced;
+  /// if you want to pass multiple credentials, use obx_sync_credentials_add() instead.
+  /// If the client was waiting for credentials, this can trigger a reconnection/login attempt.
+  /// @param type See OBXSyncCredentialsType for available options.
   /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
   /// @param data may be NULL in combination with OBXSyncCredentialsType_NONE
   int sync_credentials(
@@ -7866,6 +8338,80 @@ class ObjectBoxC {
       _sync_credentials_user_passwordPtr.asFunction<
           int Function(ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Char>,
               ffi.Pointer<ffi.Char>)>();
+
+  /// For authentication with multiple credentials, collect credentials by calling this function multiple times.
+  /// When adding the last credentials element, the "complete" flag must be set to true.
+  /// When completed, it will "activate" the collected credentials and replace any previously set credentials and
+  /// potentially trigger a reconnection/login attempt.
+  /// @param type See OBXSyncCredentialsType for available options.
+  /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
+  /// @param data non-NULL (OBXSyncCredentialsType_NONE is not allowed)
+  /// @param complete set to true when adding the last credentials element to activate the set of credentials
+  int sync_credentials_add(
+    ffi.Pointer<OBX_sync> sync1,
+    int type,
+    ffi.Pointer<ffi.Uint8> data,
+    int size,
+    bool complete,
+  ) {
+    return _sync_credentials_add(
+      sync1,
+      type,
+      data,
+      size,
+      complete,
+    );
+  }
+
+  late final _sync_credentials_addPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_sync>,
+              ffi.Int32,
+              ffi.Pointer<ffi.Uint8>,
+              ffi.Size,
+              ffi.Bool)>>('obx_sync_credentials_add');
+  late final _sync_credentials_add = _sync_credentials_addPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Uint8>, int, bool)>();
+
+  /// For authentication with multiple credentials, collect credentials by calling this function multiple times.
+  /// When adding the last credentials element, the "complete" flag must be set to true.
+  /// When completed, it will "activate" the collected credentials and replace any previously set credentials and
+  /// potentially trigger a reconnection/login attempt.
+  /// @param type See OBXSyncCredentialsType for available options.
+  /// The accepted OBXSyncCredentials type depends on your sync-server configuration.
+  /// @param username non-NULL
+  /// @param password non-NULL
+  /// @param complete set to true when adding the last credentials element to activate the set of credentials
+  int sync_credentials_add_user_password(
+    ffi.Pointer<OBX_sync> sync1,
+    int type,
+    ffi.Pointer<ffi.Char> username,
+    ffi.Pointer<ffi.Char> password,
+    bool complete,
+  ) {
+    return _sync_credentials_add_user_password(
+      sync1,
+      type,
+      username,
+      password,
+      complete,
+    );
+  }
+
+  late final _sync_credentials_add_user_passwordPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(
+              ffi.Pointer<OBX_sync>,
+              ffi.Int32,
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Bool)>>('obx_sync_credentials_add_user_password');
+  late final _sync_credentials_add_user_password =
+      _sync_credentials_add_user_passwordPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>, bool)>();
 
   /// Configures the maximum number of outgoing TX messages that can be sent without an ACK from the server.
   /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the range 1-20
@@ -8500,16 +9046,16 @@ class ObjectBoxC {
               ffi.Pointer<ffi.Void>)>();
 
   /// Set or overwrite a previously set 'error' listener - provides information about occurred sync-level errors.
-  /// @param listener set NULL to reset
+  /// @param listener The callback to receive sync errors. Set to NULL to reset.
   /// @param listener_arg is a pass-through argument passed to the listener
   void sync_listener_error(
     ffi.Pointer<OBX_sync> sync1,
-    ffi.Pointer<OBX_sync_listener_error> error,
+    ffi.Pointer<OBX_sync_listener_error> listener,
     ffi.Pointer<ffi.Void> listener_arg,
   ) {
     return _sync_listener_error(
       sync1,
-      error,
+      listener,
       listener_arg,
     );
   }
@@ -8968,7 +9514,7 @@ class ObjectBoxC {
 
   /// Get u64 value for sync server statistics.
   /// @param counter_type the counter value to be read (make sure to choose a uint64_t (u64) metric value type).
-  /// @param out_count receives the counter value.
+  /// @param out_value receives the counter value.
   /// @return OBX_SUCCESS if the counter has been successfully retrieved.
   /// @return OBX_ERROR_ILLEGAL_ARGUMENT if counter_type is undefined (this also happens if the wrong type is requested)
   /// @return OBX_ERROR_ILLEGAL_STATE if the server is not started.
@@ -8994,7 +9540,7 @@ class ObjectBoxC {
 
   /// Get double value for sync server statistics.
   /// @param counter_type the counter value to be read (make sure to use a double (f64) metric value type).
-  /// @param out_count receives the counter value.
+  /// @param out_value receives the counter value.
   /// @return OBX_SUCCESS if the counter has been successfully retrieved.
   /// @return OBX_ERROR_ILLEGAL_ARGUMENT if counter_type is undefined (this also happens if the wrong type is requested)
   /// @return OBX_ERROR_ILLEGAL_STATE if the server is not started.
@@ -9729,6 +10275,9 @@ abstract class OBXFeature {
 
   /// Sync connector to integrate MongoDB with SyncServer.
   static const int SyncMongoDb = 16;
+
+  /// Enables additional authentication/authorization methods for sync login, e.g. JWT based methods.
+  static const int Auth = 17;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -9849,6 +10398,11 @@ abstract class OBXVectorDistanceType {
   static const int DotProduct = 3;
   static const int Manhattan = 4;
   static const int Hamming = 5;
+
+  /// For geospatial coordinates aka latitude/longitude pairs.
+  /// Note, that the vector dimension must be 2, with the latitude being the first element and longitude the second.
+  /// Internally, this uses haversine distance.
+  static const int Geo = 6;
 
   /// A custom dot product similarity measure that does not require the vectors to be normalized.
   /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
@@ -10333,11 +10887,35 @@ class OBX_sync extends ffi.Opaque {}
 /// specifies a generic client-side credential type.
 abstract class OBXSyncCredentialsType {
   static const int NONE = 1;
+
+  /// < Deprecated, replaced by SHARED_SECRET_SIPPED
   static const int SHARED_SECRET = 2;
   static const int GOOGLE_AUTH = 3;
+
+  /// < Uses shared secret to create a hashed credential.
   static const int SHARED_SECRET_SIPPED = 4;
+
+  /// < ObjectBox admin users (username/password)
   static const int OBX_ADMIN_USER = 5;
+
+  /// < Generic credential type suitable for ObjectBox admin
+  /// < (and possibly others in the future)
   static const int USER_PASSWORD = 6;
+
+  /// < JSON Web Token (JWT): an ID token that typically provides identity
+  /// < information about the authenticated user.
+  static const int JWT_ID = 7;
+
+  /// < JSON Web Token (JWT): an access token that is used to access resources.
+  static const int JWT_ACCESS = 8;
+
+  /// < JSON Web Token (JWT): a refresh token that is used to obtain a new
+  /// < access token.
+  static const int JWT_REFRESH = 9;
+
+  /// < JSON Web Token (JWT): a token that is neither an ID, access,
+  /// < nor refresh token.
+  static const int JWT_CUSTOM = 10;
 }
 
 abstract class OBXRequestUpdatesMode {
@@ -10761,7 +11339,7 @@ typedef OBX_custom_msg_server_func_client_connection_close = ffi.NativeFunction<
 /// Callback to shutdown and free all resources associated with the sync client connection to the custom server.
 /// Note that the custom server may already have been shutdown at this point (e.g. no server user data is supplied).
 /// Must be provided to implement a custom server. See notes on OBX_custom_msg_server_functions for more details.
-/// @param server_user_data User supplied data returned by the function that created the server
+/// @param connection_user_data User supplied data returned by the function that created the server
 typedef OBX_custom_msg_server_func_client_connection_shutdown
     = ffi.NativeFunction<
         ffi.Void Function(ffi.Pointer<ffi.Void> connection_user_data)>;
@@ -10881,9 +11459,9 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 4;
 
-const int OBX_VERSION_MINOR = 0;
+const int OBX_VERSION_MINOR = 1;
 
-const int OBX_VERSION_PATCH = 2;
+const int OBX_VERSION_PATCH = 0;
 
 const int OBX_ID_NEW = -1;
 

@@ -19,15 +19,15 @@ for the binding update script (see below) and
 for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:
 
 ```bash
-./tool/set-c-version.sh 4.0.2
+./tool/set-c-version.sh 4.1.0
 ```
 
 ```text
-* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.0.2](https://github.com/objectbox/objectbox-c/releases/tag/v4.0.2).
+* Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
 ```
 
 ```text
-Update C library [4.0.1 -> 4.0.2]
+Update C library [4.0.2 -> 4.1.0]
 ```
 
 ### Android
@@ -35,45 +35,45 @@ Update C library [4.0.1 -> 4.0.2]
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 
 ```bash
-./tool/set-android-version.sh 4.0.3
+./tool/set-android-version.sh 4.1.0
 ```
 
 ```text
-* Flutter for Android: update to [objectbox-android 4.0.3](https://github.com/objectbox/objectbox-java/releases/tag/V4.0.3).
+* Flutter for Android: update to [objectbox-android 4.1.0](https://github.com/objectbox/objectbox-java/releases/tag/V4.1.0).
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to
-  update to `io.objectbox:objectbox-android-objectbrowser:4.0.3` in `android/app/build.gradle`.
+  update to `io.objectbox:objectbox-android-objectbrowser:4.1.0` in `android/app/build.gradle`.
 ```
 
 ```text
-Update objectbox-android [4.0.2 -> 4.0.3]
+Update objectbox-android [4.0.3 -> 4.1.0]
 
-Bundled with C API 4.0.1 and ObjectBox 4.0.2-2024-10-15
+Bundled with C API 4.1.0 and ObjectBox 4.1.0-2025-01-28
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
-from the relevant objectbox repository release tag (like `java-4.0.3`).
+from the relevant objectbox repository release tag (like `java-4.1.0`).
 
 ### Apple OSs
 
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 
 ```bash
-./tool/set-swift-version.sh 4.0.1
+./tool/set-swift-version.sh 4.1.0
 ```
 
 ```text
-* Flutter for iOS/macOS: update to [objectbox-swift 4.0.1](https://github.com/objectbox/objectbox-swift/releases/tag/v4.0.1).
+* Flutter for iOS/macOS: update to [objectbox-swift 4.1.0](https://github.com/objectbox/objectbox-swift/releases/tag/v4.1.0).
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 ```
 
 ```text
 Update ObjectBox Swift [4.0.0 -> 4.0.1]
 
-Bundled with C API 4.0.2 and ObjectBox 4.0.2-2024-10-15
+Bundled with C API 4.1.0 and ObjectBox 4.1.0-2025-01-30
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 
-from the objectbox-swift release tag (like `v4.0.1`) and 
+from the objectbox-swift release tag (like `v4.1.0`) and 
 the objectbox commit it points to (see `external/objectbox`).
 
 ## Dart C API bindings
@@ -96,5 +96,5 @@ Then manually:
 - Commit as
 
 ```text
-Update C-API [4.0.1 -> 4.0.2]
+Update C-API [4.0.2 -> 4.1.0]
 ```
