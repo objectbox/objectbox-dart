@@ -22,6 +22,7 @@ void main() {
         OBXVectorDistanceType.DotProduct);
     expect(VectorDistanceType.dotProductNonNormalized.toConstant(),
         OBXVectorDistanceType.DotProductNonNormalized);
+    expect(VectorDistanceType.geo.toConstant(), OBXVectorDistanceType.Geo);
   });
 
   test("ModelHnswParams maps values", () {

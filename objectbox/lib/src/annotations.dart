@@ -341,7 +341,18 @@ enum VectorDistanceType {
   /// The more negative the dot product, the higher the distance is (the farther the vectors are).
   ///
   /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
-  dotProductNonNormalized
+  dotProductNonNormalized,
+
+  /// For geospatial coordinates aka latitude/longitude pairs.
+  ///
+  /// Note, that the vector dimension must be 2, with the latitude being the first element and longitude the second.
+  /// If the vector has more than 2 dimensions, the first 2 dimensions are used.
+  /// If the vector has fewer than 2 dimensions, the distance is zero.
+  ///
+  /// Internally, this uses haversine distance.
+  ///
+  /// Value range: 0 km - 6371 * π km (approx. 20015.09 km; half the Earth's circumference)
+  geo
 }
 
 /// Flags as a part of the [HnswIndex] configuration.

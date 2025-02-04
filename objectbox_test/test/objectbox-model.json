@@ -667,7 +667,7 @@
     },
     {
       "id": "14:880388751413233760",
-      "lastPropertyId": "4:2308158275756661586",
+      "lastPropertyId": "5:1476994841170736323",
       "name": "HnswObject",
       "properties": [
         {
@@ -695,6 +695,13 @@
           "flags": 520,
           "indexId": "22:6527315700526716999",
           "relationTarget": "RelatedNamedEntity"
+        },
+        {
+          "id": "5:1476994841170736323",
+          "name": "floatVectorGeoCoordinates",
+          "type": 28,
+          "flags": 8,
+          "indexId": "23:6649884639373473085"
         }
       ],
       "relations": []
@@ -720,7 +727,7 @@
     }
   ],
   "lastEntityId": "15:4803284427984871569",
-  "lastIndexId": "22:6527315700526716999",
+  "lastIndexId": "23:6649884639373473085",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
