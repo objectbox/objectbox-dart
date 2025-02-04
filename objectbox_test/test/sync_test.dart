@@ -584,7 +584,7 @@ void main() {
 class SyncServer {
   Directory? _dir;
   int? _port;
-  Future<Process>? _process;
+  Process? _process;
 
   static bool isAvailable() {
     // Note: this causes an additional valgrind summary output with a leak.
@@ -622,7 +622,12 @@ class SyncServer {
     }
 
     print("Starting Sync server with arguments: $arguments");
-    _process = Process.start('sync-server', arguments);
+    final process = await Process.start('sync-server', arguments);
+    _process = process;
+
+    // Make log output visible when running tests
+    stdout.addStream(process.stdout);
+    stderr.addStream(process.stderr);
 
     return _port!;
   }
@@ -650,14 +655,12 @@ class SyncServer {
       }).timeout(defaultTimeout);
 
   Future<void> stop({bool keepDb = false}) async {
-    if (_process == null) return;
-    final proc = await _process!;
+    final proc = _process;
+    if (proc == null) return;
     _process = null;
     proc.kill(ProcessSignal.sigint);
     final exitCode = await proc.exitCode;
     if (exitCode != 0) {
-      await stdout.addStream(proc.stdout);
-      await stderr.addStream(proc.stderr);
       expect(await proc.exitCode, isZero);
     }
     if (!keepDb) _deleteDb();
