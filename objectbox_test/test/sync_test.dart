@@ -510,28 +510,33 @@ void main() {
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIn0.YZSt5XIp7KLSIEtYegEGInea2IvyZajEOWEXcH8p0kYTvhU07LFcxbPWxnNeBtQSjkGp0U0XQUQkCaRjRbNDiHKHCtQHOsUtLefAfQc-WENzSSrGqbb7YKw7FHgsGCQX7FRblcdw3ExU9w8NBgt0xQaDqnwBYfltfu6bmJG5QabGnljcmLGB3Q5EcppxBgWZdLzhmVRiqkiIsCp8kBtELz3Lk8a2LIJP80khJWdls1zIK_NR0XtV6Dbbac1fFN0v5F2VN61VjL9HXZWm68zf2ueW_jobN8IBcJkOAfefgsQu_1e5B0iVAxyRki6F99V1B8Ci_5wbTXRs4bob1Nsl2Q";
         final String testExpiredJwtToken =
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIiwiZXhwIjoxNzM4MjE1NjAwLCJpYXQiOjE3MzgyMTc0MDN9.3auqtgaSEqpFqXhuCyoDM-LbfTOIEGGF6X0AjCcykJ2Nv1WN6LaVbuMDjMf-tKSLyeqFkzQbIckP4FvLHh7wQJ6rafDiT4H2pb6xhouU1QH3szK2S_7VDl_4BhxRbW5pEUt9086HXaVFHEZVS0417pxomlPHxrc1n4Z_A4QxZM5_xh5xcHV8PiGgXWb6_2basjBj5z6POTrazRs67IOQ-ob6ROIsOUGu3om6b8i0h_QSMmeJbujfr2EZqhYWTKijeyidbjRWZ97NFxtGRYN_jPOvy-T3gANXs2a32Er8XvgZTjr_-O8tl_1fHPo2kDE-UCNdwUfBQFhTokDUdJ81bg";
-        final String testJwtPublicKey = '''
-        -----BEGIN PUBLIC KEY-----
-        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6S7asUuzq5Q/3U9rbs+P
-        kDVIdjgmtgWreG5qWPsC9xXZKiMV1AiV9LXyqQsAYpCqEDM3XbfmZqGb48yLhb/X
-        qZaKgSYaC/h2DjM7lgrIQAp9902Rr8fUmLN2ivr5tnLxUUOnMOc2SQtr9dgzTONY
-        W5Zu3PwyvAWk5D6ueIUhLtYzpcB+etoNdL3Ir2746KIy/VUsDwAM7dhrqSK8U2xF
-        CGlau4ikOTtvzDownAMHMrfE7q1B6WZQDAQlBmxRQsyKln5DIsKv6xauNsHRgBAK
-        ctUxZG8M4QJIx3S6Aughd3RZC4Ca5Ae9fd8L8mlNYBCrQhOZ7dS0f4at4arlLcaj
-        twIDAQAB
-        -----END PUBLIC KEY-----
-        ''';
+        final String testJwtPublicKey = '''-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6S7asUuzq5Q/3U9rbs+P
+kDVIdjgmtgWreG5qWPsC9xXZKiMV1AiV9LXyqQsAYpCqEDM3XbfmZqGb48yLhb/X
+qZaKgSYaC/h2DjM7lgrIQAp9902Rr8fUmLN2ivr5tnLxUUOnMOc2SQtr9dgzTONY
+W5Zu3PwyvAWk5D6ueIUhLtYzpcB+etoNdL3Ir2746KIy/VUsDwAM7dhrqSK8U2xF
+CGlau4ikOTtvzDownAMHMrfE7q1B6WZQDAQlBmxRQsyKln5DIsKv6xauNsHRgBAK
+ctUxZG8M4QJIx3S6Aughd3RZC4Ca5Ae9fd8L8mlNYBCrQhOZ7dS0f4at4arlLcaj
+twIDAQAB
+-----END PUBLIC KEY-----''';
 
         test('Auth with JSON Web Token (JWT)', () async {
           // Note: the objectbox project covers all cases, this test just
           // ensures the Dart parts work as expected.
           final server = SyncServer();
-          final publicKeyString = testJwtPublicKey.replaceAll(" ", "");
-          serverPort = await server.start(authArguments: [
-            "--jwt-public-key $publicKeyString",
-            "--jwt-claim-aud sync-server",
-            "--jwt-claim-iss objectbox-auth"
-          ]);
+          // JSON does not allow line breaks in values so escape \n
+          final publicKeyString = testJwtPublicKey.replaceAll("\n", "\\n");
+          serverPort = await server.start(configContents: """
+{
+  "auth": {
+    "jwt": {
+      "publicKey": "$publicKeyString",
+      "claimAud": "sync-server",
+      "claimIss": "objectbox-auth"
+    }
+  }
+}
+          """);
           await server.online();
           addTearDown(() async => await server.stop());
 
@@ -602,21 +607,44 @@ class SyncServer {
     }
   }
 
-  Future<int> start(
-      {bool keepDb = false, List<String> authArguments = const []}) async {
-    _port ??= await _getUnusedPort();
+  static Future<File> _writeConfFile(
+      Directory directory, String contents) async {
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
 
-    _dir ??= Directory('testdata-sync-server-$_port');
+    final configFile = File('${directory.path}/sync-server-conf-test.json');
+    await configFile.writeAsString(contents); // overwrites by default
+
+    return configFile;
+  }
+
+  /// By default uses `--unsecured-no-authentication`. To use a custom
+  /// authentication configuration, pass [configContents].
+  /// It will be used to create a config file that is passed using `--conf`.
+  ///
+  /// Set [keepDb] to not delete an existing database before starting the
+  /// server.
+  Future<int> start({bool keepDb = false, String? configContents}) async {
+    final port = _port ??= await _getUnusedPort();
+    _port = port;
+
+    final dir = _dir ??= Directory('testdata-sync-server-$port');
+    _dir = dir;
     if (!keepDb) _deleteDb();
 
+    // Note: add arguments using the '--arg=value' syntax (unlike at the
+    // command line, which uses '--arg value')!
     final arguments = [
-      '--db-directory=${_dir!.path}',
+      '--db-directory=${dir.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
-      '--bind=ws://127.0.0.1:$_port',
+      '--bind=ws://127.0.0.1:$port',
       '--admin-bind=http://127.0.0.1:${await _getUnusedPort()}'
     ];
-    if (authArguments.isNotEmpty) {
-      arguments.addAll(authArguments);
+    if (configContents != null && configContents.isNotEmpty) {
+      // Note: command line arguments overwrite values in a conf file
+      final configFile = await _writeConfFile(dir, configContents);
+      arguments.add("--conf=${configFile.absolute.path}");
     } else {
       arguments.add('--unsecured-no-authentication');
     }
@@ -629,7 +657,7 @@ class SyncServer {
     stdout.addStream(process.stdout);
     stderr.addStream(process.stderr);
 
-    return _port!;
+    return port;
   }
 
   /// Wait for the server to respond to a simple http request.
