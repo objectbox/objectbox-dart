@@ -652,7 +652,9 @@ class SyncServer {
           }
         }
         httpClient.close(force: true);
-      }).timeout(defaultTimeout);
+      }).timeout(defaultTimeout,
+          onTimeout: () => throw TimeoutException(
+              "Server did not come online within $defaultTimeout ms"));
 
   Future<void> stop({bool keepDb = false}) async {
     final proc = _process;
