@@ -1,5 +1,6 @@
 ## latest
 
+* Flutter for Android: requires Android 5.0 (API level 21).
 * Vector Search: You can now use the new `VectorDistanceType.GEO` distance-type to perform vector searches on
   geographical coordinates. This is particularly useful for location-based applications.
 * Flutter for Linux/Windows, Dart Native: update to [objectbox-c 4.1.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.1.0).
