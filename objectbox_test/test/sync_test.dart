@@ -16,6 +16,13 @@ import 'test_env.dart';
 // We want to have types explicit - verifying the return types of functions.
 // ignore_for_file: omit_local_variable_types
 
+/// Tests Dart specific parts of the Sync APIs.
+///
+/// - client tests that do not require a server
+/// - server tests that are currently run manually (in their own test groups)
+///   - by making sure sync-server is on PATH or for some
+///   - by configuring and running a server, making sure its available on
+///   [serverPort]. For these also see the setup notes on specific tests.
 void main() {
   late TestEnv env;
   late Store store;
