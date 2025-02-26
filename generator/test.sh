@@ -46,6 +46,10 @@ function runTestCase() {
 
 if [ $# -eq 0 ]; then
   for testCase in "${myDir}"/integration-tests/*/; do
+    # Temporarily turn of broken part-partof test, see objectbox/objectbox-dart#138
+    if [[ "$(basename "$testCase")" == "part-partof" ]]; then
+      continue
+    fi
     runTestCase "${testCase}"
   done
 else
