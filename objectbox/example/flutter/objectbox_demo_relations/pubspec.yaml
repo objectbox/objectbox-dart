@@ -9,7 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  objectbox: ^4.1.0
+  # Optional: specify a concrete version when using ObjectBox Admin - https://docs.objectbox.io/data-browser
+  # Note: when updating objectbox, check the release notes (https://github.com/objectbox/objectbox-dart/releases)
+  # if objectbox-android-objectbrowser in android/app/build.gradle has to be updated.
+  objectbox: 4.1.0
   objectbox_flutter_libs: any
   intl: any
   path_provider: ^2.0.10 # 2.0.11+ requires Flutter 2.8.0

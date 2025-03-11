@@ -67,8 +67,8 @@ flutter {
 }
 
 // Optional: add ObjectBox Admin - https://docs.objectbox.io/data-browser
-// Tell Gradle to exclude the objectbox-android dependency from debug builds
-// that is added by objectbox_flutter_libs. Keeps it for release and profile builds.
+// Tell Gradle to exclude the Android library (without Admin)
+// that is added by the objectbox_flutter_libs package for debug builds.
 configurations {
     debugImplementation {
         exclude group: 'io.objectbox', module: 'objectbox-android'
@@ -79,8 +79,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // Optional: add ObjectBox Admin - https://docs.objectbox.io/data-browser
-    // Add objectbox-android-objectbrowser only for debug builds.
-    // Warning: when objectbox_flutter_libs updates check if version
-    // needs update, e.g. check https://github.com/objectbox/objectbox-dart/releases.
+    // Add the Android library with ObjectBox Admin only for debug builds.
+    // Note: when the objectbox package updates, check if the Android
+    // library below needs to be updated as well.
     debugImplementation("io.objectbox:objectbox-android-objectbrowser:4.1.0")
 }
