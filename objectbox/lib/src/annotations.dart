@@ -36,8 +36,8 @@ class Entity {
   const Entity({this.uid, this.realClass});
 }
 
-/// Use to (optionally) annotate a field to explicitly configure some details about
-/// how a field is stored in the database.
+/// Use to (optionally) annotate a field to explicitly configure some details
+/// about how a field is stored in the database.
 ///
 /// For example:
 /// ```
@@ -99,7 +99,8 @@ enum PropertyType {
   /// size: 2-bytes/16-bits
   short,
 
-  /// Use with [Property.type] to store [int] as 2 bytes (16-bit unsigned integer).
+  /// Use with [Property.type] to store [int] as 2 bytes (16-bit unsigned
+  /// integer).
   char,
 
   /// size: 4-bytes/32-bits
@@ -256,9 +257,9 @@ enum IndexType {
 /// [UniqueViolationException] (see [ConflictStrategy.fail]).
 /// Set [onConflict] to change this strategy.
 ///
-/// Note: Unique properties are based on an [Index], so the same restrictions apply.
-/// It is supported to explicitly add the [Index] annotation to configure the
-/// index.
+/// Note: Unique properties are based on an [Index], so the same restrictions
+/// apply. It is supported to explicitly add the [Index] annotation to configure
+/// the index.
 class Unique {
   /// The strategy to use when a conflict is detected when an object is put.
   final ConflictStrategy onConflict;
@@ -269,7 +270,8 @@ class Unique {
 
 /// Used with [Unique] to specify the conflict resolution strategy.
 enum ConflictStrategy {
-  /// Throws [UniqueViolationException] if any property violates a [Unique] constraint.
+  /// Throws [UniqueViolationException] if any property violates a [Unique]
+  /// constraint.
   fail,
 
   /// Any conflicting objects are deleted before the object is inserted.
@@ -319,39 +321,49 @@ enum VectorDistanceType {
   /// The default; typically "Euclidean squared" internally.
   euclidean,
 
-  /// Cosine similarity compares two vectors irrespective of their magnitude (compares the angle of two vectors).
+  /// Cosine similarity compares two vectors irrespective of their magnitude
+  /// (compares the angle of two vectors).
   ///
   /// Often used for document or semantic similarity.
   ///
-  /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal,
+  /// 2.0: opposite direction)
   cosine,
 
-  /// For normalized vectors (vector length == 1.0), the dot product is equivalent to the cosine similarity.
+  /// For normalized vectors (vector length == 1.0), the dot product is
+  /// equivalent to the cosine similarity.
   ///
   /// Because of this, the dot product is often preferred as it performs better.
   ///
-  /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction,
+  /// 1.0: orthogonal, 2.0: opposite direction)
   dotProduct,
 
-  /// A custom dot product similarity measure that does not require the vectors to be normalized.
+  /// A custom dot product similarity measure that does not require the vectors
+  /// to be normalized.
   ///
-  /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
-  /// The non-linear conversion provides a high precision over the entire float range (for the raw dot product).
-  /// The higher the dot product, the lower the distance is (the nearer the vectors are).
-  /// The more negative the dot product, the higher the distance is (the farther the vectors are).
+  /// Note: this is no replacement for cosine similarity (like DotProduct for
+  /// normalized vectors is). The non-linear conversion provides a high
+  /// precision over the entire float range (for the raw dot product).
+  /// The higher the dot product, the lower the distance is (the nearer the
+  /// vectors are). The more negative the dot product, the higher the distance
+  /// is (the farther the vectors are).
   ///
-  /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
+  /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal,
+  /// 2.0: farthest)
   dotProductNonNormalized,
 
   /// For geospatial coordinates aka latitude/longitude pairs.
   ///
-  /// Note, that the vector dimension must be 2, with the latitude being the first element and longitude the second.
-  /// If the vector has more than 2 dimensions, the first 2 dimensions are used.
-  /// If the vector has fewer than 2 dimensions, the distance is zero.
+  /// Note, that the vector dimension must be 2, with the latitude being the
+  /// first element and longitude the second. If the vector has more than 2
+  /// dimensions, the first 2 dimensions are used. If the vector has fewer than
+  /// 2 dimensions, the distance is zero.
   ///
   /// Internally, this uses haversine distance.
   ///
-  /// Value range: 0 km - 6371 * π km (approx. 20015.09 km; half the Earth's circumference)
+  /// Value range: 0 km - 6371 * π km (approx. 20015.09 km; half the Earth's
+  /// circumference)
   geo
 }
 
@@ -363,12 +375,17 @@ class HnswFlags {
   /// Enables "high volume" debug logs, e.g. individual gets/puts.
   final bool debugLogsDetailed;
 
-  /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
+  /// Padding for SIMD is enabled by default, which uses more memory but may be
+  /// faster. This flag turns it off.
   final bool vectorCacheSimdPaddingOff;
 
-  /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
-  /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
-  /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
+  /// If the speed of removing nodes becomes a concern in your use case, you can
+  /// speed it up by setting this flag.
+  ///
+  /// By default, repairing the graph after node removals creates more
+  /// connections to improve the graph's quality. The extra costs for this are
+  /// relatively low (e.g. vs. regular indexing), and thus the default is
+  /// recommended.
   final bool reparationLimitCandidates;
 
   /// Create flags for the [HnswIndex] annotation.
@@ -382,54 +399,76 @@ class HnswFlags {
 /// See [HnswIndex.new].
 class HnswIndex {
   /// Dimensions of vectors; vector data with fewer dimensions are ignored.
-  /// Vectors with more dimensions than specified here are only evaluated up to the given dimension value.
+  /// Vectors with more dimensions than specified here are only evaluated up to
+  /// the given dimension value.
+  ///
   /// Changing this value causes re-indexing.
   final int dimensions;
 
   /// Aka "M": the max number of connections per node (default: 30).
-  /// Higher numbers increase the graph connectivity, which can lead to more accurate search results.
-  /// However, higher numbers also increase the indexing time and resource usage.
-  /// Try e.g. 16 for faster but less accurate results, or 64 for more accurate results.
+  ///
+  /// Higher numbers increase the graph connectivity, which can lead to more
+  /// accurate search results. However, higher numbers also increase the
+  /// indexing time and resource usage.
+  ///
+  /// Try e.g. 16 for faster but less accurate results, or 64 for more accurate
+  /// results.
+  ///
   /// Changing this value causes re-indexing.
   final int? neighborsPerNode;
 
-  /// Aka "efConstruction": the number of neighbor searched for while indexing (default: 100).
-  /// The higher the value, the more accurate the search, but the longer the indexing.
-  /// If indexing time is not a major concern, a value of at least 200 is recommended to improve search quality.
+  /// Aka "efConstruction": the number of neighbor searched for while indexing
+  /// (default: 100).
+  ///
+  /// The higher the value, the more accurate the search, but the longer the
+  /// indexing.
+  ///
+  /// If indexing time is not a major concern, a value of at least 200 is
+  /// recommended to improve search quality.
+  ///
   /// Changing this value causes re-indexing.
   final int? indexingSearchCount;
 
   /// See [HnswFlags.new].
   final HnswFlags? flags;
 
-  /// The distance type used for the HNSW index; if none is given, the default [VectorDistanceType.euclidean] is used.
+  /// The distance type used for the HNSW index; if none is given, the default
+  /// [VectorDistanceType.euclidean] is used.
   ///
   /// Changing this value causes re-indexing.
   final VectorDistanceType? distanceType;
 
-  /// When repairing the graph after a node was removed, this gives the probability of adding backlinks to the
-  /// repaired neighbors.
-  /// The default is 1.0 (aka "always") as this should be worth a bit of extra costs as it improves the graph's
-  /// quality.
+  /// When repairing the graph after a node was removed, this gives the
+  /// probability of adding backlinks to the repaired neighbors.
+  ///
+  /// The default is 1.0 (aka "always") as this should be worth a bit of extra
+  /// costs as it improves the graph's quality.
   final double? reparationBacklinkProbability;
 
-  /// A non-binding hint at the maximum size of the vector cache in KB (default: 2097152 or 2 GB/GiB).
-  /// The actual size max cache size may be altered according to device and/or runtime settings.
-  /// The vector cache is used to store vectors in memory to speed up search and indexing.
+  /// A non-binding hint at the maximum size of the vector cache in KB
+  /// (default: 2097152 or 2 GB/GiB).
   ///
-  /// Note 1: cache chunks are allocated only on demand, when they are actually used.
-  ///         Thus, smaller datasets will use less memory.
+  /// The actual size max cache size may be altered according to device and/or
+  /// runtime settings. The vector cache is used to store vectors in memory to
+  /// speed up search and indexing.
   ///
-  /// Note 2: the cache is for one specific HNSW index; e.g. each index has its own cache.
+  /// Note 1: cache chunks are allocated only on demand, when they are actually
+  /// used. Thus, smaller datasets will use less memory.
   ///
-  /// Note 3: the memory consumption can temporarily exceed the cache size,
-  ///         e.g. for large changes, it can double due to multi-version transactions.
+  /// Note 2: the cache is for one specific HNSW index; e.g. each index has its
+  /// own cache.
+  ///
+  /// Note 3: the memory consumption can temporarily exceed the cache size, e.g.
+  /// for large changes, it can double due to multi-version transactions.
   final int? vectorCacheHintSizeKB;
 
-  /// Parameters to configure HNSW-based approximate nearest neighbor (ANN) search.
+  /// Parameters to configure HNSW-based approximate nearest neighbor (ANN)
+  /// search.
+  ///
   /// Some of the parameters can influence index construction and searching.
-  /// Changing these values causes re-indexing, which can take a while due to the
-  /// complex nature of HNSW.
+  ///
+  /// Changing these values causes re-indexing, which can take a while due to
+  /// the complex nature of HNSW.
   const HnswIndex(
       {required this.dimensions,
       this.neighborsPerNode,
