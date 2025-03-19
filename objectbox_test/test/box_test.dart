@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
@@ -725,6 +724,15 @@ void main() {
     expect(item2.tFloat64List, [-2000.00001, 2000.00001]);
   });
 
+  test('@ExternalType and @ExternalName annotations work correctly', () {
+    final box = store.box<EntityWithExternalType>();
+    final id = box.put(EntityWithExternalType([90, 100, 110], [1, 2, 3]));
+    final item = box.get(id)!;
+    expect(item.id, id);
+    expect(item.mongoId, [90, 100, 110]);
+    expect(item.mongoUuid, [1, 2, 3]);
+  });
+
   test('.count() works', () {
     expect(box.count(), equals(0));
     box.putMany(simpleItems());
@@ -1030,15 +1038,6 @@ void main() {
     expect(items[1].tDateNano, object.tDateNano);
     expect(items[2].tDate, isNull);
     expect(items[2].tDateNano, isNull);
-  });
-
-  test('external-types', () {
-    final object = TestEntity();
-    object.tMongoId = Uint8List.fromList([2, 14, 5]);
-    box.put(object);
-
-    final items = box.getAll();
-    expect(items[0].tMongoId, [2, 14, 5]);
   });
 
   test('large-data', () {

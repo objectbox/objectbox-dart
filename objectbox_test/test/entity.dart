@@ -74,10 +74,6 @@ class TestEntity {
   // OBXPropertyType.ByteVector
   Uint8List? tUint8List;
 
-  @Property(type: PropertyType.byteVector)
-  @ExternalProperty(type: ExternalType.mongoId, name: 'tMongoId')
-  Uint8List? tMongoId;
-
   TestEntity(
       {this.tString,
       this.tLong,
@@ -112,7 +108,6 @@ class TestEntity {
     tByteList = [1, 2, 3];
     tInt8List = Int8List.fromList([-4, 5, 6]);
     tUint8List = Uint8List.fromList([7, 8, 9]);
-    tMongoId = Uint8List.fromList([-3, 4, 5]);
   }
 
   TestEntity.ignoredExcept(this.tInt) : tString = '' {
@@ -475,6 +470,22 @@ class HnswObject {
   List<double>? floatVectorGeoCoordinates;
 
   final rel = ToOne<RelatedNamedEntity>();
+}
+
+@Entity()
+class EntityWithExternalType {
+  @Id()
+  int id = 0;
+
+  @Property(type: PropertyType.byteVector)
+  @ExternalType(type: ExternalPropertyType.mongoId)
+  List<int>? mongoId;
+
+  @ExternalType(type: ExternalPropertyType.uuid)
+  @ExternalName(name: 'my-mongo-uuid')
+  List<int>? mongoUuid;
+
+  EntityWithExternalType(this.mongoId, this.mongoUuid);
 }
 
 @Entity()

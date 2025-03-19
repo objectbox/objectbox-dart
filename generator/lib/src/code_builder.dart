@@ -1,21 +1,21 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:build/build.dart';
 import 'package:collection/collection.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
+import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/analysis/analysis.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:path/path.dart' as path;
-import 'package:objectbox/internal.dart';
-import 'package:dart_style/dart_style.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:source_gen/source_gen.dart';
 
+import 'code_chunks.dart';
 import 'config.dart';
 import 'entity_resolver.dart';
-import 'code_chunks.dart';
 
 /// CodeBuilder collects all '.objectbox.info' files created by EntityResolver and generates objectbox-model.json and
 /// objectbox_model.dart
@@ -244,6 +244,8 @@ class CodeBuilder extends Builder {
 
     relInModel.name = rel.name;
     relInModel.targetName = rel.targetName;
+    relInModel.externalPropertyType = rel.externalPropertyType;
+    relInModel.externalPropertyName = rel.externalPropertyName;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {

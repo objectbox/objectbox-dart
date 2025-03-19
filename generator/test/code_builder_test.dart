@@ -379,8 +379,9 @@ void main() {
     });
   });
 
-  test('ExternalType annotation', () async {
-    final source = r'''
+  group("ExternalType and ExternalName annotations", () {
+    test('annotations work on properties', () async {
+      final source = r'''
       library example;     
       import 'package:objectbox/objectbox.dart';
       
@@ -390,25 +391,83 @@ void main() {
         int id = 0;
         
         @Property(type: PropertyType.byteVector)
-        @ExternalProperty(type: ExternalType.bson, name: 'my-mongo-bson')
-        List<int>? mongoBson;
+        @ExternalType(type: ExternalPropertyType.mongoId)
+        List<int>? mongoId;
         
-        @ExternalProperty(type: ExternalType.javaScript, name: 'my-mongo-js')
-        String? mongoJS;
+        @ExternalType(type: ExternalPropertyType.uuid)
+        @ExternalName(name: 'my-mongo-uuid')
+        List<int>? mongoUuid;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final property1 = testEnv.model.entities[0].properties
+          .firstWhere((element) => element.name == "mongoId");
+      expect(property1.externalPropertyType, OBXExternalPropertyType.MongoId);
+
+      final property2 = testEnv.model.entities[0].properties
+          .firstWhere((element) => element.name == "mongoUuid");
+      expect(property2.externalPropertyType, OBXExternalPropertyType.Uuid);
+      expect(property2.externalPropertyName, "my-mongo-uuid");
+    });
+
+    test('annotations work on ToMany (standalone) relations', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Student{
+        int id;
+        
+        @ExternalType(type: ExternalPropertyType.mongoId)
+        final rel1 = ToMany<Student>();
+        
+        @ExternalType(type: ExternalPropertyType.uuid)
+        @ExternalName(name: 'my-courses-rel')
+        final rel2 = ToMany<Student>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final relation1 = testEnv.model.entities[0].relations
+          .firstWhere((element) => element.name == "rel1");
+      expect(relation1.externalPropertyType, OBXExternalPropertyType.MongoId);
+
+      final relation2 = testEnv.model.entities[0].relations
+          .firstWhere((element) => element.name == "rel2");
+      expect(relation2.externalPropertyType, OBXExternalPropertyType.Uuid);
+      expect(relation2.externalPropertyName, "my-courses-rel");
+    });
+  });
+
+  test('Only ExternalName annotation fails', () async {
+    final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @ExternalName(name: 'my-mongo-uuid')
+        List<int>? mongoUuid;
       }
       ''';
 
     final testEnv = GeneratorTestEnv();
-    await testEnv.run(source);
-
-    final property1 = testEnv.model.entities[0].properties
-        .firstWhere((element) => element.name == "mongoBson");
-    expect(property1.externalPropertyType, OBXExternalPropertyType.Bson);
-    expect(property1.externalPropertyName, "my-mongo-bson");
-    final property2 = testEnv.model.entities[0].properties
-        .firstWhere((element) => element.name == "mongoJS");
-    expect(property2.externalPropertyType, OBXExternalPropertyType.JavaScript);
-    expect(property2.externalPropertyName, "my-mongo-js");
+    await expectLater(
+        () async => await testEnv.run(source),
+        throwsA(isA<InvalidGenerationSourceError>().having(
+            (e) => e.message,
+            'message',
+            contains(
+                "@ExternalName annotation requires @ExternalType annotation to be present"))));
   });
 }
 

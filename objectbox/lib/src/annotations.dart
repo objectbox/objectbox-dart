@@ -491,8 +491,8 @@ class HnswIndex {
 /// A property type of an external system (e.g. another database) that has no
 /// default mapping to an ObjectBox type.
 ///
-/// Use with [ExternalProperty].
-enum ExternalType {
+/// Use with [ExternalType].
+enum ExternalPropertyType {
   /// Representing type: ByteVector
   ///
   /// Encoding: 1:1 binary representation, little endian (16 bytes)
@@ -581,15 +581,30 @@ enum ExternalType {
   mongoRegex
 }
 
-/// Annotates a property to be stored in an external system.
-class ExternalProperty {
-  /// The name assigned to the property in the external system.
-  final String? name;
-
+/// See the constructor documentation.
+class ExternalType {
   /// The type of the property in the external system.
-  /// See [ExternalType] for possible values.
-  final ExternalType type;
+  ///
+  /// See [ExternalPropertyType] for possible values.
+  final ExternalPropertyType type;
 
-  /// Create an ExternalProperty annotation.
-  const ExternalProperty({required this.type, this.name});
+  /// Sets the type of a property or the type of object IDs of a [ToMany] in an
+  /// external system (like another database).
+  ///
+  /// This is useful if there is no default mapping of the ObjectBox type to the
+  /// type in the external system.
+  ///
+  /// Carefully look at the documentation of the external type to ensure it is
+  /// compatible with the ObjectBox type.
+  const ExternalType({required this.type});
+}
+
+/// See the constructor documentation.
+class ExternalName {
+  /// The name assigned to the property in the external system.
+  final String name;
+
+  /// Sets the name of an @Entity, a property or a [ToMany] in an external
+  /// system (like another database).
+  const ExternalName({required this.name});
 }

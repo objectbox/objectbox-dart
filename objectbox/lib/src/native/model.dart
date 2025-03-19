@@ -120,15 +120,32 @@ class Model {
     if (externalPropertyType != null) {
       _check(C.model_property_external_type(_cModel, externalPropertyType));
     }
-    final externalPropertyName = prop.externalPropertyName;
+    final externalPropertyName = prop.externalPropertyName?.toNativeUtf8();
     if (externalPropertyName != null) {
-      _check(C.model_property_external_name(
-          _cModel, externalPropertyName.toNativeUtf8().cast()));
+      try {
+        _check(C.model_property_external_name(
+            _cModel, externalPropertyName.cast()));
+      } finally {
+        calloc.free(externalPropertyName);
+      }
     }
   }
 
   void addRelation(ModelRelation rel) {
     _check(C.model_relation(
         _cModel, rel.id.id, rel.id.uid, rel.targetId.id, rel.targetId.uid));
+    if (rel.externalPropertyType != null) {
+      _check(
+          C.model_relation_external_type(_cModel, rel.externalPropertyType!));
+      if (rel.externalPropertyName != null) {
+        final externalPropertyName = rel.externalPropertyName!.toNativeUtf8();
+        try {
+          _check(C.model_relation_external_name(
+              _cModel, externalPropertyName.cast()));
+        } finally {
+          calloc.free(externalPropertyName);
+        }
+      }
+    }
   }
 }

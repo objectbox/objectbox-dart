@@ -28,7 +28,8 @@ class EntityResolver extends Builder {
   final _indexChecker = const TypeChecker.fromRuntime(Index);
   final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
   final _hnswChecker = const TypeChecker.fromRuntime(HnswIndex);
-  final _externalTypeChecker = const TypeChecker.fromRuntime(ExternalProperty);
+  final _externalTypeChecker = const TypeChecker.fromRuntime(ExternalType);
+  final _externalNameChecker = const TypeChecker.fromRuntime(ExternalName);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -172,6 +173,7 @@ class EntityResolver extends Builder {
       final backlinkAnnotations =
           _backlinkChecker.annotationsOfExact(annotated);
       if (backlinkAnnotations.isNotEmpty) {
+        // Handles ToMany based on other ToOne or ToMany relation (backlink)
         if (!isToManyRel) {
           log.severe(
               "  Skipping property '${f.name}': @Backlink() may only be used with ToMany.");
@@ -184,14 +186,37 @@ class EntityResolver extends Builder {
         entity.backlinks.add(backlink);
         log.info('  $backlink');
       } else if (isToManyRel) {
+        // Handles standalone (non backlink) ToMany relation
+
+        // @ExternalType
+        int? externalPropertyType;
+        _externalTypeChecker.runIfMatches(annotated, (annotation) {
+          final externalTypeId = _readExternalTypeParams(annotation);
+          externalPropertyType = externalTypeId;
+        });
+
+        // @ExternalName
+        String? externalPropertyName;
+        _externalNameChecker.runIfMatches(annotated, (annotation) {
+          if (externalPropertyType == null) {
+            throw InvalidGenerationSourceError(
+                "@ExternalName annotation requires @ExternalType annotation to be present");
+          }
+          externalPropertyName = _readExternalNameParams(annotation);
+        });
+
         // create relation
         final rel = ModelRelation.create(IdUid(0, propUid ?? 0), f.name,
             targetName: relTargetName,
-            uidRequest: propUid != null && propUid == 0);
+            uidRequest: propUid != null && propUid == 0,
+            externalPropertyName: externalPropertyName,
+            externalPropertyType: externalPropertyType);
+
         entity.relations.add(rel);
 
         log.info('  $rel');
       } else {
+        // Handles regular properties
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         final prop = ModelProperty.create(
             IdUid(0, propUid ?? 0), f.name, fieldType,
@@ -227,8 +252,20 @@ class EntityResolver extends Builder {
           _readHnswIndexParams(annotation, prop);
         });
 
+        // @ExternalType
         _externalTypeChecker.runIfMatches(annotated, (annotation) {
-          _readExternalTypeParams(annotation, prop);
+          final externalTypeId = _readExternalTypeParams(annotation);
+          prop.externalPropertyType = externalTypeId;
+        });
+
+        // @ExternalName
+        _externalNameChecker.runIfMatches(annotated, (annotation) {
+          if (prop.externalPropertyType == null) {
+            throw InvalidGenerationSourceError(
+                "@ExternalName annotation requires @ExternalType annotation to be present");
+          }
+          final externalName = _readExternalNameParams(annotation);
+          prop.externalPropertyName = externalName;
         });
 
         // for code generation
@@ -561,17 +598,25 @@ class EntityResolver extends Builder {
     property.hnswParams = ModelHnswParams.fromAnnotation(hnswRestored);
   }
 
-  void _readExternalTypeParams(DartObject annotation, ModelProperty property) {
+  int _readExternalTypeParams(DartObject annotation) {
     final typeIndex =
-        _enumValueIndex(annotation.getField('type')!, "ExternalProperty.type");
-    final type = typeIndex != null ? ExternalType.values[typeIndex] : null;
+        _enumValueIndex(annotation.getField('type')!, "ExternalType.type");
+    final type =
+        typeIndex != null ? ExternalPropertyType.values[typeIndex] : null;
     if (type == null) {
       throw InvalidGenerationSourceError(
-          "'type' attribute not specified in @ExternalProperty annotation");
+          "'type' attribute not specified in @ExternalType annotation");
     }
+    return externalTypeToOBXExternalType(type);
+  }
+
+  String _readExternalNameParams(DartObject annotation) {
     final name = annotation.getField('name')!.toStringValue();
-    property.externalPropertyType = externalTypeToOBXExternalType(type);
-    property.externalPropertyName = name;
+    if (name == null) {
+      throw InvalidGenerationSourceError(
+          "'name' attribute not specified in @ExternalName annotation");
+    }
+    return name;
   }
 }
 

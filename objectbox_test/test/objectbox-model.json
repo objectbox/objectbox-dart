@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:4630700155272683157",
-      "lastPropertyId": "36:5399124829543441597",
+      "lastPropertyId": "35:1724663621433823504",
       "name": "TestEntity",
       "properties": [
         {
@@ -196,11 +196,6 @@
           "type": 6,
           "flags": 32808,
           "indexId": "20:4846837430056399798"
-        },
-        {
-          "id": "36:5399124829543441597",
-          "name": "tMongoId",
-          "type": 23
         }
       ],
       "relations": [
@@ -729,9 +724,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "16:5931645853908059165",
+      "lastPropertyId": "3:7670802129899081197",
+      "name": "EntityWithExternalType",
+      "properties": [
+        {
+          "id": "1:3044824951282217899",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8057333288729755334",
+          "name": "mongoId",
+          "type": 23
+        },
+        {
+          "id": "3:7670802129899081197",
+          "name": "mongoUuid",
+          "type": 27
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "15:4803284427984871569",
+  "lastEntityId": "16:5931645853908059165",
   "lastIndexId": "23:6649884639373473085",
   "lastRelationId": "1:2155747579134420981",
   "lastSequenceId": "0:0",

@@ -240,37 +240,37 @@ abstract class OBXPropertyType {
   static const int DateNanoVector = 32;
 }
 
-int externalTypeToOBXExternalType(ExternalType type) {
+int externalTypeToOBXExternalType(ExternalPropertyType type) {
   switch (type) {
-    case ExternalType.int128:
+    case ExternalPropertyType.int128:
       return OBXExternalPropertyType.Int128;
-    case ExternalType.uuid:
+    case ExternalPropertyType.uuid:
       return OBXExternalPropertyType.Uuid;
-    case ExternalType.decimal128:
+    case ExternalPropertyType.decimal128:
       return OBXExternalPropertyType.Decimal128;
-    case ExternalType.flexMap:
+    case ExternalPropertyType.flexMap:
       return OBXExternalPropertyType.FlexMap;
-    case ExternalType.flexVector:
+    case ExternalPropertyType.flexVector:
       return OBXExternalPropertyType.FlexVector;
-    case ExternalType.json:
+    case ExternalPropertyType.json:
       return OBXExternalPropertyType.Json;
-    case ExternalType.bson:
+    case ExternalPropertyType.bson:
       return OBXExternalPropertyType.Bson;
-    case ExternalType.javaScript:
+    case ExternalPropertyType.javaScript:
       return OBXExternalPropertyType.JavaScript;
-    case ExternalType.int128Vector:
+    case ExternalPropertyType.int128Vector:
       return OBXExternalPropertyType.Int128Vector;
-    case ExternalType.uuidVector:
+    case ExternalPropertyType.uuidVector:
       return OBXExternalPropertyType.UuidVector;
-    case ExternalType.mongoId:
+    case ExternalPropertyType.mongoId:
       return OBXExternalPropertyType.MongoId;
-    case ExternalType.mongoIdVector:
+    case ExternalPropertyType.mongoIdVector:
       return OBXExternalPropertyType.MongoIdVector;
-    case ExternalType.mongoTimestamp:
+    case ExternalPropertyType.mongoTimestamp:
       return OBXExternalPropertyType.MongoTimestamp;
-    case ExternalType.mongoBinary:
+    case ExternalPropertyType.mongoBinary:
       return OBXExternalPropertyType.MongoBinary;
-    case ExternalType.mongoRegex:
+    case ExternalPropertyType.mongoRegex:
       return OBXExternalPropertyType.MongoRegex;
     default:
       throw ArgumentError.value(type, 'type', 'Invalid ExternalType');

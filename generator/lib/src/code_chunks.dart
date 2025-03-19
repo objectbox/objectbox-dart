@@ -174,11 +174,19 @@ class CodeChunks {
   }
 
   static String createModelRelation(ModelRelation relation) {
+    var additionalArgs = '';
+    if (relation.externalPropertyType != null) {
+      additionalArgs += ", externalType: ${relation.externalPropertyType!}";
+    }
+    if (relation.externalPropertyName != null) {
+      additionalArgs += ", externalName: '${relation.externalPropertyName!}'";
+    }
     return '''
     $obxInt.ModelRelation(
       id: ${createIdUid(relation.id)},
       name: '${relation.name}',
       targetId: ${createIdUid(relation.targetId)}
+      $additionalArgs
     )
     ''';
   }
