@@ -74,6 +74,10 @@ class TestEntity {
   // OBXPropertyType.ByteVector
   Uint8List? tUint8List;
 
+  @Property(type: PropertyType.byteVector)
+  @ExternalProperty(type: ExternalType.mongoId, name: 'tMongoId')
+  Uint8List? tMongoId;
+
   TestEntity(
       {this.tString,
       this.tLong,
@@ -108,6 +112,7 @@ class TestEntity {
     tByteList = [1, 2, 3];
     tInt8List = Int8List.fromList([-4, 5, 6]);
     tUint8List = Uint8List.fromList([7, 8, 9]);
+    tMongoId = Uint8List.fromList([-3, 4, 5]);
   }
 
   TestEntity.ignoredExcept(this.tInt) : tString = '' {

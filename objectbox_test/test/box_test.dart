@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
@@ -1029,6 +1030,15 @@ void main() {
     expect(items[1].tDateNano, object.tDateNano);
     expect(items[2].tDate, isNull);
     expect(items[2].tDateNano, isNull);
+  });
+
+  test('external-types', () {
+    final object = TestEntity();
+    object.tMongoId = Uint8List.fromList([2, 14, 5]);
+    box.put(object);
+
+    final items = box.getAll();
+    expect(items[0].tMongoId, [2, 14, 5]);
   });
 
   test('large-data', () {

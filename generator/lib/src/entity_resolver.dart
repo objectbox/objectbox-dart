@@ -28,6 +28,7 @@ class EntityResolver extends Builder {
   final _indexChecker = const TypeChecker.fromRuntime(Index);
   final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
   final _hnswChecker = const TypeChecker.fromRuntime(HnswIndex);
+  final _externalTypeChecker = const TypeChecker.fromRuntime(ExternalProperty);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -224,6 +225,10 @@ class EntityResolver extends Builder {
           // Create an index
           prop.flags |= OBXPropertyFlags.INDEXED;
           _readHnswIndexParams(annotation, prop);
+        });
+
+        _externalTypeChecker.runIfMatches(annotated, (annotation) {
+          _readExternalTypeParams(annotation, prop);
         });
 
         // for code generation
@@ -554,6 +559,19 @@ class EntityResolver extends Builder {
         vectorCacheHintSizeKB:
             annotation.getField('vectorCacheHintSizeKB')!.toIntValue());
     property.hnswParams = ModelHnswParams.fromAnnotation(hnswRestored);
+  }
+
+  void _readExternalTypeParams(DartObject annotation, ModelProperty property) {
+    final typeIndex =
+        _enumValueIndex(annotation.getField('type')!, "ExternalProperty.type");
+    final type = typeIndex != null ? ExternalType.values[typeIndex] : null;
+    if (type == null) {
+      throw InvalidGenerationSourceError(
+          "'type' attribute not specified in @ExternalProperty annotation");
+    }
+    final name = annotation.getField('name')!.toStringValue();
+    property.externalPropertyType = externalTypeToOBXExternalType(type);
+    property.externalPropertyName = name;
   }
 }
 

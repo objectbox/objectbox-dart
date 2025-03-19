@@ -213,6 +213,8 @@ class CodeBuilder extends Builder {
     propInModel.dartFieldType = prop.dartFieldType;
     propInModel.relationTarget = prop.relationTarget;
     propInModel.hnswParams = prop.hnswParams;
+    propInModel.externalPropertyType = prop.externalPropertyType;
+    propInModel.externalPropertyName = prop.externalPropertyName;
 
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();

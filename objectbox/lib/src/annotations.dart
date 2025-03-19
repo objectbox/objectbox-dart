@@ -487,3 +487,109 @@ class HnswIndex {
       this.reparationBacklinkProbability,
       this.vectorCacheHintSizeKB});
 }
+
+/// A property type of an external system (e.g. another database) that has no
+/// default mapping to an ObjectBox type.
+///
+/// Use with [ExternalProperty].
+enum ExternalType {
+  /// Representing type: ByteVector
+  ///
+  /// Encoding: 1:1 binary representation, little endian (16 bytes)
+  int128,
+
+  /// Representing type: ByteVector
+  ///
+  /// Encoding: 1:1 binary representation (16 bytes)
+  uuid,
+
+  /// IEEE 754 decimal128 type, e.g. supported by MongoDB.
+  ///
+  /// Representing type: ByteVector
+  ///
+  /// Encoding: 1:1 binary representation (16 bytes)
+  decimal128,
+
+  /// A key/value map; e.g. corresponds to a JSON object or a MongoDB document
+  /// (although not keeping the key order).
+  ///
+  /// Unlike the Flex type, this must contain a map value (e.g. not a vector or
+  /// a scalar).
+  ///
+  /// Representing type: Flex
+  ///
+  /// Encoding: Flex
+  flexMap,
+
+  /// A vector (aka list or array) of flexible elements; e.g. corresponds to a
+  /// JSON array or a MongoDB array.
+  ///
+  /// Unlike the Flex type, this must contain a vector value (e.g. not a map or
+  /// a scalar).
+  ///
+  /// Representing type: Flex
+  ///
+  /// Encoding: Flex
+  flexVector,
+
+  /// Placeholder (not yet used) for a JSON document.
+  ///
+  /// Representing type: String
+  json,
+
+  /// Placeholder (not yet used) for a BSON document.
+  ///
+  /// Representing type: ByteVector
+  bson,
+
+  /// JavaScript source code.
+  ///
+  /// Representing type: String
+  javaScript,
+
+  /// A vector (array) of Int128 values.
+  int128Vector,
+
+  /// A vector (array) of Int128 values
+  uuidVector,
+
+  /// The 12-byte ObjectId type in MongoDB.
+  ///
+  /// Representing type: ByteVector
+  ///
+  /// Encoding: 1:1 binary representation (12 bytes)
+  mongoId,
+
+  /// A vector (array) of MongoId values.
+  mongoIdVector,
+
+  /// Representing type: Long
+  ///
+  /// Encoding: Two unsigned 32-bit integers merged into a 64-bit integer.
+  mongoTimestamp,
+
+  /// Representing type: ByteVector
+  ///
+  /// Encoding: 3 zero bytes (reserved, functions as padding), fourth byte is
+  /// the sub-type, followed by the binary data.
+  mongoBinary,
+
+  /// Representing type: string vector with 2 elements (index 0: pattern,
+  /// index 1: options)
+  ///
+  /// Encoding: 1:1 string representation
+  mongoRegex
+}
+
+/// Annotates a property to be stored in an external system.
+class ExternalProperty {
+  /// The name assigned to the property in the external system.
+  final String? name;
+
+  /// The type of the property in the external system.
+  /// See [ExternalType] for possible values.
+  final ExternalType type;
+
+  /// Create an ExternalProperty annotation.
+  const ExternalProperty({required this.type, this.name});
+}

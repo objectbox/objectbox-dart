@@ -115,6 +115,16 @@ class Model {
             _cModel, hnswParams.vectorCacheHintSizeKB!));
       }
     }
+
+    final externalPropertyType = prop.externalPropertyType;
+    if (externalPropertyType != null) {
+      _check(C.model_property_external_type(_cModel, externalPropertyType));
+    }
+    final externalPropertyName = prop.externalPropertyName;
+    if (externalPropertyName != null) {
+      _check(C.model_property_external_name(
+          _cModel, externalPropertyName.toNativeUtf8().cast()));
+    }
   }
 
   void addRelation(ModelRelation rel) {

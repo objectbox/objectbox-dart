@@ -378,6 +378,38 @@ void main() {
       expect(idProperty.flags & OBXPropertyFlags.ID_SELF_ASSIGNABLE != 0, true);
     });
   });
+
+  test('ExternalType annotation', () async {
+    final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @Property(type: PropertyType.byteVector)
+        @ExternalProperty(type: ExternalType.bson, name: 'my-mongo-bson')
+        List<int>? mongoBson;
+        
+        @ExternalProperty(type: ExternalType.javaScript, name: 'my-mongo-js')
+        String? mongoJS;
+      }
+      ''';
+
+    final testEnv = GeneratorTestEnv();
+    await testEnv.run(source);
+
+    final property1 = testEnv.model.entities[0].properties
+        .firstWhere((element) => element.name == "mongoBson");
+    expect(property1.externalPropertyType, OBXExternalPropertyType.Bson);
+    expect(property1.externalPropertyName, "my-mongo-bson");
+    final property2 = testEnv.model.entities[0].properties
+        .firstWhere((element) => element.name == "mongoJS");
+    expect(property2.externalPropertyType, OBXExternalPropertyType.JavaScript);
+    expect(property2.externalPropertyName, "my-mongo-js");
+  });
 }
 
 Future<PackageConfig> _unsupported() {

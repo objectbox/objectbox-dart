@@ -154,6 +154,14 @@ class CodeChunks {
       additionalArgs +=
           ", hnswParams: ${property.hnswParams!.toCodeString(obxInt)}";
     }
+    if (property.externalPropertyType != null) {
+      additionalArgs +=
+          ", externalPropertyType: ${property.externalPropertyType!}";
+    }
+    if (property.externalPropertyName != null) {
+      additionalArgs +=
+          ", externalPropertyName: '${property.externalPropertyName!}'";
+    }
     return '''
     $obxInt.ModelProperty(
       id: ${createIdUid(property.id)},
