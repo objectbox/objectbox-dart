@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
-import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/store.dart';
 import 'package:test/test.dart';
 
@@ -301,26 +300,35 @@ void main() {
     final testDir = Directory('db-size-test');
     if (testDir.existsSync()) testDir.deleteSync(recursive: true);
 
-    // Empty file is around 24 KB, object below adds about 16 KB.
+    // The empty database file size differs a lot between platforms (notably on
+    // macOS it is much larger). Also the database will already throw when
+    // opening if max size is too low.
+    // To work around this, but still test put for both the success and error
+    // case, open with a large enough max size to...
     var store =
-        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 50);
+        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 150);
+    addTearDown(() => store.close());
     var box = store.box<TestEntity>();
+    // ...put at least one entity without error, ...
     box.put(TestEntity.filled(id: 0));
+    // ...then put more until it fails with max size error.
+    var sizeExceeded = false;
+    for (var i = 0; i < 1000; i++) {
+      try {
+        box.put(TestEntity.filled(id: 0));
+      } catch (e) {
+        expect(e, isA<DbFullException>());
+        sizeExceeded = true;
+        break; // Don't put more
+      }
+    }
+    expect(sizeExceeded, true);
 
-    final testEntity2 = TestEntity.filled(id: 0);
-    expect(
-        () => box.put(testEntity2),
-        throwsA(predicate((e) =>
-            e is DbFullException &&
-            e.errorCode == OBX_ERROR_DB_FULL &&
-            e.message == 'object put failed: Could not put')));
-
-    // Re-open with larger size.
+    // Verify re-opening with larger max size allows to put more
     store.close();
-    store =
-        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 60);
-    testEntity2.id = 0; // Clear ID of object that failed to put.
-    store.box<TestEntity>().put(testEntity2);
+    store = Store(getObjectBoxModel(),
+        directory: testDir.path, maxDBSizeInKB: 14000);
+    store.box<TestEntity>().put(TestEntity.filled(id: 0));
   });
 
   test('store maxDataSizeInKB', () {
@@ -331,27 +339,37 @@ void main() {
     // and data size is larger.
     expect(
         () => Store(getObjectBoxModel(),
-            directory: testDir.path, maxDBSizeInKB: 10, maxDataSizeInKB: 11),
+            directory: testDir.path, maxDBSizeInKB: 42, maxDataSizeInKB: 43),
         throwsA(isArgumentError.having(
             (e) => e.message,
             'message',
             contains(
                 'Maximum data size option must not exceed the maximum DB size'))));
 
-    // Throws special Dart exception if put exceeds data size
+    // Verify max data size works:
     final store =
         Store(getObjectBoxModel(), directory: testDir.path, maxDataSizeInKB: 1);
+    addTearDown(() => store.close());
     final longString =
         "ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform apps.";
     final box = store.box<TestEntity>();
+    // If not exceeding data size, put succeeds, ...
     box.put(TestEntity.filled(id: 0, tString: longString));
-    box.put(TestEntity.filled(id: 0, tString: longString));
-    box.put(TestEntity.filled(id: 0, tString: longString));
-    expect(
-        () => box.put(TestEntity.filled(id: 0, tString: longString)),
-        throwsA(isA<DbMaxDataSizeExceededException>().having((e) => e.message,
-            "message", contains("Exceeded user-set maximum by [bytes]"))));
-    store.close();
+    // ...if exceeding data size, put throws the special Dart exception.
+    var sizeExceeded = false;
+    for (var i = 0; i < 10; i++) {
+      try {
+        box.put(TestEntity.filled(id: 0, tString: longString));
+      } catch (e) {
+        expect(
+            e,
+            isA<DbMaxDataSizeExceededException>().having((e) => e.message,
+                "message", contains("Exceeded user-set maximum by [bytes]")));
+        sizeExceeded = true;
+        break; // Don't put more
+      }
+    }
+    expect(sizeExceeded, true);
   });
 
   test('store open in unicode symbol path', () async {
