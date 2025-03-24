@@ -20,7 +20,7 @@ dependencies:
   pubspec_parse: ^1.0.0
   yaml: ^3.0.0
   http: '>=0.13.5 <2.0.0'
-  pointycastle: ^3.7.3 # 3.7.4 requires Dart 3, but still supporting 2.18
+  pointycastle: '>=3.7.3 <5.0.0' # 3.7.4 requires Dart 3, but still supporting 2.18
 
 dev_dependencies:
   test: ^1.16.5
