@@ -1,5 +1,6 @@
 ## latest
 
+* Allow analyzer 7, dart_style 3, source_gen 2 and pointycastle 4.
 * Examples: demos are compatible with JDK 21 included with Android Studio Ladybug or later, require
   Flutter SDK 3.24 (with Dart SDK 3.5) or newer.
 
