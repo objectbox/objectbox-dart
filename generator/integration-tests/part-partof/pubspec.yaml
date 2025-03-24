@@ -4,19 +4,19 @@ environment:
   sdk: '>=2.14.0 <4.0.0'
 
 dependencies:
-  objectbox:
-  json_annotation: '^4.3.0'
-  freezed_annotation:
+  objectbox: any # override below to use local package
+  json_annotation: '^4.6.0'
+  freezed_annotation: '^2.1.0'
 
 dev_dependencies:
-  json_serializable:
-  freezed:
-  objectbox_generator:
-  test:
-  build_runner:
-  build_test:
-  io:
-  path:
+  json_serializable: '^6.3.1'
+  freezed: '^2.0.4' # 3.0.4 requires Dart 3.6
+  objectbox_generator: any # override below to use local package
+  test: '^1.21.4'
+  build_runner: '^2.3.3'
+  build_test: '^2.1.3'
+  io: '^1.0.4'
+  path: '^1.8.3'
 
 dependency_overrides:
   objectbox:
