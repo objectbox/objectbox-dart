@@ -6,14 +6,14 @@ homepage: https://objectbox.io
 version: 4.1.0
 
 environment:
-  sdk: '>=2.18.0 <4.0.0'
+  sdk: '^3.4.0' # analyzer 6.5.0 requires macros >=0.1.0-main.0 requires >=3.4.0-256.0.dev
 
 dependencies:
   objectbox: 4.1.0
-  analyzer: '>=5.2.0 <8.0.0' # 5.1.0 has a bug where DartType.element has been removed.
+  analyzer: '>=6.5.0 <8.0.0' # dart_style 2.3.7 requires 6.5.0
   build: ^2.0.0
   collection: ^1.15.0
-  dart_style: '>=2.2.4 <4.0.0'
+  dart_style: '>=2.3.7 <4.0.0' # require 2.3.7 for languageVersion in DartFormatter constructor
   glob: ^2.0.0
   path: ^1.8.0
   source_gen: '>=1.2.7 <3.0.0'
