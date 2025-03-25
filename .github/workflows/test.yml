@@ -1,4 +1,4 @@
-name: Build and test
+name: Test
 
 # Avoid duplicate builds for pull requests, allow manual trigger.
 on:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  generator:
+  generator-integ-tests:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
@@ -30,7 +30,9 @@ jobs:
       - name: Integration test
         run: ./generator/test.sh
 
-  # make sure the init script doesn't stop working - it's not something we usually run during normal development
+  # Check the init script works - it's not something we usually run during normal development.
+  # The init script gets dependencies for all packages and runs code generation for those that
+  # need it.
   init-script:
     runs-on: ubuntu-24.04
     steps:
@@ -82,7 +84,7 @@ jobs:
           export OBX_IN_MEMORY=true
           ../tool/pub.sh run test --concurrency=1
 
-  flutter-integration-test:
+  flutter-examples:
     strategy:
       fail-fast: false
       matrix:
