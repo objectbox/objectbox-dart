@@ -68,7 +68,7 @@ jobs:
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
           - 3.7.2
-          - 2.18.6 # Use latest bugfix release to get tooling fixes
+          - 3.5.4 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
       - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672 # v1.6.5
@@ -112,7 +112,7 @@ jobs:
           # For available versions see https://docs.flutter.dev/release/archive
           # NOTE Also update versions for Ubuntu below!
           - 3.29.2
-          - 3.7.12 # Use latest bugfix release to get tooling fixes
+          - 3.24.5 # Use latest bugfix release to get tooling fixes
         include:
           # Test building for Android with highest supported JDK on latest Flutter SDK,
           # lowest supported JDK on lowest supported Flutter SDK. (Android is only built if a Linux
@@ -121,7 +121,7 @@ jobs:
             flutter-version: 3.29.2
             jdk: 21
           - os: ubuntu-24.04
-            flutter-version: 3.16.9
+            flutter-version: 3.24.5 # Use latest bugfix release to get tooling fixes
             jdk: 17
     runs-on: ${{ matrix.os }}
     steps:
