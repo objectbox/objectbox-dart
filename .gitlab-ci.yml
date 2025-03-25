@@ -57,7 +57,7 @@ analyze-and-format:
     - dart analyze objectbox_test
     - dart analyze objectbox/example/dart-native/vectorsearch_cities
     # Check formatting of all packages
-    - dart format --set-exit-if-changed --fix .
+    - dart format --set-exit-if-changed .
 
 # Runs generator integration tests, e.g. ensures generator works as expected.
 # Note: no need to test oldest SDK here, generator package is also built as part of unit-tests job.

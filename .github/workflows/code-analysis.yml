@@ -45,7 +45,7 @@ jobs:
           dart analyze objectbox
           dart analyze objectbox_test
       - name: Check formatting of all packages
-        run: dart format --set-exit-if-changed --fix .
+        run: dart format --set-exit-if-changed .
 
   pana:
     runs-on: ubuntu-24.04
