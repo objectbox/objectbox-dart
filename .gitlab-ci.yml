@@ -33,7 +33,7 @@ variables:
     key: "linux-x64-dart-$DART_VERSION-pub-cache"
 
 # Analyze (only) Dart packages, check formatting in Dart and Flutter packages.
-analyze-and-format:
+format-and-analyze:
   extends: .cache
   stage: code-analysis
   script:
@@ -43,6 +43,14 @@ analyze-and-format:
     - dart pub get --directory=objectbox
     - dart pub get --directory=objectbox_test
     - dart pub get --directory=objectbox/example/dart-native/vectorsearch_cities
+    # Since Dart 3.7, dart format needs pub get to run before formatting,
+    # so can no longer check formatting of Flutter packages (would require Flutter SDK):
+    # Check formatting only for Dart packages (run before generating code to exclude generated code)
+    - dart format --set-exit-if-changed benchmark
+    - dart format --set-exit-if-changed generator
+    - dart format --set-exit-if-changed objectbox
+    - dart format --set-exit-if-changed objectbox_test
+    - dart format --set-exit-if-changed objectbox/example/dart-native
     # Generate code
     - cd benchmark
     - dart run build_runner build
@@ -57,14 +65,6 @@ analyze-and-format:
     - dart analyze objectbox
     - dart analyze objectbox_test
     - dart analyze objectbox/example/dart-native/vectorsearch_cities
-    # Since Dart 3.7, dart format needs pub get to run before formatting,
-    # so can no longer check formatting of Flutter packages (would require Flutter SDK):
-    # Check formatting only for Dart packages
-    - dart format --set-exit-if-changed benchmark
-    - dart format --set-exit-if-changed generator
-    - dart format --set-exit-if-changed objectbox
-    - dart format --set-exit-if-changed objectbox_test
-    - dart format --set-exit-if-changed objectbox/example/dart-native
 
 # Runs generator integration tests, e.g. ensures generator works as expected.
 # Note: no need to test oldest SDK here, generator package is also built as part of unit-tests job.
