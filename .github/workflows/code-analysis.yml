@@ -12,15 +12,21 @@ on:
 permissions:
   contents: read
 
+env:
+  # Do code analysis with latest SDK.
+  # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
+  FLUTTER_VERSION: 3.29.2 # Available versions: https://docs.flutter.dev/release/archive
+  DART_VERSION: 3.7.2 # Available versions: https://dart.dev/get-dart/archive
+
 jobs:
-  analyze:
+  analyze-and-format:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-      # Prefer running on Ubuntu over Dart Docker image
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672 # v1.6.5
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1 # v2.16.0
         with:
-          sdk: 3.5.2
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Get dependencies
         run: |
           dart pub get --directory=benchmark
@@ -40,7 +46,12 @@ jobs:
           dart analyze objectbox
           dart analyze objectbox_test
       - name: Check formatting of all packages
-        run: dart format --set-exit-if-changed --fix .
+        # Since Dart 3.7, dart format needs pub get to run before formatting,
+        # so to check formatting of Flutter packages run pub get for them first.
+        run: |
+          flutter pub get --directory=flutter_libs
+          flutter pub get --directory=sync_flutter_libs
+          dart format --set-exit-if-changed .
 
   pana:
     runs-on: ubuntu-24.04
@@ -63,7 +74,7 @@ jobs:
             exit 1
           fi
 
-  coverage:
+  test-coverage:
     runs-on: ubuntu-24.04
     permissions:
       checks: write # to publish the report
@@ -72,7 +83,7 @@ jobs:
       # Prefer running on Ubuntu over Dart Docker image
       - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672 # v1.6.5
         with:
-          sdk: 3.5.2
+          sdk: ${{ env.DART_VERSION }}
       - name: Install coverage tools
         run: |
           ./tool/apt-install.sh lcov

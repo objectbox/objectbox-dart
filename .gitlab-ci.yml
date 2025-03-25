@@ -1,17 +1,26 @@
 stages:
-  - analyze
+  - code-analysis
   - test
+  - test-coverage
 
 variables:
-  # Note: use specific tags as docker images may not always be pulled due to "if-not-present" pull policy.
-  #       Thus, do not use tags like latest/beta, but check https://hub.docker.com/_/dart?tab=tags for latest.
-  DART_VERSION: '3.5.2'
+  # Test latest available and lowest supported SDK (see dev-doc/updating-dart-flutter-and-dependencies.md).
+  # # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new
+  # SDKs. For available versions see https://hub.docker.com/_/dart?tab=tags
+  DART_VERSION_LATEST: '3.7.2'
+  DART_VERSION_LOWEST: '2.18.6' # Use latest bugfix release to get tooling fixes
+  DART_VERSION: $DART_VERSION_LATEST # Also used for caching, see .cache template
+
+.common:
+  image: dart:$DART_VERSION # Official Dart Docker image https://hub.docker.com/_/dart
+  tags: [ x64, linux, docker ] # Jobs use shell commands and scripts, so only run on Linux
 
 # Make PUB_CACHE cacheable in GitLab;
 # see also https://gitlab.com/gitlab-org/gitlab/-/merge_requests/77791/diffs and
 # https://dikman.medium.com/optimising-flutter-ci-by-caching-packages-8a1d537e0b23
 # Requires extending job to set DART_VERSION variable.
 .cache:
+  extends: .common
   before_script:
     - export PUB_CACHE="$CI_PROJECT_DIR/.pub-cache" # https://dart.dev/tools/pub/environment-variables
     - export PATH="$PATH":"$PUB_CACHE/bin"
@@ -23,11 +32,9 @@ variables:
     key: "linux-x64-dart-$DART_VERSION-pub-cache"
 
 # Analyze (only) Dart packages, check formatting in Dart and Flutter packages.
-analyze:
+analyze-and-format:
   extends: .cache
-  stage: analyze
-  tags: [ x64, linux, docker ]
-  image: dart:$DART_VERSION
+  stage: code-analysis
   script:
     # Get dependencies
     - dart pub get --directory=benchmark
@@ -49,23 +56,29 @@ analyze:
     - dart analyze objectbox
     - dart analyze objectbox_test
     - dart analyze objectbox/example/dart-native/vectorsearch_cities
-    # Check formatting of all packages
-    - dart format --set-exit-if-changed --fix .
+    # Since Dart 3.7, dart format needs pub get to run before formatting,
+    # so can no longer check formatting of Flutter packages (would require Flutter SDK):
+    # Check formatting only for Dart packages
+    - dart format --set-exit-if-changed benchmark
+    - dart format --set-exit-if-changed generator
+    - dart format --set-exit-if-changed objectbox
+    - dart format --set-exit-if-changed objectbox_test
+    - dart format --set-exit-if-changed objectbox/example/dart-native
 
 # Runs generator integration tests, e.g. ensures generator works as expected.
-test-generator:linux:x64:
+# Note: no need to test oldest SDK here, generator package is also built as part of unit-tests job.
+generator-integ-tests:
   extends: .cache
   stage: test
-  tags: [ x64, linux, docker ]
-  image: dart:$DART_VERSION
   script:
     - ./install.sh --install # Install globally for generator integration tests
     - ./generator/test.sh
 
 # Runs generator and objectbox unit tests.
-.test:
+.unit-tests-template:
   extends: .cache
   stage: test
+  needs: ["generator-integ-tests"] # Wait for generator integration tests
   script:
     # Generator tests
     - cd generator
@@ -84,28 +97,33 @@ test-generator:linux:x64:
     - export OBX_IN_MEMORY=true
     - dart test --concurrency=1 --reporter expanded
 
-test-lib:linux:x64:
-  extends: .test
-  tags: [ x64, linux, docker ]
-  image: dart:$DART_VERSION
-  needs: ["test-generator:linux:x64"] # Wait for generator test
+unit-tests:
+  extends: .unit-tests-template
   parallel:
     matrix:
-      # Note: use specific versions instead of latest/beta tags as Docker images may not always be
-      # pulled due to "if-not-present" pull policy. Check https://hub.docker.com/_/dart?tab=tags.
-      # Always include lowest supported version (see sdk key in objectbox and generator
-      # pubspec.yaml, but may be higher due to dependencies).
-      - DART_VERSION: [ '2.18.6', '3.4.4', '3.5.2' ]
+      - DART_VERSION: [ $DART_VERSION_LOWEST, $DART_VERSION_LATEST ]
+
+# For the Dart Native example compiles and runs the executable (analysis and code formatting is
+# checked by analyze job).
+vectorsearch-example:
+  extends: .cache
+  stage: test
+  needs: ["generator-integ-tests"] # Wait for generator integration tests
+  script:
+    - cd objectbox/example/dart-native/vectorsearch_cities
+    - dart pub get
+    - dart run build_runner build
+    - ../../../../install.sh
+    - dart compile exe bin/vectorsearch_cities.dart
+    - ./bin/vectorsearch_cities.exe
 
 # Runs tests with coverage on the objectbox package.
 # Note: As this requires to run tests, make sure this does not block the actual test jobs so test
 # issues can be seen.
-coverage:
+test-coverage:
   extends: .cache
-  stage: test
-  needs: ["test-lib:linux:x64"] # Get test results first
-  tags: [ x64, linux, docker ]
-  image: dart:$DART_VERSION
+  stage: test-coverage
+  needs: ["unit-tests"] # Get test results first
   script:
     # Install coverage tools
     - apt-get update
@@ -124,18 +142,3 @@ coverage:
   artifacts:
     paths:
       - objectbox/coverage/html/
-
-# For the Dart Native example compiles and runs the executable (analysis and code formatting is 
-# checked by analyze job).
-dart-examples-test:
-  extends: .cache
-  stage: test
-  tags: [ x64, linux, docker ]
-  image: dart:$DART_VERSION
-  script:
-    - cd objectbox/example/dart-native/vectorsearch_cities
-    - dart pub get
-    - dart run build_runner build
-    - ../../../../install.sh
-    - dart compile exe bin/vectorsearch_cities.dart
-    - ./bin/vectorsearch_cities.exe
