@@ -20,8 +20,8 @@ env:
   # Run generator integration tests and init script with latest SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
   # NOTE: also update matrix configurations below!
-  FLUTTER_VERSION: 3.24.2 # Available versions: https://docs.flutter.dev/release/archive
-  DART_VERSION: 3.5.2 # Available versions: https://dart.dev/get-dart/archive
+  FLUTTER_VERSION: 3.29.2 # Available versions: https://docs.flutter.dev/release/archive
+  DART_VERSION: 3.7.2 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
 
@@ -67,7 +67,7 @@ jobs:
           # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
-          - 3.5.2
+          - 3.7.2
           - 2.18.6 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
@@ -110,7 +110,7 @@ jobs:
           # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://docs.flutter.dev/release/archive
-          - 3.24.2
+          - 3.29.2
           - 3.7.12 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:

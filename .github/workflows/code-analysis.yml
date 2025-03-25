@@ -15,7 +15,7 @@ permissions:
 env:
   # Do code analysis with latest SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
-  DART_VERSION: 3.5.2 # Available versions: https://dart.dev/get-dart/archive
+  DART_VERSION: 3.7.2 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
   analyze-and-format:
