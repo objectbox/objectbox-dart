@@ -70,6 +70,11 @@ class EntityResolver extends Builder {
         null,
         uidRequest: !entityUid.isNull && entityUid.intValue == 0);
 
+    // @ExternalName
+    _externalNameChecker.runIfMatches(classElement, (annotation) {
+      entity.externalName = _readExternalNameParams(annotation);
+    });
+
     // Sync: check if enabled and options
     _syncChecker.runIfMatches(classElement, (annotation) {
       entity.flags |= OBXEntityFlags.SYNC_ENABLED;

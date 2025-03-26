@@ -14,6 +14,7 @@ class ModelEntity {
   late String _name;
   IdUid lastPropertyId = const IdUid.empty();
   int _flags = 0;
+  String? externalName;
   final List<ModelProperty> _properties;
   final List<ModelRelation> _relations;
   final List<ModelBacklink> _backlinks;
@@ -72,6 +73,7 @@ class ModelEntity {
       required String name,
       required this.lastPropertyId,
       required int flags,
+      this.externalName,
       required List<ModelProperty> properties,
       required List<ModelRelation> relations,
       required List<ModelBacklink> backlinks})
@@ -94,6 +96,7 @@ class ModelEntity {
         _backlinks = [] {
     name = data['name'] as String?;
     flags = data['flags'] as int? ?? 0;
+    externalName = data['externalName'] as String?;
 
     final properties = data['properties'] as List;
     for (final p in properties) {
@@ -179,6 +182,7 @@ class ModelEntity {
     ret['lastPropertyId'] = lastPropertyId.toString();
     ret['name'] = name;
     if (flags != 0) ret['flags'] = flags;
+    if (externalName != null) ret['externalName'] = externalName;
     ret['properties'] =
         properties.map((p) => p.toMap(forModelJson: forModelJson)).toList();
     ret['relations'] =

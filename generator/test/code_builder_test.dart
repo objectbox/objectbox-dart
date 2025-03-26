@@ -380,6 +380,26 @@ void main() {
   });
 
   group("ExternalType and ExternalName annotations", () {
+    test('annotations work on @Entity', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      @ExternalName(name: 'my-mongo-entity')     
+      class Example {
+        @Id()
+        int id = 0;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final entity = testEnv.model.entities[0];
+      expect(entity.externalName, "my-mongo-entity");
+    });
+
     test('annotations work on properties', () async {
       final source = r'''
       library example;     

@@ -731,13 +731,13 @@ void main() {
     final box = store.box<EntityWithExternalType>();
     var testObject = EntityWithExternalType([90, 100, 110], [1, 2, 3]);
     testObject.mongoIdEntities
-        .add(EntityWithExternalType([120, 130, 140], null));
+        .add(EntityWithExternalType([120, 121, 122], null));
     final id = box.put(testObject);
     final item = box.get(id)!;
     expect(item.id, id);
     expect(item.mongoId, [90, 100, 110]);
     expect(item.mongoUuid, [1, 2, 3]);
-    expect(item.mongoIdEntities.first.mongoId, [120, 130, 140]);
+    expect(item.mongoIdEntities.first.mongoId, [120, 121, 122]);
   });
 
   test('.count() works', () {

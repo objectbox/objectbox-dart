@@ -52,6 +52,15 @@ class Model {
 
     if (entity.flags != 0) _check(C.model_entity_flags(_cModel, entity.flags));
 
+    final externalName = entity.externalName?.toNativeUtf8();
+    if (externalName != null) {
+      try {
+        _check(C.model_entity_external_name(_cModel, externalName.cast()));
+      } finally {
+        calloc.free(externalName);
+      }
+    }
+
     // add all properties
     entity.properties.forEach(addProperty);
 

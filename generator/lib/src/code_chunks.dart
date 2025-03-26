@@ -122,12 +122,16 @@ class CodeChunks {
   }
 
   static String createModelEntity(ModelEntity entity) {
+    var additionalArgs = '';
+    if (entity.externalName != null) {
+      additionalArgs += " externalName: '${entity.externalName}',";
+    }
     return '''
     $obxInt.ModelEntity(
       id: ${createIdUid(entity.id)},
       name: '${entity.name}',
       lastPropertyId: ${createIdUid(entity.lastPropertyId)},
-      flags: ${entity.flags},
+      flags: ${entity.flags},$additionalArgs
       properties: <$obxInt.ModelProperty>[
         ${entity.properties.map(createModelProperty).join(',')}
       ],

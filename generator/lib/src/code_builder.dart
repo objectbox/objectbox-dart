@@ -271,6 +271,7 @@ class CodeBuilder extends Builder {
 
     entityInModel.name = entity.name;
     entityInModel.flags = entity.flags;
+    entityInModel.externalName = entity.externalName;
     entityInModel.constructorParams = entity.constructorParams;
 
     // here, the entity was found already and entityInModel and entity might differ, i.e. conflicts need to be resolved, so merge all properties first

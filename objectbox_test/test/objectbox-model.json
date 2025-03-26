@@ -729,6 +729,7 @@
       "id": "16:5931645853908059165",
       "lastPropertyId": "3:7670802129899081197",
       "name": "EntityWithExternalType",
+      "externalName": "my-mongo-entity",
       "properties": [
         {
           "id": "1:3044824951282217899",
