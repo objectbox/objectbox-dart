@@ -213,8 +213,8 @@ class CodeBuilder extends Builder {
     propInModel.dartFieldType = prop.dartFieldType;
     propInModel.relationTarget = prop.relationTarget;
     propInModel.hnswParams = prop.hnswParams;
-    propInModel.externalPropertyType = prop.externalPropertyType;
-    propInModel.externalPropertyName = prop.externalPropertyName;
+    propInModel.externalType = prop.externalType;
+    propInModel.externalName = prop.externalName;
 
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();
@@ -244,8 +244,8 @@ class CodeBuilder extends Builder {
 
     relInModel.name = rel.name;
     relInModel.targetName = rel.targetName;
-    relInModel.externalPropertyType = rel.externalPropertyType;
-    relInModel.externalPropertyName = rel.externalPropertyName;
+    relInModel.externalType = rel.externalType;
+    relInModel.externalName = rel.externalName;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {

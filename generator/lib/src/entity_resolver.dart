@@ -189,28 +189,28 @@ class EntityResolver extends Builder {
         // Handles standalone (non backlink) ToMany relation
 
         // @ExternalType
-        int? externalPropertyType;
+        int? externalType;
         _externalTypeChecker.runIfMatches(annotated, (annotation) {
           final externalTypeId = _readExternalTypeParams(annotation);
-          externalPropertyType = externalTypeId;
+          externalType = externalTypeId;
         });
 
         // @ExternalName
-        String? externalPropertyName;
+        String? externalName;
         _externalNameChecker.runIfMatches(annotated, (annotation) {
-          if (externalPropertyType == null) {
+          if (externalType == null) {
             throw InvalidGenerationSourceError(
                 "@ExternalName annotation requires @ExternalType annotation to be present");
           }
-          externalPropertyName = _readExternalNameParams(annotation);
+          externalName = _readExternalNameParams(annotation);
         });
 
         // create relation
         final rel = ModelRelation.create(IdUid(0, propUid ?? 0), f.name,
             targetName: relTargetName,
             uidRequest: propUid != null && propUid == 0,
-            externalPropertyName: externalPropertyName,
-            externalPropertyType: externalPropertyType);
+            externalName: externalName,
+            externalType: externalType);
 
         entity.relations.add(rel);
 
@@ -255,17 +255,17 @@ class EntityResolver extends Builder {
         // @ExternalType
         _externalTypeChecker.runIfMatches(annotated, (annotation) {
           final externalTypeId = _readExternalTypeParams(annotation);
-          prop.externalPropertyType = externalTypeId;
+          prop.externalType = externalTypeId;
         });
 
         // @ExternalName
         _externalNameChecker.runIfMatches(annotated, (annotation) {
-          if (prop.externalPropertyType == null) {
+          if (prop.externalType == null) {
             throw InvalidGenerationSourceError(
                 "@ExternalName annotation requires @ExternalType annotation to be present");
           }
           final externalName = _readExternalNameParams(annotation);
-          prop.externalPropertyName = externalName;
+          prop.externalName = externalName;
         });
 
         // for code generation

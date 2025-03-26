@@ -154,13 +154,11 @@ class CodeChunks {
       additionalArgs +=
           ", hnswParams: ${property.hnswParams!.toCodeString(obxInt)}";
     }
-    if (property.externalPropertyType != null) {
-      additionalArgs +=
-          ", externalPropertyType: ${property.externalPropertyType!}";
+    if (property.externalType != null) {
+      additionalArgs += ", externalType: ${property.externalType!}";
     }
-    if (property.externalPropertyName != null) {
-      additionalArgs +=
-          ", externalPropertyName: '${property.externalPropertyName!}'";
+    if (property.externalName != null) {
+      additionalArgs += ", externalName: '${property.externalName!}'";
     }
     return '''
     $obxInt.ModelProperty(
@@ -175,11 +173,11 @@ class CodeChunks {
 
   static String createModelRelation(ModelRelation relation) {
     var additionalArgs = '';
-    if (relation.externalPropertyType != null) {
-      additionalArgs += ", externalType: ${relation.externalPropertyType!}";
+    if (relation.externalType != null) {
+      additionalArgs += ", externalType: ${relation.externalType!}";
     }
-    if (relation.externalPropertyName != null) {
-      additionalArgs += ", externalName: '${relation.externalPropertyName!}'";
+    if (relation.externalName != null) {
+      additionalArgs += ", externalName: '${relation.externalName!}'";
     }
     return '''
     $obxInt.ModelRelation(

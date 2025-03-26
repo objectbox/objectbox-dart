@@ -16,8 +16,8 @@ class ModelProperty {
   ModelEntity? entity;
   String? relationTarget;
   ModelHnswParams? hnswParams;
-  int? externalPropertyType;
-  String? externalPropertyName;
+  int? externalType;
+  String? externalName;
 
   /// Type used in the source dart code - used by the code generator.
   /// Starts with [_fieldReadOnlyPrefix] if the field (currently IDs only) is
@@ -117,8 +117,8 @@ class ModelProperty {
       IdUid? indexId,
       this.relationTarget,
       this.hnswParams,
-      this.externalPropertyName,
-      this.externalPropertyType})
+      this.externalName,
+      this.externalType})
       : _name = name,
         _type = type,
         _flags = flags,
@@ -132,8 +132,8 @@ class ModelProperty {
         uidRequest = data['uidRequest'] as bool? ?? false,
         hnswParams = ModelHnswParams.fromMap(
             data['hnswParams'] as Map<String, dynamic>?),
-        externalPropertyType = data['externalType'] as int?,
-        externalPropertyName = data['externalName'] as String? {
+        externalType = data['externalType'] as int?,
+        externalName = data['externalName'] as String? {
     name = data['name'] as String?;
     type = data['type'] as int?;
     flags = data['flags'] as int? ?? 0;
@@ -157,11 +157,11 @@ class ModelProperty {
       if (hnswParams != null) {
         ret['hnswParams'] = hnswParams!.toMap();
       }
-      if (externalPropertyType != null) {
-        ret['externalType'] = externalPropertyType;
+      if (externalType != null) {
+        ret['externalType'] = externalType;
       }
-      if (externalPropertyName != null) {
-        ret['externalName'] = externalPropertyName;
+      if (externalName != null) {
+        ret['externalName'] = externalName;
       }
     }
     return ret;

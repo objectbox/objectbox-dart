@@ -116,17 +116,16 @@ class Model {
       }
     }
 
-    final externalPropertyType = prop.externalPropertyType;
-    if (externalPropertyType != null) {
-      _check(C.model_property_external_type(_cModel, externalPropertyType));
+    final externalType = prop.externalType;
+    if (externalType != null) {
+      _check(C.model_property_external_type(_cModel, externalType));
     }
-    final externalPropertyName = prop.externalPropertyName?.toNativeUtf8();
-    if (externalPropertyName != null) {
+    final externalName = prop.externalName?.toNativeUtf8();
+    if (externalName != null) {
       try {
-        _check(C.model_property_external_name(
-            _cModel, externalPropertyName.cast()));
+        _check(C.model_property_external_name(_cModel, externalName.cast()));
       } finally {
-        calloc.free(externalPropertyName);
+        calloc.free(externalName);
       }
     }
   }
@@ -134,16 +133,14 @@ class Model {
   void addRelation(ModelRelation rel) {
     _check(C.model_relation(
         _cModel, rel.id.id, rel.id.uid, rel.targetId.id, rel.targetId.uid));
-    if (rel.externalPropertyType != null) {
-      _check(
-          C.model_relation_external_type(_cModel, rel.externalPropertyType!));
-      if (rel.externalPropertyName != null) {
-        final externalPropertyName = rel.externalPropertyName!.toNativeUtf8();
+    if (rel.externalType != null) {
+      _check(C.model_relation_external_type(_cModel, rel.externalType!));
+      if (rel.externalName != null) {
+        final externalName = rel.externalName!.toNativeUtf8();
         try {
-          _check(C.model_relation_external_name(
-              _cModel, externalPropertyName.cast()));
+          _check(C.model_relation_external_name(_cModel, externalName.cast()));
         } finally {
-          calloc.free(externalPropertyName);
+          calloc.free(externalName);
         }
       }
     }

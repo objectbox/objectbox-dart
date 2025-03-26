@@ -405,12 +405,12 @@ void main() {
 
       final property1 = testEnv.model.entities[0].properties
           .firstWhere((element) => element.name == "mongoId");
-      expect(property1.externalPropertyType, OBXExternalPropertyType.MongoId);
+      expect(property1.externalType, OBXExternalPropertyType.MongoId);
 
       final property2 = testEnv.model.entities[0].properties
           .firstWhere((element) => element.name == "mongoUuid");
-      expect(property2.externalPropertyType, OBXExternalPropertyType.Uuid);
-      expect(property2.externalPropertyName, "my-mongo-uuid");
+      expect(property2.externalType, OBXExternalPropertyType.Uuid);
+      expect(property2.externalName, "my-mongo-uuid");
     });
 
     test('annotations work on ToMany (standalone) relations', () async {
@@ -436,12 +436,12 @@ void main() {
 
       final relation1 = testEnv.model.entities[0].relations
           .firstWhere((element) => element.name == "rel1");
-      expect(relation1.externalPropertyType, OBXExternalPropertyType.MongoId);
+      expect(relation1.externalType, OBXExternalPropertyType.MongoId);
 
       final relation2 = testEnv.model.entities[0].relations
           .firstWhere((element) => element.name == "rel2");
-      expect(relation2.externalPropertyType, OBXExternalPropertyType.Uuid);
-      expect(relation2.externalPropertyName, "my-courses-rel");
+      expect(relation2.externalType, OBXExternalPropertyType.Uuid);
+      expect(relation2.externalName, "my-courses-rel");
     });
   });
 

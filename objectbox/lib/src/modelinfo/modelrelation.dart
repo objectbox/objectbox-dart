@@ -12,8 +12,8 @@ class ModelRelation {
 
   String? _targetName;
 
-  int? externalPropertyType;
-  String? externalPropertyName;
+  int? externalType;
+  String? externalName;
 
   // whether the user requested UID information (started a rename process)
   final bool uidRequest;
@@ -49,17 +49,17 @@ class ModelRelation {
   ModelRelation.create(this.id, String? name,
       {String? targetId,
       String? targetName,
-      int? externalPropertyType,
-      String? externalPropertyName,
+      int? externalType,
+      String? externalName,
       this.uidRequest = false}) {
     this.name = name;
     if (targetId != null) this.targetId = IdUid.fromString(targetId);
     if (targetName != null) this.targetName = targetName;
-    if (externalPropertyType != null) {
-      this.externalPropertyType = externalPropertyType;
+    if (externalType != null) {
+      this.externalType = externalType;
     }
-    if (externalPropertyName != null) {
-      this.externalPropertyName = externalPropertyName;
+    if (externalName != null) {
+      this.externalName = externalName;
     }
   }
 
@@ -80,18 +80,20 @@ class ModelRelation {
             targetId: data['targetId'] as String?,
             targetName: data['targetName'] as String?,
             uidRequest: data['uidRequest'] as bool? ?? false,
-            externalPropertyType: data['externalType'] as int?,
-            externalPropertyName: data['externalName'] as String?);
+            externalType: data['externalType'] as int?,
+            externalName: data['externalName'] as String?);
 
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
     if (_targetId != null) ret['targetId'] = _targetId.toString();
-    if (externalPropertyType != null)
-      ret['externalType'] = externalPropertyType;
-    if (externalPropertyName != null)
-      ret['externalName'] = externalPropertyName;
+    if (externalType != null) {
+      ret['externalType'] = externalType;
+    }
+    if (externalName != null) {
+      ret['externalName'] = externalName;
+    }
     if (!forModelJson) {
       ret['targetName'] = _targetName;
       ret['uidRequest'] = uidRequest;
