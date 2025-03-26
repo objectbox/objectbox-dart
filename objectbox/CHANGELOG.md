@@ -5,6 +5,9 @@
   Flutter SDK 3.24 (with Dart SDK 3.5) or newer.
 * Requires at least Dart SDK 3.4 or Flutter SDK 3.22.
 * Update database runtime library for Flutter for Linux/Windows, Dart Native to [4.2.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.2.0).
+* Update database runtime library for Flutter for Android to 4.2.0.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:4.2.0` in `android/app/build.gradle`.
 
 ## 4.1.0 (2025-02-04)
 
