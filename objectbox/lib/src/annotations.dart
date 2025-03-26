@@ -1,11 +1,6 @@
 import '../objectbox.dart';
 
-/// Entity annotation is used on a class to let ObjectBox know it should store
-/// it - making the class a "persistable Entity".
-///
-/// This annotation is matched by ObjectBox code generator when you call
-/// `pub run_build_runner build`. The generator creates `objectbox.g.dart` with
-/// all the binding code necessary to store the class in the database.
+/// See [Entity.new].
 class Entity {
   /// ObjectBox keeps track of entities and properties by assigning them unique
   /// identifiers, UIDs, during the code-generation phase. All those UIDs are
@@ -32,21 +27,12 @@ class Entity {
   /// ```
   final Type? realClass;
 
-  /// Create an Entity annotation.
+  /// Marks a class as an ObjectBox Entity. Allows to obtain a [Box] for this
+  /// Entity from [Store] to persist instances (objects) of this class.
   const Entity({this.uid, this.realClass});
 }
 
-/// Use to (optionally) annotate a field to explicitly configure some details
-/// about how a field is stored in the database.
-///
-/// For example:
-/// ```
-/// // Store int as a byte (8-bit integer)
-/// @Property(type: PropertyType.byte)
-/// int? byteValue;
-/// ```
-/// See [the online docs](https://docs.objectbox.io/advanced/custom-types) for
-/// details.
+/// See [Property.new].
 class Property {
   /// ObjectBox keeps track of entities and properties by assigning them unique
   /// identifiers, UIDs, during the code-generation phase. All those UIDs are
@@ -83,7 +69,18 @@ class Property {
   /// executing queries or creating indexes. Defaults to `true`.
   final bool signed;
 
-  /// See [Property].
+  /// Optionally configures how a field is stored in the database.
+  ///
+  /// For example:
+  ///
+  /// ```
+  /// // Store int as a byte (8-bit integer)
+  /// @Property(type: PropertyType.byte)
+  /// int? byteValue;
+  /// ```
+  ///
+  /// Learn more about customizing the database type of a property in the
+  /// [online documentation](https://docs.objectbox.io/advanced/custom-types).
   const Property({this.type, this.uid, this.signed = true});
 }
 
@@ -179,8 +176,7 @@ enum PropertyType {
   // stringVector
 }
 
-/// Annotation Id can be used to specify an entity ID property if it's named
-/// anything else then "id" (case insensitive).
+/// See [Id.new].
 class Id {
   /// When you put a new object you don't assign an ID by default, it's assigned
   /// automatically by ObjectBox. If you need to assign IDs by yourself, use the
@@ -192,13 +188,17 @@ class Id {
   /// telling which objects are new and which are already saved.
   final bool assignable;
 
-  /// Create an Id annotation.
+  /// Marks the ID property of an [Entity]. The property must be of type [int],
+  /// be non-final and have not-private visibility (or a not-private getter and
+  /// setter method).
+  ///
+  /// ID properties are unique and indexed by default.
   const Id({this.assignable = false});
 }
 
-/// Transient annotation marks fields that should not be stored in the database.
+/// See [Transient.new].
 class Transient {
-  /// Create a Transient annotation.
+  /// Marks that a field should not be stored in the database.
   const Transient();
 }
 
@@ -208,19 +208,19 @@ class Transient {
 //   const Sync();
 // }
 
-/// Specifies that the property should be indexed.
-///
-/// It is highly recommended to index properties that are used in a Query to
-/// improve query performance. To fine tune indexing of a property you can
-/// override the default index type.
-///
-/// Note: indexes are currently not supported for ByteVector, Float or Double
-/// properties.
+/// See [Index.new].
 class Index {
   /// Index type.
   final IndexType? type;
 
-  /// Create an Index annotation.
+  /// Specifies that the property should be indexed.
+  ///
+  /// It is highly recommended to index properties that are used in a Query to
+  /// improve query performance. To fine tune indexing of a property you can
+  /// override the default index type.
+  ///
+  /// Note: indexes are currently not supported for [PropertyType.byteVector],
+  /// [PropertyType.float] or [PropertyType.double] properties.
   const Index({this.type});
 }
 
@@ -250,21 +250,21 @@ enum IndexType {
   hash64,
 }
 
-/// Enforces that the value of a property is unique among all objects in a box
-/// before an object can be put.
-///
-/// Trying to put an object with offending values will result in a
-/// [UniqueViolationException] (see [ConflictStrategy.fail]).
-/// Set [onConflict] to change this strategy.
-///
-/// Note: Unique properties are based on an [Index], so the same restrictions
-/// apply. It is supported to explicitly add the [Index] annotation to configure
-/// the index.
+/// See [Unique.new].
 class Unique {
   /// The strategy to use when a conflict is detected when an object is put.
   final ConflictStrategy onConflict;
 
-  /// Create a Unique annotation.
+  /// Enforces that the value of a property is unique among all objects in a Box
+  /// before an object can be put.
+  ///
+  /// Trying to put an object with offending values will result in a
+  /// [UniqueViolationException] (see [ConflictStrategy.fail]).
+  /// Set [onConflict] to change this strategy.
+  ///
+  /// Note: Unique properties are based on an [Index], so the same restrictions
+  /// apply. It is supported to explicitly add the [Index] annotation to
+  /// configure the index.
   const Unique({this.onConflict = ConflictStrategy.fail});
 }
 
@@ -278,41 +278,50 @@ enum ConflictStrategy {
   replace,
 }
 
-/// Backlink annotation specifies a link in a reverse direction of another
-/// relation.
-///
-/// This works as an "updatable view" of the original relation, and doesn't
-/// cause any more data to be stored in the database. Changes made to the
-/// backlink relation are reflected in the original direction.
-///
-/// Example - backlink based on a [ToOne] relation:
-/// ```dart
-/// class Order {
-///   final customer = ToOne<Customer>();
-/// }
-/// class Customer {
-///   @Backlink()
-///   final orders = ToMany<Customer>();
-/// }
-/// ```
-///
-/// Example - backlink based on a [ToMany] relation:
-/// ```dart
-/// class Student {
-///   final teachers = ToMany<Teacher>();
-/// }
-/// class Teacher {
-///   @Backlink()
-///   final students = ToMany<Student>();
-/// }
-/// ```
+/// See [Backlink.new].
 class Backlink {
-  /// Target entity to which this backlink points. It's the entity that contains
-  /// a [ToOne] or [ToMany] relation pointing to the current entity.
+  /// Name of the relation the backlink should be based on (e.g. name of a
+  /// [ToOne] or [ToMany] property in the target entity). Can be left empty if
+  /// there is just a single relation from the target to the source entity.
   final String to;
 
-  /// If there are multiple relations pointing to the current entity, specify
-  /// the field name of the desired source relation: Backlink('sourceField').
+  /// Defines a backlink relation, which is based on another relation reversing
+  /// the direction.
+  ///
+  /// Pass the name of the relation the backlink should be based on (e.g. name
+  /// of a [ToOne] or [ToMany] property in the target entity). Can be left empty
+  /// if there is just a single relation from the target to the source entity.
+  ///
+  /// This works as an "updatable view" of the original relation, and doesn't
+  /// cause any more data to be stored in the database. Changes made to the
+  /// backlink relation are reflected in the original direction.
+  ///
+  /// Example ([ToOne] relation): one "Order" references one "Customer".
+  /// The backlink to this is a to-many in the reverse direction: one "Customer"
+  /// has a number of "Order"s.
+  ///
+  /// ```dart
+  /// class Order {
+  ///   final customer = ToOne<Customer>();
+  /// }
+  /// class Customer {
+  ///   @Backlink()
+  ///   final orders = ToMany<Customer>();
+  /// }
+  /// ```
+  ///
+  /// Example ([ToMany] relation): one "Student" references multiple "Teacher"s.
+  /// The backlink to this: one "Teacher" has a number of "Student"s.
+  ///
+  /// ```dart
+  /// class Student {
+  ///   final teachers = ToMany<Teacher>();
+  /// }
+  /// class Teacher {
+  ///   @Backlink()
+  ///   final students = ToMany<Student>();
+  /// }
+  /// ```
   const Backlink([this.to = '']);
 }
 
