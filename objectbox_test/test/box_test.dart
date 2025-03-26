@@ -725,12 +725,19 @@ void main() {
   });
 
   test('@ExternalType and @ExternalName annotations work correctly', () {
+    // That the database accepts a model with external types and names is tested
+    // implicitly by creating a Store. This test is only a smoke test to verify
+    // the annotated properties and ToMany work without issue.
     final box = store.box<EntityWithExternalType>();
-    final id = box.put(EntityWithExternalType([90, 100, 110], [1, 2, 3]));
+    var testObject = EntityWithExternalType([90, 100, 110], [1, 2, 3]);
+    testObject.mongoIdEntities
+        .add(EntityWithExternalType([120, 130, 140], null));
+    final id = box.put(testObject);
     final item = box.get(id)!;
     expect(item.id, id);
     expect(item.mongoId, [90, 100, 110]);
     expect(item.mongoUuid, [1, 2, 3]);
+    expect(item.mongoIdEntities.first.mongoId, [120, 130, 140]);
   });
 
   test('.count() works', () {

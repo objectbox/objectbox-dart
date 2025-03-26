@@ -747,12 +747,20 @@
           "type": 27
         }
       ],
-      "relations": []
+      "relations": [
+        {
+          "id": "2:313640065593441165",
+          "name": "mongoIdEntities",
+          "targetId": "16:5931645853908059165",
+          "externalType": 124,
+          "externalName": "my-mongo-rel"
+        }
+      ]
     }
   ],
   "lastEntityId": "16:5931645853908059165",
   "lastIndexId": "23:6649884639373473085",
-  "lastRelationId": "1:2155747579134420981",
+  "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
