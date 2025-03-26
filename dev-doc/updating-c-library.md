@@ -96,5 +96,5 @@ Then manually:
 - Commit as
 
 ```text
-Update C-API [4.0.2 -> 4.1.0]
+Update C-API [4.1.0 -> 4.2.0]
 ```

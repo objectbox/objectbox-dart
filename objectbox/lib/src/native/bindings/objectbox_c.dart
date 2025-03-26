@@ -427,6 +427,47 @@ class ObjectBoxC {
   late final _model_entity_flags = _model_entity_flagsPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
 
+  /// Set the highest ever known property id in the entity. Should always be equal to or higher than the
+  /// last property id of the previous version of the entity.
+  int model_entity_last_property_id(
+    ffi.Pointer<OBX_model> model,
+    int property_id,
+    int property_uid,
+  ) {
+    return _model_entity_last_property_id(
+      model,
+      property_id,
+      property_uid,
+    );
+  }
+
+  late final _model_entity_last_property_idPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>, obx_schema_id,
+              obx_uid)>>('obx_model_entity_last_property_id');
+  late final _model_entity_last_property_id = _model_entity_last_property_idPtr
+      .asFunction<int Function(ffi.Pointer<OBX_model>, int, int)>();
+
+  /// Refine the definition of the entity declared by the most recent obx_model_entity() call: set the external name.
+  /// This is an optional name used in an external system, e.g. another database that ObjectBox syncs with.
+  int model_entity_external_name(
+    ffi.Pointer<OBX_model> model,
+    ffi.Pointer<ffi.Char> external_name,
+  ) {
+    return _model_entity_external_name(
+      model,
+      external_name,
+    );
+  }
+
+  late final _model_entity_external_namePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>,
+              ffi.Pointer<ffi.Char>)>>('obx_model_entity_external_name');
+  late final _model_entity_external_name =
+      _model_entity_external_namePtr.asFunction<
+          int Function(ffi.Pointer<OBX_model>, ffi.Pointer<ffi.Char>)>();
+
   /// Starts the definition of a new property for the entity type of the last obx_model_entity() call.
   /// @param name A human readable name for the property. Must be unique within the entity
   /// @param type The type of property required
@@ -523,6 +564,50 @@ class ObjectBoxC {
   late final _model_property_index_id = _model_property_index_idPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int, int)>();
 
+  /// Refine the definition of the property declared by the most recent obx_model_property() call: set the external name.
+  /// This is an optional name used in an external system, e.g. another database that ObjectBox syncs with.
+  /// @param index_id Must be unique within this version of the model
+  /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+  int model_property_external_name(
+    ffi.Pointer<OBX_model> model,
+    ffi.Pointer<ffi.Char> external_name,
+  ) {
+    return _model_property_external_name(
+      model,
+      external_name,
+    );
+  }
+
+  late final _model_property_external_namePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>,
+              ffi.Pointer<ffi.Char>)>>('obx_model_property_external_name');
+  late final _model_property_external_name =
+      _model_property_external_namePtr.asFunction<
+          int Function(ffi.Pointer<OBX_model>, ffi.Pointer<ffi.Char>)>();
+
+  /// Refine the definition of the property declared by the most recent obx_model_property() call: set the external type.
+  /// This is an optional type used in an external system, e.g. another database that ObjectBox syncs with.
+  /// Note that the supported mappings from ObjectBox types to external types are limited.
+  /// @param index_id Must be unique within this version of the model
+  /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+  int model_property_external_type(
+    ffi.Pointer<OBX_model> model,
+    int external_type,
+  ) {
+    return _model_property_external_type(
+      model,
+      external_type,
+    );
+  }
+
+  late final _model_property_external_typePtr = _lookup<
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_model>, ffi.Int32)>>(
+      'obx_model_property_external_type');
+  late final _model_property_external_type = _model_property_external_typePtr
+      .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
   /// Sets the vector dimensionality for the HNSW index of the latest property (must be of a supported vector type).
   /// This a mandatory option for all HNSW indexes.
   /// Note 1: vectors with higher dimensions than this value are also indexed (ignoring the higher elements).
@@ -591,7 +676,7 @@ class ObjectBoxC {
       _model_property_index_hnsw_indexing_search_countPtr
           .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
 
-  /// Sets flags for the HNSW index of the latest property ().
+  /// Sets flags for the HNSW index of the latest property.
   /// For details see OBXHnswFlags and its individual values.
   /// @param flags See OBXHnswFlags for values (use bitwise OR to combine multiple flags)
   int model_property_index_hnsw_flags(
@@ -702,6 +787,61 @@ class ObjectBoxC {
   late final _model_relation = _model_relationPtr
       .asFunction<int Function(ffi.Pointer<OBX_model>, int, int, int, int)>();
 
+  /// Augments the previously defined relation with a name
+  int model_relation_name(
+    ffi.Pointer<OBX_model> model,
+    ffi.Pointer<ffi.Char> name,
+  ) {
+    return _model_relation_name(
+      model,
+      name,
+    );
+  }
+
+  late final _model_relation_namePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>,
+              ffi.Pointer<ffi.Char>)>>('obx_model_relation_name');
+  late final _model_relation_name = _model_relation_namePtr.asFunction<
+      int Function(ffi.Pointer<OBX_model>, ffi.Pointer<ffi.Char>)>();
+
+  /// Augments the previously defined relation with an external name (used outside of ObjectBox)
+  int model_relation_external_name(
+    ffi.Pointer<OBX_model> model,
+    ffi.Pointer<ffi.Char> external_name,
+  ) {
+    return _model_relation_external_name(
+      model,
+      external_name,
+    );
+  }
+
+  late final _model_relation_external_namePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_model>,
+              ffi.Pointer<ffi.Char>)>>('obx_model_relation_external_name');
+  late final _model_relation_external_name =
+      _model_relation_external_namePtr.asFunction<
+          int Function(ffi.Pointer<OBX_model>, ffi.Pointer<ffi.Char>)>();
+
+  /// Augments the previously defined relation with an external type (used outside of ObjectBox)
+  int model_relation_external_type(
+    ffi.Pointer<OBX_model> model,
+    int external_type,
+  ) {
+    return _model_relation_external_type(
+      model,
+      external_type,
+    );
+  }
+
+  late final _model_relation_external_typePtr = _lookup<
+          ffi
+          .NativeFunction<obx_err Function(ffi.Pointer<OBX_model>, ffi.Int32)>>(
+      'obx_model_relation_external_type');
+  late final _model_relation_external_type = _model_relation_external_typePtr
+      .asFunction<int Function(ffi.Pointer<OBX_model>, int)>();
+
   /// Set the highest ever known entity id in the model. Should always be equal to or higher than the
   /// last entity id of the previous version of the model
   void model_last_entity_id(
@@ -764,27 +904,6 @@ class ObjectBoxC {
               obx_uid)>>('obx_model_last_relation_id');
   late final _model_last_relation_id = _model_last_relation_idPtr
       .asFunction<void Function(ffi.Pointer<OBX_model>, int, int)>();
-
-  /// Set the highest ever known property id in the entity. Should always be equal to or higher than the
-  /// last property id of the previous version of the entity.
-  int model_entity_last_property_id(
-    ffi.Pointer<OBX_model> model,
-    int property_id,
-    int property_uid,
-  ) {
-    return _model_entity_last_property_id(
-      model,
-      property_id,
-      property_uid,
-    );
-  }
-
-  late final _model_entity_last_property_idPtr = _lookup<
-      ffi.NativeFunction<
-          obx_err Function(ffi.Pointer<OBX_model>, obx_schema_id,
-              obx_uid)>>('obx_model_entity_last_property_id');
-  late final _model_entity_last_property_id = _model_entity_last_property_idPtr
-      .asFunction<int Function(ffi.Pointer<OBX_model>, int, int)>();
 
   /// Get the actual bytes from the given OBX_bytes_lazy.
   /// Because of the potential lazy creation of bytes, the given bytes are not const as it may be resolved internally.
@@ -10510,6 +10629,78 @@ abstract class OBXPropertyFlags {
   static const int EXPIRATION_TIME = 65536;
 }
 
+/// A property type of an external system (e.g. another database) that has no default mapping to an ObjectBox type.
+/// External property types numeric values start at 100 to avoid overlaps with ObjectBox's PropertyType.
+/// (And if we ever support one of these as a primary type, we could share the numeric value?)
+abstract class OBXExternalPropertyType {
+  /// Not a real type: represents uninitialized state and can be used for forward compatibility.
+  static const int Unknown = 0;
+
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation, little endian (16 bytes)
+  static const int Int128 = 100;
+
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation (16 bytes)
+  static const int Uuid = 102;
+
+  /// IEEE 754 decimal128 type, e.g. supported by MongoDB
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation (16 bytes)
+  static const int Decimal128 = 103;
+
+  /// A key/value map; e.g. corresponds to a JSON object or a MongoDB document (although not keeping the key order).
+  /// Unlike the Flex type, this must contain a map value (e.g. not a vector or a scalar).
+  /// Representing type: Flex
+  /// Encoding: Flex
+  static const int FlexMap = 107;
+
+  /// A vector (aka list or array) of flexible elements; e.g. corresponds to a JSON array or a MongoDB array.
+  /// Unlike the Flex type, this must contain a vector value (e.g. not a map or a scalar).
+  /// Representing type: Flex
+  /// Encoding: Flex
+  static const int FlexVector = 108;
+
+  /// Placeholder (not yet used) for a JSON document.
+  /// Representing type: String
+  static const int Json = 109;
+
+  /// Placeholder (not yet used) for a BSON document.
+  /// Representing type: ByteVector
+  static const int Bson = 110;
+
+  /// JavaScript source code
+  /// Representing type: String
+  static const int JavaScript = 111;
+
+  /// A vector (array) of Int128 values
+  static const int Int128Vector = 116;
+
+  /// A vector (array) of Int128 values
+  static const int UuidVector = 118;
+
+  /// The 12-byte ObjectId type in MongoDB
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation (12 bytes)
+  static const int MongoId = 123;
+
+  /// A vector (array) of MongoId values
+  static const int MongoIdVector = 124;
+
+  /// Representing type: Long
+  /// Encoding: Two unsigned 32-bit integers merged into a 64-bit integer.
+  static const int MongoTimestamp = 125;
+
+  /// Representing type: ByteVector
+  /// Encoding: 3 zero bytes (reserved, functions as padding), fourth byte is the sub-type,
+  /// followed by the binary data.
+  static const int MongoBinary = 126;
+
+  /// Representing type: string vector with 2 elements (index 0: pattern, index 1: options)
+  /// Encoding: 1:1 string representation
+  static const int MongoRegex = 127;
+}
+
 class OBX_model extends ffi.Opaque {}
 
 /// Schema entity & property identifiers
@@ -11459,7 +11650,7 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 4;
 
-const int OBX_VERSION_MINOR = 1;
+const int OBX_VERSION_MINOR = 2;
 
 const int OBX_VERSION_PATCH = 0;
 
