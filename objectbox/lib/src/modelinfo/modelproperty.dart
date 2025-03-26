@@ -146,6 +146,8 @@ class ModelProperty {
     ret['id'] = id.toString();
     ret['name'] = name;
     ret['type'] = type;
+    if (externalType != null) ret['externalType'] = externalType;
+    if (externalName != null) ret['externalName'] = externalName;
     if (flags != 0) ret['flags'] = flags;
     if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
@@ -156,12 +158,6 @@ class ModelProperty {
       ret['uidRequest'] = uidRequest;
       if (hnswParams != null) {
         ret['hnswParams'] = hnswParams!.toMap();
-      }
-      if (externalType != null) {
-        ret['externalType'] = externalType;
-      }
-      if (externalName != null) {
-        ret['externalName'] = externalName;
       }
     }
     return ret;

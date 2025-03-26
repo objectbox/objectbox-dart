@@ -739,12 +739,15 @@
         {
           "id": "2:8057333288729755334",
           "name": "mongoId",
-          "type": 23
+          "type": 23,
+          "externalType": 123
         },
         {
           "id": "3:7670802129899081197",
           "name": "mongoUuid",
-          "type": 27
+          "type": 27,
+          "externalType": 102,
+          "externalName": "my-mongo-uuid"
         }
       ],
       "relations": [
