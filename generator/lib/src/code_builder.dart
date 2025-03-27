@@ -159,7 +159,8 @@ class CodeBuilder extends Builder {
     var code = CodeChunks.objectboxDart(model, imports, pubspec);
 
     try {
-      code = DartFormatter().format(code);
+      code = DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+          .format(code);
     } finally {
       // Write the code even after a formatter error so it's easier to debug.
       final codeId = AssetId(
