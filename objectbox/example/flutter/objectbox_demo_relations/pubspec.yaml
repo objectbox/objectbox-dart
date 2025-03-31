@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.6 <4.0.0'
+  sdk: ^3.5.0 # This matches what ObjectBox requires, but can be higher for your application
 
 dependencies:
   flutter:
@@ -14,14 +14,13 @@ dependencies:
   # if objectbox-android-objectbrowser in android/app/build.gradle has to be updated.
   objectbox: 4.1.0
   objectbox_flutter_libs: any
-  intl: any
-  path_provider: ^2.0.10 # 2.0.11+ requires Flutter 2.8.0
-  path: ^1.8.0
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
 
 dev_dependencies:
-  # flutter_lints 3.0.0 requires Dart 3, but CI still testing down to Dart 2.19 (Flutter 3.7)
-  flutter_lints: '>=2.0.3 <4.0.0'
-  build_runner: ^2.0.0
+  flutter_lints: ^3.0.2
+  build_runner: ^2.4.11
   objectbox_generator: any
 
 flutter:
