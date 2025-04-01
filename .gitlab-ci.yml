@@ -6,9 +6,10 @@ stages:
 variables:
   # Test latest available and lowest supported SDK (see dev-doc/updating-dart-flutter-and-dependencies.md).
   # # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new
-  # SDKs. For available versions see https://hub.docker.com/_/dart?tab=tags
+  # SDKs.
+  # For available versions see https://hub.docker.com/_/dart/tags and https://dart.dev/get-dart/archive
   DART_VERSION_LATEST: '3.7.2'
-  DART_VERSION_LOWEST: '2.18.6' # Use latest bugfix release to get tooling fixes
+  DART_VERSION_LOWEST: '3.5.4' # Use latest bugfix release to get tooling fixes
   DART_VERSION: $DART_VERSION_LATEST # Also used for caching, see .cache template
 
 .common:

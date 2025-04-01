@@ -27,13 +27,9 @@ migrate_working_dir/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
 .pub-cache/
 .pub/
 /build/
-
-# Web related
-lib/generated_plugin_registrant.dart
 
 # Symbolication related
 app.*.symbols
@@ -45,8 +41,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-objectbox
 
 # Not checking in Podfile.lock to avoid updating it for every 
 # ObjectBox release and to always build with latest dependencies on CI.
