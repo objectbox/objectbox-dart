@@ -447,10 +447,6 @@ class EntityResolver extends Builder {
       case IndexType.hash64:
         prop.flags |= OBXPropertyFlags.INDEX_HASH64;
         break;
-      default:
-        throw InvalidGenerationSourceError(
-            "Entity '${elementBare.name}': index type $indexType not supported.",
-            element: f);
     }
   }
 
