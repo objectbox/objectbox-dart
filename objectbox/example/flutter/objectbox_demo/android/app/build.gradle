@@ -50,8 +50,7 @@ android {
         applicationId "com.example.objectbox_demo"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
-        // minSdkVersion flutter.minSdkVersion
-        minSdkVersion 21 // ObjectBox Android requires Android 5.0 (API level 21)
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
