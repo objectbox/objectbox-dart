@@ -52,6 +52,15 @@ class Model {
 
     if (entity.flags != 0) _check(C.model_entity_flags(_cModel, entity.flags));
 
+    final externalName = entity.externalName?.toNativeUtf8();
+    if (externalName != null) {
+      try {
+        _check(C.model_entity_external_name(_cModel, externalName.cast()));
+      } finally {
+        calloc.free(externalName);
+      }
+    }
+
     // add all properties
     entity.properties.forEach(addProperty);
 
@@ -115,10 +124,34 @@ class Model {
             _cModel, hnswParams.vectorCacheHintSizeKB!));
       }
     }
+
+    final externalType = prop.externalType;
+    if (externalType != null) {
+      _check(C.model_property_external_type(_cModel, externalType));
+    }
+    final externalName = prop.externalName?.toNativeUtf8();
+    if (externalName != null) {
+      try {
+        _check(C.model_property_external_name(_cModel, externalName.cast()));
+      } finally {
+        calloc.free(externalName);
+      }
+    }
   }
 
   void addRelation(ModelRelation rel) {
     _check(C.model_relation(
         _cModel, rel.id.id, rel.id.uid, rel.targetId.id, rel.targetId.uid));
+    if (rel.externalType != null) {
+      _check(C.model_relation_external_type(_cModel, rel.externalType!));
+    }
+    final externalName = rel.externalName?.toNativeUtf8();
+    if (externalName != null) {
+      try {
+        _check(C.model_relation_external_name(_cModel, externalName.cast()));
+      } finally {
+        calloc.free(externalName);
+      }
+    }
   }
 }

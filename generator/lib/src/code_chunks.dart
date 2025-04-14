@@ -122,12 +122,16 @@ class CodeChunks {
   }
 
   static String createModelEntity(ModelEntity entity) {
+    var additionalArgs = '';
+    if (entity.externalName != null) {
+      additionalArgs += " externalName: '${entity.externalName}',";
+    }
     return '''
     $obxInt.ModelEntity(
       id: ${createIdUid(entity.id)},
       name: '${entity.name}',
       lastPropertyId: ${createIdUid(entity.lastPropertyId)},
-      flags: ${entity.flags},
+      flags: ${entity.flags},$additionalArgs
       properties: <$obxInt.ModelProperty>[
         ${entity.properties.map(createModelProperty).join(',')}
       ],
@@ -154,6 +158,12 @@ class CodeChunks {
       additionalArgs +=
           ", hnswParams: ${property.hnswParams!.toCodeString(obxInt)}";
     }
+    if (property.externalType != null) {
+      additionalArgs += ", externalType: ${property.externalType!}";
+    }
+    if (property.externalName != null) {
+      additionalArgs += ", externalName: '${property.externalName!}'";
+    }
     return '''
     $obxInt.ModelProperty(
       id: ${createIdUid(property.id)},
@@ -166,11 +176,19 @@ class CodeChunks {
   }
 
   static String createModelRelation(ModelRelation relation) {
+    var additionalArgs = '';
+    if (relation.externalType != null) {
+      additionalArgs += ", externalType: ${relation.externalType!}";
+    }
+    if (relation.externalName != null) {
+      additionalArgs += ", externalName: '${relation.externalName!}'";
+    }
     return '''
     $obxInt.ModelRelation(
       id: ${createIdUid(relation.id)},
       name: '${relation.name}',
       targetId: ${createIdUid(relation.targetId)}
+      $additionalArgs
     )
     ''';
   }

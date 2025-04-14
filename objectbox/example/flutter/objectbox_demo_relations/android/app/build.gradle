@@ -83,5 +83,5 @@ dependencies {
     // Add the Android library with ObjectBox Admin only for debug builds.
     // Note: when the objectbox package updates, check if the Android
     // library below needs to be updated as well.
-    debugImplementation("io.objectbox:objectbox-android-objectbrowser:4.1.0")
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:4.2.0")
 }

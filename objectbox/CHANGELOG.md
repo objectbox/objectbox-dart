@@ -4,6 +4,12 @@
 * Examples: demos are compatible with JDK 21 included with Android Studio Ladybug or later, require
   Flutter SDK 3.24 (with Dart SDK 3.5) or newer.
 * Requires at least Dart SDK 3.4 or Flutter SDK 3.22.
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.2.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.2.0).
+* Update ObjectBox database for Flutter Android apps to 4.2.0.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:4.2.0` in `android/app/build.gradle`.
+* Update ObjectBox database for Flutter iOS/macOS apps to 4.2.0.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 
 ## 4.1.0 (2025-02-04)
 

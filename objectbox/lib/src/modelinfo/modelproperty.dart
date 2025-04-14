@@ -16,6 +16,8 @@ class ModelProperty {
   ModelEntity? entity;
   String? relationTarget;
   ModelHnswParams? hnswParams;
+  int? externalType;
+  String? externalName;
 
   /// Type used in the source dart code - used by the code generator.
   /// Starts with [_fieldReadOnlyPrefix] if the field (currently IDs only) is
@@ -114,7 +116,9 @@ class ModelProperty {
       required int flags,
       IdUid? indexId,
       this.relationTarget,
-      this.hnswParams})
+      this.hnswParams,
+      this.externalName,
+      this.externalType})
       : _name = name,
         _type = type,
         _flags = flags,
@@ -127,7 +131,9 @@ class ModelProperty {
         _dartFieldType = data['dartFieldType'] as String?,
         uidRequest = data['uidRequest'] as bool? ?? false,
         hnswParams = ModelHnswParams.fromMap(
-            data['hnswParams'] as Map<String, dynamic>?) {
+            data['hnswParams'] as Map<String, dynamic>?),
+        externalType = data['externalType'] as int?,
+        externalName = data['externalName'] as String? {
     name = data['name'] as String?;
     type = data['type'] as int?;
     flags = data['flags'] as int? ?? 0;
@@ -140,6 +146,8 @@ class ModelProperty {
     ret['id'] = id.toString();
     ret['name'] = name;
     ret['type'] = type;
+    if (externalType != null) ret['externalType'] = externalType;
+    if (externalName != null) ret['externalName'] = externalName;
     if (flags != 0) ret['flags'] = flags;
     if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;

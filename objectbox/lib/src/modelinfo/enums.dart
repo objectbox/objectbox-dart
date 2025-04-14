@@ -239,3 +239,112 @@ abstract class OBXPropertyType {
   /// < Variable sized vector of Date values (high precision 64-bit timestamp).
   static const int DateNanoVector = 32;
 }
+
+int externalTypeToOBXExternalType(ExternalPropertyType type) {
+  switch (type) {
+    case ExternalPropertyType.int128:
+      return OBXExternalPropertyType.Int128;
+    case ExternalPropertyType.uuid:
+      return OBXExternalPropertyType.Uuid;
+    case ExternalPropertyType.decimal128:
+      return OBXExternalPropertyType.Decimal128;
+    case ExternalPropertyType.flexMap:
+      return OBXExternalPropertyType.FlexMap;
+    case ExternalPropertyType.flexVector:
+      return OBXExternalPropertyType.FlexVector;
+    case ExternalPropertyType.json:
+      return OBXExternalPropertyType.Json;
+    case ExternalPropertyType.bson:
+      return OBXExternalPropertyType.Bson;
+    case ExternalPropertyType.javaScript:
+      return OBXExternalPropertyType.JavaScript;
+    case ExternalPropertyType.int128Vector:
+      return OBXExternalPropertyType.Int128Vector;
+    case ExternalPropertyType.uuidVector:
+      return OBXExternalPropertyType.UuidVector;
+    case ExternalPropertyType.mongoId:
+      return OBXExternalPropertyType.MongoId;
+    case ExternalPropertyType.mongoIdVector:
+      return OBXExternalPropertyType.MongoIdVector;
+    case ExternalPropertyType.mongoTimestamp:
+      return OBXExternalPropertyType.MongoTimestamp;
+    case ExternalPropertyType.mongoBinary:
+      return OBXExternalPropertyType.MongoBinary;
+    case ExternalPropertyType.mongoRegex:
+      return OBXExternalPropertyType.MongoRegex;
+    default:
+      throw ArgumentError.value(type, 'type', 'Invalid ExternalType');
+  }
+}
+
+/// A property type of an external system (e.g. another database) that has no default mapping to an ObjectBox type.
+/// External property types numeric values start at 100 to avoid overlaps with ObjectBox's PropertyType.
+/// (And if we ever support one of these as a primary type, we could share the numeric value?)
+abstract class OBXExternalPropertyType {
+  /// Not a real type: represents uninitialized state and can be used for forward compatibility.
+  static const int Unknown = 0;
+
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation, little endian (16 bytes)
+  static const int Int128 = 100;
+
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation (16 bytes)
+  static const int Uuid = 102;
+
+  /// IEEE 754 decimal128 type, e.g. supported by MongoDB
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation (16 bytes)
+  static const int Decimal128 = 103;
+
+  /// A key/value map; e.g. corresponds to a JSON object or a MongoDB document (although not keeping the key order).
+  /// Unlike the Flex type, this must contain a map value (e.g. not a vector or a scalar).
+  /// Representing type: Flex
+  /// Encoding: Flex
+  static const int FlexMap = 107;
+
+  /// A vector (aka list or array) of flexible elements; e.g. corresponds to a JSON array or a MongoDB array.
+  /// Unlike the Flex type, this must contain a vector value (e.g. not a map or a scalar).
+  /// Representing type: Flex
+  /// Encoding: Flex
+  static const int FlexVector = 108;
+
+  /// Placeholder (not yet used) for a JSON document.
+  /// Representing type: String
+  static const int Json = 109;
+
+  /// Placeholder (not yet used) for a BSON document.
+  /// Representing type: ByteVector
+  static const int Bson = 110;
+
+  /// JavaScript source code
+  /// Representing type: String
+  static const int JavaScript = 111;
+
+  /// A vector (array) of Int128 values
+  static const int Int128Vector = 116;
+
+  /// A vector (array) of Int128 values
+  static const int UuidVector = 118;
+
+  /// The 12-byte ObjectId type in MongoDB
+  /// Representing type: ByteVector
+  /// Encoding: 1:1 binary representation (12 bytes)
+  static const int MongoId = 123;
+
+  /// A vector (array) of MongoId values
+  static const int MongoIdVector = 124;
+
+  /// Representing type: Long
+  /// Encoding: Two unsigned 32-bit integers merged into a 64-bit integer.
+  static const int MongoTimestamp = 125;
+
+  /// Representing type: ByteVector
+  /// Encoding: 3 zero bytes (reserved, functions as padding), fourth byte is the sub-type,
+  /// followed by the binary data.
+  static const int MongoBinary = 126;
+
+  /// Representing type: string vector with 2 elements (index 0: pattern, index 1: options)
+  /// Encoding: 1:1 string representation
+  static const int MongoRegex = 127;
+}

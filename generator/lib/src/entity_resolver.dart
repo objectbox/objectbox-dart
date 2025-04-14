@@ -28,6 +28,8 @@ class EntityResolver extends Builder {
   final _indexChecker = const TypeChecker.fromRuntime(Index);
   final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
   final _hnswChecker = const TypeChecker.fromRuntime(HnswIndex);
+  final _externalTypeChecker = const TypeChecker.fromRuntime(ExternalType);
+  final _externalNameChecker = const TypeChecker.fromRuntime(ExternalName);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -67,6 +69,11 @@ class EntityResolver extends Builder {
             : entityRealClass.typeValue.element!.name!,
         null,
         uidRequest: !entityUid.isNull && entityUid.intValue == 0);
+
+    // @ExternalName
+    _externalNameChecker.runIfMatches(classElement, (annotation) {
+      entity.externalName = _readExternalNameParams(annotation);
+    });
 
     // Sync: check if enabled and options
     _syncChecker.runIfMatches(classElement, (annotation) {
@@ -171,6 +178,7 @@ class EntityResolver extends Builder {
       final backlinkAnnotations =
           _backlinkChecker.annotationsOfExact(annotated);
       if (backlinkAnnotations.isNotEmpty) {
+        // Handles ToMany based on other ToOne or ToMany relation (backlink)
         if (!isToManyRel) {
           log.severe(
               "  Skipping property '${f.name}': @Backlink() may only be used with ToMany.");
@@ -183,14 +191,33 @@ class EntityResolver extends Builder {
         entity.backlinks.add(backlink);
         log.info('  $backlink');
       } else if (isToManyRel) {
+        // Handles standalone (non backlink) ToMany relation
+
+        // @ExternalType
+        int? externalType;
+        _externalTypeChecker.runIfMatches(annotated, (annotation) {
+          final externalTypeId = _readExternalTypeParams(annotation);
+          externalType = externalTypeId;
+        });
+
+        // @ExternalName
+        String? externalName;
+        _externalNameChecker.runIfMatches(annotated, (annotation) {
+          externalName = _readExternalNameParams(annotation);
+        });
+
         // create relation
         final rel = ModelRelation.create(IdUid(0, propUid ?? 0), f.name,
             targetName: relTargetName,
-            uidRequest: propUid != null && propUid == 0);
+            uidRequest: propUid != null && propUid == 0,
+            externalName: externalName,
+            externalType: externalType);
+
         entity.relations.add(rel);
 
         log.info('  $rel');
       } else {
+        // Handles regular properties
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         final prop = ModelProperty.create(
             IdUid(0, propUid ?? 0), f.name, fieldType,
@@ -224,6 +251,17 @@ class EntityResolver extends Builder {
           // Create an index
           prop.flags |= OBXPropertyFlags.INDEXED;
           _readHnswIndexParams(annotation, prop);
+        });
+
+        // @ExternalType
+        _externalTypeChecker.runIfMatches(annotated, (annotation) {
+          final externalTypeId = _readExternalTypeParams(annotation);
+          prop.externalType = externalTypeId;
+        });
+
+        // @ExternalName
+        _externalNameChecker.runIfMatches(annotated, (annotation) {
+          prop.externalName = _readExternalNameParams(annotation);
         });
 
         // for code generation
@@ -554,6 +592,27 @@ class EntityResolver extends Builder {
         vectorCacheHintSizeKB:
             annotation.getField('vectorCacheHintSizeKB')!.toIntValue());
     property.hnswParams = ModelHnswParams.fromAnnotation(hnswRestored);
+  }
+
+  int _readExternalTypeParams(DartObject annotation) {
+    final typeIndex =
+        _enumValueIndex(annotation.getField('type')!, "ExternalType.type");
+    final type =
+        typeIndex != null ? ExternalPropertyType.values[typeIndex] : null;
+    if (type == null) {
+      throw InvalidGenerationSourceError(
+          "'type' attribute not specified in @ExternalType annotation");
+    }
+    return externalTypeToOBXExternalType(type);
+  }
+
+  String _readExternalNameParams(DartObject annotation) {
+    final name = annotation.getField('name')!.toStringValue();
+    if (name == null) {
+      throw InvalidGenerationSourceError(
+          "'name' attribute not specified in @ExternalName annotation");
+    }
+    return name;
   }
 }
 

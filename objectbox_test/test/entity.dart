@@ -473,6 +473,27 @@ class HnswObject {
 }
 
 @Entity()
+@ExternalName(name: 'my-mongo-entity')
+class EntityWithExternalType {
+  @Id()
+  int id = 0;
+
+  @Property(type: PropertyType.byteVector)
+  @ExternalType(type: ExternalPropertyType.mongoId)
+  List<int>? mongoId;
+
+  @ExternalType(type: ExternalPropertyType.uuid)
+  @ExternalName(name: 'my-mongo-uuid')
+  List<int>? mongoUuid;
+
+  @ExternalType(type: ExternalPropertyType.mongoIdVector)
+  @ExternalName(name: 'my-mongo-rel')
+  final mongoIdEntities = ToMany<EntityWithExternalType>();
+
+  EntityWithExternalType(this.mongoId, this.mongoUuid);
+}
+
+@Entity()
 class RelatedNamedEntity {
   @Id()
   int id = 0;

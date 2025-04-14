@@ -724,11 +724,47 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "16:5931645853908059165",
+      "lastPropertyId": "3:7670802129899081197",
+      "name": "EntityWithExternalType",
+      "externalName": "my-mongo-entity",
+      "properties": [
+        {
+          "id": "1:3044824951282217899",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8057333288729755334",
+          "name": "mongoId",
+          "type": 23,
+          "externalType": 123
+        },
+        {
+          "id": "3:7670802129899081197",
+          "name": "mongoUuid",
+          "type": 27,
+          "externalType": 102,
+          "externalName": "my-mongo-uuid"
+        }
+      ],
+      "relations": [
+        {
+          "id": "2:313640065593441165",
+          "name": "mongoIdEntities",
+          "targetId": "16:5931645853908059165",
+          "externalType": 124,
+          "externalName": "my-mongo-rel"
+        }
+      ]
     }
   ],
-  "lastEntityId": "15:4803284427984871569",
+  "lastEntityId": "16:5931645853908059165",
   "lastIndexId": "23:6649884639373473085",
-  "lastRelationId": "1:2155747579134420981",
+  "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,

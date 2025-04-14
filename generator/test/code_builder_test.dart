@@ -378,6 +378,92 @@ void main() {
       expect(idProperty.flags & OBXPropertyFlags.ID_SELF_ASSIGNABLE != 0, true);
     });
   });
+
+  group("ExternalType and ExternalName annotations", () {
+    test('annotations work on @Entity', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      @ExternalName(name: 'my-mongo-entity')     
+      class Example {
+        @Id()
+        int id = 0;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final entity = testEnv.model.entities[0];
+      expect(entity.externalName, "my-mongo-entity");
+    });
+
+    test('annotations work on properties', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @Property(type: PropertyType.byteVector)
+        @ExternalType(type: ExternalPropertyType.mongoId)
+        List<int>? mongoId;
+        
+        @ExternalType(type: ExternalPropertyType.uuid)
+        @ExternalName(name: 'my-mongo-uuid')
+        List<int>? mongoUuid;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final property1 = testEnv.model.entities[0].properties
+          .firstWhere((element) => element.name == "mongoId");
+      expect(property1.externalType, OBXExternalPropertyType.MongoId);
+
+      final property2 = testEnv.model.entities[0].properties
+          .firstWhere((element) => element.name == "mongoUuid");
+      expect(property2.externalType, OBXExternalPropertyType.Uuid);
+      expect(property2.externalName, "my-mongo-uuid");
+    });
+
+    test('annotations work on ToMany (standalone) relations', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Student{
+        int id;
+        
+        @ExternalType(type: ExternalPropertyType.mongoId)
+        final rel1 = ToMany<Student>();
+        
+        @ExternalType(type: ExternalPropertyType.uuid)
+        @ExternalName(name: 'my-courses-rel')
+        final rel2 = ToMany<Student>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final relation1 = testEnv.model.entities[0].relations
+          .firstWhere((element) => element.name == "rel1");
+      expect(relation1.externalType, OBXExternalPropertyType.MongoId);
+
+      final relation2 = testEnv.model.entities[0].relations
+          .firstWhere((element) => element.name == "rel2");
+      expect(relation2.externalType, OBXExternalPropertyType.Uuid);
+      expect(relation2.externalName, "my-courses-rel");
+    });
+  });
 }
 
 Future<PackageConfig> _unsupported() {

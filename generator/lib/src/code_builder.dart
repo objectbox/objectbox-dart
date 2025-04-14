@@ -1,21 +1,21 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:build/build.dart';
 import 'package:collection/collection.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
+import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/analysis/analysis.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:path/path.dart' as path;
-import 'package:objectbox/internal.dart';
-import 'package:dart_style/dart_style.dart';
-import 'package:source_gen/source_gen.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
+import 'package:source_gen/source_gen.dart';
 
+import 'code_chunks.dart';
 import 'config.dart';
 import 'entity_resolver.dart';
-import 'code_chunks.dart';
 
 /// CodeBuilder collects all '.objectbox.info' files created by EntityResolver and generates objectbox-model.json and
 /// objectbox_model.dart
@@ -213,6 +213,8 @@ class CodeBuilder extends Builder {
     propInModel.dartFieldType = prop.dartFieldType;
     propInModel.relationTarget = prop.relationTarget;
     propInModel.hnswParams = prop.hnswParams;
+    propInModel.externalType = prop.externalType;
+    propInModel.externalName = prop.externalName;
 
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();
@@ -242,6 +244,8 @@ class CodeBuilder extends Builder {
 
     relInModel.name = rel.name;
     relInModel.targetName = rel.targetName;
+    relInModel.externalType = rel.externalType;
+    relInModel.externalName = rel.externalName;
   }
 
   IdUid mergeEntity(ModelInfo modelInfo, ModelEntity entity) {
@@ -267,6 +271,7 @@ class CodeBuilder extends Builder {
 
     entityInModel.name = entity.name;
     entityInModel.flags = entity.flags;
+    entityInModel.externalName = entity.externalName;
     entityInModel.constructorParams = entity.constructorParams;
 
     // here, the entity was found already and entityInModel and entity might differ, i.e. conflicts need to be resolved, so merge all properties first
