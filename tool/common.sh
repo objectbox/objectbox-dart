@@ -9,11 +9,17 @@ root=$(
 )
 echo "Repo root dir: $root"
 
-# align GNU vs BSD `sed` version handling -i argument
+# macOS includes the BSD version of sed, which uses a different syntax than the
+# GNU version, which these scripts expect. So require users of this script to
+# install gsed.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed="sed -i ''"
+  if ! command -v gsed &>/dev/null; then
+    echo "Error: gsed is required but not installed. Install it, for example using 'brew install gsed'."
+    exit 1
+  fi
+  sed="gsed"
 else
-  sed="sed -i"
+  sed="sed"
 fi
 
 function update() {
@@ -26,5 +32,5 @@ function update() {
   expr=${2}
 
   echo "Updating ${file} - \"${expr}\""
-  $sed "${expr}" "$root/$file"
+  $sed -i "${expr}" "$root/$file"
 }
