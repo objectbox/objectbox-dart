@@ -203,10 +203,6 @@ class EntityResolver extends Builder {
         // @ExternalName
         String? externalName;
         _externalNameChecker.runIfMatches(annotated, (annotation) {
-          if (externalType == null) {
-            throw InvalidGenerationSourceError(
-                "@ExternalName annotation requires @ExternalType annotation to be present");
-          }
           externalName = _readExternalNameParams(annotation);
         });
 
@@ -265,12 +261,7 @@ class EntityResolver extends Builder {
 
         // @ExternalName
         _externalNameChecker.runIfMatches(annotated, (annotation) {
-          if (prop.externalType == null) {
-            throw InvalidGenerationSourceError(
-                "@ExternalName annotation requires @ExternalType annotation to be present");
-          }
-          final externalName = _readExternalNameParams(annotation);
-          prop.externalName = externalName;
+          prop.externalName = _readExternalNameParams(annotation);
         });
 
         // for code generation

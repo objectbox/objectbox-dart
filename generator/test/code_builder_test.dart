@@ -464,31 +464,6 @@ void main() {
       expect(relation2.externalName, "my-courses-rel");
     });
   });
-
-  test('Only ExternalName annotation fails', () async {
-    final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        @ExternalName(name: 'my-mongo-uuid')
-        List<int>? mongoUuid;
-      }
-      ''';
-
-    final testEnv = GeneratorTestEnv();
-    await expectLater(
-        () async => await testEnv.run(source),
-        throwsA(isA<InvalidGenerationSourceError>().having(
-            (e) => e.message,
-            'message',
-            contains(
-                "@ExternalName annotation requires @ExternalType annotation to be present"))));
-  });
 }
 
 Future<PackageConfig> _unsupported() {

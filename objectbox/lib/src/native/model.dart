@@ -144,13 +144,13 @@ class Model {
         _cModel, rel.id.id, rel.id.uid, rel.targetId.id, rel.targetId.uid));
     if (rel.externalType != null) {
       _check(C.model_relation_external_type(_cModel, rel.externalType!));
-      if (rel.externalName != null) {
-        final externalName = rel.externalName!.toNativeUtf8();
-        try {
-          _check(C.model_relation_external_name(_cModel, externalName.cast()));
-        } finally {
-          calloc.free(externalName);
-        }
+    }
+    final externalName = rel.externalName?.toNativeUtf8();
+    if (externalName != null) {
+      try {
+        _check(C.model_relation_external_name(_cModel, externalName.cast()));
+      } finally {
+        calloc.free(externalName);
       }
     }
   }
