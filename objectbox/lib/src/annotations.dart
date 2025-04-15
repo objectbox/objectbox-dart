@@ -220,7 +220,7 @@ class Index {
   /// override the default index type.
   ///
   /// Note: indexes are currently not supported for [PropertyType.byteVector],
-  /// [PropertyType.float] or [PropertyType.double] properties.
+  /// [PropertyType.float] or [double] properties.
   const Index({this.type});
 }
 
