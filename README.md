@@ -25,8 +25,6 @@
 
 # Flutter database with vector support - easy to use & fast Dart object persistence, plus on-device vector search 💙
 
-
-
 Very first on-device vector database for Flutter / Dart AI apps. Intuitive APIs, simply fast. 
 Persist local Dart objects with ease & speed, efficiently manage vectors.
 
@@ -63,6 +61,7 @@ final query = box           // Query
 final List<Person> people = query.find();
 query.close();
 ```
+
 Ready? Continue with the ➡️ **[Getting Started guide](https://docs.objectbox.io/getting-started)**.
 
 ## Why use ObjectBox
@@ -78,6 +77,7 @@ Plus: We built a data synchronization solution that allows you to keep data in s
 and servers, both online and offline.
 
 ### Features
+
 🏁 **Very first [on-device vector database](https://docs.objectbox.io/on-device-ann-vector-search)** - for AI apps that work any place.\
 
 🏁 **High performance** - superfast response rates enabling real-time applications.\
@@ -95,7 +95,6 @@ Oh, and there is one more thing...
 
 😮 [**Data Sync**](https://objectbox.io/sync/) - keeps data in sync offline or online, between devices and servers.
 
-
 ## Getting Started
 
 Continue with our ➡️ **[Getting Started guide](https://docs.objectbox.io/getting-started)**. It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
@@ -110,7 +109,7 @@ Continue with our ➡️ **[Getting Started guide](https://docs.objectbox.io/get
 
 We tested across the four main database operations, CRUD (create, read, update, delete). Each test was run multiple times and executed  manually outside of the measured time. Data preparation and evaluation were done outside of the measured time. 
 
-Here are the benchmarks for ObjectBox vs sqflite vs Hive 👇
+Here are the benchmarks for ObjectBox vs sqflite vs Hive (last updated 2021-09-11) 👇
 
 ![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
 
@@ -135,7 +134,9 @@ For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
 Do you want to check out the ObjectBox code itself? E.g. see in action, run tests, or even contribute code?
 Great! Clone/check out this repository and run this to generate code and get you started quickly:
 
-    ./tool/init.sh
+```bash
+./tool/init.sh
+```
 
 Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md) - we are looking forward to your contribution.
 
@@ -143,11 +144,11 @@ Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md)
 
 This repository holds all ObjectBox Dart/Flutter packages as separate directories:
 
-* [objectbox](objectbox) - main library code
-* [objectbox_generator](generator) - code generator
-* [objectbox_flutter_libs](flutter_libs) - core binary library dependency for Flutter (Android/iOS) - no dart/flutter code
-* [objectbox_sync_flutter_libs](sync_flutter_libs) - core binary library dependency with [**ObjectBox Sync**](https://objectbox.io/sync/) enabled
-* [benchmark](benchmark) - used internally to microbenchmark and compare various implementations during development of objectbox-dart
+- [objectbox](objectbox) - main library code
+- [objectbox_generator](generator) - code generator
+- [objectbox_flutter_libs](flutter_libs) - core binary library dependency for Flutter (Android/iOS) - no dart/flutter code
+- [objectbox_sync_flutter_libs](sync_flutter_libs) - core binary library dependency with [**ObjectBox Sync**](https://objectbox.io/sync/) enabled
+- [benchmark](benchmark) - used internally to microbenchmark and compare various implementations during development of objectbox-dart
 
 There's also a separate repository benchmarking objectbox (and other databases) in Flutter: 
 [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance). And another one testing and 
@@ -157,11 +158,10 @@ comparing the performance of our FlatBuffers fork vs the upstream version: [flat
 
 ObjectBox supports multiple platforms and languages: 
 
-* [Java Database](https://github.com/objectbox/objectbox-java) (+ Kotlin): runs on Android, desktop, and servers.
-* [Swift Database](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS and macOS.
-* [Go Database](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications.
-* [C / C++ Database](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects.
-
+- [Java Database](https://github.com/objectbox/objectbox-java) (+ Kotlin): runs on Android, desktop, and servers.
+- [Swift Database](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS and macOS.
+- [Go Database](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications.
+- [C / C++ Database](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects.
 
 ## License
 
