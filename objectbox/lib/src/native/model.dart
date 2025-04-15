@@ -142,6 +142,14 @@ class Model {
   void addRelation(ModelRelation rel) {
     _check(C.model_relation(
         _cModel, rel.id.id, rel.id.uid, rel.targetId.id, rel.targetId.uid));
+
+    final name = rel.name.toNativeUtf8();
+    try {
+      _check(C.model_relation_name(_cModel, name.cast()));
+    } finally {
+      calloc.free(name);
+    }
+
     if (rel.externalType != null) {
       _check(C.model_relation_external_type(_cModel, rel.externalType!));
     }

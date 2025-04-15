@@ -976,7 +976,7 @@ void main() {
         [
           'tString == "foo"',
           '| Link RelatedEntityB via relBId with conditions: tString == "bar"',
-          '| Link RelatedEntityA via standalone Relation 1 (from entity 1 to 4) with conditions: tInt == 11',
+          '| Link RelatedEntityA via standalone Relation 1 (relManyA) (from entity 1 to 4) with conditions: tInt == 11',
         ].join('\n'));
   });
 
