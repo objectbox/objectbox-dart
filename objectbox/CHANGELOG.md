@@ -1,4 +1,4 @@
-## latest
+## 4.2.0 (2025-04-15)
 
 * Requires at least Dart SDK 3.4 or Flutter SDK 3.22.
 * Allow analyzer 7, dart_style 3, source_gen 2 and pointycastle 4. [#705](https://github.com/objectbox/objectbox-dart/issues/705)
