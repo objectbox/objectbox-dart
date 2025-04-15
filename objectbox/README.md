@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml">
-    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml/badge.svg" alt="Build and test">
+  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml">
+    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml/badge.svg" alt="Build and test">
   </a>
   <a href="https://pub.dev/packages/objectbox">
     <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart&style=flat-square" alt="pub.dev package">
@@ -49,6 +49,7 @@ Oh, and there is one more thing...
 😮 [**Data Sync**](https://objectbox.io/sync/) - sync only when and where needed.
 
 ## On this page
+
 - [Sneak peek](#sneak-peek---persist-dart-objects-with-objectbox)
 - [Getting Started](#getting-started)
 - [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
@@ -102,6 +103,7 @@ Read the ➡️ **[Getting Started guide](https://docs.objectbox.io/getting-star
 It has resources and video tutorials on how to use ObjectBox in your Flutter or Dart app.
 
 We also have some video tutorials, each featuring a different example app: 
+
 - [Shop order app](https://youtu.be/AxYbdriXKI8)
 - [Restaurant: chef and order apps](https://youtu.be/r9Lc2r22KBk)
 - [Task-list app (in Spanish)](https://youtu.be/osUq6B92-BY)
@@ -111,7 +113,7 @@ We also have some video tutorials, each featuring a different example app:
 
 We tested across the four main database operations, CRUD (create, read, update, delete). Each test was run multiple times and executed  manually outside of the measured time. Data preparation and evaluation were also done outside of the measured time. 
 
-Here are the benchmarks for ObjectBox vs sqflite vs Hive 👇
+Here are the benchmarks for ObjectBox vs sqflite vs Hive (last updated 2021-09-11) 👇
 
 ![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
 
@@ -140,8 +142,8 @@ See the [FAQ](https://docs.objectbox.io/faq) and [Troubleshooting](https://docs.
 
 ## See also
 
-* [Changelog](CHANGELOG.md)
-* [Contribution guidelines](../CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Contribution guidelines](../CONTRIBUTING.md)
 
 ## License
 
