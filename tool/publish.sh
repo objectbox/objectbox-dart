@@ -72,6 +72,9 @@ function publish() {
 # Publish packages that others depend on first to pass publish checks.
 publish objectbox
 publish generator
+
+echo "⚠️ WAIT A MINUTE before publishing the Flutter packages, or resolving the objectbox package version will fail"
+
 publish flutter_libs
 publish sync_flutter_libs
 
