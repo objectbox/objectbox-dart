@@ -1,6 +1,6 @@
 import '../objectbox.dart';
 
-/// See [Entity.new].
+/// An annotation to mark a class as an ObjectBox Entity. See [Entity.new].
 class Entity {
   /// ObjectBox keeps track of entities and properties by assigning them unique
   /// identifiers, UIDs, during the code-generation phase. All those UIDs are
@@ -32,7 +32,8 @@ class Entity {
   const Entity({this.uid, this.realClass});
 }
 
-/// See [Property.new].
+/// An optional annotation to configure how a field of an [Entity] class is
+/// stored. See [Property.new].
 class Property {
   /// ObjectBox keeps track of entities and properties by assigning them unique
   /// identifiers, UIDs, during the code-generation phase. All those UIDs are
@@ -69,7 +70,8 @@ class Property {
   /// executing queries or creating indexes. Defaults to `true`.
   final bool signed;
 
-  /// Optionally configures how a field is stored in the database.
+  /// Optionally configures how a field of an [Entity] class is stored in the
+  /// database.
   ///
   /// For example:
   ///
@@ -176,6 +178,7 @@ enum PropertyType {
   // stringVector
 }
 
+/// An annotation to mark a field of an [Entity] class as the ID property.
 /// See [Id.new].
 class Id {
   /// When you put a new object you don't assign an ID by default, it's assigned
@@ -188,17 +191,18 @@ class Id {
   /// telling which objects are new and which are already saved.
   final bool assignable;
 
-  /// Marks the ID property of an [Entity]. The property must be of type [int],
-  /// be non-final and have not-private visibility (or a not-private getter and
-  /// setter method).
+  /// Marks the field of an [Entity] class as its ID property. The field must be
+  /// of type [int], be non-final and have not-private visibility (or a
+  /// not-private getter and setter method).
   ///
   /// ID properties are unique and indexed by default.
   const Id({this.assignable = false});
 }
 
-/// See [Transient.new].
+/// An annotation to mark a field of an [Entity] class that should not be
+/// stored. See [Transient.new].
 class Transient {
-  /// Marks that a field should not be stored in the database.
+  /// Marks a field of an [Entity] class so it is not stored in the database.
   const Transient();
 }
 
@@ -208,12 +212,13 @@ class Transient {
 //   const Sync();
 // }
 
-/// See [Index.new].
+/// An annotation to create an index for a field of an [Entity] class. See
+/// [Index.new].
 class Index {
   /// Index type.
   final IndexType? type;
 
-  /// Specifies that the property should be indexed.
+  /// Creates an index for a field of an [Entity] class.
   ///
   /// It is highly recommended to index properties that are used in a Query to
   /// improve query performance. To fine tune indexing of a property you can
@@ -250,11 +255,14 @@ enum IndexType {
   hash64,
 }
 
-/// See [Unique.new].
+/// An annotation to create a unique index for a field of an [Entity] class. See
+/// [Unique.new].
 class Unique {
   /// The strategy to use when a conflict is detected when an object is put.
   final ConflictStrategy onConflict;
 
+  /// Creates a unique index for a field of an [Entity] class.
+  ///
   /// Enforces that the value of a property is unique among all objects in a Box
   /// before an object can be put.
   ///
@@ -278,15 +286,16 @@ enum ConflictStrategy {
   replace,
 }
 
-/// See [Backlink.new].
+/// An annotation for a [ToMany] field of an [Entity] class to create a relation
+/// based on another relation. See [Backlink.new].
 class Backlink {
   /// Name of the relation the backlink should be based on (e.g. name of a
   /// [ToOne] or [ToMany] property in the target entity). Can be left empty if
   /// there is just a single relation from the target to the source entity.
   final String to;
 
-  /// Defines a backlink relation, which is based on another relation reversing
-  /// the direction.
+  /// Marks a [ToMany] field in an [Entity] class to indicate the relation
+  /// should be created based on another relation by reversing the direction.
   ///
   /// Pass the name of the relation the backlink should be based on (e.g. name
   /// of a [ToOne] or [ToMany] property in the target entity). Can be left empty
@@ -405,7 +414,8 @@ class HnswFlags {
       this.reparationLimitCandidates = false});
 }
 
-/// See [HnswIndex.new].
+/// An annotation to create an HSNW index for a field of an [Entity] class. See
+/// [HnswIndex.new].
 class HnswIndex {
   /// Dimensions of vectors; vector data with fewer dimensions are ignored.
   /// Vectors with more dimensions than specified here are only evaluated up to
@@ -471,8 +481,10 @@ class HnswIndex {
   /// for large changes, it can double due to multi-version transactions.
   final int? vectorCacheHintSizeKB;
 
-  /// Parameters to configure HNSW-based approximate nearest neighbor (ANN)
-  /// search.
+  /// Creates an HNSW index for a field of an [Entity] class.
+  ///
+  /// Use the parameters to configure HNSW-based approximate nearest neighbor
+  /// (ANN) search.
   ///
   /// Some of the parameters can influence index construction and searching.
   ///
@@ -615,15 +627,19 @@ enum ExternalPropertyType {
   mongoRegex
 }
 
-/// See the constructor documentation.
+/// An annotation to specify the type of a field in an [Entity] class in an
+/// external system. See [ExternalType.new].
 class ExternalType {
   /// The type of the property in the external system.
   ///
   /// See [ExternalPropertyType] for possible values.
   final ExternalPropertyType type;
 
-  /// Sets the type of a property or the type of object IDs of a [ToMany] in an
-  /// external system (like another database).
+  /// Sets the type of a field in an [Entity] class in an external system (like
+  /// another database).
+  ///
+  /// When used on a [ToMany] field, this sets the type of the object IDs
+  /// of the relation instead.
   ///
   /// This is useful if there is no default mapping of the ObjectBox type to the
   /// type in the external system.
@@ -633,12 +649,15 @@ class ExternalType {
   const ExternalType({required this.type});
 }
 
-/// See the constructor documentation.
+/// An annotation to specify the name of an [Entity] class or field of an
+/// [Entity] class in an external system. See [ExternalName.new].
 class ExternalName {
   /// The name assigned to the property in the external system.
   final String name;
 
-  /// Sets the name of an @Entity, a property or a [ToMany] in an external
-  /// system (like another database).
+  /// Sets the name of an [Entity] class or a field of an [Entity] class in an
+  /// external system (like another database).
+  ///
+  /// The field may be of type [ToMany].
   const ExternalName({required this.name});
 }
