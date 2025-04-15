@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml">
-    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/dart.yml/badge.svg" alt="Build and test">
+  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml">
+    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml/badge.svg" alt="Build and test">
   </a>
   <a href="https://pub.dev/packages/objectbox">
     <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart&style=flat-square" alt="pub.dev package">
