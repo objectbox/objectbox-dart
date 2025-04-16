@@ -23,3 +23,6 @@ dependency_overrides:
     path: ../../../objectbox
   objectbox_generator:
     path: ../../
+  # analyzer 7.4.0 introduced breaking API changes in a minor release, breaking json_serializable
+  # https://github.com/google/json_serializable.dart/issues/1485
+  analyzer: '<=7.3.0'
