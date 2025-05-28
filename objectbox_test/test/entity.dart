@@ -476,6 +476,7 @@ class HnswObject {
 @ExternalName(name: 'my-mongo-entity')
 class EntityWithExternalType {
   @Id()
+  @ExternalType(type: ExternalPropertyType.uuid)
   int id = 0;
 
   @Property(type: PropertyType.byteVector)
