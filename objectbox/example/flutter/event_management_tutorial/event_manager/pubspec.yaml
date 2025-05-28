@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   
-  objectbox: ^4.2.0
+  objectbox: ^4.3.0
   objectbox_flutter_libs: any
   intl: any
 
