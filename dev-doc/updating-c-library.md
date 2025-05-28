@@ -60,18 +60,18 @@ from the relevant objectbox repository release tag (like `java-4.1.0`).
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 
 ```bash
-./tool/set-swift-version.sh 4.2.0
+./tool/set-swift-version.sh 4.3.0
 ```
 
 ```text
-* Update ObjectBox database for Flutter iOS/macOS apps to 4.2.0.
+* Update ObjectBox database for Flutter iOS/macOS apps to 4.3.0.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 ```
 
 ```text
-Update ObjectBox Swift [4.1.0 -> 4.2.0]
+Update macOS/iOS library [4.2.0 -> 4.3.0]
 
-Includes C API 4.2.0 and database 4.2.0-2025-03-27
+Includes C API 4.3.0 and database 4.3.0-2025-05-12
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 
@@ -98,5 +98,5 @@ Then manually:
 - Commit as
 
 ```text
-Update C-API [4.1.0 -> 4.2.0]
+Update C-API [4.2.0 -> 4.3.0]
 ```
