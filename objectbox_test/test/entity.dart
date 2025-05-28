@@ -490,6 +490,9 @@ class EntityWithExternalType {
   @ExternalName(name: 'my-mongo-rel')
   final mongoIdEntities = ToMany<EntityWithExternalType>();
 
+  @ExternalType(type: ExternalPropertyType.jsonToNative)
+  String? externalJsonToNative;
+
   EntityWithExternalType(this.mongoId, this.mongoUuid);
 }
 

@@ -258,6 +258,8 @@ int externalTypeToOBXExternalType(ExternalPropertyType type) {
       return OBXExternalPropertyType.Bson;
     case ExternalPropertyType.javaScript:
       return OBXExternalPropertyType.JavaScript;
+    case ExternalPropertyType.jsonToNative:
+      return OBXExternalPropertyType.JsonToNative;
     case ExternalPropertyType.int128Vector:
       return OBXExternalPropertyType.Int128Vector;
     case ExternalPropertyType.uuidVector:

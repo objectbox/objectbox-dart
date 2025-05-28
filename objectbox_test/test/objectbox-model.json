@@ -727,7 +727,7 @@
     },
     {
       "id": "16:5931645853908059165",
-      "lastPropertyId": "3:7670802129899081197",
+      "lastPropertyId": "4:6250975810854368520",
       "name": "EntityWithExternalType",
       "externalName": "my-mongo-entity",
       "properties": [
@@ -749,6 +749,12 @@
           "type": 27,
           "externalType": 102,
           "externalName": "my-mongo-uuid"
+        },
+        {
+          "id": "4:6250975810854368520",
+          "name": "externalJsonToNative",
+          "type": 9,
+          "externalType": 112
         }
       ],
       "relations": [

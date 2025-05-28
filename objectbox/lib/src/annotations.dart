@@ -593,6 +593,19 @@ enum ExternalPropertyType {
   /// Representing type: String
   javaScript,
 
+  /// A JSON string that is converted to a native representation in the external
+  /// system.
+  ///
+  /// For example, a JSON object on the ObjectBox side (string) would be
+  /// converted to an embedded document in MongoDB.
+  ///
+  /// It depends on the external system what kind of JSON structures is
+  /// supported. For MongoDB, this is very flexible and allows (nested) objects,
+  /// arrays, primitives, etc.
+  ///
+  /// Representing type: String
+  jsonToNative,
+
   /// A vector (array) of Int128 values.
   int128Vector,
 

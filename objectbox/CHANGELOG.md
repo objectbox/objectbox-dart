@@ -6,6 +6,8 @@
   sure to update to `io.objectbox:objectbox-android-objectbrowser:4.3.0` in `android/app/build.gradle`.
 * Update ObjectBox database for Flutter iOS/macOS apps to 4.3.0.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+* External property types (via [MongoDB connector](https://sync.objectbox.io/mongodb-sync-connector)):
+  add `jsonToNative` to support sub (embedded/nested) documents/arrays in MongoDB.
 
 ## 4.2.0 (2025-04-15)
 
