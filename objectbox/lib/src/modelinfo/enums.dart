@@ -321,6 +321,13 @@ abstract class OBXExternalPropertyType {
   /// Representing type: String
   static const int JavaScript = 111;
 
+  /// A JSON string that is converted to a native representation in the external system.
+  /// For example, a JSON object on the ObjectBox side (string) would be converted to an embedded document in MongoDB.
+  /// It depends on the external system what kind of JSON structures is supported.
+  /// For MongoDB, this is very flexible and allows (nested) objects, arrays, primitives, etc.
+  /// Representing type: String
+  static const int JsonToNative = 112;
+
   /// A vector (array) of Int128 values
   static const int Int128Vector = 116;
 
