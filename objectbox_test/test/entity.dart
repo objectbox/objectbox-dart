@@ -476,6 +476,7 @@ class HnswObject {
 @ExternalName(name: 'my-mongo-entity')
 class EntityWithExternalType {
   @Id()
+  @ExternalType(type: ExternalPropertyType.uuid)
   int id = 0;
 
   @Property(type: PropertyType.byteVector)
@@ -489,6 +490,9 @@ class EntityWithExternalType {
   @ExternalType(type: ExternalPropertyType.mongoIdVector)
   @ExternalName(name: 'my-mongo-rel')
   final mongoIdEntities = ToMany<EntityWithExternalType>();
+
+  @ExternalType(type: ExternalPropertyType.jsonToNative)
+  String? externalJsonToNative;
 
   EntityWithExternalType(this.mongoId, this.mongoUuid);
 }
