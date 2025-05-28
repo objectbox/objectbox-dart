@@ -94,29 +94,30 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 
 // Require the minimum C API version of all supported platform-specific
 // libraries.
-// Library                 | C API | Core
+// Library                 | C API | Database
 // ------------------------|-------|-----------------
-// objectbox-c             | 4.1.0 | 4.1.0-2025-01-28
-// ObjectBox Swift 4.1.0   | 4.1.0 | 4.1.0-2025-01-30
-// objectbox-android 4.1.0 | 4.1.0 | 4.1.0-2025-01-28
+// objectbox-c             | 4.2.0 | 4.2.0-2025-03-04
+// ObjectBox Swift 4.2.0   | 4.2.0 | 4.2.0-2025-03-27
+// objectbox-android 4.2.0 | 4.2.0 | 4.2.0-2025-03-04
 var _obxCminMajor = 4;
-var _obxCminMinor = 1;
+var _obxCminMinor = 2;
 var _obxCminPatch = 0;
-// Require minimum core version guaranteeing actual C API availability.
-var _obxCoreMinVersion = "4.1.0-2025-01-28";
+// Require minimum database version guaranteeing actual C API availability.
+var _obxDatabaseMinVersion = "4.2.0-2025-03-04";
 
 bool _isSupportedVersion(ObjectBoxC obxc) {
+  // Require a minimum C API version
   if (!obxc.version_is_at_least(_obxCminMajor, _obxCminMinor, _obxCminPatch)) {
     return false;
   }
-  // Require a minimum core version.
-  // As the core version string uses the
+  // Require a minimum database version.
+  // As the database version string uses the
   // "major.minor.build-YYYY-MM-DD (<flags>)"
   // format it should have a stable order.
   // Note: if the version+date is the same the compare value will be negative as
   // the flags make the string longer than the expected min version+date string.
-  final coreVersion = dartStringFromC(obxc.version_core_string());
-  return _obxCoreMinVersion.compareTo(coreVersion) <= 0;
+  final databaseVersion = dartStringFromC(obxc.version_core_string());
+  return _obxDatabaseMinVersion.compareTo(databaseVersion) <= 0;
 }
 
 ObjectBoxC loadObjectBoxLib() {
@@ -126,17 +127,17 @@ ObjectBoxC loadObjectBoxLib() {
 
   if (obxc == null) {
     throw UnsupportedError(
-        'Could not load ObjectBox core dynamic library. Platform: ${Platform.operatingSystem}');
+        'Could not load ObjectBox dynamic database library. Platform: ${Platform.operatingSystem}');
   }
 
   if (!_isSupportedVersion(obxc)) {
     final version = dartStringFromC(obxc.version_string());
-    final coreVersion = dartStringFromC(obxc.version_core_string());
+    final databaseVersion = dartStringFromC(obxc.version_core_string());
     throw UnsupportedError(
-        'ObjectBox platform-specific library not compatible: is $version ($coreVersion),'
-        ' expected $_obxCminMajor.$_obxCminMinor.$_obxCminPatch ($_obxCoreMinVersion) or newer.'
-        ' For Flutter, check if the ObjectBox Pod or objectbox-android-objectbrowser need to be updated.'
-        ' For Dart, re-run the install.sh script to download the latest version.');
+        'ObjectBox platform-specific database library not compatible: is $version ($databaseVersion),'
+        ' expected $_obxCminMajor.$_obxCminMinor.$_obxCminPatch ($_obxDatabaseMinVersion) or newer.'
+        ' For Flutter apps, check if the ObjectBox Pod or the Android Admin dependency need to be updated.'
+        ' For unit tests or Dart Native apps, re-run the install.sh script to download the latest version.');
   }
 
   return obxc;

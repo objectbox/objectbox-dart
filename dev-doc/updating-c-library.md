@@ -28,6 +28,8 @@ for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Window
 
 ```text
 Update C library [4.1.0 -> 4.2.0]
+
+Includes database 4.2.0-2025-03-04
 ```
 
 ### Android
@@ -47,7 +49,7 @@ For the Flutter plugins on Android ([view releases](https://github.com/objectbox
 ```text
 Update objectbox-android [4.1.0 -> 4.2.0]
 
-Bundled with C API 4.2.0 and ObjectBox 4.2.0-2025-03-04
+Includes C API 4.2.0 and database 4.2.0-2025-03-04
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
@@ -69,7 +71,7 @@ For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectb
 ```text
 Update ObjectBox Swift [4.1.0 -> 4.2.0]
 
-Bundled with C API 4.2.0 and ObjectBox 4.2.0-2025-03-04
+Includes C API 4.2.0 and database 4.2.0-2025-03-27
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 
