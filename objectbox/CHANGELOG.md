@@ -1,5 +1,7 @@
 ## latest
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.0).
+
 ## 4.2.0 (2025-04-15)
 
 * Requires at least Dart SDK 3.4 or Flutter SDK 3.22.
