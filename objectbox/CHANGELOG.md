@@ -1,6 +1,9 @@
 ## latest
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.0).
+* Update ObjectBox database for Flutter Android apps to 4.3.0.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:4.3.0` in `android/app/build.gradle`.
 
 ## 4.2.0 (2025-04-15)
 
