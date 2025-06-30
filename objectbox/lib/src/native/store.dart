@@ -128,15 +128,18 @@ class Store implements Finalizable {
   ///
   /// Case sensitivity can also be set for each query.
   ///
-  /// ## macOS application group
+  /// ## Sandboxed macOS apps
   ///
-  /// When creating a sandboxed macOS app use [macosApplicationGroup] to
-  /// specify the application group.
+  /// To use ObjectBox in a sandboxed macOS app, [create an app group](https://developer.apple.com/documentation/xcode/configuring-app-groups)
+  /// and pass the ID to [macosApplicationGroup].
   ///
-  /// This string value is the `DEVELOPMENT_TEAM` you can find in your Xcode
-  /// settings, plus an application-specific suffix.
-  /// Also check that all `macos/Runner/*.entitlements` contain a <dict> section
-  /// with this value, for example:
+  /// Note: due to limitations in macOS the ID can be at most 19 characters long.
+  ///
+  /// By convention, the ID is `<Developer team ID>.<group name>`.
+  ///
+  /// You can verify the ID is correctly configured, by checking that the
+  /// `macos/Runner/*.entitlements` files contain the relevant key and value,
+  /// for example:
   ///
   /// ```
   /// <dict>
@@ -147,7 +150,10 @@ class Store implements Finalizable {
   /// </dict>
   /// ```
   ///
-  /// Note: due to limitations in macOS the value must be at most 19 characters.
+  /// This is required to enable additional interprocess communication (IPC),
+  /// like POSIX semaphores, used by mutexes in the ObjectBox database library
+  /// for macOS. Specifically, macOS requires that semaphore names are prefixed
+  /// with an application group ID.
   ///
   /// ## Maximum database size
   ///
@@ -231,6 +237,12 @@ class Store implements Finalizable {
           ArgumentError.value(macosApplicationGroup, 'macosApplicationGroup',
               'Must be at most 20 characters long');
         }
+        // This is required to enable additional interprocess communication
+        // (IPC) in sandboxed apps (https://developer.apple.com/documentation/xcode/configuring-app-groups),
+        // like POSIX semaphores, used by mutexes in the ObjectBox database
+        // library. macOS requires that semaphore names are prefixed with an
+        // application group ID.
+        // See the constructor docs for more details.
         withNativeString(macosApplicationGroup, C.posix_sem_prefix_set);
       }
       _checkStoreDirectoryNotOpen();
