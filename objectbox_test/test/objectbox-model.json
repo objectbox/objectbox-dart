@@ -767,10 +767,46 @@
           "targetId": "16:5931645853908059165"
         }
       ]
+    },
+    {
+      "id": "17:1916197463975409850",
+      "lastPropertyId": "1:7361238329179935424",
+      "name": "ModelA",
+      "properties": [
+        {
+          "id": "1:7361238329179935424",
+          "name": "dbId",
+          "type": 6,
+          "flags": 129
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "18:2680158095061865736",
+      "lastPropertyId": "2:533966917738031607",
+      "name": "ModelB",
+      "properties": [
+        {
+          "id": "1:6351192468911651752",
+          "name": "dbId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:533966917738031607",
+          "name": "modelAId",
+          "indexId": "24:4321803250180166911",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "ModelA"
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "16:5931645853908059165",
-  "lastIndexId": "23:6649884639373473085",
+  "lastEntityId": "18:2680158095061865736",
+  "lastIndexId": "24:4321803250180166911",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

@@ -25,6 +25,32 @@ void main() {
 
   tearDown(() => env.closeAndDelete());
 
+  test('target ID is reset when removing target object with large ID', () {
+    final modelABox = store.box<ModelA>();
+    final modelBBox = store.box<ModelB>();
+
+    // final modelAdbId = 4294967295; // 32-bit unsigned integer MAX WORKS
+    final modelAdbId = 4294967295 + 1; // FAILS
+
+    final modelB = ModelB()..modelA.target = ModelA(dbId: modelAdbId);
+    final modelBId = modelBBox.put(modelB);
+    // Need to put target object as using manually assigned IDs
+    modelABox.put(ModelA(dbId: modelAdbId));
+
+    // Check ToOne has target
+    final modelA = modelBBox.get(modelBId)!.modelA;
+    expect(modelA.targetId, modelAdbId, reason: "target ID doesn't match");
+    expect(modelA.target, isNotNull);
+
+    // Remove target object
+    expect(modelABox.remove(modelAdbId), true);
+
+    // Check ToOne has no target
+    final modelARemoved = modelBBox.get(modelBId)!.modelA;
+    expect(modelARemoved.targetId, 0, reason: "target ID not 0");
+    expect(modelARemoved.target, isNull);
+  });
+
   test('store box vending', () {
     final box1 = store.box<TestEntity>();
     expect(box1.isEmpty(), isTrue);

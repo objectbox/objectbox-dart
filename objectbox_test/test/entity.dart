@@ -504,3 +504,21 @@ class RelatedNamedEntity {
 
   String? name;
 }
+
+@Entity()
+class ModelA {
+  @Id(assignable: true)
+  int dbId;
+
+  ModelA({required this.dbId});
+}
+
+@Entity()
+class ModelB {
+  @Id()
+  int dbId;
+
+  final modelA = ToOne<ModelA>();
+
+  ModelB({this.dbId = 0});
+}
