@@ -145,11 +145,11 @@ class ModelProperty {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
+    if (indexId != null) ret['indexId'] = indexId!.toString();
     ret['type'] = type;
     if (externalType != null) ret['externalType'] = externalType;
     if (externalName != null) ret['externalName'] = externalName;
     if (flags != 0) ret['flags'] = flags;
-    if (indexId != null) ret['indexId'] = indexId!.toString();
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
     if (!forModelJson) {
       if (_dartFieldType != null) {

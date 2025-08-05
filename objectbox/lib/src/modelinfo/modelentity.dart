@@ -181,8 +181,8 @@ class ModelEntity {
     ret['id'] = id.toString();
     ret['lastPropertyId'] = lastPropertyId.toString();
     ret['name'] = name;
-    if (flags != 0) ret['flags'] = flags;
     if (externalName != null) ret['externalName'] = externalName;
+    if (flags != 0) ret['flags'] = flags;
     ret['properties'] =
         properties.map((p) => p.toMap(forModelJson: forModelJson)).toList();
     ret['relations'] =

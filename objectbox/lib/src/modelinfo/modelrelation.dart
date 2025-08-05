@@ -87,13 +87,13 @@ class ModelRelation {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
-    if (_targetId != null) ret['targetId'] = _targetId.toString();
     if (externalType != null) {
       ret['externalType'] = externalType;
     }
     if (externalName != null) {
       ret['externalName'] = externalName;
     }
+    if (_targetId != null) ret['targetId'] = _targetId.toString();
     if (!forModelJson) {
       ret['targetName'] = _targetName;
       ret['uidRequest'] = uidRequest;
