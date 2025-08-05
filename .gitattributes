@@ -1,0 +1,3 @@
+# Keep LF line endings for ObjectBox model JSON files
+# (to avoid plugin detecting changes if checked out on Windows due to core.autocrlf = true)
+objectbox-model.json text eol=lf
