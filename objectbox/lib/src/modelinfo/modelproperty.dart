@@ -15,9 +15,15 @@ class ModelProperty {
   IdUid? _indexId;
   ModelEntity? entity;
   String? relationTarget;
+
+  /// The optional [HnswIndex] parameters of this property.
   ModelHnswParams? hnswParams;
-  int? externalType;
+
+  /// The optional [ExternalName] of this property.
   String? externalName;
+
+  /// The optional [ExternalType] of this property.
+  int? externalType;
 
   /// Type used in the source dart code - used by the code generator.
   /// Starts with [_fieldReadOnlyPrefix] if the field (currently IDs only) is
@@ -132,8 +138,8 @@ class ModelProperty {
         uidRequest = data['uidRequest'] as bool? ?? false,
         hnswParams = ModelHnswParams.fromMap(
             data['hnswParams'] as Map<String, dynamic>?),
-        externalType = data['externalType'] as int?,
-        externalName = data['externalName'] as String? {
+        externalName = data['externalName'] as String?,
+        externalType = data['externalType'] as int? {
     name = data['name'] as String?;
     type = data['type'] as int?;
     flags = data['flags'] as int? ?? 0;
@@ -141,14 +147,18 @@ class ModelProperty {
     this.indexId = indexId == null ? null : IdUid.fromString(indexId);
   }
 
+  /// See [ModelEntity.toMap] for important details.
+  ///
+  /// Note that the order in which keys are written defines the order in the
+  /// generated model JSON.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
     if (indexId != null) ret['indexId'] = indexId!.toString();
     ret['type'] = type;
-    if (externalType != null) ret['externalType'] = externalType;
     if (externalName != null) ret['externalName'] = externalName;
+    if (externalType != null) ret['externalType'] = externalType;
     if (flags != 0) ret['flags'] = flags;
     if (relationTarget != null) ret['relationTarget'] = relationTarget;
     if (!forModelJson) {

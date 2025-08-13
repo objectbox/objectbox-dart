@@ -748,8 +748,8 @@
           "id": "3:7670802129899081197",
           "name": "mongoUuid",
           "type": 27,
-          "externalType": 102,
-          "externalName": "my-mongo-uuid"
+          "externalName": "my-mongo-uuid",
+          "externalType": 102
         },
         {
           "id": "4:6250975810854368520",
@@ -762,8 +762,8 @@
         {
           "id": "2:313640065593441165",
           "name": "mongoIdEntities",
-          "externalType": 124,
           "externalName": "my-mongo-rel",
+          "externalType": 124,
           "targetId": "16:5931645853908059165"
         }
       ]

@@ -12,8 +12,11 @@ class ModelRelation {
 
   String? _targetName;
 
-  int? externalType;
+  /// The optional [ExternalName] of this relation.
   String? externalName;
+
+  /// The optional [ExternalType] of this relation.
+  int? externalType;
 
   // whether the user requested UID information (started a rename process)
   final bool uidRequest;
@@ -49,18 +52,14 @@ class ModelRelation {
   ModelRelation.create(this.id, String? name,
       {String? targetId,
       String? targetName,
-      int? externalType,
       String? externalName,
+      int? externalType,
       this.uidRequest = false}) {
     this.name = name;
     if (targetId != null) this.targetId = IdUid.fromString(targetId);
     if (targetName != null) this.targetName = targetName;
-    if (externalType != null) {
-      this.externalType = externalType;
-    }
-    if (externalName != null) {
-      this.externalName = externalName;
-    }
+    if (externalName != null) this.externalName = externalName;
+    if (externalType != null) this.externalType = externalType;
   }
 
   // used in generated code
@@ -80,19 +79,19 @@ class ModelRelation {
             targetId: data['targetId'] as String?,
             targetName: data['targetName'] as String?,
             uidRequest: data['uidRequest'] as bool? ?? false,
-            externalType: data['externalType'] as int?,
-            externalName: data['externalName'] as String?);
+            externalName: data['externalName'] as String?,
+            externalType: data['externalType'] as int?);
 
+  /// See [ModelEntity.toMap] for important details.
+  ///
+  /// Note that the order in which keys are written defines the order in the
+  /// generated model JSON.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
     ret['name'] = name;
-    if (externalType != null) {
-      ret['externalType'] = externalType;
-    }
-    if (externalName != null) {
-      ret['externalName'] = externalName;
-    }
+    if (externalName != null) ret['externalName'] = externalName;
+    if (externalType != null) ret['externalType'] = externalType;
     if (_targetId != null) ret['targetId'] = _targetId.toString();
     if (!forModelJson) {
       ret['targetName'] = _targetName;

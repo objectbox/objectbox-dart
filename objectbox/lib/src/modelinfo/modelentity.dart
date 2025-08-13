@@ -13,8 +13,10 @@ class ModelEntity {
 
   late String _name;
   IdUid lastPropertyId = const IdUid.empty();
-  int _flags = 0;
+
+  /// The optional [ExternalName] of this entity.
   String? externalName;
+  int _flags = 0;
   final List<ModelProperty> _properties;
   final List<ModelRelation> _relations;
   final List<ModelBacklink> _backlinks;
@@ -70,10 +72,10 @@ class ModelEntity {
   // used in generated code
   ModelEntity(
       {required this.id,
-      required String name,
       required this.lastPropertyId,
-      required int flags,
+      required String name,
       this.externalName,
+      required int flags,
       required List<ModelProperty> properties,
       required List<ModelRelation> relations,
       required List<ModelBacklink> backlinks})
@@ -95,8 +97,8 @@ class ModelEntity {
         _relations = [],
         _backlinks = [] {
     name = data['name'] as String?;
-    flags = data['flags'] as int? ?? 0;
     externalName = data['externalName'] as String?;
+    flags = data['flags'] as int? ?? 0;
 
     final properties = data['properties'] as List;
     for (final p in properties) {
@@ -176,6 +178,9 @@ class ModelEntity {
   ///
   /// Note: this is used by EntityResolver for model persistence in cache files
   /// and indirectly by CodeBuilder when generating objectbox-model.json.
+  ///
+  /// So the order of writing keys matters, it defines the order in the final
+  /// JSON.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
     ret['id'] = id.toString();
