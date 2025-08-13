@@ -90,39 +90,41 @@ class ModelEntity {
   ModelEntity.fromMap(Map<String, dynamic> data,
       {ModelInfo? model, bool check = true})
       : _model = model,
-        id = IdUid.fromString(data['id'] as String?),
-        lastPropertyId = IdUid.fromString(data['lastPropertyId'] as String?),
-        uidRequest = data['uidRequest'] as bool? ?? false,
+        id = IdUid.fromString(data[ModelEntityKey.id] as String?),
+        lastPropertyId =
+            IdUid.fromString(data[ModelEntityKey.lastPropertyId] as String?),
+        uidRequest = data[ModelEntityKey.uidRequest] as bool? ?? false,
         _properties = [],
         _relations = [],
         _backlinks = [] {
-    name = data['name'] as String?;
-    externalName = data['externalName'] as String?;
-    flags = data['flags'] as int? ?? 0;
+    name = data[ModelEntityKey.name] as String?;
+    externalName = data[ModelEntityKey.externalName] as String?;
+    flags = data[ModelEntityKey.flags] as int? ?? 0;
 
-    final properties = data['properties'] as List;
+    final properties = data[ModelEntityKey.properties] as List;
     for (final p in properties) {
       _properties.add(ModelProperty.fromMap(p as Map<String, dynamic>, this));
     }
 
-    final relations = data['relations'] as List?;
+    final relations = data[ModelEntityKey.relations] as List?;
     if (relations != null) {
       for (final p in relations) {
         _relations.add(ModelRelation.fromMap(p as Map<String, dynamic>));
       }
     }
 
-    final backlinks = data['backlinks'] as List?;
+    final backlinks = data[ModelEntityKey.backlinks] as List?;
     if (backlinks != null) {
       for (final p in backlinks) {
         _backlinks.add(ModelBacklink.fromMap(p as Map<String, dynamic>));
       }
     }
 
-    if (data['constructorParams'] != null) {
-      constructorParams = (data['constructorParams'] as List<dynamic>)
-          .map((dynamic e) => e as String)
-          .toList(growable: false);
+    if (data[ModelEntityKey.constructorParams] != null) {
+      constructorParams =
+          (data[ModelEntityKey.constructorParams] as List<dynamic>)
+              .map((dynamic e) => e as String)
+              .toList(growable: false);
     }
 
     if (check) validate();
@@ -183,19 +185,19 @@ class ModelEntity {
   /// JSON.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
-    ret['id'] = id.toString();
-    ret['lastPropertyId'] = lastPropertyId.toString();
-    ret['name'] = name;
-    if (externalName != null) ret['externalName'] = externalName;
-    if (flags != 0) ret['flags'] = flags;
-    ret['properties'] =
+    ret[ModelEntityKey.id] = id.toString();
+    ret[ModelEntityKey.lastPropertyId] = lastPropertyId.toString();
+    ret[ModelEntityKey.name] = name;
+    if (externalName != null) ret[ModelEntityKey.externalName] = externalName;
+    if (flags != 0) ret[ModelEntityKey.flags] = flags;
+    ret[ModelEntityKey.properties] =
         properties.map((p) => p.toMap(forModelJson: forModelJson)).toList();
-    ret['relations'] =
+    ret[ModelEntityKey.relations] =
         relations.map((r) => r.toMap(forModelJson: forModelJson)).toList();
     if (!forModelJson) {
-      ret['backlinks'] = backlinks.map((r) => r.toMap()).toList();
-      ret['constructorParams'] = constructorParams;
-      ret['uidRequest'] = uidRequest;
+      ret[ModelEntityKey.backlinks] = backlinks.map((r) => r.toMap()).toList();
+      ret[ModelEntityKey.constructorParams] = constructorParams;
+      ret[ModelEntityKey.uidRequest] = uidRequest;
     }
     return ret;
   }
@@ -315,4 +317,18 @@ class ModelEntity {
     result += ' sync:${hasFlag(OBXEntityFlags.SYNC_ENABLED) ? 'ON' : 'OFF'}';
     return result;
   }
+}
+
+/// Map keys for properties of this entity.
+class ModelEntityKey {
+  static const String id = 'id';
+  static const String lastPropertyId = 'lastPropertyId';
+  static const String name = 'name';
+  static const String externalName = 'externalName';
+  static const String flags = 'flags';
+  static const String properties = 'properties';
+  static const String relations = 'relations';
+  static const String backlinks = 'backlinks';
+  static const String constructorParams = 'constructorParams';
+  static const String uidRequest = 'uidRequest';
 }

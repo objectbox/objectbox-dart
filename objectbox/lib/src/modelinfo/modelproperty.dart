@@ -132,18 +132,18 @@ class ModelProperty {
         uidRequest = false;
 
   ModelProperty.fromMap(Map<String, dynamic> data, this.entity)
-      : id = IdUid.fromString(data['id'] as String?),
-        relationTarget = data['relationTarget'] as String?,
-        _dartFieldType = data['dartFieldType'] as String?,
-        uidRequest = data['uidRequest'] as bool? ?? false,
+      : id = IdUid.fromString(data[ModelPropertyKey.id] as String?),
+        relationTarget = data[ModelPropertyKey.relationTarget] as String?,
+        _dartFieldType = data[ModelPropertyKey.dartFieldType] as String?,
+        uidRequest = data[ModelPropertyKey.uidRequest] as bool? ?? false,
         hnswParams = ModelHnswParams.fromMap(
-            data['hnswParams'] as Map<String, dynamic>?),
-        externalName = data['externalName'] as String?,
-        externalType = data['externalType'] as int? {
-    name = data['name'] as String?;
-    type = data['type'] as int?;
-    flags = data['flags'] as int? ?? 0;
-    final indexId = data['indexId'] as String?;
+            data[ModelPropertyKey.hnswParams] as Map<String, dynamic>?),
+        externalName = data[ModelPropertyKey.externalName] as String?,
+        externalType = data[ModelPropertyKey.externalType] as int? {
+    name = data[ModelPropertyKey.name] as String?;
+    type = data[ModelPropertyKey.type] as int?;
+    flags = data[ModelPropertyKey.flags] as int? ?? 0;
+    final indexId = data[ModelPropertyKey.indexId] as String?;
     this.indexId = indexId == null ? null : IdUid.fromString(indexId);
   }
 
@@ -153,21 +153,23 @@ class ModelProperty {
   /// generated model JSON.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
-    ret['id'] = id.toString();
-    ret['name'] = name;
-    if (indexId != null) ret['indexId'] = indexId!.toString();
-    ret['type'] = type;
-    if (externalName != null) ret['externalName'] = externalName;
-    if (externalType != null) ret['externalType'] = externalType;
-    if (flags != 0) ret['flags'] = flags;
-    if (relationTarget != null) ret['relationTarget'] = relationTarget;
+    ret[ModelPropertyKey.id] = id.toString();
+    ret[ModelPropertyKey.name] = name;
+    if (indexId != null) ret[ModelPropertyKey.indexId] = indexId!.toString();
+    ret[ModelPropertyKey.type] = type;
+    if (externalName != null) ret[ModelPropertyKey.externalName] = externalName;
+    if (externalType != null) ret[ModelPropertyKey.externalType] = externalType;
+    if (flags != 0) ret[ModelPropertyKey.flags] = flags;
+    if (relationTarget != null) {
+      ret[ModelPropertyKey.relationTarget] = relationTarget;
+    }
     if (!forModelJson) {
       if (_dartFieldType != null) {
-        ret['dartFieldType'] = _dartFieldType;
+        ret[ModelPropertyKey.dartFieldType] = _dartFieldType;
       }
-      ret['uidRequest'] = uidRequest;
+      ret[ModelPropertyKey.uidRequest] = uidRequest;
       if (hnswParams != null) {
-        ret['hnswParams'] = hnswParams!.toMap();
+        ret[ModelPropertyKey.hnswParams] = hnswParams!.toMap();
       }
     }
     return ret;
@@ -220,4 +222,19 @@ class ModelProperty {
 
     return result;
   }
+}
+
+/// Map keys for properties of this property.
+class ModelPropertyKey {
+  static const String id = 'id';
+  static const String name = 'name';
+  static const String indexId = 'indexId';
+  static const String type = 'type';
+  static const String flags = 'flags';
+  static const String relationTarget = 'relationTarget';
+  static const String dartFieldType = 'dartFieldType';
+  static const String uidRequest = 'uidRequest';
+  static const String hnswParams = 'hnswParams';
+  static const String externalName = 'externalName';
+  static const String externalType = 'externalType';
 }

@@ -74,13 +74,13 @@ class ModelRelation {
         uidRequest = false;
 
   ModelRelation.fromMap(Map<String, dynamic> data)
-      : this.create(
-            IdUid.fromString(data['id'] as String?), data['name'] as String?,
-            targetId: data['targetId'] as String?,
-            targetName: data['targetName'] as String?,
-            uidRequest: data['uidRequest'] as bool? ?? false,
-            externalName: data['externalName'] as String?,
-            externalType: data['externalType'] as int?);
+      : this.create(IdUid.fromString(data[ModelRelationKey.id] as String?),
+            data[ModelRelationKey.name] as String?,
+            targetId: data[ModelRelationKey.targetId] as String?,
+            targetName: data[ModelRelationKey.targetName] as String?,
+            uidRequest: data[ModelRelationKey.uidRequest] as bool? ?? false,
+            externalName: data[ModelRelationKey.externalName] as String?,
+            externalType: data[ModelRelationKey.externalType] as int?);
 
   /// See [ModelEntity.toMap] for important details.
   ///
@@ -88,14 +88,16 @@ class ModelRelation {
   /// generated model JSON.
   Map<String, dynamic> toMap({bool forModelJson = false}) {
     final ret = <String, dynamic>{};
-    ret['id'] = id.toString();
-    ret['name'] = name;
-    if (externalName != null) ret['externalName'] = externalName;
-    if (externalType != null) ret['externalType'] = externalType;
-    if (_targetId != null) ret['targetId'] = _targetId.toString();
+    ret[ModelRelationKey.id] = id.toString();
+    ret[ModelRelationKey.name] = name;
+    if (externalName != null) ret[ModelRelationKey.externalName] = externalName;
+    if (externalType != null) ret[ModelRelationKey.externalType] = externalType;
+    if (_targetId != null) {
+      ret[ModelRelationKey.targetId] = _targetId.toString();
+    }
     if (!forModelJson) {
-      ret['targetName'] = _targetName;
-      ret['uidRequest'] = uidRequest;
+      ret[ModelRelationKey.targetName] = _targetName;
+      ret[ModelRelationKey.uidRequest] = uidRequest;
     }
     return ret;
   }
@@ -103,4 +105,15 @@ class ModelRelation {
   @override
   String toString() =>
       'standalone relation $name($id) relTarget: $_targetName($_targetId)';
+}
+
+/// Map keys for properties of this relation.
+class ModelRelationKey {
+  static const String id = 'id';
+  static const String name = 'name';
+  static const String targetId = 'targetId';
+  static const String targetName = 'targetName';
+  static const String uidRequest = 'uidRequest';
+  static const String externalType = 'externalType';
+  static const String externalName = 'externalName';
 }
