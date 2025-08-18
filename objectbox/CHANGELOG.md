@@ -1,6 +1,10 @@
 ## latest
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.1](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.1).
+* Update ObjectBox database for Flutter Android apps to 4.3.1.
+  For Admin: do not display values twice. [#738](https://github.com/objectbox/objectbox-dart/issues/738)
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:4.3.1` in `android/app/build.gradle`.
 
 ## 4.3.0 (2025-05-28)
 
