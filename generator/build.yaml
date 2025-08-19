@@ -29,9 +29,10 @@ builders:
     builder_factories: ["codeGeneratorFactory"]
     # build_extensions: Required. A map from input extension to the list of output extensions that may be created
     # for that input. This must match the merged buildExtensions maps from each Builder in builder_factories.
+    # See notes on CodeBuilder.buildExtensions.
     build_extensions:
       "$lib$": ["objectbox.g.dart"]
-      "$test": ["objectbox.g.dart"]
+      "$test$": ["objectbox.g.dart"]
     required_inputs: ['.objectbox.info']
     auto_apply: dependents
     build_to: source

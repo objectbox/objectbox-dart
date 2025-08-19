@@ -1,4 +1,3 @@
-import 'package:build/build.dart';
 import 'package:path/path.dart' as path;
 
 import 'config.dart';
@@ -12,11 +11,15 @@ class BuilderDirs {
 
   BuilderDirs._(this.root, this.out);
 
-  factory BuilderDirs(BuildStep buildStep, Config config) {
+  /// For [pathInSourceRoot] expects the path to a file in the source root
+  /// directory (currently only lib or test are supported). It's used to
+  /// determine the [root] source path and [out] path for generated code.
+  /// A [config] may customize the [out] path relative to [root].
+  factory BuilderDirs(String pathInSourceRoot, Config config) {
     // Paths from Config are supplied by the user and may contain duplicate
     // slashes or be empty: normalize all paths to not return duplicate or
     // trailing slashes to ensure they can be compared via strings.
-    final root = path.normalize(path.dirname(buildStep.inputId.path));
+    final root = path.normalize(path.dirname(pathInSourceRoot));
     final String out;
     if (root.endsWith('test')) {
       out = path.normalize('$root/${config.outDirTest}');

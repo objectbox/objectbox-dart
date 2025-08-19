@@ -11,7 +11,7 @@ environment:
 dependencies:
   objectbox: 4.3.0
   analyzer: '>=6.5.0 <8.0.0' # dart_style 2.3.7 requires 6.5.0
-  build: '>=2.4.1 <2.5.0' # 2.5.0 has breaking changes for code_builder_test.dart, adapt before allowing
+  build: ^2.5.0 # TODO Tighten further as Dart 3.7.0 is required by build_test anyhow?
   collection: ^1.18.0 # Would require 1.19.1, but Flutter 3.24.0 has 1.18.0 pinned
   dart_style: '>=2.3.7 <4.0.0' # require 2.3.7 for languageVersion in DartFormatter constructor
   glob: ^2.1.3
@@ -27,4 +27,6 @@ dev_dependencies:
   lints: ^3.0.0
   pub_semver: ^2.2.0
   package_config: ^2.2.0
-  build_test: ^2.2.2
+  build_test: ^3.0.0
+  build_runner_core: ^9.0.0
+  logging: ^1.3.0

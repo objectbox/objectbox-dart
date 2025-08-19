@@ -29,13 +29,17 @@ class CodeBuilder extends Builder {
 
   @override
   late final buildExtensions = {
+    // lib/$lib$ and test/$test$ are placeholder files of build_runner which are
+    // used as there is no clear primary input file for this builder.
     r'$lib$': [path.join(_config.outDirLib, _config.codeFile)],
     r'$test$': [path.join(_config.outDirTest, _config.codeFile)]
   };
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
-    final builderDirs = BuilderDirs(buildStep, _config);
+    // This is only called twice, once with path lib/$lib$ and once with test/$test$
+    final inputFilePath = buildStep.inputId.path;
+    final builderDirs = BuilderDirs(inputFilePath, _config);
 
     // build() will be called only twice, once for the `lib` directory and once for the `test` directory
     // map from file name to a 'json' representation of entities
