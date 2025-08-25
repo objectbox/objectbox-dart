@@ -13,6 +13,14 @@ import 'package:test/test.dart';
 /// Helps testing the generator by running [EntityResolver] on the given
 /// [source] file and feeding the output directly into [CodeBuilder] and running
 /// it.
+///
+/// Warning: tests that use this or otherwise create files in the `lib` folder
+/// should not run in parallel as this might break when reading unexpected
+/// files from the `lib` source folder (see [run] which calls
+/// `TestReaderWriter.testing.loadIsolateSources()` and reads/deletes the model
+/// JSON file). So make sure tests are in the same test suite (`main()` method)
+/// and use `dart test --concurrency=1`.
+/// See also https://pub.dev/packages/test#test-concurrency.
 class GeneratorTestEnv {
   final EntityResolver resolver;
   final Config config;
