@@ -16,7 +16,7 @@ dependencies:
   dart_style: '>=2.3.7 <4.0.0' # require 2.3.7 for languageVersion in DartFormatter constructor
   glob: ^2.1.3
   path: ^1.9.1
-  source_gen: 3.0.0 # Require 3.0.0 to use new analyzer 7.4.0 element2 APIs # TODO Allow any 3 version
+  source_gen: 3.1.0 # Require 3.1.0 to use new TypeChecker APIs # TODO Allow any 3.1 version
   pubspec_parse: ^1.4.0
   yaml: ^3.1.3
   http: ^1.3.0

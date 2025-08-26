@@ -19,17 +19,29 @@ class EntityResolver extends Builder {
     '.dart': [suffix]
   };
 
-  final _entityChecker = const TypeChecker.fromRuntime(Entity);
-  final _propertyChecker = const TypeChecker.fromRuntime(Property);
-  final _idChecker = const TypeChecker.fromRuntime(Id);
-  final _transientChecker = const TypeChecker.fromRuntime(Transient);
-  final _syncChecker = const TypeChecker.fromRuntime(Sync);
-  final _uniqueChecker = const TypeChecker.fromRuntime(Unique);
-  final _indexChecker = const TypeChecker.fromRuntime(Index);
-  final _backlinkChecker = const TypeChecker.fromRuntime(Backlink);
-  final _hnswChecker = const TypeChecker.fromRuntime(HnswIndex);
-  final _externalTypeChecker = const TypeChecker.fromRuntime(ExternalType);
-  final _externalNameChecker = const TypeChecker.fromRuntime(ExternalName);
+  static const _annotationsPackage = 'objectbox';
+  final _entityChecker =
+      const TypeChecker.typeNamed(Entity, inPackage: _annotationsPackage);
+  final _propertyChecker =
+      const TypeChecker.typeNamed(Property, inPackage: _annotationsPackage);
+  final _idChecker =
+      const TypeChecker.typeNamed(Id, inPackage: _annotationsPackage);
+  final _transientChecker =
+      const TypeChecker.typeNamed(Transient, inPackage: _annotationsPackage);
+  final _syncChecker =
+      const TypeChecker.typeNamed(Sync, inPackage: _annotationsPackage);
+  final _uniqueChecker =
+      const TypeChecker.typeNamed(Unique, inPackage: _annotationsPackage);
+  final _indexChecker =
+      const TypeChecker.typeNamed(Index, inPackage: _annotationsPackage);
+  final _backlinkChecker =
+      const TypeChecker.typeNamed(Backlink, inPackage: _annotationsPackage);
+  final _hnswChecker =
+      const TypeChecker.typeNamed(HnswIndex, inPackage: _annotationsPackage);
+  final _externalTypeChecker =
+      const TypeChecker.typeNamed(ExternalType, inPackage: _annotationsPackage);
+  final _externalNameChecker =
+      const TypeChecker.typeNamed(ExternalName, inPackage: _annotationsPackage);
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
