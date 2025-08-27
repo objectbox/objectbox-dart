@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:build/build.dart';
-import 'package:build/src/builder/build_step_impl.dart';
 import 'package:build_test/build_test.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
+import 'package:build_runner_core/src/generate/build_step_impl.dart';
+import 'package:build_runner_core/src/generate/single_step_reader_writer.dart';
 import 'package:objectbox_generator/src/config.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
@@ -15,18 +16,17 @@ import 'package:test/test.dart';
 import 'generator_test_env.dart';
 
 void main() {
-  var reader = StubAssetReader();
-  var writer = StubAssetWriter();
   final resourceManager = ResourceManager();
+  var reader = TestReaderWriter();
   // Default directory structure: sources inside lib folder.
   final testBuildStep = BuildStepImpl(
-      AssetId("objectbox_generator_test", "lib/\$lib\$"),
-      [],
-      reader,
-      writer,
-      null,
-      resourceManager,
-      _unsupported);
+    AssetId("objectbox_generator_test", "lib/\$lib\$"),
+    [],
+    SingleStepReaderWriter.from(reader: reader, writer: reader),
+    null,
+    resourceManager,
+    _unsupported,
+  );
 
   group('getRootDir and getOutDir', () {
     test('lib', () {
@@ -37,13 +37,13 @@ void main() {
 
     test('test', () {
       final testBuildStepTest = BuildStepImpl(
-          AssetId("objectbox_generator_test", "test/\$test\$"),
-          [],
-          reader,
-          writer,
-          null,
-          resourceManager,
-          _unsupported);
+        AssetId("objectbox_generator_test", "test/\$test\$"),
+        [],
+        SingleStepReaderWriter.from(reader: reader, writer: reader),
+        null,
+        resourceManager,
+        _unsupported,
+      );
       final builderDirs = BuilderDirs(testBuildStepTest, Config());
       expect(builderDirs.root, equals('test'));
       expect(builderDirs.out, equals('test'));
@@ -51,18 +51,23 @@ void main() {
 
     test('not supported', () {
       final testBuildStepNotSupported = BuildStepImpl(
-          AssetId("objectbox_generator_test", "custom/\$custom\$"),
-          [],
-          reader,
-          writer,
-          null,
-          resourceManager,
-          _unsupported);
+        AssetId("objectbox_generator_test", "custom/\$custom\$"),
+        [],
+        SingleStepReaderWriter.from(reader: reader, writer: reader),
+        null,
+        resourceManager,
+        _unsupported,
+      );
       expect(
-          () => BuilderDirs(testBuildStepNotSupported, Config()),
-          throwsA(predicate((e) =>
-              e is ArgumentError &&
-              e.message == 'Is not lib or test directory: "custom"')));
+        () => BuilderDirs(testBuildStepNotSupported, Config()),
+        throwsA(
+          predicate(
+            (e) =>
+                e is ArgumentError &&
+                e.message == 'Is not lib or test directory: "custom"',
+          ),
+        ),
+      );
     });
 
     test('out dir with redundant slash', () {
@@ -72,15 +77,19 @@ void main() {
     });
 
     test('out dir not in root dir', () {
-      final builderDirs =
-          BuilderDirs(testBuildStep, Config(outDirLib: '../sibling'));
+      final builderDirs = BuilderDirs(
+        testBuildStep,
+        Config(outDirLib: '../sibling'),
+      );
       expect(builderDirs.root, equals('lib'));
       expect(builderDirs.out, equals(path.normalize('sibling')));
     });
 
     test('out dir below root dir', () {
-      final builderDirs =
-          BuilderDirs(testBuildStep, Config(outDirLib: 'below/root'));
+      final builderDirs = BuilderDirs(
+        testBuildStep,
+        Config(outDirLib: 'below/root'),
+      );
       expect(builderDirs.root, equals('lib'));
       expect(builderDirs.out, equals(path.normalize('lib/below/root')));
     });
@@ -88,48 +97,72 @@ void main() {
 
   group('getPrefixFor', () {
     test('out dir is root dir', () {
-      expect(CodeBuilder.getPrefixFor(BuilderDirs(testBuildStep, Config())),
-          equals(''));
+      expect(
+        CodeBuilder.getPrefixFor(BuilderDirs(testBuildStep, Config())),
+        equals(''),
+      );
     });
 
     test('out dir redundant slash', () {
       expect(
-          CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '/'))),
-          equals(''));
+        CodeBuilder.getPrefixFor(
+          BuilderDirs(testBuildStep, Config(outDirLib: '/')),
+        ),
+        equals(''),
+      );
       expect(
-          CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '//below/'))),
-          equals('../'));
+        CodeBuilder.getPrefixFor(
+          BuilderDirs(testBuildStep, Config(outDirLib: '//below/')),
+        ),
+        equals('../'),
+      );
     });
 
     test('out dir not in root dir', () {
       expect(
-          () => CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '../sibling'))),
-          throwsA(predicate((e) =>
-              e is InvalidGenerationSourceError &&
-              e.message
-                  .contains("is not a subdirectory of the source directory"))));
+        () => CodeBuilder.getPrefixFor(
+          BuilderDirs(testBuildStep, Config(outDirLib: '../sibling')),
+        ),
+        throwsA(
+          predicate(
+            (e) =>
+                e is InvalidGenerationSourceError &&
+                e.message.contains(
+                  "is not a subdirectory of the source directory",
+                ),
+          ),
+        ),
+      );
 
       expect(
-          () => CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '../../above'))),
-          throwsA(predicate((e) =>
-              e is InvalidGenerationSourceError &&
-              e.message
-                  .contains("is not a subdirectory of the source directory"))));
+        () => CodeBuilder.getPrefixFor(
+          BuilderDirs(testBuildStep, Config(outDirLib: '../../above')),
+        ),
+        throwsA(
+          predicate(
+            (e) =>
+                e is InvalidGenerationSourceError &&
+                e.message.contains(
+                  "is not a subdirectory of the source directory",
+                ),
+          ),
+        ),
+      );
     });
 
     test('out dir below root dir', () {
       expect(
-          CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: 'below'))),
-          equals('../'));
+        CodeBuilder.getPrefixFor(
+          BuilderDirs(testBuildStep, Config(outDirLib: 'below')),
+        ),
+        equals('../'),
+      );
       expect(
-          CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: 'below/lower'))),
-          equals('../../'));
+        CodeBuilder.getPrefixFor(
+          BuilderDirs(testBuildStep, Config(outDirLib: 'below/lower')),
+        ),
+        equals('../../'),
+      );
     });
   });
 
@@ -163,10 +196,14 @@ void main() {
       final exampleEntity = testEnv.model.entities[0];
       expect(exampleEntity.name, "Example");
       expect(exampleEntity.flags, 0);
-      expect(exampleEntity.findPropertyByName("tBool")!.type,
-          OBXPropertyType.Bool);
-      expect(exampleEntity.findPropertyByName("tString")!.type,
-          OBXPropertyType.String);
+      expect(
+        exampleEntity.findPropertyByName("tBool")!.type,
+        OBXPropertyType.Bool,
+      );
+      expect(
+        exampleEntity.findPropertyByName("tString")!.type,
+        OBXPropertyType.String,
+      );
     });
 
     test('index on unsupported type errors', () async {
@@ -187,9 +224,15 @@ void main() {
         ''';
 
         await expectLater(
-            () async => await testEnv.run(source),
-            throwsA(isA<InvalidGenerationSourceError>().having((e) => e.message,
-                'message', contains("@Index/@Unique is not supported"))));
+          () async => await testEnv.run(source),
+          throwsA(
+            isA<InvalidGenerationSourceError>().having(
+              (e) => e.message,
+              'message',
+              contains("@Index/@Unique is not supported"),
+            ),
+          ),
+        );
       }
 
       // floating point types
@@ -260,12 +303,17 @@ void main() {
 
       final testEnv = GeneratorTestEnv();
       await expectLater(
-          () async => await testEnv.run(source),
-          throwsA(isA<InvalidGenerationSourceError>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                  "@HnswIndex is only supported for float vector properties."))));
+        () async => await testEnv.run(source),
+        throwsA(
+          isA<InvalidGenerationSourceError>().having(
+            (e) => e.message,
+            'message',
+            contains(
+              "@HnswIndex is only supported for float vector properties.",
+            ),
+          ),
+        ),
+      );
     });
 
     test('HNSW annotation default', () async {
@@ -288,8 +336,9 @@ void main() {
       await testEnv.run(source);
 
       // Assert final model created by generator
-      final vectorProperty = testEnv.model.entities[0].properties
-          .firstWhere((element) => element.name == "coordinates");
+      final vectorProperty = testEnv.model.entities[0].properties.firstWhere(
+        (element) => element.name == "coordinates",
+      );
       expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
       expect(vectorProperty.indexId, isNotNull);
       expect(vectorProperty.hnswParams, isNotNull);
@@ -333,8 +382,9 @@ void main() {
       await testEnv.run(source);
 
       // Assert final model created by generator
-      final vectorProperty = testEnv.model.entities[0].properties
-          .firstWhere((element) => element.name == "coordinates");
+      final vectorProperty = testEnv.model.entities[0].properties.firstWhere(
+        (element) => element.name == "coordinates",
+      );
       expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
       expect(vectorProperty.indexId, isNotNull);
       expect(vectorProperty.hnswParams, isNotNull);
@@ -347,8 +397,10 @@ void main() {
       expect(flags & OBXHnswFlags.DebugLogsDetailed != 0, true);
       expect(flags & OBXHnswFlags.VectorCacheSimdPaddingOff != 0, true);
       expect(flags & OBXHnswFlags.ReparationLimitCandidates != 0, true);
-      expect(vectorProperty.hnswParams!.distanceType,
-          OBXVectorDistanceType.Euclidean);
+      expect(
+        vectorProperty.hnswParams!.distanceType,
+        OBXVectorDistanceType.Euclidean,
+      );
       expect(vectorProperty.hnswParams!.reparationBacklinkProbability, 0.95);
       expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, 2097152);
     });
@@ -423,12 +475,14 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final property1 = testEnv.model.entities[0].properties
-          .firstWhere((element) => element.name == "mongoId");
+      final property1 = testEnv.model.entities[0].properties.firstWhere(
+        (element) => element.name == "mongoId",
+      );
       expect(property1.externalType, OBXExternalPropertyType.MongoId);
 
-      final property2 = testEnv.model.entities[0].properties
-          .firstWhere((element) => element.name == "mongoUuid");
+      final property2 = testEnv.model.entities[0].properties.firstWhere(
+        (element) => element.name == "mongoUuid",
+      );
       expect(property2.externalType, OBXExternalPropertyType.Uuid);
       expect(property2.externalName, "my-mongo-uuid");
     });
@@ -454,12 +508,14 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final relation1 = testEnv.model.entities[0].relations
-          .firstWhere((element) => element.name == "rel1");
+      final relation1 = testEnv.model.entities[0].relations.firstWhere(
+        (element) => element.name == "rel1",
+      );
       expect(relation1.externalType, OBXExternalPropertyType.MongoId);
 
-      final relation2 = testEnv.model.entities[0].relations
-          .firstWhere((element) => element.name == "rel2");
+      final relation2 = testEnv.model.entities[0].relations.firstWhere(
+        (element) => element.name == "rel2",
+      );
       expect(relation2.externalType, OBXExternalPropertyType.Uuid);
       expect(relation2.externalName, "my-courses-rel");
     });

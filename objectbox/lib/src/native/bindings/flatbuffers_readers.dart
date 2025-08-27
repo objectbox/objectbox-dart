@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flat_buffers/flat_buffers.dart';
+import 'flat_buffers.dart';
 
 const int _sizeOfInt32 = 4;
 

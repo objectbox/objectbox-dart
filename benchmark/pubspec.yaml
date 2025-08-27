@@ -3,15 +3,15 @@ description: Simple ObjectBox-Dart performance benchmark
 publish_to: none
 
 environment:
-  sdk: '>=2.14.0 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   objectbox: any
-  meta: ^1.3.0
+  meta: ^1.15.0
   ffi: ^2.0.1
 
 dev_dependencies:
   # lints 2.1.0+ requires Dart 3, but CI still tests with Dart 2, but also need 3.0.0+ to match pana
-  lints: '>=2.0.1 <4.0.0'
+  lints: ^6.0.0
   objectbox_generator: any
   build_runner: any

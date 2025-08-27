@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:flat_buffers/flat_buffers.dart' as fb;
+import 'package:objectbox/src/native/bindings/flat_buffers.dart' as fb;
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/bindings/flatbuffers.dart';
 import 'package:objectbox/src/native/bindings/nativemem.dart';

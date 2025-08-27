@@ -707,8 +707,6 @@ class InternalBoxAccess {
             cIdsPtr =
                 C.box_rel_get_backlink_ids(box._ptr, rel.id, rel.objectId);
             break;
-          default:
-            throw UnimplementedError('Invalid relation type ${rel.type}');
         }
         checkObxPtr(cIdsPtr);
         final result = <EntityT>[];

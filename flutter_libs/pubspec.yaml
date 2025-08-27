@@ -6,8 +6,8 @@ homepage: https://objectbox.io
 version: 4.3.0
 
 environment:
-  sdk: '>=2.18.0 <4.0.0'
-  flutter: ">=2.5.0"
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: ">=3.14.0"
 
 dependencies:
   flutter:
@@ -15,11 +15,11 @@ dependencies:
   # This is here just to ensure compatibility between objectbox-dart code and the libraries used
   # You should still depend on objectbox directly in your Flutter application.
   objectbox: 4.3.0
-  path_provider: ^2.0.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   # flutter_lints 2.0.3 requires Dart 2.19, but CI still testing down to 2.18
-  flutter_lints: '>=2.0.2 <4.0.0'
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:8.12.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -29,7 +29,7 @@ android {
         namespace 'io.objectbox.objectbox_flutter_libs'
     }
 
-    compileSdkVersion 31
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -45,13 +45,13 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 21 // ObjectBox Android requires Android 5.0 (API level 21)
+        minSdk 21 // ObjectBox Android requires Android 5.0 (API level 21)
     }
 
     dependencies {
         // ObjectBox Android library that includes an ObjectBox C library version compatible with
         // the C API binding of the ObjectBox Dart package.
         // https://central.sonatype.com/search?q=g:io.objectbox%20objectbox-android
-        implementation "io.objectbox:objectbox-android:4.3.0"
+        implementation "io.objectbox:objectbox-android:4.3.1"
     }
 }

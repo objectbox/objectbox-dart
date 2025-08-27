@@ -31,22 +31,18 @@ class GeneratorTestEnv {
 
   Future<void> run(String source) async {
     final library = "example";
-    // Enable resolving imports, must be a dependency of this package
-    final reader =
-        await PackageAssetReader.currentIsolate(rootPackage: library);
-
     final sourceAssets = {'$library|lib/entity.dart': source};
     final entityInfoPath = '$library|lib/entity.objectbox.info';
     final entityInfo = AssetId.parse(entityInfoPath);
 
-    final writer = InMemoryAssetWriter();
-    final outputReader = WrittenAssetReader(writer);
+    // Enable resolving imports, must be a dependency of this package
+    final readerWriter = TestReaderWriter(rootPackage: library);
 
     // Run EntityResolver
-    await testBuilder(resolver, sourceAssets, reader: reader, writer: writer);
+    await testBuilder(resolver, sourceAssets, readerWriter: readerWriter);
 
     // Check entity info file was created
-    expect(await outputReader.canRead(entityInfo), isTrue);
+    expect(await readerWriter.canRead(entityInfo), isTrue);
 
     // If entity info model ever needs to be asserted, do it like:
     // final entitiesList =
@@ -58,8 +54,8 @@ class GeneratorTestEnv {
     // Run CodeBuilder
     await testBuilder(
       codeBuilder,
-      {entityInfo.toString(): outputReader.readAsString(entityInfo)},
-      reader: outputReader,
+      {entityInfo.toString(): readerWriter.readAsString(entityInfo)},
+      readerWriter: readerWriter,
       // Future improvement: assert generated code? Needs existing model JSON for stable IDs
       // outputs: {
       //   '$library|lib/objectbox.g.dart': '<file-content>',

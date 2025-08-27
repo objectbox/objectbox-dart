@@ -79,8 +79,6 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.IntVector;
     case PropertyType.floatVector:
       return OBXPropertyType.FloatVector;
-    default:
-      throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }
 }
 

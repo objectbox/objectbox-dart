@@ -339,8 +339,6 @@ class SyncClient {
       case SyncRequestUpdatesMode.autoNoPushes:
         cMode = OBXRequestUpdatesMode.AUTO_NO_PUSHES;
         break;
-      default:
-        throw ArgumentError.value(mode, 'mode');
     }
     checkObx(C.sync_request_updates_mode(_ptr, cMode));
   }

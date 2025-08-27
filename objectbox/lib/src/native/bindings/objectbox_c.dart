@@ -10312,7 +10312,7 @@ class _SymbolAddresses {
 }
 
 /// Object ID with its associated query score, which is used for special query results.
-class OBX_id_score extends ffi.Struct {
+sealed class OBX_id_score extends ffi.Struct {
   @obx_id()
   external int id;
 
@@ -10327,7 +10327,7 @@ typedef obx_id = ffi.Uint64;
 
 /// This bytes score struct is an input/output wrapper used for a single data object (represented as FlatBuffers)
 /// with its associated query score, which is used for special query results.
-class OBX_bytes_score extends ffi.Struct {
+sealed class OBX_bytes_score extends ffi.Struct {
   external ffi.Pointer<ffi.Uint8> data;
 
   @ffi.Size()
@@ -10727,7 +10727,7 @@ abstract class OBXExternalPropertyType {
   static const int MongoRegex = 127;
 }
 
-class OBX_model extends ffi.Opaque {}
+sealed class OBX_model extends ffi.Opaque {}
 
 /// Schema entity & property identifiers
 typedef obx_schema_id = ffi.Uint32;
@@ -10735,9 +10735,9 @@ typedef obx_schema_id = ffi.Uint32;
 /// Universal identifier used in schema for entities & properties
 typedef obx_uid = ffi.Uint64;
 
-class OBX_store extends ffi.Opaque {}
+sealed class OBX_store extends ffi.Opaque {}
 
-class OBX_store_options extends ffi.Opaque {}
+sealed class OBX_store_options extends ffi.Opaque {}
 
 /// Debug flags typically enable additional "debug logging" that can be helpful to better understand what is going on
 /// internally. These are intended for the development process only; typically one does not enable them for releases.
@@ -10815,7 +10815,7 @@ abstract class OBXWalFlags {
 }
 
 /// This bytes struct is an input/output wrapper used for a single data object (represented as FlatBuffers).
-class OBX_bytes extends ffi.Struct {
+sealed class OBX_bytes extends ffi.Struct {
   external ffi.Pointer<ffi.Uint8> data;
 
   @ffi.Size()
@@ -10823,7 +10823,7 @@ class OBX_bytes extends ffi.Struct {
 }
 
 /// This bytes array struct is an input/output wrapper for multiple data objects (represented as FlatBuffers).
-class OBX_bytes_array extends ffi.Struct {
+sealed class OBX_bytes_array extends ffi.Struct {
   external ffi.Pointer<OBX_bytes> bytes;
 
   @ffi.Size()
@@ -10832,17 +10832,17 @@ class OBX_bytes_array extends ffi.Struct {
 
 /// This bytes score array struct is an input/output wrapper pointing to multiple OBX_bytes_score instances.
 /// If count is zero, bytes_scores is allowed to be invalid.
-class OBX_bytes_score_array extends ffi.Struct {
+sealed class OBX_bytes_score_array extends ffi.Struct {
   external ffi.Pointer<OBX_bytes_score> bytes_scores;
 
   @ffi.Size()
   external int count;
 }
 
-class OBX_bytes_lazy extends ffi.Opaque {}
+sealed class OBX_bytes_lazy extends ffi.Opaque {}
 
 /// ID array struct is an input/output wrapper for an array of object IDs.
-class OBX_id_array extends ffi.Struct {
+sealed class OBX_id_array extends ffi.Struct {
   external ffi.Pointer<obx_id> ids;
 
   @ffi.Size()
@@ -10851,7 +10851,7 @@ class OBX_id_array extends ffi.Struct {
 
 /// ID score array struct is an input/output wrapper for an array of OBX_id_score structs.
 /// If count is zero, bytes_scores is allowed to be invalid.
-class OBX_id_score_array extends ffi.Struct {
+sealed class OBX_id_score_array extends ffi.Struct {
   external ffi.Pointer<OBX_id_score> ids_scores;
 
   @ffi.Size()
@@ -10859,7 +10859,7 @@ class OBX_id_score_array extends ffi.Struct {
 }
 
 /// String array struct is an input/output wrapper for an array of character strings.
-class OBX_string_array extends ffi.Struct {
+sealed class OBX_string_array extends ffi.Struct {
   external ffi.Pointer<ffi.Pointer<ffi.Char>> items;
 
   @ffi.Size()
@@ -10867,7 +10867,7 @@ class OBX_string_array extends ffi.Struct {
 }
 
 /// Int64 array struct is an input/output wrapper for an array of int64 numbers.
-class OBX_int64_array extends ffi.Struct {
+sealed class OBX_int64_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int64> items;
 
   @ffi.Size()
@@ -10875,7 +10875,7 @@ class OBX_int64_array extends ffi.Struct {
 }
 
 /// Int32 array struct is an input/output wrapper for an array of int32 numbers.
-class OBX_int32_array extends ffi.Struct {
+sealed class OBX_int32_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int32> items;
 
   @ffi.Size()
@@ -10883,7 +10883,7 @@ class OBX_int32_array extends ffi.Struct {
 }
 
 /// Int16 array struct is an input/output wrapper for an array of int16 numbers.
-class OBX_int16_array extends ffi.Struct {
+sealed class OBX_int16_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int16> items;
 
   @ffi.Size()
@@ -10891,7 +10891,7 @@ class OBX_int16_array extends ffi.Struct {
 }
 
 /// Int8 array struct is an input/output wrapper for an array of int8 numbers.
-class OBX_int8_array extends ffi.Struct {
+sealed class OBX_int8_array extends ffi.Struct {
   external ffi.Pointer<ffi.Int8> items;
 
   @ffi.Size()
@@ -10899,7 +10899,7 @@ class OBX_int8_array extends ffi.Struct {
 }
 
 /// Double array struct is an input/output wrapper for an array of double precision floating point numbers.
-class OBX_double_array extends ffi.Struct {
+sealed class OBX_double_array extends ffi.Struct {
   external ffi.Pointer<ffi.Double> items;
 
   @ffi.Size()
@@ -10907,7 +10907,7 @@ class OBX_double_array extends ffi.Struct {
 }
 
 /// Float array struct is an input/output wrapper for an array of single precision floating point numbers.
-class OBX_float_array extends ffi.Struct {
+sealed class OBX_float_array extends ffi.Struct {
   external ffi.Pointer<ffi.Float> items;
 
   @ffi.Size()
@@ -10937,9 +10937,9 @@ abstract class OBXStoreTypeId {
   static const int InMemoryWal = 3;
 }
 
-class OBX_txn extends ffi.Opaque {}
+sealed class OBX_txn extends ffi.Opaque {}
 
-class OBX_cursor extends ffi.Opaque {}
+sealed class OBX_cursor extends ffi.Opaque {}
 
 abstract class OBXPutMode {
   /// Standard put ("insert or update")
@@ -10952,7 +10952,7 @@ abstract class OBXPutMode {
   static const int UPDATE = 3;
 }
 
-class OBX_box extends ffi.Opaque {}
+sealed class OBX_box extends ffi.Opaque {}
 
 /// The callback for reading data (i.e. object bytes) one-by-one.
 /// @param data is the read data buffer
@@ -10969,9 +10969,9 @@ typedef obx_data_visitor = ffi.NativeFunction<
 typedef obx_status_callback = ffi.NativeFunction<
     ffi.Void Function(obx_err status, ffi.Pointer<ffi.Void> user_data)>;
 
-class OBX_async extends ffi.Opaque {}
+sealed class OBX_async extends ffi.Opaque {}
 
-class OBX_query_builder extends ffi.Opaque {}
+sealed class OBX_query_builder extends ffi.Opaque {}
 
 /// Not really an enum, but binary flags to use across languages
 abstract class OBXOrderFlags {
@@ -10998,7 +10998,7 @@ abstract class OBXOrderFlags {
 /// - used to combine conditions with any/all, thus building more complex conditions
 typedef obx_qb_cond = ffi.Int;
 
-class OBX_query extends ffi.Opaque {}
+sealed class OBX_query extends ffi.Opaque {}
 
 /// The callback for reading data (i.e. object bytes) with a search score one-by-one.
 /// @param data contains the current data with score element
@@ -11008,9 +11008,9 @@ typedef obx_data_score_visitor = ffi.NativeFunction<
     ffi.Bool Function(
         ffi.Pointer<OBX_bytes_score> data, ffi.Pointer<ffi.Void> user_data)>;
 
-class OBX_query_prop extends ffi.Opaque {}
+sealed class OBX_query_prop extends ffi.Opaque {}
 
-class OBX_observer extends ffi.Opaque {}
+sealed class OBX_observer extends ffi.Opaque {}
 
 /// Callback for obx_observe()
 /// @param user_data user data given to obx_observe()
@@ -11051,13 +11051,13 @@ abstract class OBXTreeOptionFlags {
   static const int AutoConsolidateNonUniqueNodes = 32;
 }
 
-class OBX_tree_options extends ffi.Opaque {}
+sealed class OBX_tree_options extends ffi.Opaque {}
 
-class OBX_tree extends ffi.Opaque {}
+sealed class OBX_tree extends ffi.Opaque {}
 
-class OBX_tree_cursor extends ffi.Opaque {}
+sealed class OBX_tree_cursor extends ffi.Opaque {}
 
-class OBX_tree_leaves_info extends ffi.Opaque {}
+sealed class OBX_tree_leaves_info extends ffi.Opaque {}
 
 /// Callback for obx_tree_async_get_raw().
 /// \note If the given status is an error, you can use functions like obx_last_error_message() to gather more info
@@ -11091,13 +11091,13 @@ typedef obx_tree_async_put_callback = ffi.NativeFunction<
     ffi.Void Function(
         obx_err status, obx_id id, ffi.Pointer<ffi.Void> user_data)>;
 
-class OBX_weak_store extends ffi.Opaque {}
+sealed class OBX_weak_store extends ffi.Opaque {}
 
-class OBX_admin_options extends ffi.Opaque {}
+sealed class OBX_admin_options extends ffi.Opaque {}
 
-class OBX_admin extends ffi.Opaque {}
+sealed class OBX_admin extends ffi.Opaque {}
 
-class OBX_sync extends ffi.Opaque {}
+sealed class OBX_sync extends ffi.Opaque {}
 
 /// Specifies user-side credential types as well as server-side authenticator types.
 /// Some credential types do not make sense as authenticators such as OBXSyncCredentialsType_USER_PASSWORD which
@@ -11181,7 +11181,7 @@ abstract class OBXSyncObjectType {
   static const int Raw = 3;
 }
 
-class OBX_sync_change extends ffi.Struct {
+sealed class OBX_sync_change extends ffi.Struct {
   @obx_schema_id()
   external int entity_id;
 
@@ -11190,7 +11190,7 @@ class OBX_sync_change extends ffi.Struct {
   external ffi.Pointer<OBX_id_array> removals;
 }
 
-class OBX_sync_change_array extends ffi.Struct {
+sealed class OBX_sync_change_array extends ffi.Struct {
   external ffi.Pointer<OBX_sync_change> list;
 
   @ffi.Size()
@@ -11198,7 +11198,7 @@ class OBX_sync_change_array extends ffi.Struct {
 }
 
 /// A single data object contained in a OBX_sync_msg_objects message.
-class OBX_sync_object extends ffi.Struct {
+sealed class OBX_sync_object extends ffi.Struct {
   @ffi.Int32()
   external int type;
 
@@ -11216,7 +11216,7 @@ class OBX_sync_object extends ffi.Struct {
 
 /// Incubating message that carries multiple data "objects" (e.g. FlatBuffers, strings, raw bytes).
 /// Interpretation is up to the application. Does not involve any persistence or delivery guarantees at the moment.
-class OBX_sync_msg_objects extends ffi.Struct {
+sealed class OBX_sync_msg_objects extends ffi.Struct {
   external ffi.Pointer<ffi.Uint8> topic;
 
   /// < topic is usually a string, but could also be binary (up to the application)
@@ -11230,7 +11230,7 @@ class OBX_sync_msg_objects extends ffi.Struct {
 }
 
 /// An outgoing sync objects-message.
-class OBX_sync_msg_objects_builder extends ffi.Opaque {}
+sealed class OBX_sync_msg_objects_builder extends ffi.Opaque {}
 
 /// Called when connection is established
 /// @param arg is a pass-through argument passed to the called API
@@ -11306,7 +11306,7 @@ abstract class OBXSyncStats {
   static const int messageBytesSent = 7;
 }
 
-class OBX_sync_server extends ffi.Opaque {}
+sealed class OBX_sync_server extends ffi.Opaque {}
 
 /// Stats counter type IDs as passed to obx_sync_server_stats_u64() (for u64 values) and obx_sync_server_stats_f64()
 /// (for double (f64) values).
@@ -11474,7 +11474,7 @@ abstract class OBXSyncServerStats {
 /// Struct of the custom server function callbacks. In order to implement the custom server, you must provide
 /// custom methods for each of the members of this struct. This is then passed to obx_custom_msg_server_register()
 /// to register the custom server.
-class OBX_custom_msg_server_functions extends ffi.Struct {
+sealed class OBX_custom_msg_server_functions extends ffi.Struct {
   /// Must be initialized with sizeof(OBX_custom_msg_server_functions) to "version" the struct.
   /// This allows the library (whi) to detect older or newer versions and react properly.
   @ffi.Size()
@@ -11564,7 +11564,7 @@ typedef OBX_custom_msg_server_func_client_connection_shutdown
 /// Struct of the custom client function callbacks. In order to implement the custom client, you must provide
 /// custom methods for each of the members of this struct. This is then passed to obx_custom_msg_client_register()
 /// to register the custom client.
-class OBX_custom_msg_client_functions extends ffi.Struct {
+sealed class OBX_custom_msg_client_functions extends ffi.Struct {
   /// Must be initialized with sizeof(OBX_custom_msg_client_functions) to "version" the struct.
   /// This allows the library to detect older or newer versions and react properly.
   @ffi.Size()
@@ -11663,11 +11663,11 @@ abstract class OBXCustomMsgClientState {
   static const int Disconnected = 3;
 }
 
-class OBX_dart_sync_listener extends ffi.Opaque {}
+sealed class OBX_dart_sync_listener extends ffi.Opaque {}
 
-class OBX_dart_stream extends ffi.Opaque {}
+sealed class OBX_dart_stream extends ffi.Opaque {}
 
-class OBX_dart_finalizer extends ffi.Opaque {}
+sealed class OBX_dart_finalizer extends ffi.Opaque {}
 
 /// A function to clean up native resources. Must be a c-function (non-throwing). The returned error is ignored.
 /// e.g. obx_query_close(), obx_store_close(), ...

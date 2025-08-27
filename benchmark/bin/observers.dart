@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/model.dart';
+import 'package:objectbox_benchmark/objectbox.g.dart';
 
 void main() async {
   await SetupSingle().report();
