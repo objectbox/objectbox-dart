@@ -10,13 +10,13 @@ environment:
 
 dependencies:
   objectbox: 4.3.0
-  analyzer: 7.4.0 # TODO Allow version 8
-  build: 3.0.0 # source_gen 3 requires 3.0.0 # TODO Allow any 3 version
+  analyzer: '>=7.4.0 <9.0.0' # Allow version 8, but don't require it, yet (to use its API) for compat with more third-party packages
+  build: ^3.0.0 # source_gen 3 requires 3.0.0
   collection: ^1.18.0 # Would require 1.19.1, but Flutter 3.24.0 has 1.18.0 pinned
   dart_style: '>=2.3.7 <4.0.0' # require 2.3.7 for languageVersion in DartFormatter constructor
   glob: ^2.1.3
   path: ^1.9.1
-  source_gen: 3.1.0 # Require 3.1.0 to use new TypeChecker APIs # TODO Allow any 3.1 version
+  source_gen: ^3.1.0 # Require 3.1.0 to use new TypeChecker APIs
   pubspec_parse: ^1.4.0
   yaml: ^3.1.3
   http: ^1.3.0
