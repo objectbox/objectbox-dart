@@ -20,8 +20,8 @@ env:
   # Run generator integration tests and init script with latest SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
   # NOTE: also update matrix configurations below!
-  FLUTTER_VERSION: 3.29.2 # Available versions: https://docs.flutter.dev/release/archive
-  DART_VERSION: 3.7.2 # Available versions: https://dart.dev/get-dart/archive
+  FLUTTER_VERSION: 3.35.2 # Available versions: https://docs.flutter.dev/release/archive
+  DART_VERSION: 3.9.2 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
 
@@ -67,8 +67,8 @@ jobs:
           # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
-          - 3.7.2
-          - 3.5.4 # Use latest bugfix release to get tooling fixes
+          - 3.9.2
+          - 3.7.2 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
       - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c # v1.7.1
@@ -111,17 +111,17 @@ jobs:
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://docs.flutter.dev/release/archive
           # NOTE Also update versions for Ubuntu below!
-          - 3.29.2
-          - 3.24.5 # Use latest bugfix release to get tooling fixes
+          - 3.35.2
+          - 3.29.3 # Use latest bugfix release to get tooling fixes
         include:
           # Test building for Android with highest supported JDK on latest Flutter SDK,
           # lowest supported JDK on lowest supported Flutter SDK. (Android is only built if a Linux
           # OS is detected, see integration-test.sh)
           - os: ubuntu-24.04
-            flutter-version: 3.29.2
+            flutter-version: 3.35.2
             jdk: 21
           - os: ubuntu-24.04
-            flutter-version: 3.24.5 # Use latest bugfix release to get tooling fixes
+            flutter-version: 3.29.3 # Use latest bugfix release to get tooling fixes
             jdk: 17
     runs-on: ${{ matrix.os }}
     steps:
