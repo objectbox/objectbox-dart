@@ -5,6 +5,8 @@
   For Admin: do not display values twice. [#738](https://github.com/objectbox/objectbox-dart/issues/738)
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
   sure to update to `io.objectbox:objectbox-android-objectbrowser:4.3.1` in `android/app/build.gradle`.
+* Update ObjectBox database for Flutter iOS/macOS apps to 4.3.1.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 
 ## 4.3.0 (2025-05-28)
 
