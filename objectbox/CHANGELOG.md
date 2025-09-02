@@ -1,5 +1,7 @@
 ## latest
 
+* Requires at least Dart SDK 3.7 or Flutter SDK 3.29.
+* Migrate generator to analyzer 7.4 and source_gen 3.1 APIs. Allow analyzer version 8. [#742](https://github.com/objectbox/objectbox-dart/issues/742)
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.1](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.1).
 * Update ObjectBox database for Flutter Android apps to 4.3.1.
   For Admin: do not display values twice. [#738](https://github.com/objectbox/objectbox-dart/issues/738)
