@@ -6,7 +6,7 @@ homepage: https://objectbox.io
 version: 4.3.0
 
 environment:
-  sdk: '^3.5.0' # analyzer 6.5.0 requires meta 1.14.0 requires Flutter SDK 3.24.0 requires 3.5.0
+  sdk: '^3.7.0' # source_gen 3.0.0 requires 3.7 and 3.7 has new dart format
 
 dependencies:
   objectbox: 4.3.0

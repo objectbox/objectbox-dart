@@ -35,7 +35,9 @@ void main() {
     expect(prop.type, OBXPropertyType.Int);
     expect(prop.flags, OBXPropertyFlags.INDEXED);
     // @Transient on getter ignores property
-    expect(() => property(model, 'AnnotatedGetters.ignored'),
-        throwsA(isStateError));
+    expect(
+      () => property(model, 'AnnotatedGetters.ignored'),
+      throwsA(isStateError),
+    );
   });
 }

@@ -18,13 +18,15 @@ void main() {
 
   group('package:JsonSerializable', () {
     setupTestsFor(JsonEntity(id: 0, str: 'foo', date: DateTime.now()));
-    setupRelTestsFor(JsonBook.fromJson({
-      'author': {'name': 'Charles'},
-      'readers': [
-        {'name': 'Emily'},
-        {'name': 'Diana'}
-      ]
-    }));
+    setupRelTestsFor(
+      JsonBook.fromJson({
+        'author': {'name': 'Charles'},
+        'readers': [
+          {'name': 'Emily'},
+          {'name': 'Diana'},
+        ],
+      }),
+    );
   });
 
   group('package:Freezed', () {
@@ -32,15 +34,16 @@ void main() {
     final author = FrozenPerson(id: 1, name: 'Charles');
     final readers = [
       FrozenPerson(id: 2, name: 'Emily'),
-      FrozenPerson(id: 3, name: 'Diana')
+      FrozenPerson(id: 3, name: 'Diana'),
     ];
     setupRelTestsFor(
-        FrozenBook(
-            id: 1,
-            author: ToOne(target: author),
-            readers: ToMany(items: readers)),
-        (Store store) =>
-            store.box<FrozenPerson>().putMany([author, ...readers]));
+      FrozenBook(
+        id: 1,
+        author: ToOne(target: author),
+        readers: ToMany(items: readers),
+      ),
+      (Store store) => store.box<FrozenPerson>().putMany([author, ...readers]),
+    );
   });
 }
 
@@ -57,8 +60,10 @@ void setupTestsFor<EntityT>(EntityT newObject) {
   });
 }
 
-void setupRelTestsFor<BookEntityT>(BookEntityT book,
-    [void Function(Store)? init]) {
+void setupRelTestsFor<BookEntityT>(
+  BookEntityT book, [
+  void Function(Store)? init,
+]) {
   group(BookEntityT.toString(), () {
     late TestEnv<BookEntityT> env;
     setUp(() => env = TestEnv(getObjectBoxModel()));

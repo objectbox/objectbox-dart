@@ -62,9 +62,11 @@ void main() {
     }
 
     boxA.put(A()..text2 = 'bar');
-    boxA.put(A()
-      ..text1 = 'lorem'
-      ..text2 = 'ipsum');
+    boxA.put(
+      A()
+        ..text1 = 'lorem'
+        ..text2 = 'ipsum',
+    );
     boxB.put(B()..value = true);
 
     store.close();
