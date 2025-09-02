@@ -1,3 +1,5 @@
+## latest
+
 ## 4.3.1 (2025-09-02)
 
 * Requires at least Dart SDK 3.7 or Flutter SDK 3.29.
