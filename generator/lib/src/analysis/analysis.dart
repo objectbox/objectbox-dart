@@ -27,10 +27,11 @@ class ObjectBoxAnalysis {
   final bool _debug;
   final String _tokenFilePath;
 
-  ObjectBoxAnalysis(
-      {bool debug = false, String tokenFilePath = defaultTokenFilePath})
-      : _debug = debug,
-        _tokenFilePath = tokenFilePath;
+  ObjectBoxAnalysis({
+    bool debug = false,
+    String tokenFilePath = defaultTokenFilePath,
+  }) : _debug = debug,
+       _tokenFilePath = tokenFilePath;
 
   /// Builds a Build event and sends it with [sendEvent]. May not send if it
   /// fails to store a unique identifier and last time sent, or if no valid API
@@ -63,7 +64,8 @@ class ObjectBoxAnalysis {
       final response = await sendEvent(event);
       if (_debug && response != null) {
         print(
-            "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}");
+          "[ObjectBox] Analysis response: ${response.statusCode} ${response.body}",
+        );
       }
     } catch (e, s) {
       // E.g. connection can not be established (offline, TLS issue, ...).
@@ -93,9 +95,11 @@ class ObjectBoxAnalysis {
     final body = "[${event.toJson()}]";
     final url = Uri.https(_url, _path);
     if (_debug) print("[ObjectBox] Analysis sending to $url: $body");
-    return http.post(url,
-        headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
-        body: body);
+    return http.post(
+      url,
+      headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
+      body: body,
+    );
   }
 
   /// Uses the given values to gather properties and return them as an [Event].
@@ -106,9 +110,9 @@ class ObjectBoxAnalysis {
     properties["Tool"] = "Dart Generator";
     properties["Version"] = Version.current;
 
-    final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
-        .firstMatch(Platform.version)
-        ?.group(0);
+    final dartVersion = RegExp(
+      '([0-9]+).([0-9]+).([0-9]+)',
+    ).firstMatch(Platform.version)?.group(0);
     properties["Dart"] = dartVersion ?? "unknown";
     // true or false is enough as Dart version above is tied closely to a
     // specific Flutter release (see https://docs.flutter.dev/development/tools/sdk/releases).
@@ -153,29 +157,46 @@ class ObjectBoxAnalysis {
   /// Takes a Base64 encoded key and concatenation of nonce, encrypted token and
   /// MAC and returns the decrypted token.
   String decryptAndVerifyToken(
-      String keyBase64, String nonceEncryptedTokenAndMacBase64) {
+    String keyBase64,
+    String nonceEncryptedTokenAndMacBase64,
+  ) {
     final key = base64Decode(keyBase64);
     // Create copies of nonce and encrypted text with MAC to operate on
     final nonceEncryptedAndMac = base64Decode(nonceEncryptedTokenAndMacBase64);
-    final nonce = Uint8List.fromList(Uint8List.view(
-      nonceEncryptedAndMac.buffer,
-      nonceEncryptedAndMac.offsetInBytes,
-      ObfuscatedToken.nonceLengthBytes,
-    ));
-    final encryptedAndMac = Uint8List.fromList(Uint8List.view(
+    final nonce = Uint8List.fromList(
+      Uint8List.view(
+        nonceEncryptedAndMac.buffer,
+        nonceEncryptedAndMac.offsetInBytes,
+        ObfuscatedToken.nonceLengthBytes,
+      ),
+    );
+    final encryptedAndMac = Uint8List.fromList(
+      Uint8List.view(
         nonceEncryptedAndMac.buffer,
         nonceEncryptedAndMac.offsetInBytes + ObfuscatedToken.nonceLengthBytes,
-        nonceEncryptedAndMac.length - ObfuscatedToken.nonceLengthBytes));
+        nonceEncryptedAndMac.length - ObfuscatedToken.nonceLengthBytes,
+      ),
+    );
 
     final algorithm = ChaCha20Poly1305(ChaCha7539Engine(), Poly1305());
     var params = AEADParameters(
-        KeyParameter(key), ObfuscatedToken.macLengthBits, nonce, Uint8List(0));
+      KeyParameter(key),
+      ObfuscatedToken.macLengthBits,
+      nonce,
+      Uint8List(0),
+    );
     algorithm.init(false /* decrypt */, params);
 
-    final decrypted =
-        Uint8List(algorithm.getOutputSize(encryptedAndMac.length));
+    final decrypted = Uint8List(
+      algorithm.getOutputSize(encryptedAndMac.length),
+    );
     final outLen = algorithm.processBytes(
-        encryptedAndMac, 0, encryptedAndMac.length, decrypted, 0);
+      encryptedAndMac,
+      0,
+      encryptedAndMac.length,
+      decrypted,
+      0,
+    );
     algorithm.doFinal(decrypted, outLen);
 
     return utf8.decode(decrypted);

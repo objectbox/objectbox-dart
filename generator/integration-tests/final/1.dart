@@ -48,13 +48,29 @@ void main() {
     expect(box.count(), 0);
 
     expect(
-        () => box.put(
-            A(0, 0, 0, '', 0, 0, [], Uint8List(0), [], false, Int8List(0))),
-        throwsA(predicate((ArgumentError e) =>
-            e.toString().contains('You must assign an ID'))));
+      () => box.put(
+        A(0, 0, 0, '', 0, 0, [], Uint8List(0), [], false, Int8List(0)),
+      ),
+      throwsA(
+        predicate(
+          (ArgumentError e) => e.toString().contains('You must assign an ID'),
+        ),
+      ),
+    );
 
-    final inserted = A(42, 1, 2, 'foo', 3, 4, [5, 6], Uint8List(1),
-        ['foo', 'bar'], true, Int8List(2));
+    final inserted = A(
+      42,
+      1,
+      2,
+      'foo',
+      3,
+      4,
+      [5, 6],
+      Uint8List(1),
+      ['foo', 'bar'],
+      true,
+      Int8List(2),
+    );
     box.put(inserted);
     final read = box.get(inserted.id)!;
     expect(read.tBool, inserted.tBool);

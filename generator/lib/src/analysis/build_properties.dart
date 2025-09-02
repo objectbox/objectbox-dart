@@ -19,13 +19,13 @@ class BuildProperties {
 
   /// Creates a new UID and last sent time of now.
   BuildProperties.create()
-      : uid = _generateUid(),
-        lastSentMs = DateTime.now().millisecondsSinceEpoch;
+    : uid = _generateUid(),
+      lastSentMs = DateTime.now().millisecondsSinceEpoch;
 
   /// Uses the existing UID and last sent time of now.
   BuildProperties.updateLastSentMs(BuildProperties buildProperties)
-      : uid = buildProperties.uid,
-        lastSentMs = DateTime.now().millisecondsSinceEpoch;
+    : uid = buildProperties.uid,
+      lastSentMs = DateTime.now().millisecondsSinceEpoch;
 
   /// Returns values read from an existing file. If the file can not be read or
   /// it does not have any of the expected properties, returns null.
@@ -84,7 +84,8 @@ class BuildProperties {
     try {
       await file.parent.create(recursive: true);
       await file.writeAsString(
-          jsonEncode({_keyUid: uid, _keyLastSentMs: lastSentMs}));
+        jsonEncode({_keyUid: uid, _keyLastSentMs: lastSentMs}),
+      );
       return true;
     } catch (e) {
       return false;

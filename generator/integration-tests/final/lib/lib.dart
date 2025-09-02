@@ -22,19 +22,19 @@ class A {
   final List<String> tListString;
 
   A(
-      this.id,
-      this.tLong,
-      this.tDouble,
-      this.tString,
-      this.tDate,
-      this.tDateNano,
-      this.tListInt,
-      this.tUint8List,
-      this.tListString,
-      bool tBool,
-      Int8List tInt8List)
-      : tBool = tBool,
-        tInt8List = tInt8List;
+    this.id,
+    this.tLong,
+    this.tDouble,
+    this.tString,
+    this.tDate,
+    this.tDateNano,
+    this.tListInt,
+    this.tUint8List,
+    this.tListString,
+    bool tBool,
+    Int8List tInt8List,
+  ) : tBool = tBool,
+      tInt8List = tInt8List;
 }
 
 // Test getters and setters with a private field. Let's make the getter and the

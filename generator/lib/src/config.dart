@@ -22,15 +22,15 @@ class Config {
   final String outDirLib;
   final String outDirTest;
 
-  Config(
-      {String? jsonFile,
-      String? codeFile,
-      String? outDirLib,
-      String? outDirTest})
-      : jsonFile = jsonFile ?? 'objectbox-model.json',
-        codeFile = codeFile ?? 'objectbox.g.dart',
-        outDirLib = outDirLib ?? '',
-        outDirTest = outDirTest ?? '';
+  Config({
+    String? jsonFile,
+    String? codeFile,
+    String? outDirLib,
+    String? outDirTest,
+  }) : jsonFile = jsonFile ?? 'objectbox-model.json',
+       codeFile = codeFile ?? 'objectbox.g.dart',
+       outDirLib = outDirLib ?? '',
+       outDirTest = outDirTest ?? '';
 
   factory Config.readFromPubspec() {
     final file = File(_pubspecFile);

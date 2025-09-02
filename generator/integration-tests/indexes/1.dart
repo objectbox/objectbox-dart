@@ -30,17 +30,29 @@ void main() {
 
   test('property flags', () {
     expect(property(jsonModel, 'A.id').flags, equals(OBXPropertyFlags.ID));
-    expect(property(jsonModel, 'A.indexed').flags,
-        equals(OBXPropertyFlags.INDEXED));
-    expect(property(jsonModel, 'A.unique').flags,
-        equals(OBXPropertyFlags.INDEX_HASH | OBXPropertyFlags.UNIQUE));
-    expect(property(jsonModel, 'A.uniqueValue').flags,
-        equals(OBXPropertyFlags.INDEXED | OBXPropertyFlags.UNIQUE));
-    expect(property(jsonModel, 'A.uniqueHash').flags,
-        equals(OBXPropertyFlags.INDEX_HASH | OBXPropertyFlags.UNIQUE));
-    expect(property(jsonModel, 'A.uniqueHash64').flags,
-        equals(OBXPropertyFlags.INDEX_HASH64 | OBXPropertyFlags.UNIQUE));
-    expect(property(jsonModel, 'A.uid').flags,
-        equals(OBXPropertyFlags.INDEXED | OBXPropertyFlags.UNIQUE));
+    expect(
+      property(jsonModel, 'A.indexed').flags,
+      equals(OBXPropertyFlags.INDEXED),
+    );
+    expect(
+      property(jsonModel, 'A.unique').flags,
+      equals(OBXPropertyFlags.INDEX_HASH | OBXPropertyFlags.UNIQUE),
+    );
+    expect(
+      property(jsonModel, 'A.uniqueValue').flags,
+      equals(OBXPropertyFlags.INDEXED | OBXPropertyFlags.UNIQUE),
+    );
+    expect(
+      property(jsonModel, 'A.uniqueHash').flags,
+      equals(OBXPropertyFlags.INDEX_HASH | OBXPropertyFlags.UNIQUE),
+    );
+    expect(
+      property(jsonModel, 'A.uniqueHash64').flags,
+      equals(OBXPropertyFlags.INDEX_HASH64 | OBXPropertyFlags.UNIQUE),
+    );
+    expect(
+      property(jsonModel, 'A.uid').flags,
+      equals(OBXPropertyFlags.INDEXED | OBXPropertyFlags.UNIQUE),
+    );
   });
 }

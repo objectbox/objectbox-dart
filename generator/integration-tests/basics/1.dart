@@ -34,10 +34,14 @@ void main() {
     expect(entity(model, 'D').flags, equals(OBXEntityFlags.SYNC_ENABLED));
     expect(entity(jsonModel, 'D').flags, equals(OBXEntityFlags.SYNC_ENABLED));
 
-    expect(entity(model, 'E').flags,
-        equals(OBXEntityFlags.SYNC_ENABLED | OBXEntityFlags.SHARED_GLOBAL_IDS));
-    expect(entity(jsonModel, 'E').flags,
-        equals(OBXEntityFlags.SYNC_ENABLED | OBXEntityFlags.SHARED_GLOBAL_IDS));
+    expect(
+      entity(model, 'E').flags,
+      equals(OBXEntityFlags.SYNC_ENABLED | OBXEntityFlags.SHARED_GLOBAL_IDS),
+    );
+    expect(
+      entity(jsonModel, 'E').flags,
+      equals(OBXEntityFlags.SYNC_ENABLED | OBXEntityFlags.SHARED_GLOBAL_IDS),
+    );
   });
 
   test('types', () {
@@ -76,7 +80,9 @@ void main() {
 
     expect(property(model, 'T.tDoubleList').type, OBXPropertyType.DoubleVector);
     expect(
-        property(model, 'T.tFloat64List').type, OBXPropertyType.DoubleVector);
+      property(model, 'T.tFloat64List').type,
+      OBXPropertyType.DoubleVector,
+    );
 
     expect(property(model, 'T.tListString').type, OBXPropertyType.StringVector);
 
