@@ -144,24 +144,24 @@ Also, make sure to have a look at the [contribution guidelines](CONTRIBUTING.md)
 
 This repository holds all ObjectBox Dart/Flutter packages as separate directories:
 
-- [objectbox](objectbox) - main library code
+- [objectbox](objectbox) - ObjectBox Dart APIs
+- [objectbox_test](objectbox_test) - unit tests of the ObjectBox Dart APIs
 - [objectbox_generator](generator) - code generator
-- [objectbox_flutter_libs](flutter_libs) - core binary library dependency for Flutter (Android/iOS) - no dart/flutter code
-- [objectbox_sync_flutter_libs](sync_flutter_libs) - core binary library dependency with [**ObjectBox Sync**](https://objectbox.io/sync/) enabled
-- [benchmark](benchmark) - used internally to microbenchmark and compare various implementations during development of objectbox-dart
+- [objectbox_flutter_libs](flutter_libs) - provides the native database libraries for Flutter apps
+- [objectbox_sync_flutter_libs](sync_flutter_libs) - provides the native database libraries with [**ObjectBox Sync**](https://objectbox.io/sync/) enabled
+- [benchmark](benchmark) - used internally to microbenchmark and compare various implementations during development
 
 There's also a separate repository benchmarking objectbox (and other databases) in Flutter: 
-[objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance). And another one testing and 
-comparing the performance of our FlatBuffers fork vs the upstream version: [flatbuffers-benchmark](https://github.com/objectbox/flatbuffers-benchmark).
+[objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance).
 
 ## Other languages/bindings
 
 ObjectBox supports multiple platforms and languages: 
 
-- [Java Database](https://github.com/objectbox/objectbox-java) (+ Kotlin): runs on Android, desktop, and servers.
-- [Swift Database](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS and macOS.
-- [Go Database](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications.
-- [C / C++ Database](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects.
+- [Java SDK](https://github.com/objectbox/objectbox-java): runs on Android and JVM (desktop, servers)
+- [Swift SDK](https://github.com/objectbox/objectbox-swift): build fast mobile apps for iOS and macOS
+- [Go SDK](https://github.com/objectbox/objectbox-go): great for data-driven tools and embedded server applications
+- [C / C++ SDK](https://github.com/objectbox/objectbox-c): native speed with zero copy access to FlatBuffer objects
 
 ## License
 
