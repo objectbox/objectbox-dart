@@ -18,13 +18,19 @@ import 'build_properties.dart';
 /// Requires [tokenFilePath] to exist, otherwise does nothing. See the
 /// associated test (analysis_test.dart) on how to create this file.
 class ObjectBoxAnalysis {
-  static const _debug = false;
-
   /// Path is relative to lib folder.
-  static const tokenFilePath = "assets/analysis-token.txt";
+  static const defaultTokenFilePath = "assets/analysis-token.txt";
 
   static const _url = "api.mixpanel.com";
   static const _path = "track";
+
+  final bool _debug;
+  final String _tokenFilePath;
+
+  ObjectBoxAnalysis(
+      {bool debug = false, String tokenFilePath = defaultTokenFilePath})
+      : _debug = debug,
+        _tokenFilePath = tokenFilePath;
 
   /// Builds a Build event and sends it with [sendEvent]. May not send if it
   /// fails to store a unique identifier and last time sent, or if no valid API
@@ -126,7 +132,7 @@ class ObjectBoxAnalysis {
   }
 
   Future<String?> _getToken() async {
-    final uri = Uri.parse("package:objectbox_generator/$tokenFilePath");
+    final uri = Uri.parse("package:objectbox_generator/$_tokenFilePath");
     final resolvedUri = await Isolate.resolvePackageUri(uri);
     if (resolvedUri != null) {
       final file = File.fromUri(resolvedUri);

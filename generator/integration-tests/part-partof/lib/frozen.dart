@@ -4,7 +4,7 @@ import 'package:objectbox/objectbox.dart';
 part 'frozen.freezed.dart';
 
 @freezed
-class FrozenEntity with _$FrozenEntity {
+sealed class FrozenEntity with _$FrozenEntity {
   @Entity(realClass: FrozenEntity)
   factory FrozenEntity(
       {@Id(assignable: true) required int id,
@@ -13,7 +13,7 @@ class FrozenEntity with _$FrozenEntity {
 }
 
 @freezed
-class FrozenPerson with _$FrozenPerson {
+sealed class FrozenPerson with _$FrozenPerson {
   @Entity(realClass: FrozenPerson)
   factory FrozenPerson(
       {@Id(assignable: true) required int id,
@@ -21,7 +21,7 @@ class FrozenPerson with _$FrozenPerson {
 }
 
 @freezed
-class FrozenBook with _$FrozenBook {
+sealed class FrozenBook with _$FrozenBook {
   @Entity(realClass: FrozenBook)
   factory FrozenBook(
       {@Id(assignable: true) required int id,

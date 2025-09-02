@@ -8,8 +8,8 @@ variables:
   # # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new
   # SDKs.
   # For available versions see https://hub.docker.com/_/dart/tags and https://dart.dev/get-dart/archive
-  DART_VERSION_LATEST: '3.7.2'
-  DART_VERSION_LOWEST: '3.5.4' # Use latest bugfix release to get tooling fixes
+  DART_VERSION_LATEST: '3.9.2'
+  DART_VERSION_LOWEST: '3.7.2' # Use latest bugfix release to get tooling fixes
   DART_VERSION: $DART_VERSION_LATEST # Also used for caching, see .cache template
 
 .common:
@@ -84,7 +84,10 @@ generator-integ-tests:
     # Generator tests
     - cd generator
     - dart pub get
-    - dart test
+    # generator test suites must not run in parallel (see notes on GeneratorTestEnv):
+    # Set concurrency=1 to run only one test suite (== test file) at a time.
+    # Set --reporter expanded to print log for every completed test.
+    - dart test --concurrency=1 --reporter expanded
     # ObjectBox tests
     - cd ../objectbox_test
     - ../install.sh

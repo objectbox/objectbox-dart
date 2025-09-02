@@ -1,13 +1,11 @@
-import 'dart:async';
+import 'dart:io';
 
-import 'package:build/build.dart';
-import 'package:build/src/builder/build_step_impl.dart';
-import 'package:build_test/build_test.dart';
+import 'package:build_runner_core/build_runner_core.dart';
+import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
 import 'package:objectbox_generator/src/config.dart';
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
@@ -15,72 +13,54 @@ import 'package:test/test.dart';
 import 'generator_test_env.dart';
 
 void main() {
-  var reader = StubAssetReader();
-  var writer = StubAssetWriter();
-  final resourceManager = ResourceManager();
-  // Default directory structure: sources inside lib folder.
-  final testBuildStep = BuildStepImpl(
-      AssetId("objectbox_generator_test", "lib/\$lib\$"),
-      [],
-      reader,
-      writer,
-      null,
-      resourceManager,
-      _unsupported);
+  // lib/$lib$ is a placeholder file of build_runner, it's one of the two
+  // input files used by CodeBuilder.
+  final inputPathLib = 'lib/\$lib\$';
 
   group('getRootDir and getOutDir', () {
-    test('lib', () {
-      final builderDirs = BuilderDirs(testBuildStep, Config());
+    test('lib', () async {
+      final builderDirs = BuilderDirs(inputPathLib, Config());
       expect(builderDirs.root, equals('lib'));
       expect(builderDirs.out, equals('lib'));
     });
 
-    test('test', () {
-      final testBuildStepTest = BuildStepImpl(
-          AssetId("objectbox_generator_test", "test/\$test\$"),
-          [],
-          reader,
-          writer,
-          null,
-          resourceManager,
-          _unsupported);
-      final builderDirs = BuilderDirs(testBuildStepTest, Config());
+    test('test', () async {
+      // test/$test$ is a placeholder file of build_runner, it's the other one
+      // of the two input files used by CodeBuilder.
+      final inputPathTest = 'test/\$test\$';
+      final builderDirs = BuilderDirs(inputPathTest, Config());
       expect(builderDirs.root, equals('test'));
       expect(builderDirs.out, equals('test'));
     });
 
     test('not supported', () {
-      final testBuildStepNotSupported = BuildStepImpl(
-          AssetId("objectbox_generator_test", "custom/\$custom\$"),
-          [],
-          reader,
-          writer,
-          null,
-          resourceManager,
-          _unsupported);
+      // For completeness, test an unsupported input file path.
+      // Currently, CodeBuilder (and therefore BuilderDirs) never gets called
+      // with one as its buildExtensions restricts it to the special placeholder
+      // files $lib$ and $test$ (see tests above).
+      final customPath = 'lib/custom/custom.dart';
       expect(
-          () => BuilderDirs(testBuildStepNotSupported, Config()),
-          throwsA(predicate((e) =>
-              e is ArgumentError &&
-              e.message == 'Is not lib or test directory: "custom"')));
+          () => BuilderDirs(customPath, Config()),
+          throwsA(isA<ArgumentError>().having((e) => e.message, 'message',
+              'Is not lib or test directory: "lib${Platform.pathSeparator}custom"')));
     });
 
     test('out dir with redundant slash', () {
-      final builderDirs = BuilderDirs(testBuildStep, Config(outDirLib: '/'));
+      final builderDirs = BuilderDirs(inputPathLib, Config(outDirLib: '/'));
       expect(builderDirs.root, equals('lib'));
       expect(builderDirs.out, equals(path.normalize('lib')));
     });
 
     test('out dir not in root dir', () {
       final builderDirs =
-          BuilderDirs(testBuildStep, Config(outDirLib: '../sibling'));
+          BuilderDirs(inputPathLib, Config(outDirLib: '../sibling'));
       expect(builderDirs.root, equals('lib'));
       expect(builderDirs.out, equals(path.normalize('sibling')));
     });
 
     test('out dir below root dir', () {
       final builderDirs =
-          BuilderDirs(testBuildStep, Config(outDirLib: 'below/root'));
+          BuilderDirs(inputPathLib, Config(outDirLib: 'below/root'));
       expect(builderDirs.root, equals('lib'));
       expect(builderDirs.out, equals(path.normalize('lib/below/root')));
     });
@@ -88,25 +68,25 @@ void main() {
 
   group('getPrefixFor', () {
     test('out dir is root dir', () {
-      expect(CodeBuilder.getPrefixFor(BuilderDirs(testBuildStep, Config())),
+      expect(CodeBuilder.getPrefixFor(BuilderDirs(inputPathLib, Config())),
           equals(''));
     });
 
     test('out dir redundant slash', () {
       expect(
           CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '/'))),
+              BuilderDirs(inputPathLib, Config(outDirLib: '/'))),
           equals(''));
       expect(
           CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '//below/'))),
+              BuilderDirs(inputPathLib, Config(outDirLib: '//below/'))),
           equals('../'));
     });
 
     test('out dir not in root dir', () {
       expect(
           () => CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '../sibling'))),
+              BuilderDirs(inputPathLib, Config(outDirLib: '../sibling'))),
           throwsA(predicate((e) =>
               e is InvalidGenerationSourceError &&
               e.message
@@ -114,7 +94,7 @@ void main() {
 
       expect(
           () => CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: '../../above'))),
+              BuilderDirs(inputPathLib, Config(outDirLib: '../../above'))),
           throwsA(predicate((e) =>
               e is InvalidGenerationSourceError &&
               e.message
@@ -124,11 +104,11 @@ void main() {
     test('out dir below root dir', () {
       expect(
           CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: 'below'))),
+              BuilderDirs(inputPathLib, Config(outDirLib: 'below'))),
           equals('../'));
       expect(
           CodeBuilder.getPrefixFor(
-              BuilderDirs(testBuildStep, Config(outDirLib: 'below/lower'))),
+              BuilderDirs(inputPathLib, Config(outDirLib: 'below/lower'))),
           equals('../../'));
     });
   });
@@ -186,10 +166,15 @@ void main() {
         }
         ''';
 
-        await expectLater(
-            () async => await testEnv.run(source),
-            throwsA(isA<InvalidGenerationSourceError>().having((e) => e.message,
-                'message', contains("@Index/@Unique is not supported"))));
+        final result = await testEnv.run(source, expectNoOutput: true);
+
+        expect(result.builderResult.buildResult.status, BuildStatus.failure);
+        expect(
+            result.logs,
+            contains(isA<LogRecord>()
+                .having((r) => r.level, 'level', Level.SEVERE)
+                .having((r) => r.message, 'message',
+                    contains('@Index/@Unique is not supported'))));
       }
 
       // floating point types
@@ -259,13 +244,20 @@ void main() {
       ''';
 
       final testEnv = GeneratorTestEnv();
-      await expectLater(
-          () async => await testEnv.run(source),
-          throwsA(isA<InvalidGenerationSourceError>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                  "@HnswIndex is only supported for float vector properties."))));
+      final result = await testEnv.run(source, expectNoOutput: true);
+
+      expect(result.builderResult.buildResult.status, BuildStatus.failure);
+      expect(
+        result.logs,
+        contains(isA<LogRecord>()
+            .having((r) => r.level, 'level', Level.SEVERE)
+            .having(
+                (r) => r.message,
+                'message',
+                contains(
+                  '@HnswIndex is only supported for float vector properties.',
+                ))),
+      );
     });
 
     test('HNSW annotation default', () async {
@@ -464,8 +456,4 @@ void main() {
       expect(relation2.externalName, "my-courses-rel");
     });
   });
-}
-
-Future<PackageConfig> _unsupported() {
-  return Future.error(UnsupportedError('stub'));
 }

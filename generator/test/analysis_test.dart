@@ -24,38 +24,40 @@ void main() {
     var obfuscatedToken = _obfuscateToken(token);
     final keyBase64 = obfuscatedToken.keyBase64;
     final dataBase64 = obfuscatedToken.dataBase64;
-    print("Store this in generator/lib/${ObjectBoxAnalysis.tokenFilePath}:");
+    print(
+        "Store this in generator/lib/${ObjectBoxAnalysis.defaultTokenFilePath}:");
     print("$keyBase64\n$dataBase64");
 
-    final decryptedToken =
-        ObjectBoxAnalysis().decryptAndVerifyToken(keyBase64, dataBase64);
+    final decryptedToken = ObjectBoxAnalysis(debug: true)
+        .decryptAndVerifyToken(keyBase64, dataBase64);
     expect(decryptedToken, equals(token));
   }, skip: true);
 
   test("send test event", () async {
-    // Create a token file just for this test (delete right after to avoid
-    // CI sending events).
+    // Create a token file just for this test
     final token = Platform.environment["DART_ANALYSIS_TOKEN"];
     if (token == null) {
       markTestSkipped("DART_ANALYSIS_TOKEN not set");
       return;
     }
     var obfuscatedToken = _obfuscateToken(token);
-    final tokenFile = File("lib/${ObjectBoxAnalysis.tokenFilePath}");
+    // Use a token file different from the default to prevent parallel running
+    // tests from sending events.
+    final tokenFilePath = 'assets/test-analysis-token.txt';
+    final tokenFile = File("lib/$tokenFilePath");
     await tokenFile.writeAsString(
         "${obfuscatedToken.keyBase64}\n${obfuscatedToken.dataBase64}");
+    addTearDown(() async => tokenFile.delete());
 
     final testPubspec = Pubspec("test", dependencies: {
       "flutter": SdkDependency("flutter"),
       "objectbox": HostedDependency(version: VersionConstraint.parse("^1.2.3"))
     });
 
-    final analysis = ObjectBoxAnalysis();
+    final analysis =
+        ObjectBoxAnalysis(tokenFilePath: tokenFilePath, debug: true);
     final event = analysis.buildEvent("Test Event", "test-uid", testPubspec);
     final response = await analysis.sendEvent(event);
-
-    // Delete token before test may fail to ensure CI does not send events.
-    await tokenFile.delete();
 
     expect(response!.statusCode, 200);
     expect(response.body, "1");

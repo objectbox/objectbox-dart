@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:build/build.dart';
 import 'package:build_test/build_test.dart';
+import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
 import 'package:objectbox_generator/src/config.dart';
@@ -13,6 +13,14 @@ import 'package:test/test.dart';
 /// Helps testing the generator by running [EntityResolver] on the given
 /// [source] file and feeding the output directly into [CodeBuilder] and running
 /// it.
+///
+/// Warning: tests that use this or otherwise create files in the `lib` folder
+/// should not run in parallel as this might break when reading unexpected
+/// files from the `lib` source folder (see [run] which calls
+/// `TestReaderWriter.testing.loadIsolateSources()` and reads/deletes the model
+/// JSON file). So make sure tests are in the same test suite (`main()` method)
+/// and use `dart test --concurrency=1`.
+/// See also https://pub.dev/packages/test#test-concurrency.
 class GeneratorTestEnv {
   final EntityResolver resolver;
   final Config config;
@@ -29,51 +37,66 @@ class GeneratorTestEnv {
     return codeBuilder.model!;
   }
 
-  Future<void> run(String source) async {
+  Future<GeneratorTestResult> run(
+    String source, {
+    bool expectNoOutput = false,
+  }) async {
     final library = "example";
-    // Enable resolving imports, must be a dependency of this package
-    final reader =
-        await PackageAssetReader.currentIsolate(rootPackage: library);
+    // Enable resolving imports (imported packages must be a dependency of this package)
+    final readerWriter = TestReaderWriter(rootPackage: library);
+    await readerWriter.testing.loadIsolateSources();
 
     final sourceAssets = {'$library|lib/entity.dart': source};
-    final entityInfoPath = '$library|lib/entity.objectbox.info';
-    final entityInfo = AssetId.parse(entityInfoPath);
 
-    final writer = InMemoryAssetWriter();
-    final outputReader = WrittenAssetReader(writer);
-
-    // Run EntityResolver
-    await testBuilder(resolver, sourceAssets, reader: reader, writer: writer);
-
-    // Check entity info file was created
-    expect(await outputReader.canRead(entityInfo), isTrue);
-
-    // If entity info model ever needs to be asserted, do it like:
-    // final entitiesList =
-    //     json.decode(await outputReader.readAsString(entityInfo));
-    // var modelEntity = ModelEntity.fromMap(entitiesList[0], check: false);
-    // expect(modelEntity.name, "Example");
-    // expect(modelEntity.flags, 0);
-
-    // Run CodeBuilder
-    await testBuilder(
-      codeBuilder,
-      {entityInfo.toString(): outputReader.readAsString(entityInfo)},
-      reader: outputReader,
+    // Check entity info and generated code file were created
+    final expectedOutputs = {
+      '$library|lib/entity.objectbox.info': isNotNull,
+      // If entity info model needs to be asserted, can use something like:
+      // '$library|lib/entity.objectbox.info': predicate<String>((content) {
+      //   final entitiesList = json.decode(content);
+      //   var modelEntity = ModelEntity.fromMap(entitiesList[0], check: false);
+      //   return modelEntity.name == "Example" && modelEntity.flags == 0;
+      // }),
+      '$library|lib/objectbox.g.dart': isNotNull,
       // Future improvement: assert generated code? Needs existing model JSON for stable IDs
-      // outputs: {
-      //   '$library|lib/objectbox.g.dart': '<file-content>',
-      // },
+      // '$library|lib/objectbox.g.dart': '<file-content>'
+    };
+
+    // Run EntityResolver and CodeBuilder, verify outputs
+    var logs = <LogRecord>[];
+    final result = await testBuilders(
+      [resolver, codeBuilder],
+      sourceAssets,
+      readerWriter: readerWriter,
+      outputs: expectNoOutput ? {} : expectedOutputs,
+      onLog: (record) {
+        // Setting onLog overwrites the useful default logger set by
+        // testBuilders, so reimplement it
+        _printLogOnFailure(record);
+
+        logs.add(record);
+      },
     );
 
-    // Assert generator model
-    final modelFile = File(path.join("lib", config.jsonFile));
-    final jsonModel = await _readModelFile(modelFile);
-    _commonModelTests(model, jsonModel);
+    if (!expectNoOutput) {
+      // Assert generator model
+      final modelFile = File(path.join("lib", config.jsonFile));
+      final jsonModel = await _readModelFile(modelFile);
+      _commonModelTests(model, jsonModel);
 
-    // The model file is not written using Builder API, so it is actually
-    // written to the file system: remove it once done with the test.
-    addTearDown(() async => {await modelFile.delete()});
+      // The model file is not written using Builder API, so it is actually
+      // written to the file system: remove it once done with the test.
+      addTearDown(() async => {await modelFile.delete()});
+    }
+
+    return GeneratorTestResult(builderResult: result, logs: logs);
+  }
+
+  void _printLogOnFailure(LogRecord record) {
+    final message = '$record'
+        '${record.error == null ? '' : '  ${record.error}'}'
+        '${record.stackTrace == null ? '' : '  ${record.stackTrace}'}';
+    printOnFailure(message);
   }
 
   Future<ModelInfo> _readModelFile(File modelFile) async {
@@ -171,4 +194,11 @@ class GeneratorTestEnv {
       expect(retired, isNot(contains(last.uid)));
     }
   }
+}
+
+class GeneratorTestResult {
+  final TestBuilderResult builderResult;
+  final List<LogRecord> logs;
+
+  GeneratorTestResult({required this.builderResult, required this.logs});
 }

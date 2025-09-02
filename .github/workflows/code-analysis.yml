@@ -15,8 +15,8 @@ permissions:
 env:
   # Do code analysis with latest SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
-  FLUTTER_VERSION: 3.29.2 # Available versions: https://docs.flutter.dev/release/archive
-  DART_VERSION: 3.7.2 # Available versions: https://dart.dev/get-dart/archive
+  FLUTTER_VERSION: 3.35.2 # Available versions: https://docs.flutter.dev/release/archive
+  DART_VERSION: 3.9.2 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
   format-and-analyze:
