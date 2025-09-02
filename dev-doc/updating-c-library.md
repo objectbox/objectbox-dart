@@ -19,17 +19,17 @@ for the binding update script (see below) and
 for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:
 
 ```bash
-./tool/set-c-version.sh 4.3.0
+./tool/set-c-version.sh 4.3.1
 ```
 
 ```text
-* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.0](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.0).
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.1](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.1).
 ```
 
 ```text
-Update C library [4.2.0 -> 4.3.0]
+Update C library [4.3.0 -> 4.3.1]
 
-Includes database 4.3.0-2025-05-12
+Includes database 4.3.1-2025-07-28
 ```
 
 ### Android
@@ -37,19 +37,19 @@ Includes database 4.3.0-2025-05-12
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 
 ```bash
-./tool/set-android-version.sh 4.3.0
+./tool/set-android-version.sh 4.3.1
 ```
 
 ```text
-* Update ObjectBox database for Flutter Android apps to 4.3.0.
+* Update ObjectBox database for Flutter Android apps to 4.3.1.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make 
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:4.3.0` in `android/app/build.gradle`.
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:4.3.1` in `android/app/build.gradle`.
 ```
 
 ```text
-Update Android library [4.2.0 -> 4.3.0]
+Update Android library [4.3.0 -> 4.3.1]
 
-Includes C API 4.3.0 and database 4.3.0-2025-05-12
+Includes C API 4.3.1 and database 4.3.1-2025-08-02
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
@@ -60,18 +60,18 @@ from the relevant objectbox repository release tag (like `java-4.1.0`).
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 
 ```bash
-./tool/set-swift-version.sh 4.3.0
+./tool/set-swift-version.sh 4.4.1
 ```
 
 ```text
-* Update ObjectBox database for Flutter iOS/macOS apps to 4.3.0.
+* Update ObjectBox database for Flutter iOS/macOS apps to 4.3.1.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 ```
 
 ```text
-Update macOS/iOS library [4.2.0 -> 4.3.0]
+Update macOS/iOS library [4.3.0 -> 4.4.1]
 
-Includes C API 4.3.0 and database 4.3.0-2025-05-12
+Includes C API 4.3.1 and database 4.3.1-2025-08-02
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 
@@ -98,5 +98,5 @@ Then manually:
 - Commit as
 
 ```text
-Update C-API [4.2.0 -> 4.3.0]
+Update C-API [4.3.0 -> 4.3.1]
 ```

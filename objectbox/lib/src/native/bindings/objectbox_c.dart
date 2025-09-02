@@ -10397,6 +10397,9 @@ abstract class OBXFeature {
 
   /// Enables additional authentication/authorization methods for sync login, e.g. JWT based methods.
   static const int Auth = 17;
+
+  /// This is a free trial version; only applies to server builds (no trial builds for database and Sync clients).
+  static const int Trial = 18;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -11678,7 +11681,7 @@ const int OBX_VERSION_MAJOR = 4;
 
 const int OBX_VERSION_MINOR = 3;
 
-const int OBX_VERSION_PATCH = 0;
+const int OBX_VERSION_PATCH = 1;
 
 const int OBX_ID_NEW = -1;
 

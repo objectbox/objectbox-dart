@@ -53,7 +53,7 @@ extern "C" {
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 4
 #define OBX_VERSION_MINOR 3
-#define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
+#define OBX_VERSION_PATCH 1  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
 // Common types
@@ -175,6 +175,10 @@ typedef enum {
 
     /// Enables additional authentication/authorization methods for sync login, e.g. JWT based methods.
     OBXFeature_Auth = 17,
+
+    /// This is a free trial version; only applies to server builds (no trial builds for database and Sync clients).
+    OBXFeature_Trial = 18,
+
 
 } OBXFeature;
 
