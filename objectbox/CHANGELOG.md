@@ -1,4 +1,4 @@
-## latest
+## 4.3.1 (2025-09-02)
 
 * Requires at least Dart SDK 3.7 or Flutter SDK 3.29.
 * Migrate generator to analyzer 7.4 and source_gen 3.1 APIs. Allow analyzer version 8. [#742](https://github.com/objectbox/objectbox-dart/issues/742)
