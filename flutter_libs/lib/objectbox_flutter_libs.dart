@@ -15,7 +15,8 @@ import 'package:path_provider/path_provider.dart';
 /// directory. It is advised to not use this then and instead create a directory
 /// named specifically for your app.
 Future<Directory> defaultStoreDirectory() async => Directory(
-    '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}');
+  '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}',
+);
 
 const _platform = MethodChannel("objectbox_flutter_libs");
 

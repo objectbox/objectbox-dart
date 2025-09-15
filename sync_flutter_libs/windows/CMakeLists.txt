@@ -8,17 +8,23 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "objectbox_sync_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
-# Enable new CMake policies to avoid FetchContent deprecation warnings
-cmake_policy(VERSION 3.14...3.24)
+# Explicitly opt in to modern CMake behaviors to avoid warnings with recent
+# versions of CMake.
+cmake_policy(VERSION 3.14...3.25)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed
 set(PLUGIN_NAME "objectbox_sync_flutter_libs_plugin")
 
+# Any new source files that you add to the plugin should be added here.
+list(APPEND PLUGIN_SOURCES
+  "objectbox_sync_flutter_libs_plugin.cpp"
+)
+
 # Define the plugin library target. Its name must not be changed (see comment
 # on PLUGIN_NAME above).
 add_library(${PLUGIN_NAME} SHARED
-  "objectbox_sync_flutter_libs_plugin.cpp"
+  ${PLUGIN_SOURCES}
 )
 
 # Apply a standard set of build settings that are configured in the

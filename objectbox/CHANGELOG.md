@@ -1,5 +1,9 @@
 ## latest
 
+* Flutter packages are compiled with Android SDK 35 to support Android Gradle Plugin 8.13 
+  [#755](https://github.com/objectbox/objectbox-dart/issues/755). They are also built using a
+  language level of Java 11.
+
 ## 4.3.1 (2025-09-02)
 
 * Requires at least Dart SDK 3.7 or Flutter SDK 3.29.

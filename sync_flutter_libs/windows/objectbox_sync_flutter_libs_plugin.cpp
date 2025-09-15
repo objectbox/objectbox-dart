@@ -56,6 +56,7 @@ ObjectboxSyncFlutterLibsPlugin::~ObjectboxSyncFlutterLibsPlugin() {}
 void ObjectboxSyncFlutterLibsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  // TODO Remove all methods here and also in register methods, is unused
   if (method_call.method_name().compare("getPlatformVersion") == 0) {
     std::ostringstream version_stream;
     version_stream << "Windows ";

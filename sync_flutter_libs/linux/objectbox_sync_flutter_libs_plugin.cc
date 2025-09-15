@@ -24,6 +24,7 @@ static void objectbox_sync_flutter_libs_plugin_handle_method_call(
 
   const gchar* method = fl_method_call_get_name(method_call);
 
+  // TODO Remove all methods here and also in register methods, is unused
   if (strcmp(method, "getPlatformVersion") == 0) {
     struct utsname uname_data = {};
     uname(&uname_data);
