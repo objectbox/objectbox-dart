@@ -3,6 +3,10 @@
 * Flutter packages are compiled with Android SDK 35 to support Android Gradle Plugin 8.13 
   [#755](https://github.com/objectbox/objectbox-dart/issues/755). They are also built using a
   language level of Java 11.
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.0.0-rc](https://github.com/objectbox/objectbox-c/releases/tag/v5.0.0-rc).
+  * ToOne relations: when deleting an object with an ID larger than the maximum 32-bit unsigned
+    integer (`4_294_967_295`) that is used as the target object of a ToOne, correctly re-set the
+    target ID of the ToOne to `0`. [#740](https://github.com/objectbox/objectbox-dart/issues/740)
 
 ## 4.3.1 (2025-09-02)
 

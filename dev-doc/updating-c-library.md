@@ -19,17 +19,17 @@ for the binding update script (see below) and
 for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:
 
 ```bash
-./tool/set-c-version.sh 4.3.1
+./tool/set-c-version.sh 5.0.0-rc
 ```
 
 ```text
-* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [4.3.1](https://github.com/objectbox/objectbox-c/releases/tag/v4.3.1).
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.0.0-rc](https://github.com/objectbox/objectbox-c/releases/tag/v5.0.0-rc).
 ```
 
 ```text
-Update C library [4.3.0 -> 4.3.1]
+Update C library [4.3.1 -> 5.0.0-rc]
 
-Includes database 4.3.1-2025-07-28
+Includes database 5.0.0-2025-09-27
 ```
 
 ### Android
