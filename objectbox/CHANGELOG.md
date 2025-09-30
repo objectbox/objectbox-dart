@@ -1,5 +1,13 @@
 ## latest
 
+### Sync
+
+- Support Sync server version 5.0.
+  - **User-Specific Data Sync**: support configuring [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
+    variables on `SyncClient`.
+
+### Other Changes
+
 * Flutter packages are compiled with Android SDK 35 to support Android Gradle Plugin 8.13 
   [#755](https://github.com/objectbox/objectbox-dart/issues/755). They are also built using a
   language level of Java 11.

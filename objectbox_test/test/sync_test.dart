@@ -260,6 +260,29 @@ void main() {
       ]);
     });
 
+    test('SyncClient filter variables', () {
+      final filterVariables = {
+        'test-var-1': 'test value 1',
+        'test-var-2': 'test value 2'
+      };
+      SyncClient client = Sync.client(
+          store, serverUrl(), SyncCredentials.none(),
+          filterVariables: filterVariables);
+      addTearDown(() {
+        client.close();
+      });
+
+      client.putFilterVariable('test-var-2', 'test value 2');
+      client.removeFilterVariable('test-var-2');
+      client.putFilterVariable('test-var-2', '');
+      client.removeAllFilterVariables();
+
+      expect(
+          () => client.putFilterVariable('', 'value'),
+          throwsA(isA<ArgumentError>().having((e) => e.message, 'message',
+              contains('Filter variables must have a name'))));
+    });
+
     group('Server tests using sync-server in PATH', () {
       late SyncServer server;
 
