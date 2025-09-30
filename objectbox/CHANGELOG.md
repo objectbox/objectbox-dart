@@ -20,6 +20,7 @@
   sure to update to `io.objectbox:objectbox-android-objectbrowser:5.0.1` in `android/app/build.gradle`.
 * Update ObjectBox database for Flutter iOS/macOS apps to 5.0.0.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+* Remove deprecated `contains` condition for `List<String>` properties, use `containsElement` instead.
 
 ## 4.3.1 (2025-09-02)
 

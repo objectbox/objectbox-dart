@@ -433,11 +433,6 @@ class QueryStringVectorProperty<EntityT>
     extends QueryProperty<EntityT, List<String>> {
   QueryStringVectorProperty(super.model);
 
-  @Deprecated(
-      'Use `containsElement` instead. Will be removed in a future release.')
-  Condition<EntityT> contains(String p, {bool? caseSensitive, String? alias}) =>
-      containsElement(p, caseSensitive: caseSensitive, alias: alias);
-
   /// Matches if at least one element of the list equals the given value.
   Condition<EntityT> containsElement(String value,
           {bool? caseSensitive, String? alias}) =>
