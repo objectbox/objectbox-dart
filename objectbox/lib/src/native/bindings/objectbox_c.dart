@@ -4935,7 +4935,7 @@ class ObjectBoxC {
       int Function(ffi.Pointer<OBX_query_builder>, int,
           ffi.Pointer<ffi.Pointer<ffi.Char>>, int, bool)>();
 
-  /// For OBXPropertyType_StringVector - matches if at least one vector item equals the given value.
+  /// @deprecated Please use obx_qb_contains_element_string() instead.
   int qb_any_equals_string(
     ffi.Pointer<OBX_query_builder> builder,
     int property_id,
@@ -8399,6 +8399,67 @@ class ObjectBoxC {
   late final _sync_close =
       _sync_closePtr.asFunction<int Function(ffi.Pointer<OBX_sync>)>();
 
+  /// Adds or replaces a sync filter variable value for the given name to the sync client.
+  /// Eventually existing values for the same name are replaced.
+  /// Client filter variables can be used in server-side sync filters to filter out objects that do not match the filter.
+  /// Filter variables must be added before login, e.g. before obx_sync_start() or setting credentials.
+  /// @param name non-NULL name of the filter variable
+  /// @param value non-NULL value of the filter variable
+  int sync_filter_variables_put(
+    ffi.Pointer<OBX_sync> sync1,
+    ffi.Pointer<ffi.Char> name,
+    ffi.Pointer<ffi.Char> value,
+  ) {
+    return _sync_filter_variables_put(
+      sync1,
+      name,
+      value,
+    );
+  }
+
+  late final _sync_filter_variables_putPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync>, ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('obx_sync_filter_variables_put');
+  late final _sync_filter_variables_put =
+      _sync_filter_variables_putPtr.asFunction<
+          int Function(ffi.Pointer<OBX_sync>, ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>();
+
+  /// Removes a previously added sync filter variable value.
+  int sync_filter_variables_remove(
+    ffi.Pointer<OBX_sync> sync1,
+    ffi.Pointer<ffi.Char> name,
+  ) {
+    return _sync_filter_variables_remove(
+      sync1,
+      name,
+    );
+  }
+
+  late final _sync_filter_variables_removePtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync>,
+              ffi.Pointer<ffi.Char>)>>('obx_sync_filter_variables_remove');
+  late final _sync_filter_variables_remove = _sync_filter_variables_removePtr
+      .asFunction<int Function(ffi.Pointer<OBX_sync>, ffi.Pointer<ffi.Char>)>();
+
+  /// Removes all previously added sync filter variable values.
+  int sync_filter_variables_remove_all(
+    ffi.Pointer<OBX_sync> sync1,
+  ) {
+    return _sync_filter_variables_remove_all(
+      sync1,
+    );
+  }
+
+  late final _sync_filter_variables_remove_allPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>)>>(
+          'obx_sync_filter_variables_remove_all');
+  late final _sync_filter_variables_remove_all =
+      _sync_filter_variables_remove_allPtr
+          .asFunction<int Function(ffi.Pointer<OBX_sync>)>();
+
   /// Sets credentials to authenticate the client with the server.
   /// Any credentials that were set before are replaced;
   /// if you want to pass multiple credentials, use obx_sync_credentials_add() instead.
@@ -10400,6 +10461,9 @@ abstract class OBXFeature {
 
   /// This is a free trial version; only applies to server builds (no trial builds for database and Sync clients).
   static const int Trial = 18;
+
+  /// Server-side filters to return individual data for each sync user (user-specific data).
+  static const int SyncFilters = 19;
 }
 
 /// Log level as passed to obx_log_callback.
@@ -11677,11 +11741,11 @@ class OBX_dart_finalizer extends ffi.Opaque {}
 typedef obx_dart_closer
     = ffi.NativeFunction<obx_err Function(ffi.Pointer<ffi.Void> native_object)>;
 
-const int OBX_VERSION_MAJOR = 4;
+const int OBX_VERSION_MAJOR = 5;
 
-const int OBX_VERSION_MINOR = 3;
+const int OBX_VERSION_MINOR = 0;
 
-const int OBX_VERSION_PATCH = 1;
+const int OBX_VERSION_PATCH = 0;
 
 const int OBX_ID_NEW = -1;
 

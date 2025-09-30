@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 4 && OBX_VERSION_MINOR == 3 && OBX_VERSION_PATCH == 1,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 0 && OBX_VERSION_PATCH == 0,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -200,6 +200,20 @@ OBX_C_API OBX_sync* obx_sync_urls(OBX_store* store, const char* server_urls[], s
 
 /// Stops and closes (deletes) the sync client, freeing its resources.
 OBX_C_API obx_err obx_sync_close(OBX_sync* sync);
+
+/// Adds or replaces a sync filter variable value for the given name to the sync client.
+/// Eventually existing values for the same name are replaced.
+/// Client filter variables can be used in server-side sync filters to filter out objects that do not match the filter.
+/// Filter variables must be added before login, e.g. before obx_sync_start() or setting credentials.
+/// @param name non-NULL name of the filter variable
+/// @param value non-NULL value of the filter variable
+OBX_C_API obx_err obx_sync_filter_variables_put(OBX_sync* sync, const char* name, const char* value);
+
+/// Removes a previously added sync filter variable value.
+OBX_C_API obx_err obx_sync_filter_variables_remove(OBX_sync* sync, const char* name);
+
+/// Removes all previously added sync filter variable values.
+OBX_C_API obx_err obx_sync_filter_variables_remove_all(OBX_sync* sync);
 
 /// Sets credentials to authenticate the client with the server.
 /// Any credentials that were set before are replaced;

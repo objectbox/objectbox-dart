@@ -96,14 +96,14 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // libraries.
 // Library                 | C API | Database
 // ------------------------|-------|-----------------
-// C library 4.3.1         | 4.3.1 | 4.3.1-2025-07-28
-// Android library 4.3.1   | 4.3.1 | 4.3.1-2025-08-02
-// macOS/iOS library 4.4.1 | 4.3.1 | 4.3.1-2025-08-02
-var _obxCminMajor = 4;
-var _obxCminMinor = 3;
-var _obxCminPatch = 1;
+// C library 5.0.0-rc      | 5.0.0 | 5.0.0-2025-09-27
+// Android library 5.0.1   | 5.0.0 | 5.0.0-2025-09-27
+// macOS/iOS library 5.0.0 | 5.0.0 | 5.0.0-2025-09-27
+var _obxCminMajor = 5;
+var _obxCminMinor = 0;
+var _obxCminPatch = 0;
 // Require minimum database version guaranteeing actual C API availability.
-var _obxDatabaseMinVersion = "4.3.1-2025-07-28";
+var _obxDatabaseMinVersion = "5.0.0-2025-09-27";
 
 bool _isSupportedVersion(ObjectBoxC obxc) {
   // Require a minimum C API version
