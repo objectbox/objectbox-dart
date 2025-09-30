@@ -29,6 +29,11 @@ void main() {
   late TestEnv env2;
   int serverPort = 9999;
 
+  /// Returns a test server URL with the current [serverPort].
+  serverUrl() {
+    return 'ws://127.0.0.1:$serverPort';
+  }
+
   setUp(() {
     env = TestEnv('sync');
     store = env.store;
@@ -47,7 +52,7 @@ void main() {
   // lambda to easily create clients in the tests below
   SyncClient createAuthenticatedClient(
           Store s, List<SyncCredentials> credentials) =>
-      Sync.clientMultiCredentials(s, 'ws://127.0.0.1:$serverPort', credentials);
+      Sync.clientMultiCredentials(s, serverUrl(), credentials);
 
   SyncClient createClient(Store s) =>
       createAuthenticatedClient(s, [SyncCredentials.none()]);
