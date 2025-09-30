@@ -15,6 +15,9 @@
   * ToOne relations: when deleting an object with an ID larger than the maximum 32-bit unsigned
     integer (`4_294_967_295`) that is used as the target object of a ToOne, correctly re-set the
     target ID of the ToOne to `0`. [#740](https://github.com/objectbox/objectbox-dart/issues/740)
+* Update ObjectBox database for Flutter Android apps to 5.0.1.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.0.1` in `android/app/build.gradle`.
 
 ## 4.3.1 (2025-09-02)
 
