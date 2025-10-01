@@ -11,7 +11,6 @@ dependencies:
   ffi: ^2.0.1
 
 dev_dependencies:
-  # lints 2.1.0+ requires Dart 3, but CI still tests with Dart 2, but also need 3.0.0+ to match pana
-  lints: '>=2.0.1 <4.0.0'
+  lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
   objectbox_generator: any
   build_runner: any

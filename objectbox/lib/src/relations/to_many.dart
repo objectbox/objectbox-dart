@@ -53,7 +53,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   /// Store which contains a pointer.
   ///
   /// Using dynamic for the owning entity type as adding it would require
-  /// a breaking API change to ToMany (-> ToMany<EntityT, OwningEntityT>).
+  /// a breaking API change to ToMany (-> `ToMany<EntityT, OwningEntityT>`).
   _ToManyStoreConfiguration<EntityT, dynamic>? _storeConfiguration;
 
   List<EntityT>? __items;

@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 
-/// Provides native memory manipulation, operating on FFI Pointer<Void>.
+/// Provides native memory manipulation, operating on FFI `Pointer<Void>`.
 
 /// memset(ptr, value, num) sets the first num bytes of the block of memory
 /// pointed by ptr to the specified value (interpreted as an uint8).

@@ -104,7 +104,7 @@ class GeneratorTestEnv {
 
   /// Check that the model is specified and written to JSON correctly.
   /// Note: there are tests asserting the generated model code in integration-tests/common.dart
-  _commonModelTests(ModelInfo generatorModel, ModelInfo jsonModel) {
+  void _commonModelTests(ModelInfo generatorModel, ModelInfo jsonModel) {
     // collect UIDs on all entities and properties
     final allUIDs = generatorModel.entities
         .map(
@@ -186,11 +186,11 @@ class GeneratorTestEnv {
     expect(jsonModel.version, generatorModel.version);
   }
 
-  _expectIdUid(IdUid actual, IdUid expected) {
+  void _expectIdUid(IdUid actual, IdUid expected) {
     expect(actual.toString(), expected.toString());
   }
 
-  _testLastId(IdUid last, Iterable<IdUid> all, Iterable<int> retired) {
+  void _testLastId(IdUid last, Iterable<IdUid> all, Iterable<int> retired) {
     if (last.isEmpty) return;
 
     // If among used IDs, UID should match; ID and UID not re-used elsewhere
