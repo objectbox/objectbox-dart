@@ -23,7 +23,7 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.2.1" apply false // 7.3.0 -> 8.2.1 to support JDK 21
+    id "com.android.application" version "8.5.1" apply false // 8.5.1 to support 16 KB page sizes
 }
 
 include ":app"
