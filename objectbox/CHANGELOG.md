@@ -2,6 +2,9 @@
 
 ## 5.0.0 (2025-10-01)
 
+**To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions`
+(or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
+
 ### Sync
 
 - Support Sync server version 5.0.
