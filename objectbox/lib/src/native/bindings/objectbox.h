@@ -51,9 +51,9 @@ extern "C" {
 
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
-#define OBX_VERSION_MAJOR 4
-#define OBX_VERSION_MINOR 3
-#define OBX_VERSION_PATCH 1  // values >= 100 are reserved for dev releases leading to the next minor/major increase
+#define OBX_VERSION_MAJOR 5
+#define OBX_VERSION_MINOR 0
+#define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
 // Common types
@@ -179,6 +179,8 @@ typedef enum {
     /// This is a free trial version; only applies to server builds (no trial builds for database and Sync clients).
     OBXFeature_Trial = 18,
 
+    /// Server-side filters to return individual data for each sync user (user-specific data).
+    OBXFeature_SyncFilters = 19,
 
 } OBXFeature;
 
@@ -2121,7 +2123,7 @@ OBX_C_API obx_qb_cond obx_qb_less_or_equal_string(OBX_query_builder* builder, ob
 OBX_C_API obx_qb_cond obx_qb_in_strings(OBX_query_builder* builder, obx_schema_id property_id,
                                         const char* const values[], size_t count, bool case_sensitive);
 
-/// For OBXPropertyType_StringVector - matches if at least one vector item equals the given value.
+/// @deprecated Please use obx_qb_contains_element_string() instead.
 OBX_C_API obx_qb_cond obx_qb_any_equals_string(OBX_query_builder* builder, obx_schema_id property_id, const char* value,
                                                bool case_sensitive);
 

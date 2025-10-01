@@ -82,7 +82,8 @@ jobs:
           ../tool/pub.sh run test
       - name: Install ObjectBox C library
         working-directory: objectbox_test
-        run: ../install.sh
+        # Use Sync-enabled library to at least partially run sync_test.dart
+        run: ../install.sh --sync
       - name: Library Test
         working-directory: objectbox_test
         # Set concurrency=1 to run only one test suite (== test file) at a time to make it easier to

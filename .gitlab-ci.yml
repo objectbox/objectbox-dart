@@ -90,7 +90,8 @@ generator-integ-tests:
     - dart test --concurrency=1 --reporter expanded
     # ObjectBox tests
     - cd ../objectbox_test
-    - ../install.sh
+    # Use Sync-enabled library to at least partially run sync_test.dart
+    - ../install.sh --sync
     - dart pub get
     - dart run build_runner build
     # Set concurrency=1 to run only one test suite (== test file) at a time.

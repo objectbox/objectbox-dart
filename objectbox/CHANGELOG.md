@@ -1,5 +1,13 @@
 ## latest
 
+### Sync
+
+- Support Sync server version 5.0.
+  - **User-Specific Data Sync**: support configuring [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
+    variables on `SyncClient`.
+
+### Other Changes
+
 * Flutter packages are compiled with Android SDK 35 to support Android Gradle Plugin 8.13 
   [#755](https://github.com/objectbox/objectbox-dart/issues/755). They are also built using a
   language level of Java 11.
@@ -7,6 +15,12 @@
   * ToOne relations: when deleting an object with an ID larger than the maximum 32-bit unsigned
     integer (`4_294_967_295`) that is used as the target object of a ToOne, correctly re-set the
     target ID of the ToOne to `0`. [#740](https://github.com/objectbox/objectbox-dart/issues/740)
+* Update ObjectBox database for Flutter Android apps to 5.0.1.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.0.1` in `android/app/build.gradle`.
+* Update ObjectBox database for Flutter iOS/macOS apps to 5.0.0.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+* Remove deprecated `contains` condition for `List<String>` properties, use `containsElement` instead.
 
 ## 4.3.1 (2025-09-02)
 

@@ -191,7 +191,8 @@ class SyncClient {
   /// Creates a Sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
   SyncClient._(
-      this._store, List<String> serverUrls, List<SyncCredentials> credentials) {
+      this._store, List<String> serverUrls, List<SyncCredentials> credentials,
+      {Map<String, String>? filterVariables}) {
     if (serverUrls.isEmpty) {
       throw ArgumentError.value(
           serverUrls, "serverUrls", "Provide at least one server URL");
@@ -208,6 +209,8 @@ class SyncClient {
         (ptr, size) => checkObxPtr(
             C.sync_urls(InternalStoreAccess.ptr(_store), ptr, size),
             'failed to create Sync client'));
+
+    filterVariables?.forEach(putFilterVariable);
 
     if (credentials.length == 1) {
       setCredentials(credentials[0]);
@@ -256,6 +259,40 @@ class SyncClient {
       default:
         return SyncState.unknown;
     }
+  }
+
+  /// Adds or replaces a [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
+  /// variable value for the given name.
+  ///
+  /// Eventually, existing values for the same name are replaced.
+  ///
+  /// Sync client filter variables can be used in server-side Sync filters to
+  /// filter out objects that do not match the filters. Filter variables must be
+  /// added before login, so before calling `start()`.
+  ///
+  /// See also [removeFilterVariable] and [removeAllFilterVariables].
+  void putFilterVariable(String name, String value) {
+    withNativeString(
+        name,
+        (nameCStr) => withNativeString(
+            value,
+            (valueCStr) => checkObx(
+                C.sync_filter_variables_put(_ptr, nameCStr, valueCStr))));
+  }
+
+  /// Removes a previously added Sync filter variable value.
+  ///
+  /// See also [putFilterVariable] and [removeAllFilterVariables].
+  void removeFilterVariable(String name) {
+    withNativeString(name,
+        (nameCStr) => checkObx(C.sync_filter_variables_remove(_ptr, nameCStr)));
+  }
+
+  /// Removes all previously added Sync filter variable values.
+  ///
+  /// See also [putFilterVariable] and [removeFilterVariable].
+  void removeAllFilterVariables() {
+    checkObx(C.sync_filter_variables_remove_all(_ptr));
   }
 
   /// Configure authentication credentials, depending on your server config.
@@ -697,22 +734,34 @@ class Sync {
   ///
   /// Before [SyncClient.start()], you can still configure some aspects of the
   /// client, e.g. its [SyncRequestUpdatesMode] mode.
+  ///
+  /// To configure [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
+  /// variables, pass variable names mapped to their value to [filterVariables].
+  ///
+  /// Sync client filter variables can be used in server-side Sync filters to
+  /// filter out objects that do not match the filter.
   static SyncClient client(
-          Store store, String serverUrl, SyncCredentials credentials) =>
-      clientMultiUrls(store, [serverUrl], credentials);
+          Store store, String serverUrl, SyncCredentials credentials,
+          {Map<String, String>? filterVariables}) =>
+      clientMultiUrls(store, [serverUrl], credentials,
+          filterVariables: filterVariables);
 
   /// Like [client], but accepts a list of credentials.
   ///
   /// When passing multiple credentials, does **not** support
   /// [SyncCredentials.none()].
   static SyncClient clientMultiCredentials(
-          Store store, String serverUrl, List<SyncCredentials> credentials) =>
-      clientMultiCredentialsMultiUrls(store, [serverUrl], credentials);
+          Store store, String serverUrl, List<SyncCredentials> credentials,
+          {Map<String, String>? filterVariables}) =>
+      clientMultiCredentialsMultiUrls(store, [serverUrl], credentials,
+          filterVariables: filterVariables);
 
   /// Like [client], but accepts a list of URLs to work with multiple servers.
   static SyncClient clientMultiUrls(
-          Store store, List<String> serverUrls, SyncCredentials credentials) =>
-      clientMultiCredentialsMultiUrls(store, serverUrls, [credentials]);
+          Store store, List<String> serverUrls, SyncCredentials credentials,
+          {Map<String, String>? filterVariables}) =>
+      clientMultiCredentialsMultiUrls(store, serverUrls, [credentials],
+          filterVariables: filterVariables);
 
   /// Like [client], but accepts a list of credentials and a list of URLs to
   /// work with multiple servers.
@@ -720,7 +769,8 @@ class Sync {
   /// When passing multiple credentials, does **not** support
   /// [SyncCredentials.none()].
   static SyncClient clientMultiCredentialsMultiUrls(
-      Store store, List<String> serverUrls, List<SyncCredentials> credentials) {
+      Store store, List<String> serverUrls, List<SyncCredentials> credentials,
+      {Map<String, String>? filterVariables}) {
     if (syncClientsStorage.containsKey(store)) {
       throw StateError('Only one sync client can be active for a store');
     }
