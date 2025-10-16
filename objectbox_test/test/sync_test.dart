@@ -230,6 +230,7 @@ void main() {
       expect(c.requestUpdates(subscribeForFuturePushes: true), isFalse);
       expect(c.requestUpdates(subscribeForFuturePushes: false), isFalse);
       expect(c.outgoingMessageCount(), isZero);
+      c.triggerReconnect();
       c.stop();
       expect(c.state(), equals(SyncState.stopped));
     });

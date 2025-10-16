@@ -16,6 +16,10 @@
 * Provide a helpful error message if the name of a property conflicts with a target ID property 
   created for a `ToOne` relation. [#713](https://github.com/objectbox/objectbox-dart/issues/713)
 
+### Sync
+
+* SyncClient: support `triggerReconnect()`.
+
 ## 5.0.0 (2025-10-01)
 
 **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions`
