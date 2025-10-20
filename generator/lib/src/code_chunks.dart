@@ -152,6 +152,9 @@ class CodeChunks {
     if (property.indexId != null && !property.indexId!.isEmpty) {
       additionalArgs += ', indexId: ${createIdUid(property.indexId!)}';
     }
+    if (property.relationField != null && property.relationField!.isNotEmpty) {
+      additionalArgs += ", relationField: '${property.relationField!}'";
+    }
     if (property.relationTarget != null &&
         property.relationTarget!.isNotEmpty) {
       additionalArgs += ", relationTarget: '${property.relationTarget!}'";
@@ -220,19 +223,14 @@ class CodeChunks {
       ''';
   }
 
+  /// Returns the name of the Dart field associated with the [property].
+  ///
+  /// For ToOne relations, there is no field named like the property,
+  /// so this returns the name of the field that defines the ToOne instead.
   static String propertyFieldName(ModelProperty property) {
     if (property.isRelation) {
-      if (!property.name.endsWith('Id')) {
-        throw ArgumentError.value(
-          property.name,
-          'property.name',
-          'Relation property name must end with "Id"',
-        );
-      }
-
-      return property.name.substring(0, property.name.length - 2);
+      return property.relationField!;
     }
-
     return property.name;
   }
 

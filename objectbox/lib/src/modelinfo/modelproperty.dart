@@ -9,11 +9,17 @@ import 'modelentity.dart';
 class ModelProperty {
   IdUid id;
 
+  /// See [name].
   late String _name;
 
   late int _type, _flags;
   IdUid? _indexId;
   ModelEntity? entity;
+
+  /// If this [isRelation], the name of the field of the ToOne.
+  String? relationField;
+
+  /// If this [isRelation], the name of the entity class the ToOne targets.
   String? relationTarget;
 
   /// The optional [HnswIndex] parameters of this property.
@@ -34,6 +40,9 @@ class ModelProperty {
   // whether the user requested UID information (started a rename process)
   final bool uidRequest;
 
+  /// The name of the property. Except if [isRelation], this is also the name of
+  /// the associated Dart field. If [isRelation] use [relationField] to get the
+  /// name of the ToOne field.
   String get name => _name;
 
   set name(String? value) {
@@ -121,6 +130,7 @@ class ModelProperty {
       required int type,
       required int flags,
       IdUid? indexId,
+      this.relationField,
       this.relationTarget,
       this.hnswParams,
       this.externalName,
@@ -133,6 +143,7 @@ class ModelProperty {
 
   ModelProperty.fromMap(Map<String, dynamic> data, this.entity)
       : id = IdUid.fromString(data[ModelPropertyKey.id] as String?),
+        relationField = data[ModelPropertyKey.relationField] as String?,
         relationTarget = data[ModelPropertyKey.relationTarget] as String?,
         _dartFieldType = data[ModelPropertyKey.dartFieldType] as String?,
         uidRequest = data[ModelPropertyKey.uidRequest] as bool? ?? false,
@@ -164,6 +175,9 @@ class ModelProperty {
       ret[ModelPropertyKey.relationTarget] = relationTarget;
     }
     if (!forModelJson) {
+      if (relationField != null) {
+        ret[ModelPropertyKey.relationField] = relationField;
+      }
       if (_dartFieldType != null) {
         ret[ModelPropertyKey.dartFieldType] = _dartFieldType;
       }
@@ -216,6 +230,9 @@ class ModelProperty {
       result += ' index:$type';
     }
 
+    if (relationField != null) {
+      result += ' relField:$relationField';
+    }
     if (relationTarget != null) {
       result += ' relTarget:$relationTarget';
     }
@@ -231,6 +248,7 @@ class ModelPropertyKey {
   static const String indexId = 'indexId';
   static const String type = 'type';
   static const String flags = 'flags';
+  static const String relationField = 'relationField';
   static const String relationTarget = 'relationTarget';
   static const String dartFieldType = 'dartFieldType';
   static const String uidRequest = 'uidRequest';

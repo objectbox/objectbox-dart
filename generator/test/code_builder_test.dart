@@ -271,6 +271,33 @@ void main() {
       ''');
     });
 
+    test('@TargetIdProperty ToOne annotation', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @TargetIdProperty('customerRef')
+        final customer = ToOne<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final exampleEntity = testEnv.model.entities[0];
+      expect(exampleEntity.findPropertyByName('customerId'), isNull);
+      final renamedRelationProperty = exampleEntity.findPropertyByName(
+        'customerRef',
+      );
+      expect(renamedRelationProperty, isNotNull);
+      expect(renamedRelationProperty!.type, OBXPropertyType.Relation);
+    });
+
     test('HNSW annotation on unsupported type errors', () async {
       final source = r'''
       library example;     

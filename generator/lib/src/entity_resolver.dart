@@ -52,6 +52,10 @@ class EntityResolver extends Builder {
     Backlink,
     inPackage: _annotationsPackage,
   );
+  final _targetIdPropertyChecker = const TypeChecker.typeNamed(
+    TargetIdProperty,
+    inPackage: _annotationsPackage,
+  );
   final _hnswChecker = const TypeChecker.typeNamed(
     HnswIndex,
     inPackage: _annotationsPackage,
@@ -278,23 +282,44 @@ class EntityResolver extends Builder {
 
         log.info('  $rel');
       } else {
-        // Handles regular properties
+        // Handles regular property including ToOne relation
+
+        // By default, name properties like the field. For ToOne relations,
+        // default to naming the property like the ToOne field + Id suffix.
+        // If the ToOne field is annotated with @TargetIdProperty use its name
+        // value.
+        final String propName;
+        if (fieldType == OBXPropertyType.Relation) {
+          var customName =
+              _targetIdPropertyChecker
+                  .firstAnnotationOfExact(annotated)
+                  ?.getField('name')
+                  ?.toStringValue();
+          if (customName != null && customName.isNotEmpty) {
+            propName = customName;
+          } else {
+            propName = '${f.displayName}Id';
+          }
+        } else {
+          propName = f.displayName;
+        }
+
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         final prop = ModelProperty.create(
           IdUid(0, propUid ?? 0),
-          f.displayName,
+          propName,
           fieldType,
           flags: flags,
           entity: entity,
           uidRequest: propUid != null && propUid == 0,
         );
 
+        // ToOne relation
         if (fieldType == OBXPropertyType.Relation) {
-          prop.name += 'Id';
+          prop.relationField = f.displayName;
           prop.relationTarget = relTargetName;
           prop.flags |= OBXPropertyFlags.INDEXED;
           prop.flags |= OBXPropertyFlags.INDEX_PARTIAL_SKIP_ZERO;
-
           // IDs must not be tagged unsigned for compatibility reasons
           prop.flags &= ~OBXPropertyFlags.UNSIGNED;
         }

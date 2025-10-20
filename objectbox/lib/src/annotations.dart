@@ -674,3 +674,30 @@ class ExternalName {
   /// The field may be of type [ToMany].
   const ExternalName({required this.name});
 }
+
+/// An annotation for a [ToOne] to change the name of its target ID property.
+class TargetIdProperty {
+  /// Name used in the database.
+  final String name;
+
+  /// For a `ToOne`, changes the name of its associated target ID (or
+  /// "relation") property.
+  ///
+  /// ```dart
+  /// @Entity
+  /// public class Order {
+  ///     // Change from default "customerId" to "customerRef"
+  ///     @TargetIdProperty("customerRef")
+  ///     final customer = ToOne<Customer>();
+  /// }
+  /// ```
+  ///
+  /// A target ID property is implicitly created (so without defining it in
+  /// the `@Entity` class) for each `ToOne` and stores the ID of the referenced
+  /// target object. By default, it's named like the `ToOne` field plus the
+  /// suffix `Id` (for example `customerId`).
+  ///
+  /// See the [relations documentation](https://docs.objectbox.io/relations) for
+  /// details.
+  const TargetIdProperty(this.name);
+}
