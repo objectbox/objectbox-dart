@@ -1,5 +1,7 @@
 ## latest
 
+* Migrate generator to analyzer 8 APIs. Require at least analyzer 8.1.1 and source_gen 4.0.1.
+
 ## 5.0.0 (2025-10-01)
 
 **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions`
