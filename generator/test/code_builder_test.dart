@@ -298,6 +298,42 @@ void main() {
       expect(renamedRelationProperty!.type, OBXPropertyType.Relation);
     });
 
+    test('ToOne relation property name conflict', () async {
+      // Note: unlike in Java, for Dart it's also not supported to "expose" the
+      // relation ("target ID") property.
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        int? customerId; // conflicts
+        final customer = ToOne<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source, expectNoOutput: true);
+
+      expect(result.builderResult.succeeded, false);
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.SEVERE)
+              .having(
+                (r) => r.message,
+                'message',
+                contains(
+                  'Property name conflicts with the relation property "customerId"',
+                ),
+              ),
+        ),
+      );
+    });
+
     test('HNSW annotation on unsupported type errors', () async {
       final source = r'''
       library example;     

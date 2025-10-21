@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
+import 'package:collection/collection.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:source_gen/source_gen.dart';
@@ -391,10 +392,11 @@ class EntityResolver extends Builder {
       }
     }
 
+    _checkNoPropertiesConflictWithRelationProperties(entity, classElement);
     // Verify there is at most 1 unique property with REPLACE strategy.
-    ensureSingleUniqueReplace(entity, classElement);
+    _ensureSingleUniqueReplace(entity, classElement);
     // If sync enabled, verify all unique properties use REPLACE strategy.
-    ifSyncEnsureAllUniqueAreReplace(entity, classElement);
+    _ifSyncEnsureAllUniqueAreReplace(entity, classElement);
 
     for (var p in entity.properties) {
       log.info('  $p');
@@ -618,7 +620,34 @@ class EntityResolver extends Builder {
     }
   }
 
-  void ensureSingleUniqueReplace(
+  /// Verifies no regular properties are named like ToOne relation
+  /// properties (which are implicitly created and not defined as a Dart field,
+  /// so their existence isn't obvious).
+  void _checkNoPropertiesConflictWithRelationProperties(
+    ModelEntity entity,
+    ClassElement classElement,
+  ) {
+    final relationProps = entity.properties.where((p) => p.isRelation);
+    final nonRelationProps = entity.properties.whereNot((p) => p.isRelation);
+
+    for (var relProp in relationProps) {
+      var propWithSameName = nonRelationProps.firstWhereOrNull(
+        (p) => p.name == relProp.name,
+      );
+      if (propWithSameName != null) {
+        final conflictingField = classElement.fields.firstWhereOrNull(
+          (f) => f.displayName == propWithSameName.name,
+        );
+        throw InvalidGenerationSourceError(
+          'Property name conflicts with the relation property "${relProp.name}" created for the ToOne relation "${relProp.relationField}".'
+          ' Rename the property or use @TargetIdProperty on the ToOne to rename the relation property.',
+          element: conflictingField,
+        );
+      }
+    }
+  }
+
+  void _ensureSingleUniqueReplace(
     ModelEntity entity,
     ClassElement classElement,
   ) {
@@ -633,7 +662,7 @@ class EntityResolver extends Builder {
     }
   }
 
-  void ifSyncEnsureAllUniqueAreReplace(
+  void _ifSyncEnsureAllUniqueAreReplace(
     ModelEntity entity,
     ClassElement classElement,
   ) {
