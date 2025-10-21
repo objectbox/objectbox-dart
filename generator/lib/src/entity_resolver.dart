@@ -639,8 +639,8 @@ class EntityResolver extends Builder {
           (f) => f.displayName == propWithSameName.name,
         );
         throw InvalidGenerationSourceError(
-          'Property name conflicts with the relation property "${relProp.name}" created for the ToOne relation "${relProp.relationField}".'
-          ' Rename the property or use @TargetIdProperty on the ToOne to rename the relation property.',
+          'Property name conflicts with the target ID property "${relProp.name}" created for the ToOne relation "${relProp.relationField}".'
+          ' Rename the property or use @TargetIdProperty on the ToOne to rename the target ID property.',
           element: conflictingField,
         );
       }

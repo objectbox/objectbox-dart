@@ -13,7 +13,7 @@
   
   This can be useful if the default name needs to be used for another property. Or when syncing with
   MongoDB to match the name used in the MongoDB database. [#713](https://github.com/objectbox/objectbox-dart/issues/713)
-* Provide a helpful error message if the name of a property conflicts with a relation property 
+* Provide a helpful error message if the name of a property conflicts with a target ID property 
   created for a `ToOne` relation. [#713](https://github.com/objectbox/objectbox-dart/issues/713)
 
 ## 5.0.0 (2025-10-01)

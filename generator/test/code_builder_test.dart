@@ -298,9 +298,9 @@ void main() {
       expect(renamedRelationProperty!.type, OBXPropertyType.Relation);
     });
 
-    test('ToOne relation property name conflict', () async {
+    test('ToOne target ID property name conflict', () async {
       // Note: unlike in Java, for Dart it's also not supported to "expose" the
-      // relation ("target ID") property.
+      // target ID (relation) property.
       final source = r'''
       library example;     
       import 'package:objectbox/objectbox.dart';
@@ -327,7 +327,7 @@ void main() {
                 (r) => r.message,
                 'message',
                 contains(
-                  'Property name conflicts with the relation property "customerId"',
+                  'Property name conflicts with the target ID property "customerId"',
                 ),
               ),
         ),
