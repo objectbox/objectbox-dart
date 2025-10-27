@@ -369,7 +369,10 @@ class CodeBuilder extends Builder {
         }
         rel.targetId = targetEntity.id;
       }
-
+    }
+    // Note: finding the backlink source requires that all ToMany relations have
+    // a targetId set, so find backlink sources in a separate loop.
+    for (var entity in model.entities) {
       for (var backlink in entity.backlinks) {
         backlink.source = _findBacklinkSource(model, entity, backlink);
       }

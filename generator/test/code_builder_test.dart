@@ -271,6 +271,59 @@ void main() {
       ''');
     });
 
+    test('Finds backlink source if type is unique', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        final relA = ToMany<A>();
+        final relB = ToOne<B>();
+      }
+      
+      // Name related classes to be lexically before Example so they are
+      // processed first.
+       
+      @Entity()
+      class A {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      
+      @Entity()
+      class B {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final entityA = testEnv.model.entities.firstWhere((e) => e.name == 'A');
+      var backlinkSourceA = entityA.backlinks.first.source;
+      expect(backlinkSourceA, isA<BacklinkSourceRelation>());
+      expect((backlinkSourceA as BacklinkSourceRelation).srcRel.name, 'relA');
+
+      final entityB = testEnv.model.entities.firstWhere((e) => e.name == 'B');
+      var backlinkSourceB = entityB.backlinks.first.source;
+      expect(backlinkSourceB, isA<BacklinkSourceProperty>());
+      expect(
+        (backlinkSourceB as BacklinkSourceProperty).srcProp.relationField,
+        'relB',
+      );
+    });
+
     test('@TargetIdProperty ToOne annotation', () async {
       final source = r'''
       library example;     
