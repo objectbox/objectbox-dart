@@ -10,13 +10,19 @@ environment:
 
 dependencies:
   objectbox: 5.0.0
-  analyzer: '>=8.1.1 <9.0.0' # source_gen 4.0.1 requires at least 8.1.1
-  build: ^3.0.0 # source_gen 3 requires 3.0.0
+  # https://pub.dev/packages/analyzer/changelog
+  # source_gen 4.0.1 requires 8.1.1
+  analyzer: '>=8.1.1 <9.0.0'
+  # https://pub.dev/packages/build/changelog
+  # Require 4.0.0 to remove discontinued build_runner_core, also build_test 3.5.0 requires 4.0.0
+  build: '>=4.0.0 <5.0.0'
   collection: ^1.18.0 # Would require 1.19.1, but Flutter 3.24.0 has 1.18.0 pinned
   dart_style: '>=2.3.7 <4.0.0' # require 2.3.7 for languageVersion in DartFormatter constructor
   glob: ^2.1.3
   path: ^1.9.1
-  source_gen: ^4.0.1 # Require 4.0.1, older versions use APIs removed in analyzer 8.4.0
+  # https://pub.dev/packages/source_gen/changelog
+  # Require 4.0.1, older versions use APIs removed in analyzer 8.4.0
+  source_gen: ^4.0.1
   pubspec_parse: ^1.4.0
   yaml: ^3.1.3
   http: ^1.3.0
@@ -27,6 +33,7 @@ dev_dependencies:
   lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
   pub_semver: ^2.2.0
   package_config: ^2.2.0
-  build_test: ^3.0.0
-  build_runner_core: ^9.0.0
+  # https://pub.dev/packages/build_test/changelog
+  # Require 3.5.0 to use new TestBuilderResult APIs
+  build_test: ^3.5.0
   logging: ^1.3.0

@@ -1,6 +1,8 @@
 ## latest
 
-* Migrate generator to analyzer 8 APIs. Require at least analyzer 8.1.1 and source_gen 4.0.1.
+* Generator: migrate to `analyzer` 8 APIs. Require at least `analyzer` 8.1.1 and `source_gen` 4.0.1.
+* Generator: require at least `build` 4.0.0. This will also allow using `build_runner` versions
+  `2.7.2` or newer. [#759](https://github.com/objectbox/objectbox-dart/issues/759)
 
 ## 5.0.0 (2025-10-01)
 

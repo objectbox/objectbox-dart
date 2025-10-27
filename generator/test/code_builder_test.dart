@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:build_runner_core/build_runner_core.dart';
 import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
@@ -206,7 +205,7 @@ void main() {
 
         final result = await testEnv.run(source, expectNoOutput: true);
 
-        expect(result.builderResult.buildResult.status, BuildStatus.failure);
+        expect(result.builderResult.succeeded, false);
         expect(
           result.logs,
           contains(
@@ -290,7 +289,7 @@ void main() {
       final testEnv = GeneratorTestEnv();
       final result = await testEnv.run(source, expectNoOutput: true);
 
-      expect(result.builderResult.buildResult.status, BuildStatus.failure);
+      expect(result.builderResult.succeeded, false);
       expect(
         result.logs,
         contains(
