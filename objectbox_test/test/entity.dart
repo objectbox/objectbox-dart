@@ -220,6 +220,16 @@ class RelatedEntityB {
 }
 
 @Entity()
+class RenamedTargetIdProperty {
+  @Id()
+  int id = 0;
+
+  // Instead of the default "testRelId", property should be named "testRef"
+  @TargetIdProperty('testRef')
+  final testRel = ToOne<TestEntity>();
+}
+
+@Entity()
 class TestEntityNonRel {
   int? id;
 

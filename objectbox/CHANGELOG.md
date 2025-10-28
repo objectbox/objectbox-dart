@@ -3,6 +3,18 @@
 * Generator: migrate to `analyzer` 8 APIs. Require at least `analyzer` 8.1.1 and `source_gen` 4.0.1.
 * Generator: require at least `build` 4.0.0. This will also allow using `build_runner` versions
   `2.7.2` or newer. [#759](https://github.com/objectbox/objectbox-dart/issues/759)
+* For `ToOne` support renaming the implicitly created target ID (or "relation") property:
+
+  ```dart 
+  // Change target ID property name from default "customerId" to "customerRef"
+  @TargetIdProperty('customerRef')
+  final customer = ToOne<Customer>();
+  ```
+  
+  This can be useful if the default name needs to be used for another property. Or when syncing with
+  MongoDB to match the name used in the MongoDB database. [#713](https://github.com/objectbox/objectbox-dart/issues/713)
+* Provide a helpful error message if the name of a property conflicts with a target ID property 
+  created for a `ToOne` relation. [#713](https://github.com/objectbox/objectbox-dart/issues/713)
 
 ## 5.0.0 (2025-10-01)
 

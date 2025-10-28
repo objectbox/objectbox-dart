@@ -193,6 +193,18 @@ void main() {
         query.close();
       }
     });
+
+    test('renamed target ID property', () {
+      // Check put and get works even though the target ID property isn't using
+      // the default name.
+      final Box<RenamedTargetIdProperty> box = env.store.box();
+      final targetName = 'target object';
+      final id = box.put(RenamedTargetIdProperty()
+        ..testRel.target = TestEntity(tString: targetName));
+      var storedTarget = box.get(id)!.testRel.target;
+      expect(storedTarget, isNotNull);
+      expect(storedTarget!.tString, targetName);
+    });
   });
 
   group('ToMany list management', () {

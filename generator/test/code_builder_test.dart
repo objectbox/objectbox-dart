@@ -271,6 +271,69 @@ void main() {
       ''');
     });
 
+    test('@TargetIdProperty ToOne annotation', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @TargetIdProperty('customerRef')
+        final customer = ToOne<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final exampleEntity = testEnv.model.entities[0];
+      expect(exampleEntity.findPropertyByName('customerId'), isNull);
+      final renamedRelationProperty = exampleEntity.findPropertyByName(
+        'customerRef',
+      );
+      expect(renamedRelationProperty, isNotNull);
+      expect(renamedRelationProperty!.type, OBXPropertyType.Relation);
+    });
+
+    test('ToOne target ID property name conflict', () async {
+      // Note: unlike in Java, for Dart it's also not supported to "expose" the
+      // target ID (relation) property.
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        int? customerId; // conflicts
+        final customer = ToOne<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source, expectNoOutput: true);
+
+      expect(result.builderResult.succeeded, false);
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.SEVERE)
+              .having(
+                (r) => r.message,
+                'message',
+                contains(
+                  'Property name conflicts with the target ID property "customerId"',
+                ),
+              ),
+        ),
+      );
+    });
+
     test('HNSW annotation on unsupported type errors', () async {
       final source = r'''
       library example;     

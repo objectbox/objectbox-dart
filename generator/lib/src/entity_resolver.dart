@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
+import 'package:collection/collection.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:source_gen/source_gen.dart';
@@ -50,6 +51,10 @@ class EntityResolver extends Builder {
   );
   final _backlinkChecker = const TypeChecker.typeNamed(
     Backlink,
+    inPackage: _annotationsPackage,
+  );
+  final _targetIdPropertyChecker = const TypeChecker.typeNamed(
+    TargetIdProperty,
     inPackage: _annotationsPackage,
   );
   final _hnswChecker = const TypeChecker.typeNamed(
@@ -278,23 +283,44 @@ class EntityResolver extends Builder {
 
         log.info('  $rel');
       } else {
-        // Handles regular properties
+        // Handles regular property including ToOne relation
+
+        // By default, name properties like the field. For ToOne relations,
+        // default to naming the property like the ToOne field + Id suffix.
+        // If the ToOne field is annotated with @TargetIdProperty use its name
+        // value.
+        final String propName;
+        if (fieldType == OBXPropertyType.Relation) {
+          var customName =
+              _targetIdPropertyChecker
+                  .firstAnnotationOfExact(annotated)
+                  ?.getField('name')
+                  ?.toStringValue();
+          if (customName != null && customName.isNotEmpty) {
+            propName = customName;
+          } else {
+            propName = '${f.displayName}Id';
+          }
+        } else {
+          propName = f.displayName;
+        }
+
         // create property (do not use readEntity.createProperty in order to avoid generating new ids)
         final prop = ModelProperty.create(
           IdUid(0, propUid ?? 0),
-          f.displayName,
+          propName,
           fieldType,
           flags: flags,
           entity: entity,
           uidRequest: propUid != null && propUid == 0,
         );
 
+        // ToOne relation
         if (fieldType == OBXPropertyType.Relation) {
-          prop.name += 'Id';
+          prop.relationField = f.displayName;
           prop.relationTarget = relTargetName;
           prop.flags |= OBXPropertyFlags.INDEXED;
           prop.flags |= OBXPropertyFlags.INDEX_PARTIAL_SKIP_ZERO;
-
           // IDs must not be tagged unsigned for compatibility reasons
           prop.flags &= ~OBXPropertyFlags.UNSIGNED;
         }
@@ -366,10 +392,11 @@ class EntityResolver extends Builder {
       }
     }
 
+    _checkNoPropertiesConflictWithRelationProperties(entity, classElement);
     // Verify there is at most 1 unique property with REPLACE strategy.
-    ensureSingleUniqueReplace(entity, classElement);
+    _ensureSingleUniqueReplace(entity, classElement);
     // If sync enabled, verify all unique properties use REPLACE strategy.
-    ifSyncEnsureAllUniqueAreReplace(entity, classElement);
+    _ifSyncEnsureAllUniqueAreReplace(entity, classElement);
 
     for (var p in entity.properties) {
       log.info('  $p');
@@ -593,7 +620,34 @@ class EntityResolver extends Builder {
     }
   }
 
-  void ensureSingleUniqueReplace(
+  /// Verifies no regular properties are named like ToOne relation
+  /// properties (which are implicitly created and not defined as a Dart field,
+  /// so their existence isn't obvious).
+  void _checkNoPropertiesConflictWithRelationProperties(
+    ModelEntity entity,
+    ClassElement classElement,
+  ) {
+    final relationProps = entity.properties.where((p) => p.isRelation);
+    final nonRelationProps = entity.properties.whereNot((p) => p.isRelation);
+
+    for (var relProp in relationProps) {
+      var propWithSameName = nonRelationProps.firstWhereOrNull(
+        (p) => p.name == relProp.name,
+      );
+      if (propWithSameName != null) {
+        final conflictingField = classElement.fields.firstWhereOrNull(
+          (f) => f.displayName == propWithSameName.name,
+        );
+        throw InvalidGenerationSourceError(
+          'Property name conflicts with the target ID property "${relProp.name}" created for the ToOne relation "${relProp.relationField}".'
+          ' Rename the property or use @TargetIdProperty on the ToOne to rename the target ID property.',
+          element: conflictingField,
+        );
+      }
+    }
+  }
+
+  void _ensureSingleUniqueReplace(
     ModelEntity entity,
     ClassElement classElement,
   ) {
@@ -608,7 +662,7 @@ class EntityResolver extends Builder {
     }
   }
 
-  void ifSyncEnsureAllUniqueAreReplace(
+  void _ifSyncEnsureAllUniqueAreReplace(
     ModelEntity entity,
     ClassElement classElement,
   ) {

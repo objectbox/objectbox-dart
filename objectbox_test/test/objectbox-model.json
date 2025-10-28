@@ -803,10 +803,32 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "19:908685173741818689",
+      "lastPropertyId": "2:2489121038957388096",
+      "name": "RenamedTargetIdProperty",
+      "properties": [
+        {
+          "id": "1:565634008862466228",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2489121038957388096",
+          "name": "testRef",
+          "indexId": "25:5667866372157411357",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "TestEntity"
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "18:2680158095061865736",
-  "lastIndexId": "24:4321803250180166911",
+  "lastEntityId": "19:908685173741818689",
+  "lastIndexId": "25:5667866372157411357",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
