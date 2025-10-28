@@ -399,12 +399,19 @@ class CodeBuilder extends Builder {
     ModelRelation? srcRel;
     ModelProperty? srcProp;
 
-    throwAmbiguousError(String prop, String rel) =>
-        throw InvalidGenerationSourceError(
-          "Ambiguous relation backlink source for '${entity.name}.${bl.name}':"
-          " Found matching property '$prop' and to-many relation '$rel'."
-          " Maybe specify source name in @Backlink() annotation.",
-        );
+    throwAmbiguousError(
+      Iterable<ModelProperty> toOneProps,
+      Iterable<ModelRelation> toManyRels,
+    ) {
+      final toOneList = toOneProps.map((p) => p.relationField);
+      final toManyList = toManyRels.map((r) => r.name);
+      final fieldList = [...toOneList, ...toManyList].join(', ');
+      throw InvalidGenerationSourceError(
+        "Can't determine backlink source for \"${entity.name}.${bl.name}\" "
+        "as there is more than one matching ToOne or ToMany relation in \"${srcEntity.name}\": $fieldList."
+        " Add the name of the source relation to the annotation, like @Backlink('<source>'), or modify your entity classes.",
+      );
+    }
 
     if (bl.srcField.isEmpty) {
       final matchingProps = srcEntity.properties.where(
@@ -415,7 +422,7 @@ class CodeBuilder extends Builder {
       );
       final candidatesCount = matchingProps.length + matchingRels.length;
       if (candidatesCount > 1) {
-        throwAmbiguousError(matchingProps.toString(), matchingRels.toString());
+        throwAmbiguousError(matchingProps, matchingRels);
       } else if (matchingProps.isNotEmpty) {
         srcProp = matchingProps.first;
       } else if (matchingRels.isNotEmpty) {
@@ -428,7 +435,7 @@ class CodeBuilder extends Builder {
       );
 
       if (srcProp != null && srcRel != null) {
-        throwAmbiguousError(srcProp.toString(), srcRel.toString());
+        throwAmbiguousError([srcProp], [srcRel]);
       }
     }
 

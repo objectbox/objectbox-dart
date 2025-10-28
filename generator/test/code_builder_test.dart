@@ -203,7 +203,7 @@ void main() {
         }
         ''';
 
-        final result = await testEnv.run(source, expectNoOutput: true);
+        final result = await testEnv.run(source, ignoreOutput: true);
 
         expect(result.builderResult.succeeded, false);
         expect(
@@ -324,6 +324,49 @@ void main() {
       );
     });
 
+    test('Errors if backlink source is not unique', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        final relA1 = ToOne<A>();
+        final relA2 = ToOne<A>();
+        final relA3 = ToMany<A>();
+      }
+       
+      @Entity()
+      class A {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source, ignoreOutput: true);
+
+      expect(result.builderResult.succeeded, false);
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.SEVERE)
+              .having(
+                (r) => r.message,
+                'message',
+                contains('Can\'t determine backlink source for "A.backRel"'),
+              ),
+        ),
+      );
+    });
+
     test('@TargetIdProperty ToOne annotation', () async {
       final source = r'''
       library example;     
@@ -368,7 +411,7 @@ void main() {
       ''';
 
       final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, expectNoOutput: true);
+      final result = await testEnv.run(source, ignoreOutput: true);
 
       expect(result.builderResult.succeeded, false);
       expect(
@@ -403,7 +446,7 @@ void main() {
       ''';
 
       final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, expectNoOutput: true);
+      final result = await testEnv.run(source, ignoreOutput: true);
 
       expect(result.builderResult.succeeded, false);
       expect(
