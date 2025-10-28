@@ -429,11 +429,23 @@ class CodeBuilder extends Builder {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity.findPropertyByName('${bl.srcField}Id');
+      // For backwards compatibility, expect the name of the ToOne field, so add
+      // an "Id" suffix to find the target ID property.
+      srcProp = srcEntity.properties.firstWhereOrNull(
+        (p) => p.isRelation && p.name == '${bl.srcField}Id',
+      );
+      // Otherwise, and to support ToOne with renamed target ID properties
+      // (using @TargetIdProperty), expect the name of the target ID property.
+      srcProp ??= srcEntity.properties.firstWhereOrNull(
+        (p) => p.isRelation && p.name == bl.srcField,
+      );
+      // For ToMany, always expect the name of the ToMany field/relation
       srcRel = srcEntity.relations.firstWhereOrNull(
         (r) => r.name == bl.srcField,
       );
 
+      // This should be impossible as it would mean a ToOne and a ToMany field
+      // share the same name, but check just in case.
       if (srcProp != null && srcRel != null) {
         throwAmbiguousError([srcProp], [srcRel]);
       }
@@ -445,7 +457,11 @@ class CodeBuilder extends Builder {
       return BacklinkSourceProperty(srcProp);
     } else {
       throw InvalidGenerationSourceError(
-        "Unknown relation backlink source for '${entity.name}.${bl.name}'",
+        'Failed to find backlink source for "${entity.name}.${bl.name}" in "${srcEntity.name}", '
+        'make sure a matching ToOne or ToMany relation exists.'
+        ' If the ToOne target ID property is renamed with @TargetIdProperty,'
+        ' then make sure to specify the name of the target ID property instead of the ToOne,'
+        " like @Backlink('<property>').",
       );
     }
   }
