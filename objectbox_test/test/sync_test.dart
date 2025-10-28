@@ -207,7 +207,7 @@ void main() {
       expect(() => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto), error);
     });
 
-    test('SyncClient simple coverage (no server available)', () {
+    test('SyncClient simple coverage (no server available)', () async {
       SyncClient c = createClient(store);
       expect(c.isClosed(), isFalse);
 
@@ -234,12 +234,20 @@ void main() {
       expect(c.requestUpdates(subscribeForFuturePushes: true), isFalse);
       expect(c.requestUpdates(subscribeForFuturePushes: false), isFalse);
       expect(c.outgoingMessageCount(), isZero);
-      if (Platform.isWindows) {
-        print(
-            'Skipping triggerReconnect on Windows, needs fixing, see objectbox-dart#159');
-      } else {
-        c.triggerReconnect();
+      // Wait until client reaches state disconnected (as there is no server),
+      // only then reconnect will be attempted.
+      var waitedForDisconnected = 0;
+      while (c.state() != SyncState.disconnected) {
+        if (waitedForDisconnected == 0) {
+          print('Waiting until SyncClient state is disconnected...');
+        }
+        if (waitedForDisconnected == 50) {
+          fail('SyncClient did not reach disconnected state within 5 seconds');
+        }
+        await Future.delayed(const Duration(milliseconds: 100));
+        waitedForDisconnected++;
       }
+      expect(c.triggerReconnect(), true);
       c.stop();
       expect(c.state(), equals(SyncState.stopped));
     });

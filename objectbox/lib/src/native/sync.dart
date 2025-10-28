@@ -407,14 +407,13 @@ class SyncClient {
     checkObx(C.sync_stop(_ptr));
   }
 
-  /// Triggers a reconnection attempt immediately.
+  /// Triggers a reconnection attempt immediately. Returns if a reconnect was
+  /// actually triggered.
   ///
   /// By default, an increasing backoff interval is used for reconnection
   /// attempts. But sometimes the code using this API has additional knowledge
   /// and can initiate a reconnection attempt sooner.
-  void triggerReconnect() {
-    checkObx(C.sync_trigger_reconnect(_ptr));
-  }
+  bool triggerReconnect() => checkObxSuccess(C.sync_trigger_reconnect(_ptr));
 
   /// Request updates since we last synchronized our database.
   ///
