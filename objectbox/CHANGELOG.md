@@ -11,8 +11,8 @@
 
 ### Sync
 
-- Support Sync server version 5.0.
-  - **User-Specific Data Sync**: support configuring [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
+* Support Sync server version 5.0.
+  * **User-Specific Data Sync**: support configuring [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
     variables on `SyncClient`.
 
 ### Other Changes
