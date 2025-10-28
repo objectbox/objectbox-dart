@@ -230,6 +230,12 @@ void main() {
       expect(c.requestUpdates(subscribeForFuturePushes: true), isFalse);
       expect(c.requestUpdates(subscribeForFuturePushes: false), isFalse);
       expect(c.outgoingMessageCount(), isZero);
+      if (Platform.isWindows) {
+        print(
+            'Skipping triggerReconnect on Windows, needs fixing, see objectbox-dart#159');
+      } else {
+        c.triggerReconnect();
+      }
       c.stop();
       expect(c.state(), equals(SyncState.stopped));
     });
