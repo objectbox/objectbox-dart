@@ -498,6 +498,13 @@ class Store implements Finalizable {
         detach: this, externalSize: 200 * 1024);
   }
 
+  /// Returns the version and features of the platform-specific ObjectBox
+  /// database library.
+  ///
+  /// The format may change in any future release, only use this for
+  /// informational purposes.
+  static String databaseVersion() => dartStringFromC(C.version_core_string());
+
   /// Returns if an open store (i.e. opened before and not yet closed) was found
   /// for the given [directoryPath].
   ///

@@ -1,6 +1,7 @@
 import 'dart:ffi' as ffi;
 
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
 import 'package:objectbox/src/native/version.dart';
@@ -14,7 +15,8 @@ void main() {
     expect(atLeastDart("999.0.0"), false);
   });
 
-  print("Testing basics of ObjectBox using C lib V${libraryVersion()}");
+  print("Testing basics of ObjectBox using C lib V${libraryVersion()} "
+      "with database version ${Store.databaseVersion()}");
 
   // Prior to Dart 2.6, the exception wasn't accessible and may have crashed.
   // Similarly, this occured in Fluter for Linux (desktop).
