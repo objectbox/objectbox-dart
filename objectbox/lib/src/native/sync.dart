@@ -238,6 +238,13 @@ class SyncClient {
   /// Returns if this sync client is closed and can no longer be used.
   bool isClosed() => _cSync.address == 0;
 
+  /// Returns the protocol version this client uses.
+  static int protocolVersion() => C.sync_protocol_version();
+
+  /// Returns the protocol version of the server after a connection is
+  /// established (or attempted), zero otherwise.
+  int protocolVersionServer() => C.sync_protocol_version_server(_ptr);
+
   /// Gets the current sync client state.
   SyncState state() {
     final state = C.sync_state(_ptr);

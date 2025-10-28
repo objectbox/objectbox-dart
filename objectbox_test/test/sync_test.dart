@@ -99,6 +99,7 @@ void main() {
 
   if (Sync.isAvailable()) {
     // TESTS to run when SYNC is available
+    print("Testing Sync with protocol version ${SyncClient.protocolVersion()}");
 
     test('SyncClient lifecycle', () {
       expect(store.syncClient(), isNull);
@@ -209,6 +210,9 @@ void main() {
     test('SyncClient simple coverage (no server available)', () {
       SyncClient c = createClient(store);
       expect(c.isClosed(), isFalse);
+
+      expect(SyncClient.protocolVersion(), greaterThanOrEqualTo(7));
+      expect(c.protocolVersionServer(), 0);
 
       c.setCredentials(SyncCredentials.none());
       c.setCredentials(SyncCredentials.googleAuthString('secret'));
