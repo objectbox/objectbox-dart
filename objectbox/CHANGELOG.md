@@ -1,3 +1,5 @@
+## latest
+
 ## 5.0.2-dev.0 (2025-11-10)
 
 * macOS: throw an error if the `macosApplicationGroup` parameter when opening a `Store` is too long
