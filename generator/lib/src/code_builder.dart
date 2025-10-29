@@ -413,7 +413,11 @@ class CodeBuilder extends Builder {
       );
     }
 
+    // Note that in the model only the target ID (or relation) property of a
+    // ToOne exists, so search for that.
     if (bl.srcField.isEmpty) {
+      // No source field name given, try to find the source relation by type of
+      // its target entity.
       final matchingProps = srcEntity.properties.where(
         (p) => p.isRelation && p.relationTarget == entity.name,
       );
@@ -429,17 +433,12 @@ class CodeBuilder extends Builder {
         srcRel = matchingRels.first;
       }
     } else {
-      // For backwards compatibility, expect the name of the ToOne field, so add
-      // an "Id" suffix to find the target ID property.
+      // Source field name given
+      // For ToOne, expect the name of the ToOne field
       srcProp = srcEntity.properties.firstWhereOrNull(
-        (p) => p.isRelation && p.name == '${bl.srcField}Id',
+        (p) => p.isRelation && p.relationField == bl.srcField,
       );
-      // Otherwise, and to support ToOne with renamed target ID properties
-      // (using @TargetIdProperty), expect the name of the target ID property.
-      srcProp ??= srcEntity.properties.firstWhereOrNull(
-        (p) => p.isRelation && p.name == bl.srcField,
-      );
-      // For ToMany, always expect the name of the ToMany field/relation
+      // For ToMany, expect the name of the ToMany field
       srcRel = srcEntity.relations.firstWhereOrNull(
         (r) => r.name == bl.srcField,
       );
@@ -458,10 +457,7 @@ class CodeBuilder extends Builder {
     } else {
       throw InvalidGenerationSourceError(
         'Failed to find backlink source for "${entity.name}.${bl.name}" in "${srcEntity.name}", '
-        'make sure a matching ToOne or ToMany relation exists.'
-        ' If the ToOne target ID property is renamed with @TargetIdProperty,'
-        ' then make sure to specify the name of the target ID property instead of the ToOne,'
-        " like @Backlink('<property>').",
+        'make sure a matching ToOne or ToMany relation exists.',
       );
     }
   }

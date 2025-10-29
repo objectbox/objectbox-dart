@@ -501,8 +501,7 @@ void main() {
         @Id()
         int id = 0;
         
-        // Must specify the target ID property instead of the ToOne field
-        @Backlink('customerRef')
+        @Backlink('customer')
         final backRel = ToMany<Example>();
       }
       ''';
