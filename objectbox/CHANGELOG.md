@@ -1,6 +1,8 @@
 ## latest
 
 * Generator: migrate to `analyzer` 8 APIs. Require at least `analyzer` 8.1.1 and `source_gen` 4.0.1.
+  Resolves `Error: The method 'getInvocation' isn't defined` when running the generator using 
+  `analyzer` 8.4.0 (it removes APIs that older `source_gen` versions were using).
 * Generator: require at least `build` 4.0.0. This will also allow using `build_runner` versions
   `2.7.2` or newer. [#759](https://github.com/objectbox/objectbox-dart/issues/759)
 * For `ToOne` support renaming the implicitly created target ID (or "relation") property:
