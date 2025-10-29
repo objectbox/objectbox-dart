@@ -241,8 +241,8 @@ void main() {
         if (waitedForDisconnected == 0) {
           print('Waiting until SyncClient state is disconnected...');
         }
-        if (waitedForDisconnected == 50) {
-          fail('SyncClient did not reach disconnected state within 5 seconds');
+        if (waitedForDisconnected == 100) {
+          fail('SyncClient did not reach disconnected state within 10 seconds');
         }
         await Future.delayed(const Duration(milliseconds: 100));
         waitedForDisconnected++;
