@@ -1,4 +1,4 @@
-## latest
+## 5.0.1-dev.0 (2025-10-29)
 
 * Generator: migrate to `analyzer` 8 APIs. Require at least `analyzer` 8.1.1 and `source_gen` 4.0.1.
   Resolves `Error: The method 'getInvocation' isn't defined` when running the generator using 
