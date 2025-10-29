@@ -369,7 +369,10 @@ class CodeBuilder extends Builder {
         }
         rel.targetId = targetEntity.id;
       }
-
+    }
+    // Note: finding the backlink source requires that all ToMany relations have
+    // a targetId set, so find backlink sources in a separate loop.
+    for (var entity in model.entities) {
       for (var backlink in entity.backlinks) {
         backlink.source = _findBacklinkSource(model, entity, backlink);
       }
@@ -396,14 +399,25 @@ class CodeBuilder extends Builder {
     ModelRelation? srcRel;
     ModelProperty? srcProp;
 
-    throwAmbiguousError(String prop, String rel) =>
-        throw InvalidGenerationSourceError(
-          "Ambiguous relation backlink source for '${entity.name}.${bl.name}':"
-          " Found matching property '$prop' and to-many relation '$rel'."
-          " Maybe specify source name in @Backlink() annotation.",
-        );
+    throwAmbiguousError(
+      Iterable<ModelProperty> toOneProps,
+      Iterable<ModelRelation> toManyRels,
+    ) {
+      final toOneList = toOneProps.map((p) => p.relationField);
+      final toManyList = toManyRels.map((r) => r.name);
+      final fieldList = [...toOneList, ...toManyList].join(', ');
+      throw InvalidGenerationSourceError(
+        "Can't determine backlink source for \"${entity.name}.${bl.name}\" "
+        "as there is more than one matching ToOne or ToMany relation in \"${srcEntity.name}\": $fieldList."
+        " Add the name of the source relation to the annotation, like @Backlink('<source>'), or modify your entity classes.",
+      );
+    }
 
+    // Note that in the model only the target ID (or relation) property of a
+    // ToOne exists, so search for that.
     if (bl.srcField.isEmpty) {
+      // No source field name given, try to find the source relation by type of
+      // its target entity.
       final matchingProps = srcEntity.properties.where(
         (p) => p.isRelation && p.relationTarget == entity.name,
       );
@@ -412,20 +426,27 @@ class CodeBuilder extends Builder {
       );
       final candidatesCount = matchingProps.length + matchingRels.length;
       if (candidatesCount > 1) {
-        throwAmbiguousError(matchingProps.toString(), matchingRels.toString());
+        throwAmbiguousError(matchingProps, matchingRels);
       } else if (matchingProps.isNotEmpty) {
         srcProp = matchingProps.first;
       } else if (matchingRels.isNotEmpty) {
         srcRel = matchingRels.first;
       }
     } else {
-      srcProp = srcEntity.findPropertyByName('${bl.srcField}Id');
+      // Source field name given
+      // For ToOne, expect the name of the ToOne field
+      srcProp = srcEntity.properties.firstWhereOrNull(
+        (p) => p.isRelation && p.relationField == bl.srcField,
+      );
+      // For ToMany, expect the name of the ToMany field
       srcRel = srcEntity.relations.firstWhereOrNull(
         (r) => r.name == bl.srcField,
       );
 
+      // This should be impossible as it would mean a ToOne and a ToMany field
+      // share the same name, but check just in case.
       if (srcProp != null && srcRel != null) {
-        throwAmbiguousError(srcProp.toString(), srcRel.toString());
+        throwAmbiguousError([srcProp], [srcRel]);
       }
     }
 
@@ -435,7 +456,8 @@ class CodeBuilder extends Builder {
       return BacklinkSourceProperty(srcProp);
     } else {
       throw InvalidGenerationSourceError(
-        "Unknown relation backlink source for '${entity.name}.${bl.name}'",
+        'Failed to find backlink source for "${entity.name}.${bl.name}" in "${srcEntity.name}", '
+        'make sure a matching ToOne or ToMany relation exists.',
       );
     }
   }

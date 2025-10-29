@@ -203,7 +203,7 @@ void main() {
         }
         ''';
 
-        final result = await testEnv.run(source, expectNoOutput: true);
+        final result = await testEnv.run(source, ignoreOutput: true);
 
         expect(result.builderResult.succeeded, false);
         expect(
@@ -271,6 +271,190 @@ void main() {
       ''');
     });
 
+    test('Finds backlink source if type is unique', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        final relA = ToMany<A>();
+        final relB = ToOne<B>();
+      }
+      
+      // Name related classes to be lexically before Example so they are
+      // processed first.
+       
+      @Entity()
+      class A {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      
+      @Entity()
+      class B {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final entityA = testEnv.model.entities.firstWhere((e) => e.name == 'A');
+      var backlinkSourceA = entityA.backlinks.first.source;
+      expect(backlinkSourceA, isA<BacklinkSourceRelation>());
+      expect((backlinkSourceA as BacklinkSourceRelation).srcRel.name, 'relA');
+
+      final entityB = testEnv.model.entities.firstWhere((e) => e.name == 'B');
+      var backlinkSourceB = entityB.backlinks.first.source;
+      expect(backlinkSourceB, isA<BacklinkSourceProperty>());
+      expect(
+        (backlinkSourceB as BacklinkSourceProperty).srcProp.relationField,
+        'relB',
+      );
+    });
+
+    test('Errors if backlink source is not unique', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        final relA1 = ToOne<A>();
+        final relA2 = ToOne<A>();
+        final relA3 = ToMany<A>();
+      }
+       
+      @Entity()
+      class A {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source, ignoreOutput: true);
+
+      expect(result.builderResult.succeeded, false);
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.SEVERE)
+              .having(
+                (r) => r.message,
+                'message',
+                contains('Can\'t determine backlink source for "A.backRel"'),
+              ),
+        ),
+      );
+    });
+
+    test('Errors if backlink source does not exist', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+      }
+       
+      @Entity()
+      class A {
+        @Id()
+        int id = 0;
+        
+        @Backlink()
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source, ignoreOutput: true);
+
+      expect(result.builderResult.succeeded, false);
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.SEVERE)
+              .having(
+                (r) => r.message,
+                'message',
+                contains(
+                  'Failed to find backlink source for "A.backRel" in "Example"',
+                ),
+              ),
+        ),
+      );
+    });
+
+    test(
+      'Does not pick implicit backlink source if explicit one does not exist',
+      () async {
+        final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        final relA1 = ToOne<A>();
+        final relA2 = ToMany<A>();
+      }
+       
+      @Entity()
+      class A {
+        @Id()
+        int id = 0;
+        
+        @Backlink('doesnotexist')
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+        final testEnv = GeneratorTestEnv();
+        final result = await testEnv.run(source, ignoreOutput: true);
+
+        expect(result.builderResult.succeeded, false);
+        expect(
+          result.logs,
+          contains(
+            isA<LogRecord>()
+                .having((r) => r.level, 'level', Level.SEVERE)
+                .having(
+                  (r) => r.message,
+                  'message',
+                  contains(
+                    'Failed to find backlink source for "A.backRel" in "Example"',
+                  ),
+                ),
+          ),
+        );
+      },
+    );
+
     test('@TargetIdProperty ToOne annotation', () async {
       final source = r'''
       library example;     
@@ -298,6 +482,44 @@ void main() {
       expect(renamedRelationProperty!.type, OBXPropertyType.Relation);
     });
 
+    test('Explicit backlink to renamed ToOne target ID property', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        @TargetIdProperty('customerRef')
+        final customer = ToOne<Customer>();
+      }
+      
+      @Entity()
+      class Customer {
+        @Id()
+        int id = 0;
+        
+        @Backlink('customer')
+        final backRel = ToMany<Example>();
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final customerEntity = testEnv.model.entities.firstWhere(
+        (e) => e.name == 'Customer',
+      );
+      var backlinkSource = customerEntity.backlinks.first.source;
+      expect(backlinkSource, isA<BacklinkSourceProperty>());
+      expect(
+        (backlinkSource as BacklinkSourceProperty).srcProp.relationField,
+        'customer',
+      );
+    });
+
     test('ToOne target ID property name conflict', () async {
       // Note: unlike in Java, for Dart it's also not supported to "expose" the
       // target ID (relation) property.
@@ -315,7 +537,7 @@ void main() {
       ''';
 
       final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, expectNoOutput: true);
+      final result = await testEnv.run(source, ignoreOutput: true);
 
       expect(result.builderResult.succeeded, false);
       expect(
@@ -350,7 +572,7 @@ void main() {
       ''';
 
       final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, expectNoOutput: true);
+      final result = await testEnv.run(source, ignoreOutput: true);
 
       expect(result.builderResult.succeeded, false);
       expect(

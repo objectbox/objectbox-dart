@@ -37,7 +37,7 @@ class GeneratorTestEnv {
 
   Future<GeneratorTestResult> run(
     String source, {
-    bool expectNoOutput = false,
+    bool ignoreOutput = false,
   }) async {
     final library = "example";
     // Enable resolving imports (imported packages must be a dependency of this package)
@@ -66,7 +66,7 @@ class GeneratorTestEnv {
       [resolver, codeBuilder],
       sourceAssets,
       readerWriter: readerWriter,
-      outputs: expectNoOutput ? {} : expectedOutputs,
+      outputs: ignoreOutput ? null : expectedOutputs,
       onLog: (record) {
         // Setting onLog overwrites the useful default logger set by
         // testBuilders, so reimplement it
@@ -76,7 +76,7 @@ class GeneratorTestEnv {
       },
     );
 
-    if (!expectNoOutput) {
+    if (!ignoreOutput) {
       // Assert generator model
       final modelFile = File(path.join("lib", config.jsonFile));
       final jsonModel = await _readModelFile(modelFile);
