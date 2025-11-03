@@ -684,8 +684,8 @@ class TargetIdProperty {
   /// "relation") property.
   ///
   /// ```dart
-  /// @Entity
-  /// public class Order {
+  /// @Entity()
+  /// class Order {
   ///     // Change from default "customerId" to "customerRef"
   ///     @TargetIdProperty("customerRef")
   ///     final customer = ToOne<Customer>();
