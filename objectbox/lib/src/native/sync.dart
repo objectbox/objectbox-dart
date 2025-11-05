@@ -789,7 +789,8 @@ class Sync {
     if (syncClientsStorage.containsKey(store)) {
       throw StateError('Only one sync client can be active for a store');
     }
-    final client = SyncClient._(store, serverUrls, credentials);
+    final client = SyncClient._(store, serverUrls, credentials,
+        filterVariables: filterVariables);
     syncClientsStorage[store] = client;
     InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
