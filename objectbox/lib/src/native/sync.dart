@@ -190,9 +190,8 @@ class SyncClient {
 
   /// Creates a Sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet: call start() to do so.
-  SyncClient._(
-      this._store, List<String> serverUrls, List<SyncCredentials> credentials,
-      {Map<String, String>? filterVariables}) {
+  SyncClient._(this._store, List<String> serverUrls,
+      List<SyncCredentials> credentials, Map<String, String>? filterVariables) {
     if (serverUrls.isEmpty) {
       throw ArgumentError.value(
           serverUrls, "serverUrls", "Provide at least one server URL");
@@ -789,7 +788,8 @@ class Sync {
     if (syncClientsStorage.containsKey(store)) {
       throw StateError('Only one sync client can be active for a store');
     }
-    final client = SyncClient._(store, serverUrls, credentials);
+    final client =
+        SyncClient._(store, serverUrls, credentials, filterVariables);
     syncClientsStorage[store] = client;
     InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
