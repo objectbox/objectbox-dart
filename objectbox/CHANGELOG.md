@@ -1,5 +1,8 @@
 ## latest
 
+* macOS: throw an error if the `macosApplicationGroup` parameter when opening a `Store` is too long
+  (or empty). [#515](https://github.com/objectbox/objectbox-dart/issues/515#issuecomment-3503022269)
+
 ### Sync
 
 * SyncClient: actually configure Sync filters when passing them to `Sync.client` and related helper

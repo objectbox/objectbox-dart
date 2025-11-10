@@ -290,6 +290,23 @@ void main() {
     Directory('store').deleteSync(recursive: true);
   });
 
+  test('store macOS application group checks', () {
+    // Note: the "store options" test tests a valid value
+    expect(
+        () => Store(getObjectBoxModel(),
+            directory: 'store',
+            macosApplicationGroup:
+                'this-application-group-identifier-is-way-too-long'),
+        throwsA(isArgumentError.having((e) => e.message, 'message',
+            contains('Must be at least 1 and at most 19 characters long'))));
+
+    expect(
+        () => Store(getObjectBoxModel(),
+            directory: 'store', macosApplicationGroup: ''),
+        throwsA(isArgumentError.having((e) => e.message, 'message',
+            contains('Must be at least 1 and at most 19 characters long'))));
+  });
+
   test('store dbFileSize', () {
     final testEnv = TestEnv("db-file-size");
     expect(Store.dbFileSize(testEnv.dbDirPath), isPositive);
