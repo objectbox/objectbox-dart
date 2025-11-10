@@ -1,4 +1,4 @@
-## latest
+## 5.0.2-dev.0 (2025-11-10)
 
 * macOS: throw an error if the `macosApplicationGroup` parameter when opening a `Store` is too long
   (or empty). [#515](https://github.com/objectbox/objectbox-dart/issues/515#issuecomment-3503022269)

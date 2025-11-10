@@ -3,13 +3,13 @@ description: ObjectBox Flutter / Dart database binding code generator - finds an
 # Link to actual directory in repository so file links on pub.dev work.
 repository: https://github.com/objectbox/objectbox-dart/tree/main/generator
 homepage: https://objectbox.io
-version: 5.0.1
+version: 5.0.2-dev.0
 
 environment:
   sdk: '^3.7.0' # source_gen 3.0.0 requires 3.7 and 3.7 has new dart format
 
 dependencies:
-  objectbox: 5.0.1
+  objectbox: 5.0.2-dev.0
   # https://pub.dev/packages/analyzer/changelog
   # source_gen 4.0.1 requires 8.1.1
   analyzer: '>=8.1.1 <9.0.0'
