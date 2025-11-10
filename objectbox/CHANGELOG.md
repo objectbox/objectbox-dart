@@ -1,6 +1,6 @@
 ## latest
 
-## 5.0.2-dev.0 (2025-11-10)
+## 5.0.2 (2025-11-10)
 
 * macOS: throw an error if the `macosApplicationGroup` parameter when opening a `Store` is too long
   (or empty). [#515](https://github.com/objectbox/objectbox-dart/issues/515#issuecomment-3503022269)
@@ -10,7 +10,7 @@
 * SyncClient: actually configure Sync filters when passing them to `Sync.client` and related helper
   methods.
 
-## 5.0.1-dev.0 (2025-10-29)
+## 5.0.1 (2025-10-29)
 
 * Generator: migrate to `analyzer` 8 APIs. Require at least `analyzer` 8.1.1 and `source_gen` 4.0.1.
   Resolves `Error: The method 'getInvocation' isn't defined` when running the generator using 
