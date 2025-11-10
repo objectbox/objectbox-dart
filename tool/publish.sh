@@ -12,23 +12,19 @@ if [ "$msys" = true ]; then
 else
   YQCMD="${root}/tool/yq_linux_amd64"
 fi
-echo "Testing yq version..."
+echo ""
+echo "Testing yq..."
 $YQCMD -V
-echo "Testing yq version...DONE"
 
-# ======================= BEFORE publishing==================== #
-
-# Disabled to publish with Dart SDK 2.19, see objectbox/objectbox-dart#55.
-#echo "Removing dependency_overrides from all pubspec.yaml files (backup at pubspec.yaml.original)"
-#find "${root}" -type f -name "pubspec.yaml" \
-#  -exec echo "Processing {}" \; \
-#  -exec cp "{}" "{}.original" \; \
-#  -exec "$YQCMD" delete -i "{}" dependency_overrides \;
+# ======================= BEFORE publishing ==================== #
 
 # Update links in READMEs (restored by git restore commands below).
+echo ""
+echo "Updating links with /tool/pubdev-links.sh..."
 "${root}/tool/pubdev-links.sh"
 
 # Verify MixPanel project token file exists. Obtain token from MixPanel project settings.
+echo ""
 echo "analysis: checking if generator/lib/assets/analysis-token.txt exists..."
 analysisTokenFile="${root}/generator/lib/assets/analysis-token.txt"
 if [ -f $analysisTokenFile ]; then
@@ -46,7 +42,23 @@ else
   esac
 fi
 
+# ======================= AFTER publishing ==================== #
+
+# Cleanup function that always runs (even on failure/interrupt)
+function cleanup() {
+  echo ""
+  echo "Reverting changes of /tool/pubdev-links.sh..."
+  echo "Restoring objectbox/README.md"
+  git restore "${root}/objectbox/README.md"
+  echo "Restoring objectbox/example/README.md"
+  git restore "${root}/objectbox/example/README.md"
+}
+
+# Register cleanup function to run on exit (success, failure, or interrupt)
+trap cleanup EXIT
+
 # =========================== PUBLISH ======================== #
+
 function publish() {
   if [[ "$#" -ne "1" ]]; then
     echo "internal error - function usage: publish <package path>"
@@ -56,6 +68,7 @@ function publish() {
   pkg_dir="${root}/${1}"
   pubspec="${pkg_dir}/pubspec.yaml"
 
+  echo ""
   echo -e "You're about to publish directory \e[33m'${1}'\e[39m as package \e[33m$($YQCMD read "${pubspec}" name) v$($YQCMD read "${pubspec}" version)\e[39m"
   echo -e "\e[31mWARNING: The same version can NOT be published twice!\e[39m"
   read -p " Publish to pub.dev [y/N]? " yn
@@ -73,20 +86,8 @@ function publish() {
 publish objectbox
 publish generator
 
+echo ""
 echo "⚠️ WAIT A MINUTE before publishing the Flutter packages, or resolving the objectbox package version will fail"
 
 publish flutter_libs
 publish sync_flutter_libs
-
-#======================== AFTER publishing==================== #
-
-# Disabled to publish with Dart SDK 2.19, see objectbox/objectbox-dart#55.
-#echo "Restoring pubspec.yaml files from backup pubspec.yaml.original"
-#find "${root}" -type f -name "pubspec.yaml" \
-#  -exec echo "Restoring {}" \; \
-#  -exec mv "{}.original" "{}" \;
-
-echo "Restoring objectbox/README.md"
-git restore "${root}/objectbox/README.md"
-echo "Restoring objectbox/example/README.md"
-git restore "${root}/objectbox/example/README.md"
