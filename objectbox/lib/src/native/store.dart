@@ -209,14 +209,24 @@ class Store implements Finalizable {
   /// ends. Thus, be mindful with the number of active threads.
   ///
   /// ## Debug flags
+  ///
   /// Pass one or more [DebugFlags] to [debugFlags] to enable debug log
   /// output:
+  ///
   /// ```dart
   /// final store = Store(getObjectBoxModel(),
   ///     debugFlag: DebugFlags.logQueries | DebugFlags.logQueryParameters);
   /// ```
   ///
-  /// See our examples for more details.
+  /// Note: to see these log messages when debugging an iOS app, you need to
+  /// open `ios/Runner.xcworkspace` in Xcode and run the app from there.
+  /// See also the Flutter instructions to
+  /// ["Debug Dart and iOS code using Xcode"](https://docs.flutter.dev/testing/native-debugging#debug-dart-and-ios-code-using-xcode).
+  ///
+  /// ## More details
+  ///
+  /// See our [documentation](https://docs.objectbox.io/) and examples for more
+  /// details.
   Store(ModelDefinition modelDefinition,
       {String? directory,
       int? maxDBSizeInKB,
