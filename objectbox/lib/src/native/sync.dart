@@ -429,10 +429,13 @@ class SyncClient {
   /// Count the number of messages in the outgoing queue, i.e. those waiting to
   /// be sent to the server.
   ///
-  /// Note: This calls uses a (read) transaction internally:
+  /// By default, counts all messages without any limitation. For a lower number
+  /// pass a [limit] that's enough for your app logic.
+  ///
+  /// Note: This call uses a (read) transaction internally:
   ///   1) It's not just a "cheap" return of a single number. While this will
   ///      still be fast, avoid calling this function excessively.
-  ///   2) the result follows transaction view semantics, thus it may not always
+  ///   2) The result follows transaction view semantics, thus it may not always
   ///      match the actual value.
   int outgoingMessageCount({int limit = 0}) {
     final count = malloc<Uint64>();
