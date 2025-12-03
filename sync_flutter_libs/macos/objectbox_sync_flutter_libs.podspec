@@ -9,12 +9,12 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://objectbox.io'
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
-  s.platform         = :osx, '10.15' # ObjectBox Swift requires macOS 10.15
+  s.platform         = :osx, '11.0' # ObjectBox Swift requires macOS 11
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'ObjectBox', '5.0.0-sync'
+  s.dependency 'ObjectBox', '5.1.0-sync'
 
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.3'

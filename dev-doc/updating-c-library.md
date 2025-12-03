@@ -60,18 +60,18 @@ from the relevant objectbox repository release tag (like `java-4.1.0`).
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 
 ```bash
-./tool/set-swift-version.sh 5.0.0
+./tool/set-swift-version.sh 5.1.0
 ```
 
 ```text
-* Update ObjectBox database for Flutter iOS/macOS apps to 5.0.0.
+* Update ObjectBox database for Flutter iOS/macOS apps to 5.1.0.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 ```
 
 ```text
-Update macOS/iOS library [4.4.1 -> 5.0.0]
+Update macOS/iOS library [5.0.0 -> 5.1.0]
 
-Includes C API 5.0.0 and database 5.0.0-2025-09-27
+Includes C API 5.0.0 and database 5.0.0-2025-11-27
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 

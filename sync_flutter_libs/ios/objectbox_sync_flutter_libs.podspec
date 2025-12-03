@@ -13,12 +13,12 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://objectbox.io'
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
-  s.platform         = :ios, '12.0' # ObjectBox Swift requires iOS 12
+  s.platform         = :ios, '15.0' # ObjectBox Swift requires iOS 15
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
 
   s.dependency 'Flutter'
-  s.dependency 'ObjectBox', '5.0.0-sync'
+  s.dependency 'ObjectBox', '5.1.0-sync'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
