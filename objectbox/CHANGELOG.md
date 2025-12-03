@@ -1,5 +1,7 @@
 ## latest
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v5.0.0).
+
 ## 5.0.2 (2025-11-10)
 
 * macOS: throw an error if the `macosApplicationGroup` parameter when opening a `Store` is too long
