@@ -1,5 +1,9 @@
 ## latest
 
+* Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+  * Sync client: fix for encrypted (`wss://`) connections on iOS devices.
+
 ## 5.0.3 (2025-12-03)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.0.0](https://github.com/objectbox/objectbox-c/releases/tag/v5.0.0).
