@@ -10,4 +10,3 @@ update objectbox/example/README.md "s|dart-native/vectorsearch_cities|https://gi
 update objectbox/example/README.md "s|flutter/objectbox_demo|https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example/flutter/objectbox_demo|g"
 #update objectbox/example/README.md "s|flutter/objectbox_demo_relations|https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example/flutter/objectbox_demo_relations|g"
 update objectbox/example/README.md "s|flutter/event_management_tutorial|https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example/flutter/event_management_tutorial|g"
-#update objectbox/example/README.md "s|flutter/objectbox_demo_sync|https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example/flutter/objectbox_demo_sync|g"
