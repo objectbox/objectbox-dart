@@ -1,4 +1,4 @@
-## latest
+## 5.0.4 (2025-12-09)
 
 * Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
