@@ -402,6 +402,23 @@ void main() {
       expect((second['nested'] as Map)['a'], 1);
     });
 
+    test('List<Map<String, Object?>> auto-detection works', () {
+      final entity = FlexListEntity(
+        flexListOfMapsObject: [
+          {'key1': 'value1', 'nullable': null},
+          {'key2': 123},
+        ],
+      );
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexListOfMapsObject, isNotNull);
+      expect(read.flexListOfMapsObject!.length, 2);
+      expect(read.flexListOfMapsObject![0]['key1'], 'value1');
+      expect(read.flexListOfMapsObject![0]['nullable'], isNull);
+      expect(read.flexListOfMapsObject![1]['key2'], 123);
+    });
+
     test('explicit @Property annotation works', () {
       final entity = FlexListEntity(
         flexExplicit: [true, 'explicit'],

@@ -603,15 +603,23 @@ class CodeChunks {
                 castSuffix = '';
               } else if (isListOfMaps) {
                 flexDeserializer = 'flexBufferToListOfMaps';
-                defaultValue = '<Map<String, dynamic>>[]';
-                castSuffix = '';
+                // Extract the element type, e.g. "Map<String, dynamic>"
+                // by removing "List<" prefix and ">" suffix.
+                final elementType =
+                    p.fieldType.substring(5, p.fieldType.length - 1);
+                defaultValue = '<$elementType>[]';
+                // Cast needed for Map<String, Object?> (Object not supported)
+                if (elementType == 'Map<String, dynamic>') {
+                  castSuffix = '';
+                } else {
+                  castSuffix = '?.cast<$elementType>()';
+                }
               } else if (isListOfObject) {
                 flexDeserializer = 'flexBufferToList';
-                // Extract the element type (Object or Object?)
-                final elementType = p.fieldType.substring(
-                  5,
-                  p.fieldType.length - 1,
-                ); // Remove "List<" and ">"
+                // Extract the element type, e.g. "Object" or "Object?"
+                // by removing "List<" prefix and ">" suffix.
+                final elementType =
+                    p.fieldType.substring(5, p.fieldType.length - 1);
                 defaultValue = '<$elementType>[]';
                 castSuffix = '?.cast<$elementType>()';
               } else {

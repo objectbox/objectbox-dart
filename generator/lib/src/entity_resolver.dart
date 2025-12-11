@@ -451,7 +451,7 @@ class EntityResolver extends Builder {
         // List<dynamic>, List<Object?>, or List<Object>
         return OBXPropertyType.Flex;
       } else if (itemType.isDartCoreMap) {
-        // List<Map<String, dynamic>> or List<Map<String, Object?>>
+        // List<Map<String, dynamic/Object?>> - Object not supported (cast issue)
         if (itemType is ParameterizedType &&
             itemType.typeArguments.length == 2) {
           final keyType = itemType.typeArguments[0];
@@ -497,7 +497,7 @@ class EntityResolver extends Builder {
     } else if (isToOneRelationField(field)) {
       return OBXPropertyType.Relation;
     } else if (dartType.isDartCoreMap) {
-      // Check for Map<String, dynamic> or Map<String, Object?>
+      // Check for Map<String, dynamic/Object?/Object>
       if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
         final keyType = dartType.typeArguments[0];
         final valueType = dartType.typeArguments[1];
