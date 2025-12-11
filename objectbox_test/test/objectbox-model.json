@@ -827,33 +827,77 @@
       "relations": []
     },
     {
-      "id": "20:5597466339437603873",
-      "lastPropertyId": "5:2523727105471460626",
-      "name": "FlexEntity",
+      "id": "20:2500264942388145684",
+      "lastPropertyId": "7:4406898809188144143",
+      "name": "FlexListEntity",
       "properties": [
         {
-          "id": "1:5012076624379388200",
+          "id": "1:7455884111958179620",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:1614559942868781614",
+          "id": "2:8189282505767000328",
           "name": "flexDynamic",
           "type": 13
         },
         {
-          "id": "3:3118478854215245879",
+          "id": "3:5605624294501799284",
           "name": "flexObject",
           "type": 13
         },
         {
-          "id": "4:8295814589695246351",
+          "id": "4:7043795849182867837",
+          "name": "flexObjectNonNull",
+          "type": 13
+        },
+        {
+          "id": "5:6744742882308928594",
           "name": "flexNonNull",
           "type": 13
         },
         {
-          "id": "5:2523727105471460626",
+          "id": "6:9116847124750880285",
+          "name": "flexListOfMaps",
+          "type": 13
+        },
+        {
+          "id": "7:4406898809188144143",
+          "name": "flexExplicit",
+          "type": 13
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "21:7625885984770420113",
+      "lastPropertyId": "5:4318338462051520175",
+      "name": "FlexMapEntity",
+      "properties": [
+        {
+          "id": "1:3168768651190047318",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6904363106985326562",
+          "name": "flexDynamic",
+          "type": 13
+        },
+        {
+          "id": "3:5723977690885644974",
+          "name": "flexObject",
+          "type": 13
+        },
+        {
+          "id": "4:5858735247225090326",
+          "name": "flexNonNull",
+          "type": 13
+        },
+        {
+          "id": "5:4318338462051520175",
           "name": "flexExplicit",
           "type": 13
         }
@@ -861,7 +905,7 @@
       "relations": []
     }
   ],
-  "lastEntityId": "20:5597466339437603873",
+  "lastEntityId": "21:7625885984770420113",
   "lastIndexId": "25:5667866372157411357",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",

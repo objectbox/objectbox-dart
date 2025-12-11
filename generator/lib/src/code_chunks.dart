@@ -347,7 +347,18 @@ class CodeChunks {
             case OBXPropertyType.DoubleVector:
               return '$assignment fbb.writeListFloat64($fieldName);';
             case OBXPropertyType.Flex:
-              return '$assignment fbb.writeListInt8($obxInt.mapToFlexBuffer($fieldName)!);';
+              // Use appropriate serializer based on field type (Map or List)
+              final isMap = p.fieldType.startsWith('Map');
+              final isList = p.fieldType.startsWith('List');
+              if (!isMap && !isList) {
+                throw InvalidGenerationSourceError(
+                  "Flex property '${p.name}' has unsupported type '${p.fieldType}'. "
+                  'Only Map<String, dynamic/Object?> and List<dynamic/Object?> are supported.',
+                );
+              }
+              final flexSerializer =
+                  isMap ? 'mapToFlexBuffer' : 'listToFlexBuffer';
+              return '$assignment fbb.writeListInt8($obxInt.$flexSerializer($fieldName)!);';
             default:
               offsets.remove(p.id.id);
               return null;
@@ -564,16 +575,56 @@ class CodeChunks {
                 'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)',
               );
             case OBXPropertyType.Flex:
-              // Read as Uint8List and convert to Map using FlexBuffer
+              // Read as Uint8List and convert to Map or List using FlexBuffer
               final bytesVar = '${propertyFieldName(p)}Bytes';
               final offset = propertyFlatBuffersvTableOffset(p);
               preLines.add(
                 'final $bytesVar = const fb.Uint8ListReader(lazy: false).vTableGetNullable(buffer, rootOffset, $offset);',
               );
-              if (p.fieldIsNullable) {
-                return '$bytesVar == null ? null : $obxInt.flexBufferToMap(Uint8List.fromList($bytesVar))';
+              // Use appropriate deserializer based on field type (Map or List)
+              final isMap = p.fieldType.startsWith('Map');
+              final isList = p.fieldType.startsWith('List');
+              if (!isMap && !isList) {
+                throw InvalidGenerationSourceError(
+                  "Flex property '${p.name}' has unsupported type '${p.fieldType}'. "
+                  'Only Map<String, dynamic/Object?> and List<dynamic/Object?> are supported.',
+                );
+              }
+              // For List<Map<...>> types, use dedicated helper
+              final isListOfMaps = p.fieldType.startsWith('List<Map');
+              // Check if list needs casting (List<Object> or List<Object?>)
+              final isListOfObject = p.fieldType.startsWith('List<Object');
+              final String flexDeserializer;
+              final String defaultValue;
+              final String castSuffix;
+              if (isMap) {
+                flexDeserializer = 'flexBufferToMap';
+                defaultValue = '<String, dynamic>{}';
+                castSuffix = '';
+              } else if (isListOfMaps) {
+                flexDeserializer = 'flexBufferToListOfMaps';
+                defaultValue = '<Map<String, dynamic>>[]';
+                castSuffix = '';
+              } else if (isListOfObject) {
+                flexDeserializer = 'flexBufferToList';
+                // Extract the element type (Object or Object?)
+                final elementType = p.fieldType.substring(
+                  5,
+                  p.fieldType.length - 1,
+                ); // Remove "List<" and ">"
+                defaultValue = '<$elementType>[]';
+                castSuffix = '?.cast<$elementType>()';
               } else {
-                return '$bytesVar == null ? <String, dynamic>{} : $obxInt.flexBufferToMap(Uint8List.fromList($bytesVar)) ?? <String, dynamic>{}';
+                flexDeserializer = 'flexBufferToList';
+                defaultValue = '<dynamic>[]';
+                castSuffix = '';
+              }
+              final deserializeExpr =
+                  '$obxInt.$flexDeserializer(Uint8List.fromList($bytesVar))$castSuffix';
+              if (p.fieldIsNullable) {
+                return '$bytesVar == null ? null : $deserializeExpr';
+              } else {
+                return '$bytesVar == null ? $defaultValue : $deserializeExpr ?? $defaultValue';
               }
             default:
               return readFieldCodeString(

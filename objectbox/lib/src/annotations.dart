@@ -177,15 +177,18 @@ enum PropertyType {
   // no need to specify explicitly, just use [List<String>]
   // stringVector
 
-  /// Use with [Property.type] to store a `Map<String, dynamic>` or
-  /// `Map<String, Object?>` as a FlexBuffer.
+  /// Use with [Property.type] to store flexible data as a FlexBuffer.
   ///
-  /// Flex properties can store maps with string keys and values of type:
-  /// integers, floating point values, strings, booleans, null, or nested
-  /// lists and maps of those types.
+  /// Supported Dart types:
+  /// - `Map<String, dynamic>` or `Map<String, Object?>` for maps
+  /// - `List<dynamic>`, `List<Object?>`, or `List<Map<String, dynamic>>` for lists
   ///
-  /// This type is auto-detected for `Map<String, dynamic>` and
-  /// `Map<String, Object?>` fields, but can also be explicitly specified.
+  /// Flex properties can store values of type: integers, floating point values,
+  /// strings, booleans, null, or nested lists and maps of those types.
+  ///
+  /// This type is auto-detected for the above types, but can also be explicitly
+  /// specified. In the future, additional flex types may be supported (e.g.
+  /// `dynamic` or `Object?` for single values).
   flex
 }
 

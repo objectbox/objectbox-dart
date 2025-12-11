@@ -363,6 +363,11 @@ class EntityResolver extends Builder {
         // for code generation
         prop.dartFieldType =
             f.type.element!.displayName + (isNullable(f.type) ? '?' : '');
+        // For Flex properties, store the full type string including generics
+        if (fieldType == OBXPropertyType.Flex) {
+          // ignore: deprecated_member_use
+          prop.dartFieldType = f.type.getDisplayString(withNullability: true);
+        }
         entity.properties.add(prop);
       }
     }
@@ -440,6 +445,24 @@ class EntityResolver extends Builder {
       } else if (itemType.isDartCoreString) {
         // List<String>
         return OBXPropertyType.StringVector;
+      } else if (itemType is DynamicType ||
+          itemType.isDartCoreObject ||
+          itemType.element?.displayName == 'Object') {
+        // List<dynamic>, List<Object?>, or List<Object>
+        return OBXPropertyType.Flex;
+      } else if (itemType.isDartCoreMap) {
+        // List<Map<String, dynamic>> or List<Map<String, Object?>>
+        if (itemType is ParameterizedType &&
+            itemType.typeArguments.length == 2) {
+          final keyType = itemType.typeArguments[0];
+          final valueType = itemType.typeArguments[1];
+          if (keyType.isDartCoreString &&
+              (valueType is DynamicType ||
+                  valueType.isDartCoreObject ||
+                  valueType.element?.displayName == 'Object')) {
+            return OBXPropertyType.Flex;
+          }
+        }
       }
     } else if ([
       'Int8List',

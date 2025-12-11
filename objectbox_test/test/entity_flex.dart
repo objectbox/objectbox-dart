@@ -1,8 +1,8 @@
 import 'package:objectbox/objectbox.dart';
 
-/// Entity to test Flex properties (Map<String, dynamic> stored as FlexBuffers)
+/// Entity to test Flex Map properties (`Map<String, dynamic>` stored as FlexBuffers)
 @Entity()
-class FlexEntity {
+class FlexMapEntity {
   @Id()
   int id = 0;
 
@@ -19,10 +19,45 @@ class FlexEntity {
   @Property(type: PropertyType.flex)
   Map<String, dynamic>? flexExplicit;
 
-  FlexEntity({
+  FlexMapEntity({
     this.flexDynamic,
     this.flexObject,
     this.flexNonNull = const {},
+    this.flexExplicit,
+  });
+}
+
+/// Entity to test Flex List properties (`List<dynamic>` stored as FlexBuffers)
+@Entity()
+class FlexListEntity {
+  @Id()
+  int id = 0;
+
+  // Auto-detected List<dynamic> - nullable
+  List<dynamic>? flexDynamic;
+
+  // Auto-detected List<Object?> - nullable
+  List<Object?>? flexObject;
+
+  // Auto-detected List<Object> (non-nullable elements) - nullable
+  List<Object>? flexObjectNonNull;
+
+  // Non-nullable with default empty list
+  List<dynamic> flexNonNull = [];
+
+  // Auto-detected List<Map<String, dynamic>> - nullable
+  List<Map<String, dynamic>>? flexListOfMaps;
+
+  // Explicit annotation
+  @Property(type: PropertyType.flex)
+  List<dynamic>? flexExplicit;
+
+  FlexListEntity({
+    this.flexDynamic,
+    this.flexObject,
+    this.flexObjectNonNull,
+    this.flexNonNull = const [],
+    this.flexListOfMaps,
     this.flexExplicit,
   });
 }
