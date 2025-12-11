@@ -4,26 +4,6 @@ import 'package:flat_buffers/flex_buffers.dart' as flex;
 
 // ignore_for_file: public_member_api_docs
 
-/// Serializes a `Map<String, dynamic>` to FlexBuffer bytes.
-///
-/// Returns null if the input map is null.
-@pragma('vm:prefer-inline')
-Uint8List? mapToFlexBuffer(Map<String, dynamic>? map) {
-  if (map == null) return null;
-  final buffer = flex.Builder.buildFromObject(map);
-  return buffer.asUint8List();
-}
-
-/// Serializes a `List<dynamic>` to FlexBuffer bytes.
-///
-/// Returns null if the input list is null.
-@pragma('vm:prefer-inline')
-Uint8List? listToFlexBuffer(List<dynamic>? list) {
-  if (list == null) return null;
-  final buffer = flex.Builder.buildFromObject(list);
-  return buffer.asUint8List();
-}
-
 /// Serializes any FlexBuffer-compatible value to bytes.
 ///
 /// Supported types: null, bool, int, double, String, `List<dynamic>`,
@@ -31,38 +11,11 @@ Uint8List? listToFlexBuffer(List<dynamic>? list) {
 ///
 /// Returns null if the input value is null.
 @pragma('vm:prefer-inline')
-Uint8List? valueToFlexBuffer(dynamic value) {
+Uint8List? toFlexBuffer(dynamic value) {
   if (value == null) return null;
   final buffer = flex.Builder.buildFromObject(value);
   return buffer.asUint8List();
 }
-
-/// Deserializes FlexBuffer bytes to a `Map<String, dynamic>`.
-///
-/// Returns null if the input bytes are null.
-@pragma('vm:prefer-inline')
-Map<String, dynamic>? flexBufferToMap(Uint8List? bytes) {
-  if (bytes == null) return null;
-  final ref = flex.Reference.fromBuffer(bytes.buffer);
-  return _convertReference(ref) as Map<String, dynamic>?;
-}
-
-/// Deserializes FlexBuffer bytes to a `List<dynamic>`.
-///
-/// Returns null if the input bytes are null.
-@pragma('vm:prefer-inline')
-List<dynamic>? flexBufferToList(Uint8List? bytes) {
-  if (bytes == null) return null;
-  final ref = flex.Reference.fromBuffer(bytes.buffer);
-  return _convertReference(ref) as List<dynamic>?;
-}
-
-/// Deserializes FlexBuffer bytes to a `List<Map<String, dynamic>>`.
-///
-/// Returns null if the input bytes are null.
-@pragma('vm:prefer-inline')
-List<Map<String, dynamic>>? flexBufferToListOfMaps(Uint8List? bytes) =>
-    flexBufferToList(bytes)?.cast<Map<String, dynamic>>();
 
 /// Deserializes FlexBuffer bytes to any Dart value.
 ///
@@ -70,11 +23,26 @@ List<Map<String, dynamic>>? flexBufferToListOfMaps(Uint8List? bytes) =>
 /// null, bool, int, double, String, `List<dynamic>`, `Map<String, dynamic>`,
 /// or nested combinations of these.
 @pragma('vm:prefer-inline')
-dynamic flexBufferToValue(Uint8List? bytes) {
+dynamic fromFlexBuffer(Uint8List? bytes) {
   if (bytes == null) return null;
   final ref = flex.Reference.fromBuffer(bytes.buffer);
   return _convertReference(ref);
 }
+
+/// Deserializes FlexBuffer bytes to a `Map<String, dynamic>`.
+@pragma('vm:prefer-inline')
+Map<String, dynamic>? flexBufferToMap(Uint8List? bytes) =>
+    fromFlexBuffer(bytes) as Map<String, dynamic>?;
+
+/// Deserializes FlexBuffer bytes to a `List<dynamic>`.
+@pragma('vm:prefer-inline')
+List<dynamic>? flexBufferToList(Uint8List? bytes) =>
+    fromFlexBuffer(bytes) as List<dynamic>?;
+
+/// Deserializes FlexBuffer bytes to a `List<Map<String, dynamic>>`.
+@pragma('vm:prefer-inline')
+List<Map<String, dynamic>>? flexBufferToListOfMaps(Uint8List? bytes) =>
+    flexBufferToList(bytes)?.cast<Map<String, dynamic>>();
 
 /// Recursively converts a FlexBuffer Reference to a Dart object.
 dynamic _convertReference(flex.Reference ref) {

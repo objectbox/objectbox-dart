@@ -347,7 +347,7 @@ class CodeChunks {
             case OBXPropertyType.DoubleVector:
               return '$assignment fbb.writeListFloat64($fieldName);';
             case OBXPropertyType.Flex:
-              // Use appropriate serializer based on field type
+              // Use toFlexBuffer() to serialize Map, List, or value types
               final isMap = p.fieldType.startsWith('Map');
               final isList = p.fieldType.startsWith('List');
               // dynamic is always nullable; Object requires nullable annotation
@@ -360,20 +360,12 @@ class CodeChunks {
                   'Only Map, List, dynamic, and Object? are supported.',
                 );
               }
-              final String flexSerializer;
-              if (isMap) {
-                flexSerializer = 'mapToFlexBuffer';
-              } else if (isList) {
-                flexSerializer = 'listToFlexBuffer';
-              } else {
-                flexSerializer = 'valueToFlexBuffer';
-              }
-              // For value types, the serializer handles null internally
+              // For value types (dynamic/Object?), check null before serializing
               if (isValue) {
                 final rawFieldName = 'object.${propertyFieldName(p)}';
-                return 'final $offsetVar = $rawFieldName == null ? null : fbb.writeListInt8($obxInt.$flexSerializer($rawFieldName)!);';
+                return 'final $offsetVar = $rawFieldName == null ? null : fbb.writeListInt8($obxInt.toFlexBuffer($rawFieldName)!);';
               }
-              return '$assignment fbb.writeListInt8($obxInt.$flexSerializer($fieldName)!);';
+              return '$assignment fbb.writeListInt8($obxInt.toFlexBuffer($fieldName)!);';
             default:
               offsets.remove(p.id.id);
               return null;
@@ -590,13 +582,13 @@ class CodeChunks {
                 'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)',
               );
             case OBXPropertyType.Flex:
-              // Read as Uint8List and convert to Map or List using FlexBuffer
+              // Read as Uint8List and convert to Map, List, or value
               final bytesVar = '${propertyFieldName(p)}Bytes';
               final offset = propertyFlatBuffersvTableOffset(p);
               preLines.add(
                 'final $bytesVar = const fb.Uint8ListReader(lazy: false).vTableGetNullable(buffer, rootOffset, $offset);',
               );
-              // Use appropriate deserializer based on field type (Map or List)
+              // Use appropriate deserializer based on field type
               final isMap = p.fieldType.startsWith('Map');
               final isList = p.fieldType.startsWith('List');
               // dynamic is always nullable; Object requires nullable annotation
@@ -618,7 +610,7 @@ class CodeChunks {
               final String castSuffix;
               if (isValue) {
                 // dynamic or Object? - can be any FlexBuffer value
-                flexDeserializer = 'flexBufferToValue';
+                flexDeserializer = 'fromFlexBuffer';
                 defaultValue = null; // nullable only, no default needed
                 castSuffix = '';
               } else if (isMap) {
@@ -651,6 +643,7 @@ class CodeChunks {
                 defaultValue = '<$elementType>[]';
                 castSuffix = '?.cast<$elementType>()';
               } else {
+                // List<dynamic>
                 flexDeserializer = 'flexBufferToList';
                 defaultValue = '<dynamic>[]';
                 castSuffix = '';
