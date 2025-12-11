@@ -482,4 +482,118 @@ void main() {
       }
     });
   });
+
+  group('Flex Value property (dynamic/Object?)', () {
+    late Box<FlexValueEntity> box;
+
+    setUp(() {
+      box = store.box<FlexValueEntity>();
+    });
+
+    test('put and get null values', () {
+      final entity = FlexValueEntity();
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, isNull);
+      expect(read.flexObject, isNull);
+    });
+
+    test('put and get string value', () {
+      final entity = FlexValueEntity(flexDynamic: 'hello world');
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, 'hello world');
+    });
+
+    test('put and get int value', () {
+      final entity = FlexValueEntity(flexDynamic: 42);
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, 42);
+    });
+
+    test('put and get double value', () {
+      final entity = FlexValueEntity(flexDynamic: 3.14159);
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, closeTo(3.14159, 0.00001));
+    });
+
+    test('put and get bool value', () {
+      final entity = FlexValueEntity(flexDynamic: true);
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, true);
+    });
+
+    test('put and get list value', () {
+      final entity = FlexValueEntity(flexDynamic: [1, 'two', 3.0]);
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, isA<List>());
+      expect((read.flexDynamic as List)[0], 1);
+      expect((read.flexDynamic as List)[1], 'two');
+      expect((read.flexDynamic as List)[2], 3.0);
+    });
+
+    test('put and get map value', () {
+      final entity = FlexValueEntity(
+        flexDynamic: {'key': 'value', 'number': 42},
+      );
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexDynamic, isA<Map>());
+      expect((read.flexDynamic as Map)['key'], 'value');
+      expect((read.flexDynamic as Map)['number'], 42);
+    });
+
+    test('Object? works the same as dynamic', () {
+      final entity = FlexValueEntity(flexObject: 'test string');
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      expect(read.flexObject, 'test string');
+    });
+
+    test('update value type', () {
+      // Start with a string
+      final entity = FlexValueEntity(flexDynamic: 'initial');
+      final id = box.put(entity);
+
+      // Update to an int
+      final read = box.get(id)!;
+      read.flexDynamic = 123;
+      box.put(read);
+
+      // Verify update
+      final updated = box.get(id)!;
+      expect(updated.flexDynamic, 123);
+
+      // Update to a map
+      updated.flexDynamic = {'changed': true};
+      box.put(updated);
+
+      final final_ = box.get(id)!;
+      expect((final_.flexDynamic as Map)['changed'], true);
+    });
+
+    test('set value to null', () {
+      final entity = FlexValueEntity(flexDynamic: 'not null');
+      final id = box.put(entity);
+
+      final read = box.get(id)!;
+      read.flexDynamic = null;
+      box.put(read);
+
+      final updated = box.get(id)!;
+      expect(updated.flexDynamic, isNull);
+    });
+  });
 }

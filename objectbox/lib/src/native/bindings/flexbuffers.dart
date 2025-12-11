@@ -24,6 +24,19 @@ Uint8List? listToFlexBuffer(List<dynamic>? list) {
   return buffer.asUint8List();
 }
 
+/// Serializes any FlexBuffer-compatible value to bytes.
+///
+/// Supported types: null, bool, int, double, String, `List<dynamic>`,
+/// `Map<String, dynamic>`, and nested combinations of these.
+///
+/// Returns null if the input value is null.
+@pragma('vm:prefer-inline')
+Uint8List? valueToFlexBuffer(dynamic value) {
+  if (value == null) return null;
+  final buffer = flex.Builder.buildFromObject(value);
+  return buffer.asUint8List();
+}
+
 /// Deserializes FlexBuffer bytes to a `Map<String, dynamic>`.
 ///
 /// Returns null if the input bytes are null.
@@ -50,6 +63,18 @@ List<dynamic>? flexBufferToList(Uint8List? bytes) {
 @pragma('vm:prefer-inline')
 List<Map<String, dynamic>>? flexBufferToListOfMaps(Uint8List? bytes) =>
     flexBufferToList(bytes)?.cast<Map<String, dynamic>>();
+
+/// Deserializes FlexBuffer bytes to any Dart value.
+///
+/// Returns null if the input bytes are null. The returned value can be
+/// null, bool, int, double, String, `List<dynamic>`, `Map<String, dynamic>`,
+/// or nested combinations of these.
+@pragma('vm:prefer-inline')
+dynamic flexBufferToValue(Uint8List? bytes) {
+  if (bytes == null) return null;
+  final ref = flex.Reference.fromBuffer(bytes.buffer);
+  return _convertReference(ref);
+}
 
 /// Recursively converts a FlexBuffer Reference to a Dart object.
 dynamic _convertReference(flex.Reference ref) {

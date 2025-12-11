@@ -65,3 +65,23 @@ class FlexListEntity {
     this.flexExplicit,
   });
 }
+
+/// Entity to test Flex Value properties (arbitrary values stored as FlexBuffers)
+@Entity()
+class FlexValueEntity {
+  @Id()
+  int id = 0;
+
+  // Explicit annotation required for dynamic
+  @Property(type: PropertyType.flex)
+  dynamic flexDynamic;
+
+  // Explicit annotation required for Object?
+  @Property(type: PropertyType.flex)
+  Object? flexObject;
+
+  FlexValueEntity({
+    this.flexDynamic,
+    this.flexObject,
+  });
+}

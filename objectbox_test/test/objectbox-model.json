@@ -908,9 +908,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "22:3648782640383158768",
+      "lastPropertyId": "3:7299173100433666540",
+      "name": "FlexValueEntity",
+      "properties": [
+        {
+          "id": "1:2280864531787166952",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2555024860983452420",
+          "name": "flexDynamic",
+          "type": 13
+        },
+        {
+          "id": "3:7299173100433666540",
+          "name": "flexObject",
+          "type": 13
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "21:7625885984770420113",
+  "lastEntityId": "22:3648782640383158768",
   "lastIndexId": "25:5667866372157411357",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",

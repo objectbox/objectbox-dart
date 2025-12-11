@@ -347,17 +347,32 @@ class CodeChunks {
             case OBXPropertyType.DoubleVector:
               return '$assignment fbb.writeListFloat64($fieldName);';
             case OBXPropertyType.Flex:
-              // Use appropriate serializer based on field type (Map or List)
+              // Use appropriate serializer based on field type
               final isMap = p.fieldType.startsWith('Map');
               final isList = p.fieldType.startsWith('List');
-              if (!isMap && !isList) {
+              // dynamic is always nullable; Object requires nullable annotation
+              final isValue =
+                  p.fieldType == 'dynamic' ||
+                  (p.fieldType == 'Object' && p.fieldIsNullable);
+              if (!isMap && !isList && !isValue) {
                 throw InvalidGenerationSourceError(
                   "Flex property '${p.name}' has unsupported type '${p.fieldType}'. "
-                  'Only Map<String, dynamic/Object?> and List<dynamic/Object?> are supported.',
+                  'Only Map, List, dynamic, and Object? are supported.',
                 );
               }
-              final flexSerializer =
-                  isMap ? 'mapToFlexBuffer' : 'listToFlexBuffer';
+              final String flexSerializer;
+              if (isMap) {
+                flexSerializer = 'mapToFlexBuffer';
+              } else if (isList) {
+                flexSerializer = 'listToFlexBuffer';
+              } else {
+                flexSerializer = 'valueToFlexBuffer';
+              }
+              // For value types, the serializer handles null internally
+              if (isValue) {
+                final rawFieldName = 'object.${propertyFieldName(p)}';
+                return 'final $offsetVar = $rawFieldName == null ? null : fbb.writeListInt8($obxInt.$flexSerializer($rawFieldName)!);';
+              }
               return '$assignment fbb.writeListInt8($obxInt.$flexSerializer($fieldName)!);';
             default:
               offsets.remove(p.id.id);
@@ -584,10 +599,14 @@ class CodeChunks {
               // Use appropriate deserializer based on field type (Map or List)
               final isMap = p.fieldType.startsWith('Map');
               final isList = p.fieldType.startsWith('List');
-              if (!isMap && !isList) {
+              // dynamic is always nullable; Object requires nullable annotation
+              final isValue =
+                  p.fieldType == 'dynamic' ||
+                  (p.fieldType == 'Object' && p.fieldIsNullable);
+              if (!isMap && !isList && !isValue) {
                 throw InvalidGenerationSourceError(
                   "Flex property '${p.name}' has unsupported type '${p.fieldType}'. "
-                  'Only Map<String, dynamic/Object?> and List<dynamic/Object?> are supported.',
+                  'Only Map, List, dynamic, and Object? are supported.',
                 );
               }
               // For List<Map<...>> types, use dedicated helper
@@ -595,9 +614,14 @@ class CodeChunks {
               // Check if list needs casting (List<Object> or List<Object?>)
               final isListOfObject = p.fieldType.startsWith('List<Object');
               final String flexDeserializer;
-              final String defaultValue;
+              final String? defaultValue;
               final String castSuffix;
-              if (isMap) {
+              if (isValue) {
+                // dynamic or Object? - can be any FlexBuffer value
+                flexDeserializer = 'flexBufferToValue';
+                defaultValue = null; // nullable only, no default needed
+                castSuffix = '';
+              } else if (isMap) {
                 flexDeserializer = 'flexBufferToMap';
                 defaultValue = '<String, dynamic>{}';
                 castSuffix = '';
@@ -605,8 +629,10 @@ class CodeChunks {
                 flexDeserializer = 'flexBufferToListOfMaps';
                 // Extract the element type, e.g. "Map<String, dynamic>"
                 // by removing "List<" prefix and ">" suffix.
-                final elementType =
-                    p.fieldType.substring(5, p.fieldType.length - 1);
+                final elementType = p.fieldType.substring(
+                  5,
+                  p.fieldType.length - 1,
+                );
                 defaultValue = '<$elementType>[]';
                 // Cast needed for Map<String, Object?> (Object not supported)
                 if (elementType == 'Map<String, dynamic>') {
@@ -618,8 +644,10 @@ class CodeChunks {
                 flexDeserializer = 'flexBufferToList';
                 // Extract the element type, e.g. "Object" or "Object?"
                 // by removing "List<" prefix and ">" suffix.
-                final elementType =
-                    p.fieldType.substring(5, p.fieldType.length - 1);
+                final elementType = p.fieldType.substring(
+                  5,
+                  p.fieldType.length - 1,
+                );
                 defaultValue = '<$elementType>[]';
                 castSuffix = '?.cast<$elementType>()';
               } else {
@@ -629,7 +657,8 @@ class CodeChunks {
               }
               final deserializeExpr =
                   '$obxInt.$flexDeserializer(Uint8List.fromList($bytesVar))$castSuffix';
-              if (p.fieldIsNullable) {
+              if (p.fieldIsNullable || defaultValue == null) {
+                // Nullable field or value type (dynamic/Object?) - no default
                 return '$bytesVar == null ? null : $deserializeExpr';
               } else {
                 return '$bytesVar == null ? $defaultValue : $deserializeExpr ?? $defaultValue';
