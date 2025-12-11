@@ -171,11 +171,22 @@ enum PropertyType {
   /// the same value.
   ///
   /// For more efficiency use `Float32List` instead.
-  floatVector
+  floatVector,
 
   // dart type=List<String>
   // no need to specify explicitly, just use [List<String>]
   // stringVector
+
+  /// Use with [Property.type] to store a `Map<String, dynamic>` or
+  /// `Map<String, Object?>` as a FlexBuffer.
+  ///
+  /// Flex properties can store maps with string keys and values of type:
+  /// integers, floating point values, strings, booleans, null, or nested
+  /// lists and maps of those types.
+  ///
+  /// This type is auto-detected for `Map<String, dynamic>` and
+  /// `Map<String, Object?>` fields, but can also be explicitly specified.
+  flex
 }
 
 /// An annotation to mark a field of an [Entity] class as the ID property.

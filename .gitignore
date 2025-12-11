@@ -23,3 +23,7 @@ objectbox.lib
 
 # backup created by publish.sh - ignore to avoid publishing
 **/pubspec.yaml.original
+
+# ObjectBox database files
+data.mdb
+lock.mdb

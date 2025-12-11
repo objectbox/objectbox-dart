@@ -473,6 +473,21 @@ class EntityResolver extends Builder {
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(field)) {
       return OBXPropertyType.Relation;
+    } else if (dartType.isDartCoreMap) {
+      // Check for Map<String, dynamic> or Map<String, Object?>
+      if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
+        final keyType = dartType.typeArguments[0];
+        final valueType = dartType.typeArguments[1];
+        // Key must be String
+        if (keyType.isDartCoreString) {
+          // Value must be dynamic or Object (nullable or not)
+          if (valueType is DynamicType ||
+              valueType.isDartCoreObject ||
+              valueType.element?.displayName == 'Object') {
+            return OBXPropertyType.Flex;
+          }
+        }
+      }
     }
 
     // No supported Dart type recognized.

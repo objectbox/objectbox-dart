@@ -346,6 +346,8 @@ class CodeChunks {
               return '$assignment fbb.writeListFloat32($fieldName);';
             case OBXPropertyType.DoubleVector:
               return '$assignment fbb.writeListFloat64($fieldName);';
+            case OBXPropertyType.Flex:
+              return '$assignment fbb.writeListInt8($obxInt.mapToFlexBuffer($fieldName)!);';
             default:
               offsets.remove(p.id.id);
               return null;
@@ -561,6 +563,18 @@ class CodeChunks {
                 p,
                 'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)',
               );
+            case OBXPropertyType.Flex:
+              // Read as Uint8List and convert to Map using FlexBuffer
+              final bytesVar = '${propertyFieldName(p)}Bytes';
+              final offset = propertyFlatBuffersvTableOffset(p);
+              preLines.add(
+                'final $bytesVar = const fb.Uint8ListReader(lazy: false).vTableGetNullable(buffer, rootOffset, $offset);',
+              );
+              if (p.fieldIsNullable) {
+                return '$bytesVar == null ? null : $obxInt.flexBufferToMap(Uint8List.fromList($bytesVar))';
+              } else {
+                return '$bytesVar == null ? <String, dynamic>{} : $obxInt.flexBufferToMap(Uint8List.fromList($bytesVar)) ?? <String, dynamic>{}';
+              }
             default:
               return readFieldCodeString(
                 p,
@@ -778,6 +792,9 @@ class CodeChunks {
         case OBXPropertyType.StringVector:
           fieldType = 'StringVector';
           break;
+        case OBXPropertyType.Flex:
+          // Flex properties don't have query support yet, skip generating query property
+          continue;
         default:
           throw InvalidGenerationSourceError(
             'Unsupported property type (${prop.type}): ${entity.name}.$name',

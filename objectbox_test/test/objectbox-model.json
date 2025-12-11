@@ -825,35 +825,51 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "20:5597466339437603873",
+      "lastPropertyId": "5:2523727105471460626",
+      "name": "FlexEntity",
+      "properties": [
+        {
+          "id": "1:5012076624379388200",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1614559942868781614",
+          "name": "flexDynamic",
+          "type": 13
+        },
+        {
+          "id": "3:3118478854215245879",
+          "name": "flexObject",
+          "type": 13
+        },
+        {
+          "id": "4:8295814589695246351",
+          "name": "flexNonNull",
+          "type": 13
+        },
+        {
+          "id": "5:2523727105471460626",
+          "name": "flexExplicit",
+          "type": 13
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "19:908685173741818689",
+  "lastEntityId": "20:5597466339437603873",
   "lastIndexId": "25:5667866372157411357",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [
-    2679953000475642792
-  ],
+  "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [
-    5849170199816666167,
-    6119953496456269132,
-    1043358010384181585,
-    8886007565639578393,
-    1874578842943403707,
-    118121232448890483,
-    8913396295192638938,
-    7399685737415196420,
-    5773372525238577573,
-    1652533532846680965,
-    2032187304851276864,
-    263290714597678490,
-    2191004797635629014,
-    6174275661850707374,
-    2900967122054840440
-  ],
+  "retiredPropertyUids": [],
   "retiredRelationUids": [],
   "version": 1
 }
