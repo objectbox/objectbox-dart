@@ -4,5 +4,5 @@ class Version {
   ///
   /// This string is updated by the /tool/set-version.sh script
   /// as part of the release process.
-  static const String current = "5.0.4";
+  static const String current = "5.1.0-dev.0";
 }
