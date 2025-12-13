@@ -1038,39 +1038,66 @@ void main() {
   });
 
   test('DateTime field', () {
+    final now = DateTime.now();
+    final millis = now.millisecondsSinceEpoch;
+    expect(now.isUtc, false);
     final object = TestEntity();
-    object.tDate = DateTime.now();
-    object.tDateNano = DateTime.now();
+    object.tDate = now;
+    object.tDateExplicit = now;
+    object.tDateNano = now;
+    object.tDateUtc = now;
+    object.tDateNanoUtc = now;
+
     final objectUtc = TestEntity();
-    objectUtc.tDate = object.tDate!.toUtc();
-    objectUtc.tDateNano = object.tDateNano!.toUtc();
+    final nowUtc = now.toUtc();
+    objectUtc.tDate = nowUtc;
+    objectUtc.tDateExplicit = nowUtc;
+    objectUtc.tDateNano = nowUtc;
+    objectUtc.tDateUtc = nowUtc;
+    objectUtc.tDateNanoUtc = nowUtc;
 
     {
       // first, test some assumptions the code generator makes
-      final millis = object.tDate!.millisecondsSinceEpoch;
       final time1 = DateTime.fromMillisecondsSinceEpoch(millis);
-      expect(object.tDate!.difference(time1).inMilliseconds, equals(0));
+      expect(now.difference(time1).inMilliseconds, equals(0));
 
-      final nanos = object.tDateNano!.microsecondsSinceEpoch * 1000;
+      final nanos = now.microsecondsSinceEpoch * 1000;
       final time2 = DateTime.fromMicrosecondsSinceEpoch((nanos / 1000).round());
-      expect(object.tDateNano!.difference(time2).inMicroseconds, equals(0));
+      expect(now.difference(time2).inMicroseconds, equals(0));
     }
 
     box.putMany([object, objectUtc, TestEntity()]);
     final items = box.getAll();
 
-    // DateTime has microsecond precision in dart but is stored in ObjectBox
-    // with millisecond precision so allow a sub-millisecond difference.
-    expect(items[0].tDate!.difference(object.tDate!).inMilliseconds, 0);
-    expect(items[1].tDate!.difference(object.tDate!).inMilliseconds, 0);
-    // DateTime is always restored with local time zone in ObjectBox.
-    expect(items[0].tDate!.isUtc, false);
-    expect(items[1].tDate!.isUtc, false);
+    // Test both local and UTC input - storing either should produce same results
+    for (final entry in {'local': items[0], 'utc': items[1]}.entries) {
+      final name = entry.key;
+      final object = entry.value;
+      // DateTime has microsecond precision in Dart but is stored in ObjectBox
+      // by default with millisecond precision so compare only milliseconds.
+      expect(object.tDate!.millisecondsSinceEpoch, millis, reason: name);
+      expect(object.tDateExplicit!.millisecondsSinceEpoch, millis,
+          reason: name);
+      expect(object.tDateUtc!.millisecondsSinceEpoch, millis, reason: name);
+      // If explicitly stored as DateNano, microsecond precision is preserved.
+      expect(object.tDateNano, now, reason: name);
+      expect(object.tDateNanoUtc, nowUtc, reason: name);
+      // UTC types restore with UTC.
+      expect(object.tDate!.isUtc, false, reason: name);
+      expect(object.tDateExplicit!.isUtc, false, reason: name);
+      expect(object.tDateNano!.isUtc, false, reason: name);
+      // Legacy types restore with local time zone.
+      expect(object.tDateUtc!.isUtc, true, reason: name);
+      expect(object.tDateNanoUtc!.isUtc, true, reason: name);
+    }
 
-    expect(items[0].tDateNano, object.tDateNano);
-    expect(items[1].tDateNano, object.tDateNano);
-    expect(items[2].tDate, isNull);
-    expect(items[2].tDateNano, isNull);
+    // Null values are preserved
+    final allNull = items[2];
+    expect(allNull.tDate, isNull);
+    expect(allNull.tDateExplicit, isNull);
+    expect(allNull.tDateNano, isNull);
+    expect(allNull.tDateUtc, isNull);
+    expect(allNull.tDateNanoUtc, isNull);
   });
 
   test('large-data', () {

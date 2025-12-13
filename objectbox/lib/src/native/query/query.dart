@@ -231,7 +231,8 @@ class QueryDateProperty<EntityT> extends QueryIntegerProperty<EntityT> {
 }
 
 /// This wraps [QueryIntegerProperty] for [DateTime] properties annotated with
-/// `@Property(type: PropertyType.dateNano)` to avoid having to manually convert
+/// `@Property(type: PropertyType.dateNano)` or
+/// `@Property(type: PropertyType.dateNanoUtc)` to avoid having to manually convert
 /// to nanoseconds ([DateTime.microsecondsSinceEpoch] `* 1000`) when creating
 /// query conditions.
 class QueryDateNanoProperty<EntityT> extends QueryIntegerProperty<EntityT> {

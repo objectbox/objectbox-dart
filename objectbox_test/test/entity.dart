@@ -28,7 +28,11 @@ class TestEntity {
   int? tLong;
   double? tDouble;
   bool? tBool;
+
   DateTime? tDate;
+
+  @Property(type: PropertyType.date)
+  DateTime? tDateExplicit;
 
   @Transient()
   int? ignore;
@@ -40,6 +44,12 @@ class TestEntity {
 
   @Property(type: PropertyType.dateNano)
   DateTime? tDateNano;
+
+  @Property(type: PropertyType.dateUtc)
+  DateTime? tDateUtc;
+
+  @Property(type: PropertyType.dateNanoUtc)
+  DateTime? tDateNanoUtc;
 
   // OBXPropertyType.Byte | 1 byte
   @Property(type: PropertyType.byte)
@@ -90,7 +100,10 @@ class TestEntity {
       this.tUint8List,
       this.ignore,
       this.tDate,
-      this.tDateNano});
+      this.tDateExplicit,
+      this.tDateNano,
+      this.tDateUtc,
+      this.tDateNanoUtc});
 
   TestEntity.filled({
     this.id = 1,

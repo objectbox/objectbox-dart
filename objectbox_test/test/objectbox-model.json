@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:4630700155272683157",
-      "lastPropertyId": "35:1724663621433823504",
+      "lastPropertyId": "38:4546487017054779040",
       "name": "TestEntity",
       "properties": [
         {
@@ -196,6 +196,21 @@
           "indexId": "20:4846837430056399798",
           "type": 6,
           "flags": 32808
+        },
+        {
+          "id": "36:4953797651393666796",
+          "name": "tDateExplicit",
+          "type": 10
+        },
+        {
+          "id": "37:1027665991749169127",
+          "name": "tDateUtc",
+          "type": 10
+        },
+        {
+          "id": "38:4546487017054779040",
+          "name": "tDateNanoUtc",
+          "type": 12
         }
       ],
       "relations": [
