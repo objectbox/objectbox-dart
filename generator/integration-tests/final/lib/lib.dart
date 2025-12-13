@@ -11,9 +11,9 @@ class A {
   final int tLong;
   final double tDouble;
   final String tString;
-  @Property(type: PropertyType.date)
+  @Property(type: PropertyType.dateUtc)
   final int tDate;
-  @Property(type: PropertyType.dateNano)
+  @Property(type: PropertyType.dateNanoUtc)
   final int tDateNano;
   @Property(type: PropertyType.byteVector)
   final List<int> tListInt; // truncates int to 8-bits

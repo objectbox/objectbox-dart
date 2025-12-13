@@ -67,10 +67,10 @@ class T {
   // implicitly determined types
   String? tString;
 
-  @Property(type: PropertyType.date)
+  @Property(type: PropertyType.dateUtc)
   int? tDate;
 
-  @Property(type: PropertyType.dateNano)
+  @Property(type: PropertyType.dateNanoUtc)
   int? tDateNano;
 
   @Property(type: PropertyType.byteVector)

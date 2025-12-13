@@ -40,7 +40,8 @@ class TestEntity {
 
   // explicitly declared types
 
-  @Property(type: PropertyType.dateNano)
+  // ignore: deprecated_member_use_from_same_package
+  @Property(type: PropertyType.dateNanoLegacy)
   DateTime? tDateNano;
 
   // Explicit UTC date types
@@ -250,7 +251,8 @@ class TestEntityNonRel {
   bool? tBool;
   DateTime? tDate;
 
-  @Property(type: PropertyType.dateNano)
+  // ignore: deprecated_member_use_from_same_package
+  @Property(type: PropertyType.dateNanoLegacy)
   DateTime? tDateNano;
 
   @Property(type: PropertyType.byte)
@@ -315,7 +317,8 @@ class TestEntityNotNull {
   bool tBool;
   DateTime tDate;
 
-  @Property(type: PropertyType.dateNano)
+  // ignore: deprecated_member_use_from_same_package
+  @Property(type: PropertyType.dateNanoLegacy)
   DateTime tDateNano;
 
   List<String> tStrings;

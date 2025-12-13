@@ -65,11 +65,11 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.Int;
     case PropertyType.float:
       return OBXPropertyType.Float;
-    case PropertyType.date:
     case PropertyType.dateUtc:
+    case PropertyType.dateLegacy:
       return OBXPropertyType.Date;
-    case PropertyType.dateNano:
     case PropertyType.dateNanoUtc:
+    case PropertyType.dateNanoLegacy:
       return OBXPropertyType.DateNano;
     case PropertyType.byteVector:
       return OBXPropertyType.ByteVector;

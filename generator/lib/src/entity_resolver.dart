@@ -205,6 +205,17 @@ class EntityResolver extends Builder {
         }
       });
 
+      // Warn if deprecated legacy date types are used
+      if (dartType == PropertyType.dateLegacy ||
+          dartType == PropertyType.dateNanoLegacy) {
+        log.warning(
+          "  Property '${f.displayName}' in entity '${classElement.displayName}' uses a "
+          "deprecated date type. Non-UTC date handling causes issues with "
+          "ObjectBox Sync and cross-timezone date comparisons. "
+          "Migrate to PropertyType.dateUtc or PropertyType.dateNanoUtc.",
+        );
+      }
+
       // If type not specified by @Property annotation, try to detect based
       // on Dart type.
       if (fieldType == null) {
@@ -212,10 +223,17 @@ class EntityResolver extends Builder {
           isToManyRel = true;
         } else {
           fieldType = detectObjectBoxType(f, classElement.displayName);
-          // Implicit DateTime fields default to UTC
+          // Implicit DateTime fields default to UTC since 5.1
           if (fieldType == OBXPropertyType.Date &&
               f.type.element!.displayName == 'DateTime') {
             dartType = PropertyType.dateUtc;
+            log.warning(
+              "  DateTime property '${f.displayName}' in entity '${classElement.displayName}': "
+              "version 5.1 introduced a BREAKING CHANGE: DateTime fields now default to UTC. "
+              "Add @Property(type: PropertyType.dateUtc) to silence this warning, "
+              "or use PropertyType.dateLegacy to keep the old behavior if you must. "
+              "Be aware that dateLegacy is incorrect for Sync and time zone conversions.",
+            );
           }
           if (fieldType == null) {
             log.warning(
@@ -475,11 +493,7 @@ class EntityResolver extends Builder {
     } else if (dartType.element!.displayName == 'Float64List') {
       return OBXPropertyType.DoubleVector;
     } else if (dartType.element!.displayName == 'DateTime') {
-      log.warning(
-        "  DateTime property '${field.displayName}' in entity '$classDisplayName' is stored and read using millisecond precision as UTC. "
-        'To silence this warning, add an explicit type using @Property(type: PropertyType.dateUtc) or @Property(type: PropertyType.dateNanoUtc) annotation. '
-        'Use PropertyType.date or PropertyType.dateNano to store in local time instead.',
-      );
+      // Warning is emitted at the call site with more context about 5.1 change
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(field)) {
       return OBXPropertyType.Relation;
