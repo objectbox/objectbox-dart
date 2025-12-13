@@ -1063,14 +1063,42 @@ void main() {
     // with millisecond precision so allow a sub-millisecond difference.
     expect(items[0].tDate!.difference(object.tDate!).inMilliseconds, 0);
     expect(items[1].tDate!.difference(object.tDate!).inMilliseconds, 0);
-    // DateTime is always restored with local time zone in ObjectBox.
-    expect(items[0].tDate!.isUtc, false);
-    expect(items[1].tDate!.isUtc, false);
+    // Implicit DateTime (tDate) now defaults to UTC since 5.1.
+    expect(items[0].tDate!.isUtc, true);
+    expect(items[1].tDate!.isUtc, true);
 
     expect(items[0].tDateNano, object.tDateNano);
     expect(items[1].tDateNano, object.tDateNano);
     expect(items[2].tDate, isNull);
     expect(items[2].tDateNano, isNull);
+  });
+
+  test('DateTime UTC field', () {
+    final now = DateTime.now();
+    expect(now.isUtc, false); // DateTime.now() returns local time
+
+    final object = TestEntity();
+    // tDate is implicit DateTime which defaults to UTC since 5.1
+    object.tDate = now;
+    object.tDateUtc = now;
+    object.tDateNano = now;
+    object.tDateNanoUtc = now;
+
+    box.put(object);
+    final read = box.get(object.id)!;
+
+    // Verify isUtc flag is set correctly
+    expect(read.tDate!.isUtc, true); // implicit defaults to UTC
+    expect(read.tDateUtc!.isUtc, true);
+    expect(read.tDateNano!.isUtc, false); // dateNano restores as non-UTC
+    expect(read.tDateNanoUtc!.isUtc, true);
+
+    // All should represent the same point in time
+    expect(read.tDate!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
+    expect(read.tDateUtc!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
+    expect(read.tDateNano!.microsecondsSinceEpoch, now.microsecondsSinceEpoch);
+    expect(
+        read.tDateNanoUtc!.microsecondsSinceEpoch, now.microsecondsSinceEpoch);
   });
 
   test('large-data', () {

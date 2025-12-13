@@ -184,6 +184,7 @@ class EntityResolver extends Builder {
       int? fieldType;
       var flags = 0;
       int? propUid;
+      PropertyType? dartType;
 
       // Check for @Id annotation
       _idChecker.runIfMatches(annotated, (annotation) {
@@ -196,7 +197,9 @@ class EntityResolver extends Builder {
       // Get info from @Property annotation
       _propertyChecker.runIfMatches(annotated, (annotation) {
         propUid = annotation.getField('uid')!.toIntValue();
-        fieldType = propertyTypeFromAnnotation(annotation.getField('type')!);
+        final typeField = annotation.getField('type')!;
+        fieldType = propertyTypeFromAnnotation(typeField);
+        dartType = propertyTypeFromAnnotationEnum(typeField);
         if (!annotation.getField('signed')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.UNSIGNED;
         }
@@ -209,6 +212,11 @@ class EntityResolver extends Builder {
           isToManyRel = true;
         } else {
           fieldType = detectObjectBoxType(f, classElement.displayName);
+          // Implicit DateTime fields default to UTC
+          if (fieldType == OBXPropertyType.Date &&
+              f.type.element!.displayName == 'DateTime') {
+            dartType = PropertyType.dateUtc;
+          }
           if (fieldType == null) {
             log.warning(
               "  Skipping property '${f.displayName}': type '${f.type}' not supported,"
@@ -313,6 +321,7 @@ class EntityResolver extends Builder {
           flags: flags,
           entity: entity,
           uidRequest: propUid != null && propUid == 0,
+          dartType: dartType,
         );
 
         // ToOne relation
@@ -467,8 +476,9 @@ class EntityResolver extends Builder {
       return OBXPropertyType.DoubleVector;
     } else if (dartType.element!.displayName == 'DateTime') {
       log.warning(
-        "  DateTime property '${field.displayName}' in entity '$classDisplayName' is stored and read using millisecond precision. "
-        'To silence this warning, add an explicit type using @Property(type: PropertyType.date) or @Property(type: PropertyType.dateNano) annotation.',
+        "  DateTime property '${field.displayName}' in entity '$classDisplayName' is stored and read using millisecond precision as UTC. "
+        'To silence this warning, add an explicit type using @Property(type: PropertyType.dateUtc) or @Property(type: PropertyType.dateNanoUtc) annotation. '
+        'Use PropertyType.date or PropertyType.dateNano to store in local time instead.',
       );
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(field)) {
@@ -696,12 +706,18 @@ class EntityResolver extends Builder {
     return index;
   }
 
-  // find out @Property(type:) field value - its an enum PropertyType
+  /// Returns the OBX property type from a @Property(type:) annotation value.
   int? propertyTypeFromAnnotation(DartObject typeField) {
     final item = _enumValueIndex(typeField, "Property.type");
     return item == null
         ? null
         : propertyTypeToOBXPropertyType(PropertyType.values[item]);
+  }
+
+  /// Returns the PropertyType enum value from a @Property(type:) annotation.
+  PropertyType? propertyTypeFromAnnotationEnum(DartObject typeField) {
+    final item = _enumValueIndex(typeField, "Property.type");
+    return item == null ? null : PropertyType.values[item];
   }
 
   DartType? listItemType(DartType listType) {

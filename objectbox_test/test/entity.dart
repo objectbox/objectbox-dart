@@ -28,6 +28,8 @@ class TestEntity {
   int? tLong;
   double? tDouble;
   bool? tBool;
+
+  /// Implicit DateTime defaults to UTC (dateUtc) since 5.1
   DateTime? tDate;
 
   @Transient()
@@ -40,6 +42,13 @@ class TestEntity {
 
   @Property(type: PropertyType.dateNano)
   DateTime? tDateNano;
+
+  // Explicit UTC date types
+  @Property(type: PropertyType.dateUtc)
+  DateTime? tDateUtc;
+
+  @Property(type: PropertyType.dateNanoUtc)
+  DateTime? tDateNanoUtc;
 
   // OBXPropertyType.Byte | 1 byte
   @Property(type: PropertyType.byte)
@@ -90,7 +99,9 @@ class TestEntity {
       this.tUint8List,
       this.ignore,
       this.tDate,
-      this.tDateNano});
+      this.tDateNano,
+      this.tDateUtc,
+      this.tDateNanoUtc});
 
   TestEntity.filled({
     this.id = 1,
