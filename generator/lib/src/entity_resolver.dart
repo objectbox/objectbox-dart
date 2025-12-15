@@ -445,23 +445,13 @@ class EntityResolver extends Builder {
       } else if (itemType.isDartCoreString) {
         // List<String>
         return OBXPropertyType.StringVector;
-      } else if (itemType is DynamicType ||
-          itemType.isDartCoreObject ||
-          itemType.element?.displayName == 'Object') {
+      } else if (_isDynamicOrObject(itemType)) {
         // List<dynamic>, List<Object?>, or List<Object>
         return OBXPropertyType.Flex;
       } else if (itemType.isDartCoreMap) {
         // List<Map<String, dynamic/Object?>> - Object not supported (cast issue)
-        if (itemType is ParameterizedType &&
-            itemType.typeArguments.length == 2) {
-          final keyType = itemType.typeArguments[0];
-          final valueType = itemType.typeArguments[1];
-          if (keyType.isDartCoreString &&
-              (valueType is DynamicType ||
-                  valueType.isDartCoreObject ||
-                  valueType.element?.displayName == 'Object')) {
-            return OBXPropertyType.Flex;
-          }
+        if (_isMapSupportedForFlex(itemType)) {
+          return OBXPropertyType.Flex;
         }
       }
     } else if ([
@@ -498,23 +488,32 @@ class EntityResolver extends Builder {
       return OBXPropertyType.Relation;
     } else if (dartType.isDartCoreMap) {
       // Check for Map<String, dynamic/Object?/Object>
-      if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
-        final keyType = dartType.typeArguments[0];
-        final valueType = dartType.typeArguments[1];
-        // Key must be String
-        if (keyType.isDartCoreString) {
-          // Value must be dynamic or Object (nullable or not)
-          if (valueType is DynamicType ||
-              valueType.isDartCoreObject ||
-              valueType.element?.displayName == 'Object') {
-            return OBXPropertyType.Flex;
-          }
-        }
+      if (_isMapSupportedForFlex(dartType)) {
+        return OBXPropertyType.Flex;
       }
     }
 
     // No supported Dart type recognized.
     return null;
+  }
+
+  bool _isDynamicOrObject(DartType dartType) {
+    return dartType is DynamicType ||
+        dartType.isDartCoreObject ||
+        dartType.element?.displayName == 'Object';
+  }
+
+  bool _isMapSupportedForFlex(DartType dartType) {
+    if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
+      final keyType = dartType.typeArguments[0];
+      final valueType = dartType.typeArguments[1];
+      // Key must be String
+      // Value must be dynamic or Object (nullable or not)
+      if (keyType.isDartCoreString && _isDynamicOrObject(valueType)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void processIdProperty(ModelEntity entity, ClassElement classElement) {
