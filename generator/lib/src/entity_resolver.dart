@@ -515,9 +515,7 @@ class EntityResolver extends Builder {
   }
 
   bool _isDynamicOrObject(DartType dartType) {
-    return dartType is DynamicType ||
-        dartType.isDartCoreObject ||
-        dartType.element?.displayName == 'Object';
+    return dartType is DynamicType || dartType.isDartCoreObject;
   }
 
   bool _isMapSupportedForFlex(DartType dartType) {
