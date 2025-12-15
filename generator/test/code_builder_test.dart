@@ -937,7 +937,9 @@ void main() {
               .having(
                 (r) => r.message,
                 'message',
-                contains("Flex property 'unsupported' has unsupported type"),
+                contains(
+                  "'FlexEntity.unsupported': PropertyType.flex can only be used with",
+                ),
               ),
         ),
       );

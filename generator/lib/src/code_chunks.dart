@@ -348,18 +348,10 @@ class CodeChunks {
               return '$assignment fbb.writeListFloat64($fieldName);';
             case OBXPropertyType.Flex:
               // Use toFlexBuffer() to serialize Map, List, or value types
-              final isMap = p.fieldType.startsWith('Map');
-              final isList = p.fieldType.startsWith('List');
               // dynamic is always nullable; Object requires nullable annotation
               final isValue =
                   p.fieldType == 'dynamic' ||
                   (p.fieldType == 'Object' && p.fieldIsNullable);
-              if (!isMap && !isList && !isValue) {
-                throw InvalidGenerationSourceError(
-                  "Flex property '${p.name}' has unsupported type '${p.fieldType}'. "
-                  'Only Map, List, dynamic, and Object? are supported.',
-                );
-              }
               // For value types (dynamic/Object?), check null before serializing
               if (isValue) {
                 final rawFieldName = 'object.${propertyFieldName(p)}';
@@ -590,17 +582,10 @@ class CodeChunks {
               );
               // Use appropriate deserializer based on field type
               final isMap = p.fieldType.startsWith('Map');
-              final isList = p.fieldType.startsWith('List');
               // dynamic is always nullable; Object requires nullable annotation
               final isValue =
                   p.fieldType == 'dynamic' ||
                   (p.fieldType == 'Object' && p.fieldIsNullable);
-              if (!isMap && !isList && !isValue) {
-                throw InvalidGenerationSourceError(
-                  "Flex property '${p.name}' has unsupported type '${p.fieldType}'. "
-                  'Only Map, List, dynamic, and Object? are supported.',
-                );
-              }
               // For List<Map<...>> types, use dedicated helper
               final isListOfMaps = p.fieldType.startsWith('List<Map');
               // Check if list needs casting (List<Object> or List<Object?>)

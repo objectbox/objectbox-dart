@@ -200,6 +200,23 @@ class EntityResolver extends Builder {
         if (!annotation.getField('signed')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.UNSIGNED;
         }
+
+        // Error if Flex is used on unsupported type
+        if (fieldType == OBXPropertyType.Flex) {
+          final isMap = f.type.isDartCoreMap;
+          final isList = f.type.isDartCoreList;
+          // dynamic is always nullable; Object requires nullable annotation
+          final isValue =
+              f.type is DynamicType ||
+              (f.type.isDartCoreObject &&
+                  f.type.nullabilitySuffix == NullabilitySuffix.question);
+          if (!isMap && !isList && !isValue) {
+            throw InvalidGenerationSourceError(
+              "'${classElement.displayName}.${f.displayName}': PropertyType.flex can only be used with "
+              "Map, List, dynamic, and Object?, but is '${f.type}'.",
+            );
+          }
+        }
       });
 
       // If type not specified by @Property annotation, try to detect based
