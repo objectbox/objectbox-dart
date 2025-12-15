@@ -567,11 +567,7 @@ class CodeChunks {
               );
             case OBXPropertyType.Flex:
               // Read as Uint8List and convert to Map, List, or value
-              final bytesVar = '${propertyFieldName(p)}Bytes';
               final offset = propertyFlatBuffersvTableOffset(p);
-              preLines.add(
-                'final $bytesVar = const fb.Uint8ListReader(lazy: false).vTableGetNullable(buffer, rootOffset, $offset);',
-              );
               // Use appropriate deserializer based on field type
               final isMap = p.fieldType.startsWith('Map');
               // dynamic is always nullable; Object requires nullable annotation
@@ -626,12 +622,12 @@ class CodeChunks {
                 castSuffix = '';
               }
               final deserializeExpr =
-                  '$obxInt.$flexDeserializer(Uint8List.fromList($bytesVar))$castSuffix';
+                  '$obxInt.$flexDeserializer(buffer, rootOffset, $offset)$castSuffix';
               if (p.fieldIsNullable || defaultValue == null) {
                 // Nullable field or value type (dynamic/Object?) - no default
-                return '$bytesVar == null ? null : $deserializeExpr';
+                return deserializeExpr;
               } else {
-                return '$bytesVar == null ? $defaultValue : $deserializeExpr ?? $defaultValue';
+                return '$deserializeExpr ?? $defaultValue';
               }
             default:
               return readFieldCodeString(
