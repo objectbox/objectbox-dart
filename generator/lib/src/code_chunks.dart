@@ -349,7 +349,7 @@ class CodeChunks {
               return '$assignment fbb.writeListFloat64($fieldName);';
             case OBXPropertyType.Flex:
               // Use toFlexBuffer() to serialize Map, List, or value types
-              return '$assignment fbb.writeListInt8($obxInt.toFlexBuffer($fieldName)!);';
+              return '$assignment fbb.writeListInt8($obxInt.toFlexBuffer($fieldName));';
             default:
               offsets.remove(p.id.id);
               return null;

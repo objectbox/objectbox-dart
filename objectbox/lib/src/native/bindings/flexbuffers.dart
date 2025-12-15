@@ -6,13 +6,11 @@ import 'package:flat_buffers/flex_buffers.dart' as flex;
 
 /// Serializes any FlexBuffer-compatible value to bytes.
 ///
-/// Supported types: null, bool, int, double, String, `List<dynamic>`,
-/// `Map<String, dynamic>`, and nested combinations of these.
-///
-/// Returns null if the input value is null.
+/// Supported types: bool, int, double, String, `List<dynamic>`,
+/// `Map<String, dynamic>`, and nested combinations of these. List elements and
+/// map values (not keys) can be null.
 @pragma('vm:prefer-inline')
-Uint8List? toFlexBuffer(dynamic value) {
-  if (value == null) return null;
+Uint8List toFlexBuffer(Object value) {
   final buffer = flex.Builder.buildFromObject(value);
   return buffer.asUint8List();
 }
