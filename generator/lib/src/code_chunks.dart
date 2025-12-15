@@ -324,7 +324,8 @@ class CodeChunks {
           offsets[p.id.id] = offsetVar; // see default case in the switch
 
           var assignment = 'final $offsetVar = ';
-          if (p.fieldIsNullable) {
+          // Note: dynamic is always nullable (currently only used for Flex properties)
+          if (p.fieldIsNullable || p.fieldType == 'dynamic') {
             assignment += '$fieldName == null ? null : ';
             fieldName += '!';
           }
@@ -348,15 +349,6 @@ class CodeChunks {
               return '$assignment fbb.writeListFloat64($fieldName);';
             case OBXPropertyType.Flex:
               // Use toFlexBuffer() to serialize Map, List, or value types
-              // dynamic is always nullable; Object requires nullable annotation
-              final isValue =
-                  p.fieldType == 'dynamic' ||
-                  (p.fieldType == 'Object' && p.fieldIsNullable);
-              // For value types (dynamic/Object?), check null before serializing
-              if (isValue) {
-                final rawFieldName = 'object.${propertyFieldName(p)}';
-                return 'final $offsetVar = $rawFieldName == null ? null : fbb.writeListInt8($obxInt.toFlexBuffer($rawFieldName)!);';
-              }
               return '$assignment fbb.writeListInt8($obxInt.toFlexBuffer($fieldName)!);';
             default:
               offsets.remove(p.id.id);
