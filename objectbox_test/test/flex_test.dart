@@ -26,7 +26,7 @@ void main() {
       box = store.box<FlexMapEntity>();
     });
 
-    test('put and get with null values', () {
+    test('put and get with default values', () {
       final entity = FlexMapEntity();
       final id = box.put(entity);
 
@@ -37,37 +37,34 @@ void main() {
       expect(read.flexExplicit, isNull);
     });
 
-    test('put and get simple map', () {
-      final entity = FlexMapEntity(
-        flexDynamic: {'name': 'Alice', 'age': 30, 'active': true},
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, isNotNull);
-      expect(read.flexDynamic!['name'], 'Alice');
-      expect(read.flexDynamic!['age'], 30);
-      expect(read.flexDynamic!['active'], true);
-    });
-
     test('put and get map with various value types', () {
+      final testMap = {
+        'string': 'hello',
+        'int': 42,
+        'double': 3.14,
+        'bool': false,
+        'null': null,
+      };
       final entity = FlexMapEntity(
-        flexDynamic: {
-          'string': 'hello',
-          'int': 42,
-          'double': 3.14,
-          'bool': false,
-          'null': null,
-        },
-      );
+          flexDynamic: testMap,
+          flexObject: testMap,
+          flexNonNull: testMap,
+          flexExplicit: testMap);
       final id = box.put(entity);
 
+      assertTestMap(Map<String, dynamic> map) {
+        expect(map['string'], 'hello');
+        expect(map['int'], 42);
+        expect(map['double'], 3.14);
+        expect(map['bool'], false);
+        expect(map['null'], isNull);
+      }
+
       final read = box.get(id)!;
-      expect(read.flexDynamic!['string'], 'hello');
-      expect(read.flexDynamic!['int'], 42);
-      expect(read.flexDynamic!['double'], closeTo(3.14, 0.001));
-      expect(read.flexDynamic!['bool'], false);
-      expect(read.flexDynamic!['null'], isNull);
+      assertTestMap(read.flexDynamic!);
+      assertTestMap(read.flexObject!);
+      assertTestMap(read.flexNonNull);
+      assertTestMap(read.flexExplicit!);
     });
 
     test('put and get nested map', () {
@@ -134,44 +131,6 @@ void main() {
       expect(users.length, 2);
       expect((users[0] as Map)['name'], 'Alice');
       expect((users[0] as Map)['roles'], ['admin', 'user']);
-    });
-
-    test('Map<String, Object?> works the same as Map<String, dynamic>', () {
-      final entity = FlexMapEntity(
-        flexObject: {'key': 'value', 'number': 123},
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexObject!['key'], 'value');
-      expect(read.flexObject!['number'], 123);
-    });
-
-    test('non-nullable map defaults to empty map', () {
-      final entity = FlexMapEntity();
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexNonNull, isA<Map<String, dynamic>>());
-      expect(read.flexNonNull, isEmpty);
-    });
-
-    test('non-nullable map stores and retrieves data', () {
-      final entity = FlexMapEntity(flexNonNull: {'key': 'value'});
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexNonNull['key'], 'value');
-    });
-
-    test('explicit @Property annotation works', () {
-      final entity = FlexMapEntity(
-        flexExplicit: {'explicit': true},
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexExplicit!['explicit'], true);
     });
 
     test('update map value', () {
