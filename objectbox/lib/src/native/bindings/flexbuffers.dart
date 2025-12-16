@@ -74,9 +74,6 @@ dynamic _convertReference(flex.Reference ref) {
   } else if (ref.isVector) {
     return ref.vectorIterable.map(_convertReference).toList();
   }
-  // Fallback: try to get any numeric value
-  final num = ref.numValue;
-  if (num != null) return num;
 
   throw UnsupportedError('Unsupported FlexBuffer value type');
 }
