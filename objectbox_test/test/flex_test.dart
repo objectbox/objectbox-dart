@@ -142,6 +142,9 @@ void main() {
       expect(users.length, 2);
       expect((users[0] as Map)['name'], 'Alice');
       expect((users[0] as Map)['roles'], ['admin', 'user']);
+      final metadata = read.flexDynamic!['metadata'] as Map<String, dynamic>;
+      expect(metadata['version'], 1);
+      expect(metadata['features'], ['flex', 'sync']);
     });
 
     test('update map value', () {
