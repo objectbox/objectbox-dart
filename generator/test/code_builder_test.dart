@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -793,6 +794,34 @@ void main() {
       );
       expect(relation2.externalType, OBXExternalPropertyType.Uuid);
       expect(relation2.externalName, "my-courses-rel");
+    });
+  });
+
+  group('GeneratorVersion', () {
+    test('generated code includes GeneratorVersion parameter', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      // Verify the generated code contains the GeneratorVersion parameter.
+      // The matcher receives bytes, so use predicate to convert to string.
+      final expectedVersion =
+          'generatorVersion: obx_int.GeneratorVersion.${generatorVersionLatest.name}';
+      await testEnv.run(
+        source,
+        generatedCodeMatcher: predicate<List<int>>(
+          (bytes) => utf8.decode(bytes).contains(expectedVersion),
+          'contains "$expectedVersion"',
+        ),
+      );
     });
   });
 }

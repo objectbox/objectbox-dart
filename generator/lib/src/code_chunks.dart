@@ -104,6 +104,11 @@ class CodeChunks {
   static String defineModel(ModelInfo model) {
     return '''
     final model = $obxInt.ModelInfo(
+      // If this version is not found, it means that this file was generated
+      // with an older version of the ObjectBox Dart generator.
+      // Please regenerate this file with the current generator version.
+      // Typically, this is done with `dart run build_runner build`.
+      generatorVersion: $obxInt.GeneratorVersion.${generatorVersionLatest.name},
       entities: _entities,
       lastEntityId: ${createIdUid(model.lastEntityId)},
       lastIndexId: ${createIdUid(model.lastIndexId)},

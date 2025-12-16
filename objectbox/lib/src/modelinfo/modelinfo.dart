@@ -8,6 +8,28 @@ import 'modelentity.dart';
 const _minModelVersion = 5;
 const _maxModelVersion = 5;
 
+/// Represents the generator version used to create the model.
+///
+/// This enum contains all supported versions by this ObjectBox runtime library.
+/// It is used purely for compile-time enforcement to ensure users regenerate
+/// code after updating the objectbox package.
+/// Once a version is not compatible/supported, it is removed from this enum.
+/// Note: using a separate, date based, versioning (YYYY_MM_DD) as the
+/// generator is not always updated in each library version.
+enum GeneratorVersion {
+  /// The model was not created by generated code.
+  none,
+
+  /// BREAKING CHANGE in ObjectBox Dart 5.1 with DateTime (date) properties:
+  /// - DateTime properties are now stored in UTC by default(!).
+  /// - If you rely on reading local time, you must use dateLegacy.
+  /// - Only UTC times provide correct values for ObjectBox Sync.
+  v2025_12_16,
+}
+
+/// The latest generator version (aligned with this ObjectBox runtime library).
+const generatorVersionLatest = GeneratorVersion.v2025_12_16;
+
 /// In order to represent the model stored in `objectbox-model.json` in Dart,
 /// several classes have been introduced. Conceptually, these classes are
 /// comparable to how models are handled in ObjectBox Java and ObjectBox Go.
@@ -20,6 +42,9 @@ class ModelInfo {
     'If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.',
   ];
 
+  /// The ObjectBox Dart generator version used to generate this model.
+  GeneratorVersion generatorVersion;
+
   List<ModelEntity> entities;
   IdUid lastEntityId, lastIndexId, lastRelationId, lastSequenceId;
   List<int> retiredEntityUids,
@@ -29,7 +54,8 @@ class ModelInfo {
   int modelVersion, modelVersionParserMinimum, version;
 
   ModelInfo(
-      {required this.entities,
+      {required this.generatorVersion,
+      required this.entities,
       required this.lastEntityId,
       required this.lastIndexId,
       required this.lastRelationId,
@@ -43,7 +69,8 @@ class ModelInfo {
       required this.version});
 
   ModelInfo.empty()
-      : entities = [],
+      : generatorVersion = GeneratorVersion.none,
+        entities = [],
         lastEntityId = const IdUid.empty(),
         lastIndexId = const IdUid.empty(),
         lastRelationId = const IdUid.empty(),
@@ -57,7 +84,8 @@ class ModelInfo {
         version = 1;
 
   ModelInfo.fromMap(Map<String, dynamic> data, {bool check = true})
-      : entities = [],
+      : generatorVersion = GeneratorVersion.none,
+        entities = [],
         lastEntityId = IdUid.fromString(data['lastEntityId'] as String?),
         lastIndexId = IdUid.fromString(data['lastIndexId'] as String?),
         lastRelationId = IdUid.fromString(data['lastRelationId'] as String?),

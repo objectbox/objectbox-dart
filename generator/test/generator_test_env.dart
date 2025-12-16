@@ -38,6 +38,7 @@ class GeneratorTestEnv {
   Future<GeneratorTestResult> run(
     String source, {
     bool ignoreOutput = false,
+    Object? generatedCodeMatcher,
   }) async {
     final library = "example";
     // Enable resolving imports (imported packages must be a dependency of this package)
@@ -55,7 +56,7 @@ class GeneratorTestEnv {
       //   var modelEntity = ModelEntity.fromMap(entitiesList[0], check: false);
       //   return modelEntity.name == "Example" && modelEntity.flags == 0;
       // }),
-      '$library|lib/objectbox.g.dart': isNotNull,
+      '$library|lib/objectbox.g.dart': generatedCodeMatcher ?? isNotNull,
       // Future improvement: assert generated code? Needs existing model JSON for stable IDs
       // '$library|lib/objectbox.g.dart': '<file-content>'
     };
