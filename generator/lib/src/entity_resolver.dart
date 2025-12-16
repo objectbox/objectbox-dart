@@ -382,8 +382,7 @@ class EntityResolver extends Builder {
             f.type.element!.displayName + (isNullable(f.type) ? '?' : '');
         // For Flex properties, store the full type string including generics
         if (fieldType == OBXPropertyType.Flex) {
-          // ignore: deprecated_member_use
-          prop.dartFieldType = f.type.getDisplayString(withNullability: true);
+          prop.dartFieldType = f.type.getDisplayString();
         }
         entity.properties.add(prop);
       }
