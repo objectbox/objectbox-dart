@@ -206,31 +206,35 @@ void main() {
       expect(read.flexExplicit, isNull);
     });
 
-    test('put and get simple list', () {
-      final entity = FlexListEntity(
-        flexDynamic: ['Alice', 30, true],
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, isNotNull);
-      expect(read.flexDynamic![0], 'Alice');
-      expect(read.flexDynamic![1], 30);
-      expect(read.flexDynamic![2], true);
-    });
-
     test('put and get list with various value types', () {
+      final testList = ['Alice', 30, 3.14, true];
+      final testListWithNull = List<Object?>.from(testList) + [null];
       final entity = FlexListEntity(
-        flexDynamic: ['hello', 42, 3.14, false, null],
-      );
+          flexDynamic: testListWithNull,
+          flexObject: testListWithNull,
+          flexObjectNonNull: testList,
+          flexNonNull: testListWithNull,
+          flexExplicit: testListWithNull);
       final id = box.put(entity);
 
+      assertTestList(List<dynamic> list) {
+        expect(list[0], 'Alice');
+        expect(list[1], 30);
+        expect(list[2], 3.14);
+        expect(list[3], true);
+      }
+
+      assertTestListWithNull(List<dynamic> list) {
+        assertTestList(list);
+        expect(list[4], isNull);
+      }
+
       final read = box.get(id)!;
-      expect(read.flexDynamic![0], 'hello');
-      expect(read.flexDynamic![1], 42);
-      expect(read.flexDynamic![2], closeTo(3.14, 0.001));
-      expect(read.flexDynamic![3], false);
-      expect(read.flexDynamic![4], isNull);
+      assertTestListWithNull(read.flexDynamic!);
+      assertTestListWithNull(read.flexObject!);
+      assertTestList(read.flexObjectNonNull!);
+      assertTestListWithNull(read.flexNonNull);
+      assertTestListWithNull(read.flexExplicit!);
     });
 
     test('put and get nested list', () {
@@ -294,99 +298,31 @@ void main() {
       expect(read.flexDynamic![3], 42);
     });
 
-    test('List<Object?> works the same as List<dynamic>', () {
+    test('put and get list with nested map', () {
+      var testList = [
+        {'key1': 'value1', 'nullable': null},
+        {
+          'key2': 'value2',
+          'nested': {'a': 1}
+        },
+      ];
       final entity = FlexListEntity(
-        flexObject: ['value', 123, null],
-      );
+          flexListOfMaps: testList, flexListOfMapsObject: testList);
       final id = box.put(entity);
 
-      final read = box.get(id)!;
-      expect(read.flexObject![0], 'value');
-      expect(read.flexObject![1], 123);
-      expect(read.flexObject![2], isNull);
-    });
-
-    test('List<Object> (non-nullable elements) auto-detection works', () {
-      final entity = FlexListEntity(
-        flexObjectNonNull: ['value', 123, 3.14, true],
-      );
-      final id = box.put(entity);
+      assertNestedMap(List<Map<String, dynamic>> list) {
+        expect(list.length, 2);
+        final first = list[0];
+        expect(first['key1'], 'value1');
+        expect(first['nullable'], isNull);
+        final second = list[1];
+        expect(second['key2'], 'value2');
+        expect((second['nested'] as Map)['a'], 1);
+      }
 
       final read = box.get(id)!;
-      expect(read.flexObjectNonNull, isNotNull);
-      expect(read.flexObjectNonNull![0], 'value');
-      expect(read.flexObjectNonNull![1], 123);
-      expect(read.flexObjectNonNull![2], 3.14);
-      expect(read.flexObjectNonNull![3], true);
-    });
-
-    test('non-nullable list defaults to empty list', () {
-      final entity = FlexListEntity();
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexNonNull, isA<List<dynamic>>());
-      expect(read.flexNonNull, isEmpty);
-    });
-
-    test('non-nullable list stores and retrieves data', () {
-      final entity = FlexListEntity(flexNonNull: ['value', 42]);
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexNonNull[0], 'value');
-      expect(read.flexNonNull[1], 42);
-    });
-
-    test('List<Map<String, dynamic>> auto-detection works', () {
-      final entity = FlexListEntity(
-        flexListOfMaps: [
-          {'key1': 'value1'},
-          {
-            'key2': 'value2',
-            'nested': {'a': 1}
-          },
-        ],
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexListOfMaps, isNotNull);
-      expect(read.flexListOfMaps!.length, 2);
-      // Note: After deserialization, maps are Map<String, dynamic>
-      final first = read.flexListOfMaps![0];
-      expect(first['key1'], 'value1');
-      final second = read.flexListOfMaps![1];
-      expect(second['key2'], 'value2');
-      expect((second['nested'] as Map)['a'], 1);
-    });
-
-    test('List<Map<String, Object?>> auto-detection works', () {
-      final entity = FlexListEntity(
-        flexListOfMapsObject: [
-          {'key1': 'value1', 'nullable': null},
-          {'key2': 123},
-        ],
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexListOfMapsObject, isNotNull);
-      expect(read.flexListOfMapsObject!.length, 2);
-      expect(read.flexListOfMapsObject![0]['key1'], 'value1');
-      expect(read.flexListOfMapsObject![0]['nullable'], isNull);
-      expect(read.flexListOfMapsObject![1]['key2'], 123);
-    });
-
-    test('explicit @Property annotation works', () {
-      final entity = FlexListEntity(
-        flexExplicit: [true, 'explicit'],
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexExplicit![0], true);
-      expect(read.flexExplicit![1], 'explicit');
+      assertNestedMap(read.flexListOfMaps!);
+      assertNestedMap(read.flexListOfMapsObject!);
     });
 
     test('update list value', () {
