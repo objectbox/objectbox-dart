@@ -58,6 +58,9 @@ void main() {
         expect(map['double'], 3.14);
         expect(map['bool'], false);
         expect(map['null'], isNull);
+        // The map also returns null if it doesn't contain the key,
+        // so explicitly check it does.
+        expect(map.containsKey('null'), true);
       }
 
       final read = box.get(id)!;
