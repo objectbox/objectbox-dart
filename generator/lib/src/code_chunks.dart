@@ -449,6 +449,26 @@ class CodeChunks {
     );
   }
 
+  /// Extracts the key and value types by removing "Map<" prefix and ">" suffix.
+  static String _getMapKeyValueTypes(String typeString) {
+    // This String operation is very fragile and should be replaced with info
+    // from ModelProperty created by EntityResolver.
+    return typeString.substring(
+      4, // "Map<"
+      typeString.length - 1, // ">"
+    );
+  }
+
+  /// Extracts the element type by removing "List<" prefix and ">" suffix.
+  static String _getListElementType(String typeString) {
+    // This String operation is very fragile and should be replaced with info
+    // from ModelProperty created by EntityResolver.
+    return typeString.substring(
+      5, // "List<"
+      typeString.length - 1, // ">"
+    );
+  }
+
   static String objectFromFB(ModelEntity entity) {
     // collect code for the template at the end of this function
     final constructorLines = <String>[]; // used as constructor arguments
@@ -579,27 +599,36 @@ class CodeChunks {
               // Check if list needs casting (List<Object> or List<Object?>)
               final isListOfObject = p.fieldType.startsWith('List<Object');
               final String flexDeserializer;
+              final bool skipNull;
               final String? defaultValue;
               final String castSuffix;
               if (isValue) {
                 // dynamic or Object? - can be any FlexBuffer value
                 flexDeserializer = 'fromFlexBuffer';
+                skipNull = false;
                 defaultValue = null; // nullable only, no default needed
                 castSuffix = '';
               } else if (isMap) {
                 flexDeserializer = 'flexBufferToMap';
-                defaultValue = '<String, dynamic>{}';
-                castSuffix = '';
+                final keyValueTypes = _getMapKeyValueTypes(p.fieldType);
+                final hasDynamicValueType = keyValueTypes.endsWith('dynamic');
+                // For maps with non-null values skip nulls (so not
+                // Map<String, dynamic> or Map<String, Object/List/Map?>).
+                skipNull = !hasDynamicValueType && !keyValueTypes.endsWith('?');
+                defaultValue = '<$keyValueTypes>{}';
+                // Cast to the correct Map type if not Map<String, dynamic>
+                if (hasDynamicValueType) {
+                  castSuffix = '';
+                } else {
+                  castSuffix = '?.cast<$keyValueTypes>()';
+                }
               } else if (isListOfMaps) {
                 flexDeserializer = 'flexBufferToListOfMaps';
-                // Extract the element type, e.g. "Map<String, dynamic>"
-                // by removing "List<" prefix and ">" suffix.
-                final elementType = p.fieldType.substring(
-                  5,
-                  p.fieldType.length - 1,
-                );
+                final elementType = _getListElementType(p.fieldType);
+                // The deserializer already skips nulls
+                skipNull = false;
                 defaultValue = '<$elementType>[]';
-                // Cast needed for Map<String, Object?> (Object not supported)
+                // Cast needed for Map<String, Object?> and Map<String, Object>
                 if (elementType == 'Map<String, dynamic>') {
                   castSuffix = '';
                 } else {
@@ -607,22 +636,21 @@ class CodeChunks {
                 }
               } else if (isListOfObject) {
                 flexDeserializer = 'flexBufferToList';
-                // Extract the element type, e.g. "Object" or "Object?"
-                // by removing "List<" prefix and ">" suffix.
-                final elementType = p.fieldType.substring(
-                  5,
-                  p.fieldType.length - 1,
-                );
+                final elementType = _getListElementType(p.fieldType);
+                // For lists with non-null elements skip nulls
+                skipNull = !elementType.endsWith('?');
                 defaultValue = '<$elementType>[]';
                 castSuffix = '?.cast<$elementType>()';
               } else {
                 // List<dynamic>
                 flexDeserializer = 'flexBufferToList';
+                skipNull = false;
                 defaultValue = '<dynamic>[]';
                 castSuffix = '';
               }
+              final skipNullArg = skipNull ? ', skipNull: true' : '';
               final deserializeExpr =
-                  '$obxInt.$flexDeserializer(buffer, rootOffset, $offset)$castSuffix';
+                  '$obxInt.$flexDeserializer(buffer, rootOffset, $offset$skipNullArg)$castSuffix';
               if (p.fieldIsNullable || defaultValue == null) {
                 // Nullable field or value type (dynamic/Object?) - no default
                 return deserializeExpr;

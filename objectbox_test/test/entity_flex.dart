@@ -12,6 +12,9 @@ class FlexMapEntity {
   // Auto-detected Map<String, Object?> - nullable
   Map<String, Object?>? flexObject;
 
+  // Auto-detected Map<String, Object> (non-nullable values) - nullable
+  Map<String, Object>? flexObjectNonNull;
+
   // Non-nullable with default empty map
   Map<String, dynamic> flexNonNull = {};
 
@@ -22,6 +25,7 @@ class FlexMapEntity {
   FlexMapEntity({
     this.flexDynamic,
     this.flexObject,
+    this.flexObjectNonNull,
     this.flexNonNull = const {},
     this.flexExplicit,
   });

@@ -43,13 +43,16 @@ void main() {
         'int': 42,
         'double': 3.14,
         'bool': false,
-        'null': null,
       };
+      final testMapWithNull = <String, Object?>{
+        'null': null,
+      }..addAll(testMap);
       final entity = FlexMapEntity(
-          flexDynamic: testMap,
-          flexObject: testMap,
-          flexNonNull: testMap,
-          flexExplicit: testMap);
+          flexDynamic: testMapWithNull,
+          flexObject: testMapWithNull,
+          flexObjectNonNull: testMap,
+          flexNonNull: testMapWithNull,
+          flexExplicit: testMapWithNull);
       final id = box.put(entity);
 
       assertTestMap(Map<String, dynamic> map) {
@@ -57,6 +60,10 @@ void main() {
         expect(map['int'], 42);
         expect(map['double'], 3.14);
         expect(map['bool'], false);
+      }
+
+      assertTestMapWithNull(Map<String, dynamic> map) {
+        assertTestMap(map);
         expect(map['null'], isNull);
         // The map also returns null if it doesn't contain the key,
         // so explicitly check it does.
@@ -64,10 +71,11 @@ void main() {
       }
 
       final read = box.get(id)!;
-      assertTestMap(read.flexDynamic!);
-      assertTestMap(read.flexObject!);
-      assertTestMap(read.flexNonNull);
-      assertTestMap(read.flexExplicit!);
+      assertTestMapWithNull(read.flexDynamic!);
+      assertTestMapWithNull(read.flexObject!);
+      assertTestMap(read.flexObjectNonNull!);
+      assertTestMapWithNull(read.flexNonNull);
+      assertTestMapWithNull(read.flexExplicit!);
     });
 
     test('put and get nested map', () {
@@ -317,7 +325,10 @@ void main() {
         expect(list.length, 2);
         final first = list[0];
         expect(first['key1'], 'value1');
-        expect(first['nullable'], isNull);
+        // Because the List element type of the properties is defined as
+        // non-null, null values are skipped, which also affects nested maps
+        // (and lists).
+        expect(first.containsKey('nullable'), false);
         final second = list[1];
         expect(second['key2'], 'value2');
         expect((second['nested'] as Map)['a'], 1);

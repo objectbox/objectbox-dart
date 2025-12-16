@@ -825,6 +825,9 @@ void main() {
       
         // Auto-detected Map<String, Object?> - nullable
         Map<String, Object?>? flexObject;
+        
+        // Auto-detected Map<String, Object> (non-nullable values) - nullable
+        Map<String, Object>? flexObjectNonNull;
       
         // Non-nullable with default empty map
         Map<String, dynamic> flexNonNull = {};
@@ -839,7 +842,7 @@ void main() {
       await testEnv.run(source);
 
       var properties = testEnv.model.entities[0].properties;
-      expectFlexProperties(properties, 5);
+      expectFlexProperties(properties, 6);
     });
 
     test('Flex List type detection', () async {
