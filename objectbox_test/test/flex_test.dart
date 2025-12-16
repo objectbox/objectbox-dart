@@ -411,67 +411,22 @@ void main() {
       expect(read.flexObject, isNull);
     });
 
-    test('put and get string value', () {
-      final entity = FlexValueEntity(flexDynamic: 'hello world');
-      final id = box.put(entity);
+    test('put and get value with various types', () {
+      assertPutAndGet<V>(V value) {
+        final entity = FlexValueEntity(flexDynamic: value, flexObject: value);
+        final id = box.put(entity);
 
-      final read = box.get(id)!;
-      expect(read.flexDynamic, 'hello world');
-    });
+        final read = box.get(id)!;
+        expect(read.flexDynamic, value);
+        expect(read.flexObject, value);
+      }
 
-    test('put and get int value', () {
-      final entity = FlexValueEntity(flexDynamic: 42);
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, 42);
-    });
-
-    test('put and get double value', () {
-      final entity = FlexValueEntity(flexDynamic: 3.14159);
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, closeTo(3.14159, 0.00001));
-    });
-
-    test('put and get bool value', () {
-      final entity = FlexValueEntity(flexDynamic: true);
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, true);
-    });
-
-    test('put and get list value', () {
-      final entity = FlexValueEntity(flexDynamic: [1, 'two', 3.0]);
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, isA<List>());
-      expect((read.flexDynamic as List)[0], 1);
-      expect((read.flexDynamic as List)[1], 'two');
-      expect((read.flexDynamic as List)[2], 3.0);
-    });
-
-    test('put and get map value', () {
-      final entity = FlexValueEntity(
-        flexDynamic: {'key': 'value', 'number': 42},
-      );
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexDynamic, isA<Map>());
-      expect((read.flexDynamic as Map)['key'], 'value');
-      expect((read.flexDynamic as Map)['number'], 42);
-    });
-
-    test('Object? works the same as dynamic', () {
-      final entity = FlexValueEntity(flexObject: 'test string');
-      final id = box.put(entity);
-
-      final read = box.get(id)!;
-      expect(read.flexObject, 'test string');
+      assertPutAndGet('hello world');
+      assertPutAndGet(42);
+      assertPutAndGet(3.14159);
+      assertPutAndGet(true);
+      assertPutAndGet([1, 'two', 3.0]);
+      assertPutAndGet({'key': 'value', 'number': 42, 'nullable': null});
     });
 
     test('update value type', () {
