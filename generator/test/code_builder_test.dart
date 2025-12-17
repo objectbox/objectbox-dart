@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'package:build_test/build_test.dart';
 import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
@@ -970,14 +970,15 @@ void main() {
 
       final testEnv = GeneratorTestEnv();
       // Verify the generated code contains the GeneratorVersion parameter.
-      // The matcher receives bytes, so use predicate to convert to string.
       final expectedVersion =
           'generatorVersion: obx_int.GeneratorVersion.${generatorVersionLatest.name}';
       await testEnv.run(
         source,
-        generatedCodeMatcher: predicate<List<int>>(
-          (bytes) => utf8.decode(bytes).contains(expectedVersion),
-          'contains "$expectedVersion"',
+        generatedCodeMatcher: decodedMatches(
+          predicate<String>(
+            (content) => content.contains(expectedVersion),
+            'contains "$expectedVersion"',
+          ),
         ),
       );
     });
