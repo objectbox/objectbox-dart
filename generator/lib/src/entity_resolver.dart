@@ -203,14 +203,7 @@ class EntityResolver extends Builder {
 
         // Error if Flex is used on unsupported type
         if (fieldType == OBXPropertyType.Flex) {
-          final isMap = f.type.isDartCoreMap;
-          final isList = f.type.isDartCoreList;
-          // dynamic is always nullable; Object requires nullable annotation
-          final isValue =
-              f.type is DynamicType ||
-              (f.type.isDartCoreObject &&
-                  f.type.nullabilitySuffix == NullabilitySuffix.question);
-          if (!isMap && !isList && !isValue) {
+          if (!_isSupportedFlexType(f.type)) {
             throw InvalidGenerationSourceError(
               "'${classElement.displayName}.${f.displayName}': PropertyType.flex can only be used with "
               "Map, List, dynamic, and Object?, but is '${f.type}'.",
@@ -461,14 +454,8 @@ class EntityResolver extends Builder {
       } else if (itemType.isDartCoreString) {
         // List<String>
         return OBXPropertyType.StringVector;
-      } else if (_isDynamicOrObject(itemType)) {
-        // List<dynamic>, List<Object?>, or List<Object>
+      } else if (_isSupportedFlexType(dartType)) {
         return OBXPropertyType.Flex;
-      } else if (itemType.isDartCoreMap) {
-        // List<Map<String, dynamic/Object?>> - Object not supported (cast issue)
-        if (_isMapSupportedForFlex(itemType)) {
-          return OBXPropertyType.Flex;
-        }
       }
     } else if ([
       'Int8List',
@@ -502,11 +489,9 @@ class EntityResolver extends Builder {
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(field)) {
       return OBXPropertyType.Relation;
-    } else if (dartType.isDartCoreMap) {
-      // Check for Map<String, dynamic/Object?/Object>
-      if (_isMapSupportedForFlex(dartType)) {
-        return OBXPropertyType.Flex;
-      }
+    } else if (_isSupportedFlexType(dartType)) {
+      // dynamic, Object?, Map<String, dynamic/Object?/Object>, or List<...>
+      return OBXPropertyType.Flex;
     }
 
     // No supported Dart type recognized.
@@ -515,6 +500,34 @@ class EntityResolver extends Builder {
 
   bool _isDynamicOrObject(DartType dartType) {
     return dartType is DynamicType || dartType.isDartCoreObject;
+  }
+
+  /// Returns true if [type] is supported for Flex properties:
+  /// - dynamic
+  /// - Object? (nullable Object)
+  /// - `Map<String, dynamic/Object?/Object>`
+  /// - `List<dynamic/Object?/Object>` or `List<Map<String, dynamic/Object?>>`
+  bool _isSupportedFlexType(DartType type) {
+    // dynamic is always nullable
+    if (type is DynamicType) return true;
+    // Object? (nullable Object)
+    if (type.isDartCoreObject &&
+        type.nullabilitySuffix == NullabilitySuffix.question) {
+      return true;
+    }
+    // Map<String, dynamic/Object?/Object>
+    if (type.isDartCoreMap && _isMapSupportedForFlex(type)) return true;
+    // List<dynamic/Object?/Object> or List<Map<String, dynamic/Object?>>
+    if (type.isDartCoreList) {
+      final itemType = listItemType(type);
+      if (itemType != null) {
+        if (_isDynamicOrObject(itemType)) return true;
+        if (itemType.isDartCoreMap && _isMapSupportedForFlex(itemType)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   bool _isMapSupportedForFlex(DartType dartType) {

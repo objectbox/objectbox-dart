@@ -76,16 +76,24 @@ class FlexValueEntity {
   @Id()
   int id = 0;
 
-  // Explicit annotation required for dynamic
-  @Property(type: PropertyType.flex)
+  // Auto-detected dynamic
   dynamic flexDynamic;
 
-  // Explicit annotation required for Object?
-  @Property(type: PropertyType.flex)
+  // Auto-detected "Object?"
   Object? flexObject;
+
+  // Explicit annotation for dynamic
+  @Property(type: PropertyType.flex)
+  dynamic flexDynamicExplicit;
+
+  // Explicit annotation for "Object?"
+  @Property(type: PropertyType.flex)
+  Object? flexObjectExplicit;
 
   FlexValueEntity({
     this.flexDynamic,
     this.flexObject,
+    this.flexDynamicExplicit,
+    this.flexObjectExplicit,
   });
 }

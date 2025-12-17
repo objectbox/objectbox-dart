@@ -916,7 +916,7 @@
     },
     {
       "id": "22:3648782640383158768",
-      "lastPropertyId": "3:7299173100433666540",
+      "lastPropertyId": "5:4857837946721321832",
       "name": "FlexValueEntity",
       "properties": [
         {
@@ -933,6 +933,16 @@
         {
           "id": "3:7299173100433666540",
           "name": "flexObject",
+          "type": 13
+        },
+        {
+          "id": "4:6926670937343705217",
+          "name": "flexDynamicExplicit",
+          "type": 13
+        },
+        {
+          "id": "5:4857837946721321832",
+          "name": "flexObjectExplicit",
           "type": 13
         }
       ],

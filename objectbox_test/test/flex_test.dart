@@ -407,18 +407,31 @@ void main() {
       final id = box.put(entity);
 
       final read = box.get(id)!;
+      // Auto-detected
       expect(read.flexDynamic, isNull);
       expect(read.flexObject, isNull);
+      // Explicitly annotated
+      expect(read.flexDynamicExplicit, isNull);
+      expect(read.flexObjectExplicit, isNull);
     });
 
     test('put and get value with various types', () {
       assertPutAndGet<V>(V value) {
-        final entity = FlexValueEntity(flexDynamic: value, flexObject: value);
+        final entity = FlexValueEntity(
+          flexDynamic: value,
+          flexObject: value,
+          flexDynamicExplicit: value,
+          flexObjectExplicit: value,
+        );
         final id = box.put(entity);
 
         final read = box.get(id)!;
+        // Auto-detected
         expect(read.flexDynamic, value);
         expect(read.flexObject, value);
+        // Explicitly annotated
+        expect(read.flexDynamicExplicit, value);
+        expect(read.flexObjectExplicit, value);
       }
 
       assertPutAndGet('hello world');
@@ -431,36 +444,48 @@ void main() {
 
     test('update value type', () {
       // Start with a string
-      final entity = FlexValueEntity(flexDynamic: 'initial');
+      final entity = FlexValueEntity(
+        flexDynamic: 'initial',
+        flexDynamicExplicit: 'initial',
+      );
       final id = box.put(entity);
 
       // Update to an int
       final read = box.get(id)!;
       read.flexDynamic = 123;
+      read.flexDynamicExplicit = 123;
       box.put(read);
 
       // Verify update
       final updated = box.get(id)!;
       expect(updated.flexDynamic, 123);
+      expect(updated.flexDynamicExplicit, 123);
 
       // Update to a map
       updated.flexDynamic = {'changed': true};
+      updated.flexDynamicExplicit = {'changed': true};
       box.put(updated);
 
       final final_ = box.get(id)!;
       expect((final_.flexDynamic as Map)['changed'], true);
+      expect((final_.flexDynamicExplicit as Map)['changed'], true);
     });
 
     test('set value to null', () {
-      final entity = FlexValueEntity(flexDynamic: 'not null');
+      final entity = FlexValueEntity(
+        flexDynamic: 'not null',
+        flexDynamicExplicit: 'not null',
+      );
       final id = box.put(entity);
 
       final read = box.get(id)!;
       read.flexDynamic = null;
+      read.flexDynamicExplicit = null;
       box.put(read);
 
       final updated = box.get(id)!;
       expect(updated.flexDynamic, isNull);
+      expect(updated.flexDynamicExplicit, isNull);
     });
   });
 }

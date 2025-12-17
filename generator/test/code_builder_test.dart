@@ -896,13 +896,18 @@ void main() {
         @Id()
         int id = 0;
         
-        // Explicit annotation required for dynamic
-        @Property(type: PropertyType.flex)
+        // Auto-detected dynamic
         dynamic flexDynamic;
       
-        // Explicit annotation required for Object?
+        // Auto-detected Object?
+        Object? flexObject;
+        
+        // Explicit annotation still works
         @Property(type: PropertyType.flex)
-        Object? flexObject;       
+        dynamic flexDynamicExplicit;
+        
+        @Property(type: PropertyType.flex)
+        Object? flexObjectExplicit;
       }
       ''';
 
@@ -910,7 +915,7 @@ void main() {
       await testEnv.run(source);
 
       var properties = testEnv.model.entities[0].properties;
-      expectFlexProperties(properties, 3);
+      expectFlexProperties(properties, 5);
     });
 
     test('Flex unsupported type errors', () async {
