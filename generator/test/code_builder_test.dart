@@ -795,4 +795,162 @@ void main() {
       expect(relation2.externalName, "my-courses-rel");
     });
   });
+
+  group("Flex properties", () {
+    expectFlexProperties(List<ModelProperty> properties, int number) {
+      expect(properties.length, number);
+      for (var property in properties) {
+        if (property.name != 'id') {
+          expect(
+            property.type,
+            OBXPropertyType.Flex,
+            reason: 'Property "${property.name}" should be of Flex type',
+          );
+        }
+      }
+    }
+
+    test('Flex Map type detection', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class FlexEntity {
+        @Id()
+        int id = 0;       
+      
+        // Auto-detected Map<String, dynamic> - nullable
+        Map<String, dynamic>? flexDynamic;
+      
+        // Auto-detected Map<String, Object?> - nullable
+        Map<String, Object?>? flexObject;
+        
+        // Auto-detected Map<String, Object> (non-nullable values) - nullable
+        Map<String, Object>? flexObjectNonNull;
+      
+        // Non-nullable with default empty map
+        Map<String, dynamic> flexNonNull = {};
+      
+        // Explicit annotation
+        @Property(type: PropertyType.flex)
+        Map<String, dynamic>? flexExplicit;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var properties = testEnv.model.entities[0].properties;
+      expectFlexProperties(properties, 6);
+    });
+
+    test('Flex List type detection', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class FlexEntity {
+        @Id()
+        int id = 0;            
+        
+        // Auto-detected List<dynamic> - nullable
+        List<dynamic>? flexDynamic;
+      
+        // Auto-detected List<Object?> - nullable
+        List<Object?>? flexObject;
+      
+        // Auto-detected List<Object> (non-nullable elements) - nullable
+        List<Object>? flexObjectNonNull;
+      
+        // Non-nullable with default empty list
+        List<dynamic> flexNonNull = [];
+      
+        // Auto-detected List<Map<String, dynamic>> - nullable
+        List<Map<String, dynamic>>? flexListOfMaps;
+      
+        // Auto-detected List<Map<String, Object?>> - nullable
+        List<Map<String, Object?>>? flexListOfMapsObject;
+      
+        // Explicit annotation
+        @Property(type: PropertyType.flex)
+        List<dynamic>? flexExplicit;    
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var properties = testEnv.model.entities[0].properties;
+      expectFlexProperties(properties, 8);
+    });
+
+    test('Flex Value type detection', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class FlexEntity {
+        @Id()
+        int id = 0;
+        
+        // Auto-detected dynamic
+        dynamic flexDynamic;
+      
+        // Auto-detected Object?
+        Object? flexObject;
+        
+        // Explicit annotation still works
+        @Property(type: PropertyType.flex)
+        dynamic flexDynamicExplicit;
+        
+        @Property(type: PropertyType.flex)
+        Object? flexObjectExplicit;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var properties = testEnv.model.entities[0].properties;
+      expectFlexProperties(properties, 5);
+    });
+
+    test('Flex unsupported type errors', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class FlexEntity {
+        @Id()
+        int id = 0;
+        
+        @Property(type: PropertyType.flex)
+        Object unsupported;  
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source, ignoreOutput: true);
+
+      expect(result.builderResult.succeeded, false);
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.SEVERE)
+              .having(
+                (r) => r.message,
+                'message',
+                contains(
+                  "'FlexEntity.unsupported': PropertyType.flex can only be used with",
+                ),
+              ),
+        ),
+      );
+    });
+  });
 }

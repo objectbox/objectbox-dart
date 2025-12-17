@@ -84,7 +84,7 @@ and servers, both online and offline.
 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows, any POSIX-system.\
 🌱 **Scalable** - grows with your app, handling millions of objects with ease.\
-💚 **Sustainable** - frugal on CPU, Memory and battery / power use, reducing CO2 emmissions.
+💚 **Sustainable** - frugal on CPU, Memory and battery / power use, reducing CO2 emissions.
 
 🔗 **[Relations](https://docs.objectbox.io/relations)** - object links / relationships are built-in.\
 💐 **[Queries](https://docs.objectbox.io/queries)** - filter data as needed, even across relations.\
@@ -107,7 +107,9 @@ Continue with our ➡️ **[Getting Started guide](https://docs.objectbox.io/get
 
 ### Flutter Database Performance Benchmarks
 
-We tested across the four main database operations, CRUD (create, read, update, delete). Each test was run multiple times and executed  manually outside of the measured time. Data preparation and evaluation were done outside of the measured time. 
+We tested across the four main database operations, CRUD (create, read, update, delete).
+Each test was run multiple times and executed manually.
+Data preparation and evaluation were done outside the measured time. 
 
 Here are the benchmarks for ObjectBox vs sqflite vs Hive (last updated 2021-09-11) 👇
 
@@ -131,7 +133,7 @@ For general news on ObjectBox, [check our blog](https://objectbox.io/blog)!
 
 ## Contributing
 
-Do you want to check out the ObjectBox code itself? E.g. see in action, run tests, or even contribute code?
+Do you want to check out the ObjectBox code itself? E.g. see it in action, run tests, or even contribute code?
 Great! Clone/check out this repository and run this to generate code and get you started quickly:
 
 ```bash
@@ -154,6 +156,8 @@ This repository holds all ObjectBox Dart/Flutter packages as separate directorie
 There's also a separate repository benchmarking objectbox (and other databases) in Flutter: 
 [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance).
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for a more detailed overview.
+
 ## Other languages/bindings
 
 ObjectBox supports multiple platforms and languages: 
@@ -166,7 +170,7 @@ ObjectBox supports multiple platforms and languages:
 ## License
 
 ```text
-Copyright © 2019 ObjectBox Ltd. <https://objectbox.io/>
+Copyright © 2019-2025 ObjectBox Ltd. <https://objectbox.io/>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

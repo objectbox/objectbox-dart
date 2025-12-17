@@ -3,7 +3,7 @@ description: Superfast NoSQL Flutter / Dart database. This package contains Flut
 # Link to actual directory in repository so file links on pub.dev work.
 repository: https://github.com/objectbox/objectbox-dart/tree/main/flutter_libs
 homepage: https://objectbox.io
-version: 5.0.4
+version: 5.1.0-dev.0
 
 environment:
   sdk: ^3.7.0
@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   # This is here just to ensure compatibility between objectbox-dart code and the libraries used
   # You should still depend on objectbox directly in your Flutter application.
-  objectbox: 5.0.4
+  objectbox: 5.1.0-dev.0
   path_provider: ^2.0.0
 
 dev_dependencies:

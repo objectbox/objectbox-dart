@@ -48,6 +48,8 @@ String obxPropertyTypeToString(int type) {
       return 'doubleVector';
     case OBXPropertyType.StringVector:
       return 'stringVector';
+    case OBXPropertyType.Flex:
+      return 'flex';
   }
 
   throw ArgumentError.value(type, 'type', 'Invalid OBXPropertyType');
@@ -79,6 +81,8 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.IntVector;
     case PropertyType.floatVector:
       return OBXPropertyType.FloatVector;
+    case PropertyType.flex:
+      return OBXPropertyType.Flex;
     default:
       throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }

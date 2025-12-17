@@ -200,6 +200,16 @@ class EntityResolver extends Builder {
         if (!annotation.getField('signed')!.toBoolValue()!) {
           flags |= OBXPropertyFlags.UNSIGNED;
         }
+
+        // Error if Flex is used on unsupported type
+        if (fieldType == OBXPropertyType.Flex) {
+          if (!_isSupportedFlexType(f.type)) {
+            throw InvalidGenerationSourceError(
+              "'${classElement.displayName}.${f.displayName}': PropertyType.flex can only be used with "
+              "Map, List, dynamic, and Object?, but is '${f.type}'.",
+            );
+          }
+        }
       });
 
       // If type not specified by @Property annotation, try to detect based
@@ -363,6 +373,10 @@ class EntityResolver extends Builder {
         // for code generation
         prop.dartFieldType =
             f.type.element!.displayName + (isNullable(f.type) ? '?' : '');
+        // For Flex properties, store the full type string including generics
+        if (fieldType == OBXPropertyType.Flex) {
+          prop.dartFieldType = f.type.getDisplayString();
+        }
         entity.properties.add(prop);
       }
     }
@@ -440,6 +454,8 @@ class EntityResolver extends Builder {
       } else if (itemType.isDartCoreString) {
         // List<String>
         return OBXPropertyType.StringVector;
+      } else if (_isSupportedFlexType(dartType)) {
+        return OBXPropertyType.Flex;
       }
     } else if ([
       'Int8List',
@@ -473,10 +489,58 @@ class EntityResolver extends Builder {
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(field)) {
       return OBXPropertyType.Relation;
+    } else if (_isSupportedFlexType(dartType)) {
+      // dynamic, Object?, Map<String, dynamic/Object?/Object>, or List<...>
+      return OBXPropertyType.Flex;
     }
 
     // No supported Dart type recognized.
     return null;
+  }
+
+  bool _isDynamicOrObject(DartType dartType) {
+    return dartType is DynamicType || dartType.isDartCoreObject;
+  }
+
+  /// Returns true if [type] is supported for Flex properties:
+  /// - dynamic
+  /// - Object? (nullable Object)
+  /// - `Map<String, dynamic/Object?/Object>`
+  /// - `List<dynamic/Object?/Object>` or `List<Map<String, dynamic/Object?>>`
+  bool _isSupportedFlexType(DartType type) {
+    // dynamic is always nullable
+    if (type is DynamicType) return true;
+    // Object? (nullable Object)
+    if (type.isDartCoreObject &&
+        type.nullabilitySuffix == NullabilitySuffix.question) {
+      return true;
+    }
+    // Map<String, dynamic/Object?/Object>
+    if (type.isDartCoreMap && _isMapSupportedForFlex(type)) return true;
+    // List<dynamic/Object?/Object> or List<Map<String, dynamic/Object?>>
+    if (type.isDartCoreList) {
+      final itemType = listItemType(type);
+      if (itemType != null) {
+        if (_isDynamicOrObject(itemType)) return true;
+        if (itemType.isDartCoreMap && _isMapSupportedForFlex(itemType)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool _isMapSupportedForFlex(DartType dartType) {
+    if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
+      final keyType = dartType.typeArguments[0];
+      final valueType = dartType.typeArguments[1];
+      // Key must be String
+      // Value must be dynamic or Object (nullable or not)
+      if (keyType.isDartCoreString && _isDynamicOrObject(valueType)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void processIdProperty(ModelEntity entity, ClassElement classElement) {

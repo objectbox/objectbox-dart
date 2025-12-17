@@ -1,5 +1,13 @@
 ## latest
 
+* Added flex properties that can hold any kind of data ("schema-less") supporting the following types on the Dart side:
+  * Maps: JSON-like data structure with string keys and arbitrary values, including nested maps and lists.
+  * Lists: can hold elements of any type, even mixed (like JSON arrays).
+    On the Dart side, ObjectBox also offers binding to a list of maps, e.g. `List<Map<String, dynamic>>`.
+  * Dynamic/Object: can hold any kind of data, including primitive types like integer, floating point and string,
+    plus maps and lists.
+  * Sync note: when used together with the MongoDB Connector, flex properties allow storing nested documents from MongoDB
+
 ## 5.0.4 (2025-12-09)
 
 * Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1.

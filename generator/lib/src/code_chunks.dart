@@ -324,7 +324,8 @@ class CodeChunks {
           offsets[p.id.id] = offsetVar; // see default case in the switch
 
           var assignment = 'final $offsetVar = ';
-          if (p.fieldIsNullable) {
+          // Note: dynamic is always nullable (currently only used for Flex properties)
+          if (p.fieldIsNullable || p.fieldType == 'dynamic') {
             assignment += '$fieldName == null ? null : ';
             fieldName += '!';
           }
@@ -346,6 +347,9 @@ class CodeChunks {
               return '$assignment fbb.writeListFloat32($fieldName);';
             case OBXPropertyType.DoubleVector:
               return '$assignment fbb.writeListFloat64($fieldName);';
+            case OBXPropertyType.Flex:
+              // Use toFlexBuffer() to serialize Map, List, or value types
+              return '$assignment fbb.writeListInt8($obxInt.toFlexBuffer($fieldName));';
             default:
               offsets.remove(p.id.id);
               return null;
@@ -442,6 +446,26 @@ class CodeChunks {
       "fb.ListReader<$itemType>(fb.${_propertyFlatBuffersType[obxPropertyType]}Reader(), lazy: false)",
       defaultValue: defaultValue,
       castTo: castTo,
+    );
+  }
+
+  /// Extracts the key and value types by removing "Map<" prefix and ">" suffix.
+  static String _getMapKeyValueTypes(String typeString) {
+    // This String operation is very fragile and should be replaced with info
+    // from ModelProperty created by EntityResolver.
+    return typeString.substring(
+      4, // "Map<"
+      typeString.length - 1, // ">"
+    );
+  }
+
+  /// Extracts the element type by removing "List<" prefix and ">" suffix.
+  static String _getListElementType(String typeString) {
+    // This String operation is very fragile and should be replaced with info
+    // from ModelProperty created by EntityResolver.
+    return typeString.substring(
+      5, // "List<"
+      typeString.length - 1, // ">"
     );
   }
 
@@ -561,6 +585,78 @@ class CodeChunks {
                 p,
                 'fb.ListReader<String>(fb.StringReader(asciiOptimization: true), lazy: false)',
               );
+            case OBXPropertyType.Flex:
+              // Read as Uint8List and convert to Map, List, or value
+              final offset = propertyFlatBuffersvTableOffset(p);
+              // Use appropriate deserializer based on field type
+              final isMap = p.fieldType.startsWith('Map');
+              // dynamic is always nullable; Object requires nullable annotation
+              final isValue =
+                  p.fieldType == 'dynamic' ||
+                  (p.fieldType == 'Object' && p.fieldIsNullable);
+              // For List<Map<...>> types, use dedicated helper
+              final isListOfMaps = p.fieldType.startsWith('List<Map');
+              // Check if list needs casting (List<Object> or List<Object?>)
+              final isListOfObject = p.fieldType.startsWith('List<Object');
+              final String flexDeserializer;
+              final bool skipNull;
+              final String? defaultValue;
+              final String castSuffix;
+              if (isValue) {
+                // dynamic or Object? - can be any FlexBuffer value
+                flexDeserializer = 'fromFlexBuffer';
+                skipNull = false;
+                defaultValue = null; // nullable only, no default needed
+                castSuffix = '';
+              } else if (isMap) {
+                flexDeserializer = 'flexBufferToMap';
+                final keyValueTypes = _getMapKeyValueTypes(p.fieldType);
+                final hasDynamicValueType = keyValueTypes.endsWith('dynamic');
+                // For maps with non-null values skip nulls (so not
+                // Map<String, dynamic> or Map<String, Object/List/Map?>).
+                skipNull = !hasDynamicValueType && !keyValueTypes.endsWith('?');
+                defaultValue = '<$keyValueTypes>{}';
+                // Cast to the correct Map type if not Map<String, dynamic>
+                if (hasDynamicValueType) {
+                  castSuffix = '';
+                } else {
+                  castSuffix = '?.cast<$keyValueTypes>()';
+                }
+              } else if (isListOfMaps) {
+                flexDeserializer = 'flexBufferToListOfMaps';
+                final elementType = _getListElementType(p.fieldType);
+                // The deserializer already skips nulls
+                skipNull = false;
+                defaultValue = '<$elementType>[]';
+                // Cast needed for Map<String, Object?> and Map<String, Object>
+                if (elementType == 'Map<String, dynamic>') {
+                  castSuffix = '';
+                } else {
+                  castSuffix = '?.cast<$elementType>()';
+                }
+              } else if (isListOfObject) {
+                flexDeserializer = 'flexBufferToList';
+                final elementType = _getListElementType(p.fieldType);
+                // For lists with non-null elements skip nulls
+                skipNull = !elementType.endsWith('?');
+                defaultValue = '<$elementType>[]';
+                castSuffix = '?.cast<$elementType>()';
+              } else {
+                // List<dynamic>
+                flexDeserializer = 'flexBufferToList';
+                skipNull = false;
+                defaultValue = '<dynamic>[]';
+                castSuffix = '';
+              }
+              final skipNullArg = skipNull ? ', skipNull: true' : '';
+              final deserializeExpr =
+                  '$obxInt.$flexDeserializer(buffer, rootOffset, $offset$skipNullArg)$castSuffix';
+              if (p.fieldIsNullable || defaultValue == null) {
+                // Nullable field or value type (dynamic/Object?) - no default
+                return deserializeExpr;
+              } else {
+                return '$deserializeExpr ?? $defaultValue';
+              }
             default:
               return readFieldCodeString(
                 p,
@@ -778,6 +874,9 @@ class CodeChunks {
         case OBXPropertyType.StringVector:
           fieldType = 'StringVector';
           break;
+        case OBXPropertyType.Flex:
+          // Flex properties don't have query support yet, skip generating query property
+          continue;
         default:
           throw InvalidGenerationSourceError(
             'Unsupported property type (${prop.type}): ${entity.name}.$name',
