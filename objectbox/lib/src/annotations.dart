@@ -142,9 +142,9 @@ enum PropertyType {
   ///
   /// DateTime values are stored and restored without UTC conversion.
   /// This causes issues with ObjectBox Sync and when comparing dates across
-  /// different timezones. Migrate to [dateUtc] for correct behavior.
+  /// different time zones. Migrate to [dateUtc] for correct behavior.
   @Deprecated('Use dateUtc instead. Non-UTC date handling causes issues with '
-      'Sync and cross-timezone date comparisons.')
+      'Sync and cross-time zone date comparisons.')
   dateLegacy,
 
   /// **DEPRECATED: Use [dateNanoUtc] instead.**
@@ -153,9 +153,9 @@ enum PropertyType {
   ///
   /// DateTime values are stored and restored without UTC conversion.
   /// This causes issues with ObjectBox Sync and when comparing dates across
-  /// different timezones. Migrate to [dateNanoUtc] for correct behavior.
+  /// different time zones. Migrate to [dateNanoUtc] for correct behavior.
   @Deprecated('Use dateNanoUtc instead. Non-UTC date handling causes issues '
-      'with Sync and cross-timezone date comparisons.')
+      'with Sync and cross-time zone date comparisons.')
   dateNanoLegacy,
 
   /// Use with [Property.type] to store a `List<int>` as byte (8-bit integer)

@@ -211,7 +211,7 @@ class EntityResolver extends Builder {
         log.warning(
           "  Property '${f.displayName}' in entity '${classElement.displayName}' uses a "
           "deprecated date type. Non-UTC date handling causes issues with "
-          "ObjectBox Sync and cross-timezone date comparisons. "
+          "ObjectBox Sync and cross-time zone date comparisons. "
           "Migrate to PropertyType.dateUtc or PropertyType.dateNanoUtc.",
         );
       }
