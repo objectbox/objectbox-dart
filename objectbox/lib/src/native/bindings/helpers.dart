@@ -183,7 +183,7 @@ T withNativeStrings<T>(
     return fn(ptr, size);
   } finally {
     for (var i = 0; i < size; i++) {
-      malloc.free(ptr.elementAt(i).value);
+      malloc.free((ptr + i).value);
     }
     malloc.free(ptr);
   }

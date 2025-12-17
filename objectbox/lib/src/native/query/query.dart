@@ -1149,7 +1149,7 @@ class Query<T> implements Finalizable {
       final count = resultPtr.ref.count;
       return List.generate(count, (i) {
         // items[i] only available with Dart 3.3
-        final item = items.elementAt(i).ref;
+        final item = (items + i).ref;
         final id = item.id;
         final score = item.score;
         return IdWithScore(id, score);
