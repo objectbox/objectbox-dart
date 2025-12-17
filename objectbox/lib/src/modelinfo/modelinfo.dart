@@ -20,10 +20,7 @@ enum GeneratorVersion {
   /// The model was not created by generated code.
   none,
 
-  /// BREAKING CHANGE in ObjectBox Dart 5.1 with DateTime (date) properties:
-  /// - DateTime properties are now stored in UTC by default(!).
-  /// - If you rely on reading local time, you must use dateLegacy.
-  /// - Only UTC times provide correct values for ObjectBox Sync.
+  /// Generator for ObjectBox Dart 5.1 (introduced the GeneratorVersion enum)
   v2025_12_16,
 }
 
