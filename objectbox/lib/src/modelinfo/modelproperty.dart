@@ -1,3 +1,4 @@
+import '../annotations.dart';
 import 'enums.dart';
 import 'iduid.dart';
 import 'model_hnsw_params.dart';
@@ -12,7 +13,19 @@ class ModelProperty {
   /// See [name].
   late String _name;
 
-  late int _type, _flags;
+  /// One of the constants of OBXPropertyType (raw ObjectBox type).
+  late int _type;
+
+  /// The Dart-side property type from the @Property(type:) annotation.
+  /// Complements [_type] with Dart-specific type variants (e.g. dateUtc).
+  /// Note: this is not always set as this enum is "incomplete", i.e.
+  ///       "obvious" types like string are not covered.
+  ///       We may want to change this in the future and use this more(?).
+  PropertyType? dartType;
+
+  /// Bit-flags according to OBXPropertyFlags
+  late int _flags;
+
   IdUid? _indexId;
   ModelEntity? entity;
 
@@ -97,6 +110,11 @@ class ModelProperty {
   bool get fieldIsNullable =>
       _dartFieldType!.substring(_dartFieldType!.length - 1) == '?';
 
+  /// For date types, this flag indicates if the value should be treated as UTC.
+  /// Computed from [dartType].
+  bool get isDateUtc =>
+      dartType == PropertyType.dateUtc || dartType == PropertyType.dateNanoUtc;
+
   IdUid? get indexId => _indexId;
 
   set indexId(IdUid? value) {
@@ -109,14 +127,18 @@ class ModelProperty {
   }
 
   // used in code generator
-  ModelProperty.create(this.id, String? name, int? type,
-      {int flags = 0,
-      String? indexId,
-      this.entity,
-      String? dartFieldType,
-      this.relationTarget,
-      this.uidRequest = false})
-      : _dartFieldType = dartFieldType {
+  ModelProperty.create(
+    this.id,
+    String? name,
+    int? type, {
+    int flags = 0,
+    String? indexId,
+    this.entity,
+    String? dartFieldType,
+    this.relationTarget,
+    this.uidRequest = false,
+    this.dartType,
+  }) : _dartFieldType = dartFieldType {
     this.name = name;
     this.type = type;
     this.flags = flags;
@@ -124,18 +146,19 @@ class ModelProperty {
   }
 
   // used in generated code
-  ModelProperty(
-      {required this.id,
-      required String name,
-      required int type,
-      required int flags,
-      IdUid? indexId,
-      this.relationField,
-      this.relationTarget,
-      this.hnswParams,
-      this.externalName,
-      this.externalType})
-      : _name = name,
+  ModelProperty({
+    required this.id,
+    required String name,
+    required int type,
+    required int flags,
+    IdUid? indexId,
+    this.relationField,
+    this.relationTarget,
+    this.hnswParams,
+    this.externalName,
+    this.externalType,
+    this.dartType,
+  })  : _name = name,
         _type = type,
         _flags = flags,
         _indexId = indexId,
@@ -150,7 +173,9 @@ class ModelProperty {
         hnswParams = ModelHnswParams.fromMap(
             data[ModelPropertyKey.hnswParams] as Map<String, dynamic>?),
         externalName = data[ModelPropertyKey.externalName] as String?,
-        externalType = data[ModelPropertyKey.externalType] as int? {
+        externalType = data[ModelPropertyKey.externalType] as int?,
+        dartType =
+            _propertyTypeFromInt(data[ModelPropertyKey.dartType] as int?) {
     name = data[ModelPropertyKey.name] as String?;
     type = data[ModelPropertyKey.type] as int?;
     flags = data[ModelPropertyKey.flags] as int? ?? 0;
@@ -185,6 +210,7 @@ class ModelProperty {
       if (hnswParams != null) {
         ret[ModelPropertyKey.hnswParams] = hnswParams!.toMap();
       }
+      ret[ModelPropertyKey.dartType] = dartType?.index;
     }
     return ret;
   }
@@ -255,4 +281,8 @@ class ModelPropertyKey {
   static const String hnswParams = 'hnswParams';
   static const String externalName = 'externalName';
   static const String externalType = 'externalType';
+  static const String dartType = 'dartType';
 }
+
+PropertyType? _propertyTypeFromInt(int? index) =>
+    index == null ? null : PropertyType.values[index];

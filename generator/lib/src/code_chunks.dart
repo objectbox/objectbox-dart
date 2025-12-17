@@ -104,6 +104,11 @@ class CodeChunks {
   static String defineModel(ModelInfo model) {
     return '''
     final model = $obxInt.ModelInfo(
+      // If this version is not found, it means that this file was generated
+      // with an older version of the ObjectBox Dart generator.
+      // Please regenerate this file with the current generator version.
+      // Typically, this is done with `dart run build_runner build`.
+      generatorVersion: $obxInt.GeneratorVersion.${generatorVersionLatest.name},
       entities: _entities,
       lastEntityId: ${createIdUid(model.lastEntityId)},
       lastIndexId: ${createIdUid(model.lastIndexId)},
@@ -490,19 +495,20 @@ class CodeChunks {
               'fb.${_propertyFlatBuffersType[p.type]}Reader()',
               defaultValue: '0',
             );
+            final isUtcArg = p.isDateUtc ? ', isUtc: true' : '';
             if (p.fieldIsNullable) {
               final valueVar = '${propertyFieldName(p)}Value';
               preLines.add('final $valueVar = $readCodeString;');
               if (p.type == OBXPropertyType.Date) {
-                return '$valueVar == null ? null : DateTime.fromMillisecondsSinceEpoch($valueVar)';
+                return '$valueVar == null ? null : DateTime.fromMillisecondsSinceEpoch($valueVar$isUtcArg)';
               } else if (p.type == OBXPropertyType.DateNano) {
-                return '$valueVar == null ? null : DateTime.fromMicrosecondsSinceEpoch(($valueVar / 1000).round())';
+                return '$valueVar == null ? null : DateTime.fromMicrosecondsSinceEpoch(($valueVar / 1000).round()$isUtcArg)';
               }
             } else {
               if (p.type == OBXPropertyType.Date) {
-                return "DateTime.fromMillisecondsSinceEpoch($readCodeString)";
+                return "DateTime.fromMillisecondsSinceEpoch($readCodeString$isUtcArg)";
               } else if (p.type == OBXPropertyType.DateNano) {
-                return "DateTime.fromMicrosecondsSinceEpoch(($readCodeString / 1000).round())";
+                return "DateTime.fromMicrosecondsSinceEpoch(($readCodeString / 1000).round()$isUtcArg)";
               }
             }
             throw InvalidGenerationSourceError(

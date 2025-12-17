@@ -123,11 +123,28 @@ enum PropertyType {
   // Relation, currently not supported
   // relation,
 
-  /// Unix timestamp (milliseconds since 1970), size: 8-bytes/64-bits
+  /// Date stored with milliseconds precision as a Unix timestamp (64-bits).
+  ///
+  /// DateTime values are stored in UTC and restored in local time.
   date,
 
-  /// Unix timestamp (nanoseconds since 1970), size: 8-bytes/64-bits
+  /// Date stored with nanoseconds precision as a Unix timestamp, (64-bits).
+  ///
+  /// DateTime values are stored in UTC and restored in local time.
+  /// Note: Dart's DateTime only supports microsecond precision.
   dateNano,
+
+  /// Date stored with milliseconds precision as a Unix timestamp (64-bits).
+  ///
+  /// DateTime values are stored and restored as UTC.
+  dateUtc,
+
+  /// Date stored with nanoseconds precision as a Unix timestamp, (64-bits).
+  ///
+  /// DateTime values are stored and restored as UTC.
+  /// This is the recommended type for "high precision" DateTime properties.
+  /// Note: Dart's DateTime only supports microsecond precision.
+  dateNanoUtc,
 
   /// Use with [Property.type] to store a `List<int>` as byte (8-bit integer)
   /// array.

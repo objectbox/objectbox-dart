@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:build_test/build_test.dart';
 import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
@@ -949,6 +950,35 @@ void main() {
                   "'FlexEntity.unsupported': PropertyType.flex can only be used with",
                 ),
               ),
+        ),
+      );
+    });
+  });
+
+  group('GeneratorVersion', () {
+    test('generated code includes GeneratorVersion parameter', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      // Verify the generated code contains the GeneratorVersion parameter.
+      final expectedVersion =
+          'generatorVersion: obx_int.GeneratorVersion.${generatorVersionLatest.name}';
+      await testEnv.run(
+        source,
+        generatedCodeMatcher: decodedMatches(
+          predicate<String>(
+            (content) => content.contains(expectedVersion),
+            'contains "$expectedVersion"',
+          ),
         ),
       );
     });
