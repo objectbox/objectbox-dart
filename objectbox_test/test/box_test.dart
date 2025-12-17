@@ -1038,67 +1038,61 @@ void main() {
   });
 
   test('DateTime field', () {
+    final now = DateTime.now();
+    final nowUtc = now.toUtc();
     final object = TestEntity();
-    object.tDate = DateTime.now();
-    object.tDateNano = DateTime.now();
+    object.tDate = now;
+    object.tDateNano = now;
+    object.tDateUtc = now;
+    object.tDateNanoUtc = now;
     final objectUtc = TestEntity();
-    objectUtc.tDate = object.tDate!.toUtc();
-    objectUtc.tDateNano = object.tDateNano!.toUtc();
+    objectUtc.tDate = nowUtc; // default
+    objectUtc.tDateNano = nowUtc; // legacy (using local time zone)
 
     {
       // first, test some assumptions the code generator makes
-      final millis = object.tDate!.millisecondsSinceEpoch;
+      final millis = now.millisecondsSinceEpoch;
       final time1 = DateTime.fromMillisecondsSinceEpoch(millis);
-      expect(object.tDate!.difference(time1).inMilliseconds, equals(0));
+      expect(now.difference(time1).inMilliseconds, equals(0));
 
-      final nanos = object.tDateNano!.microsecondsSinceEpoch * 1000;
+      final nanos = now.microsecondsSinceEpoch * 1000;
       final time2 = DateTime.fromMicrosecondsSinceEpoch((nanos / 1000).round());
-      expect(object.tDateNano!.difference(time2).inMicroseconds, equals(0));
+      expect(now.difference(time2).inMicroseconds, equals(0));
     }
 
     box.putMany([object, objectUtc, TestEntity()]);
     final items = box.getAll();
 
-    // DateTime has microsecond precision in dart but is stored in ObjectBox
-    // with millisecond precision so allow a sub-millisecond difference.
-    expect(items[0].tDate!.difference(object.tDate!).inMilliseconds, 0);
-    expect(items[1].tDate!.difference(object.tDate!).inMilliseconds, 0);
-    // Implicit DateTime (tDate) now defaults to UTC since 5.1.
-    expect(items[0].tDate!.isUtc, true);
-    expect(items[1].tDate!.isUtc, true);
+    final local = items[0];
+    // DateTime has microsecond precision in Dart but is stored in ObjectBox
+    // by default with millisecond precision so compare only milliseconds.
+    expect(local.tDate!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
+    expect(local.tDateUtc!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
+    // If explicitly stored as DateNano, microsecond precision is preserved.
+    expect(local.tDateNano, now);
+    expect(local.tDateNanoUtc, nowUtc);
 
-    expect(items[0].tDateNano, object.tDateNano);
-    expect(items[1].tDateNano, object.tDateNano);
-    expect(items[2].tDate, isNull);
-    expect(items[2].tDateNano, isNull);
-  });
+    // Implicit DateTime (tDate) defaults to UTC since 5.1.
+    expect(local.tDate!.isUtc, true);
+    // tDateNano uses dateNanoLegacy so must restore with local time zone.
+    expect(local.tDateNano!.isUtc, false);
+    // Explicit UTC date properties restore with UTC.
+    expect(local.tDateUtc!.isUtc, true);
+    expect(local.tDateNanoUtc!.isUtc, true);
 
-  test('DateTime UTC field', () {
-    final now = DateTime.now();
-    expect(now.isUtc, false); // DateTime.now() returns local time
+    // Storing a DateTime in UTC should make no difference
+    final utc = items[1];
+    expect(utc.tDate!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
+    expect(utc.tDateNano, now);
+    expect(utc.tDate!.isUtc, true);
+    expect(utc.tDateNano!.isUtc, false);
 
-    final object = TestEntity();
-    // tDate is implicit DateTime which defaults to UTC since 5.1
-    object.tDate = now;
-    object.tDateUtc = now;
-    object.tDateNano = now;
-    object.tDateNanoUtc = now;
-
-    box.put(object);
-    final read = box.get(object.id)!;
-
-    // Verify isUtc flag is set correctly
-    expect(read.tDate!.isUtc, true); // implicit defaults to UTC
-    expect(read.tDateUtc!.isUtc, true);
-    expect(read.tDateNano!.isUtc, false); // dateNano restores as non-UTC
-    expect(read.tDateNanoUtc!.isUtc, true);
-
-    // All should represent the same point in time
-    expect(read.tDate!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
-    expect(read.tDateUtc!.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
-    expect(read.tDateNano!.microsecondsSinceEpoch, now.microsecondsSinceEpoch);
-    expect(
-        read.tDateNanoUtc!.microsecondsSinceEpoch, now.microsecondsSinceEpoch);
+    // Null values are preserved
+    final allNull = items[2];
+    expect(allNull.tDate, isNull);
+    expect(allNull.tDateNano, isNull);
+    expect(allNull.tDateUtc, isNull);
+    expect(allNull.tDateNanoUtc, isNull);
   });
 
   test('large-data', () {
