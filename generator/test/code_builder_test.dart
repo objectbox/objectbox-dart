@@ -924,7 +924,7 @@ void main() {
         int id = 0;
         
         @Property(type: PropertyType.flex)
-        String unsupported;  
+        Object unsupported;  
       }
       ''';
 
