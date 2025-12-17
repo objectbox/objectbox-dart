@@ -6,7 +6,14 @@
     On the Dart side, ObjectBox also offers binding to a list of maps, e.g. `List<Map<String, dynamic>>`.
   * Dynamic/Object: can hold any kind of data, including primitive types like integer, floating point and string,
     plus maps and lists.
-  * Sync note: when used together with the MongoDB Connector, flex properties allow storing nested documents from MongoDB
+  * Sync note: when used together with the MongoDB Connector,
+    flex properties allow storing nested documents from MongoDB
+* Added `dateUtc` and `dateUtcNano` property types for DateTime read back UTC.
+  [#308](https://github.com/objectbox/objectbox-dart/issues/308)
+* Added "GeneratorVersion" enum to enforce generated code is compatible with the runtime library.
+  **You must regenerate code after updating the objectbox package.**
+  Until you regenerate code, compiling will fail with a message like this:
+  "Error: Required named parameter 'generatorVersion' must be provided".
 
 ## 5.0.4 (2025-12-09)
 
