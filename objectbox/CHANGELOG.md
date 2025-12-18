@@ -1,4 +1,4 @@
-## latest
+## 5.1.0 (2025-12-18)
 
 * Added flex properties that can hold any kind of data ("schema-less") supporting the following types on the Dart side:
   * Maps: JSON-like data structure with string keys and arbitrary values, including nested maps and lists.
