@@ -329,6 +329,284 @@ class QueryDateNanoProperty<EntityT> extends QueryIntegerProperty<EntityT> {
       notOneOf(values.map(_convert).toList(), alias: alias);
 }
 
+class QueryFlexVectorProperty<EntityT>
+    extends QueryProperty<EntityT, List<dynamic>> {
+  QueryFlexVectorProperty(super.model);
+
+  /// Matches if the vector contains the given value.
+  Condition<EntityT> containsElementString(
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringCondition<EntityT, List<dynamic>>(
+    _ConditionOp.containsElement,
+    this,
+    value,
+    null,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the vector contains the given value.
+  Condition<EntityT> containsElementInt(int value, {String? alias}) =>
+      _StringCondition<EntityT, List<dynamic>>(
+        _ConditionOp.containsElement,
+        this,
+        '$value',
+        null,
+        alias,
+      );
+}
+
+class QueryFlexValueProperty<EntityT> extends QueryProperty<EntityT, dynamic> {
+  QueryFlexValueProperty(super.model);
+
+  /// Matches if the property equals the given value.
+  Condition<EntityT> equalsString(
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringCondition<EntityT, dynamic>(
+    _ConditionOp.eq,
+    this,
+    value,
+    null,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the property equals the given value.
+  Condition<EntityT> equalsInt(int value, {String? alias}) =>
+      _StringCondition<EntityT, dynamic>(
+        _ConditionOp.eq,
+        this,
+        '$value',
+        null,
+        alias,
+      );
+}
+
+class QueryFlexMapProperty<EntityT>
+    extends QueryProperty<EntityT, Map<String, dynamic>> {
+  QueryFlexMapProperty(super.model);
+
+  /// Matches if the map contains the given key.
+  Condition<EntityT> containsElement(
+    String key, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.containsElement,
+    this,
+    key,
+    null,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the map contains the given key and value pair
+  Condition<EntityT> equalsKeyValueString(
+    String key,
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringStringCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.equalsKeyValue,
+    this,
+    key,
+    value,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the map contains the given key and value pair
+  Condition<EntityT> equalsKeyValueInt(
+    String key,
+    int value, {
+    String? alias,
+  }) => _StringIntegerCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.equalsKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains the given key and value pair
+  Condition<EntityT> equalsKeyValueDouble(
+    String key,
+    double value, {
+    String? alias,
+  }) => _StringDoubleCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.equalsKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value greater than the given value
+  Condition<EntityT> greaterKeyValueString(
+    String key,
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringStringCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.greaterKeyValue,
+    this,
+    key,
+    value,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the map contains a key with a value greater than the given value
+  Condition<EntityT> greaterKeyValueInt(
+    String key,
+    int value, {
+    String? alias,
+  }) => _StringIntegerCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.greaterKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value greater than the given value
+  Condition<EntityT> greaterKeyValueDouble(
+    String key,
+    double value, {
+    String? alias,
+  }) => _StringDoubleCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.greaterKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value greater than or equal to the given value
+  Condition<EntityT> greaterOrEqualKeyValueString(
+    String key,
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringStringCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.greaterOrEqKeyValue,
+    this,
+    key,
+    value,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the map contains a key with a value greater than or equal to the given value
+  Condition<EntityT> greaterOrEqualKeyValueInt(
+    String key,
+    int value, {
+    String? alias,
+  }) => _StringIntegerCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.greaterOrEqKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value greater than or equal to the given value
+  Condition<EntityT> greaterOrEqualKeyValueDouble(
+    String key,
+    double value, {
+    String? alias,
+  }) => _StringDoubleCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.greaterOrEqKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value less than the given value
+  Condition<EntityT> lessKeyValueString(
+    String key,
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringStringCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.lessThanKeyValue,
+    this,
+    key,
+    value,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the map contains a key with a value less than the given value
+  Condition<EntityT> lessKeyValueInt(String key, int value, {String? alias}) =>
+      _StringIntegerCondition<EntityT, Map<String, dynamic>>(
+        _ConditionOp.lessThanKeyValue,
+        this,
+        key,
+        value,
+        alias,
+      );
+
+  /// Matches if the map contains a key with a value less than the given value
+  Condition<EntityT> lessKeyValueDouble(
+    String key,
+    double value, {
+    String? alias,
+  }) => _StringDoubleCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.lessThanKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value less than or equal to the given value
+  Condition<EntityT> lessOrEqualKeyValueString(
+    String key,
+    String value, {
+    bool? caseSensitive,
+    String? alias,
+  }) => _StringStringCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.lessOrEqKeyValue,
+    this,
+    key,
+    value,
+    alias,
+    caseSensitive: caseSensitive,
+  );
+
+  /// Matches if the map contains a key with a value less than or equal to the given value
+  Condition<EntityT> lessOrEqualKeyValueInt(
+    String key,
+    int value, {
+    String? alias,
+  }) => _StringIntegerCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.lessOrEqKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+
+  /// Matches if the map contains a key with a value less than or equal to the given value
+  Condition<EntityT> lessOrEqualKeyValueDouble(
+    String key,
+    double value, {
+    String? alias,
+  }) => _StringDoubleCondition<EntityT, Map<String, dynamic>>(
+    _ConditionOp.lessOrEqKeyValue,
+    this,
+    key,
+    value,
+    alias,
+  );
+}
+
 /// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
 /// equal are supported on elements of the vector (e.g. "has element greater").
 class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
@@ -658,6 +936,11 @@ enum _ConditionOp {
   oneOf,
   notOneOf,
   between,
+  equalsKeyValue,
+  greaterKeyValue,
+  greaterOrEqKeyValue,
+  lessThanKeyValue,
+  lessOrEqKeyValue,
 }
 
 /// A [Query] condition base class.
@@ -767,6 +1050,162 @@ abstract class _PropertyCondition<EntityT, PropertyDartType, ValueDartType>
     this._value2,
     String? alias,
   ) : super(alias);
+}
+
+abstract class _KeyValuePropertyCondition<
+  EntityT,
+  PropertyDartType,
+  ValueDartType,
+  ValueDartType2
+>
+    extends Condition<EntityT> {
+  final QueryProperty<EntityT, PropertyDartType> _property;
+  final ValueDartType _value;
+  final ValueDartType2 _value2;
+
+  final _ConditionOp _op;
+
+  _KeyValuePropertyCondition(
+    this._op,
+    this._property,
+    this._value,
+    this._value2,
+    String? alias,
+  ) : super(alias);
+}
+
+class _StringStringCondition<EntityT, PropertyDartType>
+    extends
+        _KeyValuePropertyCondition<EntityT, PropertyDartType, String, String> {
+  bool? caseSensitive;
+
+  _StringStringCondition(
+    super.op,
+    super.prop,
+    super.value,
+    super.value2,
+    super.alias, {
+    this.caseSensitive,
+  });
+
+  int _op1(
+    _QueryBuilder builder,
+    int Function(
+      Pointer<OBX_query_builder>,
+      int,
+      Pointer<Char>,
+      Pointer<Char>,
+      // Note: can't change bool to named parameter, functions are generated
+      // ignore: avoid_positional_boolean_parameters
+      bool,
+    )
+    func,
+  ) => withNativeString(
+    _value,
+    (cStr) => withNativeString(
+      _value2,
+      (cStr2) => func(
+        builder._cBuilder,
+        _property._model.id.id,
+        cStr,
+        cStr2,
+        caseSensitive ?? InternalStoreAccess.queryCS(builder._store),
+      ),
+    ),
+  );
+
+  @override
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
+    switch (_op) {
+      case _ConditionOp.equalsKeyValue:
+        return _op1(builder, C.qb_equals_key_value_string);
+      case _ConditionOp.greaterKeyValue:
+        return _op1(builder, C.qb_greater_key_value_string);
+      case _ConditionOp.greaterOrEqKeyValue:
+        return _op1(builder, C.qb_greater_or_equal_key_value_string);
+      case _ConditionOp.lessThanKeyValue:
+        return _op1(builder, C.qb_less_than_key_value_string);
+      case _ConditionOp.lessOrEqKeyValue:
+        return _op1(builder, C.qb_less_or_equal_key_value_string);
+      default:
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
+    }
+  }
+}
+
+class _StringIntegerCondition<EntityT, PropertyDartType>
+    extends _KeyValuePropertyCondition<EntityT, PropertyDartType, String, int> {
+  _StringIntegerCondition(
+    super.op,
+    super.prop,
+    super.value,
+    super.value2,
+    super.alias,
+  );
+
+  int _op1(
+    _QueryBuilder builder,
+    int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, int) func,
+  ) => withNativeString(
+    _value,
+    (cStr) => func(builder._cBuilder, _property._model.id.id, cStr, _value2),
+  );
+
+  @override
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
+    switch (_op) {
+      case _ConditionOp.equalsKeyValue:
+        return _op1(builder, C.qb_equals_key_value_int);
+      case _ConditionOp.greaterKeyValue:
+        return _op1(builder, C.qb_greater_key_value_int);
+      case _ConditionOp.greaterOrEqKeyValue:
+        return _op1(builder, C.qb_greater_or_equal_key_value_int);
+      case _ConditionOp.lessThanKeyValue:
+        return _op1(builder, C.qb_less_than_key_value_int);
+      case _ConditionOp.lessOrEqKeyValue:
+        return _op1(builder, C.qb_less_or_equal_key_value_int);
+      default:
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
+    }
+  }
+}
+
+class _StringDoubleCondition<EntityT, PropertyDartType>
+    extends
+        _KeyValuePropertyCondition<EntityT, PropertyDartType, String, double> {
+  _StringDoubleCondition(
+    super.op,
+    super.prop,
+    super.value,
+    super.value2,
+    super.alias,
+  );
+
+  int _op1(
+    _QueryBuilder builder,
+    int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, double) func,
+  ) => withNativeString(
+    _value,
+    (cStr) => func(builder._cBuilder, _property._model.id.id, cStr, _value2),
+  );
+
+  @override
+  int _apply(_QueryBuilder builder, {required bool isRoot}) {
+    switch (_op) {
+      case _ConditionOp.equalsKeyValue:
+        return _op1(builder, C.qb_equals_key_value_double);
+      case _ConditionOp.greaterKeyValue:
+        return _op1(builder, C.qb_greater_key_value_double);
+      case _ConditionOp.greaterOrEqKeyValue:
+        return _op1(builder, C.qb_greater_or_equal_key_value_double);
+      case _ConditionOp.lessThanKeyValue:
+        return _op1(builder, C.qb_less_than_key_value_double);
+      case _ConditionOp.lessOrEqKeyValue:
+        return _op1(builder, C.qb_less_or_equal_key_value_double);
+      default:
+        throw UnsupportedError('Unsupported operation ${_op.toString()}');
+    }
+  }
 }
 
 class _StringCondition<EntityT, PropertyDartType>

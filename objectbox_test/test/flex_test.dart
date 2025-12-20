@@ -1,4 +1,3 @@
-import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
 import 'entity_flex.dart';
@@ -18,6 +17,22 @@ void main() {
   });
 
   tearDown(() => env.closeAndDelete());
+
+  /// Runs [Query.findIds] and checks the returned object IDs match the given
+  /// [expectedIds].
+  void assertQueryCondition<E>(
+    Condition<E> condition,
+    Box<E> box,
+    List<int> expectedIds,
+  ) {
+    final query = box.query(condition).build();
+    try {
+      final results = query.findIds();
+      expect(results, unorderedEquals(expectedIds));
+    } finally {
+      query.close();
+    }
+  }
 
   group('Flex Map property (Map<String, dynamic>)', () {
     late Box<FlexMapEntity> box;
@@ -194,6 +209,294 @@ void main() {
       for (var i = 0; i < 3; i++) {
         expect(all[i].flexDynamic!['index'], i);
       }
+    });
+
+    FlexMapEntity createObjectWithStringObjectMap(String s, int l, double d) {
+      final entity = FlexMapEntity();
+      final map = <String, Object>{
+        'key-string': s,
+        'key-long': l,
+        'key-double': d,
+      };
+      entity.flexDynamic = map;
+      entity.flexObject = map;
+      entity.flexObjectNonNull = map;
+      entity.flexNonNull = map;
+      entity.flexExplicit = map;
+      return entity;
+    }
+
+    List<FlexMapEntity> createObjectsWithStringObjectMap() {
+      return [
+        createObjectWithStringObjectMap('apple', -1, -0.2),
+        createObjectWithStringObjectMap('Cherry', 3, -1234.56),
+        createObjectWithStringObjectMap('Apple', 234234234, 1234.56),
+        createObjectWithStringObjectMap('pineapple', -567, 0.1),
+      ];
+    }
+
+    test('containsElement_stringObjectMap', () {
+      final entity1 = FlexMapEntity();
+      entity1.flexObject = {'key-string': 'apple', 'key-int': 123};
+      final entity2 = FlexMapEntity();
+      entity2.flexObject = {'KEY-STRING': 'banana', 'key-long': 456};
+      box.putMany([entity1, entity2]);
+      final id1 = entity1.id;
+      final id2 = entity2.id;
+
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.containsElement(
+          'key-string',
+          caseSensitive: true,
+        ),
+        box,
+        [id1],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.containsElement(
+          'key-string',
+          caseSensitive: false,
+        ),
+        box,
+        [id1, id2],
+      );
+    });
+
+    test('equalsKeyValue', () {
+      final objects = createObjectsWithStringObjectMap();
+      box.putMany(objects);
+      final largeApple = objects[2].id;
+
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.equalsKeyValueString('key-string', 'Apple'),
+        box,
+        [largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.equalsKeyValueInt('key-long', 234234234),
+        box,
+        [largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.equalsKeyValueDouble('key-double', 1234.56),
+        box,
+        [largeApple],
+      );
+    });
+
+    test('greaterKeyValue_stringObjectMap', () {
+      final objects = createObjectsWithStringObjectMap();
+      box.putMany(objects);
+      final apple = objects[0].id;
+      final largeCherry = objects[1].id;
+      final largeApple = objects[2].id;
+      final pineapple = objects[3].id;
+
+      // Note: CASE_SENSITIVE orders like "Apple, Cherry, apple, pineapple"
+      // CASE_SENSITIVE: greater than "Cherry" -> "apple", "pineapple"
+      assertQueryCondition(
+        FlexMapEntity_.flexDynamic.greaterKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: true,
+        ),
+        box,
+        [apple, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.greaterKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: false,
+        ),
+        box,
+        [pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObjectNonNull.greaterKeyValueInt('key-long', -2),
+        box,
+        [apple, largeCherry, largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexNonNull.greaterKeyValueInt('key-long', 234234234),
+        box,
+        [],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexExplicit.greaterKeyValueDouble('key-double', 0.0),
+        box,
+        [largeApple, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexDynamic.greaterKeyValueDouble('key-double', 1234.56),
+        box,
+        [],
+      );
+    });
+
+    test('greaterEqualsKeyValue_stringObjectMap', () {
+      final objects = createObjectsWithStringObjectMap();
+      box.putMany(objects);
+      final apple = objects[0].id;
+      final largeCherry = objects[1].id;
+      final largeApple = objects[2].id;
+      final pineapple = objects[3].id;
+
+      // Note: CASE_SENSITIVE orders like "Apple, Cherry, apple, pineapple"
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.greaterOrEqualKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: true,
+        ),
+        box,
+        [apple, largeCherry, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObjectNonNull.greaterOrEqualKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: false,
+        ),
+        box,
+        [largeCherry, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexNonNull.greaterOrEqualKeyValueInt('key-long', -2),
+        box,
+        [apple, largeCherry, largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexExplicit.greaterOrEqualKeyValueInt(
+          'key-long',
+          234234234,
+        ),
+        box,
+        [largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexDynamic.greaterOrEqualKeyValueDouble(
+          'key-double',
+          0.05,
+        ),
+        box,
+        [largeApple, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.greaterOrEqualKeyValueDouble(
+          'key-double',
+          1234.54,
+        ),
+        box,
+        [largeApple],
+      );
+    });
+
+    test('lessKeyValue_stringObjectMap', () {
+      final objects = createObjectsWithStringObjectMap();
+      box.putMany(objects);
+      final apple = objects[0].id;
+      final largeCherry = objects[1].id;
+      final largeApple = objects[2].id;
+      final pineapple = objects[3].id;
+
+      // Note: CASE_SENSITIVE orders like "Apple, Cherry, apple, pineapple"
+      assertQueryCondition(
+        FlexMapEntity_.flexObjectNonNull.lessKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: true,
+        ),
+        box,
+        [largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexNonNull.lessKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: false,
+        ),
+        box,
+        [apple, largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexExplicit.lessKeyValueInt('key-long', -2),
+        box,
+        [pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexDynamic.lessKeyValueInt('key-long', 6734234234),
+        box,
+        [apple, largeCherry, largeApple, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.lessKeyValueDouble('key-double', 0.0),
+        box,
+        [apple, largeCherry],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObjectNonNull.lessKeyValueDouble(
+          'key-double',
+          1234.56,
+        ),
+        box,
+        [apple, largeCherry, pineapple],
+      );
+    });
+
+    test('lessEqualsKeyValue_stringObjectMap', () {
+      final objects = createObjectsWithStringObjectMap();
+      box.putMany(objects);
+      final apple = objects[0].id;
+      final largeCherry = objects[1].id;
+      final largeApple = objects[2].id;
+      final pineapple = objects[3].id;
+
+      // Note: CASE_SENSITIVE orders like "Apple, Cherry, apple, pineapple"
+      assertQueryCondition(
+        FlexMapEntity_.flexNonNull.lessOrEqualKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: true,
+        ),
+        box,
+        [largeCherry, largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexExplicit.lessOrEqualKeyValueString(
+          'key-string',
+          'Cherry',
+          caseSensitive: false,
+        ),
+        box,
+        [apple, largeCherry, largeApple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexDynamic.lessOrEqualKeyValueInt('key-long', -1),
+        box,
+        [apple, pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObject.lessOrEqualKeyValueInt('key-long', -567),
+        box,
+        [pineapple],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexObjectNonNull.lessOrEqualKeyValueDouble(
+          'key-double',
+          0.0,
+        ),
+        box,
+        [apple, largeCherry],
+      );
+      assertQueryCondition(
+        FlexMapEntity_.flexNonNull.lessOrEqualKeyValueDouble(
+          'key-double',
+          1234.56,
+        ),
+        box,
+        [apple, largeCherry, largeApple, pineapple],
+      );
     });
   });
 
@@ -392,6 +695,64 @@ void main() {
         expect(all[i].flexDynamic![0], i);
       }
     });
+
+    FlexListEntity createObjectWithFlexList(String s, int i, double d) {
+      final entity = FlexListEntity();
+      final list = <Object>[s, i, d];
+      entity.flexDynamic = list;
+      entity.flexObject = list;
+      entity.flexObjectNonNull = list;
+      entity.flexNonNull = list;
+      entity.flexListOfMaps = [
+        {'key-string': s, 'key-int': i},
+        {'key-int': i, 'key-double': d},
+      ];
+      entity.flexListOfMapsObject = [
+        {'key-string': s, 'key-int': i},
+        {'key-int': i, 'key-double': d},
+      ];
+      return entity;
+    }
+
+    test("containsElement_flexList", () {
+      final objects = [
+        createObjectWithFlexList('banana', 42, -0.5),
+        createObjectWithFlexList('Banana', 0, 3.1415),
+        createObjectWithFlexList('grape', 42, 2.718),
+        createObjectWithFlexList('Banana', -1000, 0.0),
+      ];
+      box.putMany(objects);
+      final obj1 = objects[0].id;
+      final obj2 = objects[1].id;
+      final obj3 = objects[2].id;
+      final obj4 = objects[3].id;
+
+      assertQueryCondition(
+        FlexListEntity_.flexDynamic.containsElementString('Banana'),
+        box,
+        [obj2, obj4],
+      );
+      assertQueryCondition(
+        FlexListEntity_.flexObject.containsElementString('banana'),
+        box,
+        [obj1],
+      );
+      assertQueryCondition(
+        FlexListEntity_.flexObjectNonNull.containsElementString('grape'),
+        box,
+        [obj3],
+      );
+      assertQueryCondition(
+        FlexListEntity_.flexObject.containsElementInt(42),
+        box,
+        [obj1, obj3],
+      );
+      assertQueryCondition(
+        FlexListEntity_.flexObject.containsElementInt(-1000),
+        box,
+        [obj4],
+      );
+    });
   });
 
   group('Flex Value property (dynamic/Object?)', () {
@@ -485,6 +846,24 @@ void main() {
       final updated = box.get(id)!;
       expect(updated.flexDynamic, isNull);
       expect(updated.flexDynamicExplicit, isNull);
+    });
+
+    test('equalsValue', () {
+      final entity1 = FlexValueEntity(flexDynamic: 'test', flexObject: 123);
+      final entity2 = FlexValueEntity(flexDynamic: 'Test', flexObject: 456);
+      box.putMany([entity1, entity2]);
+      final id1 = entity1.id;
+      final id2 = entity2.id;
+
+      assertQueryCondition(
+        FlexValueEntity_.flexDynamic.equalsString('test'),
+        box,
+        [id1],
+      );
+
+      assertQueryCondition(FlexValueEntity_.flexObject.equalsInt(456), box, [
+        id2,
+      ]);
     });
   });
 }

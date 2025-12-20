@@ -12,6 +12,22 @@ class CodeChunks {
   /// Alias for internal.dart import. Prefix classes from it like '$obxInt.Class'.
   static String obxInt = "obx_int";
 
+  static List<String> flexVectorTypeNames = [
+    'List<dynamic>',
+    'List<Object?>',
+    'List<Object>',
+    'List<Map<String, dynamic>>',
+    'List<Map<String, Object?>>',
+  ];
+
+  static List<String> flexMapTypeNames = [
+    'Map<String, dynamic>',
+    'Map<String, Object?>',
+    'Map<String, Object>',
+  ];
+
+  static List<String> flexValueTypeNames = ['dynamic', 'Object?', 'Object'];
+
   /// Note: objectbox imports in generated code are aliased to avoid name
   /// collisions with entity classes.
   static String objectboxDart(
@@ -876,8 +892,8 @@ class CodeChunks {
           fieldType = 'StringVector';
           break;
         case OBXPropertyType.Flex:
-          // Flex properties don't have query support yet, skip generating query property
-          continue;
+          fieldType = 'Flex';
+          break;
         default:
           throw InvalidGenerationSourceError(
             'Unsupported property type (${prop.type}): ${entity.name}.$name',
@@ -893,7 +909,15 @@ class CodeChunks {
       } else if (prop.hnswParams != null) {
         propCode += '$obx.QueryHnswProperty<${entity.name}>';
       } else {
-        propCode += '$obx.Query${fieldType}Property<${entity.name}>';
+        if (flexMapTypeNames.contains(prop.fieldType)) {
+          propCode += '$obx.QueryFlexMapProperty<${entity.name}>';
+        } else if (flexVectorTypeNames.contains(prop.fieldType)) {
+          propCode += '$obx.QueryFlexVectorProperty<${entity.name}>';
+        } else if (flexValueTypeNames.contains(prop.fieldType)) {
+          propCode += '$obx.QueryFlexValueProperty<${entity.name}>';
+        } else {
+          propCode += '$obx.Query${fieldType}Property<${entity.name}>';
+        }
       }
       propCode += '(_entities[$i].properties[$p]);';
       fields.add(propCode);
