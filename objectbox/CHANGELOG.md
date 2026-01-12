@@ -1,3 +1,5 @@
+## latest
+
 ## 5.1.0 (2025-12-18)
 
 * Added flex properties that can hold any kind of data ("schema-less") supporting the following types on the Dart side:
@@ -11,7 +13,7 @@
 * Added `dateUtc` and `dateUtcNano` property types for DateTime read back UTC.
   [#308](https://github.com/objectbox/objectbox-dart/issues/308)
 * Added "GeneratorVersion" enum to enforce generated code is compatible with the runtime library.
-  **You must regenerate code after updating the objectbox package.**
+  **You must run `dart run build_runner build` after updating the objectbox package.**
   Until you regenerate code, compiling will fail with a message like this:
   "Error: Required named parameter 'generatorVersion' must be provided".
 
