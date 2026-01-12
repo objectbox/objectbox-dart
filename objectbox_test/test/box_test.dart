@@ -1082,11 +1082,11 @@ void main() {
       // If explicitly stored as DateNano, microsecond precision is preserved.
       expect(object.tDateNano, now, reason: name);
       expect(object.tDateNanoUtc, nowUtc, reason: name);
-      // UTC types restore with UTC.
+      // Legacy types restore with local time zone.
       expect(object.tDate!.isUtc, false, reason: name);
       expect(object.tDateExplicit!.isUtc, false, reason: name);
       expect(object.tDateNano!.isUtc, false, reason: name);
-      // Legacy types restore with local time zone.
+      // UTC types restore with UTC.
       expect(object.tDateUtc!.isUtc, true, reason: name);
       expect(object.tDateNanoUtc!.isUtc, true, reason: name);
     }
