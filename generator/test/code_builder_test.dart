@@ -272,6 +272,48 @@ void main() {
       ''');
     });
 
+    test('Plain DateTime warning', () async {
+      final source = r'''
+      library example;     
+      import 'package:objectbox/objectbox.dart';
+      
+      @Entity()
+      class Example {
+        @Id()
+        int id = 0;
+        
+        // Using default type for DateTime (not recommended, but supported)
+        DateTime? warnsForThis;
+      }
+      ''';
+
+      final testEnv = GeneratorTestEnv();
+      final result = await testEnv.run(source);
+
+      expect(
+        result.logs,
+        contains(
+          isA<LogRecord>()
+              .having((r) => r.level, 'level', Level.WARNING)
+              .having(
+                (r) => r.message,
+                'message',
+                contains(
+                  "DateTime property 'warnsForThis' in entity 'Example' is stored in UTC using millisecond precision",
+                ),
+              ),
+        ),
+      );
+
+      // Assert the entity was still successfully created with the DateTime field
+      expect(testEnv.model.entities.length, 1);
+      final exampleEntity = testEnv.model.entities[0];
+      expect(
+        exampleEntity.findPropertyByName('warnsForThis')!.type,
+        OBXPropertyType.Date,
+      );
+    });
+
     test('Finds backlink source if type is unique', () async {
       final source = r'''
       library example;     
