@@ -203,11 +203,18 @@ class SyncClient {
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
-    _cSync = withNativeStrings(
-        serverUrls,
-        (ptr, size) => checkObxPtr(
-            C.sync_urls(InternalStoreAccess.ptr(_store), ptr, size),
-            'failed to create Sync client'));
+    final options = checkObxPtr(C.sync_opt(InternalStoreAccess.ptr(_store)),
+        'failed to create Sync options');
+
+    for (final url in serverUrls) {
+      withNativeString(url, (urlCStr) {
+        checkObx(C.sync_opt_add_url(options, urlCStr));
+      });
+    }
+
+    // Create Sync client with options (options are freed by sync_create)
+    _cSync =
+        checkObxPtr(C.sync_create(options), 'failed to create Sync client');
 
     filterVariables?.forEach(putFilterVariable);
 
