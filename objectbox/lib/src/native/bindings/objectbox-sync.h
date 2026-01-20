@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 0 && OBX_VERSION_PATCH == 0,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 1 && OBX_VERSION_PATCH == 0,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -187,16 +187,96 @@ typedef void OBX_sync_listener_server_time(void* arg, int64_t timestamp_ns);
 
 typedef void OBX_sync_listener_msg_objects(void* arg, const OBX_sync_msg_objects* msg_objects);
 
+/// Flags to adjust sync client behavior.
+typedef enum {
+    /// Enable (rather extensive) logging on how IDs are mapped (local <-> global)
+    OBXSyncFlags_DebugLogIdMapping = 1,
+
+    /// If the client gets in a state that does not allow any further synchronization, this flag instructs Sync to
+    /// keep local data nevertheless. While this preserves data, you need to resolve the situation manually.
+    /// For example, you could backup the data and start with a fresh database.
+    /// Note that the default behavior (this flag is not set) is to wipe existing data from all sync-enabled types and
+    /// sync from scratch from the server.
+    /// Client-only: setting this flag for Sync server has no effect.
+    OBXSyncFlags_KeepDataOnSyncError = 2,
+
+    /// Logs sync filter variables used for each client, e.g. values provided by JWT or the client's login message.
+    OBXSyncFlags_DebugLogFilterVariables = 4,
+
+    /// When set, remove operations will include the full object data in the TX log (REMOVE_OBJECT command).
+    /// This allows sync filters to filter out remove operations based on the object content.
+    /// Without this flag, remove operations only contain the object ID and cannot be filtered.
+    /// Note: this increases the size of TX logs for remove operations.
+    OBXSyncFlags_RemoveWithObjectData = 8,
+
+    /// Enables debug logging of TX log processing.
+    /// For now, this only has an effect on SyncClients (Sync Server has extensive debug logs already).
+    OBXSyncFlags_DebugLogTxLogs = 16,
+} OBXSyncFlags;
+
+//----------------------------------------------
+// Sync Client Options
+//----------------------------------------------
+
+struct OBX_sync_options;
+typedef struct OBX_sync_options OBX_sync_options;
+
+/// Creates a sync client options object, which is used to configure and create a sync client.
+/// The options must be used with obx_sync_create() to create a sync client.
+/// @param store the store to sync; a store can only have one sync client associated with it.
+/// @returns NULL if the options could not be created (e.g. store is NULL)
+OBX_C_API OBX_sync_options* obx_sync_opt(OBX_store* store);
+
+/// Adds a server URL to the sync options; at least one URL must be added before opening the sync client.
+/// Passing multiple URLs allows high availability and load balancing (i.e. using a ObjectBox Sync Server Cluster).
+/// A random URL is selected for each connection attempt.
+OBX_C_API obx_err obx_sync_opt_add_url(OBX_sync_options* opt, const char* url);
+
+/// Adds an SSL certificate path to the sync options.
+/// This allows to pass SSL certificate paths referring to the local file system.
+/// Example use cases are using self-signed certificates in a local development environment and custom CAs.
+OBX_C_API obx_err obx_sync_opt_add_cert_path(OBX_sync_options* opt, const char* cert_path);
+
+/// Sets sync flags to adjust sync behavior; see OBXSyncFlags for available flags.
+/// Combine multiple flags using bitwise OR.
+OBX_C_API obx_err obx_sync_opt_flags(OBX_sync_options* opt, uint32_t flags);
+
+/// Creates a sync client with the given options.
+/// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
+/// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
+/// By default, a sync client automatically receives updates from the server once login succeeded.
+/// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
+/// Note: the given options are always freed by this function, including when an error occurs.
+/// @param opt required parameter holding the sync options (at least one URL must be set)
+/// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+OBX_C_API OBX_sync* obx_sync_create(OBX_sync_options* opt);
+
+/// Frees the sync options object.
+/// Note: Only free *unused* options, obx_sync_create() frees the options internally.
+OBX_C_API void obx_sync_opt_free(OBX_sync_options* opt);
+
+//----------------------------------------------
+// Sync Client Creation (convenience functions)
+//----------------------------------------------
+
 /// Creates a sync client associated with the given store and sync server URL.
 /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
 /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
-/// By default a sync client automatically receives updates from the server once login succeeded.
+/// By default, a sync client automatically receives updates from the server once login succeeded.
 /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
 OBX_C_API OBX_sync* obx_sync(OBX_store* store, const char* server_url);
 
-/// Creates a sync client associated with the given store and a list of sync server URL.
-/// For details, see obx_sync()
-OBX_C_API OBX_sync* obx_sync_urls(OBX_store* store, const char* server_urls[], size_t server_urls_count);
+/// Creates a sync client associated with the given store and a list of sync server URLs (minimum: one URL).
+/// Passing multiple URLs allows high availability and load balancing (i.e. using a ObjectBox Sync Server Cluster).
+/// A random URL is selected for each connection attempt.
+/// For general details, see obx_sync()
+OBX_C_API OBX_sync* obx_sync_urls(OBX_store* store, const char* const server_urls[], size_t server_urls_count);
+
+/// Creates a sync client associated with the given store, sync server URLs and SSL certificate paths.
+/// Like obx_sync_urls(), but also allows to pass SSL certificate paths referring to the local file system.
+/// Example use cases are using self-signed certificates in a local development environment and custom CAs.
+OBX_C_API OBX_sync* obx_sync_certs(OBX_store* store, const char* const server_urls[], size_t server_urls_count,
+                                   const char* const cert_paths[], size_t cert_paths_count);
 
 /// Stops and closes (deletes) the sync client, freeing its resources.
 OBX_C_API obx_err obx_sync_close(OBX_sync* sync);
@@ -262,6 +342,7 @@ OBX_C_API obx_err obx_sync_max_messages_in_flight(OBX_sync* sync, int value);
 /// Triggers a reconnection attempt immediately.
 /// By default, an increasing backoff interval is used for reconnection attempts.
 /// But sometimes the user of this API has additional knowledge and can initiate a reconnection attempt sooner.
+/// @return OBX_SUCCESS if a reconnect could be triggered, OBX_NO_SUCCESS if not, or an error code in exceptional cases.
 OBX_C_API obx_err obx_sync_trigger_reconnect(OBX_sync* sync);
 
 /// Sets the interval in which the client sends "heartbeat" messages to the server, keeping the connection alive.
@@ -327,7 +408,7 @@ OBX_C_API obx_err obx_sync_updates_cancel(OBX_sync* sync);
 
 /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
 /// @param limit pass 0 to count all messages without any limitation or a lower number that's enough for your app logic.
-/// @note This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
+/// @note This call uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
 ///       While this will still be fast, avoid calling this function excessively.
 ///       2) the result follows transaction view semantics, thus it may not always match the actual value.
 OBX_C_API obx_err obx_sync_outgoing_message_count(OBX_sync* sync, uint64_t limit, uint64_t* out_count);
