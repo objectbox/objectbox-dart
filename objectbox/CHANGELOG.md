@@ -1,6 +1,7 @@
 ## latest
 
 * Allow analyzer versions 9 and 10. [#780](https://github.com/objectbox/objectbox-dart/issues/780)
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.1.0-2026-01-19](https://github.com/objectbox/objectbox-c/releases/tag/v5.1.0).
 
 ## 5.1.0 (2025-12-18)
 

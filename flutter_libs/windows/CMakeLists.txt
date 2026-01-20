@@ -56,7 +56,7 @@ set(objectbox_flutter_libs_bundled_libraries
 # ----------------------------------------------------------------------
 # Download and add objectbox-c prebuilt library.
 
-set(OBJECTBOX_VERSION 5.0.0)
+set(OBJECTBOX_VERSION 5.1.0)
 
 set(OBJECTBOX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${OBJECTBOX_ARCH} MATCHES "AMD64")
