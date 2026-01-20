@@ -301,6 +301,34 @@ void main() {
               contains('Filter variables must have a name'))));
     });
 
+    test('SyncClient certificatePaths', () {
+      // Test with multiple certificate paths
+      SyncClient multiple = Sync.client(
+          store, serverUrl(), SyncCredentials.none(),
+          certificatePaths: [
+            '/path/to/does-not-exist-1.crt',
+            '/path/to/does-not-exist-2.crt',
+          ]);
+      multiple.close();
+
+      // Test with empty list (should work, just no certificates added)
+      SyncClient empty = Sync.client(store, serverUrl(), SyncCredentials.none(),
+          certificatePaths: []);
+      empty.close();
+    });
+
+    test('SyncClient flags', () {
+      // Test all flags combined
+      SyncClient client = Sync.client(
+          store, serverUrl(), SyncCredentials.none(),
+          flags: OBXSyncFlags.DebugLogIdMapping |
+              OBXSyncFlags.KeepDataOnSyncError |
+              OBXSyncFlags.DebugLogFilterVariables |
+              OBXSyncFlags.RemoveWithObjectData |
+              OBXSyncFlags.DebugLogTxLogs);
+      client.close();
+    });
+
     group('Server tests using sync-server in PATH', () {
       late SyncServer server;
 

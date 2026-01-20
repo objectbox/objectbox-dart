@@ -8,6 +8,11 @@
 * Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1-dev-2026-01-21.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 
+### Sync
+
+* SyncClient: add options to configure custom certificates and configuration flags to `Sync.client`
+  methods.
+
 ## 5.1.0 (2025-12-18)
 
 * Added flex properties that can hold any kind of data ("schema-less") supporting the following types on the Dart side:

@@ -176,7 +176,7 @@ class SyncChange {
 }
 
 /// Sync client is used to connect to an ObjectBox sync server.
-/// Use through [Sync].
+/// Create a client with [Sync.client] and related methods.
 class SyncClient {
   final Store _store;
 
@@ -189,9 +189,16 @@ class SyncClient {
       : throw StateError('SyncClient already closed');
 
   /// Creates a Sync client associated with the given store and options.
-  /// This does not initiate any connection attempts yet: call start() to do so.
-  SyncClient._(this._store, List<String> serverUrls,
-      List<SyncCredentials> credentials, Map<String, String>? filterVariables) {
+  ///
+  /// This is an internal constructor. Clients should be created using
+  /// [Sync.client] and related helper methods.
+  SyncClient._(
+      this._store,
+      List<String> serverUrls,
+      List<SyncCredentials> credentials,
+      Map<String, String>? filterVariables,
+      List<String>? certificatePaths,
+      int? flags) {
     if (serverUrls.isEmpty) {
       throw ArgumentError.value(
           serverUrls, "serverUrls", "Provide at least one server URL");
@@ -203,6 +210,7 @@ class SyncClient {
           'Please visit https://objectbox.io/sync/ for options.');
     }
 
+    // Build options
     final options = checkObxPtr(C.sync_opt(InternalStoreAccess.ptr(_store)),
         'failed to create Sync options');
 
@@ -210,6 +218,19 @@ class SyncClient {
       withNativeString(url, (urlCStr) {
         checkObx(C.sync_opt_add_url(options, urlCStr));
       });
+    }
+
+    if (certificatePaths != null) {
+      for (final certPath in certificatePaths) {
+        withNativeString(certPath, (certPathCStr) {
+          checkObx(C.sync_opt_add_cert_path(options, certPathCStr));
+        });
+      }
+    }
+
+    // Note: 0 or invalid flags are ignored by sync_opt_flags
+    if (flags != null) {
+      checkObx(C.sync_opt_flags(options, flags));
     }
 
     // Create Sync client with options (options are freed by sync_create)
@@ -726,7 +747,7 @@ class _SyncListenerGroup<StreamValueType> {
 /// [ObjectBox Sync](https://objectbox.io/sync/) makes data available and
 /// synchronized across devices, online and offline.
 ///
-/// Start a client using [Sync.client()] and connect to a remote server.
+/// Create a client using [Sync.client].
 class Sync {
   /// Set to `true` to enable shared global IDs for a Sync-enabled entity class.
   ///
@@ -752,54 +773,80 @@ class Sync {
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() => _syncAvailable;
 
-  /// Creates a Sync client associated with the given store and configures it
+  /// Creates a [SyncClient] associated with the given store and configures it
   /// with the given options. This does not initiate any connection attempts
-  /// yet, call [SyncClient.start()] to do so.
+  /// yet, call [SyncClient.start] to do so.
   ///
-  /// Before [SyncClient.start()], you can still configure some aspects of the
-  /// client, e.g. its [SyncRequestUpdatesMode] mode.
+  /// By default, a Sync client automatically receives updates from the server
+  /// once login succeeded. To configure this differently, call
+  /// [SyncClient.setRequestUpdatesMode] with the wanted mode.
   ///
   /// To configure [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
   /// variables, pass variable names mapped to their value to [filterVariables].
   ///
   /// Sync client filter variables can be used in server-side Sync filters to
   /// filter out objects that do not match the filter.
+  ///
+  /// To, for example, use self-signed certificates in a local development
+  /// environment or custom CAs, pass certificate paths referring to the local
+  /// file system to [certificatePaths].
+  ///
+  /// To configure Sync behavior, pass bitwise OR-ed [OBXSyncFlags] values to
+  /// [flags]. See [OBXSyncFlags] for available flags.
   static SyncClient client(
           Store store, String serverUrl, SyncCredentials credentials,
-          {Map<String, String>? filterVariables}) =>
+          {Map<String, String>? filterVariables,
+          List<String>? certificatePaths,
+          int? flags}) =>
       clientMultiUrls(store, [serverUrl], credentials,
-          filterVariables: filterVariables);
+          filterVariables: filterVariables,
+          certificatePaths: certificatePaths,
+          flags: flags);
 
   /// Like [client], but accepts a list of credentials.
   ///
   /// When passing multiple credentials, does **not** support
-  /// [SyncCredentials.none()].
+  /// [SyncCredentials.none].
   static SyncClient clientMultiCredentials(
           Store store, String serverUrl, List<SyncCredentials> credentials,
-          {Map<String, String>? filterVariables}) =>
+          {Map<String, String>? filterVariables,
+          List<String>? certificatePaths,
+          int? flags}) =>
       clientMultiCredentialsMultiUrls(store, [serverUrl], credentials,
-          filterVariables: filterVariables);
+          filterVariables: filterVariables,
+          certificatePaths: certificatePaths,
+          flags: flags);
 
   /// Like [client], but accepts a list of URLs to work with multiple servers.
+  ///
+  /// Passing multiple URLs allows high availability and load balancing (for ex.
+  /// using a ObjectBox Sync Server Cluster). A random URL is selected for each
+  /// connection attempt.
   static SyncClient clientMultiUrls(
           Store store, List<String> serverUrls, SyncCredentials credentials,
-          {Map<String, String>? filterVariables}) =>
+          {Map<String, String>? filterVariables,
+          List<String>? certificatePaths,
+          int? flags}) =>
       clientMultiCredentialsMultiUrls(store, serverUrls, [credentials],
-          filterVariables: filterVariables);
+          filterVariables: filterVariables,
+          certificatePaths: certificatePaths,
+          flags: flags);
 
   /// Like [client], but accepts a list of credentials and a list of URLs to
   /// work with multiple servers.
   ///
   /// When passing multiple credentials, does **not** support
-  /// [SyncCredentials.none()].
+  /// [SyncCredentials.none].
   static SyncClient clientMultiCredentialsMultiUrls(
       Store store, List<String> serverUrls, List<SyncCredentials> credentials,
-      {Map<String, String>? filterVariables}) {
+      {Map<String, String>? filterVariables,
+      List<String>? certificatePaths,
+      int? flags}) {
     if (syncClientsStorage.containsKey(store)) {
       throw StateError('Only one sync client can be active for a store');
     }
-    final client =
-        SyncClient._(store, serverUrls, credentials, filterVariables);
+    final client = SyncClient._(store, serverUrls, credentials, filterVariables,
+        certificatePaths, flags);
     syncClientsStorage[store] = client;
     InternalStoreAccess.addCloseListener(store, client, client.close);
     return client;
