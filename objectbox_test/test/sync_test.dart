@@ -51,15 +51,15 @@ void main() {
 
   // lambda to easily create clients in the tests below
   SyncClient createAuthenticatedClient(
-          Store s, List<SyncCredentials> credentials) =>
-      Sync.clientMultiCredentials(s, serverUrl(), credentials);
+          Store store, List<SyncCredentials> credentials) =>
+      SyncClient(store, [serverUrl()], credentials);
 
-  SyncClient createClient(Store s) =>
-      createAuthenticatedClient(s, [SyncCredentials.none()]);
+  SyncClient createClient(Store store) =>
+      createAuthenticatedClient(store, [SyncCredentials.none()]);
 
   // lambda to easily create clients in the test below
-  SyncClient loggedInClient(Store s) {
-    final client = createClient(s);
+  SyncClient loggedInClient(Store store) {
+    final client = createClient(store);
     client.start();
     waitUntilLoggedIn(client);
     return client;
@@ -72,17 +72,11 @@ void main() {
     expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
-  test('Sync.clientMulti throws if empty URL list', () {
+  test('SyncClient throws if empty URL list', () {
     // Note: this test works with a library that does not have the Sync
     // feature, because the URLs are checked before checking for the feature.
     expect(
-        () => Sync.clientMultiUrls(store, [], SyncCredentials.none()),
-        throwsA(isArgumentError.having((e) => e.message, 'message',
-            contains('Provide at least one server URL'))));
-
-    expect(
-        () => Sync.clientMultiCredentialsMultiUrls(
-            store, [], [SyncCredentials.none()]),
+        () => SyncClient(store, [], [SyncCredentials.none()]),
         throwsA(isArgumentError.having((e) => e.message, 'message',
             contains('Provide at least one server URL'))));
   });
@@ -139,14 +133,9 @@ void main() {
       expect(store.syncClient(), isNull);
     });
 
-    test('Sync.clientMulti throws if empty credential list', () {
+    test('SyncClient throws if empty credential list', () {
       expect(
-          () => Sync.clientMultiCredentials(store, 'test-url', []),
-          throwsA(isArgumentError.having((e) => e.message, 'message',
-              contains('Provide at least one credential'))));
-
-      expect(
-          () => Sync.clientMultiCredentialsMultiUrls(store, ['test-url'], []),
+          () => SyncClient(store, ['test-url'], []),
           throwsA(isArgumentError.having((e) => e.message, 'message',
               contains('Provide at least one credential'))));
     });
@@ -283,8 +272,8 @@ void main() {
         'test-var-1': 'test value 1',
         'test-var-2': 'test value 2'
       };
-      SyncClient client = Sync.client(
-          store, serverUrl(), SyncCredentials.none(),
+      SyncClient client = SyncClient(
+          store, [serverUrl()], [SyncCredentials.none()],
           filterVariables: filterVariables);
       addTearDown(() {
         client.close();
@@ -303,24 +292,27 @@ void main() {
 
     test('SyncClient certificatePaths', () {
       // Test with multiple certificate paths
-      SyncClient multiple = Sync.client(
-          store, serverUrl(), SyncCredentials.none(),
-          certificatePaths: [
-            '/path/to/does-not-exist-1.crt',
-            '/path/to/does-not-exist-2.crt',
-          ]);
+      SyncClient multiple = SyncClient(store, [
+        serverUrl()
+      ], [
+        SyncCredentials.none()
+      ], certificatePaths: [
+        '/path/to/does-not-exist-1.crt',
+        '/path/to/does-not-exist-2.crt',
+      ]);
       multiple.close();
 
       // Test with empty list (should work, just no certificates added)
-      SyncClient empty = Sync.client(store, serverUrl(), SyncCredentials.none(),
+      SyncClient empty = SyncClient(
+          store, [serverUrl()], [SyncCredentials.none()],
           certificatePaths: []);
       empty.close();
     });
 
     test('SyncClient flags', () {
       // Test all flags combined
-      SyncClient client = Sync.client(
-          store, serverUrl(), SyncCredentials.none(),
+      SyncClient client = SyncClient(
+          store, [serverUrl()], [SyncCredentials.none()],
           flags: OBXSyncFlags.DebugLogIdMapping |
               OBXSyncFlags.KeepDataOnSyncError |
               OBXSyncFlags.DebugLogFilterVariables |

@@ -10,8 +10,8 @@
 
 ### Sync
 
-* SyncClient: add options to configure custom certificates and configuration flags to `Sync.client`
-  methods.
+* SyncClient: add a constructor, deprecate `Sync.client` and related helper methods.
+* SyncClient: add constructor parameters to provide custom certificates and configuration flags.
 
 ## 5.1.0 (2025-12-18)
 
