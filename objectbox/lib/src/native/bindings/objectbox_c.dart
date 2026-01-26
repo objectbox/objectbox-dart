@@ -11486,6 +11486,10 @@ abstract class OBXSyncFlags {
   /// Enables debug logging of TX log processing.
   /// For now, this only has an effect on SyncClients (Sync Server has extensive debug logs already).
   static const int DebugLogTxLogs = 16;
+
+  // Note: manually added, 5.1.0 release objectbox-sync.h file is missing it
+  /// Skips invalid (put object) operations in the TX log instead of failing.
+  static const int SkipInvalidTxOps = 32;
 }
 
 class OBX_sync_options extends ffi.Opaque {}

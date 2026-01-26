@@ -325,7 +325,8 @@ void main() {
               OBXSyncFlags.KeepDataOnSyncError |
               OBXSyncFlags.DebugLogFilterVariables |
               OBXSyncFlags.RemoveWithObjectData |
-              OBXSyncFlags.DebugLogTxLogs);
+              OBXSyncFlags.DebugLogTxLogs |
+              OBXSyncFlags.SkipInvalidTxOps);
       client.close();
     });
 
