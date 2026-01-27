@@ -12,7 +12,7 @@ dependencies:
   objectbox: 5.1.0
   # https://pub.dev/packages/analyzer/changelog
   # source_gen 4.0.1 requires 8.1.1
-  analyzer: '>=8.1.1 <9.0.0'
+  analyzer: '>=8.1.1 <11.0.0'
   # https://pub.dev/packages/build/changelog
   # Require 4.0.0 to remove discontinued build_runner_core, also build_test 3.5.0 requires 4.0.0
   build: '>=4.0.0 <5.0.0'

@@ -1,5 +1,7 @@
 ## latest
 
+* Allow analyzer versions 9 and 10. [#780](https://github.com/objectbox/objectbox-dart/issues/780)
+
 ## 5.1.0 (2025-12-18)
 
 * Added flex properties that can hold any kind of data ("schema-less") supporting the following types on the Dart side:
