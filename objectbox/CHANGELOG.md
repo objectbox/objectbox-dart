@@ -10,8 +10,17 @@
 
 ### Sync
 
+* New Sync protocol V8: using new clients also requires a server update
 * SyncClient: add a constructor, deprecate `Sync.client` and related helper methods.
 * SyncClient: add constructor parameters to provide custom certificates and configuration flags.
+  * Remove-operations with object content for Sync filters (optional setting; sync flag)
+  * Add DebugLogTxLogs sync flag to log TX log processing on the client side 
+  * Add SkipInvalidTxOps sync flag to skip invalid operations in a TX log on the client side; errors
+    are logged and the TX is only partially applied.
+* Remove superfluous sync listener triggers when sync filters "report updates" (SKIP_TX)
+* Sync clients compress earlier: reduces disk storage for outgoing data
+* Reworked certificates for Apple platforms
+* Removed support for older Sync protocol versions before 2024-09; protocol V5+ is now required.
 
 ## 5.1.0 (2025-12-18)
 
