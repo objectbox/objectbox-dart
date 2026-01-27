@@ -5,6 +5,8 @@
 * Update ObjectBox database for Flutter Android apps to 5.1.0-2026-01-19.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
   sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in `android/app/build.gradle`.
+* Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1-dev-2026-01-21.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 
 ## 5.1.0 (2025-12-18)
 
