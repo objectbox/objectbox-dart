@@ -37,19 +37,19 @@ Includes database 5.1.0-2026-01-19
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 
 ```bash
-./tool/set-android-version.sh 5.0.1
+./tool/set-android-version.sh 5.1.0
 ```
 
 ```text
-* Update ObjectBox database for Flutter Android apps to 5.0.1.
+* Update ObjectBox database for Flutter Android apps to 5.1.0-2026-01-19.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make 
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.0.1` in `android/app/build.gradle`.
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in `android/app/build.gradle`.
 ```
 
 ```text
-Update Android library [4.3.1 -> 5.0.1]
+Update Android library [5.0.1 -> 5.1.0]
 
-Includes C API 5.0.0 and database 5.0.0-2025-09-27
+Includes C API 5.1.0 and database 5.1.0-2026-01-19
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
