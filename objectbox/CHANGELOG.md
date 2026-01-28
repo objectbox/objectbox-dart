@@ -1,6 +1,26 @@
 ## latest
 
 * Allow analyzer versions 9 and 10. [#780](https://github.com/objectbox/objectbox-dart/issues/780)
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.1.0-2026-01-19](https://github.com/objectbox/objectbox-c/releases/tag/v5.1.0).
+* Update ObjectBox database for Flutter Android apps to 5.1.0-2026-01-19.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in `android/app/build.gradle`.
+* Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1-dev-2026-01-21.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
+
+### Sync
+
+* New Sync protocol V8: using new clients also requires a server update
+* SyncClient: add a constructor, deprecate `Sync.client` and related helper methods.
+* SyncClient: add constructor parameters to provide custom certificates and configuration flags.
+  * Remove-operations with object content for Sync filters (optional setting; sync flag)
+  * Add DebugLogTxLogs sync flag to log TX log processing on the client side 
+  * Add SkipInvalidTxOps sync flag to skip invalid operations in a TX log on the client side; errors
+    are logged and the TX is only partially applied.
+* Remove superfluous sync listener triggers when sync filters "report updates" (SKIP_TX)
+* Sync clients compress earlier: reduces disk storage for outgoing data
+* Reworked certificates for Apple platforms
+* Removed support for older Sync protocol versions before 2024-09; protocol V5+ is now required.
 
 ## 5.1.0 (2025-12-18)
 

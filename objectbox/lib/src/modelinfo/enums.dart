@@ -363,3 +363,34 @@ abstract class OBXExternalPropertyType {
   /// Encoding: 1:1 string representation
   static const int MongoRegex = 127;
 }
+
+/// Flags to adjust Sync client behavior.
+abstract class OBXSyncFlags {
+  /// Enable (rather extensive) logging on how IDs are mapped (local <-> global)
+  static const int DebugLogIdMapping = 1;
+
+  /// If the client gets in a state that does not allow any further synchronization, this flag instructs Sync to
+  /// keep local data nevertheless. While this preserves data, you need to resolve the situation manually.
+  /// For example, you could backup the data and start with a fresh database.
+  /// Note that the default behavior (this flag is not set) is to wipe existing data from all sync-enabled types and
+  /// sync from scratch from the server.
+  /// Client-only: setting this flag for Sync server has no effect.
+  static const int KeepDataOnSyncError = 2;
+
+  /// Logs Sync filter variables used for each client, e.g. values provided by JWT or the client's login message.
+  static const int DebugLogFilterVariables = 4;
+
+  /// When set, remove operations will include the full object data in the TX log (REMOVE_OBJECT command).
+  /// This allows Sync filters to filter out remove operations based on the object content.
+  /// Without this flag, remove operations only contain the object ID and cannot be filtered.
+  /// Note: this increases the size of TX logs for remove operations.
+  static const int RemoveWithObjectData = 8;
+
+  /// Enables debug logging of TX log processing.
+  /// For now, this only has an effect on SyncClients (Sync Server has extensive debug logs already).
+  static const int DebugLogTxLogs = 16;
+
+  // Note: manually added, 5.1.0 release objectbox-sync.h file is missing it
+  /// Skips invalid (put object) operations in the TX log instead of failing.
+  static const int SkipInvalidTxOps = 32;
+}

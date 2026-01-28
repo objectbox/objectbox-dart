@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 ObjectBox Ltd. All rights reserved.
+ * Copyright 2018-2026 ObjectBox Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ extern "C" {
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 5
-#define OBX_VERSION_MINOR 0
+#define OBX_VERSION_MINOR 1
 #define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
@@ -788,15 +788,13 @@ OBX_C_API obx_err obx_model_property_index_id(OBX_model* model, obx_schema_id in
 
 /// Refine the definition of the property declared by the most recent obx_model_property() call: set the external name.
 /// This is an optional name used in an external system, e.g. another database that ObjectBox syncs with.
-/// @param index_id Must be unique within this version of the model
-/// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+/// @param external_name The name of the property in the external system.
 OBX_C_API obx_err obx_model_property_external_name(OBX_model* model, const char* external_name);
 
 /// Refine the definition of the property declared by the most recent obx_model_property() call: set the external type.
 /// This is an optional type used in an external system, e.g. another database that ObjectBox syncs with.
 /// Note that the supported mappings from ObjectBox types to external types are limited.
-/// @param index_id Must be unique within this version of the model
-/// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+/// @param external_type The type of the property in the external system.
 OBX_C_API obx_err obx_model_property_external_type(OBX_model* model, OBXExternalPropertyType external_type);
 
 /// Sets the vector dimensionality for the HNSW index of the latest property (must be of a supported vector type).
@@ -1307,7 +1305,7 @@ OBX_C_API OBX_store* obx_store_attach(const char* path);
 /// Attach to a previously opened store matching the given store ID.
 /// The returned store is a new instance (e.g. different pointer value) and must also be closed via obx_store_close().
 /// The actual underlying store is only closed when the last store OBX_store instance is closed.
-/// @param store_id
+/// @param store_id The ID previously obtained from a store.
 /// @returns nullptr if no open store was found (i.e. not opened before or already closed)
 /// @see obx_store_clone() for "attaching" to a available store instance.
 OBX_C_API OBX_store* obx_store_attach_id(uint64_t store_id);
@@ -1582,10 +1580,18 @@ OBX_C_API OBX_bytes_array* obx_cursor_backlinks(OBX_cursor* cursor, obx_schema_i
 OBX_C_API OBX_id_array* obx_cursor_backlink_ids(OBX_cursor* cursor, obx_schema_id entity_id, obx_schema_id property_id,
                                                 obx_id id);
 
+/// Puts a standalone (many-to-many) relation instance to "connect" two objects.
+/// @warning Ensure that the source and target IDs are pointing to actually existing objects.
+///          Failing to do so may result in subtle errors.
+///          For example, a known problem is that sync filters always filter out relations that have no valid objects.
+/// @note It's called a "standalone" relation because the relation data is stored separately of object data.
 OBX_C_API obx_err obx_cursor_rel_put(OBX_cursor* cursor, obx_schema_id relation_id, obx_id source_id, obx_id target_id);
+
+/// Removes a standalone (many-to-many) relation instance to "disconnect" two objects.
 OBX_C_API obx_err obx_cursor_rel_remove(OBX_cursor* cursor, obx_schema_id relation_id, obx_id source_id,
                                         obx_id target_id);
 
+/// Gets the standalone (many-to-many) relation instance for the given source ID (the "connections" to other objects).
 /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
 OBX_C_API OBX_id_array* obx_cursor_rel_ids(OBX_cursor* cursor, obx_schema_id relation_id, obx_id source_id);
 
@@ -2278,6 +2284,8 @@ struct OBX_query;  // doxygen (only) picks up the typedef struct below
 /// you may want to create clonse using obx_query_clone().
 typedef struct OBX_query OBX_query;
 
+/// Builds a query from the given query builder (with the query conditions previously called on the query builder).
+/// Note: this does not release the query builder, you still need to call obx_qb_close() on it.
 /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
 OBX_C_API OBX_query* obx_query(OBX_query_builder* builder);
 

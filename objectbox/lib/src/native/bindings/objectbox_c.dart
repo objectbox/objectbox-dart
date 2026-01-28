@@ -566,8 +566,7 @@ class ObjectBoxC {
 
   /// Refine the definition of the property declared by the most recent obx_model_property() call: set the external name.
   /// This is an optional name used in an external system, e.g. another database that ObjectBox syncs with.
-  /// @param index_id Must be unique within this version of the model
-  /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+  /// @param external_name The name of the property in the external system.
   int model_property_external_name(
     ffi.Pointer<OBX_model> model,
     ffi.Pointer<ffi.Char> external_name,
@@ -589,8 +588,7 @@ class ObjectBoxC {
   /// Refine the definition of the property declared by the most recent obx_model_property() call: set the external type.
   /// This is an optional type used in an external system, e.g. another database that ObjectBox syncs with.
   /// Note that the supported mappings from ObjectBox types to external types are limited.
-  /// @param index_id Must be unique within this version of the model
-  /// @param index_uid Used to identify relations between versions of the model. Must be globally unique.
+  /// @param external_type The type of the property in the external system.
   int model_property_external_type(
     ffi.Pointer<OBX_model> model,
     int external_type,
@@ -1867,7 +1865,7 @@ class ObjectBoxC {
   /// Attach to a previously opened store matching the given store ID.
   /// The returned store is a new instance (e.g. different pointer value) and must also be closed via obx_store_close().
   /// The actual underlying store is only closed when the last store OBX_store instance is closed.
-  /// @param store_id
+  /// @param store_id The ID previously obtained from a store.
   /// @returns nullptr if no open store was found (i.e. not opened before or already closed)
   /// @see obx_store_clone() for "attaching" to a available store instance.
   ffi.Pointer<OBX_store> store_attach_id(
@@ -2812,6 +2810,11 @@ class ObjectBoxC {
       ffi.Pointer<OBX_id_array> Function(
           ffi.Pointer<OBX_cursor>, int, int, int)>();
 
+  /// Puts a standalone (many-to-many) relation instance to "connect" two objects.
+  /// @warning Ensure that the source and target IDs are pointing to actually existing objects.
+  /// Failing to do so may result in subtle errors.
+  /// For example, a known problem is that sync filters always filter out relations that have no valid objects.
+  /// @note It's called a "standalone" relation because the relation data is stored separately of object data.
   int cursor_rel_put(
     ffi.Pointer<OBX_cursor> cursor,
     int relation_id,
@@ -2833,6 +2836,7 @@ class ObjectBoxC {
   late final _cursor_rel_put = _cursor_rel_putPtr
       .asFunction<int Function(ffi.Pointer<OBX_cursor>, int, int, int)>();
 
+  /// Removes a standalone (many-to-many) relation instance to "disconnect" two objects.
   int cursor_rel_remove(
     ffi.Pointer<OBX_cursor> cursor,
     int relation_id,
@@ -2854,6 +2858,7 @@ class ObjectBoxC {
   late final _cursor_rel_remove = _cursor_rel_removePtr
       .asFunction<int Function(ffi.Pointer<OBX_cursor>, int, int, int)>();
 
+  /// Gets the standalone (many-to-many) relation instance for the given source ID (the "connections" to other objects).
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_id_array> cursor_rel_ids(
     ffi.Pointer<OBX_cursor> cursor,
@@ -5677,6 +5682,8 @@ class ObjectBoxC {
           int Function(ffi.Pointer<OBX_query_builder>, int,
               ffi.Pointer<ffi.Float>, int)>();
 
+  /// Builds a query from the given query builder (with the query conditions previously called on the query builder).
+  /// Note: this does not release the query builder, you still need to call obx_qb_close() on it.
   /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
   ffi.Pointer<OBX_query> query(
     ffi.Pointer<OBX_query_builder> builder,
@@ -8339,10 +8346,127 @@ class ObjectBoxC {
   late final _admin_close =
       _admin_closePtr.asFunction<int Function(ffi.Pointer<OBX_admin>)>();
 
+  /// Creates a sync client options object, which is used to configure and create a sync client.
+  /// The options must be used with obx_sync_create() to create a sync client.
+  /// @param store the store to sync; a store can only have one sync client associated with it.
+  /// @returns NULL if the options could not be created (e.g. store is NULL)
+  ffi.Pointer<OBX_sync_options> sync_opt(
+    ffi.Pointer<OBX_store> store,
+  ) {
+    return _sync_opt(
+      store,
+    );
+  }
+
+  late final _sync_optPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_sync_options> Function(
+              ffi.Pointer<OBX_store>)>>('obx_sync_opt');
+  late final _sync_opt = _sync_optPtr.asFunction<
+      ffi.Pointer<OBX_sync_options> Function(ffi.Pointer<OBX_store>)>();
+
+  /// Adds a server URL to the sync options; at least one URL must be added before opening the sync client.
+  /// Passing multiple URLs allows high availability and load balancing (i.e. using a ObjectBox Sync Server Cluster).
+  /// A random URL is selected for each connection attempt.
+  int sync_opt_add_url(
+    ffi.Pointer<OBX_sync_options> opt,
+    ffi.Pointer<ffi.Char> url,
+  ) {
+    return _sync_opt_add_url(
+      opt,
+      url,
+    );
+  }
+
+  late final _sync_opt_add_urlPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_options>,
+              ffi.Pointer<ffi.Char>)>>('obx_sync_opt_add_url');
+  late final _sync_opt_add_url = _sync_opt_add_urlPtr.asFunction<
+      int Function(ffi.Pointer<OBX_sync_options>, ffi.Pointer<ffi.Char>)>();
+
+  /// Adds an SSL certificate path to the sync options.
+  /// This allows to pass SSL certificate paths referring to the local file system.
+  /// Example use cases are using self-signed certificates in a local development environment and custom CAs.
+  int sync_opt_add_cert_path(
+    ffi.Pointer<OBX_sync_options> opt,
+    ffi.Pointer<ffi.Char> cert_path,
+  ) {
+    return _sync_opt_add_cert_path(
+      opt,
+      cert_path,
+    );
+  }
+
+  late final _sync_opt_add_cert_pathPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_options>,
+              ffi.Pointer<ffi.Char>)>>('obx_sync_opt_add_cert_path');
+  late final _sync_opt_add_cert_path = _sync_opt_add_cert_pathPtr.asFunction<
+      int Function(ffi.Pointer<OBX_sync_options>, ffi.Pointer<ffi.Char>)>();
+
+  /// Sets sync flags to adjust sync behavior; see OBXSyncFlags for available flags.
+  /// Combine multiple flags using bitwise OR.
+  int sync_opt_flags(
+    ffi.Pointer<OBX_sync_options> opt,
+    int flags,
+  ) {
+    return _sync_opt_flags(
+      opt,
+      flags,
+    );
+  }
+
+  late final _sync_opt_flagsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_options>,
+              ffi.Uint32)>>('obx_sync_opt_flags');
+  late final _sync_opt_flags = _sync_opt_flagsPtr
+      .asFunction<int Function(ffi.Pointer<OBX_sync_options>, int)>();
+
+  /// Creates a sync client with the given options.
+  /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
+  /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
+  /// By default, a sync client automatically receives updates from the server once login succeeded.
+  /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
+  /// Note: the given options are always freed by this function, including when an error occurs.
+  /// @param opt required parameter holding the sync options (at least one URL must be set)
+  /// @returns NULL if the operation failed, see functions like obx_last_error_code() to get error details
+  ffi.Pointer<OBX_sync> sync_create(
+    ffi.Pointer<OBX_sync_options> opt,
+  ) {
+    return _sync_create(
+      opt,
+    );
+  }
+
+  late final _sync_createPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_sync> Function(
+              ffi.Pointer<OBX_sync_options>)>>('obx_sync_create');
+  late final _sync_create = _sync_createPtr.asFunction<
+      ffi.Pointer<OBX_sync> Function(ffi.Pointer<OBX_sync_options>)>();
+
+  /// Frees the sync options object.
+  /// Note: Only free *unused* options, obx_sync_create() frees the options internally.
+  void sync_opt_free(
+    ffi.Pointer<OBX_sync_options> opt,
+  ) {
+    return _sync_opt_free(
+      opt,
+    );
+  }
+
+  late final _sync_opt_freePtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_sync_options>)>>(
+      'obx_sync_opt_free');
+  late final _sync_opt_free = _sync_opt_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_sync_options>)>();
+
   /// Creates a sync client associated with the given store and sync server URL.
   /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
   /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
-  /// By default a sync client automatically receives updates from the server once login succeeded.
+  /// By default, a sync client automatically receives updates from the server once login succeeded.
   /// To configure this differently, call obx_sync_request_updates_mode() with the wanted mode.
   ffi.Pointer<OBX_sync> sync1(
     ffi.Pointer<OBX_store> store,
@@ -8362,8 +8486,10 @@ class ObjectBoxC {
       ffi.Pointer<OBX_sync> Function(
           ffi.Pointer<OBX_store>, ffi.Pointer<ffi.Char>)>();
 
-  /// Creates a sync client associated with the given store and a list of sync server URL.
-  /// For details, see obx_sync()
+  /// Creates a sync client associated with the given store and a list of sync server URLs (minimum: one URL).
+  /// Passing multiple URLs allows high availability and load balancing (i.e. using a ObjectBox Sync Server Cluster).
+  /// A random URL is selected for each connection attempt.
+  /// For general details, see obx_sync()
   ffi.Pointer<OBX_sync> sync_urls(
     ffi.Pointer<OBX_store> store,
     ffi.Pointer<ffi.Pointer<ffi.Char>> server_urls,
@@ -8383,6 +8509,41 @@ class ObjectBoxC {
   late final _sync_urls = _sync_urlsPtr.asFunction<
       ffi.Pointer<OBX_sync> Function(
           ffi.Pointer<OBX_store>, ffi.Pointer<ffi.Pointer<ffi.Char>>, int)>();
+
+  /// Creates a sync client associated with the given store, sync server URLs and SSL certificate paths.
+  /// Like obx_sync_urls(), but also allows to pass SSL certificate paths referring to the local file system.
+  /// Example use cases are using self-signed certificates in a local development environment and custom CAs.
+  ffi.Pointer<OBX_sync> sync_certs(
+    ffi.Pointer<OBX_store> store,
+    ffi.Pointer<ffi.Pointer<ffi.Char>> server_urls,
+    int server_urls_count,
+    ffi.Pointer<ffi.Pointer<ffi.Char>> cert_paths,
+    int cert_paths_count,
+  ) {
+    return _sync_certs(
+      store,
+      server_urls,
+      server_urls_count,
+      cert_paths,
+      cert_paths_count,
+    );
+  }
+
+  late final _sync_certsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_sync> Function(
+              ffi.Pointer<OBX_store>,
+              ffi.Pointer<ffi.Pointer<ffi.Char>>,
+              ffi.Size,
+              ffi.Pointer<ffi.Pointer<ffi.Char>>,
+              ffi.Size)>>('obx_sync_certs');
+  late final _sync_certs = _sync_certsPtr.asFunction<
+      ffi.Pointer<OBX_sync> Function(
+          ffi.Pointer<OBX_store>,
+          ffi.Pointer<ffi.Pointer<ffi.Char>>,
+          int,
+          ffi.Pointer<ffi.Pointer<ffi.Char>>,
+          int)>();
 
   /// Stops and closes (deletes) the sync client, freeing its resources.
   int sync_close(
@@ -8614,6 +8775,7 @@ class ObjectBoxC {
   /// Triggers a reconnection attempt immediately.
   /// By default, an increasing backoff interval is used for reconnection attempts.
   /// But sometimes the user of this API has additional knowledge and can initiate a reconnection attempt sooner.
+  /// @return OBX_SUCCESS if a reconnect could be triggered, OBX_NO_SUCCESS if not, or an error code in exceptional cases.
   int sync_trigger_reconnect(
     ffi.Pointer<OBX_sync> sync1,
   ) {
@@ -8807,7 +8969,7 @@ class ObjectBoxC {
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to be sent to the server.
   /// @param limit pass 0 to count all messages without any limitation or a lower number that's enough for your app logic.
-  /// @note This calls uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
+  /// @note This call uses a (read) transaction internally: 1) it's not just a "cheap" return of a single number.
   /// While this will still be fast, avoid calling this function excessively.
   /// 2) the result follows transaction view semantics, thus it may not always match the actual value.
   int sync_outgoing_message_count(
@@ -11299,6 +11461,39 @@ class OBX_sync_msg_objects extends ffi.Struct {
 /// An outgoing sync objects-message.
 class OBX_sync_msg_objects_builder extends ffi.Opaque {}
 
+/// Flags to adjust sync client behavior.
+abstract class OBXSyncFlags {
+  /// Enable (rather extensive) logging on how IDs are mapped (local <-> global)
+  static const int DebugLogIdMapping = 1;
+
+  /// If the client gets in a state that does not allow any further synchronization, this flag instructs Sync to
+  /// keep local data nevertheless. While this preserves data, you need to resolve the situation manually.
+  /// For example, you could backup the data and start with a fresh database.
+  /// Note that the default behavior (this flag is not set) is to wipe existing data from all sync-enabled types and
+  /// sync from scratch from the server.
+  /// Client-only: setting this flag for Sync server has no effect.
+  static const int KeepDataOnSyncError = 2;
+
+  /// Logs sync filter variables used for each client, e.g. values provided by JWT or the client's login message.
+  static const int DebugLogFilterVariables = 4;
+
+  /// When set, remove operations will include the full object data in the TX log (REMOVE_OBJECT command).
+  /// This allows sync filters to filter out remove operations based on the object content.
+  /// Without this flag, remove operations only contain the object ID and cannot be filtered.
+  /// Note: this increases the size of TX logs for remove operations.
+  static const int RemoveWithObjectData = 8;
+
+  /// Enables debug logging of TX log processing.
+  /// For now, this only has an effect on SyncClients (Sync Server has extensive debug logs already).
+  static const int DebugLogTxLogs = 16;
+
+  // Note: manually added, 5.1.0 release objectbox-sync.h file is missing it
+  /// Skips invalid (put object) operations in the TX log instead of failing.
+  static const int SkipInvalidTxOps = 32;
+}
+
+class OBX_sync_options extends ffi.Opaque {}
+
 /// Called when connection is established
 /// @param arg is a pass-through argument passed to the called API
 typedef OBX_sync_listener_connect
@@ -11743,7 +11938,7 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 5;
 
-const int OBX_VERSION_MINOR = 0;
+const int OBX_VERSION_MINOR = 1;
 
 const int OBX_VERSION_PATCH = 0;
 
