@@ -172,11 +172,6 @@ dev_dependencies:
 > under Signing & Capabilities in the App Sandbox sections, enable incoming and outgoing network 
 > access.
 
-> [!NOTE]
-> **For Linux Desktop apps:** the **Flutter snap** ships with an outdated version of CMake. 
-> [**Install Flutter manually**](https://docs.flutter.dev/get-started/install/linux#install-flutter-manually) 
-> **instead** to use the version of CMake installed on your system.
-
 ### Dart Native projects
 
 To add ObjectBox to your Dart Native project:
