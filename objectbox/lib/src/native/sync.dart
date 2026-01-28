@@ -12,7 +12,11 @@ import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'store.dart';
 
-/// Credentials used to authenticate a sync client against a server.
+/// Credentials used to authenticate a [SyncClient] against an ObjectBox Sync
+/// Server.
+///
+/// Use one of the factory methods to create credentials matching your server
+/// configuration.
 class SyncCredentials {
   final int _type;
 
@@ -22,21 +26,25 @@ class SyncCredentials {
   /// configured to accept all connections without authentication.
   static SyncCredentials none() => _SyncCredentialsNone._();
 
-  /// Shared secret authentication.
+  /// Shared secret authentication using raw bytes.
+  ///
+  /// The secret must be pre-shared with the server.
   static SyncCredentials sharedSecretUint8List(Uint8List data) =>
       SyncCredentialsSecret._(
           OBXSyncCredentialsType.SHARED_SECRET_SIPPED, data);
 
-  /// Shared secret authentication.
+  /// Shared secret authentication using a string.
+  ///
+  /// The secret must be pre-shared with the server.
   static SyncCredentials sharedSecretString(String data) =>
       SyncCredentialsSecret._encode(
           OBXSyncCredentialsType.SHARED_SECRET_SIPPED, data);
 
-  /// Google authentication.
+  /// Google authentication using the ID token as raw bytes.
   static SyncCredentials googleAuthUint8List(Uint8List data) =>
       SyncCredentialsSecret._(OBXSyncCredentialsType.GOOGLE_AUTH, data);
 
-  /// Google authentication.
+  /// Google authentication using the ID token as a string.
   static SyncCredentials googleAuthString(String data) =>
       SyncCredentialsSecret._encode(OBXSyncCredentialsType.GOOGLE_AUTH, data);
 
@@ -150,15 +158,18 @@ enum SyncLoginEvent {
   /// Client has successfully logged in to the server.
   loggedIn,
 
-  /// Client's credentials has been rejectd by the server.
+  /// Client's credentials have been rejected by the server.
   /// Connection will NOT be retried until new credentials are provided.
   credentialsRejected,
 
-  /// An unknown error occured during authentication.
+  /// An unknown error occurred during authentication.
   unknownError
 }
 
-/// Sync incoming data event.
+/// Represents a set of changes received from the Sync server for a single
+/// entity type.
+///
+/// Received via [SyncClient.changeEvents].
 class SyncChange {
   /// Entity ID this change relates to.
   final int entityId;
@@ -362,7 +373,11 @@ class SyncClient {
     checkObx(C.sync_filter_variables_remove_all(_ptr));
   }
 
-  /// Configure authentication credentials, depending on your server config.
+  /// Configures authentication credentials.
+  ///
+  /// This replaces any previously set credentials. Usually credentials are
+  /// passed via the constructor, but this can be used to update them later,
+  /// e.g. when a token expires.
   void setCredentials(SyncCredentials creds) {
     if (creds is _SyncCredentialsNone) {
       checkObx(C.sync_credentials(_ptr, creds._type, nullptr, 0));
@@ -429,8 +444,12 @@ class SyncClient {
     }
   }
 
-  /// Configures how sync updates are received from the server. If automatic
-  /// updates are turned off, they will need to be requested manually.
+  /// Configures how sync updates are received from the server.
+  ///
+  /// If automatic updates are turned off, they will need to be requested
+  /// manually using [requestUpdates].
+  ///
+  /// Must be called before [start].
   void setRequestUpdatesMode(SyncRequestUpdatesMode mode) {
     int cMode;
     switch (mode) {
@@ -462,7 +481,10 @@ class SyncClient {
     checkObx(C.sync_start(_ptr));
   }
 
-  /// Stops this sync client. Does nothing if it is already stopped.
+  /// Stops this sync client and closes the connection to the server.
+  ///
+  /// Does nothing if already stopped. Can be [start]ed again.
+  /// Use [close] to fully release resources when done with the client.
   void stop() {
     checkObx(C.sync_stop(_ptr));
   }
@@ -475,16 +497,19 @@ class SyncClient {
   /// and can initiate a reconnection attempt sooner.
   bool triggerReconnect() => checkObxSuccess(C.sync_trigger_reconnect(_ptr));
 
-  /// Request updates since we last synchronized our database.
+  /// Requests updates from the server since we last synchronized.
   ///
-  /// Additionally, you can subscribe for future pushes from the server, to let
-  /// it send us future updates as they come in.
-  /// Call [cancelUpdates()] to stop the updates.
+  /// Set [subscribeForFuturePushes] to `true` to also subscribe for future
+  /// updates as they come in. Call [cancelUpdates] to stop receiving updates.
+  ///
+  /// Returns `true` if the request was likely sent (client is logged in).
   bool requestUpdates({required bool subscribeForFuturePushes}) =>
       checkObxSuccess(C.sync_updates_request(_ptr, subscribeForFuturePushes));
 
-  /// Cancel updates from the server so that it will stop sending updates.
-  /// See also [requestUpdates()].
+  /// Cancels updates from the server so that it will stop sending updates.
+  ///
+  /// Returns `true` if the request was likely sent (client is logged in).
+  /// See also [requestUpdates].
   bool cancelUpdates() => checkObxSuccess(C.sync_updates_cancel(_ptr));
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to
@@ -510,9 +535,10 @@ class SyncClient {
 
   _SyncListenerGroup<SyncConnectionEvent>? _connectionEvents;
 
-  /// Get a broadcast stream of connection state changes (connect/disconnect).
+  /// A broadcast stream of connection state changes (connect/disconnect).
   ///
-  /// Subscribe (listen) to the stream to actually start listening to events.
+  /// Subscribe (listen) to the stream to start receiving events.
+  /// Cancel the subscription when no longer needed to free resources.
   Stream<SyncConnectionEvent> get connectionEvents {
     if (_connectionEvents == null) {
       // Combine events from two C listeners: connect & disconnect.
@@ -537,9 +563,10 @@ class SyncClient {
 
   _SyncListenerGroup<SyncLoginEvent>? _loginEvents;
 
-  /// Get a broadcast stream of login events (success/failure).
+  /// A broadcast stream of login events (success/failure).
   ///
-  /// Subscribe (listen) to the stream to actually start listening to events.
+  /// Subscribe (listen) to the stream to start receiving events.
+  /// Cancel the subscription when no longer needed to free resources.
   Stream<SyncLoginEvent> get loginEvents {
     if (_loginEvents == null) {
       // Combine events from two C listeners: login & login-failure.
@@ -569,10 +596,13 @@ class SyncClient {
 
   _SyncListenerGroup<void>? _completionEvents;
 
-  /// Get a broadcast stream of sync completion events - when synchronization
-  /// of incoming changes has completed.
+  /// A broadcast stream of sync completion events.
   ///
-  /// Subscribe (listen) to the stream to actually start listening to events.
+  /// Emitted when synchronization of incoming changes has completed and the
+  /// client is up-to-date with the server.
+  ///
+  /// Subscribe (listen) to the stream to start receiving events.
+  /// Cancel the subscription when no longer needed to free resources.
   Stream<void> get completionEvents {
     if (_completionEvents == null) {
       _completionEvents = _SyncListenerGroup<void>('sync-completion');
@@ -588,9 +618,13 @@ class SyncClient {
 
   _SyncListenerGroup<List<SyncChange>>? _changeEvents;
 
-  /// Get a broadcast stream of incoming synced data changes.
+  /// A broadcast stream of incoming synced data changes.
   ///
-  /// Subscribe (listen) to the stream to actually start listening to events.
+  /// Each event contains a list of [SyncChange] objects, one per affected
+  /// entity type, with the IDs of objects that were put or removed.
+  ///
+  /// Subscribe (listen) to the stream to start receiving events.
+  /// Cancel the subscription when no longer needed to free resources.
   Stream<List<SyncChange>> get changeEvents {
     if (_changeEvents == null) {
       // This stream combines events from two C listeners: connect & disconnect.
