@@ -1,3 +1,5 @@
+## latest
+
 ## 5.2.0 (2026-01-28)
 
 * Allow analyzer versions 9 and 10. [#780](https://github.com/objectbox/objectbox-dart/issues/780)
