@@ -131,12 +131,14 @@ flutter pub add objectbox objectbox_sync_flutter_libs:any
 flutter pub add --dev build_runner objectbox_generator:any
 ```
 
-> [!TIP]
-> **To run unit tests on your machine**, download the latest native ObjectBox library for your machine by running this script in a bash shell (e.g. Git Bash on Windows):
+> [!NOTE]
+> **To run unit tests on your machine**, download the latest ObjectBox database library for your 
+> system by running this script in your package directory in a bash shell (e.g. Git Bash on 
+> Windows):
 >
 > `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)`
 >
-> To get a variant of the library that supports **ObjectBox Sync**, append the `--sync` argument to above command.
+> To get the variant for **ObjectBox Sync**, append the `--sync` argument to the above command.
 
 2. This should add lines like this to your `pubspec.yaml`:
 
@@ -199,15 +201,17 @@ dev_dependencies:
 
 3. If you added the above lines manually, then install the packages with `dart pub get`
 
-4. Install the [ObjectBox C library](https://github.com/objectbox/objectbox-c) for your system (on Windows you can use "Git Bash"):
+4. In your package directory, download
+   the [ObjectBox C library](https://github.com/objectbox/objectbox-c) for your system (on Windows
+   you can use "Git Bash"):
 
-```
+```bash
 bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
 ```
 
 Or to use [ObjectBox Sync](https://objectbox.io/sync/) (requires access to the Sync feature) instead run:
 
-```
+```bash
 bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
 ```
 
@@ -221,7 +225,7 @@ bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/i
 #### Deploying Dart Native projects
 
 Natively compiled Dart applications that use ObjectBox Dart require a reference to the 
-[objectbox-c](https://github.com/objectbox/objectbox-c) library. Hence, the shared library file 
+[ObjectBox C](https://github.com/objectbox/objectbox-c) library. Hence, the shared library file 
 downloaded with `install.sh` needs to be shipped with the executable.
 
 The `install.sh` script downloads the library by default to the `lib` subdirectory of the working 
