@@ -248,6 +248,8 @@ void main() {
 
     final from = dates[2];
     final to = dates[4];
+    final oneOfDates = [dates[2], dates[3], dates[4]];
+    final notOneOfDates = [dates[0], dates[1], dates[5]];
 
     // With the existing QueryIntegerProperty (now a super type)
     queryAndAssert(
@@ -263,6 +265,50 @@ void main() {
         TestEntity_.tDateNano.between(
           from.microsecondsSinceEpoch * 1000,
           to.microsecondsSinceEpoch * 1000,
+        ),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .equals(from.millisecondsSinceEpoch)
+            .or(TestEntity_.tDate.equals(dates[3].millisecondsSinceEpoch))
+            .or(TestEntity_.tDate.equals(to.millisecondsSinceEpoch)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .notEquals(dates[0].millisecondsSinceEpoch)
+            .and(TestEntity_.tDate.notEquals(dates[1].millisecondsSinceEpoch))
+            .and(TestEntity_.tDate.notEquals(dates[5].millisecondsSinceEpoch)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .greaterOrEqual(from.millisecondsSinceEpoch)
+            .and(TestEntity_.tDate.lessOrEqual(to.millisecondsSinceEpoch)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .greaterThan(dates[1].millisecondsSinceEpoch)
+            .and(TestEntity_.tDate.lessThan(dates[5].millisecondsSinceEpoch)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate.oneOf(
+          oneOfDates.map((d) => d.millisecondsSinceEpoch).toList(),
+        ),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate.notOneOf(
+          notOneOfDates.map((d) => d.millisecondsSinceEpoch).toList(),
         ),
       ),
     );
@@ -299,10 +345,8 @@ void main() {
             .and(TestEntity_.tDate.lessThanDate(dates[5])),
       ),
     );
-    queryAndAssert(box.query(TestEntity_.tDate.oneOfDate(dates.slice(2, 5))));
-    queryAndAssert(
-      box.query(TestEntity_.tDate.notOneOfDate([dates[0], dates[1], dates[5]])),
-    );
+    queryAndAssert(box.query(TestEntity_.tDate.oneOfDate(oneOfDates)));
+    queryAndAssert(box.query(TestEntity_.tDate.notOneOfDate(notOneOfDates)));
 
     // With the new QueryDateNanoProperty
     queryAndAssert(box.query(TestEntity_.tDateNano.betweenDate(from, to)));
@@ -336,13 +380,9 @@ void main() {
             .and(TestEntity_.tDateNano.lessThanDate(dates[5])),
       ),
     );
+    queryAndAssert(box.query(TestEntity_.tDateNano.oneOfDate(oneOfDates)));
     queryAndAssert(
-      box.query(TestEntity_.tDateNano.oneOfDate(dates.slice(2, 5))),
-    );
-    queryAndAssert(
-      box.query(
-        TestEntity_.tDateNano.notOneOfDate([dates[0], dates[1], dates[5]]),
-      ),
+      box.query(TestEntity_.tDateNano.notOneOfDate(notOneOfDates)),
     );
   });
 
