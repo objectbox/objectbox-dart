@@ -144,7 +144,7 @@ flutter pub add --dev build_runner objectbox_generator:any
 
 ```yaml
 dependencies:
-  objectbox: ^5.1.0
+  objectbox: ^5.2.0
   objectbox_flutter_libs: any
   # If you run the command for ObjectBox Sync it should add instead:
   # objectbox_sync_flutter_libs: any
@@ -187,7 +187,7 @@ dart pub add --dev build_runner objectbox_generator:any
 
 ```yaml
 dependencies:
-  objectbox: ^5.1.0
+  objectbox: ^5.2.0
 
 dev_dependencies:
   build_runner: ^2.4.11
