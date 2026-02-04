@@ -52,6 +52,10 @@ class Order {
 }
 
 /// The QueryProperty types allow users to build query conditions on a property.
+///
+/// The [DartType] is used by
+/// - [QuerySetParam.param] and determines which [QueryParam] extension is used,
+/// - [Query.property] and determines which [PropertyQuery] extension is used.
 class QueryProperty<EntityT, DartType> {
   final ModelProperty _model;
 
