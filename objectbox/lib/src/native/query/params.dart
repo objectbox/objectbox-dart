@@ -54,11 +54,8 @@ class QueryParam<DartType> {
   final String? _alias;
 
   QueryParam._(this._query, this._entityId, this._prop, this._alias);
-}
 
-/// QueryParam for string properties
-extension QueryParamString on QueryParam<String> {
-  set value(String value) {
+  void _setString(String value) {
     if (_alias == null) {
       withNativeString(
         value,
@@ -80,6 +77,11 @@ extension QueryParamString on QueryParam<String> {
       );
     }
   }
+}
+
+/// QueryParam for string properties
+extension QueryParamString on QueryParam<String> {
+  set value(String value) => _setString(value);
 
   set values(List<String> values) => withNativeStrings(
     values,
@@ -458,4 +460,23 @@ extension QueryParamBool on QueryParam<bool> {
           ),
         ),
   );
+}
+
+/// QueryParam for flex vector properties
+extension QueryParamFlexVector on QueryParam<List<dynamic>> {
+  set valueString(String value) => _setString(value);
+
+  set valueInt(int value) => _setString('$value');
+}
+
+/// QueryParam for flex value properties
+extension QueryParamFlexValue on QueryParam<dynamic> {
+  set valueString(String value) => _setString(value);
+
+  set valueInt(int value) => _setString('$value');
+}
+
+/// QueryParam for flex map properties
+extension QueryParamFlexMap on QueryParam<Map<String, dynamic>> {
+  set valueString(String value) => _setString(value);
 }

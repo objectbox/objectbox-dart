@@ -498,6 +498,24 @@ void main() {
         [apple, largeCherry, largeApple, pineapple],
       );
     });
+
+    test('parameterized query', () {
+      final entity1 = FlexMapEntity(flexDynamic: {'key1': 'value1'});
+      final entity2 = FlexMapEntity(flexDynamic: {'key2': 'value2'});
+      box.putMany([entity1, entity2]);
+
+      final query =
+          box.query(FlexMapEntity_.flexDynamic.containsElement('')).build();
+      query.param(FlexMapEntity_.flexDynamic).valueString = 'key1';
+      final results = query.findIds();
+      expect(results, [entity1.id]);
+
+      query.param(FlexMapEntity_.flexDynamic).valueString = 'value3';
+      final results2 = query.findIds();
+      expect(results2, isEmpty);
+
+      query.close();
+    });
   });
 
   group('Flex List property (List<dynamic>)', () {
@@ -696,6 +714,33 @@ void main() {
       }
     });
 
+    test('parameterized query', () {
+      final entities = [
+        FlexListEntity(flexDynamic: [0, 'first']),
+        FlexListEntity(flexDynamic: [1, 'second']),
+        FlexListEntity(flexDynamic: [2, 'third']),
+      ];
+      box.putMany(entities);
+
+      final query =
+          box
+              .query(FlexListEntity_.flexDynamic.containsElementString(''))
+              .build();
+      query.param(FlexListEntity_.flexDynamic).valueString = 'first';
+      final results = query.findIds();
+      expect(results, [entities[0].id]);
+
+      query.param(FlexListEntity_.flexDynamic).valueString = 'fifth';
+      final results2 = query.findIds();
+      expect(results2, isEmpty);
+
+      query.param(FlexListEntity_.flexDynamic).valueInt = 2;
+      final results3 = query.findIds();
+      expect(results3, [entities[2].id]);
+
+      query.close();
+    });
+
     FlexListEntity createObjectWithFlexList(String s, int i, double d) {
       final entity = FlexListEntity();
       final list = <Object>[s, i, d];
@@ -864,6 +909,24 @@ void main() {
       assertQueryCondition(FlexValueEntity_.flexObject.equalsInt(456), box, [
         id2,
       ]);
+    });
+
+    test('parameterized query', () {
+      final entity1 = FlexValueEntity(flexDynamic: 'first');
+      final entity2 = FlexValueEntity(flexDynamic: 2);
+      box.putMany([entity1, entity2]);
+
+      final query =
+          box.query(FlexValueEntity_.flexDynamic.equalsString('')).build();
+      query.param(FlexValueEntity_.flexDynamic).valueString = 'first';
+      final results = query.findIds();
+      expect(results, [entity1.id]);
+
+      query.param(FlexValueEntity_.flexDynamic).valueInt = 2;
+      final results2 = query.findIds();
+      expect(results2, [entity2.id]);
+
+      query.close();
     });
   });
 }
