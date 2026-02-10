@@ -72,15 +72,6 @@ void main() {
     expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
-  test('SyncClient throws if empty URL list', () {
-    // Note: this test works with a library that does not have the Sync
-    // feature, because the URLs are checked before checking for the feature.
-    expect(
-        () => SyncClient(store, [], [SyncCredentials.none()]),
-        throwsA(isArgumentError.having((e) => e.message, 'message',
-            contains('Provide at least one server URL'))));
-  });
-
   test('SyncCredentials string encoding', () {
     // Let's check some special characters and verify the data is how it would
     // look like if the same shared secret was provided to the sync-server via
@@ -131,6 +122,15 @@ void main() {
       expect(client!.isClosed(), isFalse);
       client.close();
       expect(store.syncClient(), isNull);
+    });
+
+    test('SyncClient throws if empty URL list', () {
+      // Note: this test works with a library that does not have the Sync
+      // feature, because the URLs are checked before checking for the feature.
+      expect(
+              () => SyncClient(store, [], [SyncCredentials.none()]),
+          throwsA(isArgumentError.having((e) => e.message, 'message',
+              contains('At least one URL must be added to sync options'))));
     });
 
     test('SyncClient throws if empty credential list', () {

@@ -240,10 +240,6 @@ class SyncClient {
     if (syncClientsStorage.containsKey(_store)) {
       throw StateError('Only one sync client can be active for a store');
     }
-    if (serverUrls.isEmpty) {
-      throw ArgumentError.value(
-          serverUrls, "serverUrls", "Provide at least one server URL");
-    }
 
     if (!Sync.isAvailable()) {
       throw UnsupportedError(
