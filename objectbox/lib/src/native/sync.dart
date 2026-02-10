@@ -254,24 +254,30 @@ class SyncClient {
     // Build options
     final options = checkObxPtr(C.sync_opt(InternalStoreAccess.ptr(_store)),
         'failed to create Sync options');
-
-    for (final url in serverUrls) {
-      withNativeString(url, (urlCStr) {
-        checkObx(C.sync_opt_add_url(options, urlCStr));
-      });
-    }
-
-    if (certificatePaths != null) {
-      for (final certPath in certificatePaths) {
-        withNativeString(certPath, (certPathCStr) {
-          checkObx(C.sync_opt_add_cert_path(options, certPathCStr));
+    try {
+      for (final url in serverUrls) {
+        withNativeString(url, (urlCStr) {
+          checkObx(C.sync_opt_add_url(options, urlCStr));
         });
       }
-    }
 
-    // Note: 0 or invalid flags are ignored by sync_opt_flags
-    if (flags != null) {
-      checkObx(C.sync_opt_flags(options, flags));
+      if (certificatePaths != null) {
+        for (final certPath in certificatePaths) {
+          withNativeString(certPath, (certPathCStr) {
+            checkObx(C.sync_opt_add_cert_path(options, certPathCStr));
+          });
+        }
+      }
+
+      // Note: 0 or invalid flags are ignored by sync_opt_flags
+      if (flags != null) {
+        checkObx(C.sync_opt_flags(options, flags));
+      }
+    } catch (e) {
+      // Free the options if any option method call failed (like due to invalid
+      // arguments).
+      C.sync_opt_free(options);
+      rethrow;
     }
 
     // Create Sync client with options (options are freed by sync_create)
