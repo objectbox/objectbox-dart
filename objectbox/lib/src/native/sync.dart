@@ -201,24 +201,39 @@ class SyncClient {
   /// Creates a Sync client associated with the given store and options.
   /// This does not initiate any connection attempts yet, call [start] to do so.
   ///
-  /// By default, a Sync client automatically receives updates from the server
-  /// once login succeeded. To configure this differently, call
-  /// [setRequestUpdatesMode] with the wanted mode.
-  ///
-  /// Typically, only a single URL and a single credentials object is passed:
+  /// A minimal setup can look like this:
   ///
   /// ```dart
   /// // Connect to a test server running on localhost using
   /// // an unencrypted connection without authentication
   /// SyncClient client =
   ///     SyncClient(store, ['ws://127.0.0.1:9999'], [SyncCredentials.none()]);
+  /// client.start(); // connect and start syncing
   /// ```
   ///
-  /// Passing multiple URLs allows high availability and load balancing (for ex.
-  /// using a ObjectBox Sync Server Cluster). A random URL is selected for each
-  /// connection attempt.
+  /// By default, a Sync client automatically receives updates from the server
+  /// once login succeeded. To configure this differently, call
+  /// [setRequestUpdatesMode] with the wanted mode.
+  ///
+  /// ## Server URLs
+  ///
+  /// The Sync server URL is typically a WebSockets URL starting with `ws://` or
+  /// `wss://` (for encrypted connections), for example if the server is running
+  /// on localhost `ws://127.0.0.1:9999`.
+  ///
+  /// Passing multiple URLs allows high availability and load balancing (like
+  /// when using an ObjectBox Sync Server Cluster). A random URL is selected for
+  /// each connection attempt.
+  ///
+  /// ## Credentials
+  ///
+  /// Use the [SyncCredentials] factory methods to create credentials, for
+  /// example `SyncCredentials.jwtIdToken(idToken)`. The accepted credentials
+  /// types depend on your Sync server configuration.
   ///
   /// When passing multiple credentials, can't include [SyncCredentials.none].
+  ///
+  /// ## Sync filter client variables
   ///
   /// To configure [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
   /// variables, pass variable names mapped to their value to [filterVariables].
@@ -226,12 +241,17 @@ class SyncClient {
   /// Sync client filter variables can be used in server-side Sync filters to
   /// filter out objects that do not match the filter.
   ///
-  /// To, for example, use self-signed certificates in a local development
-  /// environment or custom CAs, pass certificate paths referring to the local
-  /// file system to [certificatePaths].
+  /// ## Sync Flags
   ///
-  /// To configure Sync behavior, pass bitwise OR-ed [OBXSyncFlags] values to
-  /// [flags]. See [OBXSyncFlags] for available flags.
+  /// To adjust the behavior of the sync client, pass [OBXSyncFlags] to [flags].
+  /// These flags can be combined using bitwise OR to enable multiple options at
+  /// once.
+  ///
+  /// ## Custom Certificates
+  ///
+  /// For encrypted connections, for use cases like self-signed certificates in
+  /// a local development environment or custom CAs, pass certificate paths
+  /// referring to the local file system to [certificatePaths].
   SyncClient(
       this._store, List<String> serverUrls, List<SyncCredentials> credentials,
       {Map<String, String>? filterVariables,
@@ -375,11 +395,18 @@ class SyncClient {
     checkObx(C.sync_filter_variables_remove_all(_ptr));
   }
 
-  /// Configures authentication credentials.
+  /// Sets credentials to authenticate the client with the server.
   ///
-  /// This replaces any previously set credentials. Usually credentials are
-  /// passed via the constructor, but this can be used to update them later,
-  /// e.g. when a token expires.
+  /// Any credentials that were set before are replaced.
+  ///
+  /// Usually, credentials are passed via the constructor, but this can be used
+  /// to update them later, such as when a token expires.
+  ///
+  /// Use the [SyncCredentials] factory methods to create credentials, for
+  /// example `SyncCredentials.jwtIdToken(idToken)`. The accepted credentials
+  /// type depends on your Sync server configuration.
+  ///
+  /// To pass multiple credentials, use [setMultipleCredentials] instead.
   void setCredentials(SyncCredentials creds) {
     if (creds is _SyncCredentialsNone) {
       checkObx(C.sync_credentials(_ptr, creds._type, nullptr, 0));
@@ -398,13 +425,13 @@ class SyncClient {
     }
   }
 
-  /// Like [setCredentials], but accepts multiple credentials.
+  /// Like [setCredentials], but accepts a list of credentials.
   ///
-  /// However, does **not** support [SyncCredentials.none()].
+  /// However, does **not** support [SyncCredentials.none].
   void setMultipleCredentials(List<SyncCredentials> credentials) {
     if (credentials.isEmpty) {
       throw ArgumentError.value(
-          credentials, "credentials", "Provide at least one credential");
+          credentials, "credentials", "Credentials must be provided");
     }
 
     var length = credentials.length;

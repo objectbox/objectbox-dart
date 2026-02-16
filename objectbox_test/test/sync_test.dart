@@ -128,7 +128,7 @@ void main() {
       // Note: this test works with a library that does not have the Sync
       // feature, because the URLs are checked before checking for the feature.
       expect(
-              () => SyncClient(store, [], [SyncCredentials.none()]),
+          () => SyncClient(store, [], [SyncCredentials.none()]),
           throwsA(isArgumentError.having((e) => e.message, 'message',
               contains('At least one URL must be added to sync options'))));
     });
@@ -137,7 +137,7 @@ void main() {
       expect(
           () => SyncClient(store, ['test-url'], []),
           throwsA(isArgumentError.having((e) => e.message, 'message',
-              contains('Provide at least one credential'))));
+              contains('Credentials must be provided'))));
     });
 
     test('SyncClient is closed when a store is closed', () {
