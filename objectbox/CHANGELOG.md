@@ -1,12 +1,22 @@
 ## latest
 
+* Add Kotlin DSL (`build.gradle.kts`) example for enabling ObjectBox Admin in Flutter Android
+  projects. Recent Flutter versions create Android projects using Kotlin DSL by default.
+  See the [relations example README](example/flutter/objectbox_demo_relations/README.md) for both
+  Groovy and Kotlin DSL snippets.
+  [#778](https://github.com/objectbox/objectbox-dart/issues/778)
+* Note: the Getting Started documentation no longer recommends setting `ndkVersion` manually as
+  recent Flutter versions (3.27+) include a compatible NDK by default.
+  [#702](https://github.com/objectbox/objectbox-dart/issues/702)
+
 ## 5.2.0 (2026-01-28)
 
 * Allow analyzer versions 9 and 10. [#780](https://github.com/objectbox/objectbox-dart/issues/780)
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.1.0-2026-01-19](https://github.com/objectbox/objectbox-c/releases/tag/v5.1.0).
 * Update ObjectBox database for Flutter Android apps to 5.1.0-2026-01-19.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in `android/app/build.gradle`.
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in `android/app/build.gradle`
+  (or `build.gradle.kts`).
 * Update ObjectBox database for Flutter iOS/macOS apps to 5.1.1-dev-2026-01-21.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 

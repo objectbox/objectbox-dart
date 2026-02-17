@@ -12,6 +12,42 @@ See how to:
 - query for Objects ([objectbox.dart](lib/objectbox.dart) and [tasklist_elements.dart](lib/tasklist_elements.dart))
 - add ObjectBox Admin for debug builds ([objectbox.dart](lib/objectbox.dart), [build.gradle](android/app/build.gradle))
 
+## ObjectBox Admin for Android
+
+To use [ObjectBox Admin](https://docs.objectbox.io/data-browser) for debug builds, add the following
+to `android/app/build.gradle` (Groovy DSL) or `android/app/build.gradle.kts` (Kotlin DSL):
+
+**Groovy DSL** (`build.gradle`):
+
+```groovy
+configurations {
+    debugImplementation {
+        exclude group: 'io.objectbox', module: 'objectbox-android'
+    }
+}
+
+dependencies {
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
+}
+```
+
+**Kotlin DSL** (`build.gradle.kts`):
+
+```kotlin
+configurations {
+    named("debugImplementation") {
+        exclude(group = "io.objectbox", module = "objectbox-android")
+    }
+}
+
+dependencies {
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
+}
+```
+
+Note: when the objectbox package updates, check if the Android library version above needs to be
+updated as well.
+
 ## Docs
 - [Getting started with ObjectBox](https://docs.objectbox.io/getting-started)
 - [How to use ObjectBox Relations](https://docs.objectbox.io/relations)

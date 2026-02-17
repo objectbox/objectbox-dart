@@ -66,6 +66,20 @@ flutter {
 // Optional: add ObjectBox Admin - https://docs.objectbox.io/data-browser
 // Tell Gradle to exclude the Android library (without Admin)
 // that is added by the objectbox_flutter_libs package for debug builds.
+//
+// Note: this example uses Groovy DSL (build.gradle). If your project uses
+// Kotlin DSL (build.gradle.kts), use this syntax instead:
+//
+//   configurations {
+//       named("debugImplementation") {
+//           exclude(group = "io.objectbox", module = "objectbox-android")
+//       }
+//   }
+//
+//   dependencies {
+//       debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
+//   }
+//
 configurations {
     debugImplementation {
         exclude group: 'io.objectbox', module: 'objectbox-android'

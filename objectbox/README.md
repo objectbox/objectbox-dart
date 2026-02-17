@@ -159,6 +159,12 @@ dev_dependencies:
 4. Your project can now use ObjectBox, [continue by defining entity classes](https://docs.objectbox.io/getting-started#define-entity-classes).
 
 > [!NOTE]
+> **Android NDK:** Flutter 3.27 and later include a compatible NDK version by default,
+> so there is no need to manually set `ndkVersion` in `android/app/build.gradle`.
+> For older Flutter versions, check the [troubleshooting page](https://docs.objectbox.io/troubleshooting)
+> if you encounter NDK-related build errors.
+
+> [!NOTE]
 > **For all iOS apps** target iOS 15.0: in `ios/Podfile` change the platform and in the 
 > `ios/Runner.xcodeproj/poject.pbxproj` file update `IPHONEOS_DEPLOYMENT_TARGET` (or open the Runner
 > workspace in Xcode and edit the build setting). In `ios/Flutter/AppframeworkInfo.plist` update 
