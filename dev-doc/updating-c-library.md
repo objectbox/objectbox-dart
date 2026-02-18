@@ -43,7 +43,8 @@ For the Flutter plugins on Android ([view releases](https://github.com/objectbox
 ```text
 * Update ObjectBox database for Flutter Android apps to 5.1.0-2026-01-19.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make 
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in `android/app/build.gradle`.
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.1.0` in 
+  `android/app/build.gradle.kts` or `android/app/build.gradle`.
 ```
 
 ```text
