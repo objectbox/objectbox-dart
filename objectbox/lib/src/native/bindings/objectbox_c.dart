@@ -76,6 +76,19 @@ class ObjectBoxC {
   late final _version_string =
       _version_stringPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 
+  /// Return the (runtime) version of the library to be printed.
+  /// The format is "YYYY-MM-DD" (e.g. "2026-02-16") and thus can be compared lexicographically.
+  /// @see obx_version() and obx_version_is_at_least() for integer based versions.
+  ffi.Pointer<ffi.Char> version_date_string() {
+    return _version_date_string();
+  }
+
+  late final _version_date_stringPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'obx_version_date_string');
+  late final _version_date_string =
+      _version_date_stringPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
   /// Return the version of the ObjectBox core to be printed (currently also contains a version date and features).
   /// The format may change in any future release; only use for information purposes.
   ffi.Pointer<ffi.Char> version_core_string() {
@@ -8563,7 +8576,10 @@ class ObjectBoxC {
   /// Adds or replaces a sync filter variable value for the given name to the sync client.
   /// Eventually existing values for the same name are replaced.
   /// Client filter variables can be used in server-side sync filters to filter out objects that do not match the filter.
-  /// Filter variables must be added before login, e.g. before obx_sync_start() or setting credentials.
+  /// Filter variables can be set in two states:
+  /// 1) Added before login, e.g. before obx_sync_start() or setting credentials (no "apply" activation required).
+  /// 2) After a login, updates to sync filter variables are staged and are "pending" until
+  /// obx_sync_filter_variables_apply() is called.
   /// @param name non-NULL name of the filter variable
   /// @param value non-NULL value of the filter variable
   int sync_filter_variables_put(
@@ -8588,6 +8604,7 @@ class ObjectBoxC {
               ffi.Pointer<ffi.Char>)>();
 
   /// Removes a previously added sync filter variable value.
+  /// If used after login, see obx_sync_filter_variables_put() for notes about obx_sync_filter_variables_apply().
   int sync_filter_variables_remove(
     ffi.Pointer<OBX_sync> sync1,
     ffi.Pointer<ffi.Char> name,
@@ -8606,6 +8623,7 @@ class ObjectBoxC {
       .asFunction<int Function(ffi.Pointer<OBX_sync>, ffi.Pointer<ffi.Char>)>();
 
   /// Removes all previously added sync filter variable values.
+  /// If used after login, see obx_sync_filter_variables_put() for notes about obx_sync_filter_variables_apply().
   int sync_filter_variables_remove_all(
     ffi.Pointer<OBX_sync> sync1,
   ) {
@@ -8620,6 +8638,23 @@ class ObjectBoxC {
   late final _sync_filter_variables_remove_all =
       _sync_filter_variables_remove_allPtr
           .asFunction<int Function(ffi.Pointer<OBX_sync>)>();
+
+  /// Applies all pending filter variable updates (from put/remove filter variables calls).
+  /// If the client is connected, sends the updated variables to the server.
+  /// If the client is not connected, the updated variables will be included in the next login message.
+  int sync_filter_variables_apply(
+    ffi.Pointer<OBX_sync> sync1,
+  ) {
+    return _sync_filter_variables_apply(
+      sync1,
+    );
+  }
+
+  late final _sync_filter_variables_applyPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>)>>(
+          'obx_sync_filter_variables_apply');
+  late final _sync_filter_variables_apply = _sync_filter_variables_applyPtr
+      .asFunction<int Function(ffi.Pointer<OBX_sync>)>();
 
   /// Sets credentials to authenticate the client with the server.
   /// Any credentials that were set before are replaced;
@@ -11487,7 +11522,6 @@ abstract class OBXSyncFlags {
   /// For now, this only has an effect on SyncClients (Sync Server has extensive debug logs already).
   static const int DebugLogTxLogs = 16;
 
-  // Note: manually added, 5.1.0 release objectbox-sync.h file is missing it
   /// Skips invalid (put object) operations in the TX log instead of failing.
   static const int SkipInvalidTxOps = 32;
 }

@@ -113,6 +113,11 @@ OBX_C_API bool obx_version_is_at_least(int major, int minor, int patch);
 /// @see obx_version() and obx_version_is_at_least() for integer based versions
 OBX_C_API const char* obx_version_string(void);
 
+/// Return the (runtime) version of the library to be printed.
+/// The format is "YYYY-MM-DD" (e.g. "2026-02-16") and thus can be compared lexicographically.
+/// @see obx_version() and obx_version_is_at_least() for integer based versions.
+OBX_C_API const char* obx_version_date_string(void);
+
 /// Return the version of the ObjectBox core to be printed (currently also contains a version date and features).
 /// The format may change in any future release; only use for information purposes.
 OBX_C_API const char* obx_version_core_string(void);
