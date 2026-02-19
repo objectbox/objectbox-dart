@@ -11,11 +11,17 @@
 #                     manually updated a header in objectbox/lib/src/native/bindings/.
 #                     The script will still apply required modifications and
 #                     regenerate the Dart FFI bindings with ffigen.
+#   --clang-fix       Pass clang's own resource directory to ffigen via --compiler-opts.
+#                     Use this if ffigen produces wrong types (e.g. ffi.Int instead of
+#                     ffi.Bool or ffi.Size), which happens when clang cannot find its
+#                     builtin headers (stdbool.h, stddef.h) during parsing.
 
 skipDownload=false
+clangFix=false
 for arg in "$@"; do
     case "${arg}" in
         --skip-download) skipDownload=true ;;
+        --clang-fix) clangFix=true ;;
         *) echo "Unknown argument: ${arg}"; exit 1 ;;
     esac
 done
@@ -78,5 +84,20 @@ update objectbox/lib/src/native/bindings/objectbox-sync.h "${replaceVoidExpr}"
 # and the ffigen section in ../objectbox/pubspec.yaml).
 echo
 echo "Generating bindings with ffigen (requires LLVM libraries)..."
+
+ffigenCompilerOpts=""
+if [ "${clangFix}" = true ]; then
+    # Pass clang's own resource directory so that builtin headers (stdbool.h, stddef.h, etc.) are found.
+    # Without this, ffigen/libclang may fail to locate them,
+    # causing bool -> ffi.Int and size_t -> ffi.Int instead of the correct ffi.Bool / ffi.Size mappings.
+    clangResourceDir=$(clang -print-resource-dir 2>/dev/null)
+    if [ -n "${clangResourceDir}" ]; then
+        echo "Using clang resource dir: ${clangResourceDir}"
+        ffigenCompilerOpts="--compiler-opts \"-I${clangResourceDir}/include\""
+    else
+        echo "Warning: could not determine clang resource dir via 'clang -print-resource-dir'"
+    fi
+fi
+
 cd objectbox
-dart run ffigen
+eval dart run ffigen ${ffigenCompilerOpts}
