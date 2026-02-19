@@ -4,45 +4,65 @@
 # Downloads the C library source files of a specific release from GitHub,
 # copies the header files, makes some required modifications
 # and runs the ffigen binding generator on them.
+#
+# Options:
+#   --skip-download   Skip downloading and extracting the C library source files.
+#                     Use this when you have already downloaded the files or
+#                     manually updated a header in objectbox/lib/src/native/bindings/.
+#                     The script will still apply required modifications and
+#                     regenerate the Dart FFI bindings with ffigen.
+
+skipDownload=false
+for arg in "$@"; do
+    case "${arg}" in
+        --skip-download) skipDownload=true ;;
+        *) echo "Unknown argument: ${arg}"; exit 1 ;;
+    esac
+done
 
 cLibVersion=5.1.0
-echo "Downloading C library source files from GitHub..."
 
-# Note: the release archives do not contain objectbox-dart.h, so get the full sources.
-archiveExt="zip"
-downloadUrl="https://github.com/objectbox/objectbox-c/archive/refs/tags/v${cLibVersion}.${archiveExt}"
-echo "Download URL: ${downloadUrl}"
+if [ "${skipDownload}" = false ]; then
+    echo "Downloading C library source files from GitHub..."
 
-targetDir="objectbox/download"
-archiveFile="${targetDir}/objectbox-c-${cLibVersion}.${archiveExt}"
-mkdir -p "$(dirname "${archiveFile}")"
+    # Note: the release archives do not contain objectbox-dart.h, so get the full sources.
+    archiveExt="zip"
+    downloadUrl="https://github.com/objectbox/objectbox-c/archive/refs/tags/v${cLibVersion}.${archiveExt}"
+    echo "Download URL: ${downloadUrl}"
 
-# Support both curl and wget because their availability is platform dependent
-if [ -x "$(command -v curl)" ]; then
-    curl --location --fail --output "${archiveFile}" "${downloadUrl}"
+    targetDir="objectbox/download"
+    archiveFile="${targetDir}/objectbox-c-${cLibVersion}.${archiveExt}"
+    mkdir -p "$(dirname "${archiveFile}")"
+
+    # Support both curl and wget because their availability is platform dependent
+    if [ -x "$(command -v curl)" ]; then
+        curl --location --fail --output "${archiveFile}" "${downloadUrl}"
+    else
+        wget --no-verbose --output-document="${archiveFile}" "${downloadUrl}"
+    fi
+
+    if [[ ! -s ${archiveFile} ]]; then
+        echo "Error: download failed (file ${archiveFile} does not exist or is empty)"
+        exit 1
+    fi
+
+    echo
+    echo "Downloaded:"
+    du -h "${archiveFile}"
+
+    echo
+    echo "Extracting into ${targetDir}..."
+    unzip "${archiveFile}" -d "${targetDir}"
+
+    headerBuildDir="objectbox/lib/src/native/bindings"
+    echo
+    echo "Copying to ${headerBuildDir}..."
+    mkdir -p "${headerBuildDir}"
+    cp "${targetDir}/objectbox-c-${cLibVersion}"/include/*.h "${headerBuildDir}"
+    ls -l "${headerBuildDir}"
 else
-    wget --no-verbose --output-document="${archiveFile}" "${downloadUrl}"
+    echo "Skipping download of C library"
 fi
-
-if [[ ! -s ${archiveFile} ]]; then
-    echo "Error: download failed (file ${archiveFile} does not exist or is empty)"
-    exit 1
-fi
-
-echo
-echo "Downloaded:"
-du -h "${archiveFile}"
-
-echo
-echo "Extracting into ${targetDir}..."
-unzip "${archiveFile}" -d "${targetDir}"
-
-headerBuildDir="objectbox/lib/src/native/bindings"
-echo
-echo "Copying to ${headerBuildDir}..."
-mkdir -p "${headerBuildDir}"
-cp "${targetDir}/objectbox-c-${cLibVersion}"/include/*.h "${headerBuildDir}"
-ls -l "${headerBuildDir}"
 
 # Replace `const void*` by `const uint8_t*` in all objectbox*.h files
 # (see ffigen note in ../objectbox/pubspec.yaml).
