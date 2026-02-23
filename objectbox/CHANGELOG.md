@@ -2,6 +2,11 @@
 
 ## 5.3.0-preview1 (2026-02-19)
 
+* Update ObjectBox database for Flutter Android apps to `5.1.1-pre-2026-02-18`.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.2.1-preview1` in
+  `android/app/build.gradle.kts` or `android/app/build.gradle`.
+
 ### Sync
 
 * SyncClient: support updating filter variables. After login, stage updates using
