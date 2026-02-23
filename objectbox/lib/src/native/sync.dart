@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:ffi';
+import 'dart:io' show Platform;
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -367,10 +368,16 @@ class SyncClient {
   /// Eventually, existing values for the same name are replaced.
   ///
   /// Sync client filter variables can be used in server-side Sync filters to
-  /// filter out objects that do not match the filters. Filter variables must be
-  /// added before login, so before calling `start()`.
+  /// filter out objects that do not match the filter.
   ///
-  /// See also [removeFilterVariable] and [removeAllFilterVariables].
+  /// Filter variables can be set in two states:
+  /// 1. Before login (e.g. before calling [start] or setting credentials): no
+  ///    [applyFilterVariables] call required.
+  /// 2. After login: updates are staged as "pending" until
+  ///    [applyFilterVariables] is called.
+  ///
+  /// See also [removeFilterVariable], [removeAllFilterVariables] and
+  /// [applyFilterVariables].
   void putFilterVariable(String name, String value) {
     withNativeString(
         name,
@@ -382,6 +389,9 @@ class SyncClient {
 
   /// Removes a previously added Sync filter variable value.
   ///
+  /// If used after login, see [putFilterVariable] for notes about
+  /// [applyFilterVariables].
+  ///
   /// See also [putFilterVariable] and [removeAllFilterVariables].
   void removeFilterVariable(String name) {
     withNativeString(name,
@@ -390,9 +400,30 @@ class SyncClient {
 
   /// Removes all previously added Sync filter variable values.
   ///
+  /// If used after login, see [putFilterVariable] for notes about
+  /// [applyFilterVariables].
+  ///
   /// See also [putFilterVariable] and [removeFilterVariable].
   void removeAllFilterVariables() {
     checkObx(C.sync_filter_variables_remove_all(_ptr));
+  }
+
+  /// **Currently only supported on Android**
+  ///
+  /// Applies all pending Sync filter variable updates (from [putFilterVariable]
+  /// and [removeFilterVariable] calls).
+  ///
+  /// If the client is connected, sends the updated variables to the server.
+  /// If the client is not connected, the updated variables will be included in
+  /// the next login message.
+  ///
+  /// See also [putFilterVariable], [removeFilterVariable] and
+  /// [removeAllFilterVariables].
+  void applyFilterVariables() {
+    if (!Platform.isAndroid) {
+      return;
+    }
+    checkObx(C.sync_filter_variables_apply(_ptr));
   }
 
   /// Sets credentials to authenticate the client with the server.

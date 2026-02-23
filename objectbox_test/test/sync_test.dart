@@ -283,6 +283,8 @@ void main() {
       client.removeFilterVariable('test-var-2');
       client.putFilterVariable('test-var-2', '');
       client.removeAllFilterVariables();
+      client.putFilterVariable('test-var-1', 'test value 1 updated');
+      client.applyFilterVariables();
 
       expect(
           () => client.putFilterVariable('', 'value'),

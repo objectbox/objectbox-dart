@@ -212,6 +212,9 @@ typedef enum {
     /// Enables debug logging of TX log processing.
     /// For now, this only has an effect on SyncClients (Sync Server has extensive debug logs already).
     OBXSyncFlags_DebugLogTxLogs = 16,
+
+    /// Skips invalid (put object) operations in the TX log instead of failing.
+    OBXSyncFlags_SkipInvalidTxOps = 32,
 } OBXSyncFlags;
 
 //----------------------------------------------
@@ -284,16 +287,26 @@ OBX_C_API obx_err obx_sync_close(OBX_sync* sync);
 /// Adds or replaces a sync filter variable value for the given name to the sync client.
 /// Eventually existing values for the same name are replaced.
 /// Client filter variables can be used in server-side sync filters to filter out objects that do not match the filter.
-/// Filter variables must be added before login, e.g. before obx_sync_start() or setting credentials.
+/// Filter variables can be set in two states:
+///  1) Added before login, e.g. before obx_sync_start() or setting credentials (no "apply" activation required).
+///  2) After a login, updates to sync filter variables are staged and are "pending" until
+///     obx_sync_filter_variables_apply() is called.
 /// @param name non-NULL name of the filter variable
 /// @param value non-NULL value of the filter variable
 OBX_C_API obx_err obx_sync_filter_variables_put(OBX_sync* sync, const char* name, const char* value);
 
 /// Removes a previously added sync filter variable value.
+/// If used after login, see obx_sync_filter_variables_put() for notes about obx_sync_filter_variables_apply().
 OBX_C_API obx_err obx_sync_filter_variables_remove(OBX_sync* sync, const char* name);
 
 /// Removes all previously added sync filter variable values.
+/// If used after login, see obx_sync_filter_variables_put() for notes about obx_sync_filter_variables_apply().
 OBX_C_API obx_err obx_sync_filter_variables_remove_all(OBX_sync* sync);
+
+/// Applies all pending filter variable updates (from put/remove filter variables calls).
+/// If the client is connected, sends the updated variables to the server.
+/// If the client is not connected, the updated variables will be included in the next login message.
+OBX_C_API obx_err obx_sync_filter_variables_apply(OBX_sync* sync);
 
 /// Sets credentials to authenticate the client with the server.
 /// Any credentials that were set before are replaced;
