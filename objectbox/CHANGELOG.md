@@ -1,5 +1,12 @@
 ## latest
 
+## 5.3.0-preview1 (2026-02-19)
+
+### Sync
+
+* SyncClient: support updating filter variables. After login, stage updates using
+  put and remove, then schedule to send them to the server with `applyFilterVariables()`.
+
 ## 5.2.0 (2026-01-28)
 
 * Allow analyzer versions 9 and 10. [#780](https://github.com/objectbox/objectbox-dart/issues/780)
