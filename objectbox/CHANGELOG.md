@@ -9,7 +9,7 @@
 
 ### Sync
 
-* SyncClient: support updating filter variables. After login, stage updates using
+* (Only on Android) SyncClient: support updating filter variables. After login, stage updates using
   put and remove, then schedule to send them to the server with `applyFilterVariables()`.
 
 ## 5.2.0 (2026-01-28)

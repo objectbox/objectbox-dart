@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:ffi';
+import 'dart:io' show Platform;
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -407,6 +408,8 @@ class SyncClient {
     checkObx(C.sync_filter_variables_remove_all(_ptr));
   }
 
+  /// **Currently only supported on Android**
+  ///
   /// Applies all pending Sync filter variable updates (from [putFilterVariable]
   /// and [removeFilterVariable] calls).
   ///
@@ -417,6 +420,9 @@ class SyncClient {
   /// See also [putFilterVariable], [removeFilterVariable] and
   /// [removeAllFilterVariables].
   void applyFilterVariables() {
+    if (!Platform.isAndroid) {
+      return;
+    }
     checkObx(C.sync_filter_variables_apply(_ptr));
   }
 
