@@ -80,7 +80,7 @@ update objectbox/lib/src/native/bindings/objectbox-dart.h "${replaceVoidExpr}"
 update objectbox/lib/src/native/bindings/objectbox-sync.h "${replaceVoidExpr}"
 
 # This requires LLVM libraries
-# (see ffigen docs https://pub.dev/packages/ffigen#installing-llvm
+# (see ffigen docs https://pub.dev/packages/ffigen#requirements
 # and the ffigen section in ../objectbox/pubspec.yaml).
 echo
 echo "Generating bindings with ffigen (requires LLVM libraries)..."

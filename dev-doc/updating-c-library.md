@@ -82,7 +82,7 @@ the objectbox commit it points to (see `external/objectbox`).
 ## Dart C API bindings
 
 To download the C library header files and generate bindings with ffigen (requires LLVM libraries,
-see [ffigen docs](https://pub.dev/packages/ffigen#installing-llvm)
+see [ffigen docs](https://pub.dev/packages/ffigen#requirements)
 and the ffigen section in [pubspec.yaml](../objectbox/pubspec.yaml)):
 
 ```bash
