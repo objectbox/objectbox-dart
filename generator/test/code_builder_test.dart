@@ -642,7 +642,10 @@ void main() {
               ''',
         ),
       );
-      await expectGeneratorThrows(source, 'TODO');
+      await expectGeneratorThrows(
+        source,
+        '$annotation can only be used on a property of a synced entity (annotated with @Sync)',
+      );
     }
 
     test('@SyncClock on entity without @Sync errors', () async {
@@ -666,7 +669,10 @@ void main() {
               ''',
         ),
       );
-      await expectGeneratorThrows(source, 'TODO');
+      await expectGeneratorThrows(
+        source,
+        'only one property can be annotated with $annotation, but found multiple',
+      );
     }
 
     test('Two @SyncClock annotations on the same entity errors', () async {
@@ -691,7 +697,10 @@ void main() {
           ),
         );
 
-        await expectGeneratorThrows(source, 'TODO');
+        await expectGeneratorThrows(
+          source,
+          '@SyncClock and @SyncPrecedence cannot be used on the same property',
+        );
       },
     );
 
@@ -705,7 +714,10 @@ void main() {
             ''',
         ),
       );
-      await expectGeneratorThrows(source, 'TODO');
+      await expectGeneratorThrows(
+        source,
+        '$annotation can only be used on int (OBXPropertyType.Long) properties',
+      );
     }
 
     test('@SyncClock on a non-int property errors', () async {
