@@ -166,6 +166,21 @@ abstract class OBXPropertyFlags {
   /// If a date property has this flag (max. one per entity type), the date value specifies the time by which
   /// the object expires, at which point it MAY be removed (deleted), which can be triggered by an API call.
   static const int EXPIRATION_TIME = 65536;
+
+  /// Marks a Long (64-bit integer) property as the sync clock, a "hybrid logical clock" to resolve Sync conflicts.
+  /// These clock values allow "last write wins" conflict resolution.
+  /// There can be only one sync clock per sync entity type; which is also recommended for basic conflict resolution.
+  /// For new objects, initialize a property value to 0 to reserve "a slot" in the object data.
+  /// ObjectBox Sync will update this property automatically on put operations.
+  /// As a hybrid clock, it combines a wall clock with a logical counter to compensate for some clock skew effects.
+  static const int SYNC_CLOCK = 131072;
+
+  /// Marks a Long (64-bit integer) property as the "sync precedence" to customize Sync conflict resolution.
+  /// Developer-assigned precedence values are then used to resolve conflicts via "higher precedence wins".
+  /// Defining and assigning precedence values are completely in the hands of the developer (the ObjectBox user).
+  /// There can be only one sync precedence per sync entity type.
+  /// Typically, it is combined with a sync clock, with the latter being the tie-breaker for equal precedence values.
+  static const int SYNC_PRECEDENCE = 262144;
 }
 
 abstract class OBXPropertyType {
