@@ -19,8 +19,13 @@ String sourceFile(String withContent) => '''
       $withContent
       ''';
 
-String entity({String withName = 'Example', String withBody = ''}) => '''
+String entity({
+  String withName = 'Example',
+  bool sync = false,
+  String withBody = '',
+}) => '''
       @Entity()
+      ${sync ? '@Sync()' : ''}
       class $withName {
         @Id()
         int id = 0;
@@ -589,6 +594,126 @@ void main() {
       // Only a single property
       final idProperty = testEnv.model.entities[0].properties[0];
       expect(idProperty.flags & OBXPropertyFlags.ID_SELF_ASSIGNABLE != 0, true);
+    });
+  });
+
+  group('SyncClock and SyncPrecedence annotations', () {
+    test(
+      '@SyncClock sets SYNC_CLOCK and @SyncPrecedence sets SYNC_PRECEDENCE property flags',
+      () async {
+        final source = sourceFile(
+          entity(
+            sync: true,
+            withBody: r'''
+              @SyncClock()
+              int? clock;
+
+              @SyncPrecedence()
+              int? precedence;
+              ''',
+          ),
+        );
+
+        final testEnv = GeneratorTestEnv();
+        await testEnv.run(source);
+
+        final exampleEntity = testEnv.model.entities[0];
+        expect(
+          exampleEntity
+              .findPropertyByName('clock')!
+              .hasFlag(OBXPropertyFlags.SYNC_CLOCK),
+          isTrue,
+        );
+        expect(
+          exampleEntity
+              .findPropertyByName('precedence')!
+              .hasFlag(OBXPropertyFlags.SYNC_PRECEDENCE),
+          isTrue,
+        );
+      },
+    );
+
+    Future<void> testAnnotationOnEntityWithoutSync(String annotation) async {
+      final source = sourceFile(
+        entity(
+          withBody: '''
+              $annotation()
+              int? field;
+              ''',
+        ),
+      );
+      await expectGeneratorThrows(source, 'TODO');
+    }
+
+    test('@SyncClock on entity without @Sync errors', () async {
+      await testAnnotationOnEntityWithoutSync('@SyncClock');
+    });
+
+    test('@SyncPrecedence on entity without @Sync errors', () async {
+      await testAnnotationOnEntityWithoutSync('@SyncPrecedence');
+    });
+
+    Future<void> testDuplicateAnnotationOnEntity(String annotation) async {
+      final source = sourceFile(
+        entity(
+          sync: true,
+          withBody: '''
+              $annotation()
+              int? field1;
+
+              $annotation()
+              int? field2;
+              ''',
+        ),
+      );
+      await expectGeneratorThrows(source, 'TODO');
+    }
+
+    test('Two @SyncClock annotations on the same entity errors', () async {
+      await testDuplicateAnnotationOnEntity('@SyncClock');
+    });
+
+    test('Two @SyncPrecedence annotations on the same entity errors', () async {
+      await testDuplicateAnnotationOnEntity('@SyncPrecedence');
+    });
+
+    test(
+      'Both @SyncClock and @SyncPrecedence on the same property errors',
+      () async {
+        final source = sourceFile(
+          entity(
+            sync: true,
+            withBody: r'''
+              @SyncClock()
+              @SyncPrecedence()
+              int? clockAndPrecedence;
+              ''',
+          ),
+        );
+
+        await expectGeneratorThrows(source, 'TODO');
+      },
+    );
+
+    Future<void> testAnnotationOnNonIntProperty(String annotation) async {
+      final source = sourceFile(
+        entity(
+          sync: true,
+          withBody: '''
+            $annotation()
+            String? field;
+            ''',
+        ),
+      );
+      await expectGeneratorThrows(source, 'TODO');
+    }
+
+    test('@SyncClock on a non-int property errors', () async {
+      await testAnnotationOnNonIntProperty('@SyncClock');
+    });
+
+    test('@SyncPrecedence on a non-int property errors', () async {
+      await testAnnotationOnNonIntProperty('@SyncPrecedence');
     });
   });
 
