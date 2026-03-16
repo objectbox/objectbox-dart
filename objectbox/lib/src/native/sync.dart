@@ -365,16 +365,15 @@ class SyncClient {
   /// Adds or replaces a [Sync filter](https://sync.objectbox.io/sync-server/sync-filters)
   /// variable value for the given name.
   ///
+  /// Note: If the client is already logged in, this change is not applied until
+  /// [applyFilterVariables] is called. This allows to put or remove multiple
+  /// variables before applying all changes. Filter variables set before login
+  /// (before calling [start]) are automatically applied.
+  ///
   /// Eventually, existing values for the same name are replaced.
   ///
   /// Sync client filter variables can be used in server-side Sync filters to
   /// filter out objects that do not match the filter.
-  ///
-  /// Filter variables can be set in two states:
-  /// 1. Before login (e.g. before calling [start] or setting credentials): no
-  ///    [applyFilterVariables] call required.
-  /// 2. After login: updates are staged as "pending" until
-  ///    [applyFilterVariables] is called.
   ///
   /// See also [removeFilterVariable], [removeAllFilterVariables] and
   /// [applyFilterVariables].
@@ -389,8 +388,8 @@ class SyncClient {
 
   /// Removes a previously added Sync filter variable value.
   ///
-  /// If used after login, see [putFilterVariable] for notes about
-  /// [applyFilterVariables].
+  /// Note: If the client is already logged in, this change is not applied until
+  /// [applyFilterVariables] is called. See [putFilterVariable] for details.
   ///
   /// See also [putFilterVariable] and [removeAllFilterVariables].
   void removeFilterVariable(String name) {
@@ -400,8 +399,8 @@ class SyncClient {
 
   /// Removes all previously added Sync filter variable values.
   ///
-  /// If used after login, see [putFilterVariable] for notes about
-  /// [applyFilterVariables].
+  /// Note: If the client is already logged in, this change is not applied until
+  /// [applyFilterVariables] is called. See [putFilterVariable] for details.
   ///
   /// See also [putFilterVariable] and [removeFilterVariable].
   void removeAllFilterVariables() {
