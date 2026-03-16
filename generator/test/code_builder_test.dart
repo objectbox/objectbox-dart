@@ -12,6 +12,23 @@ import 'package:test/test.dart';
 
 import 'generator_test_env.dart';
 
+String sourceFile(String withContent) => '''
+      library example;
+      import 'package:objectbox/objectbox.dart';
+
+      $withContent
+      ''';
+
+String entity({String withName = 'Example', String withBody = ''}) => '''
+      @Entity()
+      class $withName {
+        @Id()
+        int id = 0;
+
+        $withBody
+      }
+      ''';
+
 Future<void> expectGeneratorThrows(
   String source,
   String expectedMessagePart,
@@ -170,22 +187,17 @@ void main() {
   /// debugging. Future code generator tests should probably use it.
   group('code generator', () {
     test('simple entity', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        // implicit PropertyType.bool
-        bool? tBool;
-        
-        // implicitly determined types
-        String? tString;
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          // implicit PropertyType.bool
+          bool? tBool;
+          
+          // implicitly determined types
+          String? tString;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -207,18 +219,7 @@ void main() {
 
     test('index on unsupported type errors', () async {
       testUnsupportedIndex(String unsupportedField) async {
-        final source = '''
-        library example;     
-        import 'package:objectbox/objectbox.dart';
-        
-        @Entity()
-        class Example {
-          @Id()
-          int id = 0;
-        
-          $unsupportedField
-        }
-        ''';
+        final source = sourceFile(entity(withBody: unsupportedField));
 
         await expectGeneratorThrows(source, '@Index/@Unique is not supported');
       }
@@ -275,19 +276,14 @@ void main() {
     });
 
     test('Plain DateTime warning', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        // Using default type for DateTime (not recommended, but supported)
-        DateTime? warnsForThis;
-      }
-      ''';
+      // Using default type for DateTime (not recommended, but supported)
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          DateTime? warnsForThis;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       final result = await testEnv.run(source);
@@ -317,40 +313,24 @@ void main() {
     });
 
     test('Finds backlink source if type is unique', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        final relA = ToMany<A>();
-        final relB = ToOne<B>();
-      }
-      
       // Name related classes to be lexically before Example so they are
       // processed first.
-       
-      @Entity()
-      class A {
-        @Id()
-        int id = 0;
+      final source = sourceFile('''
+        ${entity(withBody: r'''
+          final relA = ToMany<A>();
+          final relB = ToOne<B>();
+        ''')}
         
-        @Backlink()
-        final backRel = ToMany<Example>();
-      }
-      
-      @Entity()
-      class B {
-        @Id()
-        int id = 0;
+        ${entity(withName: 'A', withBody: r'''
+          @Backlink()
+          final backRel = ToMany<Example>();
+        ''')}
         
-        @Backlink()
-        final backRel = ToMany<Example>();
-      }
-      ''';
+        ${entity(withName: 'B', withBody: r'''
+          @Backlink()
+          final backRel = ToMany<Example>();
+        ''')}
+      ''');
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -370,53 +350,34 @@ void main() {
     });
 
     test('Errors if backlink source is not unique', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
+      final source = sourceFile('''
+        ${entity(withBody: r'''
+          final relA1 = ToOne<A>();
+          final relA2 = ToOne<A>();
+          final relA3 = ToMany<A>();
+        ''')}
         
-        final relA1 = ToOne<A>();
-        final relA2 = ToOne<A>();
-        final relA3 = ToMany<A>();
-      }
-       
-      @Entity()
-      class A {
-        @Id()
-        int id = 0;
-        
-        @Backlink()
-        final backRel = ToMany<Example>();
-      }
-      ''';
+        ${entity(withName: 'A', withBody: r'''
+          @Backlink()
+          final backRel = ToMany<Example>();
+        ''')}
+      ''');
 
-      await expectGeneratorThrows(source, 'Can\'t determine backlink source');
+      await expectGeneratorThrows(
+        source,
+        'Can\'t determine backlink source for "A.backRel"',
+      );
     });
 
     test('Errors if backlink source does not exist', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-      }
-       
-      @Entity()
-      class A {
-        @Id()
-        int id = 0;
+      final source = sourceFile('''
+        ${entity()}
         
-        @Backlink()
-        final backRel = ToMany<Example>();
-      }
-      ''';
+        ${entity(withName: 'A', withBody: r'''
+          @Backlink()
+          final backRel = ToMany<Example>();
+        ''')}
+      ''');
 
       await expectGeneratorThrows(
         source,
@@ -427,28 +388,17 @@ void main() {
     test(
       'Does not pick implicit backlink source if explicit one does not exist',
       () async {
-        final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        final relA1 = ToOne<A>();
-        final relA2 = ToMany<A>();
-      }
-       
-      @Entity()
-      class A {
-        @Id()
-        int id = 0;
-        
-        @Backlink('doesnotexist')
-        final backRel = ToMany<Example>();
-      }
-      ''';
+        final source = sourceFile('''
+          ${entity(withBody: r'''
+            final relA1 = ToOne<A>();
+            final relA2 = ToMany<A>();
+          ''')}
+          
+          ${entity(withName: 'A', withBody: r'''
+            @Backlink('doesnotexist')
+            final backRel = ToMany<Example>();
+          ''')}
+        ''');
 
         await expectGeneratorThrows(
           source,
@@ -458,19 +408,14 @@ void main() {
     );
 
     test('@TargetIdProperty ToOne annotation', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        @TargetIdProperty('customerRef')
-        final customer = ToOne<Example>();
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @TargetIdProperty('customerRef')
+          final customer = ToOne<Example>();
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -485,28 +430,17 @@ void main() {
     });
 
     test('Explicit backlink to renamed ToOne target ID property', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
+      final source = sourceFile('''
+        ${entity(withBody: r'''
+          @TargetIdProperty('customerRef')
+          final customer = ToOne<Customer>();
+        ''')}
         
-        @TargetIdProperty('customerRef')
-        final customer = ToOne<Customer>();
-      }
-      
-      @Entity()
-      class Customer {
-        @Id()
-        int id = 0;
-        
-        @Backlink('customer')
-        final backRel = ToMany<Example>();
-      }
-      ''';
+        ${entity(withName: 'Customer', withBody: r'''
+          @Backlink('customer')
+          final backRel = ToMany<Example>();
+        ''')}
+      ''');
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -525,18 +459,14 @@ void main() {
     test('ToOne target ID property name conflict', () async {
       // Note: unlike in Java, for Dart it's also not supported to "expose" the
       // target ID (relation) property.
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        int? customerId; // conflicts
-        final customer = ToOne<Example>();
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          int? customerId; // conflicts
+          final customer = ToOne<Example>();
+          ''',
+        ),
+      );
 
       await expectGeneratorThrows(
         source,
@@ -545,19 +475,14 @@ void main() {
     });
 
     test('HNSW annotation on unsupported type errors', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        @HnswIndex(dimensions: 3)
-        List<double>? coordinates;
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @HnswIndex(dimensions: 3)
+          List<double>? coordinates;
+          ''',
+        ),
+      );
 
       await expectGeneratorThrows(
         source,
@@ -566,20 +491,15 @@ void main() {
     });
 
     test('HNSW annotation default', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        @Property(type: PropertyType.floatVector)
-        @HnswIndex(dimensions: 3)
-        List<double>? coordinates;
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @Property(type: PropertyType.floatVector)
+          @HnswIndex(dimensions: 3)
+          List<double>? coordinates;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -601,31 +521,26 @@ void main() {
     });
 
     test('HNSW annotation with all properties', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        @Property(type: PropertyType.floatVector)
-        @HnswIndex(
-            dimensions: 3,
-            neighborsPerNode: 30,
-            indexingSearchCount: 100,
-            flags: HnswFlags(
-                debugLogs: true,
-                debugLogsDetailed: true,
-                vectorCacheSimdPaddingOff: true,
-                reparationLimitCandidates: true),
-            distanceType: VectorDistanceType.euclidean,
-            reparationBacklinkProbability: 0.95,
-            vectorCacheHintSizeKB: 2097152)
-        List<double>? coordinates;
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @Property(type: PropertyType.floatVector)
+          @HnswIndex(
+              dimensions: 3,
+              neighborsPerNode: 30,
+              indexingSearchCount: 100,
+              flags: HnswFlags(
+                  debugLogs: true,
+                  debugLogsDetailed: true,
+                  vectorCacheSimdPaddingOff: true,
+                  reparationLimitCandidates: true),
+              distanceType: VectorDistanceType.euclidean,
+              reparationBacklinkProbability: 0.95,
+              vectorCacheHintSizeKB: 2097152)
+          List<double>? coordinates;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -655,17 +570,14 @@ void main() {
     });
 
     test('Sync annotation with shared global IDs', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
+      final source = sourceFile(r'''
       @Entity()
       @Sync(sharedGlobalIds: true)
       class Example {
         @Id(assignable: true)
         int id = 0;
       }
-      ''';
+      ''');
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -682,17 +594,14 @@ void main() {
 
   group("ExternalType and ExternalName annotations", () {
     test('annotations work on @Entity', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
+      final source = sourceFile(r'''
       @Entity()
       @ExternalName(name: 'my-mongo-entity')     
       class Example {
         @Id()
         int id = 0;
       }
-      ''';
+      ''');
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -702,24 +611,19 @@ void main() {
     });
 
     test('annotations work on properties', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-        
-        @Property(type: PropertyType.byteVector)
-        @ExternalType(type: ExternalPropertyType.mongoId)
-        List<int>? mongoId;
-        
-        @ExternalType(type: ExternalPropertyType.uuid)
-        @ExternalName(name: 'my-mongo-uuid')
-        List<int>? mongoUuid;
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.mongoId)
+          List<int>? mongoId;
+          
+          @ExternalType(type: ExternalPropertyType.uuid)
+          @ExternalName(name: 'my-mongo-uuid')
+          List<int>? mongoUuid;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -737,22 +641,19 @@ void main() {
     });
 
     test('annotations work on ToMany (standalone) relations', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Student{
-        int id;
-        
-        @ExternalType(type: ExternalPropertyType.mongoId)
-        final rel1 = ToMany<Student>();
-        
-        @ExternalType(type: ExternalPropertyType.uuid)
-        @ExternalName(name: 'my-courses-rel')
-        final rel2 = ToMany<Student>();
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withName: 'Student',
+          withBody: r'''
+          @ExternalType(type: ExternalPropertyType.mongoId)
+          final rel1 = ToMany<Student>();
+          
+          @ExternalType(type: ExternalPropertyType.uuid)
+          @ExternalName(name: 'my-courses-rel')
+          final rel2 = ToMany<Student>();
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -785,32 +686,28 @@ void main() {
     }
 
     test('Flex Map type detection', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class FlexEntity {
-        @Id()
-        int id = 0;       
-      
-        // Auto-detected Map<String, dynamic> - nullable
-        Map<String, dynamic>? flexDynamic;
-      
-        // Auto-detected Map<String, Object?> - nullable
-        Map<String, Object?>? flexObject;
+      final source = sourceFile(
+        entity(
+          withName: 'FlexEntity',
+          withBody: r'''
+          // Auto-detected Map<String, dynamic> - nullable
+          Map<String, dynamic>? flexDynamic;
         
-        // Auto-detected Map<String, Object> (non-nullable values) - nullable
-        Map<String, Object>? flexObjectNonNull;
-      
-        // Non-nullable with default empty map
-        Map<String, dynamic> flexNonNull = {};
-      
-        // Explicit annotation
-        @Property(type: PropertyType.flex)
-        Map<String, dynamic>? flexExplicit;
-      }
-      ''';
+          // Auto-detected Map<String, Object?> - nullable
+          Map<String, Object?>? flexObject;
+          
+          // Auto-detected Map<String, Object> (non-nullable values) - nullable
+          Map<String, Object>? flexObjectNonNull;
+        
+          // Non-nullable with default empty map
+          Map<String, dynamic> flexNonNull = {};
+        
+          // Explicit annotation
+          @Property(type: PropertyType.flex)
+          Map<String, dynamic>? flexExplicit;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -820,38 +717,34 @@ void main() {
     });
 
     test('Flex List type detection', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class FlexEntity {
-        @Id()
-        int id = 0;            
+      final source = sourceFile(
+        entity(
+          withName: 'FlexEntity',
+          withBody: r'''
+          // Auto-detected List<dynamic> - nullable
+          List<dynamic>? flexDynamic;
         
-        // Auto-detected List<dynamic> - nullable
-        List<dynamic>? flexDynamic;
-      
-        // Auto-detected List<Object?> - nullable
-        List<Object?>? flexObject;
-      
-        // Auto-detected List<Object> (non-nullable elements) - nullable
-        List<Object>? flexObjectNonNull;
-      
-        // Non-nullable with default empty list
-        List<dynamic> flexNonNull = [];
-      
-        // Auto-detected List<Map<String, dynamic>> - nullable
-        List<Map<String, dynamic>>? flexListOfMaps;
-      
-        // Auto-detected List<Map<String, Object?>> - nullable
-        List<Map<String, Object?>>? flexListOfMapsObject;
-      
-        // Explicit annotation
-        @Property(type: PropertyType.flex)
-        List<dynamic>? flexExplicit;    
-      }
-      ''';
+          // Auto-detected List<Object?> - nullable
+          List<Object?>? flexObject;
+        
+          // Auto-detected List<Object> (non-nullable elements) - nullable
+          List<Object>? flexObjectNonNull;
+        
+          // Non-nullable with default empty list
+          List<dynamic> flexNonNull = [];
+        
+          // Auto-detected List<Map<String, dynamic>> - nullable
+          List<Map<String, dynamic>>? flexListOfMaps;
+        
+          // Auto-detected List<Map<String, Object?>> - nullable
+          List<Map<String, Object?>>? flexListOfMapsObject;
+        
+          // Explicit annotation
+          @Property(type: PropertyType.flex)
+          List<dynamic>? flexExplicit;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -861,29 +754,25 @@ void main() {
     });
 
     test('Flex Value type detection', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class FlexEntity {
-        @Id()
-        int id = 0;
+      final source = sourceFile(
+        entity(
+          withName: 'FlexEntity',
+          withBody: r'''
+          // Auto-detected dynamic
+          dynamic flexDynamic;
         
-        // Auto-detected dynamic
-        dynamic flexDynamic;
-      
-        // Auto-detected Object?
-        Object? flexObject;
-        
-        // Explicit annotation still works
-        @Property(type: PropertyType.flex)
-        dynamic flexDynamicExplicit;
-        
-        @Property(type: PropertyType.flex)
-        Object? flexObjectExplicit;
-      }
-      ''';
+          // Auto-detected Object?
+          Object? flexObject;
+          
+          // Explicit annotation still works
+          @Property(type: PropertyType.flex)
+          dynamic flexDynamicExplicit;
+          
+          @Property(type: PropertyType.flex)
+          Object? flexObjectExplicit;
+          ''',
+        ),
+      );
 
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
@@ -893,19 +782,15 @@ void main() {
     });
 
     test('Flex unsupported type errors', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class FlexEntity {
-        @Id()
-        int id = 0;
-        
-        @Property(type: PropertyType.flex)
-        Object unsupported;  
-      }
-      ''';
+      final source = sourceFile(
+        entity(
+          withName: 'FlexEntity',
+          withBody: r'''
+          @Property(type: PropertyType.flex)
+          Object unsupported;  
+          ''',
+        ),
+      );
 
       await expectGeneratorThrows(
         source,
@@ -916,16 +801,7 @@ void main() {
 
   group('GeneratorVersion', () {
     test('generated code includes GeneratorVersion parameter', () async {
-      final source = r'''
-      library example;     
-      import 'package:objectbox/objectbox.dart';
-      
-      @Entity()
-      class Example {
-        @Id()
-        int id = 0;
-      }
-      ''';
+      final source = sourceFile(entity());
 
       final testEnv = GeneratorTestEnv();
       // Verify the generated code contains the GeneratorVersion parameter.
