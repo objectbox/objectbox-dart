@@ -12,6 +12,24 @@ import 'package:test/test.dart';
 
 import 'generator_test_env.dart';
 
+Future<void> expectGeneratorThrows(
+  String source,
+  String expectedMessagePart,
+) async {
+  final testEnv = GeneratorTestEnv();
+  final result = await testEnv.run(source, ignoreOutput: true);
+
+  expect(result.builderResult.succeeded, false);
+  expect(
+    result.logs,
+    contains(
+      isA<LogRecord>()
+          .having((r) => r.level, 'level', Level.SEVERE)
+          .having((r) => r.message, 'message', contains(expectedMessagePart)),
+    ),
+  );
+}
+
 void main() {
   // lib/$lib$ is a placeholder file of build_runner, it's one of the two
   // input files used by CodeBuilder.
@@ -188,8 +206,6 @@ void main() {
     });
 
     test('index on unsupported type errors', () async {
-      final testEnv = GeneratorTestEnv();
-
       testUnsupportedIndex(String unsupportedField) async {
         final source = '''
         library example;     
@@ -204,21 +220,7 @@ void main() {
         }
         ''';
 
-        final result = await testEnv.run(source, ignoreOutput: true);
-
-        expect(result.builderResult.succeeded, false);
-        expect(
-          result.logs,
-          contains(
-            isA<LogRecord>()
-                .having((r) => r.level, 'level', Level.SEVERE)
-                .having(
-                  (r) => r.message,
-                  'message',
-                  contains('@Index/@Unique is not supported'),
-                ),
-          ),
-        );
+        await expectGeneratorThrows(source, '@Index/@Unique is not supported');
       }
 
       // floating point types
@@ -392,22 +394,7 @@ void main() {
       }
       ''';
 
-      final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, ignoreOutput: true);
-
-      expect(result.builderResult.succeeded, false);
-      expect(
-        result.logs,
-        contains(
-          isA<LogRecord>()
-              .having((r) => r.level, 'level', Level.SEVERE)
-              .having(
-                (r) => r.message,
-                'message',
-                contains('Can\'t determine backlink source for "A.backRel"'),
-              ),
-        ),
-      );
+      await expectGeneratorThrows(source, 'Can\'t determine backlink source');
     });
 
     test('Errors if backlink source does not exist', () async {
@@ -431,23 +418,9 @@ void main() {
       }
       ''';
 
-      final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, ignoreOutput: true);
-
-      expect(result.builderResult.succeeded, false);
-      expect(
-        result.logs,
-        contains(
-          isA<LogRecord>()
-              .having((r) => r.level, 'level', Level.SEVERE)
-              .having(
-                (r) => r.message,
-                'message',
-                contains(
-                  'Failed to find backlink source for "A.backRel" in "Example"',
-                ),
-              ),
-        ),
+      await expectGeneratorThrows(
+        source,
+        'Failed to find backlink source for "A.backRel" in "Example"',
       );
     });
 
@@ -477,23 +450,9 @@ void main() {
       }
       ''';
 
-        final testEnv = GeneratorTestEnv();
-        final result = await testEnv.run(source, ignoreOutput: true);
-
-        expect(result.builderResult.succeeded, false);
-        expect(
-          result.logs,
-          contains(
-            isA<LogRecord>()
-                .having((r) => r.level, 'level', Level.SEVERE)
-                .having(
-                  (r) => r.message,
-                  'message',
-                  contains(
-                    'Failed to find backlink source for "A.backRel" in "Example"',
-                  ),
-                ),
-          ),
+        await expectGeneratorThrows(
+          source,
+          'Failed to find backlink source for "A.backRel" in "Example"',
         );
       },
     );
@@ -579,23 +538,9 @@ void main() {
       }
       ''';
 
-      final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, ignoreOutput: true);
-
-      expect(result.builderResult.succeeded, false);
-      expect(
-        result.logs,
-        contains(
-          isA<LogRecord>()
-              .having((r) => r.level, 'level', Level.SEVERE)
-              .having(
-                (r) => r.message,
-                'message',
-                contains(
-                  'Property name conflicts with the target ID property "customerId"',
-                ),
-              ),
-        ),
+      await expectGeneratorThrows(
+        source,
+        'Property name conflicts with the target ID property "customerId"',
       );
     });
 
@@ -614,23 +559,9 @@ void main() {
       }
       ''';
 
-      final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, ignoreOutput: true);
-
-      expect(result.builderResult.succeeded, false);
-      expect(
-        result.logs,
-        contains(
-          isA<LogRecord>()
-              .having((r) => r.level, 'level', Level.SEVERE)
-              .having(
-                (r) => r.message,
-                'message',
-                contains(
-                  '@HnswIndex is only supported for float vector properties.',
-                ),
-              ),
-        ),
+      await expectGeneratorThrows(
+        source,
+        '@HnswIndex is only supported for float vector properties.',
       );
     });
 
@@ -976,23 +907,9 @@ void main() {
       }
       ''';
 
-      final testEnv = GeneratorTestEnv();
-      final result = await testEnv.run(source, ignoreOutput: true);
-
-      expect(result.builderResult.succeeded, false);
-      expect(
-        result.logs,
-        contains(
-          isA<LogRecord>()
-              .having((r) => r.level, 'level', Level.SEVERE)
-              .having(
-                (r) => r.message,
-                'message',
-                contains(
-                  "'FlexEntity.unsupported': PropertyType.flex can only be used with",
-                ),
-              ),
-        ),
+      await expectGeneratorThrows(
+        source,
+        "'FlexEntity.unsupported': PropertyType.flex can only be used with",
       );
     });
   });
