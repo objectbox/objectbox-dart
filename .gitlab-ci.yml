@@ -81,6 +81,11 @@ generator-integ-tests:
   stage: test
   needs: ["generator-integ-tests"] # Wait for generator integration tests
   script:
+    # Download sync-server and add to PATH for sync tests
+    - mkdir sync-server && cd sync-server
+    - ../tool/download-server.sh --gitlab-base-url $CI_SERVER_URL --branch sync --ci-job-token $CI_JOB_TOKEN
+    - export PATH="$PATH:$PWD"
+    - cd ..
     # Generator tests
     - cd generator
     - dart pub get
