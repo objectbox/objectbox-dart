@@ -82,7 +82,21 @@ void main() {
         equals(Uint8List.fromList([117, 197, 169, 195, 186])));
   });
 
-  if (Sync.isAvailable()) {
+  group('Tests if Sync is not available', () {
+    // TESTS to run when SYNC is NOT available
+
+    test('SyncClient cannot be created when running with non-sync library', () {
+      expect(
+          () => createClient(store),
+          throwsA(predicate((UnsupportedError e) => e.toString().contains(
+              'Sync is not available in the loaded ObjectBox runtime library'))));
+    });
+  },
+      skip: Sync.isAvailable()
+          ? 'Sync is available in the loaded database library'
+          : null);
+
+  group('Tests if Sync is available', () {
     // TESTS to run when SYNC is available
     print("Testing Sync with protocol version ${SyncClient.protocolVersion()}");
 
@@ -588,16 +602,10 @@ void main() {
                 [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
       });
     }, skip: "Test requires to manually run Sync server");
-  } else {
-    // TESTS to run when SYNC is NOT available
-
-    test('SyncClient cannot be created when running with non-sync library', () {
-      expect(
-          () => createClient(store),
-          throwsA(predicate((UnsupportedError e) => e.toString().contains(
-              'Sync is not available in the loaded ObjectBox runtime library'))));
-    });
-  }
+  },
+      skip: Sync.isAvailable()
+          ? null
+          : 'Sync is not available in the loaded database library');
 }
 
 /// sync-server process wrapper for testing clients
