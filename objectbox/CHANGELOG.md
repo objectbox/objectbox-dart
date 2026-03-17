@@ -1,5 +1,7 @@
 ## latest
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.2.0-2026-03-06](https://github.com/objectbox/objectbox-c/releases/tag/v5.2.0)
+
 ### Sync
 
 * Alpha: for future Sync conflict resolution, support the new annotations `@SyncClock()` and
