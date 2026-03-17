@@ -9,7 +9,7 @@ import 'package:objectbox/src/native/sync.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
-import 'entity2.dart';
+import 'entity_sync.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
@@ -352,6 +352,10 @@ void main() {
         await server.online();
         final client1 = loggedInClient(env.store);
         final client2 = loggedInClient(env2.store);
+        addTearDown(() {
+          client1.close();
+          client2.close();
+        });
 
         final box = env.store.box<TestEntitySynced>();
         final box2 = env2.store.box<TestEntitySynced>();
@@ -364,12 +368,11 @@ void main() {
         expect(read2, isNotNull);
         expect(read1!.id, equals(read2!.id));
         expect(read1.value, equals(read2.value));
-        client1.close();
-        client2.close();
       });
 
       test('SyncClient listeners: connection', () async {
         final client = createClient(env.store);
+        addTearDown(() => client.close());
 
         // collect connection events
         final events = <SyncConnectionEvent>[];
@@ -417,11 +420,11 @@ void main() {
         expect(events2, equals([SyncConnectionEvent.connected]));
 
         await streamSub.cancel();
-        client.close();
       });
 
       test('SyncClient listeners: login', () async {
         final client = createClient(env.store);
+        addTearDown(() => client.close());
 
         client.setCredentials(SyncCredentials.sharedSecretString('foo'));
 
@@ -443,8 +446,6 @@ void main() {
             events,
             equals(
                 [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
-
-        client.close();
       });
 
       test('SyncClient listeners: completion', () async {
@@ -501,6 +502,10 @@ void main() {
         await server.online();
         final client = loggedInClient(store);
         final client2 = loggedInClient(env2.store);
+        addTearDown(() {
+          client.close();
+          client2.close();
+        });
 
         final events = <List<SyncChange>>[];
         client2.changeEvents.listen(events.add);
@@ -543,9 +548,24 @@ void main() {
             InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
         expect(events[1][0].puts, [2, 3]);
         expect(events[1][0].removals, [1]);
+      });
 
-        client.close();
-        client2.close();
+      test('Put and get entity with SyncClock and SyncPrecedence', () async {
+        // Putting a sync-enabled entity requires to enable Sync by starting a
+        // client.
+        await server.online();
+        final client = loggedInClient(store);
+        addTearDown(() => client.close());
+
+        final box = store.box<TestEntityPrecedence>();
+        final object = TestEntityPrecedence()
+          ..clock = 0
+          ..precedence = 42;
+        final id = box.put(object);
+
+        final read = box.get(id)!;
+        expect(read.clock, equals(0));
+        expect(read.precedence, equals(42));
       });
     },
         skip: SyncServer.isAvailable()

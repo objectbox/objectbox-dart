@@ -69,6 +69,14 @@ class EntityResolver extends Builder {
     ExternalName,
     inPackage: _annotationsPackage,
   );
+  final _syncClockChecker = const TypeChecker.typeNamed(
+    SyncClock,
+    inPackage: _annotationsPackage,
+  );
+  final _syncPrecedenceChecker = const TypeChecker.typeNamed(
+    SyncPrecedence,
+    inPackage: _annotationsPackage,
+  );
 
   @override
   FutureOr<void> build(BuildStep buildStep) async {
@@ -373,6 +381,16 @@ class EntityResolver extends Builder {
         _externalNameChecker.runIfMatches(annotated, (annotation) {
           prop.externalName = _readExternalNameParams(annotation);
         });
+
+        // @SyncClock, @SyncPrecedence
+        _processAnnotationSyncClockPrecedence(
+          annotated,
+          f,
+          fieldType,
+          classElement,
+          entity,
+          prop,
+        );
 
         // for code generation
         prop.dartFieldType =
@@ -687,6 +705,69 @@ class EntityResolver extends Builder {
         prop.flags |= OBXPropertyFlags.INDEX_HASH64;
         break;
     }
+  }
+
+  void _processAnnotationSyncClockPrecedence(
+    Element annotated,
+    FieldElement field,
+    int? fieldType,
+    ClassElement classElement,
+    ModelEntity entity,
+    ModelProperty prop,
+  ) {
+    final hasSyncClock = _syncClockChecker.hasAnnotationOfExact(annotated);
+    final hasSyncPrecedence = _syncPrecedenceChecker.hasAnnotationOfExact(
+      annotated,
+    );
+
+    if (!hasSyncClock && !hasSyncPrecedence) return;
+
+    // Cannot have both on the same property
+    if (hasSyncClock && hasSyncPrecedence) {
+      throw InvalidGenerationSourceError(
+        "'${classElement.displayName}.${field.displayName}': @SyncClock and @SyncPrecedence"
+        " cannot be used on the same property",
+        element: field,
+      );
+    }
+
+    final annotationName = hasSyncClock ? 'SyncClock' : 'SyncPrecedence';
+
+    // Must be on a synced entity
+    if (!entity.hasFlag(OBXEntityFlags.SYNC_ENABLED)) {
+      throw InvalidGenerationSourceError(
+        "'${classElement.displayName}.${field.displayName}': @$annotationName can only be used on"
+        " a property of a synced entity (annotated with @Sync)",
+        element: field,
+      );
+    }
+
+    // Must be a 64-bit integer property
+    if (fieldType != OBXPropertyType.Long) {
+      throw InvalidGenerationSourceError(
+        "'${classElement.displayName}.${field.displayName}': @$annotationName can only be used"
+        " on int (OBXPropertyType.Long) properties",
+        element: field,
+      );
+    }
+
+    // Only one per entity
+    final flag =
+        hasSyncClock
+            ? OBXPropertyFlags.SYNC_CLOCK
+            : OBXPropertyFlags.SYNC_PRECEDENCE;
+    final existingProps = entity.properties.where((p) => p.hasFlag(flag));
+    if (existingProps.isNotEmpty) {
+      final names = [prop, ...existingProps].map((p) => p.name).join('\n  ');
+      throw InvalidGenerationSourceError(
+        "Entity '${classElement.displayName}': only one property can be annotated"
+        " with @$annotationName, but found multiple:\n  $names",
+        element: classElement,
+      );
+    }
+
+    // Add the flag
+    prop.flags |= flag;
   }
 
   /// Verifies no regular properties are named like ToOne relation

@@ -731,3 +731,40 @@ class TargetIdProperty {
   /// details.
   const TargetIdProperty(this.name);
 }
+
+/// An annotation to mark a field of a synced [Entity] class as the sync clock.
+/// See [SyncClock.new].
+class SyncClock {
+  /// Marks an [int] (64-bit integer) field of a synced [Entity] class as the
+  /// sync clock, a "hybrid logical clock" to resolve Sync conflicts.
+  ///
+  /// These clock values allow "last write wins" conflict resolution.
+  ///
+  /// There can be only one sync clock per sync entity type; which is also
+  /// recommended for basic conflict resolution.
+  ///
+  /// For new objects, initialize the property value to `0` to reserve "a slot"
+  /// in the object data. ObjectBox Sync will update this property automatically
+  /// on put operations.
+  ///
+  /// As a hybrid clock, it combines a wall clock with a logical counter to
+  /// compensate for some clock skew effects.
+  const SyncClock();
+}
+
+/// An annotation to mark a field of a synced [Entity] class as the sync
+/// precedence. See [SyncPrecedence.new].
+class SyncPrecedence {
+  /// Marks an [int] (64-bit integer) field of a synced [Entity] class as the
+  /// "sync precedence" to customize Sync conflict resolution.
+  ///
+  /// Developer-assigned precedence values are then used to resolve conflicts
+  /// via "higher precedence wins". Defining and assigning precedence values are
+  /// completely in the hands of the developer (the ObjectBox user).
+  ///
+  /// There can be only one sync precedence per sync entity type.
+  ///
+  /// Typically, it is combined with a [SyncClock], with the latter being the
+  /// tie-breaker for equal precedence values.
+  const SyncPrecedence();
+}
