@@ -1,5 +1,10 @@
 ## latest
 
+### Sync
+
+* Alpha: for future Sync conflict resolution, support the new annotations `@SyncClock()` and
+  `@SyncPrecedence()`
+
 ## 5.3.0-preview1 (2026-02-19)
 
 * Update ObjectBox database for Flutter Android apps to `5.1.1-pre-2026-02-18`.
