@@ -1,11 +1,17 @@
 ## latest
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.2.0-2026-03-06](https://github.com/objectbox/objectbox-c/releases/tag/v5.2.0)
+* Update ObjectBox database for Flutter Android apps to `5.2.0-next-2026-03-17`.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.3.1-preview1` in
+  `android/app/build.gradle.kts` or `android/app/build.gradle`.
 
 ### Sync
 
 * Alpha: for future Sync conflict resolution, support the new annotations `@SyncClock()` and
   `@SyncPrecedence()`
+* (Only on Android) Fix bad full sync state after multiple messages were interrupted
+* (Only on Android) Fix adding indexes to Sync types
 
 ## 5.3.0-preview1 (2026-02-19)
 
