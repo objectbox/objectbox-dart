@@ -547,6 +547,24 @@ void main() {
         client.close();
         client2.close();
       });
+
+      test('Put and get entity with SyncClock and SyncPrecedence', () async {
+        // Putting a sync-enabled entity requires to enable Sync by starting a
+        // client.
+        await server.online();
+        final client = loggedInClient(store);
+        addTearDown(() => client.close());
+
+        final box = store.box<TestEntityPrecedence>();
+        final object = TestEntityPrecedence()
+          ..clock = 0
+          ..precedence = 42;
+        final id = box.put(object);
+
+        final read = box.get(id)!;
+        expect(read.clock, equals(0));
+        expect(read.precedence, equals(42));
+      });
     },
         skip: SyncServer.isAvailable()
             ? null

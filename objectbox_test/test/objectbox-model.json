@@ -962,9 +962,36 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "23:2245083523377411841",
+      "lastPropertyId": "3:6515499488947444217",
+      "name": "TestEntityPrecedence",
+      "flags": 2,
+      "properties": [
+        {
+          "id": "1:6862157251215265614",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1411766811428921411",
+          "name": "clock",
+          "type": 6,
+          "flags": 131072
+        },
+        {
+          "id": "3:6515499488947444217",
+          "name": "precedence",
+          "type": 6,
+          "flags": 262144
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "22:3648782640383158768",
+  "lastEntityId": "23:2245083523377411841",
   "lastIndexId": "25:5667866372157411357",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
