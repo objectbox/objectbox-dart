@@ -9,7 +9,7 @@ import 'package:objectbox/src/native/sync.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
-import 'entity2.dart';
+import 'entity_sync.dart';
 import 'objectbox.g.dart';
 import 'test_env.dart';
 
