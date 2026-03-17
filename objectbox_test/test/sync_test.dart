@@ -139,12 +139,10 @@ void main() {
     });
 
     test('SyncClient throws if empty URL list', () {
-      // Note: this test works with a library that does not have the Sync
-      // feature, because the URLs are checked before checking for the feature.
       expect(
           () => SyncClient(store, [], [SyncCredentials.none()]),
           throwsA(isArgumentError.having((e) => e.message, 'message',
-              contains('At least one URL must be added to sync options'))));
+              contains('At least one URL must be added'))));
     });
 
     test('SyncClient throws if empty credential list', () {
