@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
@@ -39,6 +40,11 @@ class ObjectBox {
         directory:
             p.join((await getApplicationDocumentsDirectory()).path, "obx-demo"),
         macosApplicationGroup: "objectbox.demo");
+
+    if (kDebugMode) {
+      debugPrint("Using ObjectBox database version ${Store.databaseVersion()}");
+    }
+
     return ObjectBox._create(store);
   }
 

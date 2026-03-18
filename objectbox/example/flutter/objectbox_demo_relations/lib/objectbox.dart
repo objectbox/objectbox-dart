@@ -53,6 +53,11 @@ class ObjectBox {
         directory: p.join((await getApplicationDocumentsDirectory()).path,
             "obx-demo-relations"),
         macosApplicationGroup: "objectbox.demo");
+
+    if (kDebugMode) {
+      debugPrint("Using ObjectBox database version ${Store.databaseVersion()}");
+    }
+
     return ObjectBox._create(store);
   }
 
@@ -102,7 +107,9 @@ class ObjectBox {
     // Set or update the target of the to-one relation to Tag.
     task.tag.target = tag;
     _taskBox.putAsync(task);
-    debugPrint('Saved task ${task.text} with tag ${task.tag.target!.name}');
+    if (kDebugMode) {
+      debugPrint('Saved task ${task.text} with tag ${task.tag.target!.name}');
+    }
   }
 
   Future<void> finishTask(Task task) async {
@@ -128,7 +135,9 @@ class ObjectBox {
     }
 
     final newTagId = await _tagBox.putAsync(Tag(name));
-    debugPrint("Added tag: ${_tagBox.get(newTagId)!.name}");
+    if (kDebugMode) {
+      debugPrint("Added tag: ${_tagBox.get(newTagId)!.name}");
+    }
 
     return newTagId;
   }
