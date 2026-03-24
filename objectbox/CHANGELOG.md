@@ -1,5 +1,14 @@
 ## latest
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.0-2026-03-23](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.0)
+
+### Sync
+
+* Conflict resolution via the new annotations `@SyncClock()` and `@SyncPrecedence()` (allows last
+  win with custom conflict resolution)
+* Fix bad Sync client state after multiple full sync messages were interrupted 
+* Fix adding indexes to Sync types
+
 ## 5.3.0-preview2 (2026-03-18)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.2.0-2026-03-06](https://github.com/objectbox/objectbox-c/releases/tag/v5.2.0)

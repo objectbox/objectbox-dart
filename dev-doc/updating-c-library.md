@@ -14,22 +14,24 @@ For each:
 
 ### Desktop, Scripts
 
+Uses GitHub release artifacts of [ObjectBox C](https://github.com/objectbox/objectbox-c).
+
 For Dart Native and unit tests ([install.sh](../install.sh)),
 for the binding update script (see below) and
 for Flutter (`flutter_libs` and `sync_flutter_libs` plugins) on Linux and Windows:
 
 ```bash
-./tool/set-c-version.sh 5.2.0
+./tool/set-c-version.sh 5.3.0
 ```
 
 ```text
-* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.2.0-2026-03-06](https://github.com/objectbox/objectbox-c/releases/tag/v5.2.0)
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.0-2026-03-23](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.0)
 ```
 
 ```text
-Update C library [5.1.0 -> 5.2.0]
+Update C library [5.2.0 -> 5.3.0]
 
-Includes database version 5.2.0-2026-03-06
+Includes database version 5.3.0-2026-03-23
 ```
 
 ### Android
