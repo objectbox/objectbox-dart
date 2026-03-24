@@ -52,7 +52,7 @@ extern "C" {
 /// When using ObjectBox as a dynamic library, you should verify that a compatible version was linked using
 /// obx_version() or obx_version_is_at_least().
 #define OBX_VERSION_MAJOR 5
-#define OBX_VERSION_MINOR 1
+#define OBX_VERSION_MINOR 3
 #define OBX_VERSION_PATCH 0  // values >= 100 are reserved for dev releases leading to the next minor/major increase
 
 //----------------------------------------------
@@ -196,22 +196,18 @@ OBX_C_API bool obx_has_feature(OBXFeature feature);
 // Utilities
 //----------------------------------------------
 
-/// Log level as passed to obx_log_callback.
+/// Log level used by obx_log_level_set(), obx_log_level_get(), and obx_log_callback().
+/// @note Values were changed in version 5.3 (previously 10/20/30/40/50 for Verbose..Error);
+///       update your code if you relied on the old numeric values.
 typedef enum {
-    /// Log level for verbose messages (not emitted at the moment)
-    OBXLogLevel_Verbose = 10,
-
-    /// Log level for debug messages (may be limited to special debug builds)
-    OBXLogLevel_Debug = 20,
-
-    /// Log level for info messages
-    OBXLogLevel_Info = 30,
-
-    /// Log level for warning messages
-    OBXLogLevel_Warn = 40,
-
-    /// Log level for error messages
-    OBXLogLevel_Error = 50,
+    OBXLogLevel_All = 0,      ///< Enable all log output.
+    OBXLogLevel_Trace = 1,    ///< Most detailed; typically only for short-term investigations.
+    OBXLogLevel_Verbose = 2,  ///< Very detailed; not printed by default.
+    OBXLogLevel_Debug = 3,    ///< Detailed output useful during development/debugging.
+    OBXLogLevel_Info = 4,     ///< Informational messages (default for release builds).
+    OBXLogLevel_Warn = 6,     ///< Noteworthy issues that are not necessarily errors.
+    OBXLogLevel_Error = 8,    ///< Only for "bad things happened" (e.g. internal errors).
+    OBXLogLevel_None = 10,    ///< Disable all log output.
 } OBXLogLevel;
 
 /// Callback for logging, which can be provided to store creation via options.
@@ -229,12 +225,26 @@ OBX_C_API size_t obx_db_file_size(char const* directory);
 /// Enable (or disable) debug logging for ObjectBox internals.
 /// This requires a version of the library with the DebugLog feature.
 /// You can check if the feature is available with obx_has_feature(OBXFeature_DebugLog).
+/// @Deprecated: prefer obx_log_level_set() with OBXLogLevel_Debug / OBXLogLevel_Info.
 OBX_C_API obx_err obx_debug_log(bool enabled);
 
-/// Checks if debug logs are enabled for ObjectBox internals. This depends on the availability of the DebugLog feature.
+/// Checks if debug logs are enabled for ObjectBox internals.
+/// This depends on the availability of the DebugLog feature.
 /// If the feature is available, it returns the current state, which is adjustable via obx_debug_log().
-/// Otherwise, it always returns false for standard release builds (or true if you are having a special debug version).
+/// Otherwise, it always returns false for standard release builds
+/// (or true if you are having a special debug version).
+/// @Deprecated: Prefer obx_log_level_get() and compare against OBXLogLevel_Debug.
 OBX_C_API bool obx_debug_log_enabled();
+
+/// Sets the runtime log level for ObjectBox internals.
+/// Log messages below the given level will not be printed (provided they are compiled into the library).
+/// @note Without the DebugLog feature, log messages at debug level and below are not compiled in;
+///       use obx_has_feature(OBXFeature_DebugLog) to check.
+OBX_C_API obx_err obx_log_level_set(OBXLogLevel log_level);
+
+/// Gets the current runtime log level for ObjectBox internals.
+/// @returns One of the OBXLogLevel values.
+OBX_C_API OBXLogLevel obx_log_level_get();
 
 /// Gets the number, as used by ObjectBox, of the current thread.
 /// This e.g. allows to "associate" the thread with ObjectBox logs (each log entry contains the thread number).

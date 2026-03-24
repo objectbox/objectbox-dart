@@ -148,6 +148,7 @@ class ObjectBoxC {
   /// Enable (or disable) debug logging for ObjectBox internals.
   /// This requires a version of the library with the DebugLog feature.
   /// You can check if the feature is available with obx_has_feature(OBXFeature_DebugLog).
+  /// @Deprecated: prefer obx_log_level_set() with OBXLogLevel_Debug / OBXLogLevel_Info.
   int debug_log(
     bool enabled,
   ) {
@@ -160,9 +161,12 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<obx_err Function(ffi.Bool)>>('obx_debug_log');
   late final _debug_log = _debug_logPtr.asFunction<int Function(bool)>();
 
-  /// Checks if debug logs are enabled for ObjectBox internals. This depends on the availability of the DebugLog feature.
+  /// Checks if debug logs are enabled for ObjectBox internals.
+  /// This depends on the availability of the DebugLog feature.
   /// If the feature is available, it returns the current state, which is adjustable via obx_debug_log().
-  /// Otherwise, it always returns false for standard release builds (or true if you are having a special debug version).
+  /// Otherwise, it always returns false for standard release builds
+  /// (or true if you are having a special debug version).
+  /// @Deprecated: Prefer obx_log_level_get() and compare against OBXLogLevel_Debug.
   bool debug_log_enabled() {
     return _debug_log_enabled();
   }
@@ -171,6 +175,33 @@ class ObjectBoxC {
       _lookup<ffi.NativeFunction<ffi.Bool Function()>>('obx_debug_log_enabled');
   late final _debug_log_enabled =
       _debug_log_enabledPtr.asFunction<bool Function()>();
+
+  /// Sets the runtime log level for ObjectBox internals.
+  /// Log messages below the given level will not be printed (provided they are compiled into the library).
+  /// @note Without the DebugLog feature, log messages at debug level and below are not compiled in;
+  /// use obx_has_feature(OBXFeature_DebugLog) to check.
+  int log_level_set(
+    int log_level,
+  ) {
+    return _log_level_set(
+      log_level,
+    );
+  }
+
+  late final _log_level_setPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Int32)>>(
+          'obx_log_level_set');
+  late final _log_level_set = _log_level_setPtr.asFunction<int Function(int)>();
+
+  /// Gets the current runtime log level for ObjectBox internals.
+  /// @returns One of the OBXLogLevel values.
+  int log_level_get() {
+    return _log_level_get();
+  }
+
+  late final _log_level_getPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function()>>('obx_log_level_get');
+  late final _log_level_get = _log_level_getPtr.asFunction<int Function()>();
 
   /// Gets the number, as used by ObjectBox, of the current thread.
   /// This e.g. allows to "associate" the thread with ObjectBox logs (each log entry contains the thread number).
@@ -10663,22 +10694,33 @@ abstract class OBXFeature {
   static const int SyncFilters = 19;
 }
 
-/// Log level as passed to obx_log_callback.
+/// Log level used by obx_log_level_set(), obx_log_level_get(), and obx_log_callback().
+/// @note Values were changed in version 5.3 (previously 10/20/30/40/50 for Verbose..Error);
+/// update your code if you relied on the old numeric values.
 abstract class OBXLogLevel {
-  /// Log level for verbose messages (not emitted at the moment)
-  static const int Verbose = 10;
+  /// < Enable all log output.
+  static const int All = 0;
 
-  /// Log level for debug messages (may be limited to special debug builds)
-  static const int Debug = 20;
+  /// < Most detailed; typically only for short-term investigations.
+  static const int Trace = 1;
 
-  /// Log level for info messages
-  static const int Info = 30;
+  /// < Very detailed; not printed by default.
+  static const int Verbose = 2;
 
-  /// Log level for warning messages
-  static const int Warn = 40;
+  /// < Detailed output useful during development/debugging.
+  static const int Debug = 3;
 
-  /// Log level for error messages
-  static const int Error = 50;
+  /// < Informational messages (default for release builds).
+  static const int Info = 4;
+
+  /// < Noteworthy issues that are not necessarily errors.
+  static const int Warn = 6;
+
+  /// < Only for "bad things happened" (e.g. internal errors).
+  static const int Error = 8;
+
+  /// < Disable all log output.
+  static const int None = 10;
 }
 
 /// Error/success code returned by an obx_* function; see defines OBX_SUCCESS, OBX_NOT_FOUND, and OBX_ERROR_*
@@ -11987,7 +12029,7 @@ typedef obx_dart_closer
 
 const int OBX_VERSION_MAJOR = 5;
 
-const int OBX_VERSION_MINOR = 1;
+const int OBX_VERSION_MINOR = 3;
 
 const int OBX_VERSION_PATCH = 0;
 
