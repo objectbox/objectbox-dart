@@ -97,7 +97,7 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // Library                        | C API | Database
 // -------------------------------|-------|---------------------
 // C library 5.3.0                | 5.3.0 | 5.3.0-2026-03-23
-// Android library 5.3.1-preview1 | 5.2.0 | 5.2.0-next-2026-03-17
+// objectbox-android 5.4.0        | 5.3.0 | 5.3.0-2026-03-23
 // macOS/iOS library 5.2.0        | 5.1.0 | 5.1.1-dev-2026-01-21
 var _obxCminMajor = 5;
 var _obxCminMinor = 3;

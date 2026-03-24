@@ -36,23 +36,25 @@ Includes database version 5.3.0-2026-03-23
 
 ### Android
 
+Uses Maven artifacts of `objectbox-android` and `objectbox-android-objectbrowser` (Admin).
+
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 
 ```bash
-./tool/set-android-version.sh 5.3.1-preview1
+./tool/set-android-version.sh 5.4.0
 ```
 
 ```text
-* Update ObjectBox database for Flutter Android apps to `5.2.0-next-2026-03-17`.
+* Update ObjectBox database for Flutter Android apps to `5.3.0-2026-03-23`.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make 
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.3.1-preview1` in 
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.4.0` in 
   `android/app/build.gradle.kts` or `android/app/build.gradle`.
 ```
 
 ```text
-Update Android library [5.2.1-preview1 -> 5.3.1-preview1]
+Update objectbox-android [5.3.1-preview1 -> 5.4.0]
 
-Includes C API 5.2.0 and database 5.2.0-next-2026-03-17
+Includes C API 5.3.0 and database 5.3.0-2026-03-23
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
