@@ -94,11 +94,11 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 
 // Require the minimum C API version of all supported platform-specific
 // libraries.
-// Library                        | C API | Database
-// -------------------------------|-------|---------------------
-// C library 5.3.0                | 5.3.0 | 5.3.0-2026-03-23
-// objectbox-android 5.4.0        | 5.3.0 | 5.3.0-2026-03-23
-// macOS/iOS library 5.2.0        | 5.1.0 | 5.1.1-dev-2026-01-21
+// Library                         | C API | Database
+// --------------------------------|-------|---------------------
+// C library 5.3.0                 | 5.3.0 | 5.3.0-2026-03-23
+// objectbox-android 5.4.0         | 5.3.0 | 5.3.0-2026-03-23
+// ObjectBox CocoaPod 5.3.0-beta.3 | 5.3.0 | 5.3.0-2026-03-23
 var _obxCminMajor = 5;
 var _obxCminMinor = 3;
 var _obxCminPatch = 0;
