@@ -562,7 +562,14 @@ void main() {
         final id = box.put(object);
 
         final read = box.get(id)!;
-        expect(read.clock, equals(0));
+        // Upper 44 bits are ms since epoch
+        final clockMs = read.clock! >> 20;
+        final nowMs = DateTime.now().millisecondsSinceEpoch;
+        expect((clockMs - nowMs).abs(),
+            lessThanOrEqualTo(Duration.millisecondsPerMinute),
+            reason: 'clock value should be current milliseconds since epoch');
+        // Lowest 10+10 bits (local time offset + counter) are 0
+        expect(read.clock! & 0xFFFFF, equals(0));
         expect(read.precedence, equals(42));
       });
     },
