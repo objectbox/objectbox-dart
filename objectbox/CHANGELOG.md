@@ -6,6 +6,8 @@
 
 * Conflict resolution via the new annotations `@SyncClock()` and `@SyncPrecedence()` (allows last
   win with custom conflict resolution)
+* SyncClient: support updating filter variables. After login, stage updates using put and remove,
+  then schedule to send them to the server with `applyFilterVariables()`.
 * Fix bad Sync client state after multiple full sync messages were interrupted 
 * Fix adding indexes to Sync types
 
