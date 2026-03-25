@@ -8,19 +8,13 @@
   <a href="https://docs.objectbox.io/getting-started">Getting Started</a> •
   <a href="https://docs.objectbox.io">Documentation</a> •
   <a href="https://github.com/objectbox/objectbox-dart/tree/main/objectbox/example">Example Apps</a> •
-  <a href="https://github.com/objectbox/objectbox-dart/issues">Issues</a>
+  <a href="https://github.com/objectbox/objectbox-dart/issues">Issues</a> •
+  <a href="https://objectbox.io/blog">Blog</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml">
-    <img src="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml/badge.svg" alt="Build and test">
-  </a>
-  <a href="https://pub.dev/packages/objectbox">
-    <img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart&style=flat-square" alt="pub.dev package">
-  </a>
-  <a href="https://twitter.com/ObjectBox_io">
-    <img src="https://img.shields.io/twitter/follow/objectbox_io?color=%20%2300aced&logo=twitter&style=flat-square" alt="Follow @ObjectBox_io">
-  </a>
+  <a href="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml"><img src="https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml/badge.svg" alt="Build and test"></a>
+  <a href="https://pub.dev/packages/objectbox"><img src="https://img.shields.io/pub/v/objectbox.svg?label=pub.dev&logo=dart" alt="pub.dev package"></a>
 </p>
 
 # Flutter database with vector support - easy to use & fast Dart object persistence, plus on-device vector search 💙
@@ -122,9 +116,9 @@ You can run these yourself using our [objectbox-dart-performance](https://github
 **We're looking forward to receiving your comments and requests:**
 
 - Add [GitHub issues](https://github.com/objectbox/objectbox-dart/issues)
-- Upvote issues you find important by hitting the 👍/+1 reaction button
-- Fill in the [anonymous feedback form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us improve our products
-- Drop us a line on Twitter via [@ObjectBox_io](https://twitter.com/ObjectBox_io/)
+- Upvote issues you find important by adding the 👍 (thumbs up) reaction
+- Fill in the [feedback form](https://forms.gle/s2L1YH32nwjgs4s4A) to help us improve our products
+- [Get in touch with us](https://objectbox.io/contact-us/)
 - ⭐ us on GitHub, if you like what you see or give us a 👍 on [pub.dev](https://pub.dev/packages/objectbox)
 
 Thank you! 🙏
@@ -170,7 +164,7 @@ ObjectBox supports multiple platforms and languages:
 ## License
 
 ```text
-Copyright © 2019-2025 ObjectBox Ltd. <https://objectbox.io/>
+Copyright © 2019-2026 ObjectBox Ltd. <https://objectbox.io/>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
