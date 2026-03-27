@@ -79,7 +79,6 @@ generator-integ-tests:
 .unit-tests-template:
   extends: .cache
   stage: test
-  needs: ["generator-integ-tests"] # Wait for generator integration tests
   script:
     # Download sync-server and add to PATH for sync tests
     - mkdir sync-server && cd sync-server
@@ -118,7 +117,6 @@ unit-tests:
 vectorsearch-example:
   extends: .cache
   stage: test
-  needs: ["generator-integ-tests"] # Wait for generator integration tests
   script:
     - cd objectbox/example/dart-native/vectorsearch_cities
     - dart pub get
