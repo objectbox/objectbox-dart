@@ -893,6 +893,24 @@ class Sync {
   /// Returns true if the loaded ObjectBox native library supports Sync.
   static bool isAvailable() => _syncAvailable;
 
+  /// Gets the "raw" timestamp (milliseconds since epoch) from the given sync
+  /// clock value.
+  ///
+  /// Note that sync clock values are assigned by ObjectBox and are not to be
+  /// interpreted on their own. Use this function to extract a meaningful
+  /// timestamp from a sync clock value (e.g. stored in a [@SyncClock] field).
+  static int syncClockTimestamp(int syncClockValue) =>
+      C.sync_clock_timestamp(syncClockValue);
+
+  /// Gets the corrected timestamp (milliseconds since epoch) from the given
+  /// sync clock value.
+  ///
+  /// Like [syncClockTimestamp], but applies any time correction if present in the
+  /// sync clock value. However, for most cases, it will return the same value
+  /// as [syncClockTimestamp].
+  static int syncClockTimestampCorrected(int syncClockValue) =>
+      C.sync_clock_timestamp_corrected(syncClockValue);
+
   /// Creates a [SyncClient] associated with the given store and configures it
   /// with the given options. This does not initiate any connection attempts
   /// yet, call [SyncClient.start] to do so.

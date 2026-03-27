@@ -4,7 +4,13 @@
 * Update ObjectBox database for Flutter Android apps to `5.3.1-2026-03-26`.
 * Update ObjectBox database for Flutter iOS/macOS apps to `5.3.1-2026-03-26`.
 
+### Sync
+
+* Add `Sync.syncClockTimestamp()` to get an timestamp from a Sync clock (and a variation for a corrected timestamp)
+
 ## 5.3.0 (2026-03-25)
+
+**Warning:** Do not use this version for sync clocks, it contains a sever bug! Use 5.3.1 instead.
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.0-2026-03-23](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.0)
 * Update ObjectBox database for Flutter Android apps to `5.3.0-2026-03-23`.

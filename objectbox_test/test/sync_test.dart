@@ -336,6 +336,15 @@ void main() {
       client.close();
     });
 
+    test('syncClockTimestamp', () {
+      final clockValue = 1860802100721610852;
+      final expectedTime = 1774599171372;
+
+      expect(Sync.syncClockTimestamp(clockValue), equals(expectedTime));
+      expect(Sync.syncClockTimestampCorrected(clockValue),
+          equals(expectedTime - 10));
+    });
+
     group('Server tests using sync-server in PATH', () {
       late SyncServer server;
 
@@ -562,8 +571,7 @@ void main() {
         final id = box.put(object);
 
         final read = box.get(id)!;
-        // Upper 44 bits are ms since epoch
-        final clockMs = read.clock! >> 20;
+        final clockMs = Sync.syncClockTimestamp(read.clock!);
         final nowMs = DateTime.now().millisecondsSinceEpoch;
         expect((clockMs - nowMs).abs(),
             lessThanOrEqualTo(Duration.millisecondsPerMinute),
