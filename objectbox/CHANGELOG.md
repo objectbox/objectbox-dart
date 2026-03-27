@@ -1,6 +1,6 @@
 ## latest
 
-## 5.3.1-rc.1 (2026-03-27)
+## 5.3.1 (2026-03-27)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.1-2026-03-23](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.1)
 * Update ObjectBox database for Flutter Android apps to `5.3.1-2026-03-26`.
@@ -13,7 +13,7 @@
 
 ## 5.3.0 (2026-03-25)
 
-**Warning:** Do not use this version for sync clocks, it contains a sever bug! Use 5.3.1 instead.
+**Warning:** Do not use this version for sync clocks, it contains a severe bug! Use 5.3.1 instead.
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.0-2026-03-23](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.0)
 * Update ObjectBox database for Flutter Android apps to `5.3.0-2026-03-23`.
@@ -33,33 +33,6 @@
 * Clients report errors to the server
 * Fix bad Sync client state after multiple full sync messages were interrupted 
 * Fix adding indexes to Sync types
-
-## 5.3.0-preview2 (2026-03-18)
-
-* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.2.0-2026-03-06](https://github.com/objectbox/objectbox-c/releases/tag/v5.2.0)
-* Update ObjectBox database for Flutter Android apps to `5.2.0-next-2026-03-17`.
-  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.3.1-preview1` in
-  `android/app/build.gradle.kts` or `android/app/build.gradle`.
-
-### Sync
-
-* Alpha: for future Sync conflict resolution, support the new annotations `@SyncClock()` and
-  `@SyncPrecedence()`
-* (Only on Android) Fix bad full sync state after multiple messages were interrupted
-* (Only on Android) Fix adding indexes to Sync types
-
-## 5.3.0-preview1 (2026-02-19)
-
-* Update ObjectBox database for Flutter Android apps to `5.1.1-pre-2026-02-18`.
-  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.2.1-preview1` in
-  `android/app/build.gradle.kts` or `android/app/build.gradle`.
-
-### Sync
-
-* (Only on Android) SyncClient: support updating filter variables. After login, stage updates using
-  put and remove, then schedule to send them to the server with `applyFilterVariables()`.
 
 ## 5.2.0 (2026-01-28)
 
