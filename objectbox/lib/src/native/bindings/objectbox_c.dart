@@ -10246,6 +10246,39 @@ class ObjectBoxC {
   late final _custom_msg_client_trigger_reconnect =
       _custom_msg_client_trigger_reconnectPtr.asFunction<int Function(int)>();
 
+  /// Gets the "raw" timestamp (milliseconds since epoch) from the given sync clock value.
+  /// Note that sync clock values are assigned by ObjectBox and are not to be interpreted on their own.
+  int sync_clock_timestamp(
+    int sync_clock_value,
+  ) {
+    return _sync_clock_timestamp(
+      sync_clock_value,
+    );
+  }
+
+  late final _sync_clock_timestampPtr =
+      _lookup<ffi.NativeFunction<ffi.Int64 Function(ffi.Uint64)>>(
+          'obx_sync_clock_timestamp');
+  late final _sync_clock_timestamp =
+      _sync_clock_timestampPtr.asFunction<int Function(int)>();
+
+  /// Gets the corrected timestamp (milliseconds since epoch) from the given sync clock value.
+  /// Like obx_cync_clock_timestamp(), but applies any time correction if present in the sync clock value.
+  /// However, for most cases, it will return the same value as obx_cync_clock_timestamp().
+  int sync_clock_timestamp_corrected(
+    int sync_clock_value,
+  ) {
+    return _sync_clock_timestamp_corrected(
+      sync_clock_value,
+    );
+  }
+
+  late final _sync_clock_timestamp_correctedPtr =
+      _lookup<ffi.NativeFunction<ffi.Int64 Function(ffi.Uint64)>>(
+          'obx_sync_clock_timestamp_corrected');
+  late final _sync_clock_timestamp_corrected =
+      _sync_clock_timestamp_correctedPtr.asFunction<int Function(int)>();
+
   /// Initializes Dart API - call before any other obx_dart_* functions.
   int dartc_init_api(
     ffi.Pointer<ffi.Void> data,
@@ -12031,7 +12064,7 @@ const int OBX_VERSION_MAJOR = 5;
 
 const int OBX_VERSION_MINOR = 3;
 
-const int OBX_VERSION_PATCH = 0;
+const int OBX_VERSION_PATCH = 1;
 
 const int OBX_ID_NEW = -1;
 

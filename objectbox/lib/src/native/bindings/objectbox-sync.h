@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 ObjectBox Ltd. All rights reserved.
+ * Copyright 2018-2026 ObjectBox Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 3 && OBX_VERSION_PATCH == 0,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 3 && OBX_VERSION_PATCH == 1,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -1097,6 +1097,19 @@ OBX_C_API obx_err obx_custom_msg_client_set_state(uint64_t client_id, OBXCustomM
 /// @returns OBX_NO_SUCCESS if no reconnect was triggered.
 /// @returns OBX_ERROR_* in case the operation encountered an exceptional issue
 OBX_C_API obx_err obx_custom_msg_client_trigger_reconnect(uint64_t client_id);
+
+//---------------------------------------------------------------------------
+//  Misc (e.g. Sync clock)
+//---------------------------------------------------------------------------
+
+/// Gets the "raw" timestamp (milliseconds since epoch) from the given sync clock value.
+/// Note that sync clock values are assigned by ObjectBox and are not to be interpreted on their own.
+OBX_C_API int64_t obx_sync_clock_timestamp(uint64_t sync_clock_value);
+
+/// Gets the corrected timestamp (milliseconds since epoch) from the given sync clock value.
+/// Like obx_cync_clock_timestamp(), but applies any time correction if present in the sync clock value.
+/// However, for most cases, it will return the same value as obx_cync_clock_timestamp().
+OBX_C_API int64_t obx_sync_clock_timestamp_corrected(uint64_t sync_clock_value);
 
 // NOLINTEND(modernize-use-using)
 
