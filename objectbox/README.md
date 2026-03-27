@@ -260,8 +260,8 @@ See the [FAQ](https://docs.objectbox.io/faq) and [Troubleshooting](https://docs.
 
 ## See also
 
-- [Changelog](CHANGELOG.md)
-- [Contribution guidelines](../CONTRIBUTING.md)
+- [Changelog](https://pub.dev/packages/objectbox/changelog)
+- [Contribution guidelines](https://github.com/objectbox/objectbox-dart/blob/main/CONTRIBUTING.md)
 
 ## License
 
