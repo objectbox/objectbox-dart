@@ -67,18 +67,18 @@ Uses the ObjectBox CocoaPod (regular and `-sync` version).
 For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
 
 ```bash
-./tool/set-swift-version.sh 5.3.0-beta.3
+./tool/set-swift-version.sh 5.3.0-beta.4
 ```
 
 ```text
-* Update ObjectBox database for Flutter iOS/macOS apps to `5.3.0-2026-03-23`.
+* Update ObjectBox database for Flutter iOS/macOS apps to `5.3.1-2026-03-26`.
   For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 ```
 
 ```text
-Update ObjectBox CocoaPod [5.2.0 -> 5.3.0-beta.3]
+Update ObjectBox CocoaPod [5.3.0-beta.3 -> 5.3.0-beta.4]
 
-Includes C API 5.3.0 and database 5.3.0-2026-03-23
+Includes database version 5.3.1-2026-03-26
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up 

@@ -8,6 +8,7 @@
   sure to update to `io.objectbox:objectbox-android-objectbrowser:5.4.1` in
   `android/app/build.gradle.kts` or `android/app/build.gradle`.
 * Update ObjectBox database for Flutter iOS/macOS apps to `5.3.1-2026-03-26`.
+  For existing projects, run `pod repo update` and `pod update ObjectBox` in the `ios` or `macos` directories.
 
 ### Sync
 
