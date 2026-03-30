@@ -28,6 +28,7 @@ update objectbox/example/dart-native/vectorsearch_cities/pubspec.yaml "${depende
 update objectbox/example/flutter/event_management_tutorial/event_manager/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/event_management_tutorial/many_to_many/pubspec.yaml "${dependencyHigherExpr}"
 update objectbox/example/flutter/objectbox_demo/pubspec.yaml "${dependencyHigherExpr}"
+update objectbox/README.md "${dependencyHigherExpr}"
 
 # Package dependencies using a concrete version (like "objectbox: 1.2.3")
 dependencyExactExpr="s/objectbox: [0-9]\+.*/objectbox: ${version}/g"
