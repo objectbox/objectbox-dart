@@ -30,8 +30,8 @@
 ### Sync
 
 * Sync protocol version 10
-* Conflict resolution via the new annotations `@SyncClock()` and `@SyncPrecedence()` (allows last
-  win with custom conflict resolution)
+* [Conflict resolution](https://sync.objectbox.io/syncing-concurrent-changes) via the new 
+  annotations `@SyncClock()` and `@SyncPrecedence()` (allows last win with custom conflict resolution)
 * SyncClient: support updating filter variables. After login, stage updates using put and remove,
   then schedule to send them to the server with `applyFilterVariables()`.
 * Clients report errors to the server
