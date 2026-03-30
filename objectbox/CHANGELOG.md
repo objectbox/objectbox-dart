@@ -13,7 +13,7 @@
 ### Sync
 
 * Critical fix for Sync clocks
-* Add `Sync.syncClockTimestamp()` to get an timestamp from a Sync clock (and a variation for a corrected timestamp)
+* Add `Sync.syncClockTimestamp()` to get a timestamp from a Sync clock (and a variation for a corrected timestamp)
 
 ## 5.3.0 (2026-03-25)
 
