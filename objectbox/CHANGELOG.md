@@ -4,6 +4,9 @@
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.1-2026-03-26](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.1)
 * Update ObjectBox database for Flutter Android apps to `5.3.1-2026-03-26`.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.4.1` in
+  `android/app/build.gradle.kts` or `android/app/build.gradle`.
 * Update ObjectBox database for Flutter iOS/macOS apps to `5.3.1-2026-03-26`.
 
 ### Sync

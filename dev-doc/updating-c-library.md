@@ -41,20 +41,20 @@ Uses Maven artifacts of `objectbox-android` and `objectbox-android-objectbrowser
 For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
 
 ```bash
-./tool/set-android-version.sh 5.4.0
+./tool/set-android-version.sh 5.4.1
 ```
 
 ```text
-* Update ObjectBox database for Flutter Android apps to `5.3.0-2026-03-23`.
+* Update ObjectBox database for Flutter Android apps to `5.3.1-2026-03-26`.
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make 
-  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.4.0` in 
+  sure to update to `io.objectbox:objectbox-android-objectbrowser:5.4.1` in 
   `android/app/build.gradle.kts` or `android/app/build.gradle`.
 ```
 
 ```text
-Update objectbox-android [5.3.1-preview1 -> 5.4.0]
+Update objectbox-android [5.4.0 -> 5.4.1]
 
-Includes C API 5.3.0 and database 5.3.0-2026-03-23
+Includes C API 5.3.1 and database 5.3.1-2026-03-26
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
