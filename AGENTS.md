@@ -76,7 +76,7 @@ GitLab CI (`.gitlab-ci.yml`) runs:
 4. **test-coverage** – Coverage report generation
 
 Tested Dart versions:
-- Latest: 3.10.4
+- Latest: 3.11.4
 - Lowest supported: 3.7.3
 
 ## Key Technical Details

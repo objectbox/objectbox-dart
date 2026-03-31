@@ -21,8 +21,8 @@ env:
   # Run generator integration tests and init script with latest SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
   # NOTE: also update matrix configurations below!
-  FLUTTER_VERSION: 3.38.5 # Available versions: https://docs.flutter.dev/release/archive
-  DART_VERSION: 3.10.4 # Available versions: https://dart.dev/get-dart/archive
+  FLUTTER_VERSION: 3.41.6 # Available versions: https://docs.flutter.dev/release/archive
+  DART_VERSION: 3.11.4 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
 
@@ -68,7 +68,7 @@ jobs:
           # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
-          - 3.10.4
+          - 3.11.4
           - 3.7.2 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
@@ -113,14 +113,14 @@ jobs:
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://docs.flutter.dev/release/archive
           # NOTE Also update versions for Ubuntu below!
-          - 3.38.5
+          - 3.41.6
           - 3.29.3 # Use latest bugfix release to get tooling fixes
         include:
           # Test building for Android with highest supported JDK on latest Flutter SDK,
           # lowest supported JDK on lowest supported Flutter SDK. (Android is only built if a Linux
           # OS is detected, see integration-test.sh)
           - os: ubuntu-24.04
-            flutter-version: 3.38.5
+            flutter-version: 3.41.6
             jdk: 21
           - os: ubuntu-24.04
             flutter-version: 3.29.3 # Use latest bugfix release to get tooling fixes
