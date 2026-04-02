@@ -38,7 +38,7 @@ class Admin implements Finalizable {
   static bool isAvailable() => C.has_feature(OBXFeature.Admin);
 
   /// Creates an ObjectBox Admin associated with the given store and options.
-  Admin(Store store, {String bindUri = 'http://127.0.0.1:8090'}) {
+  Admin(Store store, {String bindUri = 'http://0.0.0.0:8090'}) {
     if (!isAvailable()) {
       throw UnsupportedError(
           'Admin is not available in the loaded ObjectBox runtime library.');
