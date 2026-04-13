@@ -695,7 +695,8 @@ class SyncServer {
       '--db-directory=${dir.path}',
       '--model=${Directory.current.path}/test/objectbox-model.json',
       '--bind=ws://127.0.0.1:$port',
-      '--admin-bind=http://127.0.0.1:${await _getUnusedPort()}'
+      '--admin-bind=http://127.0.0.1:${await _getUnusedPort()}',
+      '--debug',
     ];
     if (configContents != null && configContents.isNotEmpty) {
       // Note: command line arguments overwrite values in a conf file
