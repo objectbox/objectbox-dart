@@ -70,11 +70,8 @@ FetchContent_Declare(
 )
 
 # FIXED: Use MakeAvailable instead of GetProperties/Populate
-# This handles the download and set-up internally and is the modern standard.
 FetchContent_MakeAvailable(objectbox-download)
 
-# We still need the source directory path to point to the library files
-# After MakeAvailable, the directory variable is named <lowercaseName>_SOURCE_DIR
 set(objectbox_flutter_libs_bundled_libraries
     "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}"
     PARENT_SCOPE
