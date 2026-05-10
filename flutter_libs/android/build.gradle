@@ -22,7 +22,6 @@ allprojects {
 }
 
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
 
 android {
     namespace = "io.objectbox.objectbox_flutter_libs"
@@ -34,9 +33,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
-    }
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
@@ -51,5 +47,11 @@ android {
         // the C API binding of the ObjectBox Dart package.
         // https://central.sonatype.com/search?q=g:io.objectbox%20objectbox-android
         implementation "io.objectbox:objectbox-android:5.4.1"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
