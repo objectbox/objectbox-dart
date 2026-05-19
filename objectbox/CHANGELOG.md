@@ -1,5 +1,7 @@
 ## latest
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.2-2026-05-05](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.2)
+
 ## 5.3.1 (2026-03-27)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.1-2026-03-26](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.1)
