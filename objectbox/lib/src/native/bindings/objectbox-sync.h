@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 3 && OBX_VERSION_PATCH == 1,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 3 && OBX_VERSION_PATCH == 2,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -362,8 +362,7 @@ OBX_C_API obx_err obx_sync_trigger_reconnect(OBX_sync* sync);
 /// To detect disconnects early on the client side, you can also use heartbeats with a smaller interval.
 /// Use with caution, setting a low value (i.e. sending heartbeat very often) may cause an excessive network usage
 /// as well as high server load (with many clients).
-/// @param interval_ms interval in milliseconds; the default is 25 minutes (1 500 000 milliseconds),
-///        which is also the allowed maximum.
+/// @param interval_ms interval in milliseconds; the default value is between 4 and 5 minutes.
 /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the allowed range, e.g. larger than the maximum (1 500 000).
 OBX_C_API obx_err obx_sync_heartbeat_interval(OBX_sync* sync, uint64_t interval_ms);
 
@@ -640,6 +639,10 @@ OBX_C_API obx_err obx_sync_server_cluster_id(OBX_sync_server* server, const char
 OBX_C_API obx_err obx_sync_server_add_cluster_peer(OBX_sync_server* server, const char* url,
                                                    OBXSyncCredentialsType credentials_type, const uint8_t* credentials,
                                                    size_t credentials_size, uint32_t flags);
+
+/// Enables schema version validation for clients during login; must be called before start.
+/// Strict validation rejects clients during login that use different schema versions.
+OBX_C_API obx_err obx_sync_server_client_schema_validation_strict(OBX_sync_server* server);
 
 /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
 /// @param listener set NULL to reset

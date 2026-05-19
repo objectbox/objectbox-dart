@@ -8860,8 +8860,7 @@ class ObjectBoxC {
   /// To detect disconnects early on the client side, you can also use heartbeats with a smaller interval.
   /// Use with caution, setting a low value (i.e. sending heartbeat very often) may cause an excessive network usage
   /// as well as high server load (with many clients).
-  /// @param interval_ms interval in milliseconds; the default is 25 minutes (1 500 000 milliseconds),
-  /// which is also the allowed maximum.
+  /// @param interval_ms interval in milliseconds; the default value is between 4 and 5 minutes.
   /// @returns OBX_ERROR_ILLEGAL_ARGUMENT if value is not in the allowed range, e.g. larger than the maximum (1 500 000).
   int sync_heartbeat_interval(
     ffi.Pointer<OBX_sync> sync1,
@@ -9769,6 +9768,23 @@ class ObjectBoxC {
       _sync_server_add_cluster_peerPtr.asFunction<
           int Function(ffi.Pointer<OBX_sync_server>, ffi.Pointer<ffi.Char>, int,
               ffi.Pointer<ffi.Uint8>, int, int)>();
+
+  /// Enables schema version validation for clients during login; must be called before start.
+  /// Strict validation rejects clients during login that use different schema versions.
+  int sync_server_client_schema_validation_strict(
+    ffi.Pointer<OBX_sync_server> server,
+  ) {
+    return _sync_server_client_schema_validation_strict(
+      server,
+    );
+  }
+
+  late final _sync_server_client_schema_validation_strictPtr = _lookup<
+          ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_sync_server>)>>(
+      'obx_sync_server_client_schema_validation_strict');
+  late final _sync_server_client_schema_validation_strict =
+      _sync_server_client_schema_validation_strictPtr
+          .asFunction<int Function(ffi.Pointer<OBX_sync_server>)>();
 
   /// Set or overwrite a previously set 'change' listener - provides information about incoming changes.
   /// @param listener set NULL to reset
@@ -12064,7 +12080,7 @@ const int OBX_VERSION_MAJOR = 5;
 
 const int OBX_VERSION_MINOR = 3;
 
-const int OBX_VERSION_PATCH = 1;
+const int OBX_VERSION_PATCH = 2;
 
 const int OBX_ID_NEW = -1;
 
