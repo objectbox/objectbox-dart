@@ -30,13 +30,10 @@ android {
     compileSdk = 35
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
-    }
 
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
@@ -51,5 +48,11 @@ android {
         // the C API binding of the ObjectBox Dart package.
         // https://central.sonatype.com/search?q=g:io.objectbox%20objectbox-android
         implementation "io.objectbox:objectbox-android:5.4.2"
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
