@@ -1,0 +1,84 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:540614865059399249",
+      "lastPropertyId": "2:6382459777540018239",
+      "name": "TestEntity",
+      "properties": [
+        {
+          "id": "1:4277569348847812934",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:6382459777540018239",
+          "name": "tString",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:7504736161473417347",
+      "lastPropertyId": "3:6686250932660447021",
+      "name": "TestEntityPrecedence",
+      "flags": 2,
+      "properties": [
+        {
+          "id": "1:5866064656135606530",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:9197403096632852420",
+          "name": "clock",
+          "type": 6,
+          "flags": 131072
+        },
+        {
+          "id": "3:6686250932660447021",
+          "name": "precedence",
+          "type": 6,
+          "flags": 262144
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:7416465456540443810",
+      "lastPropertyId": "2:3487550902823953296",
+      "name": "TestEntitySynced",
+      "flags": 2,
+      "properties": [
+        {
+          "id": "1:1756247361432612300",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3487550902823953296",
+          "name": "value",
+          "type": 6
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "3:7416465456540443810",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}
