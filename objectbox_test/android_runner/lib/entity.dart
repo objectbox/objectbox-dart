@@ -10,5 +10,3 @@ class TestEntity {
 
   TestEntity({this.id = 0, this.tString});
 }
-
-
