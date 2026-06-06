@@ -8468,6 +8468,29 @@ class ObjectBoxC {
   late final _sync_opt_flags = _sync_opt_flagsPtr
       .asFunction<int Function(ffi.Pointer<OBX_sync_options>, int)>();
 
+  /// Attaches a mesh sync configuration to the sync options (see "Mesh Sync" section, e.g. obx_mesh_opt()).
+  /// When the sync client is created (obx_sync_create()), a mesh sync is created from this configuration and attached
+  /// to the client; it starts and stops together with the client. Use obx_sync_mesh() to query the running mesh.
+  /// Note: the given mesh options are always freed by this function, including when an error occurs.
+  /// @param mesh_opt required mesh options created via obx_mesh_opt()
+  int sync_opt_mesh(
+    ffi.Pointer<OBX_sync_options> opt,
+    ffi.Pointer<OBX_mesh_options> mesh_opt,
+  ) {
+    return _sync_opt_mesh(
+      opt,
+      mesh_opt,
+    );
+  }
+
+  late final _sync_opt_meshPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_sync_options>,
+              ffi.Pointer<OBX_mesh_options>)>>('obx_sync_opt_mesh');
+  late final _sync_opt_mesh = _sync_opt_meshPtr.asFunction<
+      int Function(
+          ffi.Pointer<OBX_sync_options>, ffi.Pointer<OBX_mesh_options>)>();
+
   /// Creates a sync client with the given options.
   /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
   /// Before obx_sync_start(), you must configure credentials via obx_sync_credentials.
@@ -9500,6 +9523,416 @@ class ObjectBoxC {
               ffi.Pointer<ffi.Uint64>)>>('obx_sync_stats_u64');
   late final _sync_stats_u64 = _sync_stats_u64Ptr.asFunction<
       int Function(ffi.Pointer<OBX_sync>, int, ffi.Pointer<ffi.Uint64>)>();
+
+  /// Creates a mesh sync options object used to configure a peer-to-peer mesh sync.
+  /// Pass it to obx_sync_opt_mesh() to attach it to a sync client; that call frees the options.
+  /// To configure, use the obx_mesh_opt_* functions; at least one network must be registered (typically done by an
+  /// ObjectBox platform SDK via obx_mesh_opt_network_internal()).
+  /// @param mesh_id the mesh network identifier (required); nodes with different IDs ignore each other.
+  /// @returns NULL if the options could not be created (e.g. if mesh_id is NULL)
+  ffi.Pointer<OBX_mesh_options> mesh_opt(
+    ffi.Pointer<ffi.Char> mesh_id,
+  ) {
+    return _mesh_opt(
+      mesh_id,
+    );
+  }
+
+  late final _mesh_optPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_mesh_options> Function(
+              ffi.Pointer<ffi.Char>)>>('obx_mesh_opt');
+  late final _mesh_opt = _mesh_optPtr.asFunction<
+      ffi.Pointer<OBX_mesh_options> Function(ffi.Pointer<ffi.Char>)>();
+
+  /// Frees the mesh options object.
+  /// Note: Only free *unused* options; obx_sync_opt_mesh() frees the options internally.
+  void mesh_opt_free(
+    ffi.Pointer<OBX_mesh_options> opt,
+  ) {
+    return _mesh_opt_free(
+      opt,
+    );
+  }
+
+  late final _mesh_opt_freePtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<OBX_mesh_options>)>>(
+      'obx_mesh_opt_free');
+  late final _mesh_opt_free = _mesh_opt_freePtr
+      .asFunction<void Function(ffi.Pointer<OBX_mesh_options>)>();
+
+  /// Internal function to register an internal mesh network (transport) implementation with the mesh options.
+  /// Networks are platform-specific (e.g. Android Nearby) and are created by specific ObjectBox platform SDKs.
+  /// @param network_internal an internal pointer to a mesh network interface.
+  /// Internal note: the pointer points to a std::shared_ptr<objectbox::sync::MeshNetworkInterface>.
+  int mesh_opt_network_internal(
+    ffi.Pointer<OBX_mesh_options> opt,
+    ffi.Pointer<ffi.Void> network_internal,
+  ) {
+    return _mesh_opt_network_internal(
+      opt,
+      network_internal,
+    );
+  }
+
+  late final _mesh_opt_network_internalPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Pointer<ffi.Void>)>>('obx_mesh_opt_network_internal');
+  late final _mesh_opt_network_internal =
+      _mesh_opt_network_internalPtr.asFunction<
+          int Function(ffi.Pointer<OBX_mesh_options>, ffi.Pointer<ffi.Void>)>();
+
+  /// Sets the max number of simultaneous connections a peer can have to other peers (default: 3).
+  /// The default of 3 already provides mesh resilience through alternative paths.
+  /// 4 may give better fault tolerance, but at the cost of more radio activity (check if connections are stable).
+  /// Values above 4 are not recommended, as this causes more overhead without improving mesh quality significantly.
+  /// 2 is typically not recommended, unless you run into severe radio limitations with your devices and 3 connections.
+  /// 1 would be a rare special case if you only want to create pairs, not a mesh.
+  int mesh_opt_max_connection_count(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int count,
+  ) {
+    return _mesh_opt_max_connection_count(
+      opt,
+      count,
+    );
+  }
+
+  late final _mesh_opt_max_connection_countPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Size)>>('obx_mesh_opt_max_connection_count');
+  late final _mesh_opt_max_connection_count = _mesh_opt_max_connection_countPtr
+      .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the backoff time in milliseconds before retrying a failed connection (default: 10000).
+  int mesh_opt_backoff_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_backoff_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_backoff_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_backoff_millis');
+  late final _mesh_opt_backoff_millis = _mesh_opt_backoff_millisPtr
+      .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the backoff time in milliseconds between peer evictions (default: 30000).
+  /// When an incoming peer has 0 connections but we are full, we evict one existing peer to make room.
+  /// This backoff prevents frequent evictions: after evicting, we wait this long before evicting again.
+  int mesh_opt_eviction_backoff_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_eviction_backoff_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_eviction_backoff_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_eviction_backoff_millis');
+  late final _mesh_opt_eviction_backoff_millis =
+      _mesh_opt_eviction_backoff_millisPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the seed for the random engine; 0 means use the current time (default: 0).
+  int mesh_opt_random_seed(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int seed,
+  ) {
+    return _mesh_opt_random_seed(
+      opt,
+      seed,
+    );
+  }
+
+  late final _mesh_opt_random_seedPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int64)>>('obx_mesh_opt_random_seed');
+  late final _mesh_opt_random_seed = _mesh_opt_random_seedPtr
+      .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the timeout in milliseconds for a TX request from a peer before retrying from another (default: 5000).
+  int mesh_opt_request_timeout_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_request_timeout_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_request_timeout_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_request_timeout_millis');
+  late final _mesh_opt_request_timeout_millis =
+      _mesh_opt_request_timeout_millisPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the delay in milliseconds before advertising starts after the mesh sync starts (default: 2000).
+  /// Discovery always starts immediately; advertising is delayed to "stretch out" radio activity.
+  /// Google Nearby tends to be error-prone when doing "everything at once", so spreading helps.
+  int mesh_opt_advertising_delay_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_advertising_delay_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_advertising_delay_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_advertising_delay_millis');
+  late final _mesh_opt_advertising_delay_millis =
+      _mesh_opt_advertising_delay_millisPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the minimum delay in milliseconds between two outgoing connection attempts (default: 1000).
+  /// Also applied after starting discovery and after starting advertising, so the first connection attempt
+  /// is delayed too. Used to "stretch out" connecting instead of firing all connection requests at once.
+  int mesh_opt_connect_delay_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_connect_delay_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_connect_delay_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_connect_delay_millis');
+  late final _mesh_opt_connect_delay_millis = _mesh_opt_connect_delay_millisPtr
+      .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the duration in seconds of the initial discovery phase (default: 30; 0 means never stop by time).
+  /// Typically longer than the standard duration to give a fresh node a better chance to find peers.
+  int mesh_opt_initial_discovery_duration_seconds(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int seconds,
+  ) {
+    return _mesh_opt_initial_discovery_duration_seconds(
+      opt,
+      seconds,
+    );
+  }
+
+  late final _mesh_opt_initial_discovery_duration_secondsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_initial_discovery_duration_seconds');
+  late final _mesh_opt_initial_discovery_duration_seconds =
+      _mesh_opt_initial_discovery_duration_secondsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the duration in seconds of a standard (non-initial) discovery phase (default: 15; 0 means never stop by time).
+  /// After this time (or once fully connected), discovery is stopped to reduce radio contention.
+  int mesh_opt_discovery_duration_seconds(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int seconds,
+  ) {
+    return _mesh_opt_discovery_duration_seconds(
+      opt,
+      seconds,
+    );
+  }
+
+  late final _mesh_opt_discovery_duration_secondsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_discovery_duration_seconds');
+  late final _mesh_opt_discovery_duration_seconds =
+      _mesh_opt_discovery_duration_secondsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the pause in seconds between two discovery phases (default: 45).
+  /// After discovery is stopped, we wait this long before starting the next discovery phase
+  /// (unless we are still fully connected).
+  int mesh_opt_discovery_pause_seconds(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int seconds,
+  ) {
+    return _mesh_opt_discovery_pause_seconds(
+      opt,
+      seconds,
+    );
+  }
+
+  late final _mesh_opt_discovery_pause_secondsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_discovery_pause_seconds');
+  late final _mesh_opt_discovery_pause_seconds =
+      _mesh_opt_discovery_pause_secondsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the random +/- jitter in seconds applied to the discovery pause (default: 15; must be <= pause).
+  /// De-synchronizes multiple devices (avoids lock-step discovery phases across nodes). 0 disables jitter.
+  int mesh_opt_discovery_pause_jitter_seconds(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int seconds,
+  ) {
+    return _mesh_opt_discovery_pause_jitter_seconds(
+      opt,
+      seconds,
+    );
+  }
+
+  late final _mesh_opt_discovery_pause_jitter_secondsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_discovery_pause_jitter_seconds');
+  late final _mesh_opt_discovery_pause_jitter_seconds =
+      _mesh_opt_discovery_pause_jitter_secondsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the soft cap in KB for the total TX log payload batched into a single TxLogData message (default: 100).
+  /// When a peer requests multiple TX logs, we add logs until adding the next one would exceed this limit.
+  /// The default is kept moderate so a single message stays acceptable even on a slow Bluetooth fallback connection
+  /// (e.g. ~1 Mbps: 100 KB ~ 0.8s of transfer). A single TX log larger than this is still sent on its own.
+  int mesh_opt_tx_log_batch_size_kb(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int size_kb,
+  ) {
+    return _mesh_opt_tx_log_batch_size_kb(
+      opt,
+      size_kb,
+    );
+  }
+
+  late final _mesh_opt_tx_log_batch_size_kbPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_tx_log_batch_size_kb');
+  late final _mesh_opt_tx_log_batch_size_kb = _mesh_opt_tx_log_batch_size_kbPtr
+      .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the max number of TX logs to batch into a single TxLogData message (default: 1000).
+  /// Must be in the range (0, 100000] (the latter being the hard upper limit).
+  int mesh_opt_tx_log_batch_max_count(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int count,
+  ) {
+    return _mesh_opt_tx_log_batch_max_count(
+      opt,
+      count,
+    );
+  }
+
+  late final _mesh_opt_tx_log_batch_max_countPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_tx_log_batch_max_count');
+  late final _mesh_opt_tx_log_batch_max_count =
+      _mesh_opt_tx_log_batch_max_countPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Returns the mesh sync attached to the given sync client (configured via obx_sync_opt_mesh()).
+  /// The returned mesh sync is owned by the sync client; it is valid as long as the sync client is alive.
+  /// @returns NULL if no mesh sync is attached (no error is set in that case).
+  ffi.Pointer<OBX_mesh> sync_mesh(
+    ffi.Pointer<OBX_sync> sync1,
+  ) {
+    return _sync_mesh(
+      sync1,
+    );
+  }
+
+  late final _sync_meshPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<OBX_mesh> Function(
+              ffi.Pointer<OBX_sync>)>>('obx_sync_mesh');
+  late final _sync_mesh = _sync_meshPtr
+      .asFunction<ffi.Pointer<OBX_mesh> Function(ffi.Pointer<OBX_sync>)>();
+
+  /// Gets the current state of the mesh sync (0 on error, e.g. if mesh is NULL).
+  int mesh_state(
+    ffi.Pointer<OBX_mesh> mesh,
+  ) {
+    return _mesh_state(
+      mesh,
+    );
+  }
+
+  late final _mesh_statePtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<OBX_mesh>)>>(
+          'obx_mesh_state');
+  late final _mesh_state =
+      _mesh_statePtr.asFunction<int Function(ffi.Pointer<OBX_mesh>)>();
+
+  /// Gets a human-readable string for the current mesh sync state (e.g. "Discovering").
+  /// The returned string is a static constant and remains valid; returns "" if mesh is NULL.
+  ffi.Pointer<ffi.Char> mesh_state_string(
+    ffi.Pointer<OBX_mesh> mesh,
+  ) {
+    return _mesh_state_string(
+      mesh,
+    );
+  }
+
+  late final _mesh_state_stringPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<OBX_mesh>)>>('obx_mesh_state_string');
+  late final _mesh_state_string = _mesh_state_stringPtr
+      .asFunction<ffi.Pointer<ffi.Char> Function(ffi.Pointer<OBX_mesh>)>();
+
+  /// Returns the number of currently connected peers (0 on error, e.g. if mesh is NULL).
+  int mesh_connected_peer_count(
+    ffi.Pointer<OBX_mesh> mesh,
+  ) {
+    return _mesh_connected_peer_count(
+      mesh,
+    );
+  }
+
+  late final _mesh_connected_peer_countPtr =
+      _lookup<ffi.NativeFunction<ffi.Size Function(ffi.Pointer<OBX_mesh>)>>(
+          'obx_mesh_connected_peer_count');
+  late final _mesh_connected_peer_count = _mesh_connected_peer_countPtr
+      .asFunction<int Function(ffi.Pointer<OBX_mesh>)>();
+
+  /// Gets a u64 value for mesh sync statistics.
+  /// @param counter_type the counter value to be read.
+  /// @param out_count receives the counter value.
+  /// @return OBX_SUCCESS if the counter has been successfully retrieved.
+  /// @return OBX_ERROR_ILLEGAL_ARGUMENT if mesh or out_count is NULL, or if counter_type is undefined.
+  int mesh_stats_u64(
+    ffi.Pointer<OBX_mesh> mesh,
+    int counter_type,
+    ffi.Pointer<ffi.Uint64> out_count,
+  ) {
+    return _mesh_stats_u64(
+      mesh,
+      counter_type,
+      out_count,
+    );
+  }
+
+  late final _mesh_stats_u64Ptr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh>, ffi.Int32,
+              ffi.Pointer<ffi.Uint64>)>>('obx_mesh_stats_u64');
+  late final _mesh_stats_u64 = _mesh_stats_u64Ptr.asFunction<
+      int Function(ffi.Pointer<OBX_mesh>, int, ffi.Pointer<ffi.Uint64>)>();
 
   /// Prepares an ObjectBox Sync Server to run within your application (embedded server) at the given URI.
   /// Note that you need a special sync edition, which includes the server components. Check https://objectbox.io/sync/.
@@ -11634,6 +12067,8 @@ abstract class OBXSyncFlags {
 
 class OBX_sync_options extends ffi.Opaque {}
 
+class OBX_mesh_options extends ffi.Opaque {}
+
 /// Called when connection is established
 /// @param arg is a pass-through argument passed to the called API
 typedef OBX_sync_listener_connect
@@ -11706,6 +12141,83 @@ abstract class OBXSyncStats {
   /// Note: this is measured on the application level and thus may not match e.g. the network level.
   /// E.g. messages may be still enqueued so at least the timing will differ. (u64)
   static const int messageBytesSent = 7;
+}
+
+/// An opaque handle to a running mesh sync, obtained via obx_sync_mesh().
+/// A mesh sync enables peer-to-peer (P2P) synchronization between sync clients without a central server.
+/// The handle is owned by the sync client; it is valid as long as the sync client is not closed.
+class OBX_mesh extends ffi.Opaque {}
+
+/// State of a mesh sync as returned by obx_mesh_state().
+abstract class OBXMeshState {
+  /// < Created but not started yet
+  static const int Created = 1;
+
+  /// < Discovery is active (not enough peers connected yet)
+  static const int Discovering = 2;
+
+  /// < Fully connected (enough peers connected)
+  static const int FullyConnected = 3;
+
+  /// < Stopped
+  static const int Stopped = 4;
+
+  /// < Stopped and being torn down
+  static const int Dead = 5;
+}
+
+/// Mesh stats counter type IDs as passed to obx_mesh_stats_u64(); useful for testing and diagnostics.
+abstract class OBXMeshStats {
+  /// < Number of peers discovered
+  static const int peersDiscovered = 1;
+
+  /// < Number of peers connected
+  static const int peersConnected = 2;
+
+  /// < Number of peers disconnected
+  static const int peersDisconnected = 3;
+
+  /// < Number of peer connection attempts that failed
+  static const int peerConnectionsFailed = 4;
+
+  /// < Number of peers lost (no longer available after discovery)
+  static const int peersLost = 5;
+
+  /// < Number of messages received
+  static const int messagesReceived = 6;
+
+  /// < Number of messages sent
+  static const int messagesSent = 7;
+
+  /// < Number of TX IDs announced
+  static const int txIdsAnnounced = 8;
+
+  /// < Number of TX IDs requested (sent in TxLogRequest messages)
+  static const int txIdsRequested = 9;
+
+  /// < Number of TX IDs received
+  static const int txIdsReceived = 10;
+
+  /// < Number of TX logs sent (in TxLogData messages)
+  static const int txLogsSent = 11;
+
+  /// < Number of TX logs received and stored (from TxLogData messages)
+  static const int txLogsReceived = 12;
+
+  /// < Number of TX logs applied to the local DB
+  static const int txLogsApplied = 13;
+
+  /// < Number of protocol errors
+  static const int protocolErrors = 14;
+
+  /// < Number of general errors
+  static const int generalErrors = 15;
+
+  /// < Number of peers evicted to make room for newcomers
+  static const int peersEvicted = 16;
+
+  /// < Number of discoveries of our own peer ID prefix that were ignored
+  static const int selfDiscoveriesIgnored = 17;
 }
 
 class OBX_sync_server extends ffi.Opaque {}
@@ -12076,11 +12588,11 @@ class OBX_dart_finalizer extends ffi.Opaque {}
 typedef obx_dart_closer
     = ffi.NativeFunction<obx_err Function(ffi.Pointer<ffi.Void> native_object)>;
 
-const int OBX_VERSION_MAJOR = 5;
+const int OBX_VERSION_MAJOR = 6;
 
-const int OBX_VERSION_MINOR = 3;
+const int OBX_VERSION_MINOR = 0;
 
-const int OBX_VERSION_PATCH = 2;
+const int OBX_VERSION_PATCH = 0;
 
 const int OBX_ID_NEW = -1;
 
