@@ -46,6 +46,10 @@ export 'src/relations/to_one.dart' show ToOne;
 export 'src/store.dart' show Store, ObservableStore;
 export 'src/sync.dart'
     show
+        MeshConfig,
+        MeshState,
+        MeshStats,
+        MeshSync,
         Sync,
         SyncChange,
         SyncClient,

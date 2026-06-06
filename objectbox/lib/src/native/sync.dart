@@ -186,6 +186,292 @@ class SyncChange {
   SyncChange._(this.entityId, this.entity, this.puts, this.removals);
 }
 
+/// State of a [MeshSync] as returned by [MeshSync.state].
+enum MeshState {
+  /// State is unknown, e.g. the C-API reported a state that's not recognized
+  /// yet (or the mesh is no longer available).
+  unknown,
+
+  /// Created but not started yet.
+  created,
+
+  /// Discovery is active (not enough peers connected yet).
+  discovering,
+
+  /// Fully connected (enough peers connected).
+  fullyConnected,
+
+  /// Stopped.
+  stopped,
+
+  /// Stopped and being torn down.
+  dead
+}
+
+/// Mesh sync statistics counters, useful for testing and diagnostics.
+///
+/// Read a counter value with [MeshSync.stats].
+enum MeshStats {
+  /// Number of peers discovered.
+  peersDiscovered(OBXMeshStats.peersDiscovered),
+
+  /// Number of peers connected.
+  peersConnected(OBXMeshStats.peersConnected),
+
+  /// Number of peers disconnected.
+  peersDisconnected(OBXMeshStats.peersDisconnected),
+
+  /// Number of peer connection attempts that failed.
+  peerConnectionsFailed(OBXMeshStats.peerConnectionsFailed),
+
+  /// Number of peers lost (no longer available after discovery).
+  peersLost(OBXMeshStats.peersLost),
+
+  /// Number of messages received.
+  messagesReceived(OBXMeshStats.messagesReceived),
+
+  /// Number of messages sent.
+  messagesSent(OBXMeshStats.messagesSent),
+
+  /// Number of TX IDs announced.
+  txIdsAnnounced(OBXMeshStats.txIdsAnnounced),
+
+  /// Number of TX IDs requested (sent in TxLogRequest messages).
+  txIdsRequested(OBXMeshStats.txIdsRequested),
+
+  /// Number of TX IDs received.
+  txIdsReceived(OBXMeshStats.txIdsReceived),
+
+  /// Number of TX logs sent (in TxLogData messages).
+  txLogsSent(OBXMeshStats.txLogsSent),
+
+  /// Number of TX logs received and stored (from TxLogData messages).
+  txLogsReceived(OBXMeshStats.txLogsReceived),
+
+  /// Number of TX logs applied to the local DB.
+  txLogsApplied(OBXMeshStats.txLogsApplied),
+
+  /// Number of protocol errors.
+  protocolErrors(OBXMeshStats.protocolErrors),
+
+  /// Number of general errors.
+  generalErrors(OBXMeshStats.generalErrors),
+
+  /// Number of peers evicted to make room for newcomers.
+  peersEvicted(OBXMeshStats.peersEvicted),
+
+  /// Number of discoveries of our own peer ID prefix that were ignored.
+  selfDiscoveriesIgnored(OBXMeshStats.selfDiscoveriesIgnored);
+
+  /// The OBXMeshStats counter type ID passed to the C-API.
+  final int _id;
+
+  const MeshStats(this._id);
+}
+
+/// Configuration of a peer-to-peer mesh sync.
+///
+/// A mesh sync enables peer-to-peer (P2P) synchronization between sync clients
+/// without a central server. Pass an instance to the [SyncClient] constructor
+/// (via its `mesh` parameter) to attach a mesh sync to the client; it starts
+/// and stops together with the client. Query the running mesh via
+/// [SyncClient.mesh].
+///
+/// Only [meshId] is required; all other values are optional and fall back to
+/// the defaults of the ObjectBox runtime library when left `null`.
+class MeshConfig {
+  /// The mesh network identifier (required); nodes with different IDs ignore
+  /// each other.
+  final String meshId;
+
+  /// Max number of simultaneous connections a peer can have to other peers
+  /// (default: 3).
+  ///
+  /// The default of 3 already provides mesh resilience through alternative
+  /// paths. 4 may give better fault tolerance, but at the cost of more radio
+  /// activity. Values above 4 are not recommended. 2 is typically not
+  /// recommended unless you run into severe radio limitations. 1 would be a
+  /// rare special case if you only want to create pairs, not a mesh.
+  final int? maxConnectionCount;
+
+  /// Backoff time in milliseconds before retrying a failed connection
+  /// (default: 10000).
+  final int? backoffMillis;
+
+  /// Backoff time in milliseconds between peer evictions (default: 30000).
+  ///
+  /// When an incoming peer has 0 connections but we are full, we evict one
+  /// existing peer to make room. This backoff prevents frequent evictions.
+  final int? evictionBackoffMillis;
+
+  /// Seed for the random engine; 0 means use the current time (default: 0).
+  final int? randomSeed;
+
+  /// Timeout in milliseconds for a TX request from a peer before retrying from
+  /// another (default: 5000).
+  final int? requestTimeoutMillis;
+
+  /// Delay in milliseconds before advertising starts after the mesh sync starts
+  /// (default: 2000).
+  ///
+  /// Discovery always starts immediately; advertising is delayed to "stretch
+  /// out" radio activity.
+  final int? advertisingDelayMillis;
+
+  /// Minimum delay in milliseconds between two outgoing connection attempts
+  /// (default: 1000).
+  final int? connectDelayMillis;
+
+  /// Duration in seconds of the initial discovery phase (default: 30; 0 means
+  /// never stop by time).
+  final int? initialDiscoveryDurationSeconds;
+
+  /// Duration in seconds of a standard (non-initial) discovery phase
+  /// (default: 15; 0 means never stop by time).
+  final int? discoveryDurationSeconds;
+
+  /// Pause in seconds between two discovery phases (default: 45).
+  final int? discoveryPauseSeconds;
+
+  /// Random +/- jitter in seconds applied to the discovery pause (default: 15;
+  /// must be <= pause). 0 disables jitter.
+  final int? discoveryPauseJitterSeconds;
+
+  /// Soft cap in KB for the total TX log payload batched into a single
+  /// TxLogData message (default: 100).
+  final int? txLogBatchSizeKb;
+
+  /// Max number of TX logs to batch into a single TxLogData message
+  /// (default: 1000). Must be in the range (0, 100000].
+  final int? txLogBatchMaxCount;
+
+  /// Creates a mesh sync configuration. See the field documentation for
+  /// details on each option.
+  MeshConfig(this.meshId,
+      {this.maxConnectionCount,
+      this.backoffMillis,
+      this.evictionBackoffMillis,
+      this.randomSeed,
+      this.requestTimeoutMillis,
+      this.advertisingDelayMillis,
+      this.connectDelayMillis,
+      this.initialDiscoveryDurationSeconds,
+      this.discoveryDurationSeconds,
+      this.discoveryPauseSeconds,
+      this.discoveryPauseJitterSeconds,
+      this.txLogBatchSizeKb,
+      this.txLogBatchMaxCount});
+
+  /// Builds the native mesh options object from this configuration.
+  ///
+  /// The caller takes ownership of the returned pointer; it must either be
+  /// passed to `sync_opt_mesh` (which frees it) or freed via `mesh_opt_free`.
+  /// If building fails, the options are freed and the error is rethrown.
+  Pointer<OBX_mesh_options> _build() {
+    final opt = checkObxPtr(withNativeString(meshId, C.mesh_opt),
+        'failed to create mesh options (mesh ID: "$meshId")');
+    try {
+      if (maxConnectionCount != null) {
+        checkObx(C.mesh_opt_max_connection_count(opt, maxConnectionCount!));
+      }
+      if (backoffMillis != null) {
+        checkObx(C.mesh_opt_backoff_millis(opt, backoffMillis!));
+      }
+      if (evictionBackoffMillis != null) {
+        checkObx(
+            C.mesh_opt_eviction_backoff_millis(opt, evictionBackoffMillis!));
+      }
+      if (randomSeed != null) {
+        checkObx(C.mesh_opt_random_seed(opt, randomSeed!));
+      }
+      if (requestTimeoutMillis != null) {
+        checkObx(C.mesh_opt_request_timeout_millis(opt, requestTimeoutMillis!));
+      }
+      if (advertisingDelayMillis != null) {
+        checkObx(
+            C.mesh_opt_advertising_delay_millis(opt, advertisingDelayMillis!));
+      }
+      if (connectDelayMillis != null) {
+        checkObx(C.mesh_opt_connect_delay_millis(opt, connectDelayMillis!));
+      }
+      if (initialDiscoveryDurationSeconds != null) {
+        checkObx(C.mesh_opt_initial_discovery_duration_seconds(
+            opt, initialDiscoveryDurationSeconds!));
+      }
+      if (discoveryDurationSeconds != null) {
+        checkObx(C.mesh_opt_discovery_duration_seconds(
+            opt, discoveryDurationSeconds!));
+      }
+      if (discoveryPauseSeconds != null) {
+        checkObx(
+            C.mesh_opt_discovery_pause_seconds(opt, discoveryPauseSeconds!));
+      }
+      if (discoveryPauseJitterSeconds != null) {
+        checkObx(C.mesh_opt_discovery_pause_jitter_seconds(
+            opt, discoveryPauseJitterSeconds!));
+      }
+      if (txLogBatchSizeKb != null) {
+        checkObx(C.mesh_opt_tx_log_batch_size_kb(opt, txLogBatchSizeKb!));
+      }
+      if (txLogBatchMaxCount != null) {
+        checkObx(C.mesh_opt_tx_log_batch_max_count(opt, txLogBatchMaxCount!));
+      }
+    } catch (e) {
+      // Free the options if any option method call failed (like due to invalid
+      // arguments).
+      C.mesh_opt_free(opt);
+      rethrow;
+    }
+    return opt;
+  }
+}
+
+/// A running peer-to-peer mesh sync, obtained via [SyncClient.mesh].
+///
+/// Configure a mesh via [MeshConfig] passed to the [SyncClient] constructor.
+/// The mesh is owned by the sync client and starts and stops together with it.
+class MeshSync {
+  final Pointer<OBX_mesh> _cMesh;
+
+  MeshSync._(this._cMesh);
+
+  /// Gets the current state of the mesh sync.
+  MeshState state() {
+    switch (C.mesh_state(_cMesh)) {
+      case OBXMeshState.Created:
+        return MeshState.created;
+      case OBXMeshState.Discovering:
+        return MeshState.discovering;
+      case OBXMeshState.FullyConnected:
+        return MeshState.fullyConnected;
+      case OBXMeshState.Stopped:
+        return MeshState.stopped;
+      case OBXMeshState.Dead:
+        return MeshState.dead;
+      default:
+        return MeshState.unknown;
+    }
+  }
+
+  /// Gets a human-readable string for the current mesh sync state (e.g.
+  /// "Discovering").
+  String stateString() => dartStringFromC(C.mesh_state_string(_cMesh));
+
+  /// Returns the number of currently connected peers.
+  int connectedPeerCount() => C.mesh_connected_peer_count(_cMesh);
+
+  /// Gets a mesh sync statistics counter value, see [MeshStats].
+  int stats(MeshStats counter) {
+    final count = malloc<Uint64>();
+    try {
+      checkObx(C.mesh_stats_u64(_cMesh, counter._id, count));
+      return count.value;
+    } finally {
+      malloc.free(count);
+    }
+  }
+}
+
 /// A Sync client is used to connect to an ObjectBox Sync server.
 class SyncClient {
   final Store _store;
@@ -252,11 +538,19 @@ class SyncClient {
   /// For encrypted connections, for use cases like self-signed certificates in
   /// a local development environment or custom CAs, pass certificate paths
   /// referring to the local file system to [certificatePaths].
+  ///
+  /// ## Mesh Sync (peer-to-peer)
+  ///
+  /// To enable peer-to-peer (P2P) synchronization between sync clients without
+  /// a central server, pass a [MeshConfig] to [mesh]. A mesh sync is then
+  /// created and attached to the client; it starts and stops together with the
+  /// client. Query the running mesh via [SyncClient.mesh].
   SyncClient(
       this._store, List<String> serverUrls, List<SyncCredentials> credentials,
       {Map<String, String>? filterVariables,
       List<String>? certificatePaths,
-      int? flags}) {
+      int? flags,
+      MeshConfig? mesh}) {
     if (syncClientsStorage.containsKey(_store)) {
       throw StateError('Only one sync client can be active for a store');
     }
@@ -288,6 +582,13 @@ class SyncClient {
       // Note: 0 or invalid flags are ignored by sync_opt_flags
       if (flags != null) {
         checkObx(C.sync_opt_flags(options, flags));
+      }
+
+      if (mesh != null) {
+        // Builds the mesh options (and frees them if building fails).
+        final meshOptions = mesh._build();
+        // sync_opt_mesh always frees the mesh options, including on error.
+        checkObx(C.sync_opt_mesh(options, meshOptions));
       }
     } catch (e) {
       // Free the options if any option method call failed (like due to invalid
@@ -330,6 +631,20 @@ class SyncClient {
 
   /// Returns if this sync client is closed and can no longer be used.
   bool isClosed() => _cSync.address == 0;
+
+  MeshSync? _mesh;
+
+  /// The running peer-to-peer mesh sync attached to this client, or `null` if
+  /// no [MeshConfig] was passed to the constructor.
+  ///
+  /// The mesh starts and stops together with this client. The returned object
+  /// is owned by this client and valid until the client is closed.
+  MeshSync? get mesh {
+    if (_mesh != null) return _mesh;
+    final meshPtr = C.sync_mesh(_ptr);
+    if (meshPtr.address == 0) return null;
+    return _mesh = MeshSync._(meshPtr);
+  }
 
   /// Returns the protocol version this client uses.
   static int protocolVersion() => C.sync_protocol_version();
