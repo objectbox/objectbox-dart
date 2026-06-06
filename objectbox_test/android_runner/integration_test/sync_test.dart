@@ -287,6 +287,69 @@ void main() {
       client.close();
     });
 
+    test('Mesh sync smoke test', () async {
+      SyncClient client = SyncClient(
+          store, [serverUrl()], [SyncCredentials.none()],
+          mesh: MeshConfig('test-mesh',
+              maxConnectionCount: 3,
+              backoffMillis: 5000,
+              randomSeed: 42,
+              discoveryDurationSeconds: 10));
+
+      MeshSync? mesh = client.mesh;
+      expect(mesh, isNotNull);
+
+      // Before start, the mesh is just created.
+      expect(mesh!.state(), equals(MeshState.created));
+      expect(mesh.stateString(), isNotEmpty);
+      expect(mesh.connectedPeerCount(), isZero);
+
+      // All statistics counters should be readable and zero initially.
+      for (final counter in MeshStats.values) {
+        expect(mesh.stats(counter), isZero, reason: counter.name);
+      }
+
+      // Starting the client also starts the mesh: it begins discovering peers.
+      // The transition happens on a background thread, so wait for it.
+      client.start();
+      var waitedForDiscovering = 0;
+      while (mesh.state() != MeshState.discovering) {
+        if (waitedForDiscovering == 100) {
+          fail('Mesh did not reach discovering state within 10 seconds');
+        }
+        await Future.delayed(const Duration(milliseconds: 100));
+        waitedForDiscovering++;
+      }
+
+      client.stop();
+      expect(mesh.state(), equals(MeshState.stopped));
+
+      // Closing the client invalidates the mesh; any further access must throw.
+      client.close();
+      final error = throwsA(predicate(
+          (StateError e) => e.toString().contains('MeshSync already closed')));
+      expect(() => mesh.state(), error);
+      expect(() => mesh.stateString(), error);
+      expect(() => mesh.connectedPeerCount(), error);
+      expect(() => mesh.stats(MeshStats.peersConnected), error);
+    });
+
+    test('SyncClient without mesh config has no mesh', () {
+      SyncClient client = createClient(store);
+      addTearDown(() => client.close());
+      expect(client.mesh, isNull);
+    });
+
+    test('SyncClient stats', () {
+      SyncClient client = createClient(store);
+      addTearDown(() => client.close());
+
+      // All counters are readable and zero before connecting to a server.
+      for (final counter in SyncStats.values) {
+        expect(client.stats(counter), isZero, reason: counter.name);
+      }
+    });
+
     test('syncClockTimestamp', () {
       final clockValue = 1860802100721610852;
       final expectedTime = 1774599171372;

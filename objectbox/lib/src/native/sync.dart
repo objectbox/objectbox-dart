@@ -431,13 +431,31 @@ class MeshConfig {
 /// Configure a mesh via [MeshConfig] passed to the [SyncClient] constructor.
 /// The mesh is owned by the sync client and starts and stops together with it.
 class MeshSync {
-  final Pointer<OBX_mesh> _cMesh;
+  Pointer<OBX_mesh> _cMesh;
 
   MeshSync._(this._cMesh);
 
+  /// The low-level pointer to the native mesh.
+  ///
+  /// The native mesh is owned by the [SyncClient]; once the client is closed,
+  /// this pointer is invalidated (see [_close]) and any access throws.
+  @pragma('vm:prefer-inline')
+  Pointer<OBX_mesh> get _ptr => (_cMesh.address != 0)
+      ? _cMesh
+      : throw StateError(
+          'MeshSync already closed (the owning SyncClient was closed)');
+
+  /// Invalidates this mesh. Called by the owning [SyncClient] when it is closed.
+  ///
+  /// The native mesh is owned and freed by the sync client, so this only resets
+  /// the (now dangling) pointer; any later access throws a [StateError].
+  void _close() {
+    _cMesh = nullptr;
+  }
+
   /// Gets the current state of the mesh sync.
   MeshState state() {
-    switch (C.mesh_state(_cMesh)) {
+    switch (C.mesh_state(_ptr)) {
       case OBXMeshState.Created:
         return MeshState.created;
       case OBXMeshState.Discovering:
@@ -455,16 +473,16 @@ class MeshSync {
 
   /// Gets a human-readable string for the current mesh sync state (e.g.
   /// "Discovering").
-  String stateString() => dartStringFromC(C.mesh_state_string(_cMesh));
+  String stateString() => dartStringFromC(C.mesh_state_string(_ptr));
 
   /// Returns the number of currently connected peers.
-  int connectedPeerCount() => C.mesh_connected_peer_count(_cMesh);
+  int connectedPeerCount() => C.mesh_connected_peer_count(_ptr);
 
   /// Gets a mesh sync statistics counter value, see [MeshStats].
   int stats(MeshStats counter) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.mesh_stats_u64(_cMesh, counter._id, count));
+      checkObx(C.mesh_stats_u64(_ptr, counter._id, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -622,6 +640,10 @@ class SyncClient {
     _loginEvents?._stop();
     _completionEvents?._stop();
     _changeEvents?._stop();
+    // The native mesh is owned by the client and freed by sync_close; invalidate
+    // any MeshSync wrapper so later access throws instead of using a dangling
+    // pointer.
+    _mesh?._close();
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
