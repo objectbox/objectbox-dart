@@ -21,6 +21,12 @@
     }
     ```
 
+### Sync
+
+* Add support for Mesh Sync (peer-to-peer synchronization without a central server, preview):
+  pass a `MeshConfig` to the `SyncClient` constructor and query the running mesh via `SyncClient.mesh`
+  (a new `MeshSync` exposing state and statistics).
+
 ## 5.3.2 (2026-05-20)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.2-2026-05-05](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.2)
