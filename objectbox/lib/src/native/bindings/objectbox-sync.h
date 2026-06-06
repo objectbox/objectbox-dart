@@ -34,7 +34,7 @@
 #include "objectbox.h"
 
 #if defined(static_assert) || defined(__cplusplus)
-static_assert(OBX_VERSION_MAJOR == 5 && OBX_VERSION_MINOR == 3 && OBX_VERSION_PATCH == 2,  // NOLINT
+static_assert(OBX_VERSION_MAJOR == 6 && OBX_VERSION_MINOR == 0 && OBX_VERSION_PATCH == 0,  // NOLINT
               "Versions of objectbox.h and objectbox-sync.h files do not match, please update");
 #endif
 
@@ -243,6 +243,16 @@ OBX_C_API obx_err obx_sync_opt_add_cert_path(OBX_sync_options* opt, const char* 
 /// Sets sync flags to adjust sync behavior; see OBXSyncFlags for available flags.
 /// Combine multiple flags using bitwise OR.
 OBX_C_API obx_err obx_sync_opt_flags(OBX_sync_options* opt, uint32_t flags);
+
+struct OBX_mesh_options;
+typedef struct OBX_mesh_options OBX_mesh_options;
+
+/// Attaches a mesh sync configuration to the sync options (see "Mesh Sync" section, e.g. obx_mesh_opt()).
+/// When the sync client is created (obx_sync_create()), a mesh sync is created from this configuration and attached
+/// to the client; it starts and stops together with the client. Use obx_sync_mesh() to query the running mesh.
+/// Note: the given mesh options are always freed by this function, including when an error occurs.
+/// @param mesh_opt required mesh options created via obx_mesh_opt()
+OBX_C_API obx_err obx_sync_opt_mesh(OBX_sync_options* opt, OBX_mesh_options* mesh_opt);
 
 /// Creates a sync client with the given options.
 /// This does not initiate any connection attempts yet: call obx_sync_start() to do so.
@@ -557,6 +567,149 @@ typedef enum {
 /// @return OBX_SUCCESS if the counter has been successfully retrieved.
 /// @return OBX_ERROR_ILLEGAL_ARGUMENT if counter_type is undefined.
 OBX_C_API obx_err obx_sync_stats_u64(OBX_sync* sync, OBXSyncStats counter_type, uint64_t* out_count);
+
+//----------------------------------------------
+// Mesh Sync (peer-to-peer)
+//----------------------------------------------
+
+/// An opaque handle to a running mesh sync, obtained via obx_sync_mesh().
+/// A mesh sync enables peer-to-peer (P2P) synchronization between sync clients without a central server.
+/// The handle is owned by the sync client; it is valid as long as the sync client is not closed.
+struct OBX_mesh;
+typedef struct OBX_mesh OBX_mesh;
+
+/// State of a mesh sync as returned by obx_mesh_state().
+typedef enum {
+    OBXMeshState_Created = 1,         ///< Created but not started yet
+    OBXMeshState_Discovering = 2,     ///< Discovery is active (not enough peers connected yet)
+    OBXMeshState_FullyConnected = 3,  ///< Fully connected (enough peers connected)
+    OBXMeshState_Stopped = 4,         ///< Stopped
+    OBXMeshState_Dead = 5,            ///< Stopped and being torn down
+} OBXMeshState;
+
+/// Creates a mesh sync options object used to configure a peer-to-peer mesh sync.
+/// Pass it to obx_sync_opt_mesh() to attach it to a sync client; that call frees the options.
+/// To configure, use the obx_mesh_opt_* functions; at least one network must be registered (typically done by an
+/// ObjectBox platform SDK via obx_mesh_opt_network_internal()).
+/// @param mesh_id the mesh network identifier (required); nodes with different IDs ignore each other.
+/// @returns NULL if the options could not be created (e.g. if mesh_id is NULL)
+OBX_C_API OBX_mesh_options* obx_mesh_opt(const char* mesh_id);
+
+/// Frees the mesh options object.
+/// Note: Only free *unused* options; obx_sync_opt_mesh() frees the options internally.
+OBX_C_API void obx_mesh_opt_free(OBX_mesh_options* opt);
+
+/// Internal function to register an internal mesh network (transport) implementation with the mesh options.
+/// Networks are platform-specific (e.g. Android Nearby) and are created by specific ObjectBox platform SDKs.
+/// @param network_internal an internal pointer to a mesh network interface.
+///        Internal note: the pointer points to a std::shared_ptr<objectbox::sync::MeshNetworkInterface>.
+OBX_C_API obx_err obx_mesh_opt_network_internal(OBX_mesh_options* opt, void* network_internal);
+
+/// Sets the max number of simultaneous connections a peer can have to other peers (default: 3).
+/// The default of 3 already provides mesh resilience through alternative paths.
+/// 4 may give better fault tolerance, but at the cost of more radio activity (check if connections are stable).
+/// Values above 4 are not recommended, as this causes more overhead without improving mesh quality significantly.
+/// 2 is typically not recommended, unless you run into severe radio limitations with your devices and 3 connections.
+/// 1 would be a rare special case if you only want to create pairs, not a mesh.
+OBX_C_API obx_err obx_mesh_opt_max_connection_count(OBX_mesh_options* opt, size_t count);
+
+/// Sets the backoff time in milliseconds before retrying a failed connection (default: 10000).
+OBX_C_API obx_err obx_mesh_opt_backoff_millis(OBX_mesh_options* opt, int32_t millis);
+
+/// Sets the backoff time in milliseconds between peer evictions (default: 30000).
+/// When an incoming peer has 0 connections but we are full, we evict one existing peer to make room.
+/// This backoff prevents frequent evictions: after evicting, we wait this long before evicting again.
+OBX_C_API obx_err obx_mesh_opt_eviction_backoff_millis(OBX_mesh_options* opt, int32_t millis);
+
+/// Sets the seed for the random engine; 0 means use the current time (default: 0).
+OBX_C_API obx_err obx_mesh_opt_random_seed(OBX_mesh_options* opt, int64_t seed);
+
+/// Sets the timeout in milliseconds for a TX request from a peer before retrying from another (default: 5000).
+OBX_C_API obx_err obx_mesh_opt_request_timeout_millis(OBX_mesh_options* opt, int32_t millis);
+
+/// Sets the delay in milliseconds before advertising starts after the mesh sync starts (default: 2000).
+/// Discovery always starts immediately; advertising is delayed to "stretch out" radio activity.
+/// Google Nearby tends to be error-prone when doing "everything at once", so spreading helps.
+OBX_C_API obx_err obx_mesh_opt_advertising_delay_millis(OBX_mesh_options* opt, int32_t millis);
+
+/// Sets the minimum delay in milliseconds between two outgoing connection attempts (default: 1000).
+/// Also applied after starting discovery and after starting advertising, so the first connection attempt
+/// is delayed too. Used to "stretch out" connecting instead of firing all connection requests at once.
+OBX_C_API obx_err obx_mesh_opt_connect_delay_millis(OBX_mesh_options* opt, int32_t millis);
+
+/// Sets the duration in seconds of the initial discovery phase (default: 30; 0 means never stop by time).
+/// Typically longer than the standard duration to give a fresh node a better chance to find peers.
+OBX_C_API obx_err obx_mesh_opt_initial_discovery_duration_seconds(OBX_mesh_options* opt, int32_t seconds);
+
+/// Sets the duration in seconds of a standard (non-initial) discovery phase (default: 15; 0 means never stop by time).
+/// After this time (or once fully connected), discovery is stopped to reduce radio contention.
+OBX_C_API obx_err obx_mesh_opt_discovery_duration_seconds(OBX_mesh_options* opt, int32_t seconds);
+
+/// Sets the pause in seconds between two discovery phases (default: 45).
+/// After discovery is stopped, we wait this long before starting the next discovery phase
+/// (unless we are still fully connected).
+OBX_C_API obx_err obx_mesh_opt_discovery_pause_seconds(OBX_mesh_options* opt, int32_t seconds);
+
+/// Sets the random +/- jitter in seconds applied to the discovery pause (default: 15; must be <= pause).
+/// De-synchronizes multiple devices (avoids lock-step discovery phases across nodes). 0 disables jitter.
+OBX_C_API obx_err obx_mesh_opt_discovery_pause_jitter_seconds(OBX_mesh_options* opt, int32_t seconds);
+
+/// Sets the soft cap in KB for the total TX log payload batched into a single TxLogData message (default: 100).
+/// When a peer requests multiple TX logs, we add logs until adding the next one would exceed this limit.
+/// The default is kept moderate so a single message stays acceptable even on a slow Bluetooth fallback connection
+/// (e.g. ~1 Mbps: 100 KB ~ 0.8s of transfer). A single TX log larger than this is still sent on its own.
+OBX_C_API obx_err obx_mesh_opt_tx_log_batch_size_kb(OBX_mesh_options* opt, int32_t size_kb);
+
+/// Sets the max number of TX logs to batch into a single TxLogData message (default: 1000).
+/// Must be in the range (0, 100000] (the latter being the hard upper limit).
+OBX_C_API obx_err obx_mesh_opt_tx_log_batch_max_count(OBX_mesh_options* opt, int32_t count);
+
+/// Returns the mesh sync attached to the given sync client (configured via obx_sync_opt_mesh()).
+/// The returned mesh sync is owned by the sync client; it is valid as long as the sync client is alive.
+/// @returns NULL if no mesh sync is attached (no error is set in that case).
+OBX_C_API OBX_mesh* obx_sync_mesh(OBX_sync* sync);
+
+/// Gets the current state of the mesh sync (0 on error, e.g. if mesh is NULL).
+OBX_C_API OBXMeshState obx_mesh_state(OBX_mesh* mesh);
+
+/// Gets a human-readable string for the current mesh sync state (e.g. "Discovering").
+/// The returned string is a static constant and remains valid; returns "" if mesh is NULL.
+OBX_C_API const char* obx_mesh_state_string(OBX_mesh* mesh);
+
+/// Returns the number of currently connected peers (0 on error, e.g. if mesh is NULL).
+OBX_C_API size_t obx_mesh_connected_peer_count(OBX_mesh* mesh);
+
+//----------------------------------------------
+// Mesh Sync Stats
+//----------------------------------------------
+
+/// Mesh stats counter type IDs as passed to obx_mesh_stats_u64(); useful for testing and diagnostics.
+typedef enum {
+    OBXMeshStats_peersDiscovered = 1,        ///< Number of peers discovered
+    OBXMeshStats_peersConnected = 2,         ///< Number of peers connected
+    OBXMeshStats_peersDisconnected = 3,      ///< Number of peers disconnected
+    OBXMeshStats_peerConnectionsFailed = 4,  ///< Number of peer connection attempts that failed
+    OBXMeshStats_peersLost = 5,              ///< Number of peers lost (no longer available after discovery)
+    OBXMeshStats_messagesReceived = 6,       ///< Number of messages received
+    OBXMeshStats_messagesSent = 7,           ///< Number of messages sent
+    OBXMeshStats_txIdsAnnounced = 8,         ///< Number of TX IDs announced
+    OBXMeshStats_txIdsRequested = 9,         ///< Number of TX IDs requested (sent in TxLogRequest messages)
+    OBXMeshStats_txIdsReceived = 10,         ///< Number of TX IDs received
+    OBXMeshStats_txLogsSent = 11,            ///< Number of TX logs sent (in TxLogData messages)
+    OBXMeshStats_txLogsReceived = 12,        ///< Number of TX logs received and stored (from TxLogData messages)
+    OBXMeshStats_txLogsApplied = 13,         ///< Number of TX logs applied to the local DB
+    OBXMeshStats_protocolErrors = 14,        ///< Number of protocol errors
+    OBXMeshStats_generalErrors = 15,         ///< Number of general errors
+    OBXMeshStats_peersEvicted = 16,          ///< Number of peers evicted to make room for newcomers
+    OBXMeshStats_selfDiscoveriesIgnored = 17,  ///< Number of discoveries of our own peer ID prefix that were ignored
+} OBXMeshStats;
+
+/// Gets a u64 value for mesh sync statistics.
+/// @param counter_type the counter value to be read.
+/// @param out_count receives the counter value.
+/// @return OBX_SUCCESS if the counter has been successfully retrieved.
+/// @return OBX_ERROR_ILLEGAL_ARGUMENT if mesh or out_count is NULL, or if counter_type is undefined.
+OBX_C_API obx_err obx_mesh_stats_u64(OBX_mesh* mesh, OBXMeshStats counter_type, uint64_t* out_count);
 
 struct OBX_sync_server;
 typedef struct OBX_sync_server OBX_sync_server;
