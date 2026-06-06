@@ -57,5 +57,6 @@ export 'src/sync.dart'
         SyncCredentials,
         SyncRequestUpdatesMode,
         SyncState,
+        SyncStats,
         SyncLoginEvent;
 export 'src/transaction.dart' show TxMode;

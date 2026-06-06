@@ -166,6 +166,43 @@ enum SyncLoginEvent {
   unknownError
 }
 
+/// Sync client statistics counters, useful for testing and diagnostics.
+///
+/// Read a counter value with [SyncClient.stats].
+enum SyncStats {
+  /// Total number of connects.
+  connects(OBXSyncStats.connects),
+
+  /// Total number of successful logins.
+  logins(OBXSyncStats.logins),
+
+  /// Total number of messages received.
+  messagesReceived(OBXSyncStats.messagesReceived),
+
+  /// Total number of messages sent.
+  messagesSent(OBXSyncStats.messagesSent),
+
+  /// Total number of errors during message sending.
+  messageSendFailures(OBXSyncStats.messageSendFailures),
+
+  /// Total number of bytes received via messages.
+  ///
+  /// Note: this is measured on the application level and thus may not match
+  /// e.g. the network level.
+  messageBytesReceived(OBXSyncStats.messageBytesReceived),
+
+  /// Total number of bytes sent via messages.
+  ///
+  /// Note: this is measured on the application level and thus may not match
+  /// e.g. the network level.
+  messageBytesSent(OBXSyncStats.messageBytesSent);
+
+  /// The OBXSyncStats counter type ID passed to the C-API.
+  final int _id;
+
+  const SyncStats(this._id);
+}
+
 /// Represents a set of changes received from the Sync server for a single
 /// entity type.
 ///
@@ -917,6 +954,17 @@ class SyncClient {
     final count = malloc<Uint64>();
     try {
       checkObx(C.sync_outgoing_message_count(_ptr, limit, count));
+      return count.value;
+    } finally {
+      malloc.free(count);
+    }
+  }
+
+  /// Gets a Sync client statistics counter value, see [SyncStats].
+  int stats(SyncStats counter) {
+    final count = malloc<Uint64>();
+    try {
+      checkObx(C.sync_stats_u64(_ptr, counter._id, count));
       return count.value;
     } finally {
       malloc.free(count);
