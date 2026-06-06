@@ -76,4 +76,13 @@ dependencies {
     // compatible with the binding of the objectbox package.
     // See dev-doc/updating-c-library.md for details.
     implementation("io.objectbox:objectbox-sync-android-db:5.4.2")
+
+    constraints {
+        implementation("io.objectbox:objectbox-sync-android-db") {
+            version {
+                strictly("6.0.0-preview1")
+            }
+            because("Using preview of ObjectBox Mesh Sync")
+        }
+    }
 }
