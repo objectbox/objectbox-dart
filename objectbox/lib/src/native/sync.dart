@@ -382,9 +382,9 @@ class MeshConfig {
   /// (default: 1000). Must be in the range (0, 100000].
   final int? txLogBatchMaxCount;
 
-  /// Creates a mesh sync configuration. See the field documentation for
-  /// details on each option.
-  MeshConfig(this.meshId,
+  final List<int> _networkInternalHandles = [];
+
+  MeshConfig._(this.meshId,
       {this.maxConnectionCount,
       this.backoffMillis,
       this.evictionBackoffMillis,
@@ -398,6 +398,10 @@ class MeshConfig {
       this.discoveryPauseJitterSeconds,
       this.txLogBatchSizeKb,
       this.txLogBatchMaxCount});
+
+  void _addNetworkInternalHandle(int networkInternalHandle) {
+    _networkInternalHandles.add(networkInternalHandle);
+  }
 
   /// Builds the native mesh options object from this configuration.
   ///
@@ -453,6 +457,10 @@ class MeshConfig {
       if (txLogBatchMaxCount != null) {
         checkObx(C.mesh_opt_tx_log_batch_max_count(opt, txLogBatchMaxCount!));
       }
+      for (final handle in _networkInternalHandles) {
+        checkObx(C.mesh_opt_network_internal(
+            opt, Pointer<Void>.fromAddress(handle)));
+      }
     } catch (e) {
       // Free the options if any option method call failed (like due to invalid
       // arguments).
@@ -461,6 +469,45 @@ class MeshConfig {
     }
     return opt;
   }
+}
+
+/// Internal access for platform integrations.
+class InternalSyncAccess {
+  /// Creates a mesh sync configuration. See [MeshConfig] field documentation
+  /// for details on each option.
+  static MeshConfig createMeshConfig(String meshId,
+          {int? maxConnectionCount,
+          int? backoffMillis,
+          int? evictionBackoffMillis,
+          int? randomSeed,
+          int? requestTimeoutMillis,
+          int? advertisingDelayMillis,
+          int? connectDelayMillis,
+          int? initialDiscoveryDurationSeconds,
+          int? discoveryDurationSeconds,
+          int? discoveryPauseSeconds,
+          int? discoveryPauseJitterSeconds,
+          int? txLogBatchSizeKb,
+          int? txLogBatchMaxCount}) =>
+      MeshConfig._(meshId,
+          maxConnectionCount: maxConnectionCount,
+          backoffMillis: backoffMillis,
+          evictionBackoffMillis: evictionBackoffMillis,
+          randomSeed: randomSeed,
+          requestTimeoutMillis: requestTimeoutMillis,
+          advertisingDelayMillis: advertisingDelayMillis,
+          connectDelayMillis: connectDelayMillis,
+          initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
+          discoveryDurationSeconds: discoveryDurationSeconds,
+          discoveryPauseSeconds: discoveryPauseSeconds,
+          discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
+          txLogBatchSizeKb: txLogBatchSizeKb,
+          txLogBatchMaxCount: txLogBatchMaxCount);
+
+  /// Adds a platform-specific native network to a mesh config.
+  static void addNetworkInternalHandle(
+          MeshConfig mesh, int networkInternalHandle) =>
+      mesh._addNetworkInternalHandle(networkInternalHandle);
 }
 
 /// A running peer-to-peer mesh sync, obtained via [SyncClient.mesh].
@@ -600,6 +647,11 @@ class SyncClient {
   /// a central server, pass a [MeshConfig] to [mesh]. A mesh sync is then
   /// created and attached to the client; it starts and stops together with the
   /// client. Query the running mesh via [SyncClient.mesh].
+  ///
+  /// Import `createMeshConfig` from
+  /// `package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart` and
+  /// use it to create the mesh configuration before creating the sync client.
+  /// This currently works only on Android.
   SyncClient(
       this._store, List<String> serverUrls, List<SyncCredentials> credentials,
       {Map<String, String>? filterVariables,

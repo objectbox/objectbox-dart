@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/sync.dart';
+import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart'
+    show createMeshConfig;
 import 'package:path_provider/path_provider.dart';
 
 // We want to have types explicit - verifying the return types of functions.
@@ -356,17 +358,19 @@ void main() {
       });
 
       test('Mesh sync smoke test', () async {
+        final meshConfig = await createMeshConfig(
+          'test-mesh',
+          maxConnectionCount: 3,
+          backoffMillis: 5000,
+          randomSeed: 42,
+          discoveryDurationSeconds: 10,
+        );
+
         SyncClient client = SyncClient(
           store,
           [serverUrl()],
           [SyncCredentials.none()],
-          mesh: MeshConfig(
-            'test-mesh',
-            maxConnectionCount: 3,
-            backoffMillis: 5000,
-            randomSeed: 42,
-            discoveryDurationSeconds: 10,
-          ),
+          mesh: meshConfig,
         );
 
         MeshSync? mesh = client.mesh;
