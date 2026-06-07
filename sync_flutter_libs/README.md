@@ -18,4 +18,41 @@ final mesh = await createMeshConfig('mesh-id');
 final client = SyncClient(store, urls, credentials, mesh: mesh);
 ```
 
+On Android, apps using Mesh Sync must declare the permissions required by the
+Nearby transport in `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <application>
+        ...
+    </application>
+</manifest>
+```
+
+By default, `createMeshConfig()` requests missing runtime permissions while
+creating the mesh network. If your app handles these runtime permissions itself,
+pass `requestPermissions: false`:
+
+```dart
+final mesh = await createMeshConfig(
+  'mesh-id',
+  androidRequestPermissions: false,
+);
+```
+
 See package [objectbox](https://pub.dev/packages/objectbox) for more details and information how to use it.
