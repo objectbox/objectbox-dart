@@ -41,10 +41,14 @@ Future<void> loadObjectBoxLibraryAndroidCompat() async {
   await _platform.invokeMethod<String>('loadObjectBoxLibrary');
 }
 
-Future<int?> _createMeshNetwork(String serviceId) async {
-  if (!Platform.isAndroid) return null;  // Not implemented on other platforms.
+Future<int?> _createMeshNetwork(
+  String serviceId, {
+  required bool requestPermissions,
+}) async {
+  if (!Platform.isAndroid) return null; // Not implemented on other platforms.
   return _platform.invokeMethod<int>('createMeshNetwork', {
     'serviceId': serviceId,
+    'requestPermissions': requestPermissions,
   });
 }
 
@@ -64,8 +68,14 @@ Future<int?> _createMeshNetwork(String serviceId) async {
 /// final mesh = await createMeshConfig('mesh-id');
 /// final client = SyncClient(store, urls, credentials, mesh: mesh);
 /// ```
+///
+/// This may request missing runtime permissions required by the platform's
+/// mesh transport (e.g., required for Android).
+/// Pass [requestPermissions] as `false` if your app requests and grants these
+/// permissions before calling this function.
 Future<MeshConfig> createMeshConfig(
   String meshId, {
+  bool requestPermissions = true,
   int? maxConnectionCount,
   int? backoffMillis,
   int? evictionBackoffMillis,
@@ -99,7 +109,10 @@ Future<MeshConfig> createMeshConfig(
 
   if (!Platform.isAndroid) return mesh;
 
-  final handle = await _createMeshNetwork(meshId);
+  final handle = await _createMeshNetwork(
+    meshId,
+    requestPermissions: requestPermissions,
+  );
   if (handle == null || handle == 0) {
     throw StateError('Failed to create Android Nearby mesh network');
   }

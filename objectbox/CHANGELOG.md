@@ -26,7 +26,8 @@
 * Add support for Mesh Sync (peer-to-peer synchronization without a central server, preview):
   pass a `MeshConfig` to the `SyncClient` constructor and query the running mesh via `SyncClient.mesh`
   (a new `MeshSync` exposing state and statistics).
-  This is currently only supported on Android via `createMeshConfig()` from `objectbox_sync_flutter_libs`.
+  This is currently only supported on Android via `createMeshConfig()` from `objectbox_sync_flutter_libs`,
+  which requests missing Android runtime permissions unless opted out.
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 
 ## 5.3.2 (2026-05-20)
