@@ -8,6 +8,7 @@ export 'src/native/bindings/flexbuffers.dart';
 export 'src/native/bindings/objectbox_c.dart'
     show OBXVectorDistanceType, OBXHnswFlags;
 export 'src/native/store.dart' show InternalStoreAccess;
+export 'src/native/sync.dart' show InternalSyncAccess;
 export 'src/relations/info.dart';
 export 'src/relations/to_many.dart'
     show InternalToManyAccess, InternalToManyTestAccess;

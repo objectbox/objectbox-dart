@@ -76,6 +76,10 @@ dependencies {
     // compatible with the binding of the objectbox package.
     // See dev-doc/updating-c-library.md for details.
     implementation("io.objectbox:objectbox-sync-android-db:5.4.2")
+    // For now, we only
+    implementation("io.objectbox:objectbox-sync-android-db:6.0.0-preview1")
+    // For Mesh Sync's Nearby network:
+    implementation("com.google.android.gms:play-services-nearby:19.3.0")
 
     constraints {
         implementation("io.objectbox:objectbox-sync-android-db") {

@@ -5,6 +5,7 @@ library objectbox_sync_flutter_libs;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:objectbox/internal.dart' as obx_internal;
 import 'package:objectbox/objectbox.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -14,9 +15,11 @@ import 'package:path_provider/path_provider.dart';
 /// Note: on desktop platforms this returns a directory in the users documents
 /// directory. It is advised to not use this then and instead create a directory
 /// named specifically for your app.
-Future<Directory> defaultStoreDirectory() async => Directory(
-  '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}',
-);
+Future<Directory> defaultStoreDirectory() async {
+  return Directory(
+    '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}',
+  );
+}
 
 const _platform = MethodChannel("objectbox_sync_flutter_libs");
 
@@ -36,4 +39,71 @@ Future<void> loadObjectBoxLibraryAndroidCompat() async {
     return;
   }
   await _platform.invokeMethod<String>('loadObjectBoxLibrary');
+}
+
+Future<int?> _createMeshNetwork(String serviceId) async {
+  if (!Platform.isAndroid) return null;  // Not implemented on other platforms.
+  return _platform.invokeMethod<int>('createMeshNetwork', {
+    'serviceId': serviceId,
+  });
+}
+
+/// Creates a mesh sync configuration with the given options.
+///
+/// Only on Flutter Android this comes with an actual network implementation.
+/// On other platforms, this returns a plain [MeshConfig],
+/// which will not result in a working mesh sync yet.
+///
+/// Use like this:
+///
+/// ```dart
+/// import 'package:objectbox/objectbox.dart';
+/// import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart'
+///     show createMeshConfig;
+///
+/// final mesh = await createMeshConfig('mesh-id');
+/// final client = SyncClient(store, urls, credentials, mesh: mesh);
+/// ```
+Future<MeshConfig> createMeshConfig(
+  String meshId, {
+  int? maxConnectionCount,
+  int? backoffMillis,
+  int? evictionBackoffMillis,
+  int? randomSeed,
+  int? requestTimeoutMillis,
+  int? advertisingDelayMillis,
+  int? connectDelayMillis,
+  int? initialDiscoveryDurationSeconds,
+  int? discoveryDurationSeconds,
+  int? discoveryPauseSeconds,
+  int? discoveryPauseJitterSeconds,
+  int? txLogBatchSizeKb,
+  int? txLogBatchMaxCount,
+}) async {
+  final mesh = obx_internal.InternalSyncAccess.createMeshConfig(
+    meshId,
+    maxConnectionCount: maxConnectionCount,
+    backoffMillis: backoffMillis,
+    evictionBackoffMillis: evictionBackoffMillis,
+    randomSeed: randomSeed,
+    requestTimeoutMillis: requestTimeoutMillis,
+    advertisingDelayMillis: advertisingDelayMillis,
+    connectDelayMillis: connectDelayMillis,
+    initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
+    discoveryDurationSeconds: discoveryDurationSeconds,
+    discoveryPauseSeconds: discoveryPauseSeconds,
+    discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
+    txLogBatchSizeKb: txLogBatchSizeKb,
+    txLogBatchMaxCount: txLogBatchMaxCount,
+  );
+
+  if (!Platform.isAndroid) return mesh;
+
+  final handle = await _createMeshNetwork(meshId);
+  if (handle == null || handle == 0) {
+    throw StateError('Failed to create Android Nearby mesh network');
+  }
+
+  obx_internal.InternalSyncAccess.addNetworkInternalHandle(mesh, handle);
+  return mesh;
 }
