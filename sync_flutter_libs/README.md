@@ -44,9 +44,10 @@ Nearby transport in `android/app/src/main/AndroidManifest.xml`:
 </manifest>
 ```
 
-By default, `createMeshConfig()` requests missing runtime permissions while
-creating the mesh network. If your app handles these runtime permissions itself,
-pass `requestPermissions: false`:
+By default, `createMeshConfig()` requests missing runtime permissions and waits
+for the permission process to finish before creating the mesh network,
+regardless of the outcome. If your app handles these runtime permissions
+itself, pass `requestPermissions: false`:
 
 ```dart
 final mesh = await createMeshConfig(
