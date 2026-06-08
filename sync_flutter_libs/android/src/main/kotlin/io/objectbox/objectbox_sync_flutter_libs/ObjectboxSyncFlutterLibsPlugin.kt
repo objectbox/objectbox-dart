@@ -1,9 +1,6 @@
 package io.objectbox.objectbox_sync_flutter_libs
 
-import android.Manifest
-import android.app.Activity
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import io.objectbox.android.internal.meshsync.NearbyMeshNetwork
@@ -29,10 +26,11 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel: MethodChannel
   private lateinit var applicationContext: Context
-  private var activity: Activity? = null
+  private lateinit var meshSyncPermissions: MeshSyncPermissions
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     applicationContext = flutterPluginBinding.applicationContext
+    meshSyncPermissions = MeshSyncPermissions(applicationContext)
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "objectbox_sync_flutter_libs")
     channel.setMethodCallHandler(this)
   }
@@ -60,8 +58,15 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
           return
         }
         val requestPermissions = call.argument<Boolean>("requestPermissions") ?: true
-        if (requestPermissions) requestMeshPermissionsIfMissing()
-        createMeshNetwork(serviceId, result)
+        if (requestPermissions) {
+          // TODO Do not wait for permission request to finish;
+          //      instead notify only the network (requires core changes) about permission change
+          meshSyncPermissions.requestIfMissing {
+            createMeshNetwork(serviceId, result)
+          }
+        } else {
+          createMeshNetwork(serviceId, result)
+        }
       }
       else -> {
         result.notImplemented()
@@ -70,58 +75,19 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   }
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    activity = binding.activity
+    meshSyncPermissions.onAttachedToActivity(binding)
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    activity = null
+    meshSyncPermissions.onDetachedFromActivity()
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    activity = binding.activity
+    meshSyncPermissions.onAttachedToActivity(binding)
   }
 
   override fun onDetachedFromActivity() {
-    activity = null
-  }
-
-  private fun requestMeshPermissionsIfMissing() {
-    val missingPermissions = missingRuntimeMeshPermissions()
-    if (missingPermissions.isEmpty()) return
-
-    val currentActivity = activity
-    if (currentActivity == null) {
-      Log.w(
-          "ObjectBoxSyncFlutterLibsPlugin",
-          "Android Mesh Sync runtime permissions are missing, but no Activity is attached")
-      return
-    }
-
-    currentActivity.requestPermissions(
-        missingPermissions.toTypedArray(), meshPermissionsRequestCode)
-  }
-
-  private fun missingRuntimeMeshPermissions(): List<String> {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return emptyList()
-
-    return runtimeMeshPermissions()
-        .filter { applicationContext.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
-  }
-
-  private fun runtimeMeshPermissions(): List<String> {
-    val permissions = mutableListOf(
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION)
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      permissions += Manifest.permission.BLUETOOTH_ADVERTISE
-      permissions += Manifest.permission.BLUETOOTH_CONNECT
-      permissions += Manifest.permission.BLUETOOTH_SCAN
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      permissions += Manifest.permission.NEARBY_WIFI_DEVICES
-    }
-    return permissions
+    meshSyncPermissions.onDetachedFromActivity()
   }
 
   private fun createMeshNetwork(serviceId: String, result: Result) {
@@ -148,9 +114,5 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   private fun loadObjectBoxLibrary() {
     System.loadLibrary("objectbox-jni")
     println("[ObjectBox] Loaded JNI library.")
-  }
-
-  private companion object {
-    const val meshPermissionsRequestCode = 0x0B09
   }
 }

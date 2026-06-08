@@ -71,6 +71,9 @@ Future<int?> _createMeshNetwork(
 ///
 /// This may request missing runtime permissions required by the platform's
 /// mesh transport (e.g., required for Android).
+/// Temporary permission handling note (permission may become "non-waiting"):
+/// If permissions are missing, this waits for the permission process to finish
+/// before creating the mesh network, regardless of the outcome.
 /// Pass [requestPermissions] as `false` if your app requests and grants these
 /// permissions before calling this function.
 Future<MeshConfig> createMeshConfig(
