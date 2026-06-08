@@ -18,7 +18,7 @@ dependencies:
   # Optional: specify a concrete version when using ObjectBox Admin - https://docs.objectbox.io/data-browser
   # Note: when updating objectbox, check the release notes (https://github.com/objectbox/objectbox-dart/releases)
   # if objectbox-android-db-admin in android/app/build.gradle.kts has to be updated.
-  objectbox: 5.3.2
+  objectbox: 6.0.0-preview.0
   objectbox_flutter_libs: any
   intl: ^0.20.2
   path_provider: ^2.1.5
