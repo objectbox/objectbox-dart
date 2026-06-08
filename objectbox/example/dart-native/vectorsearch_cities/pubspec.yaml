@@ -6,7 +6,7 @@ environment:
   sdk: ^3.12.1
 
 dependencies:
-  objectbox: ^5.3.2
+  objectbox: ^6.0.0-preview.0
 
 dev_dependencies:
   build_runner: ^2.15.0
