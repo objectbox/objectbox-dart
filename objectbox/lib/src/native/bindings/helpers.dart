@@ -230,3 +230,20 @@ extension NativeStringArrayAccess on Pointer<OBX_string_array> {
     return List<String>.generate(cArray.count, (i) => items[i].toDartString());
   }
 }
+
+/// Native-only shortcut for [EntityDefinition]: creates a [ByteData] view over
+/// C memory and passes it to [EntityDefinition.objectFromFB].
+///
+/// Lives here (and not on EntityDefinition itself) to keep
+/// modelinfo/entity_definition.dart free of dart:ffi for web support.
+extension EntityDefinitionObjectFromData<T> on EntityDefinition<T> {
+  T objectFromData(Store store, Pointer<Uint8> data, int size) {
+    // There has been a performance improvement in the past using memcpy for
+    // small buffers, but this is not longer faster than asTypedList.
+    // See /benchmark/bin/native_pointers.dart.
+    final uInt8List = data.asTypedList(size);
+    final byteData =
+        ByteData.view(uInt8List.buffer, uInt8List.offsetInBytes, size);
+    return objectFromFB(store, byteData);
+  }
+}

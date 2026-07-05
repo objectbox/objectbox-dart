@@ -125,7 +125,10 @@ class CodeChunks {
   }
 
   static String createIdUid(IdUid value) {
-    return 'const $obxInt.IdUid(${value.id}, ${value.uid})';
+    // Emitted as a string parsed at runtime: UIDs are 64-bit values that
+    // regularly exceed 2^53 and can't be written as integer literals in code
+    // that is compiled to JavaScript (dart2js). See issue #185 (web support).
+    return "$obxInt.IdUid.fromString('${value.id}:${value.uid}')";
   }
 
   static String createModelEntity(ModelEntity entity) {

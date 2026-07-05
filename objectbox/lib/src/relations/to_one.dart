@@ -1,8 +1,8 @@
 import '../annotations.dart';
 import '../box.dart';
 import '../modelinfo/entity_definition.dart';
-import '../native/transaction.dart';
 import '../store.dart';
+import '../transaction.dart';
 
 /// A to-one relation of an entity that references one object of a "target" entity [EntityT].
 ///

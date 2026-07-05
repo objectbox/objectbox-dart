@@ -16,11 +16,11 @@ import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
 import '../../store.dart';
 import '../../transaction.dart';
+import '../../vector_search_results.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 import '../box.dart';
-import 'vector_search_results.dart';
 
 part 'builder.dart';
 

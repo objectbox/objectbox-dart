@@ -35,7 +35,14 @@ class IdUid {
 
   static int _parse(String name, String part) {
     final value = int.parse(part);
-    RangeError.checkValueInInterval(value, 0, ((1 << 63) - 1), name);
+    // Note: only the lower bound is checked. The former upper bound of
+    // (1 << 63) - 1 is redundant on the VM, where int.parse already rejects
+    // anything that does not fit a signed 64-bit integer, and it cannot be
+    // expressed when compiling to JavaScript, where bit-shifts use 32-bit
+    // semantics (it wrapped to a negative value making all IDs invalid).
+    if (value < 0) {
+      throw RangeError.value(value, name, 'must not be negative');
+    }
     return value;
   }
 }

@@ -1,1 +1,1 @@
-export 'native/admin.dart' if (dart.library.html) 'web/admin.dart';
+export 'native/admin.dart' if (dart.library.js_interop) 'web/admin.dart';

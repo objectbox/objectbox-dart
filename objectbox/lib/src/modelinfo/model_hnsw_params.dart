@@ -1,5 +1,5 @@
 import '../annotations.dart';
-import '../native/bindings/objectbox_c.dart';
+import 'enums.dart';
 
 /// Describes HNSW index parameters for a float vector property.
 class ModelHnswParams {

@@ -1,1 +1,1 @@
-export 'native/box.dart' if (dart.library.html) 'web/box.dart';
+export 'native/box.dart' if (dart.library.js_interop) 'web/box.dart';
