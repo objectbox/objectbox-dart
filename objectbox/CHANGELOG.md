@@ -48,9 +48,10 @@
   database operations throw `UnsupportedError` for now. `Admin.isAvailable()`,
   `Sync.isAvailable()` and `Store.isOpen()` return `false` on web so existing
   guard code keeps working. Native platforms are unchanged.
-* Generator: emit model IDs/UIDs as `IdUid.fromString(...)` instead of integer
-  literals, which cannot be compiled to JavaScript for values above 2^53 (UIDs
-  are random 64-bit values).
+* Generator: emit model IDs/UIDs as `IdUid.fromString(...)` and retired UID
+  lists as runtime-parsed strings instead of integer literals, which cannot be
+  compiled to JavaScript for values above 2^53 (UIDs are random 64-bit
+  values).
 
 ## 5.3.2 (2026-05-20)
 

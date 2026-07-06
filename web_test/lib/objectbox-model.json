@@ -1,0 +1,111 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:8065201451255602221",
+      "lastPropertyId": "2:1461706767684152032",
+      "name": "House",
+      "properties": [
+        {
+          "id": "1:5543085474876956288",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1461706767684152032",
+          "name": "address",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:1509584679383411412",
+      "lastPropertyId": "10:3149125948054504812",
+      "name": "Person",
+      "properties": [
+        {
+          "id": "1:2019134487129476046",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8159696557035257933",
+          "name": "name",
+          "indexId": "1:8054062858152216646",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "3:3747064935215419753",
+          "name": "email",
+          "indexId": "2:735137336050569932",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "4:9197722628477667401",
+          "name": "age",
+          "type": 6
+        },
+        {
+          "id": "5:1440792887867558826",
+          "name": "height",
+          "type": 8
+        },
+        {
+          "id": "6:8727853392050474493",
+          "name": "active",
+          "type": 1
+        },
+        {
+          "id": "7:1653777079098463846",
+          "name": "birthday",
+          "type": 10
+        },
+        {
+          "id": "8:8307979961781226714",
+          "name": "tags",
+          "type": 30
+        },
+        {
+          "id": "9:2382513394400378656",
+          "name": "embedding",
+          "indexId": "3:8113836271815613202",
+          "type": 28,
+          "flags": 8
+        },
+        {
+          "id": "10:3149125948054504812",
+          "name": "homeId",
+          "indexId": "4:7769754211749733029",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "House"
+        }
+      ],
+      "relations": [
+        {
+          "id": "1:5224649451248911090",
+          "name": "friends",
+          "targetId": "2:1509584679383411412"
+        }
+      ]
+    }
+  ],
+  "lastEntityId": "2:1509584679383411412",
+  "lastIndexId": "4:7769754211749733029",
+  "lastRelationId": "1:5224649451248911090",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

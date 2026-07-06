@@ -1,0 +1,20 @@
+name: web_test
+description: Browser tests for the web implementation of objectbox (see lib/src/web in the objectbox package). Run with `dart test -p chrome` (and `-c dart2wasm`).
+publish_to: none
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  objectbox:
+    path: ../objectbox
+
+dev_dependencies:
+  build_runner: ^2.4.0
+  objectbox_generator:
+    path: ../generator
+  test: ^1.25.0
+
+dependency_overrides:
+  objectbox:
+    path: ../objectbox
