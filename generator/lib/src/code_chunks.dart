@@ -116,10 +116,10 @@ class CodeChunks {
       lastIndexId: ${createIdUid(model.lastIndexId)},
       lastRelationId: ${createIdUid(model.lastRelationId)},
       lastSequenceId: ${createIdUid(model.lastSequenceId)},
-      retiredEntityUids: const ${model.retiredEntityUids},
-      retiredIndexUids: const ${model.retiredIndexUids},
-      retiredPropertyUids: const ${model.retiredPropertyUids},
-      retiredRelationUids: const ${model.retiredRelationUids},
+      retiredEntityUids: ${createUidList(model.retiredEntityUids)},
+      retiredIndexUids: ${createUidList(model.retiredIndexUids)},
+      retiredPropertyUids: ${createUidList(model.retiredPropertyUids)},
+      retiredRelationUids: ${createUidList(model.retiredRelationUids)},
       modelVersion: ${model.modelVersion},
       modelVersionParserMinimum: ${model.modelVersionParserMinimum},
       version: ${model.version});
@@ -132,6 +132,13 @@ class CodeChunks {
     // that is compiled to JavaScript (dart2js). See issue #185 (web support).
     return "$obxInt.IdUid.fromString('${value.id}:${value.uid}')";
   }
+
+  /// Like [createIdUid]: retired UID lists are 64-bit values emitted as
+  /// runtime-parsed strings so generated code compiles with dart2js.
+  static String createUidList(List<int> uids) =>
+      uids.isEmpty
+          ? 'const []'
+          : "[${uids.map((uid) => "int.parse('$uid')").join(', ')}]";
 
   static String createModelEntity(ModelEntity entity) {
     var additionalArgs = '';
