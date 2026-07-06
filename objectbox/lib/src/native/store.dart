@@ -1,4 +1,4 @@
-library store;
+library;
 
 import 'dart:async';
 import 'dart:collection';
@@ -604,6 +604,14 @@ class Store implements Finalizable {
   /// }
   /// ```
   Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_ptr));
+
+  /// A future that completes when the store is ready for use.
+  ///
+  /// On native platforms the store is ready as soon as the constructor
+  /// returns, so this completes immediately. On web the store loads its
+  /// persisted data asynchronously: await this before reading (the generated
+  /// `openStore()` for Flutter apps does this automatically).
+  Future<void> get ready => Future.value();
 
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;

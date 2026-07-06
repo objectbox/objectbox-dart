@@ -29,7 +29,7 @@ class CodeChunks {
 
     import 'dart:typed_data';
 
-    import 'package:flat_buffers/flat_buffers.dart' as fb;
+    import 'package:objectbox/flatbuffers.dart' as fb;
     import 'package:objectbox/internal.dart' as $obxInt; // generated code can access "internal" functionality
     import 'package:objectbox/objectbox.dart' as $obx;${pubspec?.obxFlutterImport}
 
@@ -85,7 +85,7 @@ class CodeChunks {
           bool queriesCaseSensitiveDefault = true,
           String? macosApplicationGroup})${obxFlutter ? ' async' : ''} {
         ${obxFlutter ? 'await loadObjectBoxLibraryAndroidCompat();' : ''}
-        return $obx.Store(getObjectBoxModel(),
+        final store = $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
             maxDataSizeInKB: maxDataSizeInKB,
@@ -93,6 +93,8 @@ class CodeChunks {
             maxReaders: maxReaders,
             queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
             macosApplicationGroup: macosApplicationGroup);
+        ${obxFlutter ? '// On web the store loads persisted data asynchronously.\n        await store.ready;' : ''}
+        return store;
     }''';
   }
 

@@ -2,7 +2,7 @@
 /// with strong ACID semantics.
 ///
 /// Read the [Getting Started](https://docs.objectbox.io/getting-started) guide.
-library objectbox;
+library;
 
 export 'src/admin.dart' show Admin;
 export 'src/annotations.dart';

@@ -10,7 +10,7 @@
 /// `objectbox.g.dart` library is initialized. Only using them (building
 /// conditions, queries) throws.
 // ignore_for_file: public_member_api_docs, unused_element
-library objectbox_web_query;
+library;
 
 import 'dart:typed_data';
 

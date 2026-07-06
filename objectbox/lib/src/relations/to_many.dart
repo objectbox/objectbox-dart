@@ -234,8 +234,6 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
                     configuration.box(store), relInfo.id, id, relInfo.objectId);
               }
               break;
-            default:
-              throw UnimplementedError();
           }
         });
         if (ownedTx) tx.successAndClose();

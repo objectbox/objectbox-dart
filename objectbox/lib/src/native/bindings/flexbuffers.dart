@@ -1,7 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:flat_buffers/flat_buffers.dart';
-import 'package:flat_buffers/flex_buffers.dart' as flex;
+import 'package:flat_buffers/flex_buffers.dart'
+    if (dart.library.js_interop) '../../web/flatbuffers/flex_buffers.dart'
+    as flex;
+
+import '../../../flatbuffers.dart';
 
 /// Serializes any FlexBuffer-compatible value to bytes.
 ///
