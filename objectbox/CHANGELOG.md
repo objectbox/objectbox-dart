@@ -1,5 +1,21 @@
 ## latest
 
+* Web platform support, phase 3 ([#185](https://github.com/objectbox/objectbox-dart/issues/185)):
+  queries. `box.query()` now works on web: a pure-Dart evaluator over the
+  condition tree running against the in-memory records. Supported: all
+  property conditions (string with case-sensitivity flags, integer, double,
+  bool, date/dateNano, byte vector, string vector `containsElement`,
+  `isNull`/`notNull`, `oneOf`/`notOneOf`, `between`), and/or groups,
+  `order()` (descending, caseSensitive, nullsLast, nullsAsZero, unsigned),
+  offset/limit, `find`/`findFirst`/`findUnique`/`findIds`/`count`/`remove`/
+  `stream` (+ async variants), query parameters (`param()` with alias
+  support), property queries (min/max/sum/average/count/find with distinct
+  and case sensitivity), relation links (`link`, `backlink`, `linkMany`,
+  `backlinkMany`, nested links, `relationCount`), `watch()` streams, and
+  vector search (`nearestNeighborsF32` with `findWithScores`/
+  `findIdsWithScores`) evaluated as an exact brute-force scan - Euclidean
+  (squared), cosine and dot-product distances; Geo is not supported on web.
+  Note: on web queries scan the in-memory records; indexes are not used yet.
 * Web platform support, phase 2 ([#185](https://github.com/objectbox/objectbox-dart/issues/185)):
   a working database on web. `Store` and `Box` are now fully functional in the
   browser: an in-memory engine (keeping the synchronous ObjectBox API) that is

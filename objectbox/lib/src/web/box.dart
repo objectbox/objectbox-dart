@@ -19,15 +19,14 @@ import 'package:meta/meta.dart';
 import '../../flatbuffers.dart' as fb;
 import '../box.dart' show PutMode;
 import '../modelinfo/index.dart';
-import '../query.dart';
 import '../relations/info.dart';
 import '../relations/to_many.dart';
 import '../relations/to_one.dart';
 import '../transaction.dart' show TxMode;
 import 'engine.dart';
+import 'query.dart';
 import 'store.dart';
 import 'transaction.dart';
-import 'unsupported.dart';
 
 class Box<T> {
   final Store _store;
@@ -178,8 +177,8 @@ class Box<T> {
 
   Future<List<T>> getAllAsync() => Future.microtask(getAll);
 
-  /// Queries are not yet supported on web (phase 3 of web support).
-  QueryBuilder<T> query([Condition<T>? qc]) => throwUnsupportedOnWeb();
+  QueryBuilder<T> query([Condition<T>? qc]) =>
+      QueryBuilder<T>(_store, _entity, qc);
 
   int count({int limit = 0}) {
     _engine.checkOpen();
