@@ -1,4 +1,4 @@
-library store;
+library;
 
 import 'dart:async';
 import 'dart:collection';
@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 
 import '../common.dart';
 import '../modelinfo/index.dart';
+import '../store_config.dart';
 import '../transaction.dart';
 import '../util.dart';
 import 'bindings/bindings.dart';
@@ -22,9 +23,9 @@ import 'model.dart';
 import 'sync.dart';
 import 'version.dart';
 
-part 'observable.dart';
+export '../store_config.dart';
 
-part 'store_config.dart';
+part 'observable.dart';
 
 /// Represents an ObjectBox database and works together with [Box] to allow
 /// getting and putting.
@@ -501,7 +502,7 @@ class Store implements Finalizable {
   void _attachConfiguration(Pointer<OBX_store> storePtr, ModelDefinition model,
       String directoryPath, bool queriesCaseSensitiveDefault) {
     int id = C.store_id(storePtr);
-    _configuration = StoreConfiguration._(
+    _configuration = StoreConfiguration(
         id, model, directoryPath, queriesCaseSensitiveDefault);
   }
 
@@ -603,6 +604,14 @@ class Store implements Finalizable {
   /// }
   /// ```
   Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_ptr));
+
+  /// A future that completes when the store is ready for use.
+  ///
+  /// On native platforms the store is ready as soon as the constructor
+  /// returns, so this completes immediately. On web the store loads its
+  /// persisted data asynchronously: await this before reading (the generated
+  /// `openStore()` for Flutter apps does this automatically).
+  Future<void> get ready => Future.value();
 
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;

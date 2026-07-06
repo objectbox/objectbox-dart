@@ -2,14 +2,13 @@
 /// with strong ACID semantics.
 ///
 /// Read the [Getting Started](https://docs.objectbox.io/getting-started) guide.
-library objectbox;
+library;
 
 export 'src/admin.dart' show Admin;
 export 'src/annotations.dart';
 export 'src/box.dart' show Box, PutMode;
 export 'src/common.dart';
 export 'src/modelinfo/enums.dart' show OBXSyncFlags;
-export 'src/native/query/vector_search_results.dart';
 export 'src/query.dart'
     show
         Query,
@@ -55,3 +54,4 @@ export 'src/sync.dart'
         SyncState,
         SyncLoginEvent;
 export 'src/transaction.dart' show TxMode;
+export 'src/vector_search_results.dart';

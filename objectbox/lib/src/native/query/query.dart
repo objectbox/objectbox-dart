@@ -1,4 +1,4 @@
-library query;
+library;
 
 import 'dart:async';
 import 'dart:collection';
@@ -16,11 +16,11 @@ import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
 import '../../store.dart';
 import '../../transaction.dart';
+import '../../vector_search_results.dart';
 import '../bindings/bindings.dart';
 import '../bindings/data_visitor.dart';
 import '../bindings/helpers.dart';
 import '../box.dart';
-import 'vector_search_results.dart';
 
 part 'builder.dart';
 
@@ -533,7 +533,7 @@ abstract class Condition<EntityT> {
     final cid = _apply(builder, isRoot: isRoot);
     if (cid == 0) builder._throwExceptionIfNecessary();
     if (_alias != null) {
-      checkObx(withNativeString(_alias!,
+      checkObx(withNativeString(_alias,
           (Pointer<Char> cStr) => C.qb_param_alias(builder._cBuilder, cStr)));
     }
     return cid;

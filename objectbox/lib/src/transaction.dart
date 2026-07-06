@@ -1,4 +1,5 @@
-export 'native/transaction.dart' if (dart.library.html) 'web/transaction.dart';
+export 'native/transaction.dart'
+    if (dart.library.js_interop) 'web/transaction.dart';
 
 /// Configure transaction mode. Used with [Store.runInTransaction()].
 enum TxMode {

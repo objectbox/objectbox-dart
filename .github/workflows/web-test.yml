@@ -1,0 +1,46 @@
+name: Web test
+
+# Runs the browser tests for the web implementation of objectbox
+# (objectbox/lib/src/web/, tests in web_test/) with dart2js and dart2wasm.
+# Avoid duplicate builds for pull requests, allow manual trigger.
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - web-support
+  pull_request:
+  workflow_dispatch:
+
+# Minimal access by default
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # Keep aligned with test.yml.
+  DART_VERSION: 3.12.1 # Available versions: https://dart.dev/get-dart/archive
+
+jobs:
+  web-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+      - name: Install dependencies
+        working-directory: web_test
+        run: dart pub get
+      - name: Generate binding code
+        working-directory: web_test
+        run: dart run build_runner build
+      - name: Test with dart2js (Chrome)
+        working-directory: web_test
+        run: dart test -p chrome
+      - name: Test with dart2wasm (Chrome)
+        working-directory: web_test
+        run: dart test -p chrome -c dart2wasm

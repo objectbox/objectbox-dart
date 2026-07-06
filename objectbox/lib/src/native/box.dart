@@ -6,6 +6,7 @@ import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../annotations.dart';
+import '../box.dart' show PutMode;
 import '../common.dart';
 import '../modelinfo/index.dart';
 import '../relations/info.dart';
@@ -17,18 +18,6 @@ import 'bindings/bindings.dart';
 import 'bindings/flatbuffers.dart';
 import 'bindings/helpers.dart';
 import 'query/query.dart';
-
-/// Box put (write) mode.
-enum PutMode {
-  /// Insert (if given object's ID is zero) or update an existing object.
-  put,
-
-  /// Insert a new object.
-  insert,
-
-  /// Update an existing object, fails if the given ID doesn't exist.
-  update,
-}
 
 /// A Box instance gives you access to objects of a particular type.
 /// You get Box instances via [Store.box()] or [Box(Store)].
@@ -707,8 +696,6 @@ class InternalBoxAccess {
             cIdsPtr =
                 C.box_rel_get_backlink_ids(box._ptr, rel.id, rel.objectId);
             break;
-          default:
-            throw UnimplementedError('Invalid relation type ${rel.type}');
         }
         checkObxPtr(cIdsPtr);
         final result = <EntityT>[];

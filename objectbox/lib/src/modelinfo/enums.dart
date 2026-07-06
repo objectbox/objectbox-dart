@@ -85,8 +85,6 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.FloatVector;
     case PropertyType.flex:
       return OBXPropertyType.Flex;
-    default:
-      throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }
 }
 
@@ -408,4 +406,61 @@ abstract class OBXSyncFlags {
   // Note: manually added, 5.1.0 release objectbox-sync.h file is missing it
   /// Skips invalid (put object) operations in the TX log instead of failing.
   static const int SkipInvalidTxOps = 32;
+}
+
+/// The vector distance algorithm used by an [HnswIndex] (vector search).
+///
+/// Note: this is a copy of the enum in native/bindings/objectbox_c.dart
+/// to avoid a dart:ffi import which would break compatibility with web.
+abstract class OBXVectorDistanceType {
+  /// Not a real type, just best practice (e.g. forward compatibility)
+  static const int Unknown = 0;
+
+  /// The default; typically "Euclidean squared" internally.
+  static const int Euclidean = 1;
+
+  /// Cosine similarity compares two vectors irrespective of their magnitude (compares the angle of two vectors).
+  /// Often used for document or semantic similarity.
+  /// Value range: 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  static const int Cosine = 2;
+
+  /// For normalized vectors (vector length == 1.0), the dot product is equivalent to the cosine similarity.
+  /// Because of this, the dot product is often preferred as it performs better.
+  /// Value range (normalized vectors): 0.0 - 2.0 (0.0: same direction, 1.0: orthogonal, 2.0: opposite direction)
+  static const int DotProduct = 3;
+
+  /// For geospatial coordinates aka latitude/longitude pairs.
+  /// Note, that the vector dimension must be 2, with the latitude being the first element and longitude the second.
+  /// Internally, this uses haversine distance.
+  static const int Geo = 6;
+
+  /// A custom dot product similarity measure that does not require the vectors to be normalized.
+  /// Note: this is no replacement for cosine similarity (like DotProduct for normalized vectors is).
+  /// The non-linear conversion provides a high precision over the entire float range (for the raw dot product).
+  /// The higher the dot product, the lower the distance is (the nearer the vectors are).
+  /// The more negative the dot product, the higher the distance is (the farther the vectors are).
+  /// Value range: 0.0 - 2.0 (nonlinear; 0.0: nearest, 1.0: orthogonal, 2.0: farthest)
+  static const int DotProductNonNormalized = 10;
+}
+
+/// Flags for HNSW indexes (vector search).
+///
+/// Note: this is a copy of the enum in native/bindings/objectbox_c.dart
+/// to avoid a dart:ffi import which would break compatibility with web.
+abstract class OBXHnswFlags {
+  static const int None = 0;
+
+  /// Enables debug logs.
+  static const int DebugLogs = 1;
+
+  /// Enables "high volume" debug logs, e.g. individual gets/puts.
+  static const int DebugLogsDetailed = 2;
+
+  /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
+  static const int VectorCacheSimdPaddingOff = 4;
+
+  /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
+  /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
+  /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
+  static const int ReparationLimitCandidates = 8;
 }

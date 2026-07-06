@@ -29,7 +29,7 @@ class CodeChunks {
 
     import 'dart:typed_data';
 
-    import 'package:flat_buffers/flat_buffers.dart' as fb;
+    import 'package:objectbox/flatbuffers.dart' as fb;
     import 'package:objectbox/internal.dart' as $obxInt; // generated code can access "internal" functionality
     import 'package:objectbox/objectbox.dart' as $obx;${pubspec?.obxFlutterImport}
 
@@ -85,7 +85,7 @@ class CodeChunks {
           bool queriesCaseSensitiveDefault = true,
           String? macosApplicationGroup})${obxFlutter ? ' async' : ''} {
         ${obxFlutter ? 'await loadObjectBoxLibraryAndroidCompat();' : ''}
-        return $obx.Store(getObjectBoxModel(),
+        final store = $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
             maxDataSizeInKB: maxDataSizeInKB,
@@ -93,6 +93,8 @@ class CodeChunks {
             maxReaders: maxReaders,
             queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
             macosApplicationGroup: macosApplicationGroup);
+        ${obxFlutter ? '// On web the store loads persisted data asynchronously.\n        await store.ready;' : ''}
+        return store;
     }''';
   }
 
@@ -114,10 +116,10 @@ class CodeChunks {
       lastIndexId: ${createIdUid(model.lastIndexId)},
       lastRelationId: ${createIdUid(model.lastRelationId)},
       lastSequenceId: ${createIdUid(model.lastSequenceId)},
-      retiredEntityUids: const ${model.retiredEntityUids},
-      retiredIndexUids: const ${model.retiredIndexUids},
-      retiredPropertyUids: const ${model.retiredPropertyUids},
-      retiredRelationUids: const ${model.retiredRelationUids},
+      retiredEntityUids: ${createUidList(model.retiredEntityUids)},
+      retiredIndexUids: ${createUidList(model.retiredIndexUids)},
+      retiredPropertyUids: ${createUidList(model.retiredPropertyUids)},
+      retiredRelationUids: ${createUidList(model.retiredRelationUids)},
       modelVersion: ${model.modelVersion},
       modelVersionParserMinimum: ${model.modelVersionParserMinimum},
       version: ${model.version});
@@ -125,8 +127,18 @@ class CodeChunks {
   }
 
   static String createIdUid(IdUid value) {
-    return 'const $obxInt.IdUid(${value.id}, ${value.uid})';
+    // Emitted as a string parsed at runtime: UIDs are 64-bit values that
+    // regularly exceed 2^53 and can't be written as integer literals in code
+    // that is compiled to JavaScript (dart2js). See issue #185 (web support).
+    return "$obxInt.IdUid.fromString('${value.id}:${value.uid}')";
   }
+
+  /// Like [createIdUid]: retired UID lists are 64-bit values emitted as
+  /// runtime-parsed strings so generated code compiles with dart2js.
+  static String createUidList(List<int> uids) =>
+      uids.isEmpty
+          ? 'const []'
+          : "[${uids.map((uid) => "int.parse('$uid')").join(', ')}]";
 
   static String createModelEntity(ModelEntity entity) {
     var additionalArgs = '';
