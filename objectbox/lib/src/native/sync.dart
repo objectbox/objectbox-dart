@@ -180,6 +180,21 @@ enum SyncLoginEvent {
   unknownError,
 }
 
+/// Sync-level error event.
+///
+/// Received via [SyncClient.errorEvents].
+enum SyncErrorEvent {
+  /// The client received a rejection of transaction writes due to missing
+  /// permissions.
+  ///
+  /// Until reconnecting with new credentials the client will run in
+  /// receive-only mode.
+  rejectTxNoPermission,
+
+  /// An error not (yet) known to this version of the Dart library.
+  unknown,
+}
+
 /// Sync client statistics counters, useful for testing and diagnostics.
 ///
 /// Read a counter value with [SyncClient.stats].
@@ -410,6 +425,8 @@ class SyncClient {
     _loginEvents?._stop();
     _completionEvents?._stop();
     _changeEvents?._stop();
+    _stopErrorListener();
+    _errorEvents?.close();
     // The native mesh is owned by the client and freed by sync_close; invalidate
     // any MeshSync wrapper so later access throws instead of using a dangling
     // pointer.
@@ -936,6 +953,52 @@ class SyncClient {
       _changeEvents!.finish();
     }
     return _changeEvents!.stream;
+  }
+
+  StreamController<SyncErrorEvent>? _errorEvents;
+
+  /// The callback registered with the C API while [_errorEvents] has
+  /// listeners.
+  NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>? _errorListener;
+
+  /// A broadcast stream of sync-level error events.
+  ///
+  /// Subscribe (listen) to the stream to start receiving events.
+  /// Cancel the subscription when no longer needed to free resources.
+  Stream<SyncErrorEvent> get errorEvents {
+    _errorEvents ??= StreamController<SyncErrorEvent>.broadcast(
+      onListen: _startErrorListener,
+      onCancel: _stopErrorListener,
+    );
+    return _errorEvents!.stream;
+  }
+
+  void _startErrorListener() {
+    // Unlike the other listeners, which need C glue code to copy the message
+    // and post it to a native port, the error listener only receives an error
+    // code, which NativeCallable safely passes to Dart on any thread.
+    final controller = _errorEvents!;
+    final listener =
+        NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>.listener((
+          Pointer<Void> arg,
+          int error,
+        ) {
+          switch (error) {
+            case OBXSyncError.REJECT_TX_NO_PERMISSION:
+              controller.add(SyncErrorEvent.rejectTxNoPermission);
+              break;
+            default:
+              controller.add(SyncErrorEvent.unknown);
+          }
+        });
+    C.sync_listener_error(_cSyncChecked, listener.nativeFunction, nullptr);
+    _errorListener = listener;
+  }
+
+  void _stopErrorListener() {
+    if (!isClosed()) C.sync_listener_error(_cSyncChecked, nullptr, nullptr);
+    _errorListener?.close();
+    _errorListener = null;
   }
 }
 

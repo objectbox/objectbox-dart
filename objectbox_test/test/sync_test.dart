@@ -214,6 +214,27 @@ void main() {
         contains('SyncClient already closed'),
       );
 
+      test('SyncClient errorEvents (no server available)', () async {
+        final client = createClient(store);
+        final events = <SyncErrorEvent>[];
+
+        // Subscribe, unsubscribe and re-subscribe (registers the native
+        // listener again).
+        final subscription = client.errorEvents.listen(events.add);
+        client.start();
+        await yieldExecution();
+        await subscription.cancel();
+        final subscription2 = client.errorEvents.listen(events.add);
+        await yieldExecution();
+
+        // Closing the client with an active subscription cleans up.
+        client.close();
+        await subscription2.cancel();
+
+        // No server, so no sync-level errors (connection errors are not).
+        expect(events, isEmpty);
+      });
+
       test('SyncClient access after closing must throw', () {
         SyncClient c = createClient(store);
         c.close();
