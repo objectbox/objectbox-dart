@@ -10,6 +10,7 @@ export 'src/box.dart' show Box, PutMode;
 export 'src/common.dart';
 export 'src/modelinfo/enums.dart' show OBXSyncFlags;
 export 'src/native/query/vector_search_results.dart';
+export 'src/native/vector_distances.dart' show VectorDistances;
 export 'src/query.dart'
     show
         Query,
