@@ -510,6 +510,40 @@ void main() {
     testEnv.closeAndDelete();
   });
 
+  test('store dbSize and dbSizeOnDisk', () {
+    final testEnv = TestEnv("db-size");
+    final store = testEnv.store;
+    expect(store.dbSize, isPositive);
+    if (testEnv.isInMemory) {
+      expect(store.dbSizeOnDisk, isZero);
+    } else {
+      expect(store.dbSizeOnDisk, isPositive);
+      expect(store.dbSize, store.dbSizeOnDisk);
+    }
+
+    // Put some data, size should grow.
+    final sizeBefore = store.dbSize;
+    testEnv.box.put(TestEntity.filled(id: 0));
+    expect(store.dbSize, greaterThan(sizeBefore));
+
+    testEnv.closeAndDelete();
+  });
+
+  test('store prepareToClose', () {
+    final testEnv = TestEnv("prepare-to-close");
+    final store = testEnv.store;
+    store.box<TestEntity>().put(TestEntity(tString: 'closing'));
+    store.prepareToClose();
+    // Closing state: new transactions are rejected...
+    expect(
+      () => store.box<TestEntity>().put(TestEntity()),
+      throwsA(isA<Exception>()),
+    );
+    // ...and calling again or closing for real works fine.
+    store.prepareToClose();
+    testEnv.closeAndDelete();
+  });
+
   test('store maxDBSizeInKB', () {
     final testDir = Directory('db-size-test');
     if (testDir.existsSync()) testDir.deleteSync(recursive: true);

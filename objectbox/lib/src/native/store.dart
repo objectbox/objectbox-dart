@@ -785,6 +785,31 @@ class Store implements Finalizable {
   bool get openedWithPreviousCommit =>
       C.store_opened_with_previous_commit(_cStoreChecked);
 
+  /// The size in bytes of this store.
+  ///
+  /// For a database stored in files, this corresponds to [dbSizeOnDisk]. For
+  /// an in-memory database, this is roughly the used memory bytes occupied by
+  /// the data.
+  ///
+  /// See also [dbFileSize] to get the file size without opening a store.
+  int get dbSize => C.store_size(_cStoreChecked);
+
+  /// The size in bytes occupied by the database on disk (if any).
+  ///
+  /// Returns 0 for an in-memory database.
+  int get dbSizeOnDisk => C.store_size_on_disk(_cStoreChecked);
+
+  /// Prepares this store to close by setting its internal state to "closing".
+  ///
+  /// Unlike [close], this method returns immediately and does not free
+  /// resources just yet. This is typically used in a multi-threaded context to
+  /// allow an orderly shutdown in stages which go through a "not accepting new
+  /// requests" state.
+  void prepareToClose() {
+    if (isClosed()) return;
+    checkObx(C.store_prepare_to_close(_cStoreChecked));
+  }
+
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;
 
