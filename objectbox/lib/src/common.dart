@@ -158,3 +158,14 @@ class DebugFlags {
   /// check the platform and the library setup.
   static const int runThreadingSelfTest = 512;
 }
+
+/// Passed as `validateOnOpenPagesFlags` when calling [Store.new] to adjust
+/// how database pages are validated when opening the store.
+class ValidateOnOpenPagesFlags {
+  /// No special flags.
+  static const int none = 0;
+
+  /// Also visit leaf pages during validation. By default, only pages that
+  /// refer to other pages are validated, as that is faster.
+  static const int visitLeafPages = 1;
+}

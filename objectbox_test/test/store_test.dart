@@ -387,6 +387,89 @@ void main() {
     Directory('store').deleteSync(recursive: true);
   });
 
+  test('store readOnly', () {
+    final dir = Directory('read-only-store');
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+
+    // Create a database and add data (not possible in read-only mode as it
+    // requires the initial schema update).
+    var store = Store(getObjectBoxModel(), directory: dir.path);
+    expect(store.box<TestEntity>().put(TestEntity(tString: 'read-only')), 1);
+    store.close();
+
+    store = Store(getObjectBoxModel(), directory: dir.path, readOnly: true);
+    try {
+      expect(store.openedWithPreviousCommit, isFalse);
+      final box = store.box<TestEntity>();
+      expect(box.get(1)!.tString, 'read-only');
+      expect(
+        () => box.put(TestEntity()),
+        throwsA(
+          isStateError.having(
+            (e) => e.message,
+            'message',
+            contains('read only'),
+          ),
+        ),
+      );
+    } finally {
+      store.close();
+      dir.deleteSync(recursive: true);
+    }
+  });
+
+  test('store usePreviousCommit', () {
+    final dir = Directory('previous-commit-store');
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+
+    var store = Store(getObjectBoxModel(), directory: dir.path);
+    final box = store.box<TestEntity>();
+    box.put(TestEntity(tString: 'first commit'));
+    box.put(TestEntity(tString: 'second commit'));
+    store.close();
+
+    store = Store(
+      getObjectBoxModel(),
+      directory: dir.path,
+      usePreviousCommit: true,
+      readOnly: true,
+    );
+    try {
+      expect(store.openedWithPreviousCommit, isTrue);
+      // The second put is ignored as it is the latest commit.
+      final objects = store.box<TestEntity>().getAll();
+      expect(objects.length, 1);
+      expect(objects[0].tString, 'first commit');
+    } finally {
+      store.close();
+      dir.deleteSync(recursive: true);
+    }
+  });
+
+  test('store validateOnOpen', () {
+    final dir = Directory('validate-store');
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+
+    var store = Store(getObjectBoxModel(), directory: dir.path);
+    store.box<TestEntity>().put(TestEntity(tString: 'validate'));
+    store.close();
+
+    // A healthy database passes validation and works as usual.
+    store = Store(
+      getObjectBoxModel(),
+      directory: dir.path,
+      validateOnOpenPageLimit: 20,
+      validateOnOpenPagesFlags: ValidateOnOpenPagesFlags.visitLeafPages,
+      validateOnOpenKv: true,
+    );
+    try {
+      expect(store.box<TestEntity>().get(1)!.tString, 'validate');
+    } finally {
+      store.close();
+      dir.deleteSync(recursive: true);
+    }
+  });
+
   test('store macOS application group checks', () {
     // Note: the "store options" test tests a valid value
     expect(

@@ -230,6 +230,38 @@ class Store implements Finalizable {
   /// See also the Flutter instructions to
   /// ["Debug Dart and iOS code using Xcode"](https://docs.flutter.dev/testing/native-debugging#debug-dart-and-ios-code-using-xcode).
   ///
+  /// ## Read-only mode and data recovery
+  ///
+  /// Pass `readOnly: true` to open the store in read-only mode: no schema
+  /// update and no write transactions are possible (writes will throw).
+  ///
+  /// Pass `usePreviousCommit: true` to ignore the latest data snapshot
+  /// (committed transaction state) and use the previous snapshot instead. This
+  /// may help to recover from a [DbFileCorruptException]. When used with care
+  /// (e.g. backup the database files first), this may also recover data
+  /// removed by the latest transaction. It is recommended to combine this with
+  /// `readOnly: true` to ensure no data is lost. Use
+  /// [openedWithPreviousCommit] to check if the previous snapshot is actually
+  /// used once the store is open.
+  ///
+  /// ## Validation on open
+  ///
+  /// When the database is opened, ObjectBox can do a consistency check on the
+  /// given amount of pages, pass `validateOnOpenPageLimit` to enable this.
+  /// Reliable file systems already guarantee consistency, so this is primarily
+  /// meant to deal with unreliable OSes, file systems, or hardware. Usually a
+  /// low number (e.g. 1-20) is sufficient and does not impact startup
+  /// performance significantly. Combine with one or more
+  /// [ValidateOnOpenPagesFlags] passed to `validateOnOpenPagesFlags` to adjust
+  /// the check.
+  ///
+  /// Pass `validateOnOpenKv: true` to additionally validate key/value pairs on
+  /// open, for example whether they are consistent towards the internal
+  /// specification.
+  ///
+  /// If validation fails the constructor throws, e.g. a
+  /// [DbPagesCorruptException].
+  ///
   /// ## More details
   ///
   /// See our [documentation](https://docs.objectbox.io/) and examples for more
@@ -242,6 +274,11 @@ class Store implements Finalizable {
     int? fileMode,
     int? maxReaders,
     int? debugFlags,
+    bool readOnly = false,
+    bool usePreviousCommit = false,
+    int? validateOnOpenPageLimit,
+    int? validateOnOpenPagesFlags,
+    bool validateOnOpenKv = false,
     bool queriesCaseSensitiveDefault = true,
     String? macosApplicationGroup,
   }) : _closesNativeStore = true,
@@ -303,6 +340,23 @@ class Store implements Finalizable {
         }
         if (debugFlags != null) {
           C.opt_debug_flags(opt, debugFlags);
+        }
+        if (readOnly) {
+          C.opt_read_only(opt, true);
+        }
+        if (usePreviousCommit) {
+          C.opt_use_previous_commit(opt, true);
+        }
+        if (validateOnOpenPageLimit != null ||
+            validateOnOpenPagesFlags != null) {
+          C.opt_validate_on_open_pages(
+            opt,
+            validateOnOpenPageLimit ?? 0,
+            validateOnOpenPagesFlags ?? ValidateOnOpenPagesFlags.none,
+          );
+        }
+        if (validateOnOpenKv) {
+          C.opt_validate_on_open_kv(opt, 0);
         }
       } catch (e) {
         C.opt_free(opt);
@@ -724,6 +778,12 @@ class Store implements Finalizable {
   /// }
   /// ```
   Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_cStoreChecked));
+
+  /// Returns if this store was opened using the previous data snapshot
+  /// (committed transaction state) instead of the latest one, see the
+  /// `usePreviousCommit` option of [Store.new].
+  bool get openedWithPreviousCommit =>
+      C.store_opened_with_previous_commit(_cStoreChecked);
 
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;
