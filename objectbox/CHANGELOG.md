@@ -51,6 +51,7 @@
 * Add store options to open a store in read-only mode (`readOnly`), to use the previous data snapshot for data recovery (`usePreviousCommit`, check with `Store.openedWithPreviousCommit`) and to validate the database when opening it (`validateOnOpenPageLimit`, `validateOnOpenPagesFlags` and `validateOnOpenKv`).
 * Add `Store.dbSize` and `Store.dbSizeOnDisk` to get the size of the database of an open store (also works for an in-memory database) and `Store.prepareToClose` to start an orderly shutdown in stages.
 * Add static `Store.logLevel` to change (or get) the runtime log level of ObjectBox internals, e.g. to debug issues.
+* Add `VectorDistances` utility to calculate the distance of two vectors (like a vector search would) and to convert a distance (e.g. a query score) to a relevance score with a fixed range from 0.0 to 1.0.
 
 ### Sync
 
