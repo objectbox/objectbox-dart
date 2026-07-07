@@ -21,7 +21,7 @@ dependencies:
   path: ^1.9.1
 
 dev_dependencies:
-  ffigen: ^7.2.11 # v8 requires Dart 3, not requiring it, yet.
+  ffigen: ^20.1.1 # Note: regenerating bindings requires Dart 3.8 or newer.
   lints: ^6.1.0
   test: ^1.32.0 # To run coverage on this package.
 
@@ -52,6 +52,11 @@ ffigen:
         - 'obx_store_close'
         - 'obx_txn_close'
   enums:
+    # Generate enums as integer constants (like before ffigen v8): the code base
+    # uses the values as integers throughout (bit flags, model JSON, generated code).
+    as-int:
+      include:
+        - '.*'
     member-rename:
       '(.*)': # Matches any enum.
         # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
