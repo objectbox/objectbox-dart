@@ -235,6 +235,15 @@ void main() {
         expect(events, isEmpty);
       });
 
+      test('SyncClient setMaxMessagesInFlight (no server available)', () {
+        final client = createClient(store);
+        addTearDown(() => client.close());
+        client.setMaxMessagesInFlight(10);
+        // Values outside of the range 1-20 throw.
+        expect(() => client.setMaxMessagesInFlight(0), throwsArgumentError);
+        expect(() => client.setMaxMessagesInFlight(21), throwsArgumentError);
+      });
+
       test('SyncClient access after closing must throw', () {
         SyncClient c = createClient(store);
         c.close();

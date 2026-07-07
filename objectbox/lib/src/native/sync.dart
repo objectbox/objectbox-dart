@@ -658,6 +658,14 @@ class SyncClient {
     }
   }
 
+  /// Configures the maximum number of outgoing transaction messages that can
+  /// be sent without an ACK from the server.
+  ///
+  /// The [value] must be in the range 1-20, otherwise this throws.
+  void setMaxMessagesInFlight(int value) {
+    checkObx(C.sync_max_messages_in_flight(_cSyncChecked, value));
+  }
+
   /// Configures how sync updates are received from the server.
   ///
   /// If automatic updates are turned off, they will need to be requested
