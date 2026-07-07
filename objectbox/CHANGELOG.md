@@ -49,6 +49,7 @@
 * Fix native data observers not being stopped when the store is closed: cancelling a `Store.watch<Entity>()` or `Store.entityChanges` subscription after `Store.close()` closed the already freed native observer (a use-after-free that can corrupt memory or crash). A `watch<Entity>()` subscription also kept its receive port open forever if the store was closed without cancelling, preventing the isolate from exiting.
 * `Store.entityChanges` closes its receive port if creating the observer fails or while there are no listeners, no longer preventing an isolate from exiting.
 * Add store options to open a store in read-only mode (`readOnly`), to use the previous data snapshot for data recovery (`usePreviousCommit`, check with `Store.openedWithPreviousCommit`) and to validate the database when opening it (`validateOnOpenPageLimit`, `validateOnOpenPagesFlags` and `validateOnOpenKv`).
+* Add `Store.dbSize` and `Store.dbSizeOnDisk` to get the size of the database of an open store (also works for an in-memory database) and `Store.prepareToClose` to start an orderly shutdown in stages.
 
 ### Sync
 
