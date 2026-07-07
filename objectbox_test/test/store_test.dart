@@ -510,6 +510,19 @@ void main() {
     expect(Store.dbFileSize(testEnv.dbDirPath), isPositive);
   });
 
+  test('store logLevel', () {
+    final initialLevel = Store.logLevel;
+    try {
+      Store.logLevel = LogLevel.warn;
+      expect(Store.logLevel, LogLevel.warn);
+      Store.logLevel = LogLevel.error;
+      expect(Store.logLevel, LogLevel.error);
+    } finally {
+      // Restore to not affect other tests.
+      Store.logLevel = initialLevel;
+    }
+  });
+
   test('store dbSize and dbSizeOnDisk', () {
     final testEnv = TestEnv("db-size");
     addTearDown(() => testEnv.closeAndDelete());

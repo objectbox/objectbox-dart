@@ -159,6 +159,38 @@ class DebugFlags {
   static const int runThreadingSelfTest = 512;
 }
 
+/// The runtime log level for ObjectBox internals, see [Store.logLevel].
+enum LogLevel {
+  /// Enable all log output.
+  all(0),
+
+  /// Most detailed; typically only for short-term investigations.
+  trace(1),
+
+  /// Very detailed; not printed by default.
+  verbose(2),
+
+  /// Detailed output useful during development/debugging.
+  debug(3),
+
+  /// Informational messages (default for release builds).
+  info(4),
+
+  /// Noteworthy issues that are not necessarily errors.
+  warn(6),
+
+  /// Only for "bad things happened" (e.g. internal errors).
+  error(8),
+
+  /// Disable all log output.
+  none(10);
+
+  /// The value used by the C API (OBXLogLevel).
+  final int value;
+
+  const LogLevel(this.value);
+}
+
 /// Passed as `validateOnOpenPagesFlags` when calling [Store.new] to adjust
 /// how database pages are validated when opening the store.
 class ValidateOnOpenPagesFlags {
