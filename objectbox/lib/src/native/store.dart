@@ -698,6 +698,30 @@ class Store implements Finalizable {
   /// informational purposes.
   static String databaseVersion() => dartStringFromC(C.version_core_string());
 
+  /// Sets the runtime log level for ObjectBox internals, e.g. to debug issues.
+  ///
+  /// Log messages below the given level will not be printed (provided they are
+  /// compiled into the database library).
+  ///
+  /// Note: without the DebugLog feature (see [databaseVersion]), log messages
+  /// at [LogLevel.debug] and below are not compiled into the database library.
+  static set logLevel(LogLevel level) => checkObx(C.log_level_set(level.value));
+
+  /// Gets the current runtime log level for ObjectBox internals, see
+  /// [logLevel] for details.
+  static LogLevel get logLevel {
+    final value = C.log_level_get();
+    return LogLevel.values.firstWhere(
+      (level) => level.value == value,
+      orElse:
+          () =>
+              throw ObjectBoxException(
+                'Unknown log level value returned by the database library: '
+                '$value',
+              ),
+    );
+  }
+
   /// Returns if an open store (i.e. opened before and not yet closed) was found
   /// for the given [directoryPath].
   ///
