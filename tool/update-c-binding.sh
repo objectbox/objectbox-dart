@@ -26,7 +26,7 @@ for arg in "$@"; do
     esac
 done
 
-cLibVersion=5.3.2
+cLibVersion=6.0.0-beta
 
 if [ "${skipDownload}" = false ]; then
     echo "Downloading C library source files from GitHub..."

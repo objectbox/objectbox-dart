@@ -171,7 +171,7 @@ typedef void OBX_sync_listener_login_failure(void* arg, OBXSyncCode code);
 /// @param arg is a pass-through argument passed to the called API
 typedef void OBX_sync_listener_complete(void* arg);
 
-/// Callend when sync-level errors occur
+/// Called when sync-level errors occur
 /// @param arg is a pass-through argument passed to the called API
 /// @param error error code indicating sync-level error events
 typedef void OBX_sync_listener_error(void* arg, OBXSyncError error);
@@ -632,6 +632,16 @@ OBX_C_API obx_err obx_mesh_opt_request_timeout_millis(OBX_mesh_options* opt, int
 /// Google Nearby tends to be error-prone when doing "everything at once", so spreading helps.
 OBX_C_API obx_err obx_mesh_opt_advertising_delay_millis(OBX_mesh_options* opt, int32_t millis);
 
+/// Sets the base delay in milliseconds before retrying advertising after a network failed to start it (default: 5000).
+/// A network may fail to start advertising (e.g. missing permissions); advertising is then retried with exponential
+/// backoff (doubling up to obx_mesh_opt_advertising_retry_max_millis()) because permissions may be granted later at
+/// runtime. Must be positive.
+OBX_C_API obx_err obx_mesh_opt_advertising_retry_millis(OBX_mesh_options* opt, int32_t millis);
+
+/// Sets the upper bound in milliseconds for the advertising retry backoff (default: 60000).
+/// Must be >= the base delay set via obx_mesh_opt_advertising_retry_millis().
+OBX_C_API obx_err obx_mesh_opt_advertising_retry_max_millis(OBX_mesh_options* opt, int32_t millis);
+
 /// Sets the minimum delay in milliseconds between two outgoing connection attempts (default: 1000).
 /// Also applied after starting discovery and after starting advertising, so the first connection attempt
 /// is delayed too. Used to "stretch out" connecting instead of firing all connection requests at once.
@@ -664,6 +674,9 @@ OBX_C_API obx_err obx_mesh_opt_tx_log_batch_size_kb(OBX_mesh_options* opt, int32
 /// Must be in the range (0, 100000] (the latter being the hard upper limit).
 OBX_C_API obx_err obx_mesh_opt_tx_log_batch_max_count(OBX_mesh_options* opt, int32_t count);
 
+/// Sets the maximum age in seconds of TX logs kept in the local mesh storage (default: 8 hours).
+OBX_C_API obx_err obx_mesh_opt_tx_log_max_age_seconds(OBX_mesh_options* opt, int64_t seconds);
+
 /// Returns the mesh sync attached to the given sync client (configured via obx_sync_opt_mesh()).
 /// The returned mesh sync is owned by the sync client; it is valid as long as the sync client is alive.
 /// @returns NULL if no mesh sync is attached (no error is set in that case).
@@ -679,29 +692,38 @@ OBX_C_API const char* obx_mesh_state_string(OBX_mesh* mesh);
 /// Returns the number of currently connected peers (0 on error, e.g. if mesh is NULL).
 OBX_C_API size_t obx_mesh_connected_peer_count(OBX_mesh* mesh);
 
+/// Requests an immediate retry of the network radios: advertising (bypassing the current retry backoff) and
+/// discovery (restarting the current phase). Call this when conditions that may have prevented the radios from
+/// starting have changed, e.g. the user just granted the required permissions. Thread-safe; the actual retry
+/// happens on the mesh sync thread shortly after.
+OBX_C_API obx_err obx_mesh_retry_networks(OBX_mesh* mesh);
+
 //----------------------------------------------
 // Mesh Sync Stats
 //----------------------------------------------
 
 /// Mesh stats counter type IDs as passed to obx_mesh_stats_u64(); useful for testing and diagnostics.
 typedef enum {
-    OBXMeshStats_peersDiscovered = 1,        ///< Number of peers discovered
-    OBXMeshStats_peersConnected = 2,         ///< Number of peers connected
-    OBXMeshStats_peersDisconnected = 3,      ///< Number of peers disconnected
-    OBXMeshStats_peerConnectionsFailed = 4,  ///< Number of peer connection attempts that failed
-    OBXMeshStats_peersLost = 5,              ///< Number of peers lost (no longer available after discovery)
-    OBXMeshStats_messagesReceived = 6,       ///< Number of messages received
-    OBXMeshStats_messagesSent = 7,           ///< Number of messages sent
-    OBXMeshStats_txIdsAnnounced = 8,         ///< Number of TX IDs announced
-    OBXMeshStats_txIdsRequested = 9,         ///< Number of TX IDs requested (sent in TxLogRequest messages)
-    OBXMeshStats_txIdsReceived = 10,         ///< Number of TX IDs received
-    OBXMeshStats_txLogsSent = 11,            ///< Number of TX logs sent (in TxLogData messages)
-    OBXMeshStats_txLogsReceived = 12,        ///< Number of TX logs received and stored (from TxLogData messages)
-    OBXMeshStats_txLogsApplied = 13,         ///< Number of TX logs applied to the local DB
-    OBXMeshStats_protocolErrors = 14,        ///< Number of protocol errors
-    OBXMeshStats_generalErrors = 15,         ///< Number of general errors
-    OBXMeshStats_peersEvicted = 16,          ///< Number of peers evicted to make room for newcomers
+    OBXMeshStats_peersDiscovered = 1,          ///< Number of peers discovered (compatible peers only)
+    OBXMeshStats_peersConnected = 2,           ///< Number of peers connected
+    OBXMeshStats_peersDisconnected = 3,        ///< Number of peers disconnected
+    OBXMeshStats_peerConnectionsFailed = 4,    ///< Number of peer connection attempts that failed
+    OBXMeshStats_peersLost = 5,                ///< Number of peers lost (no longer available after discovery)
+    OBXMeshStats_messagesReceived = 6,         ///< Number of messages received
+    OBXMeshStats_messagesSent = 7,             ///< Number of messages sent
+    OBXMeshStats_txIdsAnnounced = 8,           ///< Number of TX IDs announced
+    OBXMeshStats_txIdsRequested = 9,           ///< Number of TX IDs requested (sent in TxLogRequest messages)
+    OBXMeshStats_txIdsReceived = 10,           ///< Number of TX IDs received
+    OBXMeshStats_txLogsSent = 11,              ///< Number of TX logs sent (in TxLogData messages)
+    OBXMeshStats_txLogsReceived = 12,          ///< Number of TX logs received and stored (from TxLogData messages)
+    OBXMeshStats_txLogsApplied = 13,           ///< Number of TX logs applied to the local DB
+    OBXMeshStats_protocolErrors = 14,          ///< Number of protocol errors
+    OBXMeshStats_generalErrors = 15,           ///< Number of general errors
+    OBXMeshStats_peersEvicted = 16,            ///< Number of peers evicted to make room for newcomers
     OBXMeshStats_selfDiscoveriesIgnored = 17,  ///< Number of discoveries of our own peer ID prefix that were ignored
+    OBXMeshStats_incompatiblePeers = 18,       ///< Number of peers rejected due to incompatible protocol version
+    OBXMeshStats_txSentToServerReceived = 19,  ///< Number of TX IDs received in "sent to server" messages
+    OBXMeshStats_txSentToServerSent = 20,      ///< Number of TX IDs propagated in "sent to server" messages
 } OBXMeshStats;
 
 /// Gets a u64 value for mesh sync statistics.
@@ -819,7 +841,7 @@ OBX_C_API obx_err obx_sync_server_stop(OBX_sync_server* server);
 /// Whether the server is up and running.
 OBX_C_API bool obx_sync_server_running(OBX_sync_server* server);
 
-/// Returns a URL this server is listening on, including the bound port (see obx_sync_server_port().
+/// Returns a URL this server is listening on, including the bound port (see obx_sync_server_port()).
 /// The returned char* is valid until another call to obx_sync_server_url() or the server is closed.
 OBX_C_API const char* obx_sync_server_url(OBX_sync_server* server);
 
