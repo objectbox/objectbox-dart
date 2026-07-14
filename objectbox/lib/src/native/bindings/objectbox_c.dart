@@ -145,37 +145,6 @@ class ObjectBoxC {
   late final _db_file_size =
       _db_file_sizePtr.asFunction<int Function(ffi.Pointer<ffi.Char>)>();
 
-  /// Enable (or disable) debug logging for ObjectBox internals.
-  /// This requires a version of the library with the DebugLog feature.
-  /// You can check if the feature is available with obx_has_feature(OBXFeature_DebugLog).
-  /// @Deprecated: prefer obx_log_level_set() with OBXLogLevel_Debug / OBXLogLevel_Info.
-  int debug_log(
-    bool enabled,
-  ) {
-    return _debug_log(
-      enabled,
-    );
-  }
-
-  late final _debug_logPtr =
-      _lookup<ffi.NativeFunction<obx_err Function(ffi.Bool)>>('obx_debug_log');
-  late final _debug_log = _debug_logPtr.asFunction<int Function(bool)>();
-
-  /// Checks if debug logs are enabled for ObjectBox internals.
-  /// This depends on the availability of the DebugLog feature.
-  /// If the feature is available, it returns the current state, which is adjustable via obx_debug_log().
-  /// Otherwise, it always returns false for standard release builds
-  /// (or true if you are having a special debug version).
-  /// @Deprecated: Prefer obx_log_level_get() and compare against OBXLogLevel_Debug.
-  bool debug_log_enabled() {
-    return _debug_log_enabled();
-  }
-
-  late final _debug_log_enabledPtr =
-      _lookup<ffi.NativeFunction<ffi.Bool Function()>>('obx_debug_log_enabled');
-  late final _debug_log_enabled =
-      _debug_log_enabledPtr.asFunction<bool Function()>();
-
   /// Sets the runtime log level for ObjectBox internals.
   /// Log messages below the given level will not be printed (provided they are compiled into the library).
   /// @note Without the DebugLog feature, log messages at debug level and below are not compiled in;
@@ -4320,39 +4289,9 @@ class ObjectBoxC {
           int Function(ffi.Pointer<OBX_query_builder>, int,
               ffi.Pointer<ffi.Char>, bool)>();
 
-  /// @Deprecated use obx_qb_equals_key_value_string instead
-  int qb_contains_key_value_string(
-    ffi.Pointer<OBX_query_builder> builder,
-    int property_id,
-    ffi.Pointer<ffi.Char> key,
-    ffi.Pointer<ffi.Char> value,
-    bool case_sensitive,
-  ) {
-    return _qb_contains_key_value_string(
-      builder,
-      property_id,
-      key,
-      value,
-      case_sensitive,
-    );
-  }
-
-  late final _qb_contains_key_value_stringPtr = _lookup<
-      ffi.NativeFunction<
-          obx_qb_cond Function(
-              ffi.Pointer<OBX_query_builder>,
-              obx_schema_id,
-              ffi.Pointer<ffi.Char>,
-              ffi.Pointer<ffi.Char>,
-              ffi.Bool)>>('obx_qb_contains_key_value_string');
-  late final _qb_contains_key_value_string =
-      _qb_contains_key_value_stringPtr.asFunction<
-          int Function(ffi.Pointer<OBX_query_builder>, int,
-              ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>, bool)>();
-
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must equal this one.
   /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
   int qb_equals_key_value_string(
@@ -4386,7 +4325,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must equal this one.
   int qb_equals_key_value_int(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4415,7 +4354,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must equal this one.
   int qb_equals_key_value_double(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4445,7 +4384,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being greater than the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be greater than this one.
   /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
   int qb_greater_key_value_string(
@@ -4479,7 +4418,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being greater than the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be greater than this one.
   int qb_greater_key_value_int(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4509,7 +4448,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being greater than the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be greater than this one.
   int qb_greater_key_value_double(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4539,7 +4478,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being greater than or equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be greater than or equal to this one.
   /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
   int qb_greater_or_equal_key_value_string(
@@ -4573,7 +4512,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being greater than or equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be greater than or equal to this one.
   int qb_greater_or_equal_key_value_int(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4603,7 +4542,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being greater than or equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be greater than or equal to this one.
   int qb_greater_or_equal_key_value_double(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4633,7 +4572,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being lesser than the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be lesser than this one.
   /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
   int qb_less_than_key_value_string(
@@ -4667,7 +4606,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being lesser than the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be lesser than this one.
   int qb_less_than_key_value_int(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4697,7 +4636,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being lesser than the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be lesser than this one.
   int qb_less_than_key_value_double(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4727,7 +4666,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being lesser than or equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be lesser than or equal to this one.
   /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
   int qb_less_or_equal_key_value_string(
@@ -4761,7 +4700,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being lesser than or equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be lesser than or equal to this one.
   int qb_less_or_equal_key_value_int(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4791,7 +4730,7 @@ class ObjectBoxC {
 
   /// For flex properties that have a map as root value, this looks for a matching key/value pair,
   /// with the map value being lesser than or equal to the given one.
-  /// @param key must be an exact match exactly (case-sensitive)
+  /// @param key must match exactly (case-sensitive)
   /// @param value the map's value must be lesser than or equal to this one.
   int qb_less_or_equal_key_value_double(
     ffi.Pointer<OBX_query_builder> builder,
@@ -4983,29 +4922,6 @@ class ObjectBoxC {
   late final _qb_in_strings = _qb_in_stringsPtr.asFunction<
       int Function(ffi.Pointer<OBX_query_builder>, int,
           ffi.Pointer<ffi.Pointer<ffi.Char>>, int, bool)>();
-
-  /// @deprecated Please use obx_qb_contains_element_string() instead.
-  int qb_any_equals_string(
-    ffi.Pointer<OBX_query_builder> builder,
-    int property_id,
-    ffi.Pointer<ffi.Char> value,
-    bool case_sensitive,
-  ) {
-    return _qb_any_equals_string(
-      builder,
-      property_id,
-      value,
-      case_sensitive,
-    );
-  }
-
-  late final _qb_any_equals_stringPtr = _lookup<
-      ffi.NativeFunction<
-          obx_qb_cond Function(ffi.Pointer<OBX_query_builder>, obx_schema_id,
-              ffi.Pointer<ffi.Char>, ffi.Bool)>>('obx_qb_any_equals_string');
-  late final _qb_any_equals_string = _qb_any_equals_stringPtr.asFunction<
-      int Function(
-          ffi.Pointer<OBX_query_builder>, int, ffi.Pointer<ffi.Char>, bool)>();
 
   int qb_equals_int(
     ffi.Pointer<OBX_query_builder> builder,
@@ -9703,6 +9619,48 @@ class ObjectBoxC {
       _mesh_opt_advertising_delay_millisPtr
           .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
 
+  /// Sets the base delay in milliseconds before retrying advertising after a network failed to start it (default: 5000).
+  /// A network may fail to start advertising (e.g. missing permissions); advertising is then retried with exponential
+  /// backoff (doubling up to obx_mesh_opt_advertising_retry_max_millis()) because permissions may be granted later at
+  /// runtime. Must be positive.
+  int mesh_opt_advertising_retry_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_advertising_retry_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_advertising_retry_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_advertising_retry_millis');
+  late final _mesh_opt_advertising_retry_millis =
+      _mesh_opt_advertising_retry_millisPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
+  /// Sets the upper bound in milliseconds for the advertising retry backoff (default: 60000).
+  /// Must be >= the base delay set via obx_mesh_opt_advertising_retry_millis().
+  int mesh_opt_advertising_retry_max_millis(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int millis,
+  ) {
+    return _mesh_opt_advertising_retry_max_millis(
+      opt,
+      millis,
+    );
+  }
+
+  late final _mesh_opt_advertising_retry_max_millisPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int32)>>('obx_mesh_opt_advertising_retry_max_millis');
+  late final _mesh_opt_advertising_retry_max_millis =
+      _mesh_opt_advertising_retry_max_millisPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
   /// Sets the minimum delay in milliseconds between two outgoing connection attempts (default: 1000).
   /// Also applied after starting discovery and after starting advertising, so the first connection attempt
   /// is delayed too. Used to "stretch out" connecting instead of firing all connection requests at once.
@@ -9845,6 +9803,25 @@ class ObjectBoxC {
       _mesh_opt_tx_log_batch_max_countPtr
           .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
 
+  /// Sets the maximum age in seconds of TX logs kept in the local mesh storage (default: 8 hours).
+  int mesh_opt_tx_log_max_age_seconds(
+    ffi.Pointer<OBX_mesh_options> opt,
+    int seconds,
+  ) {
+    return _mesh_opt_tx_log_max_age_seconds(
+      opt,
+      seconds,
+    );
+  }
+
+  late final _mesh_opt_tx_log_max_age_secondsPtr = _lookup<
+      ffi.NativeFunction<
+          obx_err Function(ffi.Pointer<OBX_mesh_options>,
+              ffi.Int64)>>('obx_mesh_opt_tx_log_max_age_seconds');
+  late final _mesh_opt_tx_log_max_age_seconds =
+      _mesh_opt_tx_log_max_age_secondsPtr
+          .asFunction<int Function(ffi.Pointer<OBX_mesh_options>, int)>();
+
   /// Returns the mesh sync attached to the given sync client (configured via obx_sync_opt_mesh()).
   /// The returned mesh sync is owned by the sync client; it is valid as long as the sync client is alive.
   /// @returns NULL if no mesh sync is attached (no error is set in that case).
@@ -9909,6 +9886,24 @@ class ObjectBoxC {
           'obx_mesh_connected_peer_count');
   late final _mesh_connected_peer_count = _mesh_connected_peer_countPtr
       .asFunction<int Function(ffi.Pointer<OBX_mesh>)>();
+
+  /// Requests an immediate retry of the network radios: advertising (bypassing the current retry backoff) and
+  /// discovery (restarting the current phase). Call this when conditions that may have prevented the radios from
+  /// starting have changed, e.g. the user just granted the required permissions. Thread-safe; the actual retry
+  /// happens on the mesh sync thread shortly after.
+  int mesh_retry_networks(
+    ffi.Pointer<OBX_mesh> mesh,
+  ) {
+    return _mesh_retry_networks(
+      mesh,
+    );
+  }
+
+  late final _mesh_retry_networksPtr =
+      _lookup<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_mesh>)>>(
+          'obx_mesh_retry_networks');
+  late final _mesh_retry_networks =
+      _mesh_retry_networksPtr.asFunction<int Function(ffi.Pointer<OBX_mesh>)>();
 
   /// Gets a u64 value for mesh sync statistics.
   /// @param counter_type the counter value to be read.
@@ -10319,7 +10314,7 @@ class ObjectBoxC {
   late final _sync_server_running = _sync_server_runningPtr
       .asFunction<bool Function(ffi.Pointer<OBX_sync_server>)>();
 
-  /// Returns a URL this server is listening on, including the bound port (see obx_sync_server_port().
+  /// Returns a URL this server is listening on, including the bound port (see obx_sync_server_port()).
   /// The returned char* is valid until another call to obx_sync_server_url() or the server is closed.
   ffi.Pointer<ffi.Char> sync_server_url(
     ffi.Pointer<OBX_sync_server> server,
@@ -12110,7 +12105,7 @@ typedef OBX_sync_listener_msg_objects = ffi.NativeFunction<
     ffi.Void Function(ffi.Pointer<ffi.Void> arg,
         ffi.Pointer<OBX_sync_msg_objects> msg_objects)>;
 
-/// Callend when sync-level errors occur
+/// Called when sync-level errors occur
 /// @param arg is a pass-through argument passed to the called API
 /// @param error error code indicating sync-level error events
 typedef OBX_sync_listener_error = ffi.NativeFunction<
@@ -12168,7 +12163,7 @@ abstract class OBXMeshState {
 
 /// Mesh stats counter type IDs as passed to obx_mesh_stats_u64(); useful for testing and diagnostics.
 abstract class OBXMeshStats {
-  /// < Number of peers discovered
+  /// < Number of peers discovered (compatible peers only)
   static const int peersDiscovered = 1;
 
   /// < Number of peers connected
@@ -12218,6 +12213,15 @@ abstract class OBXMeshStats {
 
   /// < Number of discoveries of our own peer ID prefix that were ignored
   static const int selfDiscoveriesIgnored = 17;
+
+  /// < Number of peers rejected due to incompatible protocol version
+  static const int incompatiblePeers = 18;
+
+  /// < Number of TX IDs received in "sent to server" messages
+  static const int txSentToServerReceived = 19;
+
+  /// < Number of TX IDs propagated in "sent to server" messages
+  static const int txSentToServerSent = 20;
 }
 
 class OBX_sync_server extends ffi.Opaque {}

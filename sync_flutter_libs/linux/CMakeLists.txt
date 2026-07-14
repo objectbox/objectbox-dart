@@ -51,7 +51,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
 # ----------------------------------------------------------------------
 # Download and add objectbox-c prebuilt library.
 
-set(OBJECTBOX_VERSION 5.3.2)
+set(OBJECTBOX_VERSION 6.0.0-beta)
 
 set(OBJECTBOX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${OBJECTBOX_ARCH} MATCHES "x86_64")

@@ -21,6 +21,8 @@
     }
     ```
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
+
 ### Sync
 
 * Add support for Mesh Sync (peer-to-peer synchronization without a central server, preview):
