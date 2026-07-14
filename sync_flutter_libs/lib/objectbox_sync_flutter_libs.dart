@@ -96,6 +96,8 @@ Future<MeshConfig> createMeshConfig(
   int? randomSeed,
   int? requestTimeoutMillis,
   int? advertisingDelayMillis,
+  int? advertisingRetryMillis,
+  int? advertisingRetryMaxMillis,
   int? connectDelayMillis,
   int? initialDiscoveryDurationSeconds,
   int? discoveryDurationSeconds,
@@ -103,6 +105,7 @@ Future<MeshConfig> createMeshConfig(
   int? discoveryPauseJitterSeconds,
   int? txLogBatchSizeKb,
   int? txLogBatchMaxCount,
+  int? txLogMaxAgeSeconds,
 }) async {
   final mesh = obx_internal.InternalSyncAccess.createMeshConfig(
     meshId,
@@ -112,6 +115,8 @@ Future<MeshConfig> createMeshConfig(
     randomSeed: randomSeed,
     requestTimeoutMillis: requestTimeoutMillis,
     advertisingDelayMillis: advertisingDelayMillis,
+    advertisingRetryMillis: advertisingRetryMillis,
+    advertisingRetryMaxMillis: advertisingRetryMaxMillis,
     connectDelayMillis: connectDelayMillis,
     initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
     discoveryDurationSeconds: discoveryDurationSeconds,
@@ -119,6 +124,7 @@ Future<MeshConfig> createMeshConfig(
     discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
     txLogBatchSizeKb: txLogBatchSizeKb,
     txLogBatchMaxCount: txLogBatchMaxCount,
+    txLogMaxAgeSeconds: txLogMaxAgeSeconds,
   );
 
   if (!Platform.isAndroid) return mesh;

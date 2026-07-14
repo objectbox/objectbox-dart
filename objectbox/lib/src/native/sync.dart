@@ -355,6 +355,19 @@ class MeshConfig {
   /// out" radio activity.
   final int? advertisingDelayMillis;
 
+  /// Base delay in milliseconds before retrying advertising after a network
+  /// failed to start it (default: 5000).
+  ///
+  /// A network may fail to start advertising (e.g. missing permissions);
+  /// advertising is then retried with exponential backoff (doubling up to
+  /// [advertisingRetryMaxMillis]) because permissions may be granted later at
+  /// runtime. Must be positive.
+  final int? advertisingRetryMillis;
+
+  /// Upper bound in milliseconds for the advertising retry backoff
+  /// (default: 60000). Must be >= [advertisingRetryMillis].
+  final int? advertisingRetryMaxMillis;
+
   /// Minimum delay in milliseconds between two outgoing connection attempts
   /// (default: 1000).
   final int? connectDelayMillis;
@@ -382,6 +395,10 @@ class MeshConfig {
   /// (default: 1000). Must be in the range (0, 100000].
   final int? txLogBatchMaxCount;
 
+  /// Maximum age in seconds of TX logs kept in the local mesh storage
+  /// (default: 8 hours).
+  final int? txLogMaxAgeSeconds;
+
   final List<int> _networkInternalHandles = [];
 
   MeshConfig._(this.meshId,
@@ -391,13 +408,16 @@ class MeshConfig {
       this.randomSeed,
       this.requestTimeoutMillis,
       this.advertisingDelayMillis,
+      this.advertisingRetryMillis,
+      this.advertisingRetryMaxMillis,
       this.connectDelayMillis,
       this.initialDiscoveryDurationSeconds,
       this.discoveryDurationSeconds,
       this.discoveryPauseSeconds,
       this.discoveryPauseJitterSeconds,
       this.txLogBatchSizeKb,
-      this.txLogBatchMaxCount});
+      this.txLogBatchMaxCount,
+      this.txLogMaxAgeSeconds});
 
   void _addNetworkInternalHandle(int networkInternalHandle) {
     _networkInternalHandles.add(networkInternalHandle);
@@ -432,6 +452,14 @@ class MeshConfig {
         checkObx(
             C.mesh_opt_advertising_delay_millis(opt, advertisingDelayMillis!));
       }
+      if (advertisingRetryMillis != null) {
+        checkObx(
+            C.mesh_opt_advertising_retry_millis(opt, advertisingRetryMillis!));
+      }
+      if (advertisingRetryMaxMillis != null) {
+        checkObx(C.mesh_opt_advertising_retry_max_millis(
+            opt, advertisingRetryMaxMillis!));
+      }
       if (connectDelayMillis != null) {
         checkObx(C.mesh_opt_connect_delay_millis(opt, connectDelayMillis!));
       }
@@ -456,6 +484,9 @@ class MeshConfig {
       }
       if (txLogBatchMaxCount != null) {
         checkObx(C.mesh_opt_tx_log_batch_max_count(opt, txLogBatchMaxCount!));
+      }
+      if (txLogMaxAgeSeconds != null) {
+        checkObx(C.mesh_opt_tx_log_max_age_seconds(opt, txLogMaxAgeSeconds!));
       }
       for (final handle in _networkInternalHandles) {
         checkObx(C.mesh_opt_network_internal(
@@ -482,13 +513,16 @@ class InternalSyncAccess {
           int? randomSeed,
           int? requestTimeoutMillis,
           int? advertisingDelayMillis,
+          int? advertisingRetryMillis,
+          int? advertisingRetryMaxMillis,
           int? connectDelayMillis,
           int? initialDiscoveryDurationSeconds,
           int? discoveryDurationSeconds,
           int? discoveryPauseSeconds,
           int? discoveryPauseJitterSeconds,
           int? txLogBatchSizeKb,
-          int? txLogBatchMaxCount}) =>
+          int? txLogBatchMaxCount,
+          int? txLogMaxAgeSeconds}) =>
       MeshConfig._(meshId,
           maxConnectionCount: maxConnectionCount,
           backoffMillis: backoffMillis,
@@ -496,13 +530,16 @@ class InternalSyncAccess {
           randomSeed: randomSeed,
           requestTimeoutMillis: requestTimeoutMillis,
           advertisingDelayMillis: advertisingDelayMillis,
+          advertisingRetryMillis: advertisingRetryMillis,
+          advertisingRetryMaxMillis: advertisingRetryMaxMillis,
           connectDelayMillis: connectDelayMillis,
           initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
           discoveryDurationSeconds: discoveryDurationSeconds,
           discoveryPauseSeconds: discoveryPauseSeconds,
           discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
           txLogBatchSizeKb: txLogBatchSizeKb,
-          txLogBatchMaxCount: txLogBatchMaxCount);
+          txLogBatchMaxCount: txLogBatchMaxCount,
+          txLogMaxAgeSeconds: txLogMaxAgeSeconds);
 
   /// Adds a platform-specific native network to a mesh config.
   static void addNetworkInternalHandle(
