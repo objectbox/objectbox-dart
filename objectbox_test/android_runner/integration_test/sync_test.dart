@@ -358,12 +358,20 @@ void main() {
       });
 
       test('Mesh sync smoke test', () async {
+        // Note: whether this is called depends on the device state (it only
+        // fires if the user grants previously missing permissions while the
+        // test runs), so it is not asserted below.
+        var permissionsGrantedCalls = 0;
         final meshConfig = await createMeshConfig(
           'test-mesh',
+          onPermissionsGranted: () => permissionsGrantedCalls++,
           maxConnectionCount: 3,
           backoffMillis: 5000,
           randomSeed: 42,
           discoveryDurationSeconds: 10,
+          advertisingRetryMillis: 5000,
+          advertisingRetryMaxMillis: 60000,
+          txLogMaxAgeSeconds: 8 * 3600,
         );
 
         SyncClient client = SyncClient(
@@ -398,6 +406,10 @@ void main() {
           waitedForDiscovering++;
         }
 
+        // Requesting an immediate retry of the network radios on a running
+        // mesh must not throw (the retry itself happens asynchronously).
+        mesh.retryNetworks();
+
         client.stop();
         expect(mesh.state(), equals(MeshState.stopped));
 
@@ -412,6 +424,7 @@ void main() {
         expect(() => mesh.stateString(), error);
         expect(() => mesh.connectedPeerCount(), error);
         expect(() => mesh.stats(MeshStats.peersConnected), error);
+        expect(() => mesh.retryNetworks(), error);
       });
 
       test('SyncClient without mesh config has no mesh', () {
