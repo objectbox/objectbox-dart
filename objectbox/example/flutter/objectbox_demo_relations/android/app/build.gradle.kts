@@ -57,5 +57,5 @@ dependencies {
     // Add the Android library with ObjectBox Admin only for debug builds.
     // Note: when the objectbox package updates, check if the Android
     // library below needs to be updated as well.
-    debugImplementation("io.objectbox:objectbox-android-db-admin:5.4.2")
+    debugImplementation("io.objectbox:objectbox-android-db-admin:6.0.0-beta")
 }

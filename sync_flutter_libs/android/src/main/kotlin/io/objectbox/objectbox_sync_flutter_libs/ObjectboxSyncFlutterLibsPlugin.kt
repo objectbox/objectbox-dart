@@ -1,9 +1,11 @@
 package io.objectbox.objectbox_sync_flutter_libs
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
-import io.objectbox.android.internal.meshsync.NearbyMeshNetwork
+import io.objectbox.meshsync.android.MeshSyncPermissions
+import io.objectbox.meshsync.android.internal.NearbyMeshNetwork
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -12,6 +14,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.PluginRegistry
 
 /**
  * Implements Android-specific functionality for ObjectBox Sync via MethodChannel:
@@ -19,18 +22,19 @@ import io.flutter.plugin.common.MethodChannel.Result
  * - Creating a mesh network for Mesh Sync.
  */
 // TODO Rename to ObjectboxSyncFlutterPlugin?
-class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
+class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware,
+  PluginRegistry.RequestPermissionsResultListener {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel: MethodChannel
   private lateinit var applicationContext: Context
-  private lateinit var meshSyncPermissions: MeshSyncPermissions
+  private var activityBinding: ActivityPluginBinding? = null
+  private var meshSyncPermissions: MeshSyncPermissions? = null
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     applicationContext = flutterPluginBinding.applicationContext
-    meshSyncPermissions = MeshSyncPermissions(applicationContext)
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "objectbox_sync_flutter_libs")
     channel.setMethodCallHandler(this)
   }
@@ -57,16 +61,22 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
           result.error("OBX_MESH_INVALID_SERVICE_ID", "serviceId must not be empty", null)
           return
         }
+
         val requestPermissions = call.argument<Boolean>("requestPermissions") ?: true
         if (requestPermissions) {
-          // TODO Do not wait for permission request to finish;
-          //      instead notify only the network (requires core changes) about permission change
-          meshSyncPermissions.requestIfMissing {
-            createMeshNetwork(serviceId, result)
+          val permissions = meshSyncPermissions
+          if (permissions == null) {
+            Log.w(logTag,
+                "Mesh Sync runtime permissions may be missing, but no Activity is attached to request them")
+          } else {
+            permissions.requestIfMissing()
           }
-        } else {
-          createMeshNetwork(serviceId, result)
         }
+
+        // Create and return the network without waiting for a permissions grant; once permissions
+        // are granted, the Dart side is notified (see onRequestPermissionsResult) so it can retry
+        // the mesh networks.
+        createMeshNetwork(serviceId, result)
       }
       else -> {
         result.notImplemented()
@@ -75,26 +85,46 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   }
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    meshSyncPermissions.onAttachedToActivity(binding)
+    activityBinding = binding
+    meshSyncPermissions = MeshSyncPermissions(binding.activity)
+    binding.addRequestPermissionsResultListener(this)
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    meshSyncPermissions.onDetachedFromActivity()
+    onDetachedFromActivity()
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    meshSyncPermissions.onAttachedToActivity(binding)
+    onAttachedToActivity(binding)
   }
 
   override fun onDetachedFromActivity() {
-    meshSyncPermissions.onDetachedFromActivity()
+    activityBinding?.removeRequestPermissionsResultListener(this)
+    activityBinding = null
+    meshSyncPermissions = null
+  }
+
+  override fun onRequestPermissionsResult(
+      requestCode: Int,
+      permissions: Array<out String>,
+      grantResults: IntArray
+  ): Boolean {
+    if (requestCode != MeshSyncPermissions.PERMISSIONS_REQUEST_CODE) return false
+
+    // The mesh instance only exists on the Dart side, so instead of calling
+    // MeshSyncPermissions.notifyMeshIfPermissionsGranted() notify the Dart side to let it call
+    // MeshSync.retryNetworks() once a sync client (and with it the mesh) exists.
+    if (grantResults.any { it == PackageManager.PERMISSION_GRANTED }) {
+      channel.invokeMethod("onMeshSyncPermissionsGranted", null)
+    }
+    return true
   }
 
   private fun createMeshNetwork(serviceId: String, result: Result) {
     try {
       loadObjectBoxLibrary()
     } catch (e: Throwable) {
-      Log.w("ObjectBoxSyncFlutterLibsPlugin", "Failed to load ObjectBox library: ${e.message}")
+      Log.w(logTag, "Failed to load ObjectBox library: ${e.message}")
       // Ignore
     }
     try {
@@ -114,5 +144,9 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   private fun loadObjectBoxLibrary() {
     System.loadLibrary("objectbox-jni")
     println("[ObjectBox] Loaded JNI library.")
+  }
+
+  private companion object {
+    const val logTag = "ObjectBoxSyncFlutterLibsPlugin"
   }
 }

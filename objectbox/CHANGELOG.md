@@ -22,6 +22,7 @@
     ```
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
+* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
 
 ### Sync
 
