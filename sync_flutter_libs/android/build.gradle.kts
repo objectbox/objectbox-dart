@@ -75,18 +75,7 @@ dependencies {
     // ObjectBox Android database library (Sync variant) that includes a C API
     // compatible with the binding of the objectbox package.
     // See dev-doc/updating-c-library.md for details.
-    implementation("io.objectbox:objectbox-sync-android-db:5.4.2")
-    // For now, we only
-    implementation("io.objectbox:objectbox-sync-android-db:6.0.0-preview1")
-    // For Mesh Sync's Nearby network:
-    implementation("com.google.android.gms:play-services-nearby:19.3.0")
-
-    constraints {
-        implementation("io.objectbox:objectbox-sync-android-db") {
-            version {
-                strictly("6.0.0-preview1")
-            }
-            because("Using preview of ObjectBox Mesh Sync")
-        }
-    }
+    implementation("io.objectbox:objectbox-sync-android-db:6.0.0-beta")
+    // Mesh Sync permissions helper; also pulls in Google Play services Nearby:
+    implementation("io.objectbox:objectbox-meshsync-android:6.0.0-beta")
 }

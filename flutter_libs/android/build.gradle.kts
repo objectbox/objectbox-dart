@@ -75,5 +75,5 @@ dependencies {
     // ObjectBox Android database library that includes a C API compatible with
     // the binding of the objectbox package.
     // See dev-doc/updating-c-library.md for details.
-    implementation("io.objectbox:objectbox-android-db:5.4.2")
+    implementation("io.objectbox:objectbox-android-db:6.0.0-beta")
 }
