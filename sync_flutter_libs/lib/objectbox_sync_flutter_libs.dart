@@ -71,14 +71,25 @@ Future<int?> _createMeshNetwork(
 ///
 /// This may request missing runtime permissions required by the platform's
 /// mesh transport (e.g., required for Android).
-/// Temporary permission handling note (permission may become "non-waiting"):
-/// If permissions are missing, this waits for the permission process to finish
-/// before creating the mesh network, regardless of the outcome.
+/// The mesh network is created immediately, without waiting for the user to
+/// grant the permissions. Once the user has granted (some of) the requested
+/// permissions, [onPermissionsGranted] is called; it should call
+/// [MeshSync.retryNetworks] (via [SyncClient.mesh]) once a sync client exists
+/// so the mesh retries starting its network radios:
+///
+/// ```dart
+/// SyncClient? client;
+/// final mesh = await createMeshConfig('mesh-id',
+///     onPermissionsGranted: () => client?.mesh?.retryNetworks());
+/// client = SyncClient(store, urls, credentials, mesh: mesh);
+/// ```
+///
 /// Pass [requestPermissions] as `false` if your app requests and grants these
 /// permissions before calling this function.
 Future<MeshConfig> createMeshConfig(
   String meshId, {
   bool requestPermissions = true,
+  void Function()? onPermissionsGranted,
   int? maxConnectionCount,
   int? backoffMillis,
   int? evictionBackoffMillis,
@@ -111,6 +122,18 @@ Future<MeshConfig> createMeshConfig(
   );
 
   if (!Platform.isAndroid) return mesh;
+
+  // Get notified by the plugin once the user has granted (some of) the
+  // requested permissions. Note: there can only be one method call handler
+  // per channel, so the callback of the latest call to this function wins.
+  _platform.setMethodCallHandler((MethodCall call) async {
+    switch (call.method) {
+      case 'onMeshSyncPermissionsGranted':
+        onPermissionsGranted?.call();
+      default:
+        throw MissingPluginException('Unknown method ${call.method}');
+    }
+  });
 
   final handle = await _createMeshNetwork(
     meshId,

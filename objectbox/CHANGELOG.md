@@ -30,7 +30,9 @@
   pass a `MeshConfig` to the `SyncClient` constructor and query the running mesh via `SyncClient.mesh`
   (a new `MeshSync` exposing state and statistics).
   This is currently only supported on Android via `createMeshConfig()` from `objectbox_sync_flutter_libs`,
-  which requests missing Android runtime permissions before creating the mesh network unless opted out.
+  which requests missing Android runtime permissions unless opted out. The mesh network is created without
+  waiting for the user's decision; pass `onPermissionsGranted` to get notified once permissions are granted
+  and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios.
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 
 ## 5.3.2 (2026-05-20)

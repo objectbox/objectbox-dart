@@ -572,6 +572,15 @@ class MeshSync {
       malloc.free(count);
     }
   }
+
+  /// Requests an immediate retry of the network radios: advertising (bypassing
+  /// the current retry backoff) and discovery (restarting the current phase).
+  ///
+  /// Call this when conditions that may have prevented the radios from
+  /// starting have changed, e.g. the user just granted the required
+  /// permissions. Thread-safe; the actual retry happens on the mesh sync
+  /// thread shortly after.
+  void retryNetworks() => checkObx(C.mesh_retry_networks(_ptr));
 }
 
 /// A Sync client is used to connect to an ObjectBox Sync server.
