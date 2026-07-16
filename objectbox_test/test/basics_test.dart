@@ -1,6 +1,7 @@
 import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
+import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -93,5 +94,19 @@ void main() {
       expect(() => isAtLeastDatabaseVersion("5.3.2", min), invalidFormatError);
       expect(() => isAtLeastDatabaseVersion(min, "5.3.2"), invalidFormatError);
     });
+  });
+
+  test('all ExternalPropertyType values map to an OBX external type', () {
+    // Every documented annotation value must be accepted by the generator's
+    // mapping (uuidString, uuidV4 and uuidV4String used to throw).
+    for (final type in ExternalPropertyType.values) {
+      expect(externalTypeToOBXExternalType(type), isNonNegative,
+          reason: '$type must be mapped');
+    }
+    // Values as defined by OBXExternalPropertyType in the C API.
+    expect(externalTypeToOBXExternalType(ExternalPropertyType.uuidString), 104);
+    expect(externalTypeToOBXExternalType(ExternalPropertyType.uuidV4), 105);
+    expect(
+        externalTypeToOBXExternalType(ExternalPropertyType.uuidV4String), 106);
   });
 }
