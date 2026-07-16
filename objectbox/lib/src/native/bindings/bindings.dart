@@ -113,13 +113,32 @@ bool _isSupportedVersion(ObjectBoxC obxc) {
     return false;
   }
   // Require a minimum database version.
-  // As the database version string uses the
-  // "major.minor.build-YYYY-MM-DD (<flags>)"
-  // format it should have a stable order.
-  // Note: if the version+date is the same the compare value will be negative as
-  // the flags make the string longer than the expected min version+date string.
   final databaseVersion = dartStringFromC(obxc.version_core_string());
-  return _obxDatabaseMinVersion.compareTo(databaseVersion) <= 0;
+  return isAtLeastDatabaseVersion(databaseVersion, _obxDatabaseMinVersion);
+}
+
+final _databaseVersionPattern = RegExp(r'^(\d+)\.(\d+)\.(\d+)');
+final _databaseVersionDatePattern = RegExp(r'\d{4}-\d{2}-\d{2}');
+
+/// Checks that [version] is at least [minVersion], both expected to use the
+/// "major.minor.build-YYYY-MM-DD (<flags>)" format of the database version
+/// string. Version components are compared numerically, on equal versions the
+/// dates are compared. If a version or date can not be parsed (the format "may
+/// change in any future release") returns true: the numeric C API version
+/// check is the authoritative compatibility gate.
+bool isAtLeastDatabaseVersion(String version, String minVersion) {
+  final versionMatch = _databaseVersionPattern.firstMatch(version);
+  final minVersionMatch = _databaseVersionPattern.firstMatch(minVersion);
+  if (versionMatch == null || minVersionMatch == null) return true;
+  for (var group = 1; group <= 3; group++) {
+    final component = int.parse(versionMatch.group(group)!);
+    final minComponent = int.parse(minVersionMatch.group(group)!);
+    if (component != minComponent) return component > minComponent;
+  }
+  final date = _databaseVersionDatePattern.firstMatch(version)?.group(0);
+  final minDate = _databaseVersionDatePattern.firstMatch(minVersion)?.group(0);
+  if (date == null || minDate == null) return true;
+  return date.compareTo(minDate) >= 0;
 }
 
 ObjectBoxC loadObjectBoxLib() {
