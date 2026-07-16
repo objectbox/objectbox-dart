@@ -38,4 +38,6 @@ update flutter_libs/pubspec.yaml "${dependencyExactExpr}"
 update sync_flutter_libs/pubspec.yaml "${dependencyExactExpr}"
 
 # Changelog latest title
-update objectbox/CHANGELOG.md "s/## latest.*/## ${version} ($(date -I))/g"
+# Note: not using `date -I` as BSD date (macOS) does not support it and the
+# failure would go unnoticed, writing an empty date into the changelog.
+update objectbox/CHANGELOG.md "s/## latest.*/## ${version} ($(date +%Y-%m-%d))/g"

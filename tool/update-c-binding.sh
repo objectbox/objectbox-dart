@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 . "$(dirname "$0")"/common.sh
 
+# The paths below are relative to the repo root: running from elsewhere would
+# scatter downloads/headers into the wrong directories.
+cd "$root"
+
 # Downloads the C library source files of a specific release from GitHub,
 # copies the header files, makes some required modifications
 # and runs the ffigen binding generator on them.

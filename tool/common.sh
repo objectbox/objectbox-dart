@@ -32,5 +32,12 @@ function update() {
   expr=${2}
 
   echo "Updating ${file} - \"${expr}\""
+  before=$(cksum "$root/$file")
   $sed -i "${expr}" "$root/$file"
+  after=$(cksum "$root/$file")
+  if [[ "$before" == "$after" ]]; then
+    # Not failing to stay re-runnable (a file may already be up-to-date), but
+    # make drifted patterns visible instead of silently skipping a file.
+    echo "WARNING: the expression did not change ${file} - if it is not already up-to-date, adjust the expression to match the file content!"
+  fi
 }

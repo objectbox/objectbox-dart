@@ -9,4 +9,11 @@ cLibVersion=6.0.0-beta
 os=$(uname)
 cLibArgs="$*"
 
-bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh) ${cLibArgs} ${cLibVersion}
+# Download to a file first: with `bash <(curl -s ...)` a failed download (e.g.
+# network error) resulted in an empty script and this exiting with 0 as if the
+# library was installed.
+downloadScript=$(mktemp)
+trap 'rm -f "$downloadScript"' EXIT
+curl -fsSL --retry 3 -o "$downloadScript" https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh
+
+bash "$downloadScript" ${cLibArgs} ${cLibVersion}
