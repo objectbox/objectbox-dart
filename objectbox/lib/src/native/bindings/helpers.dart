@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -35,7 +36,9 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
 
 Never throwLatestNativeError({String? context, int codeIfMissing = 0}) {
   var code = C.last_error_code();
-  var message = dartStringFromC(C.last_error_message());
+  // Decode leniently: failing to decode the message (it may embed OS or file
+  // system strings) must not mask the actual error.
+  var message = dartStringFromC(C.last_error_message(), allowMalformed: true);
 
   // Clear the error as the C API does not update error code on some failures.
   // If not cleared, this could then cause an incorrect error message to be
@@ -103,8 +106,14 @@ class ObjectBoxNativeError {
 }
 
 @pragma('vm:prefer-inline')
-String dartStringFromC(Pointer<Char> charPtr) =>
-    charPtr.address == 0 ? '' : charPtr.cast<Utf8>().toDartString();
+String dartStringFromC(Pointer<Char> charPtr, {bool allowMalformed = false}) {
+  if (charPtr.address == 0) return '';
+  final utf8Ptr = charPtr.cast<Utf8>();
+  if (!allowMalformed) return utf8Ptr.toDartString();
+  // Replaces malformed byte sequences with U+FFFD instead of throwing.
+  return utf8.decode(utf8Ptr.cast<Uint8>().asTypedList(utf8Ptr.length),
+      allowMalformed: true);
+}
 
 class CursorHelper<T> {
   final EntityDefinition<T> _entity;

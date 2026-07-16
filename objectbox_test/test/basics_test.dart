@@ -1,5 +1,6 @@
 import 'dart:ffi' as ffi;
 
+import 'package:ffi/ffi.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
@@ -33,6 +34,19 @@ void main() {
         throwLatestNativeError,
         throwsA(predicate(
             (ArgumentError e) => e.toString().contains('must not be null'))));
+  });
+
+  test('dartStringFromC handles malformed UTF-8', () {
+    final ptr = malloc<ffi.Uint8>(3);
+    ptr.asTypedList(3).setAll(0, [0x61, 0xFF, 0x00]);
+    try {
+      expect(() => dartStringFromC(ptr.cast()), throwsFormatException);
+      // Error messages are decoded leniently so a malformed message (e.g.
+      // embedded OS strings) does not mask the actual error.
+      expect(dartStringFromC(ptr.cast(), allowMalformed: true), 'a�');
+    } finally {
+      malloc.free(ptr);
+    }
   });
 
   group('database version check', () {
