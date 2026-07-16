@@ -175,7 +175,9 @@ T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
 T withNativeStrings<T>(
     List<String> items, T Function(Pointer<Pointer<Char>> ptr, int size) fn) {
   final size = items.length;
-  final ptr = malloc<Pointer<Char>>(size);
+  // Zeroed allocation so partially filled slots (if toNativeUtf8 throws
+  // mid-loop) are null pointers and not freed as if they were valid.
+  final ptr = calloc<Pointer<Char>>(size);
   try {
     for (var i = 0; i < size; i++) {
       ptr[i] = items[i].toNativeUtf8().cast();
@@ -183,9 +185,10 @@ T withNativeStrings<T>(
     return fn(ptr, size);
   } finally {
     for (var i = 0; i < size; i++) {
-      malloc.free((ptr + i).value);
+      final cStr = ptr[i];
+      if (cStr.address != 0) malloc.free(cStr);
     }
-    malloc.free(ptr);
+    calloc.free(ptr);
   }
 }
 
