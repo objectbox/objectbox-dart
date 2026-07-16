@@ -234,6 +234,12 @@ class ModelInfo {
     retiredEntityUids.add(entity.id.uid);
     for (var prop in entity.properties) {
       retiredPropertyUids.add(prop.id.uid);
+      if (prop.indexId != null) {
+        retiredIndexUids.add(prop.indexId!.uid);
+      }
+    }
+    for (var rel in entity.relations) {
+      retiredRelationUids.add(rel.id.uid);
     }
   }
 
