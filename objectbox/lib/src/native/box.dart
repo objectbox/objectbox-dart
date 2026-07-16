@@ -252,7 +252,7 @@ class Box<T> {
           if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
           _entity.setId(object, newId);
         }
-        _putToOneRelFields(object, mode, tx);
+        _putToOneRelFields(object, tx);
       }
     }
     _builder.fbb.reset();
@@ -260,7 +260,7 @@ class Box<T> {
     final newId = C.box_put_object4(
         _ptr, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
-    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
+    if (_hasToManyRelations) _putToManyRelFields(object, tx!);
     _builder.resetIfLarge();
     return id;
   }
@@ -281,7 +281,7 @@ class Box<T> {
         (Transaction tx) {
       if (_hasToOneRelations) {
         for (var object in objects) {
-          _putToOneRelFields(object, mode, tx);
+          _putToOneRelFields(object, tx);
         }
       }
 
@@ -298,7 +298,7 @@ class Box<T> {
 
       if (_hasToManyRelations) {
         for (var object in objects) {
-          _putToManyRelFields(object, mode, tx);
+          _putToManyRelFields(object, tx);
         }
       }
       _builder.resetIfLarge();
@@ -569,22 +569,26 @@ class Box<T> {
   Future<int> removeAllAsync() async =>
       await _store.runAsync(_removeAllAsyncCallback<T>, null);
 
-  void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
+  void _putToOneRelFields(T object, Transaction tx) {
     for (var toOne in _entity.toOneRelations(object)) {
       // To avoid all ToOnes obtaining a Store for each put,
       // pass the store of this box.
-      toOne.applyToDb(_store, mode, tx);
+      // Use plain put for the target: the caller's mode only applies to the
+      // object itself (e.g. an update-mode put must still insert a new
+      // target, as documented on put()).
+      toOne.applyToDb(_store, PutMode.put, tx);
     }
   }
 
-  void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
+  void _putToManyRelFields(T object, Transaction tx) {
     _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
       // Always set relation info so ToMany applyToDb can be used after initial put
       InternalToManyAccess.setRelInfo<T>(rel, _store, info);
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
         // To avoid all ToManys obtaining a Store for each put,
         // pass the store of this box.
-        rel.applyToDb(existingStore: _store, mode: mode, tx: tx);
+        // Use plain put for targets (see _putToOneRelFields).
+        rel.applyToDb(existingStore: _store, tx: tx);
       }
     });
   }
