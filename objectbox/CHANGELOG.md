@@ -30,6 +30,7 @@
 * When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
 * `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
 * Query subscriptions using `QueryBuilder.watch` properly resume, deliver events that arrived while paused. Also, if resumed, the subscription is no longer leaked, which kept the native observer alive even after cancelling the subscription.
+* Fix setting a list query parameter (`values`) on a `Date` or `DateNano` property failing with a native error: the parameter was passed as 32-bit while the condition is built as 64-bit.
 
 ### Sync
 
