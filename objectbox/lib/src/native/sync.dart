@@ -358,13 +358,21 @@ class SyncClient {
     _cSync =
         checkObxPtr(C.sync_create(options), 'failed to create Sync client');
 
-    filterVariables?.forEach(putFilterVariable);
+    try {
+      filterVariables?.forEach(putFilterVariable);
 
-    if (credentials.length == 1) {
-      setCredentials(credentials[0]);
-    } else {
-      // also covers the length == 0 case
-      setMultipleCredentials(credentials);
+      if (credentials.length == 1) {
+        setCredentials(credentials[0]);
+      } else {
+        // also covers the length == 0 case
+        setMultipleCredentials(credentials);
+      }
+    } catch (e) {
+      // Close the native client, it is not reachable anymore (this instance
+      // never escapes the constructor and has no finalizer).
+      C.sync_close(_cSync);
+      _cSync = nullptr;
+      rethrow;
     }
 
     syncClientsStorage[_store] = this;
