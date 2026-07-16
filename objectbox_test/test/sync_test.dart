@@ -208,6 +208,21 @@ void main() {
       expect(() => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto), error);
     });
 
+    test('listen on closed SyncClient delivers error on stream', () async {
+      SyncClient c = createClient(store);
+      final events = c.connectionEvents;
+      c.close();
+      // Previously the error surfaced only as an unhandled zone error the
+      // subscriber can not catch, and the just-created receive port leaked
+      // (keeping the isolate alive).
+      final errors = <Object>[];
+      final sub = events.listen((_) {}, onError: errors.add);
+      await Future<void>.delayed(Duration.zero);
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<StateError>());
+      await sub.cancel();
+    });
+
     test('SyncClient simple coverage (no server available)', () async {
       SyncClient c = createClient(store);
       expect(c.isClosed(), isFalse);

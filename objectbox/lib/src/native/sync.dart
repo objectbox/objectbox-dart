@@ -897,6 +897,8 @@ class _SyncListenerGroup<StreamValueType> {
     assert(finished, 'Starting an unfinished group?!');
 
     var hasError = false;
+    Object? initError;
+    StackTrace? initTrace;
     for (var config in _configs) {
       if (hasError) continue;
 
@@ -908,7 +910,15 @@ class _SyncListenerGroup<StreamValueType> {
       _receivePorts.add(receivePort);
 
       // Start the native listener.
-      final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
+      var cListener = nullptr.cast<OBX_dart_sync_listener>();
+      try {
+        cListener = config.cListenerInit(receivePort.sendPort.nativePort);
+      } catch (e, s) {
+        // E.g. the sync client is already closed. Fall through to the
+        // cleanup below so the receive port just created is closed as well.
+        initError = e;
+        initTrace = s;
+      }
       if (cListener == nullptr) {
         hasError = true;
       } else {
@@ -917,12 +927,24 @@ class _SyncListenerGroup<StreamValueType> {
     }
 
     if (hasError) {
+      // Deliver the error on the stream: throwing here would only surface as
+      // an unhandled zone error the subscriber can not catch.
       try {
+        if (initError != null) {
+          Error.throwWithStackTrace(initError, initTrace ?? StackTrace.current);
+        }
         throwLatestNativeError(
             context: 'Failed to initialize a sync native listener');
+      } catch (e, s) {
+        controller.addError(e, s);
       } finally {
-        _stop();
+        try {
+          _stop();
+        } catch (_) {
+          // Best effort clean-up, an error was already delivered above.
+        }
       }
+      return;
     }
 
     _debugLog('started');
