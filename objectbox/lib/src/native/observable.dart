@@ -36,7 +36,8 @@ class _Observer<StreamValueType> implements Finalizable {
   }
 
   // start() is called whenever user starts listen()-ing to the stream
-  void init(void Function() start, {bool broadcast = false}) {
+  void init(void Function() start,
+      {bool broadcast = false, void Function()? onCancel}) {
     controller = broadcast
         ? StreamController<StreamValueType>.broadcast(
             onListen: start, onCancel: stop)
@@ -47,6 +48,7 @@ class _Observer<StreamValueType> implements Finalizable {
             onCancel: () {
               stop();
               close();
+              onCancel?.call();
             });
   }
 
@@ -103,7 +105,15 @@ extension ObservableStore on Store {
     observer.init(() {
       observer.cObserver = C.dartc_observe_single_type(
           _cStoreChecked, entityId, observer.nativePort);
-    });
+    }, onCancel: () => _onClose.remove(observer));
+
+    // Close the native observer before the native store is closed (it is
+    // freed with the store; closing it on a later cancel would then be a
+    // use-after-free) and the port so it does not keep the isolate alive.
+    _onClose[observer] = () {
+      observer.stop();
+      observer.close();
+    };
 
     return observer.stream;
   }
@@ -134,6 +144,8 @@ extension ObservableStore on Store {
         if (entityType == null) {
           observer.controller.addError(ObjectBoxException(
               'Received data change notification for an unknown entity ID $entityId'));
+          // Do not also emit an event with placeholder (Null) types.
+          return;
         } else {
           entities[i] = entityType;
         }
@@ -146,7 +158,13 @@ extension ObservableStore on Store {
     }, broadcast: broadcast);
 
     if (broadcast) {
-      _onClose[observer] = observer.close;
+      // Close the native observer before the native store is closed (it is
+      // freed with the store; closing it on a later cancel would then be a
+      // use-after-free) and the port so it does not keep the isolate alive.
+      _onClose[observer] = () {
+        observer.stop();
+        observer.close();
+      };
     }
 
     return observer.stream;

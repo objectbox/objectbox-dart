@@ -42,6 +42,7 @@
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
 * Close transactions that are still open when their isolate shuts down, such as when `Isolate.kill()` is called while inside a write transaction. Before, closing the store waited forever for such a transaction. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Close native observers (`Store.watch()`, `Store.entityChanges`, `Query.watch()`) that are still open when their isolate shuts down or when they are garbage collected without the subscription being canceled. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
+* Fix native data observers not being stopped when the store is closed: cancelling a `Store.watch<Entity>()` or `Store.entityChanges` subscription after `Store.close()` closed the already freed native observer (a use-after-free that can corrupt memory or crash). A `watch<Entity>()` subscription also kept its receive port open forever if the store was closed without cancelling, preventing the isolate from exiting.
 
 ### Sync
 

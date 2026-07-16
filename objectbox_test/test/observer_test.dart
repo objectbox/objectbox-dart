@@ -23,6 +23,19 @@ void main() async {
 
   tearDown(() => env.closeAndDelete());
 
+  test('cancel subscription after store is closed', () async {
+    // Native observers are freed together with the native store, so closing
+    // the store must stop them: cancelling afterwards previously closed the
+    // already freed native observer (use-after-free, confirmed by valgrind).
+    final subWatch = env.store.watch<TestEntity>().listen((_) {});
+    final subEntityChanges = env.store.entityChanges.listen((_) {});
+    box.put(TestEntity(tString: 'event'));
+    await Future<void>.delayed(Duration.zero);
+    env.store.close();
+    await subWatch.cancel();
+    await subEntityChanges.cancel();
+  });
+
   test('Observe single entity', () async {
     late Completer<void> completer;
     var expectedEvents = 0;
