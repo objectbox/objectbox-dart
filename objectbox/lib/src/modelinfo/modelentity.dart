@@ -303,6 +303,9 @@ class ModelEntity {
     if (properties.indexWhere((p) => p.id.uid == searched) != -1) {
       return true;
     }
+    if (properties.indexWhere((p) => p.indexId?.uid == searched) != -1) {
+      return true;
+    }
     if (relations.indexWhere((p) => p.id.uid == searched) != -1) {
       return true;
     }
