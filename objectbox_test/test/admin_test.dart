@@ -40,6 +40,19 @@ void main() {
           ? null
           : 'Admin is not available in the loaded library');
 
+  test('admin create failure throws', () async {
+    // Occupy the port so starting the Admin server fails: it must throw
+    // (previously the null result was not checked and the Admin object was
+    // created in an already-closed state, failing only on later use).
+    final socket = await ServerSocket.bind('127.0.0.1', 0);
+    addTearDown(socket.close);
+    expect(() => Admin(env.store, bindUri: 'http://127.0.0.1:${socket.port}'),
+        throwsA(anything));
+  },
+      skip: Admin.isAvailable()
+          ? null
+          : 'Admin is not available in the loaded library');
+
   test('admin not available', () {
     expect(
         () => Admin(env.store),

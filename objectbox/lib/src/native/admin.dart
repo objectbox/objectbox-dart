@@ -56,7 +56,8 @@ class Admin implements Finalizable {
       rethrow;
     }
 
-    _cAdmin = C.admin(opt);
+    // Note: obx_admin takes ownership of the options, even on failure.
+    _cAdmin = checkObxPtr(C.admin(opt), 'failed to create ObjectBox Admin');
 
     _finalizer.attach(this, _cAdmin.cast(),
         detach: this, externalSize: 1024 * 1024);
