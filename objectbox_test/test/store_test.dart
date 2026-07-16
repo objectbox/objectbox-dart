@@ -47,6 +47,23 @@ void main() {
             e.message!.contains('Cannot create multiple Store instances'))));
   });
 
+  test('store attach registers directory and provides reference', () async {
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
+    final receivePort = ReceivePort();
+    await Isolate.spawn(attachTwiceIsolate,
+        StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath));
+    final results = await receivePort.first as List;
+    receivePort.close();
+    // Store.attach provides a usable reference
+    // (previously threw LateInitializationError).
+    expect(results[0], isTrue);
+    // Attaching twice in the same isolate is rejected as documented
+    // (previously succeeded, the attached store was never registered).
+    expect(results[1], isTrue);
+  });
+
   test('store attach remains open if main store closed', () async {
     final env = TestEnv('store');
     addTearDown(() => env.closeAndDelete());
@@ -485,6 +502,26 @@ class StoreAttachIsolateInit {
   String path;
 
   StoreAttachIsolateInit(this.sendPort, this.path);
+}
+
+void attachTwiceIsolate(StoreAttachIsolateInit init) {
+  final store = Store.attach(getObjectBoxModel(), init.path);
+  bool referenceWorks;
+  try {
+    store.reference;
+    referenceWorks = true;
+  } catch (_) {
+    referenceWorks = false;
+  }
+  bool doubleAttachThrew;
+  try {
+    Store.attach(getObjectBoxModel(), init.path).close();
+    doubleAttachThrew = false;
+  } on UnsupportedError {
+    doubleAttachThrew = true;
+  }
+  store.close();
+  init.sendPort.send([referenceWorks, doubleAttachThrew]);
 }
 
 void storeAttachIsolate(StoreAttachIsolateInit init) async {

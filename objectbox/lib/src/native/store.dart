@@ -304,12 +304,7 @@ class Store implements Finalizable {
 
       _checkStorePointer(_cStore);
 
-      // Always create _reference, so it can be non-nullable.
-      // Ensure we only try to access the store created in the same process.
-      // Also serves as a simple sanity check/hash.
-      _reference = ByteData(2 * _int64Size);
-      _reference.setUint64(0 * _int64Size, pid);
-      _reference.setUint64(1 * _int64Size, _ptr.address);
+      _setReference();
 
       _openStoreDirectories.add(_absoluteDirectoryPath);
       _attachConfiguration(_cStore, modelDefinition, safeDirectoryPath,
@@ -364,21 +359,26 @@ class Store implements Finalizable {
         // Must not close native store twice, only original store is allowed to.
         _closesNativeStore = false,
         _absoluteDirectoryPath = '' {
-    // see [reference] for serialization order
-    final readPid = _reference.getUint64(0 * _int64Size);
-    if (readPid != pid) {
-      throw ArgumentError("Reference.processId $readPid doesn't match the "
-          'current process PID $pid');
-    }
+    try {
+      // see [reference] for serialization order
+      final readPid = _reference.getUint64(0 * _int64Size);
+      if (readPid != pid) {
+        throw ArgumentError("Reference.processId $readPid doesn't match the "
+            'current process PID $pid');
+      }
 
-    _cStore = Pointer.fromAddress(_reference.getUint64(1 * _int64Size));
-    if (_cStore.address == 0) {
-      throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
-          'Given native pointer is empty');
-    }
+      _cStore = Pointer.fromAddress(_reference.getUint64(1 * _int64Size));
+      if (_cStore.address == 0) {
+        throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
+            'Given native pointer is empty');
+      }
 
-    _attachConfiguration(
-        _cStore, modelDefinition, '', queriesCaseSensitiveDefault);
+      _attachConfiguration(
+          _cStore, modelDefinition, '', queriesCaseSensitiveDefault);
+    } catch (e) {
+      _readPointers.clear();
+      rethrow;
+    }
   }
 
   /// Creates a Store clone with minimal functionality given a pointer address
@@ -391,13 +391,19 @@ class Store implements Finalizable {
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
         _absoluteDirectoryPath = '' {
-    if (ptrAddress == 0) {
-      throw ArgumentError.value(
-          ptrAddress, 'ptrAddress', 'Given native pointer address is invalid');
+    try {
+      if (ptrAddress == 0) {
+        throw ArgumentError.value(ptrAddress, 'ptrAddress',
+            'Given native pointer address is invalid');
+      }
+      _cStore = Pointer<OBX_store>.fromAddress(ptrAddress);
+      _setReference();
+      _configuration = null;
+      _attachFinalizer();
+    } catch (e) {
+      _readPointers.clear();
+      rethrow;
     }
-    _cStore = Pointer<OBX_store>.fromAddress(ptrAddress);
-    _configuration = null;
-    _attachFinalizer();
   }
 
   /// Attach to a store opened in the [directoryPath]
@@ -434,9 +440,11 @@ class Store implements Finalizable {
       checkObxPtr(_cStore,
           'could not attach to the store at given path - please ensure it was opened before');
 
-      // Not setting _reference as this is a replacement for obtaining a store
-      // via reference.
+      _setReference();
 
+      // Register so the duplicate-instance check above also guards against
+      // attaching twice in the same isolate (close() removes the entry).
+      _openStoreDirectories.add(_absoluteDirectoryPath);
       _attachConfiguration(_cStore, modelDefinition, safeDirectoryPath,
           queriesCaseSensitiveDefault);
       _attachFinalizer();
@@ -444,6 +452,15 @@ class Store implements Finalizable {
       _readPointers.clear();
       rethrow;
     }
+  }
+
+  /// Create [_reference] (it is non-nullable) so [reference] works for every
+  /// kind of store. Ensures only a store created in the same process can be
+  /// accessed via it (also a simple sanity check/hash).
+  void _setReference() {
+    _reference = ByteData(2 * _int64Size);
+    _reference.setUint64(0 * _int64Size, pid);
+    _reference.setUint64(1 * _int64Size, _cStore.address);
   }
 
   /// Attach to an open Store for short-time use.
@@ -460,6 +477,7 @@ class Store implements Finalizable {
       Pointer<OBX_store>? storePtr = C.store_attach_id(configuration.id);
       _checkStorePointer(storePtr);
       _cStore = storePtr;
+      _setReference();
       _configuration = configuration;
       _attachFinalizer();
     } catch (e) {
@@ -626,9 +644,14 @@ class Store implements Finalizable {
     if (_closesNativeStore) {
       _openStoreDirectories.remove(_absoluteDirectoryPath);
       _finalizer.detach(this);
-      checkObx(C.store_close(_cStore));
+      // Mark as closed before the native call: even if it reports an error
+      // the handle must not be used (or closed) again.
+      final cStore = _cStore;
+      _cStore = nullptr;
+      checkObx(C.store_close(cStore));
+    } else {
+      _cStore = nullptr;
     }
-    _cStore = nullptr;
   }
 
   /// Returns a cached Box instance.
