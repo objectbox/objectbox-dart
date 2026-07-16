@@ -931,12 +931,21 @@ class Query<T> implements Finalizable {
   /// If greater than 0, Query methods will skip [offset] number of results.
   ///
   /// Use together with [limit] to get a slice of the whole result, e.g. for "result paging".
-  set offset(int offset) => checkObx(C.query_offset(_ptr, offset));
+  set offset(int offset) {
+    // The C API takes an unsigned integer, a negative value would wrap
+    // around to a huge offset and silently return no results.
+    RangeError.checkNotNegative(offset, 'offset');
+    checkObx(C.query_offset(_ptr, offset));
+  }
 
   /// If greater than 0, Query methods will return at most [limit] many results.
   ///
   /// Use together with [offset] to get a slice of the whole result, e.g. for "result paging".
-  set limit(int limit) => checkObx(C.query_limit(_ptr, limit));
+  set limit(int limit) {
+    // See offset: avoid wrap-around to a huge limit.
+    RangeError.checkNotNegative(limit, 'limit');
+    checkObx(C.query_limit(_ptr, limit));
+  }
 
   /// Returns the number of matching Objects.
   int count() {

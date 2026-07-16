@@ -421,6 +421,11 @@ void main() {
     expect((q..limit = 1).find().map((e) => e.tString), equals(['b']));
     expect((q..offset = 0).find().map((e) => e.tString), equals([null]));
 
+    // Negative values would wrap around to huge unsigned values in the
+    // C API and silently return no results.
+    expect(() => q.offset = -1, throwsRangeError);
+    expect(() => q.limit = -1, throwsRangeError);
+
     q.close();
   });
 
