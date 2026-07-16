@@ -37,7 +37,11 @@ class BuilderWithCBuffer {
   void resetIfLarge() {
     if (_allocator._capacity > _resetIfLargerThan) {
       clear();
-      _fbb = fb.Builder(initialSize: _initialSize, allocator: _allocator);
+      _fbb = fb.Builder(
+        initialSize: _initialSize,
+        allocator: _allocator,
+        deduplicateTables: false, // we always have exactly one table
+      );
     }
   }
 
