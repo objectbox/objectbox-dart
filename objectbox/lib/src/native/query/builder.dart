@@ -71,7 +71,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     // also does not allow to send an event within).
     controller = StreamController<Query<T>>(
         onListen: subscribe,
-        onResume: subscribe,
+        onResume: () => subscription.resume(),
         onPause: () => subscription.pause(),
         onCancel: () => subscription.cancel());
     if (triggerImmediately) controller.add(query);
