@@ -95,11 +95,16 @@ class ObjectBoxAnalysis {
     final body = "[${event.toJson()}]";
     final url = Uri.https(_url, _path);
     if (_debug) print("[ObjectBox] Analysis sending to $url: $body");
-    return http.post(
-      url,
-      headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
-      body: body,
-    );
+    // This is awaited on the build's critical path, so never wait for long
+    // (e.g. a connection that is silently dropped could otherwise stall the
+    // build for minutes). The timeout error is swallowed by the caller.
+    return http
+        .post(
+          url,
+          headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
+          body: body,
+        )
+        .timeout(const Duration(seconds: 10));
   }
 
   /// Uses the given values to gather properties and return them as an [Event].
