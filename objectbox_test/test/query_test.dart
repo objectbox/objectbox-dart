@@ -1039,6 +1039,17 @@ void main() {
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
 
+  test('using a built QueryBuilder throws', () {
+    // build() frees the native builder, so further use must throw instead of
+    // operating on the freed native object (undefined behavior).
+    final builder = box.query();
+    builder.build().close();
+    expect(() => builder.build(), throwsStateError);
+    expect(() => builder.order(TestEntity_.tString), throwsStateError);
+    expect(() => builder.link(TestEntity_.relA), throwsStateError);
+    expect(() => builder.watch(), throwsStateError);
+  });
+
   test('use after close throws', () {
     // Check for proper error after query is closed.
     final query = env.box.query().build();
