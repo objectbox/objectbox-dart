@@ -134,6 +134,23 @@ void main() {
     testCaseSensitivity(env2.box, defaultIsTrue: false);
   });
 
+  test('string conditions and params reject embedded null character', () {
+    final t = TestEntity_.tString;
+    box.put(TestEntity(tString: 'ab'));
+
+    // C strings are null-terminated, so 'ab\u0000c' would be silently
+    // truncated to 'ab' and wrongly match. Expect an error instead.
+    expect(() => box.query(t.equals('ab\u0000c')).build(),
+        throwsA(isA<ArgumentError>()));
+    expect(() => box.query(t.oneOf(['ab\u0000c'])).build(),
+        throwsA(isA<ArgumentError>()));
+
+    final query = box.query(t.equals('ab')).build();
+    addTearDown(query.close);
+    expect(() => query.param(t).value = 'ab\u0000c',
+        throwsA(isA<ArgumentError>()));
+  });
+
   test('.count doubles and booleans', () {
     box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),

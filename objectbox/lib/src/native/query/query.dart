@@ -599,17 +599,14 @@ class _StringCondition<EntityT, PropertyDartType>
 
   // Note: can't change bool to named parameter, functions are generated
   int _op1(
-      _QueryBuilder builder,
-      // ignore: avoid_positional_boolean_parameters
-      int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, bool) func) {
-    final cStr = _value.toNativeUtf8();
-    try {
-      return func(builder._cBuilder, _property._model.id.id, cStr.cast(),
-          caseSensitive ?? InternalStoreAccess.queryCS(builder._store));
-    } finally {
-      malloc.free(cStr);
-    }
-  }
+          _QueryBuilder builder,
+          // ignore: avoid_positional_boolean_parameters
+          int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, bool)
+              func) =>
+      withNativeString(
+          _value,
+          (cStr) => func(builder._cBuilder, _property._model.id.id, cStr,
+              caseSensitive ?? InternalStoreAccess.queryCS(builder._store)));
 
   @override
   int _apply(_QueryBuilder builder, {required bool isRoot}) {

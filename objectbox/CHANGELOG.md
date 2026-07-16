@@ -24,6 +24,7 @@
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
 * Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
+* Throw `ArgumentError` if a string passed to a native API (e.g. a query condition or parameter) contains the null character U+0000: it would be silently truncated at the null character before, e.g. causing a query to match the wrong objects.
 
 ### Sync
 

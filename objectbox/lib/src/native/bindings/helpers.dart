@@ -163,7 +163,18 @@ T withNativeBytes<T>(
   }
 }
 
+void _checkNoNullChar(String str) {
+  if (str.contains('\u0000')) {
+    throw ArgumentError.value(
+        str,
+        'str',
+        'must not contain the null character U+0000 (it would be truncated '
+            'when converted to a null-terminated C string)');
+  }
+}
+
 T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
+  _checkNoNullChar(str);
   final cStr = str.toNativeUtf8();
   try {
     return fn(cStr.cast());
@@ -181,6 +192,7 @@ T withNativeStrings<T>(
   final ptr = calloc<Pointer<Char>>(size);
   try {
     for (var i = 0; i < size; i++) {
+      _checkNoNullChar(items[i]);
       ptr[i] = items[i].toNativeUtf8().cast();
     }
     return fn(ptr, size);
