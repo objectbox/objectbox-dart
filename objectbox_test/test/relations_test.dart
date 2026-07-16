@@ -373,6 +373,17 @@ void main() {
               "ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead."))));
     });
 
+    test('applyToDb rejects a different store', () {
+      final env2 = TestEnv('relations2');
+      addTearDown(() => env2.closeAndDelete());
+      final srcId = env.box.put(src!);
+      final src2 = env.box.get(srcId)!;
+      src2.relManyA.add(RelatedEntityA(tInt: 1));
+      // Applying against another store would use IDs from the wrong database.
+      expect(() => src2.relManyA.applyToDb(existingStore: env2.store),
+          throwsArgumentError);
+    });
+
     test("don't load old data when just adding", () {
       expect(src!.relManyA, isNotNull);
       src!.relManyA.add(RelatedEntityA(tInt: 1));

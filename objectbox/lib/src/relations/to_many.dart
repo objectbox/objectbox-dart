@@ -186,6 +186,13 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           "Can't store relation info for the target object with zero ID");
     }
 
+    if (existingStore != null &&
+        existingStore.configuration().id !=
+            configuration.storeConfiguration.id) {
+      throw ArgumentError.value(existingStore, 'existingStore',
+          'Relation already attached to a different store');
+    }
+
     // Use given store, or obtain one via store configuration
     // (then store must be closed once done).
     final Store store = existingStore ??
@@ -293,9 +300,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     } else {
       final store =
           StoreInternal.attachByConfiguration(configuration.storeConfiguration);
-      items = InternalBoxAccess.getRelated(
-          configuration.box(store), configuration.relInfo);
-      store.close();
+      try {
+        items = InternalBoxAccess.getRelated(
+            configuration.box(store), configuration.relInfo);
+      } finally {
+        store.close();
+      }
     }
     if (_addedBeforeLoad.isNotEmpty) {
       items.addAll(_addedBeforeLoad);

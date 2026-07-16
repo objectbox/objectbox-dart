@@ -28,6 +28,7 @@
 * Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
 * Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
 * When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
+* `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
 
 ### Sync
 
