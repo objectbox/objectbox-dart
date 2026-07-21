@@ -1,4 +1,4 @@
-#include "include/objectbox_sync_flutter_libs/objectbox_sync_flutter_libs_plugin.h"
+#include "objectbox_sync_flutter_libs_plugin.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
@@ -10,26 +10,10 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
 #include <memory>
 #include <sstream>
 
-namespace {
-
-class ObjectboxSyncFlutterLibsPlugin : public flutter::Plugin {
- public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
-
-  ObjectboxSyncFlutterLibsPlugin();
-
-  virtual ~ObjectboxSyncFlutterLibsPlugin();
-
- private:
-  // Called when a method is called on this plugin's channel from Dart.
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-};
+namespace objectbox_sync_flutter_libs {
 
 // static
 void ObjectboxSyncFlutterLibsPlugin::RegisterWithRegistrar(
@@ -73,11 +57,4 @@ void ObjectboxSyncFlutterLibsPlugin::HandleMethodCall(
   }
 }
 
-}  // namespace
-
-void ObjectboxSyncFlutterLibsPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
-  ObjectboxSyncFlutterLibsPlugin::RegisterWithRegistrar(
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
-}
+}  // namespace objectbox_sync_flutter_libs
