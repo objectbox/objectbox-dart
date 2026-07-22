@@ -11,12 +11,6 @@ G_BEGIN_DECLS
 #define FLUTTER_PLUGIN_EXPORT
 #endif
 
-typedef struct _ObjectboxSyncFlutterLibsPlugin ObjectboxSyncFlutterLibsPlugin;
-typedef struct {
-  GObjectClass parent_class;
-} ObjectboxSyncFlutterLibsPluginClass;
-
-FLUTTER_PLUGIN_EXPORT GType objectbox_sync_flutter_libs_plugin_get_type();
 
 FLUTTER_PLUGIN_EXPORT void objectbox_sync_flutter_libs_plugin_register_with_registrar(
     FlPluginRegistrar* registrar);
