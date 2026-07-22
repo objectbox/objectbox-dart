@@ -14,8 +14,8 @@ echo "Setting objectbox-android, objectbox-sync-android and objectbox-android-ob
 # Regular expressions match any version string ending with a double quote ("),
 # such as -android:1.2.3" or android:1.2.3-preview1"
 versionExpr="s/-android:[^\"]*/-android:${version}/g"
-update flutter_libs/android/build.gradle "${versionExpr}"
-update sync_flutter_libs/android/build.gradle "${versionExpr}"
+update flutter_libs/android/build.gradle.kts "${versionExpr}"
+update sync_flutter_libs/android/build.gradle.kts "${versionExpr}"
 
 versionExpr="s/objectbox-android-objectbrowser:[^\"]*/objectbox-android-objectbrowser:${version}/g"
 update objectbox/example/flutter/objectbox_demo_relations/android/app/build.gradle.kts "${versionExpr}"
