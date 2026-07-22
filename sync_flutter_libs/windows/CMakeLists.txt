@@ -72,10 +72,7 @@ FetchContent_Declare(
     URL https://github.com/objectbox/objectbox-c/releases/download/v${OBJECTBOX_VERSION}/objectbox-sync-windows-${OBJECTBOX_ARCH}.zip
 )
 
-FetchContent_GetProperties(objectbox-download)
-if(NOT objectbox-download_POPULATED)
-  FetchContent_Populate(objectbox-download)
-endif()
+FetchContent_MakeAvailable(objectbox-download)
 
 set(objectbox_sync_flutter_libs_bundled_libraries
     "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}"
@@ -84,8 +81,8 @@ set(objectbox_sync_flutter_libs_bundled_libraries
 
 add_library(objectbox SHARED IMPORTED GLOBAL)
 set_target_properties(objectbox PROPERTIES
-    IMPORTED_LOCATION ${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}
-    IMPORTED_IMPLIB ${objectbox-download_SOURCE_DIR}/lib/${CMAKE_IMPORT_LIBRARY_PREFIX}objectbox${CMAKE_IMPORT_LIBRARY_SUFFIX}
+    IMPORTED_LOCATION "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}"
+    IMPORTED_IMPLIB "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_IMPORT_LIBRARY_PREFIX}objectbox${CMAKE_IMPORT_LIBRARY_SUFFIX}"
 )
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE objectbox)

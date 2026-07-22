@@ -3,6 +3,7 @@
 * Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
 * Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
+* Flutter plugins: resolve FetchContent deprecation warnings. [#701](https://github.com/objectbox/objectbox-dart/issues/701)
 
 ## 5.3.2 (2026-05-20)
 
