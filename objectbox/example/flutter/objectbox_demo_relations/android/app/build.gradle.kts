@@ -48,7 +48,7 @@ flutter {
 // that is added by the objectbox_flutter_libs package for debug builds.
 configurations {
     debugImplementation {
-        exclude(group = "io.objectbox", module = "objectbox-android")
+        exclude(group = "io.objectbox", module = "objectbox-android-db")
     }
 }
 
@@ -57,5 +57,5 @@ dependencies {
     // Add the Android library with ObjectBox Admin only for debug builds.
     // Note: when the objectbox package updates, check if the Android
     // library below needs to be updated as well.
-    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.4.2")
+    debugImplementation("io.objectbox:objectbox-android-db-admin:5.4.2")
 }

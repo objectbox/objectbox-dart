@@ -72,8 +72,8 @@ kotlin {
 }
 
 dependencies {
-    // ObjectBox Android library that includes an ObjectBox C library version compatible with
-    // the C API binding of the ObjectBox Dart package.
-    // https://central.sonatype.com/search?q=g:io.objectbox%20objectbox-sync-android
-    implementation("io.objectbox:objectbox-sync-android:5.4.2")
+    // ObjectBox Android database library (Sync variant) that includes a C API
+    // compatible with the binding of the objectbox package.
+    // See dev-doc/updating-c-library.md for details.
+    implementation("io.objectbox:objectbox-sync-android-db:5.4.2")
 }
