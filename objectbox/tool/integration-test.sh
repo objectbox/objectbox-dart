@@ -39,12 +39,9 @@ fi
 
 if [[ "$(uname)" == "Darwin" ]]; then
   flutter build ios --no-codesign
-  flutter config --enable-macos-desktop
   flutter build macos
 elif [[ "$(uname)" == "Linux" ]]; then
-  flutter config --enable-linux-desktop
   flutter build linux
 else
-  flutter config --enable-windows-desktop
   flutter build windows
 fi
