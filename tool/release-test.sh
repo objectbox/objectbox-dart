@@ -16,7 +16,11 @@ rm -rf "${testDir}"
 mkdir -pv "${testDir}"
 cd "${testDir}" || exit 1
 
-curl -L "https://pub.dev/api/archives/objectbox-${version}.tar.gz" | tar xz -C .
+archiveFile="objectbox-${version}.tar.gz"
+curl --fail --show-error --location --output "${archiveFile}" \
+  "https://pub.dev/api/archives/objectbox-${version}.tar.gz"
+tar xzf "${archiveFile}" -C .
+rm "${archiveFile}"
 
 make examples
 
