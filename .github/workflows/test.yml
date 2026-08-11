@@ -123,6 +123,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 21
+          verify-signature: true
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         # Install Ubuntu packages required for Flutter build
         # https://docs.flutter.dev/platform-integration/linux/setup#set-up-tooling
