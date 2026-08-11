@@ -28,11 +28,16 @@ void main() {
       // Can't access targetId on new objects (not coming from box) unless
       // attached manually.
       expect(
-          () => src.relA.targetId,
-          throwsA(predicate((StateError e) =>
-              e.message ==
-              "ToOne relation field not initialized. "
-                  "Make sure attach(store) is called before using this.")));
+        () => src.relA.targetId,
+        throwsA(
+          predicate(
+            (StateError e) =>
+                e.message ==
+                "ToOne relation field not initialized. "
+                    "Make sure attach(store) is called before using this.",
+          ),
+        ),
+      );
       src.relA.attach(env.store);
       expect(src.relA.targetId, isZero);
 
@@ -194,8 +199,10 @@ void main() {
       {
         // link condition matches orders from 2
         // complex regular conditions matches two orders for 1, one for 2
-        final qb = env.box.query(TestEntity_.tString.equals("Apples") |
-            TestEntity_.tString.equals("Oranges"));
+        final qb = env.box.query(
+          TestEntity_.tString.equals("Apples") |
+              TestEntity_.tString.equals("Oranges"),
+        );
         qb.link(TestEntity_.relA, RelatedEntityA_.tInt.equals(2));
         final query = qb.build();
         expect(query.find().length, 1);
@@ -208,8 +215,10 @@ void main() {
       // the default name.
       final Box<RenamedTargetIdProperty> box = env.store.box();
       final targetName = 'target object';
-      final id = box.put(RenamedTargetIdProperty()
-        ..testRel.target = TestEntity(tString: targetName));
+      final id = box.put(
+        RenamedTargetIdProperty()
+          ..testRel.target = TestEntity(tString: targetName),
+      );
       var storedTarget = box.get(id)!.testRel.target;
       expect(storedTarget, isNotNull);
       expect(storedTarget!.tString, targetName);
@@ -251,8 +260,11 @@ void main() {
 
     test('removal', () {
       // bypass ToMany's list management to fake data loaded from DB
-      InternalToManyTestAccess<TestEntity>(rel).items.addAll(
-          [TestEntity(tInt: 1), TestEntity(tInt: 2), TestEntity(tInt: 3)]);
+      InternalToManyTestAccess<TestEntity>(rel).items.addAll([
+        TestEntity(tInt: 1),
+        TestEntity(tInt: 2),
+        TestEntity(tInt: 3),
+      ]);
       check(rel, items: [1, 2, 3], added: [], removed: []);
 
       rel.removeAt(1);
@@ -284,8 +296,11 @@ void main() {
       expect(src!.relManyA, isNotNull);
       // Add three
       src!.relManyA.add(RelatedEntityA(tInt: 1));
-      src!.relManyA.addAll(
-          [RelatedEntityA(tInt: 2), src!.relManyA[0], RelatedEntityA(tInt: 3)]);
+      src!.relManyA.addAll([
+        RelatedEntityA(tInt: 2),
+        src!.relManyA[0],
+        RelatedEntityA(tInt: 3),
+      ]);
       env.box.put(src!);
 
       src = env.box.get(1);
@@ -368,9 +383,15 @@ void main() {
 
       entity.relManyA.add(RelatedEntityA(tInt: 1));
       expect(
-          entity.relManyA.applyToDb,
-          throwsA(predicate((StateError e) => e.toString().contains(
-              "ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead."))));
+        entity.relManyA.applyToDb,
+        throwsA(
+          predicate(
+            (StateError e) => e.toString().contains(
+              "ToMany relation field not initialized. Don't call applyToDb() on new objects, use box.put() instead.",
+            ),
+          ),
+        ),
+      );
     });
 
     test('applyToDb rejects a different store', () {
@@ -380,15 +401,20 @@ void main() {
       final src2 = env.box.get(srcId)!;
       src2.relManyA.add(RelatedEntityA(tInt: 1));
       // Applying against another store would use IDs from the wrong database.
-      expect(() => src2.relManyA.applyToDb(existingStore: env2.store),
-          throwsArgumentError);
+      expect(
+        () => src2.relManyA.applyToDb(existingStore: env2.store),
+        throwsArgumentError,
+      );
     });
 
     test("don't load old data when just adding", () {
       expect(src!.relManyA, isNotNull);
       src!.relManyA.add(RelatedEntityA(tInt: 1));
-      src!.relManyA.addAll(
-          [RelatedEntityA(tInt: 2), src!.relManyA[0], RelatedEntityA(tInt: 3)]);
+      src!.relManyA.addAll([
+        RelatedEntityA(tInt: 2),
+        src!.relManyA[0],
+        RelatedEntityA(tInt: 3),
+      ]);
       env.box.put(src!);
 
       src = env.box.get(1);
@@ -443,10 +469,14 @@ void main() {
     late Box<RelatedEntityB> boxB;
     setUp(() {
       boxB = env.store.box();
-      env.box.put(TestEntity(tString: 'foo')
-        ..relB.target = RelatedEntityB(tString: 'foo B'));
-      env.box.put(TestEntity(tString: 'bar')
-        ..relB.target = RelatedEntityB(tString: 'bar B'));
+      env.box.put(
+        TestEntity(tString: 'foo')
+          ..relB.target = RelatedEntityB(tString: 'foo B'),
+      );
+      env.box.put(
+        TestEntity(tString: 'bar')
+          ..relB.target = RelatedEntityB(tString: 'bar B'),
+      );
       env.box.put(TestEntity(tString: 'bar2')..relB.targetId = 2);
 
       boxB.put(RelatedEntityB()..tString = 'not referenced');
@@ -469,7 +499,9 @@ void main() {
       // Update an existing target.
       b[1]!.testEntities.add(env.box.get(1)!); // foo
       expect(
-          b[1]!.testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
+        b[1]!.testEntities.map(strings),
+        sameAsList(['foo', 'bar', 'bar2']),
+      );
       b[1]!.testEntities.removeWhere((e) => e.tString == 'bar');
       expect(b[1]!.testEntities.map(strings), sameAsList(['foo', 'bar2']));
       boxB.put(b[1]!);
@@ -487,8 +519,10 @@ void main() {
 
       expect(env.box.get(4)!.tString, equals('newly created from B'));
       newB = boxB.get(newB.id!)!;
-      expect(newB.testEntities.map(strings),
-          sameAsList(['foo', 'newly created from B']));
+      expect(
+        newB.testEntities.map(strings),
+        sameAsList(['foo', 'newly created from B']),
+      );
 
       // The previous put also affects b[1], 'foo' is not related anymore.
       b[1] = boxB.get(b[1]!.id!);
@@ -500,8 +534,10 @@ void main() {
       // 'foo' already exists; the backlink update must not re-insert it.
       newB.testEntities.add(env.box.get(1)!);
       boxB.put(newB, mode: PutMode.insert);
-      expect(boxB.get(newB.id!)!.testEntities.map((e) => e.tString),
-          contains('foo'));
+      expect(
+        boxB.get(newB.id!)!.testEntities.map((e) => e.tString),
+        contains('foo'),
+      );
     });
 
     test('put on ToMany side before loading', () {
@@ -553,9 +589,11 @@ void main() {
     setUp(() {
       boxA = env.store.box();
       env.box.put(
-          TestEntity(tString: 'foo')..relManyA.add(RelatedEntityA(tInt: 1)));
+        TestEntity(tString: 'foo')..relManyA.add(RelatedEntityA(tInt: 1)),
+      );
       env.box.put(
-          TestEntity(tString: 'bar')..relManyA.add(RelatedEntityA(tInt: 2)));
+        TestEntity(tString: 'bar')..relManyA.add(RelatedEntityA(tInt: 2)),
+      );
       env.box.put(TestEntity(tString: 'bar2')..relManyA.add(boxA.get(2)!));
 
       boxA.put(RelatedEntityA()..tInt = 3); // not referenced
@@ -578,7 +616,9 @@ void main() {
       // Update an existing target.
       a[1].testEntities.add(env.box.get(1)!); // foo
       expect(
-          a[1].testEntities.map(strings), sameAsList(['foo', 'bar', 'bar2']));
+        a[1].testEntities.map(strings),
+        sameAsList(['foo', 'bar', 'bar2']),
+      );
       a[1].testEntities.removeWhere((e) => e.tString == 'bar');
       expect(a[1].testEntities.map(strings), sameAsList(['foo', 'bar2']));
       boxA.put(a[1]);
@@ -596,8 +636,10 @@ void main() {
 
       expect(env.box.get(4)!.tString, equals('newly created from A'));
       newA = boxA.get(newA.id!)!;
-      expect(newA.testEntities.map(strings),
-          sameAsList(['foo', 'newly created from A']));
+      expect(
+        newA.testEntities.map(strings),
+        sameAsList(['foo', 'newly created from A']),
+      );
 
       // The previous put also affects TestEntity(foo) - added target (tInt=4).
       expect(env.box.get(1)!.relManyA.map(toInt), sameAsList([1, 2, 4]));
@@ -606,7 +648,9 @@ void main() {
     test('query', () {
       final qb = boxA.query();
       qb.backlinkMany(
-          TestEntity_.relManyA, TestEntity_.tString.startsWith('bar'));
+        TestEntity_.relManyA,
+        TestEntity_.tString.startsWith('bar'),
+      );
       final query = qb.build();
       final a = query.find();
       expect(a.length, 1);
@@ -641,10 +685,12 @@ void main() {
 
 int toInt(dynamic e) => e.tInt as int;
 
-void check<E>(ToMany<E> rel,
-    {required List<int> items,
-    required List<int> added,
-    required List<int> removed}) {
+void check<E>(
+  ToMany<E> rel, {
+  required List<int> items,
+  required List<int> added,
+  required List<int> removed,
+}) {
   final relT = InternalToManyTestAccess(rel);
   expect(relT.items.map(toInt), unorderedEquals(items));
   expect(relT.added.map(toInt), unorderedEquals(added));

@@ -20,7 +20,9 @@ void main() {
     final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
     expect(store1, isNot(store2));
     expect(
-        InternalStoreAccess.cStore(store1), InternalStoreAccess.cStore(store2));
+      InternalStoreAccess.cStore(store1),
+      InternalStoreAccess.cStore(store2),
+    );
 
     final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
     expect(id, 1);
@@ -31,8 +33,10 @@ void main() {
   });
 
   test('in-memory store does not create files', () {
-    final store = Store(getObjectBoxModel(),
-        directory: "${Store.inMemoryPrefix}in-memory-test");
+    final store = Store(
+      getObjectBoxModel(),
+      directory: "${Store.inMemoryPrefix}in-memory-test",
+    );
     addTearDown(() => store.close());
     expect(Directory("in-memory-test").existsSync(), false);
     expect(Directory("memory").existsSync(), false);
@@ -44,9 +48,14 @@ void main() {
     addTearDown(() => env.closeAndDelete());
 
     expect(
-        () => Store.attach(getObjectBoxModel(), env.dbDirPath),
-        throwsA(predicate((UnsupportedError e) =>
-            e.message!.contains('Cannot create multiple Store instances'))));
+      () => Store.attach(getObjectBoxModel(), env.dbDirPath),
+      throwsA(
+        predicate(
+          (UnsupportedError e) =>
+              e.message!.contains('Cannot create multiple Store instances'),
+        ),
+      ),
+    );
   });
 
   test('store attach registers directory and provides reference', () async {
@@ -54,8 +63,10 @@ void main() {
     addTearDown(() => env.closeAndDelete());
 
     final receivePort = ReceivePort();
-    await Isolate.spawn(attachTwiceIsolate,
-        StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath));
+    await Isolate.spawn(
+      attachTwiceIsolate,
+      StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath),
+    );
     final results = await receivePort.first as List;
     receivePort.close();
     // Store.attach provides a usable reference
@@ -73,8 +84,10 @@ void main() {
     final store1 = env.store;
     final receivePort = ReceivePort();
     final received = StreamQueue<dynamic>(receivePort);
-    await Isolate.spawn(storeAttachIsolate,
-        StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath));
+    await Isolate.spawn(
+      storeAttachIsolate,
+      StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath),
+    );
     final commandPort = await received.next as SendPort;
 
     // Check native instance pointer is different.
@@ -104,41 +117,43 @@ void main() {
 
   // This verifies the example given in the Store.attach docs to close a store
   // used by a worker isolate when the parent isolate shuts down works.
-  test('worker store can be closed using parent isolate exit callback',
-      () async {
-    final env = TestEnv('store');
-    addTearDown(() => env.closeAndDelete());
+  test(
+    'worker store can be closed using parent isolate exit callback',
+    () async {
+      final env = TestEnv('store');
+      addTearDown(() => env.closeAndDelete());
 
-    final parentResponsePort = ReceivePort();
-    final workerResponsePort = ReceivePort();
-    final parentResponses = StreamQueue<dynamic>(parentResponsePort);
-    final workerResponses = StreamQueue<dynamic>(workerResponsePort);
-    addTearDown(() async {
-      await parentResponses.cancel();
-      await workerResponses.cancel();
-    });
+      final parentResponsePort = ReceivePort();
+      final workerResponsePort = ReceivePort();
+      final parentResponses = StreamQueue<dynamic>(parentResponsePort);
+      final workerResponses = StreamQueue<dynamic>(workerResponsePort);
+      addTearDown(() async {
+        await parentResponses.cancel();
+        await workerResponses.cancel();
+      });
 
-    await Isolate.spawn(exitTestMainIsolate, [
-      env.dbDirPath,
-      workerResponsePort.sendPort,
-      parentResponsePort.sendPort
-    ]);
-    final parentCommandPort = await parentResponses.next as SendPort;
+      await Isolate.spawn(exitTestMainIsolate, [
+        env.dbDirPath,
+        workerResponsePort.sendPort,
+        parentResponsePort.sendPort,
+      ]);
+      final parentCommandPort = await parentResponses.next as SendPort;
 
-    // Worker isolate confirms it attached and set up its exit listener.
-    expect(await workerResponses.next, 'attached');
+      // Worker isolate confirms it attached and set up its exit listener.
+      expect(await workerResponses.next, 'attached');
 
-    // Close the store here so it's only kept open by the worker.
-    env.store.close();
-    // While the parent isolate is still alive the store must remain open.
-    expect(Store.isOpen(env.dbDirPath), true);
+      // Close the store here so it's only kept open by the worker.
+      env.store.close();
+      // While the parent isolate is still alive the store must remain open.
+      expect(Store.isOpen(env.dbDirPath), true);
 
-    // Once the parent isolate exits, the worker's exit listener triggers,
-    // closing its attached store and reporting back before it exits itself.
-    parentCommandPort.send(null);
-    expect(await workerResponses.next, 'closed');
-    expect(Store.isOpen(env.dbDirPath), false);
-  });
+      // Once the parent isolate exits, the worker's exit listener triggers,
+      // closing its attached store and reporting back before it exits itself.
+      parentCommandPort.send(null);
+      expect(await workerResponses.next, 'closed');
+      expect(Store.isOpen(env.dbDirPath), false);
+    },
+  );
 
   test('store attach with configuration', () {
     final name = "store";
@@ -164,9 +179,13 @@ void main() {
     // Close underlying store, should not longer be able to obtain by ID.
     env.closeAndDelete();
     expect(
-        () => StoreInternal.attachByConfiguration(storeConfig),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == "failed to create store")));
+      () => StoreInternal.attachByConfiguration(storeConfig),
+      throwsA(
+        predicate(
+          (ObjectBoxException e) => e.message == "failed to create store",
+        ),
+      ),
+    );
 
     // Re-open underlying store, store ID should have changed.
     final env2 = TestEnv(name);
@@ -210,17 +229,28 @@ void main() {
       ];
       for (var callback in asyncCallbacks) {
         expect(
-            () => env.store.runInTransaction(mode, callback),
-            throwsA(predicate((UnsupportedError e) => e.toString().contains(
-                '"async" function in a transaction is not allowed'))));
+          () => env.store.runInTransaction(mode, callback),
+          throwsA(
+            predicate(
+              (UnsupportedError e) => e.toString().contains(
+                '"async" function in a transaction is not allowed',
+              ),
+            ),
+          ),
+        );
       }
 
       // Functions that [Never] finish won't be executed at all.
       expect(
-          () => env.store.runInTransaction(mode, () => throw 'hey there'),
-          throwsA(predicate((UnsupportedError e) => e
-              .toString()
-              .contains('Given transaction callback always fails.'))));
+        () => env.store.runInTransaction(mode, () => throw 'hey there'),
+        throwsA(
+          predicate(
+            (UnsupportedError e) => e.toString().contains(
+              'Given transaction callback always fails.',
+            ),
+          ),
+        ),
+      );
     }
   });
 
@@ -232,9 +262,9 @@ void main() {
     for (var mode in TxMode.values) {
       // Returned value falls through.
       expect(
-          await env.store
-              .runInTransactionAsync(mode, (store, param) => 1, null),
-          1);
+        await env.store.runInTransactionAsync(mode, (store, param) => 1, null),
+        1,
+      );
 
       // Async callbacks are forbidden.
       final asyncCallbacks = [
@@ -248,8 +278,10 @@ void main() {
           await env.store.runInTransactionAsync(mode, callback, null);
           fail("Should throw UnsupportedError");
         } on UnsupportedError catch (e) {
-          expect(e.message,
-              'Executing an "async" function in a transaction is not allowed.');
+          expect(
+            e.message,
+            'Executing an "async" function in a transaction is not allowed.',
+          );
         }
       }
 
@@ -273,9 +305,13 @@ void main() {
 
     createMustFail(String? dir) {
       expect(
-          () => createStore(dir),
-          throwsA(predicate((UnsupportedError e) =>
-              e.toString().contains('same directory'))));
+        () => createStore(dir),
+        throwsA(
+          predicate(
+            (UnsupportedError e) => e.toString().contains('same directory'),
+          ),
+        ),
+      );
     }
 
     createStore(null); // uses directory 'objectbox'
@@ -317,8 +353,10 @@ void main() {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
 
     for (var i = 0; i < 100; i++) {
-      final createStoreFuture = Future.delayed(const Duration(milliseconds: 1),
-          () => Store(getObjectBoxModel(), directory: dir.path));
+      final createStoreFuture = Future.delayed(
+        const Duration(milliseconds: 1),
+        () => Store(getObjectBoxModel(), directory: dir.path),
+      );
       final store = await createStoreFuture;
       store.close();
     }
@@ -333,15 +371,17 @@ void main() {
   });
 
   test('store options', () {
-    final store = Store(getObjectBoxModel(),
-        directory: 'store',
-        maxDBSizeInKB: 100,
-        fileMode: int.parse('0666', radix: 8),
-        maxReaders: 5,
-        debugFlags:
-            DebugFlags.logTransactionsRead | DebugFlags.logTransactionsWrite,
-        queriesCaseSensitiveDefault: false,
-        macosApplicationGroup: 'foo-bar');
+    final store = Store(
+      getObjectBoxModel(),
+      directory: 'store',
+      maxDBSizeInKB: 100,
+      fileMode: int.parse('0666', radix: 8),
+      maxReaders: 5,
+      debugFlags:
+          DebugFlags.logTransactionsRead | DebugFlags.logTransactionsWrite,
+      queriesCaseSensitiveDefault: false,
+      macosApplicationGroup: 'foo-bar',
+    );
 
     store.close();
     Directory('store').deleteSync(recursive: true);
@@ -350,18 +390,35 @@ void main() {
   test('store macOS application group checks', () {
     // Note: the "store options" test tests a valid value
     expect(
-        () => Store(getObjectBoxModel(),
-            directory: 'store',
-            macosApplicationGroup:
-                'this-application-group-identifier-is-way-too-long'),
-        throwsA(isArgumentError.having((e) => e.message, 'message',
-            contains('Must be at least 1 and at most 19 characters long'))));
+      () => Store(
+        getObjectBoxModel(),
+        directory: 'store',
+        macosApplicationGroup:
+            'this-application-group-identifier-is-way-too-long',
+      ),
+      throwsA(
+        isArgumentError.having(
+          (e) => e.message,
+          'message',
+          contains('Must be at least 1 and at most 19 characters long'),
+        ),
+      ),
+    );
 
     expect(
-        () => Store(getObjectBoxModel(),
-            directory: 'store', macosApplicationGroup: ''),
-        throwsA(isArgumentError.having((e) => e.message, 'message',
-            contains('Must be at least 1 and at most 19 characters long'))));
+      () => Store(
+        getObjectBoxModel(),
+        directory: 'store',
+        macosApplicationGroup: '',
+      ),
+      throwsA(
+        isArgumentError.having(
+          (e) => e.message,
+          'message',
+          contains('Must be at least 1 and at most 19 characters long'),
+        ),
+      ),
+    );
   });
 
   test('store dbFileSize', () {
@@ -379,8 +436,11 @@ void main() {
     // opening if max size is too low.
     // To work around this, but still test put for both the success and error
     // case, open with a large enough max size to...
-    var store =
-        Store(getObjectBoxModel(), directory: testDir.path, maxDBSizeInKB: 150);
+    var store = Store(
+      getObjectBoxModel(),
+      directory: testDir.path,
+      maxDBSizeInKB: 150,
+    );
     addTearDown(() => store.close());
     var box = store.box<TestEntity>();
     // ...put at least one entity without error, ...
@@ -400,8 +460,11 @@ void main() {
 
     // Verify re-opening with larger max size allows to put more
     store.close();
-    store = Store(getObjectBoxModel(),
-        directory: testDir.path, maxDBSizeInKB: 14000);
+    store = Store(
+      getObjectBoxModel(),
+      directory: testDir.path,
+      maxDBSizeInKB: 14000,
+    );
     store.box<TestEntity>().put(TestEntity.filled(id: 0));
   });
 
@@ -412,17 +475,29 @@ void main() {
     // Throws if setting both maxDBSizeInKB and maxDataSizeInKB
     // and data size is larger.
     expect(
-        () => Store(getObjectBoxModel(),
-            directory: testDir.path, maxDBSizeInKB: 42, maxDataSizeInKB: 43),
-        throwsA(isArgumentError.having(
-            (e) => e.message,
-            'message',
-            contains(
-                'Maximum data size option must not exceed the maximum DB size'))));
+      () => Store(
+        getObjectBoxModel(),
+        directory: testDir.path,
+        maxDBSizeInKB: 42,
+        maxDataSizeInKB: 43,
+      ),
+      throwsA(
+        isArgumentError.having(
+          (e) => e.message,
+          'message',
+          contains(
+            'Maximum data size option must not exceed the maximum DB size',
+          ),
+        ),
+      ),
+    );
 
     // Verify max data size works:
-    final store =
-        Store(getObjectBoxModel(), directory: testDir.path, maxDataSizeInKB: 1);
+    final store = Store(
+      getObjectBoxModel(),
+      directory: testDir.path,
+      maxDataSizeInKB: 1,
+    );
     addTearDown(() => store.close());
     final longString =
         "ObjectBox Flutter database is a great option for storing Dart objects locally in your cross-platform apps.";
@@ -436,9 +511,13 @@ void main() {
         box.put(TestEntity.filled(id: 0, tString: longString));
       } catch (e) {
         expect(
-            e,
-            isA<DbMaxDataSizeExceededException>().having((e) => e.message,
-                "message", contains("Exceeded user-set maximum by [bytes]")));
+          e,
+          isA<DbMaxDataSizeExceededException>().having(
+            (e) => e.message,
+            "message",
+            contains("Exceeded user-set maximum by [bytes]"),
+          ),
+        );
         sizeExceeded = true;
         break; // Don't put more
       }
@@ -450,20 +529,22 @@ void main() {
     final parentDir = Directory('unicode-test');
     await parentDir.create();
     final unicodeDir = Directory(
-        '${parentDir.path}${Platform.pathSeparator}Îñţérñåţîöñåļîžåţîờñ');
+      '${parentDir.path}${Platform.pathSeparator}Îñţérñåţîöñåļîžåţîờñ',
+    );
     final store = Store(getObjectBoxModel(), directory: unicodeDir.path);
     store.close();
 
     // Check only expected files and directories exist.
-    final paths = await parentDir
-        .list(recursive: true)
-        .map((event) => event.path)
-        .toList();
+    final paths =
+        await parentDir
+            .list(recursive: true)
+            .map((event) => event.path)
+            .toList();
     expect(paths.length, 3);
     final expectedPaths = [
       unicodeDir.path,
       File('${unicodeDir.path}${Platform.pathSeparator}data.mdb').path,
-      File('${unicodeDir.path}${Platform.pathSeparator}lock.mdb').path
+      File('${unicodeDir.path}${Platform.pathSeparator}lock.mdb').path,
     ];
     expect(paths, containsAll(expectedPaths));
 
@@ -599,8 +680,11 @@ Future<void> exitTestMainIsolate(List<Object> args) async {
   final testResponsePortWorker = args[1] as SendPort;
   final testResponsePortMain = args[2] as SendPort;
 
-  await Isolate.spawn(exitTestWorkerIsolate,
-      [dbDirPath, testResponsePortWorker, Isolate.current.controlPort]);
+  await Isolate.spawn(exitTestWorkerIsolate, [
+    dbDirPath,
+    testResponsePortWorker,
+    Isolate.current.controlPort,
+  ]);
 
   final commands = ReceivePort();
   testResponsePortMain.send(commands.sendPort);

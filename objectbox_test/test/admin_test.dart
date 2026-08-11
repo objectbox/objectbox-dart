@@ -21,8 +21,14 @@ void main() {
   test('admin not available', () {
     expect(Admin.isAvailable(), isFalse);
     expect(
-        () => Admin(env.store),
-        throwsA(predicate((UnsupportedError e) => e.toString().contains(
-            'Admin is not available in the loaded ObjectBox runtime library.'))));
+      () => Admin(env.store),
+      throwsA(
+        predicate(
+          (UnsupportedError e) => e.toString().contains(
+            'Admin is not available in the loaded ObjectBox runtime library.',
+          ),
+        ),
+      ),
+    );
   });
 }

@@ -78,15 +78,25 @@ void main() {
   test('.put() update mode failures', () {
     final box = store.box<TestEntity2>();
     expect(
-        () => box.put(TestEntity2(id: 0), mode: PutMode.update),
-        throwsA(predicate((ArgumentError e) => e
-            .toString()
-            .contains('ID is not set (zero) for object to update'))));
+      () => box.put(TestEntity2(id: 0), mode: PutMode.update),
+      throwsA(
+        predicate(
+          (ArgumentError e) => e.toString().contains(
+            'ID is not set (zero) for object to update',
+          ),
+        ),
+      ),
+    );
 
     expect(
-        () => box.put(TestEntity2(id: 5), mode: PutMode.update),
-        throwsA(predicate((StorageException e) =>
-            e.message.contains("object put failed: ID is higher or equal"))));
+      () => box.put(TestEntity2(id: 5), mode: PutMode.update),
+      throwsA(
+        predicate(
+          (StorageException e) =>
+              e.message.contains("object put failed: ID is higher or equal"),
+        ),
+      ),
+    );
   });
 
   test('use after close throws', () {
@@ -96,18 +106,22 @@ void main() {
     env.closeAndDelete();
 
     expectStoreClosed(Function function) {
-      expect(function,
-          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+      expect(
+        function,
+        throwsA(predicate((StateError e) => e.message == "Store is closed")),
+      );
     }
 
     // Use entity with relations to test transaction code path in put.
     expectStoreClosed(() => box.put(TestEntity(tString: 'Never put')));
     // Use entity without relations to test non-transaction code path in put.
     expectStoreClosed(
-        () => boxNonRel.put(TestEntityNonRel.filled(tString: 'Never put')));
+      () => boxNonRel.put(TestEntityNonRel.filled(tString: 'Never put')),
+    );
 
-    expectStoreClosed(() =>
-        boxNonRel.putQueued(TestEntityNonRel.filled(tString: 'Never put')));
+    expectStoreClosed(
+      () => boxNonRel.putQueued(TestEntityNonRel.filled(tString: 'Never put')),
+    );
 
     expectStoreClosed(() => box.count());
     expectStoreClosed(() => box.isEmpty());
@@ -174,30 +188,41 @@ void main() {
   test('.putAsync failures', () async {
     final box = store.box<TestEntity2>();
     await expectLater(
-        () async =>
-            await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
-        throwsA(predicate((ArgumentError e) => e
-            .toString()
-            .contains('ID is not set (zero) for object to update'))));
+      () async => await box.putAsync(TestEntity2(id: 0), mode: PutMode.update),
+      throwsA(
+        predicate(
+          (ArgumentError e) => e.toString().contains(
+            'ID is not set (zero) for object to update',
+          ),
+        ),
+      ),
+    );
 
     await expectLater(
-        await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert), 1);
+      await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert),
+      1,
+    );
 
     // Note: regular put API used by putAsync returns default error,
     // unlike queue API which has special errors for ID not found or not new.
     await expectLater(
-        () async =>
-            await box.putAsync(TestEntity2(id: 5), mode: PutMode.update),
-        throwsA(predicate((StorageException e) =>
-            e.message.contains("object put failed: ID is higher or equal"))));
+      () async => await box.putAsync(TestEntity2(id: 5), mode: PutMode.update),
+      throwsA(
+        predicate(
+          (StorageException e) =>
+              e.message.contains("object put failed: ID is higher or equal"),
+        ),
+      ),
+    );
 
     expect(box.count(), 1);
 
     await expectLater(
-        () async =>
-            await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert),
-        throwsA(predicate(
-            (ObjectBoxException e) => e.message == 'object put failed')));
+      () async => await box.putAsync(TestEntity2(id: 1), mode: PutMode.insert),
+      throwsA(
+        predicate((ObjectBoxException e) => e.message == 'object put failed'),
+      ),
+    );
 
     {
       // check unique constraint violation behavior
@@ -206,9 +231,14 @@ void main() {
       final future = box.putAsync(object);
 
       await expectLater(
-          () async => await future,
-          throwsA(predicate((UniqueViolationException e) =>
-              e.message.contains("Unique constraint"))));
+        () async => await future,
+        throwsA(
+          predicate(
+            (UniqueViolationException e) =>
+                e.message.contains("Unique constraint"),
+          ),
+        ),
+      );
 
       expect(object.id, 0); // ID must remain unassigned
     }
@@ -233,32 +263,48 @@ void main() {
     // Note: not using `await expectLater` as putAsync has an
     // internal queue that guarantees order.
     expect(
-        () => box
-            .putQueuedAwaitResult(TestEntity2(), mode: PutMode.update)
-            .timeout(defaultTimeout),
-        throwsA(predicate((ArgumentError e) =>
-            e.message ==
-            "putAsync failed: Putting object failed because ID is not set (zero) for object to update (OBX_ERROR code 10002)")));
+      () => box
+          .putQueuedAwaitResult(TestEntity2(), mode: PutMode.update)
+          .timeout(defaultTimeout),
+      throwsA(
+        predicate(
+          (ArgumentError e) =>
+              e.message ==
+              "putAsync failed: Putting object failed because ID is not set (zero) for object to update (OBX_ERROR code 10002)",
+        ),
+      ),
+    );
 
     expect(
-        await box
-            .putQueuedAwaitResult(TestEntity2(id: 1), mode: PutMode.insert)
-            .timeout(defaultTimeout),
-        1);
+      await box
+          .putQueuedAwaitResult(TestEntity2(id: 1), mode: PutMode.insert)
+          .timeout(defaultTimeout),
+      1,
+    );
     expect(
-        () async => await box
-            .putQueuedAwaitResult(TestEntity2(id: 5), mode: PutMode.update)
-            .timeout(defaultTimeout),
-        throwsA(predicate((StorageException e) =>
-            e.message.contains("putAsync failed: ID is higher or equal"))));
+      () async => await box
+          .putQueuedAwaitResult(TestEntity2(id: 5), mode: PutMode.update)
+          .timeout(defaultTimeout),
+      throwsA(
+        predicate(
+          (StorageException e) =>
+              e.message.contains("putAsync failed: ID is higher or equal"),
+        ),
+      ),
+    );
     expect(box.count(), 1);
 
     expect(
-        () async => await box
-            .putQueuedAwaitResult(TestEntity2(id: 1), mode: PutMode.insert)
-            .timeout(defaultTimeout),
-        throwsA(predicate((ObjectBoxException e) =>
-            e.toString().contains('object with the given ID already exists'))));
+      () async => await box
+          .putQueuedAwaitResult(TestEntity2(id: 1), mode: PutMode.insert)
+          .timeout(defaultTimeout),
+      throwsA(
+        predicate(
+          (ObjectBoxException e) =>
+              e.toString().contains('object with the given ID already exists'),
+        ),
+      ),
+    );
 
     {
       // check unique constraint violation behavior
@@ -269,15 +315,20 @@ void main() {
       if (Platform.isMacOS && !atLeastDart('3.1.0')) {
         // Before Dart 3.1 an incorrect exception is thrown on macOS.
         expect(
-            () async => await future,
-            throwsA(
-                predicate((e) => e is ObjectBoxException && e.message == '')));
+          () async => await future,
+          throwsA(predicate((e) => e is ObjectBoxException && e.message == '')),
+        );
       } else {
         expect(
-            () async => await future,
-            throwsA(predicate((e) =>
-                e is UniqueViolationException &&
-                e.message.contains('Unique constraint'))));
+          () async => await future,
+          throwsA(
+            predicate(
+              (e) =>
+                  e is UniqueViolationException &&
+                  e.message.contains('Unique constraint'),
+            ),
+          ),
+        );
       }
 
       expect(object.id, isNull); // ID must remain unassigned
@@ -286,7 +337,9 @@ void main() {
 
   test('.putQueuedWithFuture many', () async {
     final items = List.generate(
-        env.short ? 100 : 1000, (i) => TestEntityNonRel.filled(id: 0));
+      env.short ? 100 : 1000,
+      (i) => TestEntityNonRel.filled(id: 0),
+    );
     final futures =
         items.map(store.box<TestEntityNonRel>().putQueuedAwaitResult).toList();
     print('${futures.length} futures collected');
@@ -300,7 +353,9 @@ void main() {
   test('.putQueued', () {
     final box = store.box<TestEntityNonRel>();
     final items = List.generate(
-        env.short ? 100 : 1000, (i) => TestEntityNonRel.filled(id: 0));
+      env.short ? 100 : 1000,
+      (i) => TestEntityNonRel.filled(id: 0),
+    );
     final ids = items.map(box.putQueued).toList();
     for (int i = 0; i < items.length; i++) {
       expect(items[i].id, ids[i]);
@@ -311,18 +366,32 @@ void main() {
 
   test('.putQueued failures', () async {
     expect(
-        () => store
-            .box<TestEntity2>()
-            .putQueued(TestEntity2(), mode: PutMode.update),
-        throwsA(isA<ArgumentError>()
-            .having((e) => e.message, "message", contains("ID is not set"))));
+      () => store.box<TestEntity2>().putQueued(
+        TestEntity2(),
+        mode: PutMode.update,
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.message,
+          "message",
+          contains("ID is not set"),
+        ),
+      ),
+    );
 
     expect(
-        () => store
-            .box<TestEntityNonRel>()
-            .putQueued(TestEntityNonRel.filled(id: 5), mode: PutMode.insert),
-        throwsA(isA<ArgumentError>().having((e) => e.message, "message",
-            contains("Use ID 0 (zero) to insert new objects"))));
+      () => store.box<TestEntityNonRel>().putQueued(
+        TestEntityNonRel.filled(id: 5),
+        mode: PutMode.insert,
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.message,
+          "message",
+          contains("Use ID 0 (zero) to insert new objects"),
+        ),
+      ),
+    );
 
     store.awaitQueueCompletion();
     expect(store.box<TestEntity2>().count(), 0);
@@ -365,54 +434,77 @@ void main() {
 
   test('.put() cannot add duplicate values on a unique field', () {
     final u1 = TestEntity.unique(
-        uString: 'a', uLong: 1, uInt: 1, uShort: 1, uByte: 1, uChar: 1);
+      uString: 'a',
+      uLong: 1,
+      uInt: 1,
+      uShort: 1,
+      uByte: 1,
+      uChar: 1,
+    );
     final again = TestEntity.unique(
-        uString: 'a', uLong: 1, uInt: 1, uShort: 1, uByte: 1, uChar: 1);
+      uString: 'a',
+      uLong: 1,
+      uInt: 1,
+      uShort: 1,
+      uByte: 1,
+      uChar: 1,
+    );
 
     expect(
-        () => box.putMany([u1, again]),
-        throwsA(predicate((UniqueViolationException e) =>
-            e.toString().contains('same property value already exists'))));
+      () => box.putMany([u1, again]),
+      throwsA(
+        predicate(
+          (UniqueViolationException e) =>
+              e.toString().contains('same property value already exists'),
+        ),
+      ),
+    );
   });
 
-  test('.put() replaces duplicate values on a unique replace field on insert',
-      () {
-    // insert without conflict
-    box.putMany([
-      TestEntity.uniqueReplace(replaceLong: 1, tString: 'original-1'),
-      TestEntity.uniqueReplace(replaceLong: 2, tString: 'original-2')
-    ]);
-    expect(box.count(), equals(2));
+  test(
+    '.put() replaces duplicate values on a unique replace field on insert',
+    () {
+      // insert without conflict
+      box.putMany([
+        TestEntity.uniqueReplace(replaceLong: 1, tString: 'original-1'),
+        TestEntity.uniqueReplace(replaceLong: 2, tString: 'original-2'),
+      ]);
+      expect(box.count(), equals(2));
 
-    // insert with conflict, deletes ID 1 and inserts ID 3
-    box.put(TestEntity.uniqueReplace(replaceLong: 1, tString: 'replacement-1'));
-    expect(box.count(), equals(2));
-    final replaced = box.get(3)!;
-    expect(replaced.replaceLong, equals(1));
-    expect(replaced.tString, equals('replacement-1'));
-  });
+      // insert with conflict, deletes ID 1 and inserts ID 3
+      box.put(
+        TestEntity.uniqueReplace(replaceLong: 1, tString: 'replacement-1'),
+      );
+      expect(box.count(), equals(2));
+      final replaced = box.get(3)!;
+      expect(replaced.replaceLong, equals(1));
+      expect(replaced.tString, equals('replacement-1'));
+    },
+  );
 
-  test('.put() replaces duplicate values on a unique replace field on update',
-      () {
-    // update without conflict
-    var first = TestEntity.uniqueReplace(replaceLong: 1, tString: 'first');
-    box.put(first);
-    first.replaceLong = 2;
-    box.put(first);
-    expect(box.count(), equals(1));
-    final updated = box.get(1)!;
-    expect(updated.replaceLong, equals(2));
-    expect(updated.tString, 'first');
+  test(
+    '.put() replaces duplicate values on a unique replace field on update',
+    () {
+      // update without conflict
+      var first = TestEntity.uniqueReplace(replaceLong: 1, tString: 'first');
+      box.put(first);
+      first.replaceLong = 2;
+      box.put(first);
+      expect(box.count(), equals(1));
+      final updated = box.get(1)!;
+      expect(updated.replaceLong, equals(2));
+      expect(updated.tString, 'first');
 
-    // update with conflict, deletes ID 2 and keeps ID 1
-    box.put(TestEntity.uniqueReplace(replaceLong: 1, tString: 'second'));
-    first.replaceLong = 1;
-    box.put(first);
-    expect(box.count(), equals(1));
-    final updated2 = box.get(1)!;
-    expect(updated2.replaceLong, equals(1));
-    expect(updated2.tString, 'first');
-  });
+      // update with conflict, deletes ID 2 and keeps ID 1
+      box.put(TestEntity.uniqueReplace(replaceLong: 1, tString: 'second'));
+      first.replaceLong = 1;
+      box.put(first);
+      expect(box.count(), equals(1));
+      final updated2 = box.get(1)!;
+      expect(updated2.replaceLong, equals(1));
+      expect(updated2.tString, 'first');
+    },
+  );
 
   test('.getAll retrieves all items', () {
     final int id1 = box.put(TestEntity(tString: 'One'));
@@ -447,7 +539,7 @@ void main() {
     final List<TestEntity> items = [
       TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
       TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
-      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3)),
     ];
     final ids = box.putMany(items);
 
@@ -467,7 +559,7 @@ void main() {
     final List<TestEntity> items = [
       TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
       TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
-      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3)),
     ];
     final ids = await box.putManyAsync(items);
 
@@ -487,7 +579,7 @@ void main() {
     final List<TestEntity> items = [
       TestEntity(tString: 'One')..relA.target = RelatedEntityA(tInt: 1),
       TestEntity(tString: 'Two')..relB.target = RelatedEntityB(tString: "2"),
-      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3))
+      TestEntity(tString: 'Three')..relManyA.add(RelatedEntityA(tInt: 3)),
     ];
     final storedItems = await box.putAndGetManyAsync(items);
 
@@ -543,8 +635,11 @@ void main() {
     while (ids.indexWhere((id) => id == otherId) != -1) {
       ++otherId;
     }
-    final List<TestEntity?> fetchedItems =
-        box.getMany([ids[0], otherId, ids[1]]);
+    final List<TestEntity?> fetchedItems = box.getMany([
+      ids[0],
+      otherId,
+      ids[1],
+    ]);
     expect(fetchedItems.length, equals(3));
     expect(fetchedItems[0]!.tString, equals('One'));
     expect(fetchedItems[1], isNull);
@@ -553,8 +648,11 @@ void main() {
 
   test('.getMany result list fixed vs growable', () {
     // Unfortunately there's no property telling whether the list is growable...
-    final mustThrow = throwsA(predicate(
-        (UnsupportedError e) => e.toString().contains('fixed-length list')));
+    final mustThrow = throwsA(
+      predicate(
+        (UnsupportedError e) => e.toString().contains('fixed-length list'),
+      ),
+    );
 
     expect(() => box.getMany([]).add(null), mustThrow);
     box.getMany([], growableResult: true).add(null);
@@ -578,7 +676,7 @@ void main() {
       ...[int16Min, int16Max].map((n) => TestEntity(tShort: n)),
       ...[0, uint16Max].map((n) => TestEntity(tChar: n)),
       ...[int32Min, int32Max].map((n) => TestEntity(tInt: n)),
-      ...[int64Min, int64Max].map((n) => TestEntity(tLong: n))
+      ...[int64Min, int64Max].map((n) => TestEntity(tLong: n)),
     ];
     expect('${items[8].tLong}', equals('$int64Min'));
     expect('${items[9].tLong}', equals('$int64Max'));
@@ -602,7 +700,7 @@ void main() {
       3.4028234663852886e+38,
       -3.4028234663852886e+38,
       double.nan,
-      double.negativeInfinity
+      double.negativeInfinity,
     ];
     final valsDouble = [
       double.infinity,
@@ -610,24 +708,27 @@ void main() {
       -double.maxFinite,
       double.minPositive,
       double.nan,
-      double.negativeInfinity
+      double.negativeInfinity,
     ];
     final List<TestEntity> items = [
       ...valsFloat.map((n) => TestEntity(tFloat: n)),
-      ...valsDouble.map((n) => TestEntity(tDouble: n))
+      ...valsDouble.map((n) => TestEntity(tDouble: n)),
     ];
     final List<TestEntity?> fetchedItems = box.getMany(box.putMany(items));
     List<double> fetchedVals = [];
     for (var i = 0; i < fetchedItems.length; i++) {
-      fetchedVals.add(i < valsFloat.length
-          ? fetchedItems[i]!.tFloat!
-          : fetchedItems[i]!.tDouble!);
+      fetchedVals.add(
+        i < valsFloat.length
+            ? fetchedItems[i]!.tFloat!
+            : fetchedItems[i]!.tDouble!,
+      );
     }
 
     for (var i = 0; i < fetchedVals.length; i++) {
-      double expected = i < valsFloat.length
-          ? valsFloat[i]
-          : valsDouble[i - valsFloat.length];
+      double expected =
+          i < valsFloat.length
+              ? valsFloat[i]
+              : valsDouble[i - valsFloat.length];
       if (expected.isNaN) {
         expect(fetchedVals[i].isNaN, equals(true));
       } else {
@@ -686,16 +787,17 @@ void main() {
 
   test('simple types are handled correctly', () {
     TestEntity item = TestEntity(
-        tString: 'Hello',
-        tLong: 1234,
-        tDouble: 3.14159,
-        tBool: true,
-        tByte: 123,
-        tShort: -4567,
-        tChar: 'Ā'.codeUnitAt(0),
-        // U+0100
-        tInt: 789012,
-        tFloat: -2.71);
+      tString: 'Hello',
+      tLong: 1234,
+      tDouble: 3.14159,
+      tBool: true,
+      tByte: 123,
+      tShort: -4567,
+      tChar: 'Ā'.codeUnitAt(0),
+      // U+0100
+      tInt: 789012,
+      tFloat: -2.71,
+    );
     final fetchedItem = box.get(box.put(item))!;
     expect(fetchedItem.tString, equals('Hello'));
     expect(fetchedItem.tLong, equals(1234));
@@ -756,8 +858,9 @@ void main() {
     // the annotated properties and ToMany work without issue.
     final box = store.box<EntityWithExternalType>();
     var testObject = EntityWithExternalType([90, 100, 110], [1, 2, 3]);
-    testObject.mongoIdEntities
-        .add(EntityWithExternalType([120, 121, 122], null));
+    testObject.mongoIdEntities.add(
+      EntityWithExternalType([120, 121, 122], null),
+    );
     final id = box.put(testObject);
     final item = box.get(id)!;
     expect(item.id, id);
@@ -897,8 +1000,11 @@ void main() {
     }
 
     // Send objects with attached relations to worker isolate.
-    var isolateResponse =
-        await store.runInTransactionAsync(TxMode.read, callback, testObjects);
+    var isolateResponse = await store.runInTransactionAsync(
+      TxMode.read,
+      callback,
+      testObjects,
+    );
     expect(isolateResponse.length, equals(6));
     // Check ToOne and ToMany classes can access store.
     for (var object in isolateResponse) {
@@ -909,35 +1015,39 @@ void main() {
 
   test('failing transactions', () {
     expect(
-        () => store.runInTransaction(TxMode.write, () {
-              box.putMany(simpleItems());
-              // note: we're throwing conditionally (but always true) so that
-              // the return type is not [Never]. See [Transaction.execute()]
-              // testing for the return type to be a [Future]. [Never] is a
-              // base class to everything, so a [Future] is also a [Never].
-              if (box == env.box) throw 'test-exception';
-              return 1;
-            }),
-        throwsA(predicate((String e) => e == 'test-exception')));
+      () => store.runInTransaction(TxMode.write, () {
+        box.putMany(simpleItems());
+        // note: we're throwing conditionally (but always true) so that
+        // the return type is not [Never]. See [Transaction.execute()]
+        // testing for the return type to be a [Future]. [Never] is a
+        // base class to everything, so a [Future] is also a [Never].
+        if (box == env.box) throw 'test-exception';
+        return 1;
+      }),
+      throwsA(predicate((String e) => e == 'test-exception')),
+    );
     expect(box.count(), equals(0));
   });
 
   test('failing transactions - async', () async {
     expect(
-        () async => await store.runInTransactionAsync(TxMode.write,
-                (Store store, List<TestEntity> param) {
-              store.box<TestEntity>().putMany(param);
-              // Note: we're throwing conditionally (but always true) so that
-              // the return type is not [Never]. See [Transaction.execute()]
-              // testing for the return type to be a [Future]. [Never] is a
-              // base class to everything, so a [Future] is also a [Never].
-              // Also not creating exception instance inline to avoid Dart
-              // over-capturing the Store and trying to send it back to the
-              // main isolate [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
-              testThrowException();
-              return 1;
-            }, simpleItems()),
-        throwsA('test-exception'));
+      () async => await store.runInTransactionAsync(TxMode.write, (
+        Store store,
+        List<TestEntity> param,
+      ) {
+        store.box<TestEntity>().putMany(param);
+        // Note: we're throwing conditionally (but always true) so that
+        // the return type is not [Never]. See [Transaction.execute()]
+        // testing for the return type to be a [Future]. [Never] is a
+        // base class to everything, so a [Future] is also a [Never].
+        // Also not creating exception instance inline to avoid Dart
+        // over-capturing the Store and trying to send it back to the
+        // main isolate [dart-lang/sdk#36983](https://github.com/dart-lang/sdk/issues/36983).
+        testThrowException();
+        return 1;
+      }, simpleItems()),
+      throwsA('test-exception'),
+    );
     expect(box.count(), equals(0));
   });
 
@@ -952,8 +1062,10 @@ void main() {
   });
 
   test('recursive write in write transaction - async', () async {
-    await store.runInTransactionAsync(TxMode.write,
-        (Store store, List<TestEntity> param) {
+    await store.runInTransactionAsync(TxMode.write, (
+      Store store,
+      List<TestEntity> param,
+    ) {
       final box = store.box<TestEntity>();
       box.putMany(param);
       store.runInTransaction(TxMode.write, () {
@@ -976,8 +1088,10 @@ void main() {
   });
 
   test('recursive read in write transaction - async', () async {
-    int count = await store.runInTransactionAsync(TxMode.write,
-        (Store store, List<TestEntity> param) {
+    int count = await store.runInTransactionAsync(TxMode.write, (
+      Store store,
+      List<TestEntity> param,
+    ) {
       final box = store.box<TestEntity>();
       box.putMany(param);
       return store.runInTransaction(TxMode.read, box.count);
@@ -987,33 +1101,49 @@ void main() {
 
   test('recursive write in read -> fails during creation', () {
     expect(
-        () => store.runInTransaction(TxMode.read, () {
-              box.count();
-              return store.runInTransaction(
-                  TxMode.write, () => box.putMany(simpleItems()));
-            }),
-        throwsA(predicate((StateError e) =>
-            e.toString().contains('failed to create transaction'))));
+      () => store.runInTransaction(TxMode.read, () {
+        box.count();
+        return store.runInTransaction(
+          TxMode.write,
+          () => box.putMany(simpleItems()),
+        );
+      }),
+      throwsA(
+        predicate(
+          (StateError e) =>
+              e.toString().contains('failed to create transaction'),
+        ),
+      ),
+    );
   });
 
   test('recursive write in async read -> fails during creation', () {
     expect(
-        () => store.runInTransactionAsync(TxMode.read,
-                (Store store, List<TestEntity> param) {
-              final box = store.box<TestEntity>();
-              box.count();
-              return store.runInTransaction(
-                  TxMode.write, () => box.putMany(param));
-            }, simpleItems()),
-        throwsA(predicate((StateError e) => e.toString().contains(
-            'Bad state: failed to create transaction: Cannot start a write transaction inside a read only transaction (OBX_ERROR code 10001)'))));
+      () => store.runInTransactionAsync(TxMode.read, (
+        Store store,
+        List<TestEntity> param,
+      ) {
+        final box = store.box<TestEntity>();
+        box.count();
+        return store.runInTransaction(TxMode.write, () => box.putMany(param));
+      }, simpleItems()),
+      throwsA(
+        predicate(
+          (StateError e) => e.toString().contains(
+            'Bad state: failed to create transaction: Cannot start a write transaction inside a read only transaction (OBX_ERROR code 10001)',
+          ),
+        ),
+      ),
+    );
   });
 
   test('failing in recursive txn', () {
     store.runInTransaction(TxMode.write, () {
       //should throw code10001 -> valid until fix
-      List<int> ids =
-          store.runInTransaction(TxMode.read, () => box.putMany(simpleItems()));
+      List<int> ids = store.runInTransaction(
+        TxMode.read,
+        () => box.putMany(simpleItems()),
+      );
       expect(ids.length, equals(6));
     });
   });
@@ -1022,10 +1152,15 @@ void main() {
     // RelatedEntityA.id IS NOT assignable so this must fail
     final box = env.store.box<RelatedEntityA>();
     expect(
-        () => box.put(RelatedEntityA()..id = 1),
-        throwsA(predicate((ArgumentError e) => e
-            .toString()
-            .contains('ID is higher or equal to internal ID sequence'))));
+      () => box.put(RelatedEntityA()..id = 1),
+      throwsA(
+        predicate(
+          (ArgumentError e) => e.toString().contains(
+            'ID is higher or equal to internal ID sequence',
+          ),
+        ),
+      ),
+    );
     expect(box.isEmpty(), isTrue);
 
     // TestEntity2.id IS assignable so this must pass
@@ -1076,8 +1211,11 @@ void main() {
       // DateTime has microsecond precision in Dart but is stored in ObjectBox
       // by default with millisecond precision so compare only milliseconds.
       expect(object.tDate!.millisecondsSinceEpoch, millis, reason: name);
-      expect(object.tDateExplicit!.millisecondsSinceEpoch, millis,
-          reason: name);
+      expect(
+        object.tDateExplicit!.millisecondsSinceEpoch,
+        millis,
+        reason: name,
+      );
       expect(object.tDateUtc!.millisecondsSinceEpoch, millis, reason: name);
       // If explicitly stored as DateNano, microsecond precision is preserved.
       expect(object.tDateNano, now, reason: name);
@@ -1110,30 +1248,34 @@ void main() {
   });
 
   test(
-      'TX multiple cursors',
-      () => store.runInTransaction(TxMode.write, () {
-            final box2 = store.box<TestEntity2>();
-            box.put(TestEntity());
-            box2.put(TestEntity2());
-            box.get(1);
-            box2.get(1);
-          }));
+    'TX multiple cursors',
+    () => store.runInTransaction(TxMode.write, () {
+      final box2 = store.box<TestEntity2>();
+      box.put(TestEntity());
+      box2.put(TestEntity2());
+      box.get(1);
+      box2.get(1);
+    }),
+  );
 
   test('throwing in converters', () {
     late Box<ThrowingInConverters> box = store.box();
 
     box.put(ThrowingInConverters());
     box.put(ThrowingInConverters(throwOnGet: true));
-    expect(() => box.put(ThrowingInConverters(throwOnPut: true)),
-        ThrowingInConverters.throwsIn('Getter'));
+    expect(
+      () => box.put(ThrowingInConverters(throwOnPut: true)),
+      ThrowingInConverters.throwsIn('Getter'),
+    );
 
     expect(
-        () => box.putMany([
-              ThrowingInConverters(),
-              ThrowingInConverters(),
-              ThrowingInConverters(throwOnPut: true)
-            ]),
-        ThrowingInConverters.throwsIn('Getter'));
+      () => box.putMany([
+        ThrowingInConverters(),
+        ThrowingInConverters(),
+        ThrowingInConverters(throwOnPut: true),
+      ]),
+      ThrowingInConverters.throwsIn('Getter'),
+    );
 
     expect(box.count(), 2);
 
@@ -1145,8 +1287,9 @@ void main() {
   // https://github.com/objectbox/objectbox-dart/issues/550
   test("get with nested get reads all properties", () {
     final box = env.store.box<TestEntityReadDuringRead>();
-    final id =
-        box.put(TestEntityReadDuringRead()..strings2 = ["A2", "B2", "C3"]);
+    final id = box.put(
+      TestEntityReadDuringRead()..strings2 = ["A2", "B2", "C3"],
+    );
     // Do a database read of another box (to avoid stack overflow)
     // as part of calling a property setter.
     env.box.putMany(simpleItems());
@@ -1201,9 +1344,15 @@ void main() {
   });
 }
 
-List<TestEntity> simpleItems() => ['One', 'Two', 'Three', 'Four', 'Five', 'Six']
-    .map((s) => TestEntity(tString: s))
-    .toList();
+List<TestEntity> simpleItems() =>
+    [
+      'One',
+      'Two',
+      'Three',
+      'Four',
+      'Five',
+      'Six',
+    ].map((s) => TestEntity(tString: s)).toList();
 
 void testThrowException() {
   if (1 + 1 == 2) throw 'test-exception';

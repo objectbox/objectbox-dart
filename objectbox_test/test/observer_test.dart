@@ -12,10 +12,15 @@ void main() async {
   late TestEnv env;
   late Box<TestEntity> box;
 
-  simpleStringItems() => <String>['One', 'Two', 'Three', 'Four', 'Five', 'Six']
-      .map((s) => TestEntity(tString: s))
-      .toList()
-      .cast<TestEntity>();
+  simpleStringItems() =>
+      <String>[
+        'One',
+        'Two',
+        'Three',
+        'Four',
+        'Five',
+        'Six',
+      ].map((s) => TestEntity(tString: s)).toList().cast<TestEntity>();
 
   setUp(() {
     env = TestEnv('observers');
@@ -35,9 +40,13 @@ void main() async {
       await yieldExecution();
       expect(errors, hasLength(1));
       expect(
-          errors.first,
-          isA<StateError>().having(
-              (e) => e.message, 'message', contains('Store is closed')));
+        errors.first,
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          contains('Store is closed'),
+        ),
+      );
       await sub.cancel();
     }
 
@@ -74,13 +83,15 @@ void main() async {
     expect(env.box.count(), 1);
   });
 
-  test('isolate exits after canceling last entityChanges subscription',
-      () async {
+  test('isolate exits after canceling last entityChanges subscription', () async {
     final env = TestEnv('isolate-entity-changes');
     addTearDown(() => env.closeAndDelete());
     final exited = ReceivePort();
-    final worker = await Isolate.spawn(subscribeAndCancel, env.dbDirPath,
-        onExit: exited.sendPort);
+    final worker = await Isolate.spawn(
+      subscribeAndCancel,
+      env.dbDirPath,
+      onExit: exited.sendPort,
+    );
     // If the isolate fails to exit on its own (test failure), kill it so it
     // does not keep the test process alive and the store can be closed
     // (tear-downs run in reverse order, so this runs before closeAndDelete).
@@ -94,9 +105,13 @@ void main() async {
     // isolate never exits and this times out.
     // Note that this relies on the native store getting closed by the store
     // finalizer.
-    await exited.first.timeout(defaultTimeout,
-        onTimeout: () => fail(
-            'Isolate did not exit, likely the receive port of entityChanges is still open'));
+    await exited.first.timeout(
+      defaultTimeout,
+      onTimeout:
+          () => fail(
+            'Isolate did not exit, likely the receive port of entityChanges is still open',
+          ),
+    );
   });
 
   test('Observe single entity', () async {
@@ -139,8 +154,10 @@ void main() async {
     expectedEvents = 1;
     completer = Completer();
     box.put(simpleStringItems().first);
-    expect(completer.future.timeout(defaultTimeout),
-        throwsA(isA<TimeoutException>()));
+    expect(
+      completer.future.timeout(defaultTimeout),
+      throwsA(isA<TimeoutException>()),
+    );
     expect(expectedEvents, 1); // note: unchanged, no events received anymore
   });
 
@@ -149,8 +166,9 @@ void main() async {
     var expectedEvents = 0;
     var typesUpdates = <Type, int>{}; // number of events per entity type
 
-    final subscription =
-        env.store.entityChanges.listen((List<Type> entityTypes) {
+    final subscription = env.store.entityChanges.listen((
+      List<Type> entityTypes,
+    ) {
       print('Entities updated: $entityTypes');
       expectedEvents--;
 
@@ -182,46 +200,49 @@ void main() async {
     expectedEvents = 1;
     completer = Completer();
     box.put(simpleStringItems().first);
-    expect(completer.future.timeout(defaultTimeout),
-        throwsA(isA<TimeoutException>()));
+    expect(
+      completer.future.timeout(defaultTimeout),
+      throwsA(isA<TimeoutException>()),
+    );
     expect(expectedEvents, 1); // note: unchanged, no events received anymore
   });
 
   test(
-      'entityChanges broadcast stream: multiple listeners, cancel and re-listen',
-      () async {
-    // Supports multiple listeners
-    final receivedEventsA = <List<Type>>[];
-    final subscriptionA = env.store.entityChanges.listen(receivedEventsA.add);
-    final receivedEventsB = <List<Type>>[];
-    final subscriptionB = env.store.entityChanges.listen(receivedEventsB.add);
+    'entityChanges broadcast stream: multiple listeners, cancel and re-listen',
+    () async {
+      // Supports multiple listeners
+      final receivedEventsA = <List<Type>>[];
+      final subscriptionA = env.store.entityChanges.listen(receivedEventsA.add);
+      final receivedEventsB = <List<Type>>[];
+      final subscriptionB = env.store.entityChanges.listen(receivedEventsB.add);
 
-    box.put(simpleStringItems().first);
-    await yieldExecution();
-    expect(receivedEventsA, hasLength(1));
-    expect(receivedEventsB, hasLength(1));
+      box.put(simpleStringItems().first);
+      await yieldExecution();
+      expect(receivedEventsA, hasLength(1));
+      expect(receivedEventsB, hasLength(1));
 
-    // Cancel all listeners, this closes the native observer and receive port.
-    await subscriptionA.cancel();
-    await subscriptionB.cancel();
+      // Cancel all listeners, this closes the native observer and receive port.
+      await subscriptionA.cancel();
+      await subscriptionB.cancel();
 
-    // Add a new listener, internal observer and port should be re-created and
-    // deliver events.
-    var completer = Completer<void>();
-    final receivedEventsC = <List<Type>>[];
-    final subscriptionC = env.store.entityChanges.listen((event) {
-      receivedEventsC.add(event);
-      completer.complete();
-    });
-    addTearDown(() => subscriptionC.cancel());
+      // Add a new listener, internal observer and port should be re-created and
+      // deliver events.
+      var completer = Completer<void>();
+      final receivedEventsC = <List<Type>>[];
+      final subscriptionC = env.store.entityChanges.listen((event) {
+        receivedEventsC.add(event);
+        completer.complete();
+      });
+      addTearDown(() => subscriptionC.cancel());
 
-    box.put(simpleStringItems().first);
-    await completer.future.timeout(defaultTimeout);
-    expect(receivedEventsC, hasLength(1));
-    // Previous (cancelled) subscriptions must not have received more events.
-    expect(receivedEventsA, hasLength(1));
-    expect(receivedEventsB, hasLength(1));
-  });
+      box.put(simpleStringItems().first);
+      await completer.future.timeout(defaultTimeout);
+      expect(receivedEventsC, hasLength(1));
+      // Previous (cancelled) subscriptions must not have received more events.
+      expect(receivedEventsA, hasLength(1));
+      expect(receivedEventsB, hasLength(1));
+    },
+  );
 
   test('Observer pause/resume', () async {
     testPauseResume(Stream stream) async {
@@ -239,8 +260,10 @@ void main() async {
       subscription.pause();
       completer = Completer();
       box.put(simpleStringItems().first);
-      expect(completer.future.timeout(defaultTimeout),
-          throwsA(isA<TimeoutException>()));
+      expect(
+        completer.future.timeout(defaultTimeout),
+        throwsA(isA<TimeoutException>()),
+      );
 
       // triggers when resumed (Note: no buffering of previous events)
       subscription.resume();
@@ -252,8 +275,10 @@ void main() async {
       await subscription.cancel();
       completer = Completer();
       box.put(simpleStringItems().first);
-      expect(completer.future.timeout(defaultTimeout),
-          throwsA(isA<TimeoutException>()));
+      expect(
+        completer.future.timeout(defaultTimeout),
+        throwsA(isA<TimeoutException>()),
+      );
     }
 
     await testPauseResume(env.store.watch<TestEntity>());

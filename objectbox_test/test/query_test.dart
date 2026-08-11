@@ -144,19 +144,27 @@ void main() {
 
     // C strings are null-terminated, so 'ab\u0000c' would be silently
     // truncated to 'ab' and wrongly match. Expect an error instead.
-    expect(() => box.query(t.equals(nullString)).build(),
-        throwsA(isA<ArgumentError>()));
-    expect(() => box.query(t.oneOf(oneOfValues)).build(),
-        throwsA(isA<ArgumentError>()));
+    expect(
+      () => box.query(t.equals(nullString)).build(),
+      throwsA(isA<ArgumentError>()),
+    );
+    expect(
+      () => box.query(t.oneOf(oneOfValues)).build(),
+      throwsA(isA<ArgumentError>()),
+    );
 
     final query = box.query(t.equals('ab')).build();
     addTearDown(query.close);
     expect(
-        () => query.param(t).value = nullString, throwsA(isA<ArgumentError>()));
+      () => query.param(t).value = nullString,
+      throwsA(isA<ArgumentError>()),
+    );
     final propertyQuery = query.property(t);
     addTearDown(propertyQuery.close);
-    expect(() => propertyQuery.find(replaceNullWith: nullString),
-        throwsA(isA<ArgumentError>()));
+    expect(
+      () => propertyQuery.find(replaceNullWith: nullString),
+      throwsA(isA<ArgumentError>()),
+    );
 
     // Storing and reading strings is not affected
     final testId = box.put(TestEntity(tString: nullString));
@@ -169,16 +177,18 @@ void main() {
       TestEntity(tDouble: 0.3, tBool: false),
       TestEntity(tDouble: 0.5, tBool: true),
       TestEntity(tDouble: 0.7, tBool: false),
-      TestEntity(tDouble: 0.9, tBool: true)
+      TestEntity(tDouble: 0.9, tBool: true),
     ]);
 
     final d = TestEntity_.tDouble;
     final b = TestEntity_.tBool;
 
-    final anyQuery0 = (d.between(0.79, 0.81) & b.equals(false) |
-        (d.between(0.69, 0.71) & b.equals(false)));
-    final anyQuery1 = (d.between(0.79, 0.81).and(b.equals(false)))
-        .or(d.between(0.69, 0.71).and(b.equals(false)));
+    final anyQuery0 =
+        (d.between(0.79, 0.81) & b.equals(false) |
+            (d.between(0.69, 0.71) & b.equals(false)));
+    final anyQuery1 = (d
+        .between(0.79, 0.81)
+        .and(b.equals(false))).or(d.between(0.69, 0.71).and(b.equals(false)));
     final anyQuery2 = d
         .between(0.79, 0.81)
         .and(b.equals(false))
@@ -217,7 +227,7 @@ void main() {
       TestEntity(tInt: 3),
       TestEntity(tInt: 5),
       TestEntity(tInt: 7),
-      TestEntity(tInt: 9)
+      TestEntity(tInt: 9),
     ]);
 
     expect(box.query(TestEntity_.tInt.between(3, 7)).build().count(), 3);
@@ -240,51 +250,100 @@ void main() {
     final to = dates[4];
 
     // With the existing QueryIntegerProperty (now a super type)
-    queryAndAssert(box.query(TestEntity_.tDate
-        .between(from.millisecondsSinceEpoch, to.millisecondsSinceEpoch)));
-    queryAndAssert(box.query(TestEntity_.tDateNano.between(
-        from.microsecondsSinceEpoch * 1000, to.microsecondsSinceEpoch * 1000)));
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate.between(
+          from.millisecondsSinceEpoch,
+          to.millisecondsSinceEpoch,
+        ),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDateNano.between(
+          from.microsecondsSinceEpoch * 1000,
+          to.microsecondsSinceEpoch * 1000,
+        ),
+      ),
+    );
 
     // With the new QueryDateProperty
     queryAndAssert(box.query(TestEntity_.tDate.betweenDate(from, to)));
-    queryAndAssert(box.query(TestEntity_.tDate
-        .equalsDate(from)
-        .or(TestEntity_.tDate.equalsDate(dates[3]))
-        .or(TestEntity_.tDate.equalsDate(to))));
-    queryAndAssert(box.query(TestEntity_.tDate
-        .notEqualsDate(dates[0])
-        .and(TestEntity_.tDate.notEqualsDate(dates[1]))
-        .and(TestEntity_.tDate.notEqualsDate(dates[5]))));
-    queryAndAssert(box.query(TestEntity_.tDate
-        .greaterOrEqualDate(from)
-        .and(TestEntity_.tDate.lessOrEqualDate(to))));
-    queryAndAssert(box.query(TestEntity_.tDate
-        .greaterThanDate(dates[1])
-        .and(TestEntity_.tDate.lessThanDate(dates[5]))));
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .equalsDate(from)
+            .or(TestEntity_.tDate.equalsDate(dates[3]))
+            .or(TestEntity_.tDate.equalsDate(to)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .notEqualsDate(dates[0])
+            .and(TestEntity_.tDate.notEqualsDate(dates[1]))
+            .and(TestEntity_.tDate.notEqualsDate(dates[5])),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .greaterOrEqualDate(from)
+            .and(TestEntity_.tDate.lessOrEqualDate(to)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDate
+            .greaterThanDate(dates[1])
+            .and(TestEntity_.tDate.lessThanDate(dates[5])),
+      ),
+    );
     queryAndAssert(box.query(TestEntity_.tDate.oneOfDate(dates.slice(2, 5))));
-    queryAndAssert(box
-        .query(TestEntity_.tDate.notOneOfDate([dates[0], dates[1], dates[5]])));
+    queryAndAssert(
+      box.query(TestEntity_.tDate.notOneOfDate([dates[0], dates[1], dates[5]])),
+    );
 
     // With the new QueryDateNanoProperty
     queryAndAssert(box.query(TestEntity_.tDateNano.betweenDate(from, to)));
-    queryAndAssert(box.query(TestEntity_.tDateNano
-        .equalsDate(from)
-        .or(TestEntity_.tDateNano.equalsDate(dates[3]))
-        .or(TestEntity_.tDateNano.equalsDate(to))));
-    queryAndAssert(box.query(TestEntity_.tDateNano
-        .notEqualsDate(dates[0])
-        .and(TestEntity_.tDateNano.notEqualsDate(dates[1]))
-        .and(TestEntity_.tDateNano.notEqualsDate(dates[5]))));
-    queryAndAssert(box.query(TestEntity_.tDateNano
-        .greaterOrEqualDate(from)
-        .and(TestEntity_.tDateNano.lessOrEqualDate(to))));
-    queryAndAssert(box.query(TestEntity_.tDateNano
-        .greaterThanDate(dates[1])
-        .and(TestEntity_.tDateNano.lessThanDate(dates[5]))));
     queryAndAssert(
-        box.query(TestEntity_.tDateNano.oneOfDate(dates.slice(2, 5))));
-    queryAndAssert(box.query(
-        TestEntity_.tDateNano.notOneOfDate([dates[0], dates[1], dates[5]])));
+      box.query(
+        TestEntity_.tDateNano
+            .equalsDate(from)
+            .or(TestEntity_.tDateNano.equalsDate(dates[3]))
+            .or(TestEntity_.tDateNano.equalsDate(to)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDateNano
+            .notEqualsDate(dates[0])
+            .and(TestEntity_.tDateNano.notEqualsDate(dates[1]))
+            .and(TestEntity_.tDateNano.notEqualsDate(dates[5])),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDateNano
+            .greaterOrEqualDate(from)
+            .and(TestEntity_.tDateNano.lessOrEqualDate(to)),
+      ),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDateNano
+            .greaterThanDate(dates[1])
+            .and(TestEntity_.tDateNano.lessThanDate(dates[5])),
+      ),
+    );
+    queryAndAssert(
+      box.query(TestEntity_.tDateNano.oneOfDate(dates.slice(2, 5))),
+    );
+    queryAndAssert(
+      box.query(
+        TestEntity_.tDateNano.notOneOfDate([dates[0], dates[1], dates[5]]),
+      ),
+    );
   });
 
   test('.count matches of `greater` and `less`', () {
@@ -464,13 +523,18 @@ void main() {
     box.put(TestEntity(tString: 't1'));
     box.put(TestEntity(tString: 't2'));
 
-    var query = box
-        .query(TestEntity_.tString.startsWith('t'))
-        .order(TestEntity_.iInt)
-        .build();
+    var query =
+        box
+            .query(TestEntity_.tString.startsWith('t'))
+            .order(TestEntity_.iInt)
+            .build();
 
-    final throwsNonUniqueEx = throwsA(predicate((NonUniqueResultException e) =>
-        e.message == 'Query findUnique() matched more than one object'));
+    final throwsNonUniqueEx = throwsA(
+      predicate(
+        (NonUniqueResultException e) =>
+            e.message == 'Query findUnique() matched more than one object',
+      ),
+    );
     expect(() => query.findUnique(), throwsNonUniqueEx);
     expect(() async => await query.findUniqueAsync(), throwsNonUniqueEx);
 
@@ -519,8 +583,10 @@ void main() {
 
     final remaining1 = box.getAll();
     expect(remaining1.length, 5);
-    expect(remaining1.map((e) => e.tString),
-        equals([null, "foo", "test20", "test21", "bar"]));
+    expect(
+      remaining1.map((e) => e.tString),
+      equals([null, "foo", "test20", "test21", "bar"]),
+    );
 
     // Remove async
     final query2 = box.query(text.startsWith('test2')).build();
@@ -549,8 +615,10 @@ void main() {
 
     Condition<TestEntity> cond1 = text.equals('Hello') | number.equals(1337);
     Condition<TestEntity> cond2 = text.equals('Hello') | number.equals(1337);
-    Condition<TestEntity> cond3 =
-        text.equals('What?').and(text.equals('Hello')).or(text.equals('World'));
+    Condition<TestEntity> cond3 = text
+        .equals('What?')
+        .and(text.equals('Hello'))
+        .or(text.equals('World'));
     Condition<TestEntity> cond4 = text
         .equals('Goodbye')
         .and(number.equals(1337))
@@ -592,9 +660,11 @@ void main() {
     // 5 partial conditions, + 1 'and' + 1 'any' = 7 conditions
     // note: order of properties is not guaranteed (currently OS specific).
     expect(
-        q.describe(),
-        matches(
-            'Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)'));
+      q.describe(),
+      matches(
+        'Query for entity TestEntity with 7 conditions with properties (tLong, tString|tString, tLong)',
+      ),
+    );
     q.close();
 
     for (var j = 1; j < 20; j++) {
@@ -603,8 +673,10 @@ void main() {
         tc = tc.or(text.endsWith('lo'));
       }
       final q = box.query(tc).build();
-      expect(q.describe(),
-          '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
+      expect(
+        q.describe(),
+        '''Query for entity TestEntity with ${j + 2} conditions with properties tString''',
+      );
       q.close();
     }
 
@@ -614,8 +686,10 @@ void main() {
         tc = tc.and(text.startsWith('lo'));
       }
       final q = box.query(tc).build();
-      expect(q.describe(),
-          '''Query for entity TestEntity with ${j + 2} conditions with properties tString''');
+      expect(
+        q.describe(),
+        '''Query for entity TestEntity with ${j + 2} conditions with properties tString''',
+      );
       q.close();
     }
   });
@@ -636,22 +710,34 @@ void main() {
     final bT = b.equals(true);
 
     // Explicit AND over OR precedence.
-    check((n0 & bF) | (n1 & bT),
-        '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))');
+    check(
+      (n0 & bF) | (n1 & bT),
+      '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))',
+    );
     // Implicit AND over OR precedence.
-    check(n0 & bF | n1 & bT,
-        '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))');
-    check(n0 | bF & n1 | bT,
-        '(id == 0\n OR (tBool == 0\n AND id == 1)\n OR tBool == 1)');
+    check(
+      n0 & bF | n1 & bT,
+      '((id == 0\n AND tBool == 0)\n OR (id == 1\n AND tBool == 1))',
+    );
+    check(
+      n0 | bF & n1 | bT,
+      '(id == 0\n OR (tBool == 0\n AND id == 1)\n OR tBool == 1)',
+    );
     // Combine OR.
-    check((n0 & bF) | (n1 | bT),
-        '((id == 0\n AND tBool == 0)\n OR (id == 1\n OR tBool == 1))');
+    check(
+      (n0 & bF) | (n1 | bT),
+      '((id == 0\n AND tBool == 0)\n OR (id == 1\n OR tBool == 1))',
+    );
     // Default OR.
-    check((n0 & bF) | n1 | bT,
-        '((id == 0\n AND tBool == 0)\n OR id == 1\n OR tBool == 1)');
+    check(
+      (n0 & bF) | n1 | bT,
+      '((id == 0\n AND tBool == 0)\n OR id == 1\n OR tBool == 1)',
+    );
     // Force OR over AND precedence.
-    check(n0 & (bF | n1) & bT,
-        '(id == 0\n AND (tBool == 0\n OR id == 1)\n AND tBool == 1)');
+    check(
+      n0 & (bF | n1) & bT,
+      '(id == 0\n AND (tBool == 0\n OR id == 1)\n AND tBool == 1)',
+    );
   });
 
   test('.describeParameters query', () {
@@ -686,7 +772,7 @@ void main() {
       ' OR tInt not in [4]',
       ' OR tBool != 1',
       ' OR tString == "Cruel"',
-      ' OR tString != "World")'
+      ' OR tString != "World")',
     ].join('\n');
     expect(q.describeParameters(), expectedString);
     q.close();
@@ -718,23 +804,25 @@ void main() {
   test('orAny() & andAll()', () {
     final p = TestEntity_.tInt;
     expect(
-        box
-            .query((p > 1)
-                .or(p > 2)
-                .orAny([p > 3, p > 4])
-                .and(p < 5)
-                .andAll([p < 6, p < 7]))
-            .build()
-            .describeParameters(),
-        [
-          '((tInt > 1',
-          ' OR tInt > 2',
-          ' OR tInt > 3',
-          ' OR tInt > 4)',
-          ' AND tInt < 5',
-          ' AND tInt < 6',
-          ' AND tInt < 7)',
-        ].join('\n'));
+      box
+          .query(
+            (p > 1).or(p > 2).orAny([p > 3, p > 4]).and(p < 5).andAll([
+              p < 6,
+              p < 7,
+            ]),
+          )
+          .build()
+          .describeParameters(),
+      [
+        '((tInt > 1',
+        ' OR tInt > 2',
+        ' OR tInt > 3',
+        ' OR tInt > 4)',
+        ' AND tInt < 5',
+        ' AND tInt < 6',
+        ' AND tInt < 7)',
+      ].join('\n'),
+    );
   });
 
   test('.order queryBuilder', () {
@@ -757,10 +845,11 @@ void main() {
     expect('Hello', result1[2]);
     expect('HELLO', result1[3]);
 
-    final queryReverseOrder = box
-        .query(condition)
-        .order(text, flags: Order.descending | Order.caseSensitive)
-        .build();
+    final queryReverseOrder =
+        box
+            .query(condition)
+            .order(text, flags: Order.descending | Order.caseSensitive)
+            .build();
     final result2 = queryReverseOrder.find().map((e) => e.tString).toList();
 
     expect('World', result2[0]);
@@ -787,33 +876,43 @@ void main() {
   });
 
   test('.describeParameters BytesVector', () {
-    final q = box
-        .query(TestEntity_.tUint8List.equals([1, 2]) &
-            TestEntity_.tInt8List.greaterThan([3, 4]) &
-            TestEntity_.tByteList.greaterOrEqual([5, 6, 7]) &
-            TestEntity_.tUint8List.lessThan([8]) &
-            TestEntity_.tUint8List.lessOrEqual([9, 10, 11, 12]))
-        .build();
+    final q =
+        box
+            .query(
+              TestEntity_.tUint8List.equals([1, 2]) &
+                  TestEntity_.tInt8List.greaterThan([3, 4]) &
+                  TestEntity_.tByteList.greaterOrEqual([5, 6, 7]) &
+                  TestEntity_.tUint8List.lessThan([8]) &
+                  TestEntity_.tUint8List.lessOrEqual([9, 10, 11, 12]),
+            )
+            .build();
     expect(
-        q.describeParameters(),
-        equals('(tUint8List == byte[2]{0x0102}\n'
-            ' AND tInt8List > byte[2]{0x0304}\n'
-            ' AND tByteList >= byte[3]{0x050607}\n'
-            ' AND tUint8List < byte[1]{0x08}\n'
-            ' AND tUint8List <= byte[4]{0x090A0B0C})'));
+      q.describeParameters(),
+      equals(
+        '(tUint8List == byte[2]{0x0102}\n'
+        ' AND tInt8List > byte[2]{0x0304}\n'
+        ' AND tByteList >= byte[3]{0x050607}\n'
+        ' AND tUint8List < byte[1]{0x08}\n'
+        ' AND tUint8List <= byte[4]{0x090A0B0C})',
+      ),
+    );
     q.close();
   });
 
   test('stream items', () async {
     final count = env.short ? 100 : 1000;
     final items = List<TestEntity>.generate(
-        count, (i) => TestEntity.filled(id: 0, tByte: i % 30));
+      count,
+      (i) => TestEntity.filled(id: 0, tByte: i % 30),
+    );
     box.putMany(items);
     expect(box.count(), count);
 
     final query = box.query(TestEntity_.tByte.lessThan(10)).build();
-    final countMatching =
-        items.fold(0, (int c, item) => c + (item.tByte! < 10 ? 1 : 0));
+    final countMatching = items.fold(
+      0,
+      (int c, item) => c + (item.tByte! < 10 ? 1 : 0),
+    );
     expect(query.count(), countMatching);
 
     final foundIds = query.findIds();
@@ -836,8 +935,10 @@ void main() {
     while (streamListenedItems.isEmpty) {
       await Future<void>.delayed(Duration(milliseconds: millis++));
     }
-    print('Received ${streamListenedItems.length} items in '
-        '${DateTime.now().difference(start).inMilliseconds} milliseconds');
+    print(
+      'Received ${streamListenedItems.length} items in '
+      '${DateTime.now().difference(start).inMilliseconds} milliseconds',
+    );
     await subscription.cancel();
     expect(streamListenedItems.length, isNonZero);
 
@@ -850,8 +951,12 @@ void main() {
     // (e.g. LMDB pages) may be reused by writes. Regression test for streamed
     // objects being read only after the read transaction had ended.
     final count = 200;
-    box.putMany(List<TestEntity>.generate(
-        count, (i) => TestEntity(tString: 'original $i', tInt: i)));
+    box.putMany(
+      List<TestEntity>.generate(
+        count,
+        (i) => TestEntity(tString: 'original $i', tInt: i),
+      ),
+    );
     final query = box.query().order(TestEntity_.tInt).build();
 
     final streamed = <TestEntity>[];
@@ -859,8 +964,12 @@ void main() {
       // Keep rewriting all data while streaming: removes the pages of the
       // streamed objects and writes new content in their place.
       box.removeAll();
-      box.putMany(List<TestEntity>.generate(
-          count, (i) => TestEntity(tString: 'rewritten $i', tInt: i)));
+      box.putMany(
+        List<TestEntity>.generate(
+          count,
+          (i) => TestEntity(tString: 'rewritten $i', tInt: i),
+        ),
+      );
 
       streamed.add(object);
     }
@@ -891,17 +1000,22 @@ void main() {
     // Previously this was an unhandled error in the root zone and the
     // stream never emitted nor closed.
     await expectLater(
-        stream.toList().timeout(const Duration(seconds: 10)), throwsStateError);
+      stream.toList().timeout(const Duration(seconds: 10)),
+      throwsStateError,
+    );
   });
 
   test('set param single', () async {
-    final query = box
-        .query(TestEntity_.tString.equals('') |
-            TestEntity_.tByteList.equals([]) |
-            TestEntity_.tInt.equals(0) |
-            TestEntity_.tDouble.lessThan(0) |
-            TestEntity_.tBool.equals(false))
-        .build();
+    final query =
+        box
+            .query(
+              TestEntity_.tString.equals('') |
+                  TestEntity_.tByteList.equals([]) |
+                  TestEntity_.tInt.equals(0) |
+                  TestEntity_.tDouble.lessThan(0) |
+                  TestEntity_.tBool.equals(false),
+            )
+            .build();
     query
       ..param(TestEntity_.tString).value = 'foo'
       ..param(TestEntity_.tByteList).value = [1, 9]
@@ -909,51 +1023,63 @@ void main() {
       ..param(TestEntity_.tDouble).value = 4.6
       ..param(TestEntity_.tBool).value = true;
     expect(
-        query.describeParameters(),
-        [
-          '(tString == "foo"',
-          ' OR tByteList == byte[2]{0x0109}',
-          ' OR tInt == 11',
-          ' OR tDouble < 4.600000',
-          ' OR tBool == 1)',
-        ].join('\n'));
+      query.describeParameters(),
+      [
+        '(tString == "foo"',
+        ' OR tByteList == byte[2]{0x0109}',
+        ' OR tInt == 11',
+        ' OR tDouble < 4.600000',
+        ' OR tBool == 1)',
+      ].join('\n'),
+    );
   });
 
   test('set two params', () async {
-    final query = box
-        .query(
-            TestEntity_.tInt.between(0, 0) | TestEntity_.tDouble.between(0, 0))
-        .build();
+    final query =
+        box
+            .query(
+              TestEntity_.tInt.between(0, 0) |
+                  TestEntity_.tDouble.between(0, 0),
+            )
+            .build();
     query.param(TestEntity_.tInt).twoValues(1, 2);
     query.param(TestEntity_.tDouble).twoValues(1.2, 3.4);
     expect(
-        query.describeParameters(),
-        [
-          '(tInt between 1 and 2',
-          ' OR tDouble between 1.200000 and 3.400000)',
-        ].join('\n'));
+      query.describeParameters(),
+      [
+        '(tInt between 1 and 2',
+        ' OR tDouble between 1.200000 and 3.400000)',
+      ].join('\n'),
+    );
   });
 
   test('set params list', () async {
-    final q1 = box.query(TestEntity_.tString.oneOf([])).build()
-      ..param(TestEntity_.tString).values = ['foo', 'bar'];
-    if (!['tString in ["foo", "bar"]', 'tString in ["bar", "foo"]']
-        .contains(q1.describeParameters())) {
+    final q1 =
+        box.query(TestEntity_.tString.oneOf([])).build()
+          ..param(TestEntity_.tString).values = ['foo', 'bar'];
+    if (![
+      'tString in ["foo", "bar"]',
+      'tString in ["bar", "foo"]',
+    ].contains(q1.describeParameters())) {
       fail('Invalid query: ${q1.describeParameters()}');
     }
 
-    final q2 = box.query(TestEntity_.tInt.oneOf([])).build()
-      ..param(TestEntity_.tInt).values = [1, 2];
+    final q2 =
+        box.query(TestEntity_.tInt.oneOf([])).build()
+          ..param(TestEntity_.tInt).values = [1, 2];
 
     if (!['tInt in [1|2]', 'tInt in [2|1]'].contains(q2.describeParameters())) {
       fail('Invalid query: ${q2.describeParameters()}');
     }
 
-    final q3 = box.query(TestEntity_.tLong.oneOf([])).build()
-      ..param(TestEntity_.tLong).values = [1, 2];
+    final q3 =
+        box.query(TestEntity_.tLong.oneOf([])).build()
+          ..param(TestEntity_.tLong).values = [1, 2];
 
-    if (!['tLong in [1|2]', 'tLong in [2|1]']
-        .contains(q3.describeParameters())) {
+    if (![
+      'tLong in [1|2]',
+      'tLong in [2|1]',
+    ].contains(q3.describeParameters())) {
       fail('Invalid query: ${q3.describeParameters()}');
     }
   });
@@ -969,7 +1095,7 @@ void main() {
     expect(query.find().length, 1);
     query.param(TestEntity_.tDate).values = [
       dates[1].millisecondsSinceEpoch,
-      dates[2].millisecondsSinceEpoch
+      dates[2].millisecondsSinceEpoch,
     ];
     expect(query.find().length, 2);
 
@@ -977,24 +1103,27 @@ void main() {
         box.query(TestEntity_.tDateNano.oneOfDate([dates[0]])).build();
     addTearDown(queryNano.close);
     queryNano.param(TestEntity_.tDateNano).values = [
-      dates[1].microsecondsSinceEpoch * 1000
+      dates[1].microsecondsSinceEpoch * 1000,
     ];
     expect(queryNano.find().length, 1);
   });
 
   test('alias - set param single', () async {
-    final query = box
-        .query(TestEntity_.tString.equals('') |
-            TestEntity_.tByteList.equals([]) |
-            TestEntity_.tInt.equals(0) |
-            TestEntity_.tDouble.lessThan(0) |
-            TestEntity_.tBool.equals(false) |
-            TestEntity_.tString.equals('', alias: 'str') |
-            TestEntity_.tByteList.equals([], alias: 'bytes') |
-            TestEntity_.tInt.equals(0, alias: 'int') |
-            TestEntity_.tDouble.lessThan(0, alias: 'double') |
-            TestEntity_.tBool.equals(false, alias: 'bool'))
-        .build();
+    final query =
+        box
+            .query(
+              TestEntity_.tString.equals('') |
+                  TestEntity_.tByteList.equals([]) |
+                  TestEntity_.tInt.equals(0) |
+                  TestEntity_.tDouble.lessThan(0) |
+                  TestEntity_.tBool.equals(false) |
+                  TestEntity_.tString.equals('', alias: 'str') |
+                  TestEntity_.tByteList.equals([], alias: 'bytes') |
+                  TestEntity_.tInt.equals(0, alias: 'int') |
+                  TestEntity_.tDouble.lessThan(0, alias: 'double') |
+                  TestEntity_.tBool.equals(false, alias: 'bool'),
+            )
+            .build();
     query
       ..param(TestEntity_.tString, alias: 'str').value = 'foo'
       ..param(TestEntity_.tByteList, alias: 'bytes').value = [1, 9]
@@ -1002,90 +1131,112 @@ void main() {
       ..param(TestEntity_.tDouble, alias: 'double').value = 4.6
       ..param(TestEntity_.tBool, alias: 'bool').value = true;
     expect(
-        query.describeParameters(),
-        [
-          '(tString == ""',
-          ' OR tByteList == byte[0]""',
-          ' OR tInt == 0',
-          ' OR tDouble < 0.000000',
-          ' OR tBool == 0',
-          ' OR tString == "foo"',
-          ' OR tByteList == byte[2]{0x0109}',
-          ' OR tInt == 11',
-          ' OR tDouble < 4.600000',
-          ' OR tBool == 1)',
-        ].join('\n'));
+      query.describeParameters(),
+      [
+        '(tString == ""',
+        ' OR tByteList == byte[0]""',
+        ' OR tInt == 0',
+        ' OR tDouble < 0.000000',
+        ' OR tBool == 0',
+        ' OR tString == "foo"',
+        ' OR tByteList == byte[2]{0x0109}',
+        ' OR tInt == 11',
+        ' OR tDouble < 4.600000',
+        ' OR tBool == 1)',
+      ].join('\n'),
+    );
   });
 
   test('alias - set two params', () async {
-    final query = box
-        .query(TestEntity_.tInt.between(0, 0) |
-            TestEntity_.tDouble.between(0, 0) |
-            TestEntity_.tInt.between(0, 0, alias: 'int') |
-            TestEntity_.tDouble.between(0, 0, alias: 'double'))
-        .build();
+    final query =
+        box
+            .query(
+              TestEntity_.tInt.between(0, 0) |
+                  TestEntity_.tDouble.between(0, 0) |
+                  TestEntity_.tInt.between(0, 0, alias: 'int') |
+                  TestEntity_.tDouble.between(0, 0, alias: 'double'),
+            )
+            .build();
     query.param(TestEntity_.tInt, alias: 'int').twoValues(1, 2);
     query.param(TestEntity_.tDouble, alias: 'double').twoValues(1.2, 3.4);
     expect(
-        query.describeParameters(),
-        [
-          '(tInt between 0 and 0',
-          ' OR tDouble between 0.000000 and 0.000000',
-          ' OR tInt between 1 and 2',
-          ' OR tDouble between 1.200000 and 3.400000)',
-        ].join('\n'));
+      query.describeParameters(),
+      [
+        '(tInt between 0 and 0',
+        ' OR tDouble between 0.000000 and 0.000000',
+        ' OR tInt between 1 and 2',
+        ' OR tDouble between 1.200000 and 3.400000)',
+      ].join('\n'),
+    );
   });
 
   test('alias - set params list', () async {
-    final q1 = box
-        .query(TestEntity_.tString.oneOf([]) |
-            TestEntity_.tString.oneOf([], alias: 'a'))
-        .build()
-      ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
-    if (!['OR tString in ["foo", "bar"]', 'OR tString in ["bar", "foo"]']
-        .any(q1.describeParameters().contains)) {
+    final q1 =
+        box
+            .query(
+              TestEntity_.tString.oneOf([]) |
+                  TestEntity_.tString.oneOf([], alias: 'a'),
+            )
+            .build()
+          ..param(TestEntity_.tString, alias: 'a').values = ['foo', 'bar'];
+    if (![
+      'OR tString in ["foo", "bar"]',
+      'OR tString in ["bar", "foo"]',
+    ].any(q1.describeParameters().contains)) {
       fail('Invalid query: ${q1.describeParameters()}');
     }
 
-    final q2 = box
-        .query(
-            TestEntity_.tInt.oneOf([]) | TestEntity_.tInt.oneOf([], alias: 'a'))
-        .build()
-      ..param(TestEntity_.tInt, alias: 'a').values = [1, 2];
+    final q2 =
+        box
+            .query(
+              TestEntity_.tInt.oneOf([]) |
+                  TestEntity_.tInt.oneOf([], alias: 'a'),
+            )
+            .build()
+          ..param(TestEntity_.tInt, alias: 'a').values = [1, 2];
 
-    if (!['OR tInt in [1|2]', 'OR tInt in [2|1]']
-        .any(q2.describeParameters().contains)) {
+    if (![
+      'OR tInt in [1|2]',
+      'OR tInt in [2|1]',
+    ].any(q2.describeParameters().contains)) {
       fail('Invalid query: ${q2.describeParameters()}');
     }
 
-    final q3 = box
-        .query(TestEntity_.tLong.oneOf([]) |
-            TestEntity_.tLong.oneOf([], alias: 'a'))
-        .build()
-      ..param(TestEntity_.tLong, alias: 'a').values = [1, 2];
+    final q3 =
+        box
+            .query(
+              TestEntity_.tLong.oneOf([]) |
+                  TestEntity_.tLong.oneOf([], alias: 'a'),
+            )
+            .build()
+          ..param(TestEntity_.tLong, alias: 'a').values = [1, 2];
 
-    if (!['OR tLong in [1|2]', 'OR tLong in [2|1]']
-        .any(q3.describeParameters().contains)) {
+    if (![
+      'OR tLong in [1|2]',
+      'OR tLong in [2|1]',
+    ].any(q3.describeParameters().contains)) {
       fail('Invalid query: ${q3.describeParameters()}');
     }
   });
 
   test('set param on links', () async {
-    final query = (box.query(TestEntity_.tString.equals(''))
-          ..link(TestEntity_.relB, RelatedEntityB_.tString.equals(''))
-          ..linkMany(TestEntity_.relManyA, RelatedEntityA_.tInt.equals(0)))
-        .build();
+    final query =
+        (box.query(TestEntity_.tString.equals(''))
+              ..link(TestEntity_.relB, RelatedEntityB_.tString.equals(''))
+              ..linkMany(TestEntity_.relManyA, RelatedEntityA_.tInt.equals(0)))
+            .build();
     query
       ..param(TestEntity_.tString).value = 'foo'
       ..param(RelatedEntityB_.tString).value = 'bar'
       ..param(RelatedEntityA_.tInt).value = 11;
     expect(
-        query.describeParameters(),
-        [
-          'tString == "foo"',
-          '| Link RelatedEntityB via relBId with conditions: tString == "bar"',
-          '| Link RelatedEntityA via standalone Relation 1 (relManyA) (from entity 1 to 4) with conditions: tInt == 11',
-        ].join('\n'));
+      query.describeParameters(),
+      [
+        'tString == "foo"',
+        '| Link RelatedEntityB via relBId with conditions: tString == "bar"',
+        '| Link RelatedEntityA via standalone Relation 1 (relManyA) (from entity 1 to 4) with conditions: tInt == 11',
+      ].join('\n'),
+    );
   });
 
   test('throwing in converters', () {
@@ -1102,8 +1253,9 @@ void main() {
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
 
-  final throwsClosedError = throwsA(predicate(
-      (StateError e) => e.message.startsWith('QueryBuilder is closed')));
+  final throwsClosedError = throwsA(
+    predicate((StateError e) => e.message.startsWith('QueryBuilder is closed')),
+  );
 
   test('failing to apply condition closes builder', () {
     // Add a condition that fails to apply: negative value on unsigned property
@@ -1119,9 +1271,12 @@ void main() {
     // Add a condition to a link builder that fails to apply: null character is
     // not allowed.
     expect(
-        () => builder.link(
-            TestEntity_.relB, RelatedEntityB_.tString.equals('\u0000')),
-        throwsA(isA<ArgumentError>()));
+      () => builder.link(
+        TestEntity_.relB,
+        RelatedEntityB_.tString.equals('\u0000'),
+      ),
+      throwsA(isA<ArgumentError>()),
+    );
     // Indirectly verify builder is closed because build fails with closed error
     expect(() => builder.build(), throwsClosedError);
   });
@@ -1151,10 +1306,14 @@ void main() {
 
     expectQueryClosed(Function function) {
       expect(
-          function,
-          throwsA(predicate((StateError e) =>
-              e.message ==
-              "Query already closed, cannot execute any actions")));
+        function,
+        throwsA(
+          predicate(
+            (StateError e) =>
+                e.message == "Query already closed, cannot execute any actions",
+          ),
+        ),
+      );
     }
 
     expectQueryClosed(() => query.offset = 1);
@@ -1174,8 +1333,10 @@ void main() {
     env.closeAndDelete();
 
     expectStoreClosed(Function function) {
-      expect(function,
-          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+      expect(
+        function,
+        throwsA(predicate((StateError e) => e.message == "Store is closed")),
+      );
     }
 
     expectStoreClosed(() => query2.offset = 1);

@@ -18,15 +18,19 @@ void main() {
   tearDown(() => env.closeAndDelete());
 
   final integers = [-6, 0, 0, 1, 1, 2, 3, 4, 5];
-  integerList() => integers
-      .map((i) => TestEntity(
-          tBool: true,
-          tByte: 1 + i,
-          tShort: 2 + i,
-          tChar: 3 + i,
-          tInt: 4 + i,
-          tLong: 5 + i))
-      .toList();
+  integerList() =>
+      integers
+          .map(
+            (i) => TestEntity(
+              tBool: true,
+              tByte: 1 + i,
+              tShort: 2 + i,
+              tChar: 3 + i,
+              tInt: 4 + i,
+              tLong: 5 + i,
+            ),
+          )
+          .toList();
   final strings = [
     'string',
     'another',
@@ -36,7 +40,7 @@ void main() {
     '1withSuffix',
     '2withSuffix',
     'swing',
-    '2WITHSUFFIX'
+    '2WITHSUFFIX',
   ];
   stringList() => strings.map((s) => TestEntity(tString: s)).toList();
   final floats = [-0.5, 0, 0.0, 0.1, 0.2, 0.1];
@@ -116,12 +120,18 @@ void main() {
     expect(box.get(2)!.tLong, 1);
 
     final query = box.query().build();
-    expect(() {
-      query.property(tLong).sum();
-    },
-        throwsA(predicate((e) =>
-            e is NumericOverflowException &&
-            e.message == "Numeric overflow: 9223372036854775808 high: 0")));
+    expect(
+      () {
+        query.property(tLong).sum();
+      },
+      throwsA(
+        predicate(
+          (e) =>
+              e is NumericOverflowException &&
+              e.message == "Numeric overflow: 9223372036854775808 high: 0",
+        ),
+      ),
+    );
     query.close();
   });
 
@@ -251,37 +261,37 @@ void main() {
       '1withSuffix',
       '2WITHSUFFIX',
       '2withSuffix',
-      '2withSuffix'
+      '2withSuffix',
     ];
     var results = stringQuery.find()..sort();
     expect(results, defaultResults);
 
     var resultsNone = (stringQuery
-          ..distinct = false
-          ..caseSensitive = false)
-        .find(replaceNullWith: 'meh')
-      ..sort();
+        ..distinct = false
+        ..caseSensitive = false)
+      .find(replaceNullWith: 'meh')..sort();
     expect(resultsNone, defaultResults);
 
-    var resultsDC = (stringQuery
-          ..distinct = true
-          ..caseSensitive = true)
-        .find()
-      ..sort();
+    var resultsDC =
+        (stringQuery
+              ..distinct = true
+              ..caseSensitive = true)
+            .find()
+          ..sort();
     expect(resultsDC, ['1withSuffix', '2WITHSUFFIX', '2withSuffix']);
 
     var resultsC = (stringQuery
-          ..distinct = false
-          ..caseSensitive = true)
-        .find(replaceNullWith: 'meh')
-      ..sort();
+        ..distinct = false
+        ..caseSensitive = true)
+      .find(replaceNullWith: 'meh')..sort();
     expect(resultsC, defaultResults);
 
-    var resultsD = (stringQuery
-          ..distinct = true
-          ..caseSensitive = false)
-        .find()
-      ..sort();
+    var resultsD =
+        (stringQuery
+              ..distinct = true
+              ..caseSensitive = false)
+            .find()
+          ..sort();
     expect(resultsD, ['1withSuffix', '2withSuffix']);
 
     stringQuery.close();
@@ -337,10 +347,16 @@ void main() {
 
     final queryStrings = box.query(tString.contains('t')).build();
     queryAndCheck(
-        QueryIntegerProperty<TestEntity> prop, int valueIfNull, String reason) {
+      QueryIntegerProperty<TestEntity> prop,
+      int valueIfNull,
+      String reason,
+    ) {
       final qp = queryStrings.property(prop);
-      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
-          reason: reason);
+      expect(
+        qp.find(replaceNullWith: valueIfNull).first,
+        valueIfNull,
+        reason: reason,
+      );
       qp.close();
     }
 
@@ -362,11 +378,17 @@ void main() {
     box.putMany(integerList());
 
     final queryIntegers = box.query(tLong.lessThan(1000)).build();
-    queryAndCheck(QueryDoubleProperty<TestEntity> prop, double valueIfNull,
-        String reason) {
+    queryAndCheck(
+      QueryDoubleProperty<TestEntity> prop,
+      double valueIfNull,
+      String reason,
+    ) {
       final qp = queryIntegers.property(prop);
-      expect(qp.find(replaceNullWith: valueIfNull).first, valueIfNull,
-          reason: reason);
+      expect(
+        qp.find(replaceNullWith: valueIfNull).first,
+        valueIfNull,
+        reason: reason,
+      );
       qp.close();
     }
 
@@ -431,13 +453,16 @@ void main() {
         ..caseSensitive = caseSensitive;
       final items = queryString.find()..sort();
 
-      final itemsDartMap =
-          allStrings.map((s) => caseSensitive ? s : s.toLowerCase());
+      final itemsDartMap = allStrings.map(
+        (s) => caseSensitive ? s : s.toLowerCase(),
+      );
       final itemsDart =
           (distinct ? itemsDartMap.toSet() : itemsDartMap).toList()..sort();
 
-      expect(items.map((s) => caseSensitive ? s : s.toLowerCase()).toList(),
-          sameAsList(itemsDart));
+      expect(
+        items.map((s) => caseSensitive ? s : s.toLowerCase()).toList(),
+        sameAsList(itemsDart),
+      );
       if (queryString.count() != itemsDart.length) {
         printOnFailure('$itemsDart');
         expect(queryString.count(), itemsDart.length);
@@ -470,10 +495,15 @@ void main() {
 
     expectPropQueryClosed(Function function) {
       expect(
-          function,
-          throwsA(predicate((StateError e) =>
-              e.message ==
-              "Property query already closed, cannot execute any actions")));
+        function,
+        throwsA(
+          predicate(
+            (StateError e) =>
+                e.message ==
+                "Property query already closed, cannot execute any actions",
+          ),
+        ),
+      );
     }
 
     expectPropQueryClosed(() => propertyQuery.average());
@@ -489,10 +519,14 @@ void main() {
 
     expectQueryClosed(Function function) {
       expect(
-          function,
-          throwsA(predicate((StateError e) =>
-              e.message ==
-              "Query already closed, cannot execute any actions")));
+        function,
+        throwsA(
+          predicate(
+            (StateError e) =>
+                e.message == "Query already closed, cannot execute any actions",
+          ),
+        ),
+      );
     }
 
     expectQueryClosed(() => propertyQuery2.average());
@@ -509,8 +543,10 @@ void main() {
     env.closeAndDelete();
 
     expectStoreClosed(Function function) {
-      expect(function,
-          throwsA(predicate((StateError e) => e.message == "Store is closed")));
+      expect(
+        function,
+        throwsA(predicate((StateError e) => e.message == "Store is closed")),
+      );
     }
 
     expectStoreClosed(() => propertyQuery3.count());
@@ -525,9 +561,10 @@ T _add<T extends num>(T lhs, T rhs) => (lhs + rhs) as T;
 int toUint32(int v) => v >= 0 ? v : (1 << 32) + v;
 
 T _propQueryExec<T, DartType>(
-    Query query,
-    QueryProperty<TestEntity, DartType> prop,
-    T Function(PropertyQuery<DartType> propQuery) fn) {
+  Query query,
+  QueryProperty<TestEntity, DartType> prop,
+  T Function(PropertyQuery<DartType> propQuery) fn,
+) {
   final propQuery = query.property(prop);
   try {
     return fn(propQuery);

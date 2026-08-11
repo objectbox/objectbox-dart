@@ -21,25 +21,25 @@ void main() {
     final properties = [
       TestEntityScalarVectors_.tShortList,
       TestEntityScalarVectors_.tIntList,
-      TestEntityScalarVectors_.tLongList
+      TestEntityScalarVectors_.tLongList,
     ];
 
     final paramsLarger = [
       1010, // short
       100010, // int
-      10000000010 // long
+      10000000010, // long
     ];
 
     final params5 = [
       1004, // short
       100004, // int
-      10000000004 // long
+      10000000004, // long
     ];
 
     final params10 = [
       1009, // short
       100009, // int
-      10000000009 // long
+      10000000009, // long
     ];
 
     for (int i = 0; i < properties.length; i++) {
@@ -106,7 +106,7 @@ void main() {
 
     final properties = [
       TestEntityScalarVectors_.tFloatList,
-      TestEntityScalarVectors_.tDoubleList
+      TestEntityScalarVectors_.tDoubleList,
     ];
 
     for (int i = 0; i < properties.length; i++) {
