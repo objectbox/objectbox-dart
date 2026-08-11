@@ -35,7 +35,6 @@ dev_dependencies:
   test: ^1.25.8
   lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
   pub_semver: ^2.2.0
-  package_config: ^2.2.0
   # https://pub.dev/packages/build_test/changelog
   # Require 3.5.0 to use new TestBuilderResult APIs
   build_test: ^3.5.0
