@@ -9,16 +9,20 @@ fi
 
 version=$1
 
-echo "Executing an integration test on a released version: $version"
+echo "Building examples for released version: $version"
 
 testDir="${root}/build/test/${version}"
 rm -rf "${testDir}"
 mkdir -pv "${testDir}"
 cd "${testDir}" || exit 1
 
-curl -L "https://storage.googleapis.com/pub-packages/packages/objectbox-${version}.tar.gz" | tar xz -C .
+archiveFile="objectbox-${version}.tar.gz"
+curl --fail --show-error --location --output "${archiveFile}" \
+  "https://pub.dev/api/archives/objectbox-${version}.tar.gz"
+tar xzf "${archiveFile}" -C .
+rm "${archiveFile}"
 
-make integration-test
+make examples
 
 echo "Test passed, cleaning up"
 cd "${root}" || exit 1

@@ -18,13 +18,16 @@ set(PLUGIN_NAME "objectbox_flutter_libs_plugin")
 
 # Any new source files that you add to the plugin should be added here.
 list(APPEND PLUGIN_SOURCES
-        "objectbox_flutter_libs_plugin.cpp"
+  "objectbox_flutter_libs_plugin.cpp"
+  "objectbox_flutter_libs_plugin.h"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
 # on PLUGIN_NAME above).
 add_library(${PLUGIN_NAME} SHARED
-        ${PLUGIN_SOURCES}
+  "include/objectbox_flutter_libs/objectbox_flutter_libs_plugin_c_api.h"
+  "objectbox_flutter_libs_plugin_c_api.cpp"
+  ${PLUGIN_SOURCES}
 )
 
 # Apply a standard set of build settings that are configured in the
@@ -69,10 +72,7 @@ FetchContent_Declare(
     URL https://github.com/objectbox/objectbox-c/releases/download/v${OBJECTBOX_VERSION}/objectbox-windows-${OBJECTBOX_ARCH}.zip
 )
 
-FetchContent_GetProperties(objectbox-download)
-if(NOT objectbox-download_POPULATED)
-  FetchContent_Populate(objectbox-download)
-endif()
+FetchContent_MakeAvailable(objectbox-download)
 
 set(objectbox_flutter_libs_bundled_libraries
     "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}"
@@ -81,8 +81,8 @@ set(objectbox_flutter_libs_bundled_libraries
 
 add_library(objectbox SHARED IMPORTED GLOBAL)
 set_target_properties(objectbox PROPERTIES
-    IMPORTED_LOCATION ${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}
-    IMPORTED_IMPLIB ${objectbox-download_SOURCE_DIR}/lib/${CMAKE_IMPORT_LIBRARY_PREFIX}objectbox${CMAKE_IMPORT_LIBRARY_SUFFIX}
+    IMPORTED_LOCATION "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}objectbox${CMAKE_SHARED_LIBRARY_SUFFIX}"
+    IMPORTED_IMPLIB "${objectbox-download_SOURCE_DIR}/lib/${CMAKE_IMPORT_LIBRARY_PREFIX}objectbox${CMAKE_IMPORT_LIBRARY_SUFFIX}"
 )
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE objectbox)

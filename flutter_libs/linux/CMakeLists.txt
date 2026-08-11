@@ -1,14 +1,18 @@
 # The Flutter tooling requires that developers have CMake 3.10 or later
 # installed. You should not increase this version, as doing so will cause
 # the plugin to fail to compile for some customers of the plugin.
-cmake_minimum_required(VERSION 3.10)
+# ObjectBox: increase to 3.14 to use FetchContent_MakeAvailable.
+cmake_minimum_required(VERSION 3.14)
 
 # Project-level configuration.
 set(PROJECT_NAME "objectbox_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
-# Enable new CMake policies to avoid FetchContent deprecation warnings
-cmake_policy(VERSION 3.10...3.24)
+# Enable CMake 3.24 policies to avoid FetchContent warning:
+# "The DOWNLOAD_EXTRACT_TIMESTAMP option was not given and policy CMP0135 is not
+# set."
+# https://cmake.org/cmake/help/latest/policy/CMP0135.html
+cmake_policy(VERSION 3.14...3.24)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed.
@@ -66,10 +70,7 @@ FetchContent_Declare(
     URL https://github.com/objectbox/objectbox-c/releases/download/v${OBJECTBOX_VERSION}/objectbox-linux-${OBJECTBOX_ARCH}.tar.gz
 )
 
-FetchContent_GetProperties(objectbox-download)
-if(NOT objectbox-download_POPULATED)
-  FetchContent_Populate(objectbox-download)
-endif()
+FetchContent_MakeAvailable(objectbox-download)
 
 # ----------------------------------------------------------------------
 

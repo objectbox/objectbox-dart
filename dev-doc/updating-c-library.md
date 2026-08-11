@@ -36,9 +36,16 @@ Includes database version 5.3.2-2026-05-05
 
 ### Android
 
-Uses Maven artifacts of `objectbox-android` and `objectbox-android-objectbrowser` (Admin).
+The Flutter plugins use the Maven artifacts:
 
-For the Flutter plugins on Android ([view releases](https://github.com/objectbox/objectbox-java/releases)):
+- `objectbox-android-db` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-android-db/versions))
+- `objectbox-sync-android-db` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-sync-android-db/versions))
+
+The relations example includes a variant with Admin:
+
+- `objectbox-android-db-admin` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-android-db-admin/versions))
+
+To change to a different version:
 
 ```bash
 ./tool/set-android-version.sh 5.4.2
@@ -46,11 +53,11 @@ For the Flutter plugins on Android ([view releases](https://github.com/objectbox
 
 ```text
 * Update ObjectBox database for Flutter Android apps to `5.3.2-2026-05-05`.  
-  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to update to `io.objectbox:objectbox-android-objectbrowser:5.4.2` in `android/app/build.gradle.kts` or `android/app/build.gradle`.
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to update to `io.objectbox:objectbox-android-db-admin:5.4.2` in `android/app/build.gradle.kts` or `android/app/build.gradle`.
 ```
 
 ```text
-Update objectbox-android [5.4.1 -> 5.4.2]
+Update Android library [5.4.1 -> 5.4.2]
 
 Includes C API 5.3.2 and database 5.3.2-2026-05-05
 ```
@@ -60,9 +67,13 @@ from the relevant objectbox repository release tag (like `java-4.1.0`).
 
 ### Apple OSs
 
-Uses the ObjectBox CocoaPod (regular and `-sync` version).
+Uses the ObjectBox Swift Package and CocoaPod (regular and `-sync` version).
 
-For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectbox/objectbox-swift/releases))
+For the Flutter plugins on iOS/macOS.
+
+[View Swift Package releases](https://github.com/objectbox/objectbox-swift-spm/releases)
+
+[View CocoaPod releases](https://github.com/objectbox/objectbox-swift/releases)
 
 ```bash
 ./tool/set-swift-version.sh 5.3.0
@@ -74,7 +85,7 @@ For the Flutter plugins on iOS/macOS ([view releases](https://github.com/objectb
 ```
 
 ```text
-Update ObjectBox CocoaPod [5.3.0-beta.4 -> 5.3.0]
+Update ObjectBox Swift Package, CocoaPod [5.3.0-beta.4 -> 5.3.0]
 
 Includes C API 5.3.2 and database 5.3.2-next-2026-05-16
 ```

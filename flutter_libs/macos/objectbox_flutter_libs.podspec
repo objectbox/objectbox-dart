@@ -13,9 +13,15 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://objectbox.io'
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
-  s.platform         = :osx, '11.0' # ObjectBox Swift requires macOS 11
+  s.platform         = :osx, '11.0' # ObjectBox CocoaPod requires macOS 11
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
+  s.source_files     = 'objectbox_flutter_libs/Sources/objectbox_flutter_libs/**/*'
+
+  # If your plugin requires a privacy manifest, for example if it collects user
+  # data, update the PrivacyInfo.xcprivacy file to describe your plugin's
+  # privacy impact, and then uncomment this line. For more information,
+  # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
+  # s.resource_bundles = {'objectbox_flutter_libs_privacy' => ['objectbox_flutter_libs/Sources/objectbox_flutter_libs/PrivacyInfo.xcprivacy']}
 
   s.dependency 'FlutterMacOS'
   s.dependency 'ObjectBox', '5.3.0'

@@ -1,5 +1,25 @@
 ## latest
 
+* Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
+  * Android apps: min SDK increased to 24 (Android 7.0).
+* Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
+* Flutter plugins: resolve FetchContent deprecation warnings. [#701](https://github.com/objectbox/objectbox-dart/issues/701)
+* Flutter plugins: depend on new database-only Android artifacts (`objectbox-android-db`, `objectbox-sync-android-db`).
+  * **Note: If your Flutter Android app is using Admin for debugging**, you may have to update your build script to exclude the new artifact name:
+
+    ```kts
+    // android/app/build.gradle.kts
+    
+    configurations {
+        debugImplementation {
+            // BEFORE
+            exclude(group = "io.objectbox", module = "objectbox-android")
+            // AFTER
+            exclude(group = "io.objectbox", module = "objectbox-android-db")
+        }
+    }
+    ```
+
 ## 5.3.2 (2026-05-20)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.2-2026-05-05](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.2)
