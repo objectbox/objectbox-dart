@@ -1,4 +1,4 @@
-# ObjectBox Flutter SDK Examples
+# ObjectBox Dart and Flutter SDK Examples
 
 Note: [A Flutter example app](https://github.com/objectbox/objectbox-sync-examples/tree/main/tasks/client-flutter)
 that uses [Sync](https://objectbox.io/sync/) is available in the objectbox-sync-examples repo.
