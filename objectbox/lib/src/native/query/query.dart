@@ -540,6 +540,34 @@ abstract class Condition<EntityT> {
   }
 }
 
+/// Extension on nullable [Condition] to simplify building queries
+/// where conditions are accumulated conditionally.
+extension NullableCondition<T> on Condition<T>? {
+  /// Combines this condition with [other] using AND.
+  /// If this is null, returns [other] directly.
+  ///
+  /// Useful when building queries where conditions are applied selectively:
+  /// ```dart
+  /// Condition<City>? condition;
+  /// condition = condition.and(City_.district.equals(id));
+  /// condition = condition.and(City_.name.contains(name));
+  /// query = box.query(condition).build();
+  /// ```
+  Condition<T> and(Condition<T> other) => this?.and(other) ?? other;
+
+  /// Combines this condition with [other] using OR.
+  /// If this is null, returns [other] directly.
+  ///
+  /// Useful when building queries where conditions are applied selectively:
+  /// ```dart
+  /// Condition<City>? condition;
+  /// condition = condition.or(City_.district.equals(id));
+  /// condition = condition.or(City_.name.contains(name));
+  /// query = box.query(condition).build();
+  /// ```
+  Condition<T> or(Condition<T> other) => this?.or(other) ?? other;
+}
+
 class _NullCondition<EntityT, DartType> extends Condition<EntityT> {
   final QueryProperty<EntityT, DartType> _property;
   final _ConditionOp _op;
