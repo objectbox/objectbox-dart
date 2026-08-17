@@ -1,16 +1,11 @@
-# android_runner
+# objectbox_test_app
 
-A new Flutter project.
+objectbox test application. Helps run integration tests, currently on the Android platform.
 
-## Getting Started
+## Running the tests
 
-This project is a starting point for a Flutter application.
+Assuming a single running Android emulator:
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter test integration_test/sync_test.dart -d emulator-5554
+```
