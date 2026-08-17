@@ -1,8 +1,0 @@
-targets:
-  $default:
-    builders:
-      objectbox_generator:
-        generate_for:
-          - lib/entity.dart
-          - lib/entity_sync.dart
-
