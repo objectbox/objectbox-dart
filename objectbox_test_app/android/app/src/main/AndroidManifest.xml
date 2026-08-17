@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
-        android:label="android_runner"
+        android:label="objectbox_test_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

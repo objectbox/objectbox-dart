@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:android_runner/objectbox.g.dart';
+import 'package:objectbox_test_app/objectbox.g.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:objectbox/internal.dart';
