@@ -1,4 +1,4 @@
-name: android_runner
+name: objectbox_test_app
 description: "Flutter integration test runner for ObjectBox sync tests on Android."
 publish_to: 'none'
 version: 1.0.0+1
@@ -23,10 +23,10 @@ dev_dependencies:
   test: ^1.16.5
 dependency_overrides:
   objectbox:
-    path: ../../objectbox
+    path: ../objectbox
   objectbox_sync_flutter_libs:
-    path: ../../sync_flutter_libs
+    path: ../sync_flutter_libs
   objectbox_generator:
-    path: ../../generator
+    path: ../generator
 flutter:
   uses-material-design: true

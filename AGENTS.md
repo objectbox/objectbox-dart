@@ -67,11 +67,11 @@ Generator integration tests:
 ./generator/test.sh
 ```
 
-Flutter Android integration tests are in `objectbox_test/android_runner/`.
+Flutter Android integration tests are in `objectbox_test_app/`.
 Run them on an already-started Android emulator, for example, if `flutter devices` lists an emulator as `emulator-5554`:
 
 ```bash
-cd objectbox_test/android_runner
+cd objectbox_test_app
 flutter test integration_test/sync_test.dart -d emulator-5554
 ```
 
