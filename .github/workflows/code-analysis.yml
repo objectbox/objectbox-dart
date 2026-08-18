@@ -39,6 +39,7 @@ jobs:
           flutter pub get --directory=objectbox/example/flutter/objectbox_demo
           flutter pub get --directory=objectbox/example/flutter/objectbox_demo_relations
           dart pub get --directory=objectbox_test
+          flutter pub get --directory=objectbox_test_app
           flutter pub get --directory=flutter_libs
           flutter pub get --directory=sync_flutter_libs
         # Since Dart 3.7, dart format needs pub get to run before formatting,
@@ -52,12 +53,16 @@ jobs:
       - name: Generate code (objectbox_test)
         working-directory: objectbox_test
         run: dart run build_runner build
+      - name: Generate code (objectbox_test_app)
+        working-directory: objectbox_test_app
+        run: dart run build_runner build
       - name: Analyze packages
         run: |
           dart analyze benchmark
           dart analyze generator
           dart analyze objectbox
           dart analyze objectbox_test
+          dart analyze objectbox_test_app
           dart analyze flutter_libs
           dart analyze sync_flutter_libs
 
