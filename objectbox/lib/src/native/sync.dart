@@ -321,7 +321,7 @@ class MeshConfig {
   /// each other.
   final String meshId;
 
-  /// Max number of simultaneous connections a peer can have to other peers
+  /// Maximum number of simultaneous connections a peer can have to other peers
   /// (default: 3).
   ///
   /// The default of 3 already provides mesh resilience through alternative
@@ -337,8 +337,10 @@ class MeshConfig {
 
   /// Backoff time in milliseconds between peer evictions (default: 30000).
   ///
-  /// When an incoming peer has 0 connections but we are full, we evict one
-  /// existing peer to make room. This backoff prevents frequent evictions.
+  /// When an incoming peer has 0 connections, but this peer is at
+  /// [maxConnectionCount], this peer ends a connection to an existing peer, it
+  /// "evicts" that peer, to make room. This backoff prevents frequent
+  /// evictions.
   final int? evictionBackoffMillis;
 
   /// Seed for the random engine; 0 means use the current time (default: 0).
@@ -391,7 +393,7 @@ class MeshConfig {
   /// TxLogData message (default: 100).
   final int? txLogBatchSizeKb;
 
-  /// Max number of TX logs to batch into a single TxLogData message
+  /// Maximum number of TX logs to batch into a single TxLogData message
   /// (default: 1000). Must be in the range (0, 100000].
   final int? txLogBatchMaxCount;
 
