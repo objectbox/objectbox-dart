@@ -46,10 +46,6 @@ export 'src/relations/to_one.dart' show ToOne;
 export 'src/store.dart' show Store, ObservableStore;
 export 'src/sync.dart'
     show
-        MeshConfig,
-        MeshState,
-        MeshStats,
-        MeshSync,
         Sync,
         SyncChange,
         SyncClient,
@@ -59,4 +55,5 @@ export 'src/sync.dart'
         SyncState,
         SyncStats,
         SyncLoginEvent;
+export 'src/sync_mesh.dart' show MeshConfig, MeshState, MeshStats, MeshSync;
 export 'src/transaction.dart' show TxMode;
