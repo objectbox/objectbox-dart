@@ -32,7 +32,10 @@ variables:
       - $CI_PROJECT_DIR/.pub-cache/hosted/
     key: "linux-x64-dart-$DART_VERSION-pub-cache"
 
-# Analyze (only) Dart packages, check formatting in Dart and Flutter packages.
+# Analyze and check formatting of (only) Dart packages.
+# Flutter packages are checked by GitHub CI.
+# Since Dart 3.7, dart format needs pub get to run before,
+# so can no longer check Flutter packages without Flutter SDK.
 format-and-analyze:
   extends: .cache
   stage: code-analysis
@@ -43,8 +46,6 @@ format-and-analyze:
     - dart pub get --directory=objectbox
     - dart pub get --directory=objectbox_test
     - dart pub get --directory=objectbox/example/dart-native/vectorsearch_cities
-    # Since Dart 3.7, dart format needs pub get to run before formatting,
-    # so can no longer check formatting of Flutter packages (would require Flutter SDK):
     # Check formatting only for Dart packages (run before generating code to exclude generated code)
     - dart format --set-exit-if-changed benchmark
     - dart format --set-exit-if-changed generator

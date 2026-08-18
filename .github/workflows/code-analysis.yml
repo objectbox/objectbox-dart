@@ -52,12 +52,14 @@ jobs:
       - name: Generate code (objectbox_test)
         working-directory: objectbox_test
         run: dart run build_runner build
-      - name: Analyze Dart packages
+      - name: Analyze packages
         run: |
           dart analyze benchmark
           dart analyze generator
           dart analyze objectbox
           dart analyze objectbox_test
+          dart analyze flutter_libs
+          dart analyze sync_flutter_libs
 
   pana:
     runs-on: ubuntu-24.04
