@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/sync.dart';
-import 'package:objectbox/src/native/sync_mesh.dart';
 import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart'
     show createMeshConfig;
 import 'package:path_provider/path_provider.dart';

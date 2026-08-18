@@ -202,17 +202,56 @@ class MeshConfig {
       this.txLogBatchSizeKb,
       this.txLogBatchMaxCount,
       this.txLogMaxAgeSeconds});
+}
 
-  void _addNetworkInternalHandle(int networkInternalHandle) {
-    _networkInternalHandles.add(networkInternalHandle);
-  }
+/// Hides internal [MeshConfig] methods from the public API
+/// (this is not marked as show in objectbox.dart)
+/// while remaining accessible by other libraries in this package
+/// and to other packages importing the internal APIs (internal.dart).
+extension MeshConfigInternal on MeshConfig {
+  /// Creates a mesh sync configuration. See [MeshConfig] field documentation
+  /// for details on each option.
+  static MeshConfig createMeshConfig(String meshId,
+          {int? maxConnectionCount,
+          int? backoffMillis,
+          int? evictionBackoffMillis,
+          int? randomSeed,
+          int? requestTimeoutMillis,
+          int? advertisingDelayMillis,
+          int? advertisingRetryMillis,
+          int? advertisingRetryMaxMillis,
+          int? connectDelayMillis,
+          int? initialDiscoveryDurationSeconds,
+          int? discoveryDurationSeconds,
+          int? discoveryPauseSeconds,
+          int? discoveryPauseJitterSeconds,
+          int? txLogBatchSizeKb,
+          int? txLogBatchMaxCount,
+          int? txLogMaxAgeSeconds}) =>
+      MeshConfig._(meshId,
+          maxConnectionCount: maxConnectionCount,
+          backoffMillis: backoffMillis,
+          evictionBackoffMillis: evictionBackoffMillis,
+          randomSeed: randomSeed,
+          requestTimeoutMillis: requestTimeoutMillis,
+          advertisingDelayMillis: advertisingDelayMillis,
+          advertisingRetryMillis: advertisingRetryMillis,
+          advertisingRetryMaxMillis: advertisingRetryMaxMillis,
+          connectDelayMillis: connectDelayMillis,
+          initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
+          discoveryDurationSeconds: discoveryDurationSeconds,
+          discoveryPauseSeconds: discoveryPauseSeconds,
+          discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
+          txLogBatchSizeKb: txLogBatchSizeKb,
+          txLogBatchMaxCount: txLogBatchMaxCount,
+          txLogMaxAgeSeconds: txLogMaxAgeSeconds);
 
   /// Builds the native mesh options object from this configuration.
   ///
   /// The caller takes ownership of the returned pointer; it must either be
   /// passed to `sync_opt_mesh` (which frees it) or freed via `mesh_opt_free`.
   /// If building fails, the options are freed and the error is rethrown.
-  Pointer<OBX_mesh_options> _build() {
+  Pointer<OBX_mesh_options> build() {
     final opt = checkObxPtr(withNativeString(meshId, C.mesh_opt),
         'failed to create mesh options (mesh ID: "$meshId")');
     try {
@@ -284,61 +323,11 @@ class MeshConfig {
     }
     return opt;
   }
-}
-
-/// Internal access for platform integrations and Sync client implementation.
-class InternalSyncAccess {
-  /// Creates a mesh sync configuration. See [MeshConfig] field documentation
-  /// for details on each option.
-  static MeshConfig createMeshConfig(String meshId,
-          {int? maxConnectionCount,
-          int? backoffMillis,
-          int? evictionBackoffMillis,
-          int? randomSeed,
-          int? requestTimeoutMillis,
-          int? advertisingDelayMillis,
-          int? advertisingRetryMillis,
-          int? advertisingRetryMaxMillis,
-          int? connectDelayMillis,
-          int? initialDiscoveryDurationSeconds,
-          int? discoveryDurationSeconds,
-          int? discoveryPauseSeconds,
-          int? discoveryPauseJitterSeconds,
-          int? txLogBatchSizeKb,
-          int? txLogBatchMaxCount,
-          int? txLogMaxAgeSeconds}) =>
-      MeshConfig._(meshId,
-          maxConnectionCount: maxConnectionCount,
-          backoffMillis: backoffMillis,
-          evictionBackoffMillis: evictionBackoffMillis,
-          randomSeed: randomSeed,
-          requestTimeoutMillis: requestTimeoutMillis,
-          advertisingDelayMillis: advertisingDelayMillis,
-          advertisingRetryMillis: advertisingRetryMillis,
-          advertisingRetryMaxMillis: advertisingRetryMaxMillis,
-          connectDelayMillis: connectDelayMillis,
-          initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
-          discoveryDurationSeconds: discoveryDurationSeconds,
-          discoveryPauseSeconds: discoveryPauseSeconds,
-          discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
-          txLogBatchSizeKb: txLogBatchSizeKb,
-          txLogBatchMaxCount: txLogBatchMaxCount,
-          txLogMaxAgeSeconds: txLogMaxAgeSeconds);
 
   /// Adds a platform-specific native network to a mesh config.
-  static void addNetworkInternalHandle(
-          MeshConfig mesh, int networkInternalHandle) =>
-      mesh._addNetworkInternalHandle(networkInternalHandle);
-
-  /// Builds native mesh options for attaching [mesh] to a Sync client.
-  static Pointer<OBX_mesh_options> buildMeshOptions(MeshConfig mesh) =>
-      mesh._build();
-
-  /// Wraps a native mesh owned by a Sync client.
-  static MeshSync createMeshSync(Pointer<OBX_mesh> mesh) => MeshSync._(mesh);
-
-  /// Invalidates a mesh wrapper after its owning Sync client closes.
-  static void closeMeshSync(MeshSync? mesh) => mesh?._close();
+  void addNetworkInternalHandle(int networkInternalHandle) {
+    _networkInternalHandles.add(networkInternalHandle);
+  }
 }
 
 /// A running peer-to-peer mesh sync, obtained from a Sync client's `mesh`
@@ -360,14 +349,6 @@ class MeshSync {
       ? _cMesh
       : throw StateError(
           'MeshSync already closed (the owning SyncClient was closed)');
-
-  /// Invalidates this mesh. Called by the owning Sync client when it is closed.
-  ///
-  /// The native mesh is owned and freed by the sync client, so this only resets
-  /// the (now dangling) pointer; any later access throws a [StateError].
-  void _close() {
-    _cMesh = nullptr;
-  }
 
   /// Gets the current state of the mesh sync.
   MeshState state() {
@@ -413,4 +394,20 @@ class MeshSync {
   /// permissions. Thread-safe; the actual retry happens on the mesh sync
   /// thread shortly after.
   void retryNetworks() => checkObx(C.mesh_retry_networks(_ptr));
+}
+
+/// Hides internal [MeshSync] methods from the public API
+/// (this is not marked as show in objectbox.dart)
+/// while remaining accessible by other libraries in this package.
+extension MeshSyncInternal on MeshSync {
+  /// Wraps a native mesh owned by a Sync client.
+  static MeshSync createMeshSync(Pointer<OBX_mesh> mesh) => MeshSync._(mesh);
+
+  /// Invalidates this mesh. Called by the owning Sync client when it is closed.
+  ///
+  /// The native mesh is owned and freed by the sync client, so this only resets
+  /// the (now dangling) pointer; any later access throws a [StateError].
+  void close() {
+    _cMesh = nullptr;
+  }
 }

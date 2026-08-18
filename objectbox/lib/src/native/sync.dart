@@ -343,7 +343,7 @@ class SyncClient {
 
       if (mesh != null) {
         // Builds the mesh options (and frees them if building fails).
-        final meshOptions = InternalSyncAccess.buildMeshOptions(mesh);
+        final meshOptions = mesh.build();
         // sync_opt_mesh always frees the mesh options, including on error.
         checkObx(C.sync_opt_mesh(options, meshOptions));
       }
@@ -382,7 +382,7 @@ class SyncClient {
     // The native mesh is owned by the client and freed by sync_close; invalidate
     // any MeshSync wrapper so later access throws instead of using a dangling
     // pointer.
-    InternalSyncAccess.closeMeshSync(_mesh);
+    _mesh?.close();
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
@@ -404,7 +404,7 @@ class SyncClient {
     if (_mesh != null) return _mesh;
     final meshPtr = C.sync_mesh(_ptr);
     if (meshPtr.address == 0) return null;
-    return _mesh = InternalSyncAccess.createMeshSync(meshPtr);
+    return _mesh = MeshSyncInternal.createMeshSync(meshPtr);
   }
 
   /// Returns the protocol version this client uses.

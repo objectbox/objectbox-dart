@@ -89,7 +89,7 @@ Future<MeshConfig> createMeshConfig(
   int? txLogBatchMaxCount,
   int? txLogMaxAgeSeconds,
 }) async {
-  final mesh = obx_internal.InternalSyncAccess.createMeshConfig(
+  final mesh = obx_internal.MeshConfigInternal.createMeshConfig(
     meshId,
     maxConnectionCount: maxConnectionCount,
     backoffMillis: backoffMillis,
@@ -131,6 +131,6 @@ Future<MeshConfig> createMeshConfig(
     throw StateError('Failed to create Android Nearby mesh network');
   }
 
-  obx_internal.InternalSyncAccess.addNetworkInternalHandle(mesh, handle);
+  mesh.addNetworkInternalHandle(handle);
   return mesh;
 }
