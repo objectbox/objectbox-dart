@@ -30,3 +30,19 @@ To run tests using an in-memory database:
 export OBX_IN_MEMORY=true
 dart test
 ```
+
+To run tests using a Sync server locally (note that GitLab CI uses a different token option):
+
+```bash
+# Set server URL and GitLab private token
+export CI_SERVER_URL=REPLACE_ME
+export PRIVATE_TOKEN=REPLACE_ME
+
+# Download the server binary and make it discoverable by sync_test.dart
+mkdir sync-server && cd sync-server
+../../tool/download-server.sh --gitlab-base-url $CI_SERVER_URL --branch sync --private-token $PRIVATE_TOKEN
+export PATH="$PATH:$PWD"
+
+cd ..
+dart test test/sync_test.dart
+```

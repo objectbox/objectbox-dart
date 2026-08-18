@@ -24,6 +24,9 @@ objectbox.lib
 # backup created by publish.sh - ignore to avoid publishing
 **/pubspec.yaml.original
 
-# ObjectBox database files
+# ObjectBox
+# Database files created by tests
 data.mdb
 lock.mdb
+# Server files created by download-server.sh
+sync-server/
