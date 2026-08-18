@@ -336,6 +336,16 @@ void main() {
       client.close();
     });
 
+    test('SyncClient stats', () {
+      SyncClient client = createClient(store);
+      addTearDown(() => client.close());
+
+      // All counters are readable and zero before connecting to a server.
+      for (final counter in SyncStats.values) {
+        expect(client.stats(counter), isZero, reason: counter.name);
+      }
+    });
+
     test('syncClockTimestamp', () {
       final clockValue = 1860802100721610852;
       final expectedTime = 1774599171372;
@@ -555,6 +565,23 @@ void main() {
             InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
         expect(events[1][0].puts, [2, 3]);
         expect(events[1][0].removals, [1]);
+      });
+
+      test('SyncClient stats after logging in', () async {
+        await server.online();
+        final client = loggedInClient(store);
+        addTearDown(() => client.close());
+
+        // All but the send failures counter should be positive
+        for (final counter in SyncStats.values) {
+          if (counter == SyncStats.messageSendFailures) {
+            expect(client.stats(counter), isZero,
+                reason: 'Value: ${counter.name}');
+          } else {
+            expect(client.stats(counter), isPositive,
+                reason: 'Value: ${counter.name}');
+          }
+        }
       });
 
       test('Put and get entity with SyncClock and SyncPrecedence', () async {
