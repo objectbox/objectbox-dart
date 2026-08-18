@@ -2,6 +2,7 @@
 
 * Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
+* Flutter plugins: remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So after updating make sure to run the code generator again using `dart run build_runner build`.
 * Allow analyzer versions up to 14.
 * Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
 * Flutter plugins: resolve FetchContent deprecation warnings. [#701](https://github.com/objectbox/objectbox-dart/issues/701)

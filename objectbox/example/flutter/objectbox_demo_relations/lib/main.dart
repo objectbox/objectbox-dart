@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'objectbox.dart';
 import 'task_elements.dart';
@@ -15,7 +14,6 @@ Future<void> main() async {
   // to store the database in.
   WidgetsFlutterBinding.ensureInitialized();
 
-  loadObjectBoxLibraryAndroidCompat();
   objectbox = await ObjectBox.create();
 
   runApp(const MyApp());

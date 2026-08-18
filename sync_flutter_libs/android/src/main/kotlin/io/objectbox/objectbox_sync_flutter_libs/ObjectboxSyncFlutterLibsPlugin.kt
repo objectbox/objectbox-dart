@@ -1,7 +1,5 @@
 package io.objectbox.objectbox_sync_flutter_libs
 
-import android.os.Build
-
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -14,7 +12,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler {
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
-  private lateinit var channel : MethodChannel
+  private lateinit var channel: MethodChannel
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "objectbox_sync_flutter_libs")
@@ -22,23 +20,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
-    if (call.method == "loadObjectBoxLibrary") {
-      // Loading the JNI library through Dart is broken on Android 6 (and maybe earlier).
-      // Try to fix by loading it first via Java API, then again in Dart.
-      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-        result.success(null);
-        return
-      }
-      try {
-        System.loadLibrary("objectbox-jni")
-        println("[ObjectBox] Loaded JNI library via workaround.")
-        result.success(null)
-      } catch (e: Throwable) {
-        result.error("OBX_SO_LOAD_FAILED", e.message, null)
-      }
-    } else {
-      result.notImplemented()
-    }
+    result.notImplemented()
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {

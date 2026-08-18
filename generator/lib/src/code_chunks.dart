@@ -48,10 +48,6 @@ class CodeChunks {
     /// Note: for desktop apps it is recommended to specify a unique [directory].
     /// 
     /// See [$obx.Store.new] for an explanation of all parameters.
-    /// 
-    /// For Flutter apps, also calls `loadObjectBoxLibraryAndroidCompat()` from
-    /// the ObjectBox Flutter library to fix loading the native ObjectBox library
-    /// on Android 6 and older.
     ${openStore(model, pubspec)}
 
     /// Returns the ObjectBox model definition for this project for use with 
@@ -84,7 +80,6 @@ class CodeChunks {
           int? maxReaders,
           bool queriesCaseSensitiveDefault = true,
           String? macosApplicationGroup})${obxFlutter ? ' async' : ''} {
-        ${obxFlutter ? 'await loadObjectBoxLibraryAndroidCompat();' : ''}
         return $obx.Store(getObjectBoxModel(),
             directory: directory${obxFlutter ? ' ?? (await defaultStoreDirectory()).path' : ''},
             maxDBSizeInKB: maxDBSizeInKB,
