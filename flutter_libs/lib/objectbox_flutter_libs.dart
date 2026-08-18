@@ -1,6 +1,6 @@
 /// This package contains platform-specific native libraries for flutter.
 /// See the actual library implementation in package "objectbox".
-library objectbox_flutter_libs;
+library;
 
 import 'dart:io';
 
