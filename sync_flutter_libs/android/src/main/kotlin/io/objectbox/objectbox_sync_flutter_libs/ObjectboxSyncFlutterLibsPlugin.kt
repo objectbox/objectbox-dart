@@ -21,7 +21,6 @@ import io.flutter.plugin.common.PluginRegistry
  * - Loading the ObjectBox JNI library on Android 6.
  * - Creating a mesh network for Mesh Sync.
  */
-// TODO Rename to ObjectboxSyncFlutterPlugin?
 class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware,
   PluginRegistry.RequestPermissionsResultListener {
   /// The MethodChannel that will the communication between Flutter and native Android
