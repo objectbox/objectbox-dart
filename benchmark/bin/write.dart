@@ -63,7 +63,7 @@ class PutManyAsync extends DbBenchmark {
   final items = prepareTestEntities(putManyCount, assignedIds: true);
 
   PutManyAsync()
-      : super('$PutManyAsync', iterations: 1, coefficient: 1 / putManyCount);
+    : super('$PutManyAsync', iterations: 1, coefficient: 1 / putManyCount);
 
   @override
   void runIteration(int i) => box.putManyAsync(items);
@@ -73,8 +73,11 @@ class PutAndGetManyAsync extends DbBenchmark {
   final items = prepareTestEntities(putManyCount, assignedIds: true);
 
   PutAndGetManyAsync()
-      : super('$PutAndGetManyAsync',
-            iterations: 1, coefficient: 1 / putManyCount);
+    : super(
+        '$PutAndGetManyAsync',
+        iterations: 1,
+        coefficient: 1 / putManyCount,
+      );
 
   @override
   void runIteration(int i) => box.putAndGetManyAsync(items);
@@ -87,7 +90,7 @@ class PutQueuedAwaitResult extends DbBenchmark {
   final items = prepareTestEntities(putAsyncCount, assignedIds: true);
 
   PutQueuedAwaitResult()
-      : super('$PutQueuedAwaitResult', iterations: putAsyncCount);
+    : super('$PutQueuedAwaitResult', iterations: putAsyncCount);
 
   @override
   FutureOr<void> runIteration(int iteration) =>
@@ -217,8 +220,10 @@ class RunInTxAsync extends DbBenchmark {
 
   @override
   Future<List<TestEntity>> runIteration(int iteration) async {
-    return store.runInTransactionAsync(TxMode.write,
-        (Store store, List<TestEntity> param) {
+    return store.runInTransactionAsync(TxMode.write, (
+      Store store,
+      List<TestEntity> param,
+    ) {
       final box = store.box<TestEntity>();
       box.putMany(param);
       return box.getAll();

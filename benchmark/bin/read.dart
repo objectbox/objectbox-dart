@@ -49,7 +49,7 @@ class GetManyAsync extends DbBenchmark {
   late final List<int> ids;
 
   GetManyAsync()
-      : super('$GetManyAsync', iterations: 1, coefficient: 1 / getManyCount);
+    : super('$GetManyAsync', iterations: 1, coefficient: 1 / getManyCount);
 
   @override
   void runIteration(int i) => box.getManyAsync(ids);
@@ -70,7 +70,7 @@ class GetAll extends DbBenchmark {
 
 class GetAllAsync extends DbBenchmark {
   GetAllAsync()
-      : super('$GetAllAsync', iterations: 1, coefficient: 1 / getManyCount);
+    : super('$GetAllAsync', iterations: 1, coefficient: 1 / getManyCount);
 
   @override
   void runIteration(int i) => box.getAllAsync();

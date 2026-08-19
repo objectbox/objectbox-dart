@@ -50,14 +50,7 @@ class DynLibFile extends Benchmark {
 //   * [Map] (defaults to [LinkedHashMap]) starts to be faster than a fixed-size
 //     list at about 5-6 elements.
 //   * [HashMap] is faster than a fixed size list since 3-4 elements
-final _types = <Type>[
-  int,
-  double,
-  String,
-  List,
-  Map,
-  HashMap,
-];
+final _types = <Type>[int, double, String, List, Map, HashMap];
 
 String _boxAccessResult = ''; // so that we do something with the result
 
@@ -74,8 +67,11 @@ class BoxAccessMap extends Benchmark {
 }
 
 class BoxAccessHashMap extends Benchmark {
-  final boxes = HashMap<Type, String>.fromIterable(_types,
-      key: (item) => item, value: (item) => item.toString());
+  final boxes = HashMap<Type, String>.fromIterable(
+    _types,
+    key: (item) => item,
+    value: (item) => item.toString(),
+  );
 
   BoxAccessHashMap() : super('$BoxAccessHashMap', iterations: 10000);
 
@@ -88,8 +84,10 @@ class BoxAccessHashMap extends Benchmark {
 
 class BoxAccessList extends Benchmark {
   final boxIndexes = List<Type>.from(_types, growable: false);
-  final boxValues =
-      List<String>.from(_types.map((t) => t.toString()), growable: false);
+  final boxValues = List<String>.from(
+    _types.map((t) => t.toString()),
+    growable: false,
+  );
 
   BoxAccessList() : super('$BoxAccessList', iterations: 10000);
 

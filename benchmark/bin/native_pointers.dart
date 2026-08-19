@@ -31,7 +31,7 @@ class AsTypedList extends Benchmark {
   late final Pointer<Uint8> nativePtr;
 
   AsTypedList(this.length)
-      : super('$AsTypedList[size=$length]', iterations: 1000);
+    : super('$AsTypedList[size=$length]', iterations: 1000);
 
   @override
   void runIteration(int i) {

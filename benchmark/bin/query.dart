@@ -21,15 +21,22 @@ class QueryBenchmark extends DbBenchmark {
   @override
   void setup() {
     box.putMany(prepareTestEntities(count));
-    query = box
-        .query(TestEntity_.tInt
-            .lessOrEqual((count / 10).floor())
-            .or(TestEntity_.tInt.greaterThan(count - (count / 10).floor())))
-        .build();
+    query =
+        box
+            .query(
+              TestEntity_.tInt
+                  .lessOrEqual((count / 10).floor())
+                  .or(
+                    TestEntity_.tInt.greaterThan(count - (count / 10).floor()),
+                  ),
+            )
+            .build();
 
     if (query.count() != expectedCount) {
-      throw Exception('Unexpected number of query results '
-          '${query.count()} vs expected $expectedCount');
+      throw Exception(
+        'Unexpected number of query results '
+        '${query.count()} vs expected $expectedCount',
+      );
     }
   }
 

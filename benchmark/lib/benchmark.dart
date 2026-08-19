@@ -34,12 +34,14 @@ class Benchmark {
   ///
   /// Results are printed to the command line.
   Benchmark(this.name, {this.iterations = 1, this.coefficient = 1})
-      : emitter = Emitter(iterations, coefficient) {
+    : emitter = Emitter(iterations, coefficient) {
     print('-------------------------------------------------------------');
     print(
-        '$name(iterations):          ${Emitter._format(iterations.toDouble(), decimalPoints: 0)}');
+      '$name(iterations):          ${Emitter._format(iterations.toDouble(), decimalPoints: 0)}',
+    );
     print(
-        '$name(unit count):          ${Emitter._format(iterations / coefficient, decimalPoints: 0)}');
+      '$name(unit count):          ${Emitter._format(iterations / coefficient, decimalPoints: 0)}',
+    );
     // Measure the total time of the test - if it's too high, you should
     // decrease the number of iterations. Expected time is between 2 and 3 sec.
     watch.start();
@@ -56,8 +58,10 @@ class Benchmark {
   void teardown() {
     final millis = watch.elapsedMilliseconds;
     final color = millis > 3000 ? '\x1B[31m' : '';
-    print('$name(benchmark run time):     '
-        '$color${Emitter._format(millis.toDouble(), suffix: ' ms')}\x1B[0m');
+    print(
+      '$name(benchmark run time):     '
+      '$color${Emitter._format(millis.toDouble(), suffix: ' ms')}\x1B[0m',
+    );
   }
 
   /// Calls [runIteration] [iterations] of times.
@@ -90,8 +94,10 @@ class Benchmark {
     if (!warmUp) {
       // Print how often f had to be re-run to reach minimum run time.
       final reruns = iter - 1;
-      print('$name(re-runs):             '
-          '${Emitter._format(reruns.toDouble(), decimalPoints: 0)}');
+      print(
+        '$name(re-runs):             '
+        '${Emitter._format(reruns.toDouble(), decimalPoints: 0)}',
+      );
     }
     return elapsed / iter;
   }
@@ -136,32 +142,43 @@ class Emitter {
   void emit(String testName, double value) {
     final timePerIter = value / iterations;
     final timePerUnit = timePerIter * coefficient;
-    print('$testName(single iteration):       '
-        '${_format(timePerIter, suffix: ' us')}');
-    print('$testName(per unit):               '
-        '${_format(timePerUnit, suffix: ' us')}');
-    print('$testName(iterations / second): '
-        '${_format(usInSec / timePerIter)}');
-    print('$testName(units / second):      '
-        '${_format(usInSec / timePerUnit)}');
+    print(
+      '$testName(single iteration):       '
+      '${_format(timePerIter, suffix: ' us')}',
+    );
+    print(
+      '$testName(per unit):               '
+      '${_format(timePerUnit, suffix: ' us')}',
+    );
+    print(
+      '$testName(iterations / second): '
+      '${_format(usInSec / timePerIter)}',
+    );
+    print(
+      '$testName(units / second):      '
+      '${_format(usInSec / timePerUnit)}',
+    );
   }
 
   // Simple number formatting, maybe use a lib?
   // * the smaller the number, the more decimal places it has (one up to four).
   // * large numbers use thousands separator (defaults to non-breaking space).
-  static String _format(double num,
-      {String thousandsSeparator = ' ',
-      int? decimalPoints,
-      String suffix = ''}) {
-    decimalPoints ??= num < 1
-        ? 4
-        : num < 10
+  static String _format(
+    double num, {
+    String thousandsSeparator = ' ',
+    int? decimalPoints,
+    String suffix = '',
+  }) {
+    decimalPoints ??=
+        num < 1
+            ? 4
+            : num < 10
             ? 3
             : num < 100
-                ? 2
-                : num < 1000
-                    ? 1
-                    : 0;
+            ? 2
+            : num < 1000
+            ? 1
+            : 0;
 
     var str = num.toStringAsFixed(decimalPoints);
     if (num >= 1000) {
@@ -206,6 +223,8 @@ class DbBenchmark extends Benchmark {
 }
 
 List<TestEntity> prepareTestEntities(int count, {bool assignedIds = false}) =>
-    List<TestEntity>.generate(count,
-        (i) => TestEntity(assignedIds ? i + 1 : 0, 'Entity #$i', i, i, i / 2),
-        growable: false);
+    List<TestEntity>.generate(
+      count,
+      (i) => TestEntity(assignedIds ? i + 1 : 0, 'Entity #$i', i, i, i / 2),
+      growable: false,
+    );
