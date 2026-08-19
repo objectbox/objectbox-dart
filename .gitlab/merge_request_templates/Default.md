@@ -9,7 +9,7 @@ TODO Briefly list what this merge request is about
 - [ ] This merge request fully addresses the requirements of the associated task
 - [ ] I did a self-review of the changes and did not spot any issues, among others:
   - I added unit tests for new or changed behavior; existing and new tests pass
-    - I did [run GitHub CI](https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml) (to test on all platforms and with Flutter)
+    - I did run GitHub CI ([Code analysis](https://github.com/objectbox/objectbox-dart/actions/workflows/code-analysis.yml), [Test](https://github.com/objectbox/objectbox-dart/actions/workflows/test.yml)) to check Flutter packages and test on all platforms)
   - My code conforms to our coding standards and guidelines
   - My changes are prepared (focused commits, good messages) so reviewing them is easy for the reviewer
 - [ ] I amended the [changelog](/objectbox/CHANGELOG.md) if this affects users in any way
