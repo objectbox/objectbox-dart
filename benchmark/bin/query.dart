@@ -16,7 +16,7 @@ class QueryBenchmark extends DbBenchmark {
   static const expectedCount = count / 5;
   late final Query<TestEntity> query;
 
-  QueryBenchmark(String name) : super(name, coefficient: 1 / expectedCount);
+  QueryBenchmark(super.name) : super(coefficient: 1 / expectedCount);
 
   @override
   void setup() {

@@ -186,8 +186,7 @@ class DbBenchmark extends Benchmark {
   late final Store store;
   late final Box<TestEntity> box;
 
-  DbBenchmark(String name, {int iterations = 1, double coefficient = 1})
-      : super(name, iterations: iterations, coefficient: coefficient) {
+  DbBenchmark(super.name, {super.iterations, super.coefficient}) {
     deleteDbDir();
     store = Store(getObjectBoxModel(), directory: dbDir);
     box = Box<TestEntity>(store);
