@@ -597,7 +597,10 @@ class _StringCondition<EntityT, PropertyDartType>
   _StringCondition(super.op, super.prop, super.value, super.value2, super.alias,
       {this.caseSensitive});
 
-  int _op1(_QueryBuilder builder,
+  // Note: can't change bool to named parameter, functions are generated
+  int _op1(
+      _QueryBuilder builder,
+      // ignore: avoid_positional_boolean_parameters
       int Function(Pointer<OBX_query_builder>, int, Pointer<Char>, bool) func) {
     final cStr = _value.toNativeUtf8();
     try {
