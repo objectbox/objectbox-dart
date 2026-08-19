@@ -34,11 +34,15 @@ class ModelHnswParams {
       this.reparationBacklinkProbability,
       this.vectorCacheHintSizeKB});
 
-  /// If [expression] does not evaluate to `true` throws an [ArgumentError]
+  /// If [condition] does not evaluate to `true` throws an [ArgumentError]
   /// using the given [argument], [name] and [message].
-  static void checkArgument(
-      Object argument, bool expression, String name, String message) {
-    if (!expression) {
+  static void _checkArgument({
+    required Object argument,
+    required bool condition,
+    required String name,
+    required String message,
+  }) {
+    if (!condition) {
       throw ArgumentError.value(argument, name, message);
     }
   }
@@ -49,33 +53,50 @@ class ModelHnswParams {
     // otherwise would error at runtime (which might not be easily attributable,
     // see model.dart).
     // See allowed ranges in objectbox-c/src/model.cpp
-    checkArgument(hnsw.dimensions, hnsw.dimensions > 0, "dimensions",
-        "must be 1 or greater");
+    _checkArgument(
+      argument: hnsw.dimensions,
+      condition: hnsw.dimensions > 0,
+      name: "dimensions",
+      message: "must be 1 or greater",
+    );
     final neighborsPerNode = hnsw.neighborsPerNode;
     if (neighborsPerNode != null) {
-      checkArgument(neighborsPerNode, neighborsPerNode > 0, "neighborsPerNode",
-          "must be 1 or greater");
+      _checkArgument(
+        argument: neighborsPerNode,
+        condition: neighborsPerNode > 0,
+        name: "neighborsPerNode",
+        message: "must be 1 or greater",
+      );
     }
     final indexingSearchCount = hnsw.indexingSearchCount;
     if (indexingSearchCount != null) {
-      checkArgument(indexingSearchCount, indexingSearchCount > 0,
-          "indexingSearchCount", "must be 1 or greater");
+      _checkArgument(
+        argument: indexingSearchCount,
+        condition: indexingSearchCount > 0,
+        name: "indexingSearchCount",
+        message: "must be 1 or greater",
+      );
     }
     final reparationBacklinkProbability = hnsw.reparationBacklinkProbability;
     if (reparationBacklinkProbability != null) {
       // The C API allows values bigger than 1.0, but internally everything
       // above 0.999 is just mapped to "always": so restrict to max 1.0.
-      checkArgument(
-          reparationBacklinkProbability,
-          reparationBacklinkProbability >= 0.0 &&
-              reparationBacklinkProbability <= 1.0,
-          "reparationBacklinkProbability",
-          "must be between 0.0 or 1.0");
+      _checkArgument(
+        argument: reparationBacklinkProbability,
+        condition: reparationBacklinkProbability >= 0.0 &&
+            reparationBacklinkProbability <= 1.0,
+        name: "reparationBacklinkProbability",
+        message: "must be between 0.0 or 1.0",
+      );
     }
     final vectorCacheHintSizeKB = hnsw.vectorCacheHintSizeKB;
     if (vectorCacheHintSizeKB != null) {
-      checkArgument(vectorCacheHintSizeKB, vectorCacheHintSizeKB > 0,
-          "vectorCacheHintSizeKB", "must be 1 or greater");
+      _checkArgument(
+        argument: vectorCacheHintSizeKB,
+        condition: vectorCacheHintSizeKB > 0,
+        name: "vectorCacheHintSizeKB",
+        message: "must be 1 or greater",
+      );
     }
     return ModelHnswParams(
         dimensions: hnsw.dimensions,
