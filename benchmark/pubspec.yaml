@@ -3,14 +3,14 @@ description: Simple ObjectBox-Dart performance benchmark
 publish_to: none
 
 environment:
-  sdk: '>=2.14.0 <4.0.0'
+  sdk: ^3.7.0
 
 dependencies:
   objectbox: any
-  meta: ^1.3.0
-  ffi: ^2.0.1
+  meta: ^1.19.0
+  ffi: ^2.2.0
 
 dev_dependencies:
-  lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
+  lints: ^6.1.0
   objectbox_generator: any
   build_runner: any
