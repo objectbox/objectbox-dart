@@ -1,5 +1,4 @@
 stages:
-  - code-analysis
   - test
 
 variables:
@@ -37,7 +36,7 @@ variables:
 # so can no longer check Flutter packages without Flutter SDK.
 format-and-analyze:
   extends: .cache
-  stage: code-analysis
+  stage: test
   script:
     # Get dependencies
     - dart pub get --directory=benchmark
