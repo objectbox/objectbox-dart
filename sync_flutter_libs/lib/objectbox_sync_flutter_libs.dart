@@ -23,6 +23,15 @@ Future<Directory> defaultStoreDirectory() async {
 
 const _platform = MethodChannel("objectbox_sync_flutter_libs");
 
+/// If on Android, invokes the `createMeshNetwork` platform method passing
+/// [serviceId] and [requestPermissions] as arguments. Returns a Future that on
+/// success completes with the handle to the native network instance.
+///
+/// See the `ObjectboxSyncFlutterLibsPlugin` documentation for details on the
+/// arguments, the platform method called in case requested permissions were
+/// granted (which should be handled in a method call handler) and special error
+/// codes returned (which will cause the Future returned by this to complete
+/// with a [PlatformException]).
 Future<int?> _createMeshNetwork(
   String serviceId, {
   required bool requestPermissions,

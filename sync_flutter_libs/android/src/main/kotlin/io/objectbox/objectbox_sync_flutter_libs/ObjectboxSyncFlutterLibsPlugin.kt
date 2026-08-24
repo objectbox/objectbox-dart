@@ -16,9 +16,24 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 
 /**
- * Implements Android-specific functionality for ObjectBox Sync via MethodChannel:
- * - Loading the ObjectBox JNI library on Android 6.
- * - Creating a mesh network for Mesh Sync.
+ * Provides Android-specific platform methods for ObjectBox Sync via [MethodChannel]:
+ *
+ * -  `createMeshNetwork`: creates a [NearbyMeshNetwork] instance for Mesh Sync and returns its
+ *    [NearbyMeshNetwork.getNativeHandle].
+ *
+ *    Requires a `serviceId` (`String`) argument for the mesh network.
+ *
+ *    Optionally, a `requestPermissions` (`Boolean`, defaults to `true`) argument to prevent
+ *    requesting any missing permissions using the [MeshSyncPermissions] helper.
+ *
+ *    If permissions were requested and any were granted invokes the `onMeshSyncPermissionsGranted`
+ *    platform method.
+ *
+ *    If the service ID is null or empty, returns an error result with code
+ *    `OBX_MESH_INVALID_SERVICE_ID`.
+ *
+ *    If creating the mesh instance throws, returns an error result with code
+ *    `OBX_MESH_CREATE_FAILED`.
  */
 class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, ActivityAware,
   PluginRegistry.RequestPermissionsResultListener {
@@ -113,8 +128,8 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
     }
     try {
       val network = NearbyMeshNetwork(applicationContext, serviceId)
-      // Note: we do not need to keep a reference to the (Java) network:
-      //       the Java object is referenced by the native object represented by the handle.
+      // Note: there is no need to keep a reference to the Java network instance,
+      // the Java object is referenced by the native object represented by the handle.
       result.success(network.nativeHandle)
     } catch (e: Throwable) {
       result.error("OBX_MESH_CREATE_FAILED", e.message, null)
