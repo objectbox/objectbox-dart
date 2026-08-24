@@ -127,7 +127,6 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
 
   private fun loadObjectBoxLibrary() {
     System.loadLibrary("objectbox-jni")
-    println("[ObjectBox] Loaded JNI library.")
   }
 
   private companion object {
