@@ -65,7 +65,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
         if (requestPermissions) {
           val permissions = meshSyncPermissions
           if (permissions == null) {
-            Log.w(logTag,
+            Log.w(LOG_TAG,
                 "Mesh Sync runtime permissions may be missing, but no Activity is attached to request them")
           } else {
             permissions.requestIfMissing()
@@ -123,7 +123,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
     try {
       loadObjectBoxLibrary()
     } catch (e: Throwable) {
-      Log.w(logTag, "Failed to load ObjectBox library: ${e.message}")
+      Log.w(LOG_TAG, "Failed to load ObjectBox library: ${e.message}")
       // Ignore
     }
     try {
@@ -145,6 +145,6 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   }
 
   private companion object {
-    const val logTag = "ObjectBoxSyncFlutterLibsPlugin"
+    const val LOG_TAG = "ObjectBoxSyncFlutterLibsPlugin"
   }
 }
