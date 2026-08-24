@@ -17,7 +17,7 @@ dev_dependencies:
   flat_buffers: any # via objectbox
   lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
   objectbox_generator: any
-  test: ^1.16.5
+  test: ^1.27.0
 
 dependency_overrides:
   objectbox:

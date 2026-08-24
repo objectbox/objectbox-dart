@@ -143,7 +143,6 @@ test-coverage:
     # Install coverage tools
     - apt-get update
     - apt-get install --yes --no-install-recommends lcov
-    - dart pub global activate coverage
     # Download sync-server and add it to PATH for sync tests
     - !reference [.sync-server-setup, script]
     # Prepare objectbox_test
