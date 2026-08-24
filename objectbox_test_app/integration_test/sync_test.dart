@@ -12,6 +12,8 @@ import 'package:path_provider/path_provider.dart';
 
 // We want to have types explicit - verifying the return types of functions.
 // ignore_for_file: omit_local_variable_types
+// Using print is fine, this isn't production code.
+// ignore_for_file: avoid_print
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
