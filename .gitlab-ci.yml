@@ -32,6 +32,14 @@ variables:
       - $CI_PROJECT_DIR/.pub-cache/hosted/
     key: "linux-x64-dart-$DART_VERSION-pub-cache"
 
+.sync-server-setup:
+  script:
+    # Download sync-server and add it to PATH for sync tests
+    - mkdir sync-server && cd sync-server
+    - ../tool/download-server.sh --gitlab-base-url $CI_SERVER_URL --branch sync --ci-job-token $CI_JOB_TOKEN
+    - export PATH="$PATH:$PWD"
+    - cd ..
+
 # Analyze and check formatting of (only) Dart packages.
 # Flutter packages are checked by GitHub CI.
 # Since Dart 3.7, dart format needs pub get to run before,
@@ -82,11 +90,8 @@ generator-integ-tests:
   extends: .cache
   stage: test
   script:
-    # Download sync-server and add to PATH for sync tests
-    - mkdir sync-server && cd sync-server
-    - ../tool/download-server.sh --gitlab-base-url $CI_SERVER_URL --branch sync --ci-job-token $CI_JOB_TOKEN
-    - export PATH="$PATH:$PWD"
-    - cd ..
+    # Download sync-server and add it to PATH for sync tests
+    - !reference [.sync-server-setup, script]
     # Generator tests
     - cd generator
     - dart pub get
@@ -133,17 +138,19 @@ vectorsearch-example:
 test-coverage:
   extends: .cache
   stage: test-coverage
-  needs: ["unit-tests"] # Get test results first
+  needs: ["unit-tests"] # Make sure tests pass
   script:
     # Install coverage tools
     - apt-get update
     - apt-get install --yes --no-install-recommends lcov
     - dart pub global activate coverage
+    # Download sync-server and add it to PATH for sync tests
+    - !reference [.sync-server-setup, script]
     # Prepare objectbox_test
     - cd objectbox_test
     - dart pub get
     - dart run build_runner build
-    # Generate test coverage
+    # Generate test coverage (must run from objectbox package directory)
     - cd ../objectbox
     - ../install.sh --sync
     - dart pub get
