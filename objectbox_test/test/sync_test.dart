@@ -336,6 +336,82 @@ void main() {
       client.close();
     });
 
+    // This test passes, but no actual network is registered with the mesh.
+    // A full test with a platform-specific network is available in the
+    // objectbox_test_app in integration_test/sync_test.dart.
+    test('Mesh sync smoke test', () async {
+      final meshConfig = MeshConfigInternal.createMeshConfig(
+        'test-mesh',
+        maxConnectionCount: 3,
+        backoffMillis: 5000,
+        randomSeed: 42,
+        discoveryDurationSeconds: 10,
+        advertisingRetryMillis: 5000,
+        advertisingRetryMaxMillis: 60000,
+        txLogMaxAgeSeconds: 8 * 3600,
+      );
+
+      SyncClient client = SyncClient(
+        store,
+        [serverUrl()],
+        [SyncCredentials.none()],
+        mesh: meshConfig,
+      );
+      addTearDown(() => client.close());
+
+      MeshSync? mesh = client.mesh;
+      expect(mesh, isNotNull);
+
+      // Before start, the mesh is just created.
+      expect(mesh!.state(), equals(MeshState.created));
+      expect(mesh.stateString(), isNotEmpty);
+      expect(mesh.connectedPeerCount(), isZero);
+
+      // All statistics counters should be readable and zero initially.
+      for (final counter in MeshStats.values) {
+        expect(mesh.stats(counter), isZero, reason: counter.name);
+      }
+
+      // Starting the client also starts the mesh: it begins discovering peers.
+      // The transition happens on a background thread, so wait for it.
+      client.start();
+      var waitedForDiscovering = 0;
+      while (mesh.state() != MeshState.discovering) {
+        if (waitedForDiscovering == 100) {
+          fail('Mesh did not reach discovering state within 10 seconds');
+        }
+        await Future.delayed(const Duration(milliseconds: 100));
+        waitedForDiscovering++;
+      }
+
+      // Requesting an immediate retry of the network radios on a running
+      // mesh must not throw (the retry itself happens asynchronously).
+      mesh.retryNetworks();
+
+      client.stop();
+      expect(mesh.state(), equals(MeshState.stopped));
+
+      // Closing the client invalidates the mesh; any further access must throw.
+      client.close();
+      final error = throwsA(
+        predicate(
+          (StateError e) => e.toString().contains('MeshSync already closed'),
+        ),
+      );
+      expect(() => mesh.state(), error);
+      expect(() => mesh.stateString(), error);
+      expect(() => mesh.connectedPeerCount(), error);
+      expect(() => mesh.stats(MeshStats.peersConnected), error);
+      expect(() => mesh.retryNetworks(), error);
+    });
+
+    test('SyncClient without mesh config has no mesh', () {
+      SyncClient client = createClient(store);
+      addTearDown(() => client.close());
+
+      expect(client.mesh, isNull);
+    });
+
     test('SyncClient stats', () {
       SyncClient client = createClient(store);
       addTearDown(() => client.close());

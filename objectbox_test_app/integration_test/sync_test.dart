@@ -382,6 +382,7 @@ void main() {
           [SyncCredentials.none()],
           mesh: meshConfig,
         );
+        addTearDown(() => client.close());
 
         MeshSync? mesh = client.mesh;
         expect(mesh, isNotNull);
