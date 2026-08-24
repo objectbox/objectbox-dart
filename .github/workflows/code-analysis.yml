@@ -95,32 +95,26 @@ jobs:
       - name: Install coverage tools
         run: |
           ./tool/apt-install.sh lcov
-      - name: Prepare objectbox_test
+      - name: Install ObjectBox C library
+        working-directory: objectbox_test
+        # Use Sync-enabled library to at least partially run sync_test.dart
+        run: ../install.sh --sync
+      - name: Run objectbox_test tests with coverage
         working-directory: objectbox_test
         run: |
           dart pub get
           dart run build_runner build
-      - name: Prepare objectbox
-        working-directory: objectbox
-        run: |
-          ../install.sh --sync
-          dart pub get
+          dart run test --concurrency=1 --coverage=coverage
       - name: Generate test coverage
-        working-directory: objectbox
-        run: ./tool/coverage.sh
+        working-directory: objectbox_test
+        run: ../objectbox/tool/coverage.sh
       - uses: devmasx/coverage-check-action@4a754f8957c6824e0a0d44bf9168fdbdf47e7e2f # v1.2.0
         with:
           type: lcov
-          result_path: objectbox/coverage/lcov.info
+          result_path: objectbox_test/coverage/lcov.info
           min_coverage: 85 # Not running server tests on GitHub
           token: ${{ github.token }}
-      - uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # v5.5.11
-        with:
-          reports: 'objectbox/coverage/lcov.info'
-          targetdir: 'coveragereport'
-          reporttypes: 'HtmlInline' # The output formats and scope (separated by semicolon) Values: Badges, Clover, Cobertura, CsvSummary, Html, HtmlChart, HtmlInline, HtmlInline_AzurePipelines, HtmlInline_AzurePipelines_Dark, HtmlSummary, JsonSummary, Latex, LatexSummary, lcov, MarkdownSummary, MHtml, PngChart, SonarQube, TeamCitySummary, TextSummary, Xml, XmlSummary
-          sourcedirs: 'objectbox'
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: CoverageReport # Artifact name
-          path: coveragereport # Directory containing files to upload
+          path: objectbox_test/coverage/html # Directory containing files to upload
