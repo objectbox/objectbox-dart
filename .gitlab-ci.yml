@@ -1,7 +1,5 @@
 stages:
-  - code-analysis
   - test
-  - test-coverage
 
 variables:
   # Test latest available and lowest supported SDK (see dev-doc/updating-dart-flutter-and-dependencies.md).
@@ -38,7 +36,7 @@ variables:
 # so can no longer check Flutter packages without Flutter SDK.
 format-and-analyze:
   extends: .cache
-  stage: code-analysis
+  stage: test
   script:
     # Get dependencies
     - dart pub get --directory=benchmark
@@ -81,8 +79,10 @@ generator-integ-tests:
 .unit-tests-template:
   extends: .cache
   stage: test
+  variables:
+    DART_TEST_ADDITIONAL_ARGS: ''
   script:
-    # Download sync-server and add to PATH for sync tests
+    # Download sync-server and add it to PATH for sync tests
     - mkdir sync-server && cd sync-server
     - ../tool/download-server.sh --gitlab-base-url $CI_SERVER_URL --branch sync --ci-job-token $CI_JOB_TOKEN
     - export PATH="$PATH:$PWD"
@@ -103,16 +103,39 @@ generator-integ-tests:
     # Set concurrency=1 to run only one test suite (== test file) at a time.
     # Set --reporter expanded to print log for every completed test.
     # Together, this will produce sequential log output, making it easier to attribute native logs.
-    - dart test --concurrency=1 --reporter expanded
+    - dart test --concurrency=1 --reporter expanded $DART_TEST_ADDITIONAL_ARGS
     # Run again using in-memory database
     - export OBX_IN_MEMORY=true
     - dart test --concurrency=1 --reporter expanded
 
-unit-tests:
+# Runs unit tests with the latest supported Dart SDK and for objectbox_test collects test coverage
+# of the objectbox package.
+unit-tests-latest-coverage:
   extends: .unit-tests-template
-  parallel:
-    matrix:
-      - DART_VERSION: [ $DART_VERSION_LOWEST, $DART_VERSION_LATEST ]
+  variables:
+    DART_VERSION: $DART_VERSION_LATEST
+    # Enable coverage output for objectbox_test test run, the directory is what coverage.sh expects.
+    DART_TEST_ADDITIONAL_ARGS: '--coverage=coverage'
+  script:
+    - !reference [.unit-tests-template, script]
+    # Generate coverage after objectbox_test test run.
+    # The template leaves the working directory at objectbox_test.
+    # Install coverage tools
+    - apt-get update
+    - apt-get install --yes --no-install-recommends lcov
+    # Generate test coverage
+    - ../objectbox/tool/coverage.sh
+  # Matches the number of a line like "lines.......: 81.7% (1875 of 2294 lines)"
+  coverage: /lines\.+:\s*(\d+\.\d+)\%/
+  artifacts:
+    paths:
+      - objectbox_test/coverage/html/
+
+# Runs unit tests with the lowest supported Dart SDK
+unit-tests-lowest:
+  extends: .unit-tests-template
+  variables:
+    DART_VERSION: $DART_VERSION_LOWEST
 
 # For the Dart Native example compiles and runs the executable (analysis and code formatting is
 # checked by analyze job).
@@ -126,29 +149,3 @@ vectorsearch-example:
     - ../../../../install.sh
     - dart compile exe bin/vectorsearch_cities.dart
     - ./bin/vectorsearch_cities.exe
-
-# Runs tests with coverage on the objectbox package.
-# Note: As this requires to run tests, make sure this does not block the actual test jobs so test
-# issues can be seen.
-test-coverage:
-  extends: .cache
-  stage: test-coverage
-  needs: ["unit-tests"] # Get test results first
-  script:
-    # Install coverage tools
-    - apt-get update
-    - apt-get install --yes --no-install-recommends lcov
-    - dart pub global activate coverage
-    # Prepare objectbox_test
-    - cd objectbox_test
-    - dart pub get
-    - dart run build_runner build
-    # Generate test coverage
-    - cd ../objectbox
-    - ../install.sh
-    - dart pub get
-    - ./tool/coverage.sh
-  coverage: /^\s*lines......:\s*\d+.\d+\%/
-  artifacts:
-    paths:
-      - objectbox/coverage/html/
