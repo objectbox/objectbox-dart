@@ -104,7 +104,7 @@ jobs:
       - name: Prepare objectbox
         working-directory: objectbox
         run: |
-          ../install.sh
+          ../install.sh --sync
           dart pub get
       - name: Generate test coverage
         working-directory: objectbox

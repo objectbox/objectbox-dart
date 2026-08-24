@@ -145,10 +145,11 @@ test-coverage:
     - dart run build_runner build
     # Generate test coverage
     - cd ../objectbox
-    - ../install.sh
+    - ../install.sh --sync
     - dart pub get
     - ./tool/coverage.sh
-  coverage: /^\s*lines......:\s*\d+.\d+\%/
+  # Matches the number of a line like "lines.......: 81.7% (1875 of 2294 lines)"
+  coverage: /lines\.+:\s*(\d+\.\d+)\%/
   artifacts:
     paths:
       - objectbox/coverage/html/
