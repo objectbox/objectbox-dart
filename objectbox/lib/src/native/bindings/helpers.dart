@@ -175,8 +175,9 @@ T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
 T withNativeStrings<T>(
     List<String> items, T Function(Pointer<Pointer<Char>> ptr, int size) fn) {
   final size = items.length;
-  // Zeroed allocation so partially filled slots (if toNativeUtf8 throws
-  // mid-loop) are null pointers and not freed as if they were valid.
+  // Use calloc instead of malloc so Char pointers are null (address == 0) by
+  // default so in case toNativeUtf8 throws mid-loop uninitialized ones can be
+  // prevented from getting freed.
   final ptr = calloc<Pointer<Char>>(size);
   try {
     for (var i = 0; i < size; i++) {
