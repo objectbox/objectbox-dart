@@ -3,6 +3,7 @@
 **/.pub/
 **/pubspec.lock
 **/build/
+**/coverage
 
 .DS_Store
 .idea/
