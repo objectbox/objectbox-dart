@@ -117,16 +117,23 @@ bool _isSupportedVersion(ObjectBoxC obxc) {
   return isAtLeastDatabaseVersion(databaseVersion, _obxDatabaseMinVersion);
 }
 
+/// Pattern to match MAJOR.MINOR.PATCH version number, like 5.3.10.
+/// Note the "^" which only matches from the start of the string.
 final _databaseVersionPattern = RegExp(r'^(\d+)\.(\d+)\.(\d+)');
+
+/// Pattern to match the YYYY-MM-DD format, like 2026-08-25.
 final _databaseVersionDatePattern = RegExp(r'\d{4}-\d{2}-\d{2}');
 
-/// Checks that [version] is at least [minVersion], both expected to use the
-/// "major.minor.build-YYYY-MM-DD (<flags>)" format of the database version
-/// string. Version components are compared numerically, on equal versions the
-/// dates are compared. If a version or date can not be parsed (the format "may
-/// change in any future release") returns true: the numeric C API version
-/// check is the authoritative compatibility gate.
+/// Returns if [version] is considered at least [minVersion].
+///
+/// This is the case, if the version number, excluding any pre-release tag, is
+/// larger. Or if it is the same, if the date is the same or later.
+///
+/// Both version strings should begin like
+/// `MAJOR.MINOR.PATCH-<optional-pre-release>-YYYY-MM-DD`, for example
+/// `5.1.1-preview-2026-02-09 (lmdb, VectorSearch)` or `5.1.1-2026-02-09`.
 bool isAtLeastDatabaseVersion(String version, String minVersion) {
+  // The version number should be the same or larger
   final versionMatch = _databaseVersionPattern.firstMatch(version);
   final minVersionMatch = _databaseVersionPattern.firstMatch(minVersion);
   if (versionMatch == null || minVersionMatch == null) return true;
@@ -135,6 +142,8 @@ bool isAtLeastDatabaseVersion(String version, String minVersion) {
     final minComponent = int.parse(minVersionMatch.group(group)!);
     if (component != minComponent) return component > minComponent;
   }
+
+  // The date of the database should never be older
   final date = _databaseVersionDatePattern.firstMatch(version)?.group(0);
   final minDate = _databaseVersionDatePattern.firstMatch(minVersion)?.group(0);
   if (date == null || minDate == null) return true;
