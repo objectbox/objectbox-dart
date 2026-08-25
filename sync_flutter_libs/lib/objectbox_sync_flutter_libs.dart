@@ -118,6 +118,18 @@ Future<MeshConfig> createMeshConfig(
     txLogMaxAgeSeconds: txLogMaxAgeSeconds,
   );
 
+  // While the config above can be created fine, building it will fail for iOS
+  // and macOS Flutter apps as the current ObjectBox Swift Package and CocoaPod
+  // used don't provide the required C APIs.
+  // Not adding this check when a mesh config is provided to the SyncClient
+  // constructor as the APIs are available for macOS unit tests, which use the
+  // C library.
+  if (Platform.isIOS || Platform.isMacOS) {
+    throw UnsupportedError(
+      'Mesh Sync APIs are not available for Flutter iOS or macOS apps.',
+    );
+  }
+
   if (!Platform.isAndroid) return mesh;
 
   // Get notified by the plugin once the user has granted (some of) the
