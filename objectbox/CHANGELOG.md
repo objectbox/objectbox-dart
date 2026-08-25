@@ -24,7 +24,7 @@
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
 * Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
-* Throw `ArgumentError` if a string passed to a native API (e.g. a query condition or parameter) contains the null character U+0000: it would be silently truncated at the null character before, e.g. causing a query to match the wrong objects.
+* Reject strings that contain the null character (`U+0000`) in various places that interact with the native C API. Otherwise, such strings would be silently truncated. For example, a query condition like `equals('ab\u0000c')` would return results as if it was `equals('ab')`. This now throws an `ArgumentError` instead. Storing and retrieving strings with null characters remains supported.
 
 ### Sync
 
