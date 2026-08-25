@@ -40,24 +40,30 @@ void main() {
 
     test('accepts same or newer versions', () {
       expect(isAtLeastDatabaseVersion(min, min), isTrue);
-      // Flags suffix on otherwise equal version and date.
+      // Same version and date, including flags suffix
       expect(isAtLeastDatabaseVersion("5.3.2-2026-05-05 (Sync)", min), isTrue);
-      // Pre-release label between version and date.
+      // Later date, including pre-release label
       expect(isAtLeastDatabaseVersion("5.3.2-next-2026-05-16", min), isTrue);
-      expect(isAtLeastDatabaseVersion("5.3.3-2026-06-01", min), isTrue);
-      expect(isAtLeastDatabaseVersion("5.4.0-2026-06-01", min), isTrue);
-      expect(isAtLeastDatabaseVersion("6.0.0-2027-01-01", min), isTrue);
-      // Two-digit components must compare numerically, not lexicographically.
-      expect(isAtLeastDatabaseVersion("5.3.10-2026-09-01", min), isTrue);
-      expect(isAtLeastDatabaseVersion("5.10.0-2027-01-01", min), isTrue);
-      expect(isAtLeastDatabaseVersion("10.0.0-2028-01-01", min), isTrue);
+
+      // Newer versions (and older date on purpose to verify it's ignored)
+      // Newer patch version
+      expect(isAtLeastDatabaseVersion("5.3.3-2026-05-04", min), isTrue);
+      // Two-digit components must compare numerically, not lexicographically
+      expect(isAtLeastDatabaseVersion("5.3.10-2026-05-04", min), isTrue);
+      // Newer minor version
+      expect(isAtLeastDatabaseVersion("5.4.0-2026-05-04", min), isTrue);
+      expect(isAtLeastDatabaseVersion("5.10.0-2026-05-04", min), isTrue);
+      // Newer major version
+      expect(isAtLeastDatabaseVersion("6.0.0-2026-05-04", min), isTrue);
+      expect(isAtLeastDatabaseVersion("10.0.0-2026-05-04", min), isTrue);
     });
 
     test('rejects older versions', () {
-      expect(isAtLeastDatabaseVersion("5.3.1-2026-05-01", min), isFalse);
+      // Lower versions (and same date to verify it's ignored)
+      expect(isAtLeastDatabaseVersion("5.3.1-2026-05-05", min), isFalse);
       expect(isAtLeastDatabaseVersion("5.2.9-2026-05-05", min), isFalse);
       expect(isAtLeastDatabaseVersion("4.9.9-2026-05-05", min), isFalse);
-      // Same version, but older build date.
+      // Same version, but older date
       expect(isAtLeastDatabaseVersion("5.3.2-2026-05-04", min), isFalse);
     });
 
