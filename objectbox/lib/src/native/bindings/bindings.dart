@@ -96,9 +96,11 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // libraries.
 // Library                         | C API | Database
 // --------------------------------|-------|----------------------
-// C library 5.3.2                 | 5.3.2 | 5.3.2-2026-05-05
-// objectbox-android 5.4.2         | 5.3.2 | 5.3.2-2026-05-05
+// C library 6.0.0-beta            | 6.0.0 | 6.0.0-beta-2026-07-13
+// objectbox-android 6.0.0-beta    | 6.0.0 | 6.0.0-beta-2026-07-13
 // ObjectBox CocoaPod 5.3.0        | 5.3.2 | 5.3.2-next-2026-05-16
+// Keeping at 5.3.2 as CocoaPod/Swift Package with C API 6.0.0 is not ready
+// and there are no breaking changes and new APIs are guarded.
 var _obxCminMajor = 5;
 var _obxCminMinor = 3;
 var _obxCminPatch = 2;
