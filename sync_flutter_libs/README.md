@@ -7,6 +7,14 @@ client included, as a Flutter plugin for supported platforms.
 Check the [Sync docs](https://sync.objectbox.io/) for more details.
 You should add this package as a dependency when using [ObjectBox](https://pub.dev/packages/objectbox) with Flutter.
 
+See package [objectbox](https://pub.dev/packages/objectbox) for more details and
+information how to use it.
+
+## Mesh Sync
+
+See the [Mesh Sync documentation](https://sync.objectbox.io/mesh-sync) for 
+details.
+
 Configure the mesh Sync like this:
 
 ```dart
@@ -52,8 +60,7 @@ itself, pass `requestPermissions: false`:
 ```dart
 final mesh = await createMeshConfig(
   'mesh-id',
-  androidRequestPermissions: false,
+  requestPermissions: false,
 );
 ```
 
-See package [objectbox](https://pub.dev/packages/objectbox) for more details and information how to use it.
