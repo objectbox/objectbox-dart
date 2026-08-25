@@ -11,6 +11,7 @@ import '../util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'store.dart';
+import 'sync_mesh.dart';
 
 /// Credentials used to authenticate a [SyncClient] against an ObjectBox Sync
 /// Server.
@@ -166,6 +167,43 @@ enum SyncLoginEvent {
   unknownError
 }
 
+/// Sync client statistics counters, useful for testing and diagnostics.
+///
+/// Read a counter value with [SyncClient.stats].
+enum SyncStats {
+  /// Total number of connects.
+  connects(OBXSyncStats.connects),
+
+  /// Total number of successful logins.
+  logins(OBXSyncStats.logins),
+
+  /// Total number of messages received.
+  messagesReceived(OBXSyncStats.messagesReceived),
+
+  /// Total number of messages sent.
+  messagesSent(OBXSyncStats.messagesSent),
+
+  /// Total number of errors during message sending.
+  messageSendFailures(OBXSyncStats.messageSendFailures),
+
+  /// Total number of bytes received via messages.
+  ///
+  /// Note: this is measured on the application level and thus may not match
+  /// e.g. the network level.
+  messageBytesReceived(OBXSyncStats.messageBytesReceived),
+
+  /// Total number of bytes sent via messages.
+  ///
+  /// Note: this is measured on the application level and thus may not match
+  /// e.g. the network level.
+  messageBytesSent(OBXSyncStats.messageBytesSent);
+
+  /// The OBXSyncStats counter type ID passed to the C-API.
+  final int _id;
+
+  const SyncStats(this._id);
+}
+
 /// Represents a set of changes received from the Sync server for a single
 /// entity type.
 ///
@@ -252,11 +290,24 @@ class SyncClient {
   /// For encrypted connections, for use cases like self-signed certificates in
   /// a local development environment or custom CAs, pass certificate paths
   /// referring to the local file system to [certificatePaths].
+  ///
+  /// ## Mesh Sync (peer-to-peer)
+  ///
+  /// To enable peer-to-peer (P2P) synchronization between sync clients without
+  /// a central server, pass a [MeshConfig] to [mesh]. A mesh sync is then
+  /// created and attached to the client; it starts and stops together with the
+  /// client. Query the running mesh via [SyncClient.mesh].
+  ///
+  /// Import `createMeshConfig` from
+  /// `package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart` and
+  /// use it to create the mesh configuration before creating the sync client.
+  /// This currently works only on Android.
   SyncClient(
       this._store, List<String> serverUrls, List<SyncCredentials> credentials,
       {Map<String, String>? filterVariables,
       List<String>? certificatePaths,
-      int? flags}) {
+      int? flags,
+      MeshConfig? mesh}) {
     if (syncClientsStorage.containsKey(_store)) {
       throw StateError('Only one sync client can be active for a store');
     }
@@ -288,6 +339,13 @@ class SyncClient {
       // Note: 0 or invalid flags are ignored by sync_opt_flags
       if (flags != null) {
         checkObx(C.sync_opt_flags(options, flags));
+      }
+
+      if (mesh != null) {
+        // Builds the mesh options (and frees them if building fails).
+        final meshOptions = mesh.build();
+        // sync_opt_mesh always frees the mesh options, including on error.
+        checkObx(C.sync_opt_mesh(options, meshOptions));
       }
     } catch (e) {
       // Free the options if any option method call failed (like due to invalid
@@ -321,6 +379,10 @@ class SyncClient {
     _loginEvents?._stop();
     _completionEvents?._stop();
     _changeEvents?._stop();
+    // The native mesh is owned by the client and freed by sync_close; invalidate
+    // any MeshSync wrapper so later access throws instead of using a dangling
+    // pointer.
+    _mesh?.close();
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
@@ -330,6 +392,20 @@ class SyncClient {
 
   /// Returns if this sync client is closed and can no longer be used.
   bool isClosed() => _cSync.address == 0;
+
+  MeshSync? _mesh;
+
+  /// The running peer-to-peer mesh sync attached to this client, or `null` if
+  /// no [MeshConfig] was passed to the constructor.
+  ///
+  /// The mesh starts and stops together with this client. The returned object
+  /// is owned by this client and valid until the client is closed.
+  MeshSync? get mesh {
+    if (_mesh != null) return _mesh;
+    final meshPtr = C.sync_mesh(_ptr);
+    if (meshPtr.address == 0) return null;
+    return _mesh = MeshSyncInternal.createMeshSync(meshPtr);
+  }
 
   /// Returns the protocol version this client uses.
   static int protocolVersion() => C.sync_protocol_version();
@@ -580,6 +656,17 @@ class SyncClient {
     final count = malloc<Uint64>();
     try {
       checkObx(C.sync_outgoing_message_count(_ptr, limit, count));
+      return count.value;
+    } finally {
+      malloc.free(count);
+    }
+  }
+
+  /// Gets a Sync client statistics counter value, see [SyncStats].
+  int stats(SyncStats counter) {
+    final count = malloc<Uint64>();
+    try {
+      checkObx(C.sync_stats_u64(_ptr, counter._id, count));
       return count.value;
     } finally {
       malloc.free(count);

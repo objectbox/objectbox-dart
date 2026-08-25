@@ -22,6 +22,20 @@
     }
     ```
 
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
+* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
+
+### Sync
+
+* Add support for Mesh Sync (peer-to-peer synchronization without a central server, preview):
+  pass a `MeshConfig` to the `SyncClient` constructor and query the running mesh via `SyncClient.mesh`
+  (a new `MeshSync` exposing state and statistics).
+  This is currently only supported on Android via `createMeshConfig()` from `objectbox_sync_flutter_libs`,
+  which requests missing Android runtime permissions unless opted out. The mesh network is created without
+  waiting for the user's decision; pass `onPermissionsGranted` to get notified once permissions are granted
+  and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios.
+* Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
+
 ## 5.3.2 (2026-05-20)
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [5.3.2-2026-05-05](https://github.com/objectbox/objectbox-c/releases/tag/v5.3.2)

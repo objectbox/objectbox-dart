@@ -5,6 +5,7 @@ library;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:objectbox/internal.dart' as obx_internal;
 import 'package:objectbox/objectbox.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -14,10 +15,143 @@ import 'package:path_provider/path_provider.dart';
 /// Note: on desktop platforms this returns a directory in the users documents
 /// directory. It is advised to not use this then and instead create a directory
 /// named specifically for your app.
-Future<Directory> defaultStoreDirectory() async => Directory(
-  '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}',
-);
+Future<Directory> defaultStoreDirectory() async {
+  return Directory(
+    '${(await getApplicationDocumentsDirectory()).path}/${Store.defaultDirectoryPath}',
+  );
+}
 
-// Keep method channel for later use
-// ignore: unused_element
 const _platform = MethodChannel("objectbox_sync_flutter_libs");
+
+/// If on Android, invokes the `createMeshNetwork` platform method passing
+/// [serviceId] and [requestPermissions] as arguments. Returns a Future that on
+/// success completes with the handle to the native network instance.
+///
+/// See the `ObjectboxSyncFlutterLibsPlugin` documentation for details on the
+/// arguments, the platform method called in case requested permissions were
+/// granted (which should be handled in a method call handler) and special error
+/// codes returned (which will cause the Future returned by this to complete
+/// with a [PlatformException]).
+Future<int?> _createMeshNetwork(
+  String serviceId, {
+  required bool requestPermissions,
+}) async {
+  if (!Platform.isAndroid) return null; // Not implemented on other platforms.
+  return _platform.invokeMethod<int>('createMeshNetwork', {
+    'serviceId': serviceId,
+    'requestPermissions': requestPermissions,
+  });
+}
+
+/// Creates a mesh sync configuration with the given options.
+///
+/// Only on Flutter Android this comes with an actual network implementation.
+/// On other platforms, this returns a plain [MeshConfig],
+/// which will not result in a working mesh sync yet.
+///
+/// Use like this:
+///
+/// ```dart
+/// import 'package:objectbox/objectbox.dart';
+/// import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart'
+///     show createMeshConfig;
+///
+/// final mesh = await createMeshConfig('mesh-id');
+/// final client = SyncClient(store, urls, credentials, mesh: mesh);
+/// ```
+///
+/// This may request missing runtime permissions required by the platform's
+/// mesh transport (e.g., required for Android).
+/// The mesh network is created immediately, without waiting for the user to
+/// grant the permissions. Once the user has granted (some of) the requested
+/// permissions, [onPermissionsGranted] is called; it should call
+/// [MeshSync.retryNetworks] (via [SyncClient.mesh]) once a sync client exists
+/// so the mesh retries starting its network radios:
+///
+/// ```dart
+/// SyncClient? client;
+/// final mesh = await createMeshConfig('mesh-id',
+///     onPermissionsGranted: () => client?.mesh?.retryNetworks());
+/// client = SyncClient(store, urls, credentials, mesh: mesh);
+/// ```
+///
+/// Pass [requestPermissions] as `false` if your app requests and grants these
+/// permissions before calling this function.
+Future<MeshConfig> createMeshConfig(
+  String meshId, {
+  bool requestPermissions = true,
+  void Function()? onPermissionsGranted,
+  int? maxConnectionCount,
+  int? backoffMillis,
+  int? evictionBackoffMillis,
+  int? randomSeed,
+  int? requestTimeoutMillis,
+  int? advertisingDelayMillis,
+  int? advertisingRetryMillis,
+  int? advertisingRetryMaxMillis,
+  int? connectDelayMillis,
+  int? initialDiscoveryDurationSeconds,
+  int? discoveryDurationSeconds,
+  int? discoveryPauseSeconds,
+  int? discoveryPauseJitterSeconds,
+  int? txLogBatchSizeKb,
+  int? txLogBatchMaxCount,
+  int? txLogMaxAgeSeconds,
+}) async {
+  final mesh = obx_internal.MeshConfigInternal.createMeshConfig(
+    meshId,
+    maxConnectionCount: maxConnectionCount,
+    backoffMillis: backoffMillis,
+    evictionBackoffMillis: evictionBackoffMillis,
+    randomSeed: randomSeed,
+    requestTimeoutMillis: requestTimeoutMillis,
+    advertisingDelayMillis: advertisingDelayMillis,
+    advertisingRetryMillis: advertisingRetryMillis,
+    advertisingRetryMaxMillis: advertisingRetryMaxMillis,
+    connectDelayMillis: connectDelayMillis,
+    initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
+    discoveryDurationSeconds: discoveryDurationSeconds,
+    discoveryPauseSeconds: discoveryPauseSeconds,
+    discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
+    txLogBatchSizeKb: txLogBatchSizeKb,
+    txLogBatchMaxCount: txLogBatchMaxCount,
+    txLogMaxAgeSeconds: txLogMaxAgeSeconds,
+  );
+
+  // While the config above can be created fine, building it will fail for iOS
+  // and macOS Flutter apps as the current ObjectBox Swift Package and CocoaPod
+  // used don't provide the required C APIs.
+  // Not adding this check when a mesh config is provided to the SyncClient
+  // constructor as the APIs are available for macOS unit tests, which use the
+  // C library.
+  if (Platform.isIOS || Platform.isMacOS) {
+    throw UnsupportedError(
+      'Mesh Sync APIs are not available for Flutter iOS or macOS apps.',
+    );
+  }
+
+  if (!Platform.isAndroid) return mesh;
+
+  // Get notified by the plugin once the user has granted (some of) the
+  // requested permissions. Note: there can only be one method call handler
+  // per channel, so the callback of the latest call to this function wins.
+  _platform.setMethodCallHandler((MethodCall call) async {
+    switch (call.method) {
+      case 'onMeshSyncPermissionsGranted':
+        onPermissionsGranted?.call();
+      default:
+        throw MissingPluginException('Unknown method ${call.method}');
+    }
+  });
+
+  final handle = await _createMeshNetwork(
+    meshId,
+    requestPermissions: requestPermissions,
+  );
+  if (handle == null || handle == 0) {
+    throw StateError('Failed to create Android Nearby mesh network');
+  }
+
+  mesh.addNetworkInternalHandle(handle);
+  return mesh;
+}

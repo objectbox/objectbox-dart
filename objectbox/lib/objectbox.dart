@@ -53,5 +53,7 @@ export 'src/sync.dart'
         SyncCredentials,
         SyncRequestUpdatesMode,
         SyncState,
+        SyncStats,
         SyncLoginEvent;
+export 'src/sync_mesh.dart' show MeshConfig, MeshState, MeshStats, MeshSync;
 export 'src/transaction.dart' show TxMode;
