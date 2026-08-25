@@ -61,11 +61,18 @@ void main() {
       expect(isAtLeastDatabaseVersion("5.3.2-2026-05-04", min), isFalse);
     });
 
-    test('accepts unrecognized version formats', () {
-      // The version string format "may change in any future release", the
-      // numeric C API version check is the authoritative compatibility gate.
-      expect(isAtLeastDatabaseVersion("unknown", min), isTrue);
-      expect(isAtLeastDatabaseVersion("5.3.2", min), isTrue);
+    test('rejects unrecognized version formats', () {
+      final invalidFormatError = throwsA(isA<ArgumentError>().having(
+          (error) => error.message,
+          'message',
+          contains('Version string not in expected format')));
+
+      expect(
+          () => isAtLeastDatabaseVersion("unknown", min), invalidFormatError);
+      expect(
+          () => isAtLeastDatabaseVersion(min, "unknown"), invalidFormatError);
+      expect(() => isAtLeastDatabaseVersion("5.3.2", min), invalidFormatError);
+      expect(() => isAtLeastDatabaseVersion(min, "5.3.2"), invalidFormatError);
     });
   });
 
