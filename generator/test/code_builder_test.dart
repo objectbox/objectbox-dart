@@ -813,17 +813,30 @@ void main() {
       );
     });
 
-    test('annotations work on properties', () async {
+    test('all supported types for byte vector properties', () async {
       final source = sourceFile(
         entity(
           withBody: r'''
           @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.decimal128)
+          List<int>? decimal128;
+          
+          @Property(type: PropertyType.byteVector)
           @ExternalType(type: ExternalPropertyType.mongoId)
           List<int>? mongoId;
           
+          @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.mongoBinary)
+          List<int>? mongoBinary;
+                    
+          @Property(type: PropertyType.byteVector)
           @ExternalType(type: ExternalPropertyType.uuid)
           @ExternalName(name: 'my-mongo-uuid')
           List<int>? mongoUuid;
+
+          @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.uuidV4)
+          List<int>? uuidV4;
           ''',
         ),
       );
@@ -833,12 +846,29 @@ void main() {
 
       var testEntity = testEnv.model.entities[0];
 
-      final property1 = testEntity.findPropertyByName("mongoId")!;
-      expect(property1.externalType, OBXExternalPropertyType.MongoId);
+      expect(
+        testEntity.findPropertyByName("decimal128")!.externalType,
+        OBXExternalPropertyType.Decimal128,
+      );
 
-      final property2 = testEntity.findPropertyByName("mongoUuid")!;
-      expect(property2.externalType, OBXExternalPropertyType.Uuid);
-      expect(property2.externalName, "my-mongo-uuid");
+      expect(
+        testEntity.findPropertyByName("mongoId")!.externalType,
+        OBXExternalPropertyType.MongoId,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoBinary")!.externalType,
+        OBXExternalPropertyType.MongoBinary,
+      );
+
+      final uuidProp = testEntity.findPropertyByName("mongoUuid")!;
+      expect(uuidProp.externalType, OBXExternalPropertyType.Uuid);
+      expect(uuidProp.externalName, "my-mongo-uuid");
+
+      expect(
+        testEntity.findPropertyByName("uuidV4")!.externalType,
+        OBXExternalPropertyType.UuidV4,
+      );
     });
 
     test('annotations work on ToMany (standalone) relations', () async {
