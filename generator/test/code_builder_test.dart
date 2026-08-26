@@ -871,6 +871,76 @@ void main() {
       );
     });
 
+    test('all supported types for string properties', () async {
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @ExternalType(type: ExternalPropertyType.decimal128)
+          String? decimal128;
+
+          @ExternalType(type: ExternalPropertyType.javaScript)
+          String? javaScript;
+
+          @ExternalType(type: ExternalPropertyType.jsonToNative)
+          String? jsonToNative;
+
+          @ExternalType(type: ExternalPropertyType.mongoId)
+          String? mongoId;
+
+          @ExternalType(type: ExternalPropertyType.uuid)
+          String? uuid;
+
+          @ExternalType(type: ExternalPropertyType.uuidV4)
+          String? uuidV4;
+          
+          /// String vector
+          @ExternalType(type: ExternalPropertyType.mongoRegex)
+          List<String>? mongoRegex;
+          ''',
+        ),
+      );
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var testEntity = testEnv.model.entities[0];
+
+      expect(
+        testEntity.findPropertyByName("decimal128")!.externalType,
+        OBXExternalPropertyType.Decimal128,
+      );
+
+      expect(
+        testEntity.findPropertyByName("javaScript")!.externalType,
+        OBXExternalPropertyType.JavaScript,
+      );
+
+      expect(
+        testEntity.findPropertyByName("jsonToNative")!.externalType,
+        OBXExternalPropertyType.JsonToNative,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoId")!.externalType,
+        OBXExternalPropertyType.MongoId,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuid")!.externalType,
+        OBXExternalPropertyType.Uuid,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuidV4")!.externalType,
+        OBXExternalPropertyType.UuidV4,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoRegex")!.externalType,
+        OBXExternalPropertyType.MongoRegex,
+      );
+    });
+
     test('annotations work on ToMany (standalone) relations', () async {
       final source = sourceFile(
         entity(
