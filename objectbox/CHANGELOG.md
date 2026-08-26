@@ -26,7 +26,7 @@
 * Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
 * Reject strings that contain the null character (`U+0000`) in various places that interact with the native C API. Otherwise, such strings would be silently truncated. For example, a query condition like `equals('ab\u0000c')` would return results as if it was `equals('ab')`. This now throws an `ArgumentError` instead. Storing and retrieving strings with null characters remains supported.
 * Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
-* Fix `@ExternalType` with `ExternalPropertyType.uuidString`, `uuidV4` or `uuidV4String` failing code generation with "Invalid ExternalType".
+* Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
 
 ### Sync
 
