@@ -340,12 +340,12 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final entityA = testEnv.model.entities.firstWhere((e) => e.name == 'A');
+      final entityA = testEnv.model.findEntityByName('A')!;
       var backlinkSourceA = entityA.backlinks.first.source;
       expect(backlinkSourceA, isA<BacklinkSourceRelation>());
       expect((backlinkSourceA as BacklinkSourceRelation).srcRel.name, 'relA');
 
-      final entityB = testEnv.model.entities.firstWhere((e) => e.name == 'B');
+      final entityB = testEnv.model.findEntityByName('B')!;
       var backlinkSourceB = entityB.backlinks.first.source;
       expect(backlinkSourceB, isA<BacklinkSourceProperty>());
       expect(
@@ -450,9 +450,7 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final customerEntity = testEnv.model.entities.firstWhere(
-        (e) => e.name == 'Customer',
-      );
+      final customerEntity = testEnv.model.findEntityByName('Customer')!;
       var backlinkSource = customerEntity.backlinks.first.source;
       expect(backlinkSource, isA<BacklinkSourceProperty>());
       expect(
@@ -510,9 +508,8 @@ void main() {
       await testEnv.run(source);
 
       // Assert final model created by generator
-      final vectorProperty = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "coordinates",
-      );
+      final vectorProperty =
+          testEnv.model.entities[0].findPropertyByName("coordinates")!;
       expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
       expect(vectorProperty.indexId, isNotNull);
       expect(vectorProperty.hnswParams, isNotNull);
@@ -551,9 +548,8 @@ void main() {
       await testEnv.run(source);
 
       // Assert final model created by generator
-      final vectorProperty = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "coordinates",
-      );
+      final vectorProperty =
+          testEnv.model.entities[0].findPropertyByName("coordinates")!;
       expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
       expect(vectorProperty.indexId, isNotNull);
       expect(vectorProperty.hnswParams, isNotNull);
@@ -789,8 +785,8 @@ void main() {
       await testEnv.run(source);
 
       int? getIdPropertyExternalType(String entityName) {
-        return testEnv.model.entities
-            .firstWhere((entity) => entity.name == entityName)
+        return testEnv.model
+            .findEntityByName(entityName)!
             .findPropertyByName('id')!
             .externalType;
       }
@@ -835,14 +831,12 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final property1 = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "mongoId",
-      );
+      var testEntity = testEnv.model.entities[0];
+
+      final property1 = testEntity.findPropertyByName("mongoId")!;
       expect(property1.externalType, OBXExternalPropertyType.MongoId);
 
-      final property2 = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "mongoUuid",
-      );
+      final property2 = testEntity.findPropertyByName("mongoUuid")!;
       expect(property2.externalType, OBXExternalPropertyType.Uuid);
       expect(property2.externalName, "my-mongo-uuid");
     });
@@ -865,14 +859,10 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final relation1 = testEnv.model.entities[0].relations.firstWhere(
-        (element) => element.name == "rel1",
-      );
+      final relation1 = testEnv.model.entities[0].findRelationByName("rel1")!;
       expect(relation1.externalType, OBXExternalPropertyType.MongoId);
 
-      final relation2 = testEnv.model.entities[0].relations.firstWhere(
-        (element) => element.name == "rel2",
-      );
+      final relation2 = testEnv.model.entities[0].findRelationByName("rel2")!;
       expect(relation2.externalType, OBXExternalPropertyType.Uuid);
       expect(relation2.externalName, "my-courses-rel");
     });
