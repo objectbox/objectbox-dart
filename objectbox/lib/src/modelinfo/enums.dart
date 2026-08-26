@@ -85,8 +85,6 @@ int propertyTypeToOBXPropertyType(PropertyType type) {
       return OBXPropertyType.FloatVector;
     case PropertyType.flex:
       return OBXPropertyType.Flex;
-    default:
-      throw ArgumentError.value(type, 'type', 'Invalid PropertyType');
   }
 }
 
@@ -301,8 +299,6 @@ int externalTypeToOBXExternalType(ExternalPropertyType type) {
       return OBXExternalPropertyType.MongoBinary;
     case ExternalPropertyType.mongoRegex:
       return OBXExternalPropertyType.MongoRegex;
-    default:
-      throw ArgumentError.value(type, 'type', 'Invalid ExternalType');
   }
 }
 
