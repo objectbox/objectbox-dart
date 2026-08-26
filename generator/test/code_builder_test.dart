@@ -747,6 +747,76 @@ void main() {
       expect(entity.externalName, "my-mongo-entity");
     });
 
+    test('all supported types for @Id properties', () async {
+      final source = sourceFile(r'''
+      @Entity()
+      class MongoIdEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.mongoId)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuid)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidStringEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuidString)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidV4Entity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuidV4)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidV4StringEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuidV4String)
+        int id = 0;
+      }
+      ''');
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      int? getIdPropertyExternalType(String entityName) {
+        return testEnv.model.entities
+            .firstWhere((entity) => entity.name == entityName)
+            .findPropertyByName('id')!
+            .externalType;
+      }
+
+      expect(
+        getIdPropertyExternalType('MongoIdEntity'),
+        OBXExternalPropertyType.MongoId,
+      );
+      expect(
+        getIdPropertyExternalType('UuidEntity'),
+        OBXExternalPropertyType.Uuid,
+      );
+      expect(
+        getIdPropertyExternalType('UuidStringEntity'),
+        OBXExternalPropertyType.UuidString,
+      );
+      expect(
+        getIdPropertyExternalType('UuidV4Entity'),
+        OBXExternalPropertyType.UuidV4,
+      );
+      expect(
+        getIdPropertyExternalType('UuidV4StringEntity'),
+        OBXExternalPropertyType.UuidV4String,
+      );
+    });
+
     test('annotations work on properties', () async {
       final source = sourceFile(
         entity(
