@@ -941,6 +941,43 @@ void main() {
       );
     });
 
+    test('all supported types for flex and long properties', () async {
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @ExternalType(type: ExternalPropertyType.flexMap)
+          Map<String, Object?>? flexMap;
+
+          @ExternalType(type: ExternalPropertyType.flexVector)
+          List<Object?>? flexVector;
+
+          @ExternalType(type: ExternalPropertyType.mongoTimestamp)
+          int? mongoTimestamp;
+          ''',
+        ),
+      );
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var testEntity = testEnv.model.entities[0];
+
+      expect(
+        testEntity.findPropertyByName("flexMap")!.externalType,
+        OBXExternalPropertyType.FlexMap,
+      );
+
+      expect(
+        testEntity.findPropertyByName("flexVector")!.externalType,
+        OBXExternalPropertyType.FlexVector,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoTimestamp")!.externalType,
+        OBXExternalPropertyType.MongoTimestamp,
+      );
+    });
+
     test('annotations work on ToMany (standalone) relations', () async {
       final source = sourceFile(
         entity(
