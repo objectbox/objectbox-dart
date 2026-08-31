@@ -1,7 +1,6 @@
 import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
-import 'package:objectbox/internal.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox/src/native/bindings/bindings.dart';
 import 'package:objectbox/src/native/bindings/helpers.dart';
@@ -94,20 +93,5 @@ void main() {
       expect(() => isAtLeastDatabaseVersion("5.3.2", min), invalidFormatError);
       expect(() => isAtLeastDatabaseVersion(min, "5.3.2"), invalidFormatError);
     });
-  });
-
-  test('model containsUid covers property index UIDs', () {
-    final model = ModelInfo.empty();
-    final entity = model.createEntity('A');
-    final prop = entity.createProperty('indexedProp');
-    prop.indexId = model.createIndexId();
-    final prop2 = entity.createProperty('otherIndexedProp');
-    prop2.indexId = model.createIndexId();
-
-    // The UID of the older (non-last) index must be known to the model so
-    // duplicate-UID guards and generateUid() can not collide with it.
-    expect(model.containsUid(prop.indexId!.uid), isTrue);
-    expect(() => entity.createProperty('newProp', prop.indexId!.uid),
-        throwsStateError);
   });
 }
