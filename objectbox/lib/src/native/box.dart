@@ -573,10 +573,7 @@ class Box<T> {
     for (var toOne in _entity.toOneRelations(object)) {
       // To avoid all ToOnes obtaining a Store for each put,
       // pass the store of this box.
-      // Use plain put for the target: the caller's mode only applies to the
-      // object itself (e.g. an update-mode put must still insert a new
-      // target, as documented on put()).
-      toOne.applyToDb(_store, PutMode.put, tx);
+      toOne.applyToDb(_store, tx);
     }
   }
 
@@ -587,8 +584,10 @@ class Box<T> {
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
         // To avoid all ToManys obtaining a Store for each put,
         // pass the store of this box.
-        // Use plain put for targets (see _putToOneRelFields).
-        rel.applyToDb(existingStore: _store, tx: tx);
+        // Don't use the put mode of the owning object, so even in "update" mode
+        // new targets can be inserted and in "insert" mode, if rel is a
+        // toOneBacklink, targets' ToOnes can be updated.
+        rel.applyToDb(existingStore: _store, mode: PutMode.put, tx: tx);
       }
     });
   }

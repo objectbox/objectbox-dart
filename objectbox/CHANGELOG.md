@@ -27,7 +27,7 @@
 * Reject strings that contain the null character (`U+0000`) in various places that interact with the native C API. Otherwise, such strings would be silently truncated. For example, a query condition like `equals('ab\u0000c')` would return results as if it was `equals('ab')`. This now throws an `ArgumentError` instead. Storing and retrieving strings with null characters remains supported.
 * Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
 * Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
-* Fix `Box.put` (and `putMany`) with `PutMode.insert` or `PutMode.update` wrongly applying the mode to relation targets as well, e.g. an update-mode put failed with "object put failed" if a `ToOne` or `ToMany` contained a new target object. The mode now only applies to the object itself, targets behave as documented (new targets are inserted, backlink sources are updated).
+* When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
 
 ### Sync
 
