@@ -26,22 +26,20 @@ class BuilderWithCBuffer {
   BuilderWithCBuffer({int initialSize = 256, int resetIfLargerThan = 64 * 1024})
       : _initialSize = initialSize,
         _resetIfLargerThan = resetIfLargerThan {
-    _fbb = fb.Builder(
-      initialSize: initialSize,
-      allocator: _allocator,
-      deduplicateTables: false, // we always have exactly one table
-    );
+    _fbb = _createBuilder();
   }
+
+  fb.Builder _createBuilder() => fb.Builder(
+        initialSize: _initialSize,
+        allocator: _allocator,
+        deduplicateTables: false, // we always have exactly one table
+      );
 
   @pragma('vm:prefer-inline')
   void resetIfLarge() {
     if (_allocator._capacity > _resetIfLargerThan) {
       clear();
-      _fbb = fb.Builder(
-        initialSize: _initialSize,
-        allocator: _allocator,
-        deduplicateTables: false, // we always have exactly one table
-      );
+      _fbb = _createBuilder();
     }
   }
 
