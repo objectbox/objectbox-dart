@@ -440,6 +440,8 @@ class Store implements Finalizable {
       checkObxPtr(_cStore,
           'could not attach to the store at given path - please ensure it was opened before');
 
+      // This constructor is technically a replacement for obtaining a store
+      // via reference, but still make it possible to obtain it.
       _setReference();
 
       // Register so the duplicate-instance check above also guards against

@@ -508,6 +508,8 @@ void attachTwiceIsolate(StoreAttachIsolateInit init) {
   final store = Store.attach(getObjectBoxModel(), init.path);
   bool referenceWorks;
   try {
+    // Store.attach is the replacement for Store.fromReference, so .reference
+    // shouldn't be used. But test it works anyhow until the API is removed.
     store.reference;
     referenceWorks = true;
   } catch (_) {
