@@ -1044,10 +1044,12 @@ void main() {
     // operating on the freed native object (undefined behavior).
     final builder = box.query();
     builder.build().close();
-    expect(() => builder.build(), throwsStateError);
-    expect(() => builder.order(TestEntity_.tString), throwsStateError);
-    expect(() => builder.link(TestEntity_.relA), throwsStateError);
-    expect(() => builder.watch(), throwsStateError);
+    final throwsClosedError = throwsA(predicate(
+        (StateError e) => e.message.startsWith('QueryBuilder is closed')));
+    expect(() => builder.build(), throwsClosedError);
+    expect(() => builder.order(TestEntity_.tString), throwsClosedError);
+    expect(() => builder.link(TestEntity_.relA), throwsClosedError);
+    expect(() => builder.watch(), throwsClosedError);
   });
 
   test('use after close throws', () {

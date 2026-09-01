@@ -31,7 +31,7 @@
 * `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
 * Query subscriptions using `QueryBuilder.watch` properly resume, deliver events that arrived while paused. Also, if resumed, the subscription is no longer leaked, which kept the native observer alive even after cancelling the subscription.
 * Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
-* `QueryBuilder` methods now throw `StateError` when used after `build()`: the native builder is freed by `build()`, so e.g. calling `build()` twice previously resulted in undefined behavior (possibly a crash). Also do not leak the native builder if applying a condition fails.
+* `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 
 ### Sync
 

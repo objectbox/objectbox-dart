@@ -107,6 +107,8 @@ class _QueryBuilder<T> {
   final Store _store;
   final EntityDefinition<T> _entity;
   final Condition<T>? _queryCondition;
+
+  /// Pointer to the native instance. Use [_cBuilderChecked] for safe access.
   final Pointer<OBX_query_builder> _cBuilder;
   final _innerQBs = <_QueryBuilder>[];
   bool _closed = false;
