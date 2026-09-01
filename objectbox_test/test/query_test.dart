@@ -134,30 +134,6 @@ void main() {
     testCaseSensitivity(env2.box, defaultIsTrue: false);
   });
 
-  test('set params list on date properties', () {
-    final dates = [for (var i = 1; i <= 6; i++) DateTime.utc(2000, 1, i)];
-    box.putMany([for (var d in dates) TestEntity(tDate: d, tDateNano: d)]);
-
-    // Date and DateNano list conditions are built as int64, so setting
-    // parameters must use int64 as well.
-    final query = box.query(TestEntity_.tDate.oneOfDate([dates[0]])).build();
-    addTearDown(query.close);
-    expect(query.find().length, 1);
-    query.param(TestEntity_.tDate).values = [
-      dates[1].millisecondsSinceEpoch,
-      dates[2].millisecondsSinceEpoch
-    ];
-    expect(query.find().length, 2);
-
-    final queryNano =
-        box.query(TestEntity_.tDateNano.oneOfDate([dates[0]])).build();
-    addTearDown(queryNano.close);
-    queryNano.param(TestEntity_.tDateNano).values = [
-      dates[1].microsecondsSinceEpoch * 1000
-    ];
-    expect(queryNano.find().length, 1);
-  });
-
   test('string conditions and params reject embedded null character', () {
     final t = TestEntity_.tString;
     final nullString = 'ab\u0000c';
@@ -917,6 +893,30 @@ void main() {
         .contains(q3.describeParameters())) {
       fail('Invalid query: ${q3.describeParameters()}');
     }
+  });
+
+  test('set params list on date properties', () {
+    final dates = [for (var i = 1; i <= 6; i++) DateTime.utc(2000, 1, i)];
+    box.putMany([for (var d in dates) TestEntity(tDate: d, tDateNano: d)]);
+
+    // Date and DateNano list conditions are built as int64, so setting
+    // parameters must use int64 as well.
+    final query = box.query(TestEntity_.tDate.oneOfDate([dates[0]])).build();
+    addTearDown(query.close);
+    expect(query.find().length, 1);
+    query.param(TestEntity_.tDate).values = [
+      dates[1].millisecondsSinceEpoch,
+      dates[2].millisecondsSinceEpoch
+    ];
+    expect(query.find().length, 2);
+
+    final queryNano =
+        box.query(TestEntity_.tDateNano.oneOfDate([dates[0]])).build();
+    addTearDown(queryNano.close);
+    queryNano.param(TestEntity_.tDateNano).values = [
+      dates[1].microsecondsSinceEpoch * 1000
+    ];
+    expect(queryNano.find().length, 1);
   });
 
   test('alias - set param single', () async {
