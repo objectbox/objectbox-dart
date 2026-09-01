@@ -87,6 +87,15 @@ void main() {
       expect(read.relA.targetId, isZero);
     });
 
+    test('put mode does not apply to new target', () {
+      final srcId = env.box.put(TestEntity(tString: 'src'));
+      final src = env.box.get(srcId)!;
+      src.relA.target = RelatedEntityA(tInt: 7);
+      // The target is new, so it must be inserted even in update mode.
+      env.box.put(src, mode: PutMode.update);
+      expect(env.box.get(srcId)!.relA.target!.tInt, 7);
+    });
+
     test('lazy loading', () {
       final srcBox = env.box;
       final targetBox = env.store.box<RelatedEntityA>();
@@ -205,15 +214,6 @@ void main() {
       expect(storedTarget, isNotNull);
       expect(storedTarget!.tString, targetName);
     });
-
-    test('put mode does not apply to new target', () {
-      final srcId = env.box.put(TestEntity(tString: 'src'));
-      final src = env.box.get(srcId)!;
-      src.relA.target = RelatedEntityA(tInt: 7);
-      // The target is new, so it must be inserted even in update mode.
-      env.box.put(src, mode: PutMode.update);
-      expect(env.box.get(srcId)!.relA.target!.tInt, 7);
-    });
   });
 
   group('ToMany list management', () {
@@ -280,15 +280,6 @@ void main() {
       src = TestEntity(tString: 'Hello');
     });
 
-    test('put mode does not apply to new target', () {
-      final srcId = env.box.put(src!);
-      final src2 = env.box.get(srcId)!;
-      src2.relManyA.add(RelatedEntityA(tInt: 8));
-      // The target is new, so it must be inserted even in update mode.
-      env.box.put(src2, mode: PutMode.update);
-      expect(env.box.get(srcId)!.relManyA.first.tInt, 8);
-    });
-
     test('put', () {
       expect(src!.relManyA, isNotNull);
       // Add three
@@ -341,6 +332,15 @@ void main() {
 
       src = env.box.get(42);
       check(src!.relManyA, items: [1], added: [], removed: []);
+    });
+
+    test('put mode does not apply to new target', () {
+      final srcId = env.box.put(src!);
+      final src2 = env.box.get(srcId)!;
+      src2.relManyA.add(RelatedEntityA(tInt: 8));
+      // The target is new, so it must be inserted even in update mode.
+      env.box.put(src2, mode: PutMode.update);
+      expect(env.box.get(srcId)!.relManyA.first.tInt, 8);
     });
 
     test('applyToDb', () {
@@ -484,7 +484,7 @@ void main() {
       expect(b[1]!.testEntities.map(strings), sameAsList(['bar2']));
     });
 
-    test('insert mode does not apply to existing source', () {
+    test('put insert mode does not apply to existing source', () {
       final newB = RelatedEntityB(tString: 'new B');
       // 'foo' already exists; the backlink update must not re-insert it.
       newB.testEntities.add(env.box.get(1)!);
