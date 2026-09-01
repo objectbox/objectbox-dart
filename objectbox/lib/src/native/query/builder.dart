@@ -9,7 +9,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
             entity,
             qc,
             C.query_builder(
-                InternalStoreAccess.ptr(store), entity.model.id.id));
+                InternalStoreAccess.cStore(store), entity.model.id.id));
 
   /// Finish building a [Query]. Call [Query.close()] after you're done with it
   /// to free resources.

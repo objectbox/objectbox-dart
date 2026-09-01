@@ -47,7 +47,7 @@ class Admin implements Finalizable {
 
     final opt = checkObxPtr(C.admin_opt());
     try {
-      checkObx(C.admin_opt_store(opt, InternalStoreAccess.ptr(store)));
+      checkObx(C.admin_opt_store(opt, InternalStoreAccess.cStore(store)));
       checkObx(C.admin_opt_user_management(opt, false));
       withNativeString(bindUri,
           (Pointer<Char> cStr) => checkObx(C.admin_opt_bind(opt, cStr)));

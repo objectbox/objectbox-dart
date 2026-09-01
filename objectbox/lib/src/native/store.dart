@@ -40,7 +40,7 @@ class Store implements Finalizable {
   /// This meant for tests only; do not enable for releases!
   static bool debugLogs = false;
 
-  /// Pointer to the C instance of this, access via [_ptr] with closed check.
+  /// Pointer to the native instance. Use [_cStoreChecked] for safe access.
   late Pointer<OBX_store> _cStore;
 
   /// Runs native close function on [_cStore] if this is garbage collected.
@@ -624,7 +624,7 @@ class Store implements Finalizable {
   ///   store.close();
   /// }
   /// ```
-  Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_ptr));
+  Pointer<OBX_store> _clone() => checkObxPtr(C.store_clone(_cStoreChecked));
 
   /// Returns if this store is already closed and can no longer be used.
   bool isClosed() => _cStore.address == 0;
@@ -873,7 +873,7 @@ class Store implements Finalizable {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitQueueCompletion() => C.store_await_async_completion(_ptr);
+  bool awaitQueueCompletion() => C.store_await_async_completion(_cStoreChecked);
 
   /// Await for previously submitted operations using [Box.putQueued] to be
   /// completed (the queue does not have to become idle).
@@ -882,11 +882,11 @@ class Store implements Finalizable {
   /// not started; false if shutting down (or an internal error occurred).
   ///
   /// Use to wait until all puts by [Box.putQueued] have finished.
-  bool awaitQueueSubmitted() => C.store_await_async_submitted(_ptr);
+  bool awaitQueueSubmitted() => C.store_await_async_submitted(_cStoreChecked);
 
-  /// The low-level pointer to this store.
+  /// [_cStore], but throws if this was already closed.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_store> get _ptr {
+  Pointer<OBX_store> get _cStoreChecked {
     checkOpen();
     return _cStore;
   }
@@ -990,9 +990,9 @@ class InternalStoreAccess {
   static void removeCloseListener(Store store, dynamic key) =>
       store._onClose.remove(key);
 
-  /// The low-level pointer to this store.
+  /// Pointer to the native instance, but throws if [store] was already closed.
   @pragma('vm:prefer-inline')
-  static Pointer<OBX_store> ptr(Store store) => store._ptr;
+  static Pointer<OBX_store> cStore(Store store) => store._cStoreChecked;
 
   /// String query case-sensitive default
   @pragma('vm:prefer-inline')

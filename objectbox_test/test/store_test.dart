@@ -19,7 +19,8 @@ void main() {
     // ignore: deprecated_member_use
     final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
     expect(store1, isNot(store2));
-    expect(InternalStoreAccess.ptr(store1), InternalStoreAccess.ptr(store2));
+    expect(
+        InternalStoreAccess.cStore(store1), InternalStoreAccess.cStore(store2));
 
     final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
     expect(id, 1);
@@ -78,7 +79,7 @@ void main() {
 
     // Check native instance pointer is different.
     final store2Address = await received.next as int;
-    expect(InternalStoreAccess.ptr(store1).address, isNot(store2Address));
+    expect(InternalStoreAccess.cStore(store1).address, isNot(store2Address));
 
     final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
     expect(id, 1);
@@ -533,7 +534,7 @@ void storeAttachIsolate(StoreAttachIsolateInit init) async {
 
   final commandPort = ReceivePort();
   init.sendPort.send(commandPort.sendPort);
-  init.sendPort.send(InternalStoreAccess.ptr(store2).address);
+  init.sendPort.send(InternalStoreAccess.cStore(store2).address);
 
   await for (final message in commandPort) {
     if (message is int) {

@@ -319,7 +319,7 @@ class SyncClient {
     }
 
     // Build options
-    final options = checkObxPtr(C.sync_opt(InternalStoreAccess.ptr(_store)),
+    final options = checkObxPtr(C.sync_opt(InternalStoreAccess.cStore(_store)),
         'failed to create Sync options');
     try {
       for (final url in serverUrls) {
