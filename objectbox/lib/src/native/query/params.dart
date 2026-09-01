@@ -107,10 +107,7 @@ extension QueryParamInt on QueryParam<int> {
   set values(List<int> values) {
     // Must match the types the query builder creates an int64 condition for
     // (see _IntegerListCondition._apply).
-    final type = _prop._model.type;
-    final is64bit = type == OBXPropertyType.Long ||
-        type == OBXPropertyType.Date ||
-        type == OBXPropertyType.DateNano;
+    final is64bit = _prop._model.is64BitInt();
     final ptr =
         is64bit ? malloc<Int64>(values.length) : malloc<Int32>(values.length);
     try {

@@ -733,33 +733,25 @@ class _IntegerListCondition<EntityT>
   int _apply(_QueryBuilder builder, {required bool isRoot}) {
     switch (_op) {
       case _ConditionOp.oneOf:
-        switch (_property._model.type) {
-          case OBXPropertyType.Int:
-            return _opList(builder, malloc<Int32>(_value.length),
-                C.qb_in_int32s, opListSetIndexInt32);
-          case OBXPropertyType.Long:
-          case OBXPropertyType.Date:
-          case OBXPropertyType.DateNano:
-            return _opList(builder, malloc<Int64>(_value.length),
-                C.qb_in_int64s, opListSetIndexInt64);
-          default:
-            throw UnsupportedError(
-                'Unsupported type for IN: ${_property._model.type}');
+        if (_property._model.is32BitInt()) {
+          return _opList(builder, malloc<Int32>(_value.length), C.qb_in_int32s,
+              opListSetIndexInt32);
+        } else if (_property._model.is64BitInt()) {
+          return _opList(builder, malloc<Int64>(_value.length), C.qb_in_int64s,
+              opListSetIndexInt64);
         }
+        throw UnsupportedError(
+            'Unsupported type for IN: ${_property._model.type}');
       case _ConditionOp.notOneOf:
-        switch (_property._model.type) {
-          case OBXPropertyType.Int:
-            return _opList(builder, malloc<Int32>(_value.length),
-                C.qb_not_in_int32s, opListSetIndexInt32);
-          case OBXPropertyType.Long:
-          case OBXPropertyType.Date:
-          case OBXPropertyType.DateNano:
-            return _opList(builder, malloc<Int64>(_value.length),
-                C.qb_not_in_int64s, opListSetIndexInt64);
-          default:
-            throw UnsupportedError(
-                'Unsupported type for IN: ${_property._model.type}');
+        if (_property._model.is32BitInt()) {
+          return _opList(builder, malloc<Int32>(_value.length),
+              C.qb_not_in_int32s, opListSetIndexInt32);
+        } else if (_property._model.is64BitInt()) {
+          return _opList(builder, malloc<Int64>(_value.length),
+              C.qb_not_in_int64s, opListSetIndexInt64);
         }
+        throw UnsupportedError(
+            'Unsupported type for IN: ${_property._model.type}');
       default:
         throw UnsupportedError('Unsupported operation ${_op.toString()}');
     }
