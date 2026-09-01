@@ -353,6 +353,7 @@ class Store implements Finalizable {
   ///     ...
   ///   }
   /// ```
+  @Deprecated('Use Store.attach instead')
   Store.fromReference(ModelDefinition modelDefinition, this._reference,
       {bool queriesCaseSensitiveDefault = true})
       :
@@ -594,6 +595,7 @@ class Store implements Finalizable {
 
   /// Returns a store reference you can use to create a new store instance with
   /// a single underlying native store. See [Store.fromReference] for more details.
+  @Deprecated('Use Store.attach instead')
   ByteData get reference => _reference;
 
   /// Clones this native store and returns a pointer to the clone.

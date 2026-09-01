@@ -16,6 +16,7 @@ void main() {
     addTearDown(() => env.closeAndDelete());
 
     final store1 = env.store;
+    // ignore: deprecated_member_use
     final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
     expect(store1, isNot(store2));
     expect(InternalStoreAccess.ptr(store1), InternalStoreAccess.ptr(store2));
@@ -510,6 +511,7 @@ void attachTwiceIsolate(StoreAttachIsolateInit init) {
   try {
     // Store.attach is the replacement for Store.fromReference, so .reference
     // shouldn't be used. But test it works anyhow until the API is removed.
+    // ignore: deprecated_member_use
     store.reference;
     referenceWorks = true;
   } catch (_) {
