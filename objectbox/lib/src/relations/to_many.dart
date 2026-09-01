@@ -186,11 +186,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           "Can't store relation info for the target object with zero ID");
     }
 
-    if (existingStore != null &&
-        existingStore.configuration().id !=
-            configuration.storeConfiguration.id) {
-      throw ArgumentError.value(existingStore, 'existingStore',
-          'Relation already attached to a different store');
+    // While not expected during regular use (existingStore is meant for
+    // use by Box._putToManyRelFields which uses InternalToManyAccess.setRelInfo
+    // which checks for the same store), guard against passing in a different
+    // store.
+    if (existingStore != null) {
+      configuration.storeConfiguration.checkIsSameStore(existingStore);
     }
 
     // Use given store, or obtain one via store configuration
@@ -265,11 +266,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   void _setRelInfo<OwningEntityT>(Store store, RelInfo relInfo) {
     final storeConfiguration = _storeConfiguration;
     if (storeConfiguration != null) {
-      if (storeConfiguration.storeConfiguration.id !=
-          store.configuration().id) {
-        throw ArgumentError.value(
-            store, 'store', 'Relation already attached to a different store');
-      }
+      storeConfiguration.storeConfiguration.checkIsSameStore(store);
       return;
     }
     _storeConfiguration = _ToManyStoreConfiguration<EntityT, OwningEntityT>(

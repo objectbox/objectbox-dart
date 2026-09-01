@@ -162,10 +162,7 @@ class ToOne<EntityT> {
   void attach(Store store) {
     final configuration = _storeConfiguration;
     if (configuration != null) {
-      if (configuration.storeConfiguration.id != store.configuration().id) {
-        throw ArgumentError.value(
-            store, 'store', 'Relation already attached to a different store');
-      }
+      configuration.storeConfiguration.checkIsSameStore(store);
       return;
     }
     _storeConfiguration = _ToOneStoreConfiguration(
