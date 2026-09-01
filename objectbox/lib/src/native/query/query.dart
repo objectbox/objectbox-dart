@@ -883,7 +883,7 @@ class _ConditionGroupAll<EntityT> extends _ConditionGroup<EntityT> {
 class Query<T> implements Finalizable {
   bool _closed = false;
 
-  /// Pointer to the native instance. Use [_ptr] for safe access instead.
+  /// Pointer to the native instance. Use [_cQueryChecked] for safe access.
   final Pointer<OBX_query> _cQuery;
 
   /// Runs native close function on [_cQuery] if this is garbage collected.
@@ -914,13 +914,14 @@ class Query<T> implements Finalizable {
     _finalizer.attach(this, _cQuery.cast(), detach: this, externalSize: 256);
   }
 
+  /// [_cQuery], but throws if this was already closed.
   @pragma("vm:prefer-inline")
-  Pointer<OBX_query> get _ptr {
-    _checkOpen();
+  Pointer<OBX_query> get _cQueryChecked {
+    _checkNotClosed();
     return _cQuery;
   }
 
-  void _checkOpen() {
+  void _checkNotClosed() {
     // Throw an exception instead of crashing by checking if the store is open.
     _store.checkOpen();
     if (_closed) {
@@ -935,7 +936,7 @@ class Query<T> implements Finalizable {
     // The C API takes an unsigned integer, a negative value would wrap
     // around to a huge offset and silently return no results.
     RangeError.checkNotNegative(offset, 'offset');
-    checkObx(C.query_offset(_ptr, offset));
+    checkObx(C.query_offset(_cQueryChecked, offset));
   }
 
   /// If greater than 0, Query methods will return at most [limit] many results.
@@ -944,14 +945,14 @@ class Query<T> implements Finalizable {
   set limit(int limit) {
     // See offset: avoid wrap-around to a huge limit.
     RangeError.checkNotNegative(limit, 'limit');
-    checkObx(C.query_limit(_ptr, limit));
+    checkObx(C.query_limit(_cQueryChecked, limit));
   }
 
   /// Returns the number of matching Objects.
   int count() {
     final ptr = malloc<Uint64>();
     try {
-      checkObx(C.query_count(_ptr, ptr));
+      checkObx(C.query_count(_cQueryChecked, ptr));
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -962,7 +963,7 @@ class Query<T> implements Finalizable {
   int remove() {
     final ptr = malloc<Uint64>();
     try {
-      checkObx(C.query_remove(_ptr, ptr));
+      checkObx(C.query_remove(_cQueryChecked, ptr));
       return ptr.value;
     } finally {
       malloc.free(ptr);
@@ -990,7 +991,7 @@ class Query<T> implements Finalizable {
   /// // Within an isolate re-create the query pointer to be used with the C API.
   /// final queryPtr = Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
   /// ```
-  Pointer<OBX_query> _clone() => checkObxPtr(C.query_clone(_ptr));
+  Pointer<OBX_query> _clone() => checkObxPtr(C.query_clone(_cQueryChecked));
 
   /// Close the query and free resources.
   void close() {
@@ -1019,7 +1020,7 @@ class Query<T> implements Finalizable {
       return false; // we only want to visit the first element
     }
 
-    visit(_ptr, visitCallBack);
+    visit(_cQueryChecked, visitCallBack);
     errorWrapper.throwIfError();
     return result;
   }
@@ -1060,7 +1061,7 @@ class Query<T> implements Finalizable {
       }
     }
 
-    visit(_ptr, visitCallback);
+    visit(_cQueryChecked, visitCallback);
     errorWrapper.throwIfError();
     return result;
   }
@@ -1083,7 +1084,8 @@ class Query<T> implements Finalizable {
   ///
   /// This is very efficient as no objects are created.
   List<int> findIds() {
-    final idArrayPtr = checkObxPtr(C.query_find_ids(_ptr), 'find ids');
+    final idArrayPtr =
+        checkObxPtr(C.query_find_ids(_cQueryChecked), 'find ids');
     try {
       final idArray = idArrayPtr.ref;
       final ids = idArray.ids;
@@ -1122,7 +1124,7 @@ class Query<T> implements Finalizable {
       }
     }
 
-    visit(_ptr, visitCallback);
+    visit(_cQueryChecked, visitCallback);
     errorWrapper.throwIfError();
     return result;
   }
@@ -1144,7 +1146,7 @@ class Query<T> implements Finalizable {
   ///
   /// This only works on objects with a property with an [HnswIndex].
   List<IdWithScore> findIdsWithScores() {
-    final resultPtr = checkObxPtr(C.query_find_ids_with_scores(_ptr));
+    final resultPtr = checkObxPtr(C.query_find_ids_with_scores(_cQueryChecked));
     try {
       final items = resultPtr.ref.ids_scores;
       final count = resultPtr.ref.count;
@@ -1194,7 +1196,7 @@ class Query<T> implements Finalizable {
       }
     }
 
-    visitWithScore(_ptr, visitCallback);
+    visitWithScore(_cQueryChecked, visitCallback);
     errorWrapper.throwIfError();
     return result;
   }
@@ -1497,10 +1499,11 @@ class Query<T> implements Finalizable {
   }
 
   /// For internal testing purposes.
-  String describe() => dartStringFromC(C.query_describe(_ptr));
+  String describe() => dartStringFromC(C.query_describe(_cQueryChecked));
 
   /// For internal testing purposes.
-  String describeParameters() => dartStringFromC(C.query_describe_params(_ptr));
+  String describeParameters() =>
+      dartStringFromC(C.query_describe_params(_cQueryChecked));
 
   /// Use the same query conditions but only return a single property (field).
   ///
@@ -1511,8 +1514,8 @@ class Query<T> implements Finalizable {
   /// var results = query.property(tInteger).find();
   /// ```
   PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
-    final result = PropertyQuery<DartType>._(
-        this, C.query_prop(_ptr, prop._model.id.id), prop._model.type);
+    final result = PropertyQuery<DartType>._(this,
+        C.query_prop(_cQueryChecked, prop._model.id.id), prop._model.type);
     if (prop._model.type == OBXPropertyType.String) {
       result._caseSensitive = InternalStoreAccess.queryCS(_store);
     }
