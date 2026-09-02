@@ -153,6 +153,10 @@ void main() {
     addTearDown(query.close);
     expect(
         () => query.param(t).value = nullString, throwsA(isA<ArgumentError>()));
+    final propertyQuery = query.property(t);
+    addTearDown(propertyQuery.close);
+    expect(() => propertyQuery.find(replaceNullWith: nullString),
+        throwsA(isA<ArgumentError>()));
 
     // Storing and reading strings is not affected
     final testId = box.put(TestEntity(tString: nullString));

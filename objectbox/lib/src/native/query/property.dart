@@ -284,7 +284,12 @@ extension StringPropertyQuery on PropertyQuery<String> {
   /// Results are in no particular order. Excludes null values unless you
   /// specify [replaceNullWith].
   List<String> find({String? replaceNullWith}) {
-    final cDefault = replaceNullWith?.toNativeUtf8().cast<Char>();
+    Pointer<Char>? cDefault;
+    if (replaceNullWith != null) {
+      // Not using withNativeString as _find frees the default value pointer.
+      checkNoNullChar(replaceNullWith);
+      cDefault = replaceNullWith.toNativeUtf8().cast<Char>();
+    }
 
     return _find(
         C.query_prop_find_strings,
