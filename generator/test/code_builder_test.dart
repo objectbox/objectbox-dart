@@ -872,6 +872,9 @@ void main() {
     });
 
     test('all supported types for string properties', () async {
+      // Types with a String representing type (see ExternalPropertyType docs)
+      // and types the MongoDB connector also accepts as String, see
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping
       final source = sourceFile(
         entity(
           withBody: r'''
@@ -892,6 +895,12 @@ void main() {
 
           @ExternalType(type: ExternalPropertyType.uuidV4)
           String? uuidV4;
+
+          @ExternalType(type: ExternalPropertyType.uuidString)
+          String? uuidString;
+
+          @ExternalType(type: ExternalPropertyType.uuidV4String)
+          String? uuidV4String;
           
           /// String vector
           @ExternalType(type: ExternalPropertyType.mongoRegex)
@@ -933,6 +942,16 @@ void main() {
       expect(
         testEntity.findPropertyByName("uuidV4")!.externalType,
         OBXExternalPropertyType.UuidV4,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuidString")!.externalType,
+        OBXExternalPropertyType.UuidString,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuidV4String")!.externalType,
+        OBXExternalPropertyType.UuidV4String,
       );
 
       expect(
