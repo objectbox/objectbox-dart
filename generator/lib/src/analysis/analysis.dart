@@ -98,13 +98,24 @@ class ObjectBoxAnalysis {
     // This is awaited on the build's critical path, so never wait for long
     // (e.g. a connection that is silently dropped could otherwise stall the
     // build for minutes). The timeout error is swallowed by the caller.
-    return http
-        .post(
-          url,
-          headers: {'Accept': 'text/plain', 'Content-Type': 'application/json'},
-          body: body,
-        )
-        .timeout(const Duration(seconds: 10));
+    // Use an explicit client to also close it on timeout, which aborts a still
+    // pending request: timeout() only completes the future, it does not cancel
+    // the request.
+    final client = http.Client();
+    try {
+      return await client
+          .post(
+            url,
+            headers: {
+              'Accept': 'text/plain',
+              'Content-Type': 'application/json',
+            },
+            body: body,
+          )
+          .timeout(const Duration(seconds: 10));
+    } finally {
+      client.close();
+    }
   }
 
   /// Uses the given values to gather properties and return them as an [Event].
