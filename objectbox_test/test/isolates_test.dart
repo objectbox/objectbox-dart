@@ -45,6 +45,31 @@ void main() {
     receivePort.close();
   });
 
+  test('killed isolate leaves no open transaction behind', () async {
+    final env = TestEnv('isolate-kill-tx');
+    addTearDown(() => env.closeAndDelete());
+    final started = ReceivePort();
+    final worker = await Isolate.spawn(
+        writeUntilKilled, [env.dbDirPath, started.sendPort]);
+    await started.first;
+    started.close();
+
+    // Terminate the worker inside its write transaction; this does not run
+    // finally blocks, so the transaction is only closed by its finalizer.
+    worker.kill(priority: Isolate.immediate);
+    // Give the worker time to shut down (and run its finalizers).
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    // Closing the store waits for active write transactions: without the
+    // finalizer this would wait forever (note: not caught by test timeouts).
+    env.store.close();
+
+    // The transaction was aborted, none of its data was committed.
+    final store = Store(getObjectBoxModel(), directory: env.dbDirPath);
+    expect(Box<TestEntity>(store).count(), 0);
+    store.close();
+  });
+
   /// Work with a single store across multiple isolates using
   /// the legacy way of passing a pointer reference to the isolate.
   test('single store using reference', () async {
@@ -133,6 +158,19 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
   expect(await call(['close']), equals('done'));
 
   receivePort.close();
+}
+
+/// Puts objects in a write transaction until killed.
+void writeUntilKilled(List<Object> args) {
+  final store = Store.attach(getObjectBoxModel(), args[0] as String);
+  final box = Box<TestEntity>(store);
+  store.runInTransaction(TxMode.write, () {
+    (args[1] as SendPort).send(null);
+    for (var i = 0; i < 100000000; i++) {
+      box.put(TestEntity(tInt: i));
+    }
+  });
+  store.close();
 }
 
 // Echoes back any received message.

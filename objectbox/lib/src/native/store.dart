@@ -547,6 +547,10 @@ class Store implements Finalizable {
   /// close() and not rely on garbage collection [to avoid out-of-memory
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
+    // At isolate shutdown, native finalizers run in the order their finalizer
+    // objects were created: create the one for transactions first, so that a
+    // transaction still open at that point is closed before the store.
+    Transaction.initFinalizer();
     _finalizer.attach(this, _cStore.cast(),
         detach: this, externalSize: 200 * 1024);
   }

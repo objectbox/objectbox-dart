@@ -15,7 +15,7 @@ import 'bindings/helpers.dart';
 /// use with asychcronous code, or more specifically, never `await` before
 /// calling [successAndClose] or [abortAndClose].
 @internal
-class Transaction {
+class Transaction implements Finalizable {
   final Store _store;
   final Pointer<OBX_txn> _cTxn;
   bool _closed = false;
@@ -26,11 +26,27 @@ class Transaction {
   CursorHelper? _firstCursor;
   HashMap<int, CursorHelper>? _cursors;
 
+  /// Closes (aborts) a transaction that is still open when its isolate shuts
+  /// down: e.g. an isolate terminated via Isolate.kill() inside a transaction
+  /// does not run finally blocks. This runs on the isolate's thread, which is
+  /// the thread that started the transaction. Without this, closing the store
+  /// waits for the transaction forever.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.txn_close.cast());
+
+  /// Ensures [_finalizer] exists. Call before the finalizer of Store is created:
+  /// at isolate shutdown, native finalizers run in the order their finalizer
+  /// objects were created, and transactions must be closed before the store.
+  static void initFinalizer() => _finalizer;
+
   Transaction(this._store, this.mode)
       : _cTxn = mode == TxMode.write
             ? C.txn_write(InternalStoreAccess.cStore(_store))
             : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
+    _finalizer.attach(this, _cTxn.cast(), detach: this);
   }
 
   /// Indicates the write transaction is complete and closes it.
@@ -48,6 +64,7 @@ class Transaction {
   void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
+    _finalizer.detach(this);
     final firstCursor = _firstCursor;
     if (firstCursor != null) {
       firstCursor.close();
