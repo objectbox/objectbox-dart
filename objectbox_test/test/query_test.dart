@@ -1044,7 +1044,7 @@ void main() {
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
 
-  test('using a built QueryBuilder throws', () {
+  test('using a built QueryBuilder throws', () async {
     // build() frees the native builder, so further use must throw instead of
     // operating on the freed native object (undefined behavior).
     final builder = box.query();
@@ -1055,6 +1055,12 @@ void main() {
     expect(() => builder.order(TestEntity_.tString), throwsClosedError);
     expect(() => builder.link(TestEntity_.relA), throwsClosedError);
     expect(() => builder.watch(), throwsClosedError);
+
+    // The same applies to watch(), which internally calls build().
+    final builder2 = box.query();
+    final stream = builder2.watch(triggerImmediately: true);
+    expect(() => builder2.build(), throwsClosedError);
+    await stream.first.then((query) => query.close());
   });
 
   test('use after close throws', () {
