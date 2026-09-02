@@ -70,6 +70,20 @@ void main() {
     expect(Box<TestEntity>(store).count(), 0);
   });
 
+  test('isolate exits with active observers', () async {
+    final env = TestEnv('isolate-observers');
+    addTearDown(() => env.closeAndDelete());
+    final exited = ReceivePort();
+    await Isolate.spawn(watchAndExit, env.dbDirPath, onExit: exited.sendPort);
+    await exited.first;
+    exited.close();
+
+    // The observers of the exited isolate were closed by their finalizers;
+    // changes must not fail (e.g. notify a dead isolate) and closing works.
+    env.box.put(TestEntity(tString: 'after exit'));
+    expect(env.box.count(), 1);
+  });
+
   /// Work with a single store across multiple isolates using
   /// the legacy way of passing a pointer reference to the isolate.
   test('single store using reference', () async {
@@ -158,6 +172,15 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
   expect(await call(['close']), equals('done'));
 
   receivePort.close();
+}
+
+/// Subscribes to changes and exits without canceling the subscriptions.
+void watchAndExit(String dbDirPath) {
+  final store = Store.attach(getObjectBoxModel(), dbDirPath);
+  store.watch<TestEntity>().listen((_) {});
+  store.entityChanges.listen((_) {});
+  Box<TestEntity>(store).query().watch().listen((_) {});
+  Isolate.exit();
 }
 
 /// Puts objects in a write transaction until killed.

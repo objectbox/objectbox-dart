@@ -11075,6 +11075,8 @@ class _SymbolAddresses {
       get query_close => _library._query_closePtr;
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_query_prop>)>>
       get query_prop_close => _library._query_prop_closePtr;
+  ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_observer>)>>
+      get observer_close => _library._observer_closePtr;
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_admin>)>>
       get admin_close => _library._admin_closePtr;
 }

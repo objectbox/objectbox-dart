@@ -2,15 +2,29 @@ part of 'store.dart';
 
 /// Simple wrapper used below in ObservableStore to reduce code duplication.
 /// Contains shared code for single-entity observer and the generic/global one.
-class _Observer<StreamValueType> {
+class _Observer<StreamValueType> implements Finalizable {
   late final StreamController<StreamValueType> controller;
   Pointer<OBX_observer>? _cObserver;
   final receivePort = ReceivePort();
+
+  /// Closes a native observer that is still open when its isolate shuts down
+  /// (e.g. a Flutter engine is destroyed while a stream is subscribed) or if
+  /// this is garbage collected without the subscription being canceled.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.observer_close.cast());
+
+  /// Ensures [_finalizer] exists. Call before the finalizer of Store is created:
+  /// at isolate shutdown, native finalizers run in the order their finalizer
+  /// objects were created, and observers must be closed before the store.
+  static void initFinalizer() => _finalizer;
 
   int get nativePort => receivePort.sendPort.nativePort;
 
   set cObserver(Pointer<OBX_observer> value) {
     _cObserver = checkObxPtr(value, 'observer initialization failed');
+    _finalizer.attach(this, _cObserver!.cast(), detach: this);
     _debugLog('started');
   }
 
@@ -40,6 +54,7 @@ class _Observer<StreamValueType> {
   void stop() {
     _debugLog('stopped');
     if (_cObserver != null) {
+      _finalizer.detach(this);
       checkObx(C.observer_close(_cObserver!));
       _cObserver = null;
     }
