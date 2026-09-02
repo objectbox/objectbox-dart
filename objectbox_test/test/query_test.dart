@@ -844,6 +844,38 @@ void main() {
     query.close();
   });
 
+  test('stream items are valid after concurrent writes', () async {
+    // The worker isolate reads the objects in a read transaction and must copy
+    // their data before the transaction ends: afterwards the database memory
+    // (e.g. LMDB pages) may be reused by writes. Regression test for streamed
+    // objects being read only after the read transaction had ended.
+    final count = env.short ? 200 : 2000;
+    box.putMany(List<TestEntity>.generate(
+        count, (i) => TestEntity(tString: 'original $i', tInt: i)));
+    final query = box.query().order(TestEntity_.tInt).build();
+
+    final streamed = <TestEntity>[];
+    var rewritten = false;
+    await for (final object in query.stream()) {
+      if (!rewritten) {
+        // Rewrite all data while streaming: removes the pages of the streamed
+        // objects and writes new content in their place.
+        rewritten = true;
+        box.removeAll();
+        box.putMany(List<TestEntity>.generate(
+            count, (i) => TestEntity(tString: 'rewritten $i', tInt: i)));
+      }
+      streamed.add(object);
+    }
+
+    expect(streamed.length, count);
+    for (var i = 0; i < count; i++) {
+      expect(streamed[i].tInt, i);
+      expect(streamed[i].tString, 'original $i');
+    }
+    query.close();
+  });
+
   test('set param single', () async {
     final query = box
         .query(TestEntity_.tString.equals('') |

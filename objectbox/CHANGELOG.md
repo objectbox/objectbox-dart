@@ -1,5 +1,6 @@
 ## latest
 
+* `Query.stream()`: copy results inside the read transaction. Fixes reading database memory after the transaction had ended. Also, the worker isolate no longer waits for the main isolate, which could leave it (and its Store handle) behind forever when the main isolate was terminated, e.g. with its Flutter engine. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
