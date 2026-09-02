@@ -430,6 +430,38 @@ class Store implements Finalizable {
   /// [UnsupportedError] if this isolate already has an open store (created or
   /// attached) for [directoryPath]. It should be closed first, or attached to
   /// from another isolate.
+  ///
+  /// ## Lifetime of attached stores in worker isolates
+  ///
+  /// An isolate spawned with [Isolate.spawn] is not terminated when the isolate
+  /// that spawned it shuts down, e.g. when a Flutter engine is destroyed while
+  /// the process lives on (like on Android with a foreground service). Such a
+  /// worker keeps running and its attached store keeps the underlying store
+  /// open: [isOpen] returns true and opening the store again fails (error
+  /// code 10001). Calling [close] in the main isolate does not close the
+  /// stores attached in other isolates.
+  ///
+  /// So a worker that keeps an attached store should close it once its work is
+  /// done, and also when the isolate that spawned it exits. For the latter,
+  /// pass the control port of the spawning isolate and use an exit listener:
+  /// ```dart
+  /// // Spawning isolate: pass its control port along with the directory path.
+  /// await Isolate.spawn(workerMain, [dbPath, Isolate.current.controlPort]);
+  ///
+  /// // Worker isolate
+  /// void workerMain(List<Object> args) {
+  ///   final store = Store.attach(getObjectBoxModel(), args[0] as String);
+  ///   final parentExited = ReceivePort();
+  ///   Isolate(args[1] as SendPort).addOnExitListener(parentExited.sendPort);
+  ///   parentExited.listen((_) {
+  ///     store.close();
+  ///     Isolate.exit();
+  ///   });
+  ///   // ... use the store ...
+  /// }
+  /// ```
+  /// To run a function in a worker isolate that does not have to outlive it,
+  /// prefer [runAsync] or [runInTransactionAsync], which handle this.
   Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
@@ -653,6 +685,10 @@ class Store implements Finalizable {
   /// Closes this store.
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
+  ///
+  /// This only closes this instance: the underlying native store stays open
+  /// as long as store instances attached in other isolates ([attach]) exist.
+  /// See [attach] on how to close those with the isolate that spawned them.
   void close() {
     if (isClosed()) return;
 
