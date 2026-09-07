@@ -467,6 +467,7 @@ class Store implements Finalizable {
     }
   }
 
+  // ignore: deprecated_member_use_from_same_package
   /// Create [_reference] (it is non-nullable) so [reference] works for every
   /// kind of store. Ensures only a store created in the same process can be
   /// accessed via it (also a simple sanity check/hash).
