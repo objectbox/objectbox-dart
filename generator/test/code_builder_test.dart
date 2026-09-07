@@ -814,6 +814,9 @@ void main() {
     });
 
     test('all supported types for byte vector properties', () async {
+      // All possible mappings for ObjectBox Bytes (byte vector) according to
+      // the developer docs.
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping#special-types
       final source = sourceFile(
         entity(
           withBody: r'''
@@ -872,9 +875,9 @@ void main() {
     });
 
     test('all supported types for string properties', () async {
-      // Types with a String representing type (see ExternalPropertyType docs)
-      // and types the MongoDB connector also accepts as String, see
-      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping
+      // All possible mappings for ObjectBox String and String Vector according
+      // to the developer docs.
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping#special-types
       final source = sourceFile(
         entity(
           withBody: r'''
@@ -961,6 +964,9 @@ void main() {
     });
 
     test('all supported types for flex and long properties', () async {
+      // All possible mappings for ObjectBox Flex and Long (64-bit int)
+      // according to the developer docs.
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping#special-types
       final source = sourceFile(
         entity(
           withBody: r'''
