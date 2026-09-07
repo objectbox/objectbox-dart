@@ -2,6 +2,8 @@
 
 * Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
+* `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
+* `Store.fromReference` is deprecated, please migrate to `Store.attach`.
 * Flutter plugins: remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So after updating make sure to run the code generator again using `dart run build_runner build`.
 * Allow analyzer versions up to 14.
 * Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
@@ -33,8 +35,6 @@
 * Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
 * `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
-* `Store.attach` now throws when trying to attach a second time to the same store.
-* `Store.fromReference` is deprecated, please migrate to `Store.attach`.
 
 ### Sync
 
