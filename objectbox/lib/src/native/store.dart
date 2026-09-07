@@ -113,6 +113,11 @@ class Store implements Finalizable {
   /// final store = Store(getObjectBoxModel());
   /// ```
   ///
+  /// Only one store instance per directory may be open in an isolate: throws
+  /// [UnsupportedError] if this isolate already has an open store (created or
+  /// attached) for [directory]. It should be closed first, or attached to from
+  /// another isolate.
+  ///
   /// ## In-memory database
   /// To use a file-less in-memory database, instead of a directory path pass
   /// `memory:` together with an identifier string as the [directory]:
@@ -418,6 +423,11 @@ class Store implements Finalizable {
   /// its own lifetime and must also be closed (e.g. before an isolate exits).
   /// The actual underlying store is only closed when the last store instance
   /// is closed (e.g. when the app exits).
+  ///
+  /// Only one store instance per directory may be open in an isolate: throws
+  /// [UnsupportedError] if this isolate already has an open store (created or
+  /// attached) for [directoryPath]. It should be closed first, or attached to
+  /// from another isolate.
   Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
