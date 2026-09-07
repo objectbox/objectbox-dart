@@ -17,6 +17,7 @@ linter:
     - public_member_api_docs # Effective Dart.
     - type_annotate_public_apis # Effective Dart.
     - unnecessary_lambdas # Effective Dart.
+    - deprecated_member_use_from_same_package # Pana expects it.
 
 # exclude standalone packages:
 analyzer:

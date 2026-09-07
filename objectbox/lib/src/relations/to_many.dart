@@ -186,6 +186,14 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
           "Can't store relation info for the target object with zero ID");
     }
 
+    // While not expected during regular use (existingStore is meant for
+    // use by Box._putToManyRelFields which uses InternalToManyAccess.setRelInfo
+    // which checks for the same store), guard against passing in a different
+    // store.
+    if (existingStore != null) {
+      configuration.storeConfiguration.checkIsSameStore(existingStore);
+    }
+
     // Use given store, or obtain one via store configuration
     // (then store must be closed once done).
     final Store store = existingStore ??
@@ -258,11 +266,7 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
   void _setRelInfo<OwningEntityT>(Store store, RelInfo relInfo) {
     final storeConfiguration = _storeConfiguration;
     if (storeConfiguration != null) {
-      if (storeConfiguration.storeConfiguration.id !=
-          store.configuration().id) {
-        throw ArgumentError.value(
-            store, 'store', 'Relation already attached to a different store');
-      }
+      storeConfiguration.storeConfiguration.checkIsSameStore(store);
       return;
     }
     _storeConfiguration = _ToManyStoreConfiguration<EntityT, OwningEntityT>(
@@ -293,9 +297,12 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
     } else {
       final store =
           StoreInternal.attachByConfiguration(configuration.storeConfiguration);
-      items = InternalBoxAccess.getRelated(
-          configuration.box(store), configuration.relInfo);
-      store.close();
+      try {
+        items = InternalBoxAccess.getRelated(
+            configuration.box(store), configuration.relInfo);
+      } finally {
+        store.close();
+      }
     }
     if (_addedBeforeLoad.isNotEmpty) {
       items.addAll(_addedBeforeLoad);

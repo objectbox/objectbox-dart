@@ -7,5 +7,11 @@ objectbox test application. Helps run integration tests, currently on the Androi
 Assuming a single running Android emulator:
 
 ```bash
+flutter test integration_test -d emulator-5554
+```
+
+To only run a single test file:
+
+```bash
 flutter test integration_test/sync_test.dart -d emulator-5554
 ```

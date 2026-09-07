@@ -340,12 +340,12 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final entityA = testEnv.model.entities.firstWhere((e) => e.name == 'A');
+      final entityA = testEnv.model.findEntityByName('A')!;
       var backlinkSourceA = entityA.backlinks.first.source;
       expect(backlinkSourceA, isA<BacklinkSourceRelation>());
       expect((backlinkSourceA as BacklinkSourceRelation).srcRel.name, 'relA');
 
-      final entityB = testEnv.model.entities.firstWhere((e) => e.name == 'B');
+      final entityB = testEnv.model.findEntityByName('B')!;
       var backlinkSourceB = entityB.backlinks.first.source;
       expect(backlinkSourceB, isA<BacklinkSourceProperty>());
       expect(
@@ -450,9 +450,7 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final customerEntity = testEnv.model.entities.firstWhere(
-        (e) => e.name == 'Customer',
-      );
+      final customerEntity = testEnv.model.findEntityByName('Customer')!;
       var backlinkSource = customerEntity.backlinks.first.source;
       expect(backlinkSource, isA<BacklinkSourceProperty>());
       expect(
@@ -510,9 +508,8 @@ void main() {
       await testEnv.run(source);
 
       // Assert final model created by generator
-      final vectorProperty = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "coordinates",
-      );
+      final vectorProperty =
+          testEnv.model.entities[0].findPropertyByName("coordinates")!;
       expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
       expect(vectorProperty.indexId, isNotNull);
       expect(vectorProperty.hnswParams, isNotNull);
@@ -551,9 +548,8 @@ void main() {
       await testEnv.run(source);
 
       // Assert final model created by generator
-      final vectorProperty = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "coordinates",
-      );
+      final vectorProperty =
+          testEnv.model.entities[0].findPropertyByName("coordinates")!;
       expect(vectorProperty.flags & OBXPropertyFlags.INDEXED != 0, true);
       expect(vectorProperty.indexId, isNotNull);
       expect(vectorProperty.hnswParams, isNotNull);
@@ -747,17 +743,103 @@ void main() {
       expect(entity.externalName, "my-mongo-entity");
     });
 
-    test('annotations work on properties', () async {
+    test('all supported types for @Id properties', () async {
+      final source = sourceFile(r'''
+      @Entity()
+      class MongoIdEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.mongoId)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuid)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidStringEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuidString)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidV4Entity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuidV4)
+        int id = 0;
+      }
+
+      @Entity()
+      class UuidV4StringEntity {
+        @Id()
+        @ExternalType(type: ExternalPropertyType.uuidV4String)
+        int id = 0;
+      }
+      ''');
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      int? getIdPropertyExternalType(String entityName) {
+        return testEnv.model
+            .findEntityByName(entityName)!
+            .findPropertyByName('id')!
+            .externalType;
+      }
+
+      expect(
+        getIdPropertyExternalType('MongoIdEntity'),
+        OBXExternalPropertyType.MongoId,
+      );
+      expect(
+        getIdPropertyExternalType('UuidEntity'),
+        OBXExternalPropertyType.Uuid,
+      );
+      expect(
+        getIdPropertyExternalType('UuidStringEntity'),
+        OBXExternalPropertyType.UuidString,
+      );
+      expect(
+        getIdPropertyExternalType('UuidV4Entity'),
+        OBXExternalPropertyType.UuidV4,
+      );
+      expect(
+        getIdPropertyExternalType('UuidV4StringEntity'),
+        OBXExternalPropertyType.UuidV4String,
+      );
+    });
+
+    test('all supported types for byte vector properties', () async {
+      // All possible mappings for ObjectBox Bytes (byte vector) according to
+      // the developer docs.
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping#special-types
       final source = sourceFile(
         entity(
           withBody: r'''
           @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.decimal128)
+          List<int>? decimal128;
+          
+          @Property(type: PropertyType.byteVector)
           @ExternalType(type: ExternalPropertyType.mongoId)
           List<int>? mongoId;
           
+          @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.mongoBinary)
+          List<int>? mongoBinary;
+                    
+          @Property(type: PropertyType.byteVector)
           @ExternalType(type: ExternalPropertyType.uuid)
           @ExternalName(name: 'my-mongo-uuid')
           List<int>? mongoUuid;
+
+          @Property(type: PropertyType.byteVector)
+          @ExternalType(type: ExternalPropertyType.uuidV4)
+          List<int>? uuidV4;
           ''',
         ),
       );
@@ -765,16 +847,160 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final property1 = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "mongoId",
-      );
-      expect(property1.externalType, OBXExternalPropertyType.MongoId);
+      var testEntity = testEnv.model.entities[0];
 
-      final property2 = testEnv.model.entities[0].properties.firstWhere(
-        (element) => element.name == "mongoUuid",
+      expect(
+        testEntity.findPropertyByName("decimal128")!.externalType,
+        OBXExternalPropertyType.Decimal128,
       );
-      expect(property2.externalType, OBXExternalPropertyType.Uuid);
-      expect(property2.externalName, "my-mongo-uuid");
+
+      expect(
+        testEntity.findPropertyByName("mongoId")!.externalType,
+        OBXExternalPropertyType.MongoId,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoBinary")!.externalType,
+        OBXExternalPropertyType.MongoBinary,
+      );
+
+      final uuidProp = testEntity.findPropertyByName("mongoUuid")!;
+      expect(uuidProp.externalType, OBXExternalPropertyType.Uuid);
+      expect(uuidProp.externalName, "my-mongo-uuid");
+
+      expect(
+        testEntity.findPropertyByName("uuidV4")!.externalType,
+        OBXExternalPropertyType.UuidV4,
+      );
+    });
+
+    test('all supported types for string properties', () async {
+      // All possible mappings for ObjectBox String and String Vector according
+      // to the developer docs.
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping#special-types
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @ExternalType(type: ExternalPropertyType.decimal128)
+          String? decimal128;
+
+          @ExternalType(type: ExternalPropertyType.javaScript)
+          String? javaScript;
+
+          @ExternalType(type: ExternalPropertyType.jsonToNative)
+          String? jsonToNative;
+
+          @ExternalType(type: ExternalPropertyType.mongoId)
+          String? mongoId;
+
+          @ExternalType(type: ExternalPropertyType.uuid)
+          String? uuid;
+
+          @ExternalType(type: ExternalPropertyType.uuidV4)
+          String? uuidV4;
+
+          @ExternalType(type: ExternalPropertyType.uuidString)
+          String? uuidString;
+
+          @ExternalType(type: ExternalPropertyType.uuidV4String)
+          String? uuidV4String;
+          
+          /// String vector
+          @ExternalType(type: ExternalPropertyType.mongoRegex)
+          List<String>? mongoRegex;
+          ''',
+        ),
+      );
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var testEntity = testEnv.model.entities[0];
+
+      expect(
+        testEntity.findPropertyByName("decimal128")!.externalType,
+        OBXExternalPropertyType.Decimal128,
+      );
+
+      expect(
+        testEntity.findPropertyByName("javaScript")!.externalType,
+        OBXExternalPropertyType.JavaScript,
+      );
+
+      expect(
+        testEntity.findPropertyByName("jsonToNative")!.externalType,
+        OBXExternalPropertyType.JsonToNative,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoId")!.externalType,
+        OBXExternalPropertyType.MongoId,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuid")!.externalType,
+        OBXExternalPropertyType.Uuid,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuidV4")!.externalType,
+        OBXExternalPropertyType.UuidV4,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuidString")!.externalType,
+        OBXExternalPropertyType.UuidString,
+      );
+
+      expect(
+        testEntity.findPropertyByName("uuidV4String")!.externalType,
+        OBXExternalPropertyType.UuidV4String,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoRegex")!.externalType,
+        OBXExternalPropertyType.MongoRegex,
+      );
+    });
+
+    test('all supported types for flex and long properties', () async {
+      // All possible mappings for ObjectBox Flex and Long (64-bit int)
+      // according to the developer docs.
+      // https://sync.objectbox.io/mongodb-sync-connector/mongodb-data-mapping#special-types
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @ExternalType(type: ExternalPropertyType.flexMap)
+          Map<String, Object?>? flexMap;
+
+          @ExternalType(type: ExternalPropertyType.flexVector)
+          List<Object?>? flexVector;
+
+          @ExternalType(type: ExternalPropertyType.mongoTimestamp)
+          int? mongoTimestamp;
+          ''',
+        ),
+      );
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      var testEntity = testEnv.model.entities[0];
+
+      expect(
+        testEntity.findPropertyByName("flexMap")!.externalType,
+        OBXExternalPropertyType.FlexMap,
+      );
+
+      expect(
+        testEntity.findPropertyByName("flexVector")!.externalType,
+        OBXExternalPropertyType.FlexVector,
+      );
+
+      expect(
+        testEntity.findPropertyByName("mongoTimestamp")!.externalType,
+        OBXExternalPropertyType.MongoTimestamp,
+      );
     });
 
     test('annotations work on ToMany (standalone) relations', () async {
@@ -795,14 +1021,10 @@ void main() {
       final testEnv = GeneratorTestEnv();
       await testEnv.run(source);
 
-      final relation1 = testEnv.model.entities[0].relations.firstWhere(
-        (element) => element.name == "rel1",
-      );
+      final relation1 = testEnv.model.entities[0].findRelationByName("rel1")!;
       expect(relation1.externalType, OBXExternalPropertyType.MongoId);
 
-      final relation2 = testEnv.model.entities[0].relations.firstWhere(
-        (element) => element.name == "rel2",
-      );
+      final relation2 = testEnv.model.entities[0].findRelationByName("rel2")!;
       expect(relation2.externalType, OBXExternalPropertyType.Uuid);
       expect(relation2.externalName, "my-courses-rel");
     });

@@ -87,6 +87,30 @@ void main() {
     await subscription.cancel();
   });
 
+  test('pause and resume', () async {
+    final events = <int>[];
+    final subscription =
+        box.query().watch().listen((query) => events.add(query.count()));
+
+    subscription.pause();
+    box.put(TestEntity(tString: 'while paused'));
+    await yieldExecution();
+    expect(events, isEmpty);
+
+    subscription.resume();
+    await yieldExecution();
+    // The change event from while paused must be delivered after resuming
+    // (previously it was lost in an orphaned subscription).
+    expect(events, [1]);
+
+    // Events continue to arrive after pause/resume.
+    box.put(TestEntity(tString: 'after resume'));
+    await yieldExecution();
+    expect(events, [1, 2]);
+
+    await subscription.cancel();
+  });
+
   test('trigger immediately', () async {
     var completer = Completer<void>();
     final sub1 = box.query().watch(triggerImmediately: true).listen((query) {

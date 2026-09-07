@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
-import 'entity.dart';
 import 'test_env.dart';
 
 void main() {
@@ -16,37 +12,17 @@ void main() {
 
   tearDown(() => env.closeAndDelete());
 
-  // Note: this test currently requires a C library with Sync server,
-  // so it is not run on public CI and must be run manually.
-  test('admin', () async {
-    env.box.put(TestEntity.filled());
-
-    final admin = Admin(env.store);
-
-    // Check that it serves requests and has correct permissions configured.
-    final response = await HttpClient()
-        .get('127.0.0.1', admin.port, '/api/v2/auth-info')
-        .then((request) => request.close());
-    expect(response.statusCode, 200);
-    expect(await response.transform(utf8.decoder).join(''),
-        '{"auth":false,"permissions":{"modelRead":true,"modelWrite":true,"objectsRead":true,"objectsWrite":true,"runtimeRead":true,"runtimeWrite":true}}');
-
-    expect(admin.isClosed(), isFalse);
-    admin.close();
-    expect(admin.isClosed(), isTrue);
-    admin.close(); // does nothing
-  },
-      skip: Admin.isAvailable()
-          ? null
-          : 'Admin is not available in the loaded library');
+  // Note: the Admin feature is currently only available in the Flutter package
+  // for Android (and only when manually changing the Android database library
+  // dependency to one that includes it). So tests for the Dart Admin API are in
+  // objectbox_test_app/integration_test/admin_test.dart, which is run manually
+  // against a device/emulator.
 
   test('admin not available', () {
+    expect(Admin.isAvailable(), isFalse);
     expect(
         () => Admin(env.store),
         throwsA(predicate((UnsupportedError e) => e.toString().contains(
             'Admin is not available in the loaded ObjectBox runtime library.'))));
-  },
-      skip: Admin.isAvailable()
-          ? 'Admin is available in the loaded library'
-          : false);
+  });
 }

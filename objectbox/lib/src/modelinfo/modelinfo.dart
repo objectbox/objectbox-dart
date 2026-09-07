@@ -230,11 +230,19 @@ class ModelInfo {
       throw StateError(
           "cannot remove entity '${entity.name}' with id ${entity.id}: not found");
     }
+
+    // Retire property and index UIDs
+    // Iterate over snapshots as the remove methods modify the original lists
+    for (var prop in entity.properties.toList(growable: false)) {
+      entity.removeProperty(prop);
+    }
+    // Retire standalone relation UIDs
+    for (var rel in entity.relations.toList(growable: false)) {
+      entity.removeRelation(rel);
+    }
+    // Retire the entity UID
     entities = entities.where((p) => p != foundEntity).toList();
     retiredEntityUids.add(entity.id.uid);
-    for (var prop in entity.properties) {
-      retiredPropertyUids.add(prop.id.uid);
-    }
   }
 
   int generateUid() {

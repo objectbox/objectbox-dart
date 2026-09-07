@@ -113,13 +113,56 @@ bool _isSupportedVersion(ObjectBoxC obxc) {
     return false;
   }
   // Require a minimum database version.
-  // As the database version string uses the
-  // "major.minor.build-YYYY-MM-DD (<flags>)"
-  // format it should have a stable order.
-  // Note: if the version+date is the same the compare value will be negative as
-  // the flags make the string longer than the expected min version+date string.
   final databaseVersion = dartStringFromC(obxc.version_core_string());
-  return _obxDatabaseMinVersion.compareTo(databaseVersion) <= 0;
+  return isAtLeastDatabaseVersion(databaseVersion, _obxDatabaseMinVersion);
+}
+
+/// Pattern to match MAJOR.MINOR.PATCH version number, like 5.3.10.
+/// Note the "^" which only matches from the start of the string.
+final _databaseVersionPattern = RegExp(r'^(\d+)\.(\d+)\.(\d+)');
+
+/// Pattern to match the YYYY-MM-DD format, like 2026-08-25.
+final _databaseVersionDatePattern = RegExp(r'\d{4}-\d{2}-\d{2}');
+
+Match _firstMatchOrThrow(RegExp pattern, String value, String argName) {
+  final match = pattern.firstMatch(value);
+  if (match == null) {
+    // Don't silently pass the version check, if the format is not recognized
+    // the check should be fixed.
+    throw ArgumentError.value(value, argName,
+        'Version string not in expected format (MAJOR.MINOR.PATCH-<optional-pre-release>-YYYY-MM-DD)');
+  }
+  return match;
+}
+
+Match _versionMatchOrThrow(String value, String argName) =>
+    _firstMatchOrThrow(_databaseVersionPattern, value, argName);
+
+String _versionDateMatchOrThrow(String value, String argName) =>
+    _firstMatchOrThrow(_databaseVersionDatePattern, value, argName).group(0)!;
+
+/// Returns if [version] is considered at least [minVersion].
+///
+/// This is the case, if the version number, excluding any pre-release tag, is
+/// larger. Or if it is the same, if the date is the same or later.
+///
+/// Both version strings should begin like
+/// `MAJOR.MINOR.PATCH-<optional-pre-release>-YYYY-MM-DD`, for example
+/// `5.1.1-preview-2026-02-09 (lmdb, VectorSearch)` or `5.1.1-2026-02-09`.
+bool isAtLeastDatabaseVersion(String version, String minVersion) {
+  // The version number should be the same or larger
+  final versionMatch = _versionMatchOrThrow(version, 'version');
+  final minVersionMatch = _versionMatchOrThrow(minVersion, 'minVersion');
+  for (var group = 1; group <= 3; group++) {
+    final component = int.parse(versionMatch.group(group)!);
+    final minComponent = int.parse(minVersionMatch.group(group)!);
+    if (component != minComponent) return component > minComponent;
+  }
+
+  // The date of the database should never be older
+  final date = _versionDateMatchOrThrow(version, 'version');
+  final minDate = _versionDateMatchOrThrow(minVersion, 'minVersion');
+  return date.compareTo(minDate) >= 0;
 }
 
 ObjectBoxC loadObjectBoxLib() {

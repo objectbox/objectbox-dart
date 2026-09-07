@@ -257,7 +257,7 @@ class ModelEntity {
     return idx == -1 ? null : relations[idx];
   }
 
-  ModelRelation? _findRelationByName(String name) {
+  ModelRelation? findRelationByName(String name) {
     final found = relations
         .where((p) => p.name.toLowerCase() == name.toLowerCase())
         .toList();
@@ -270,7 +270,7 @@ class ModelEntity {
   }
 
   ModelRelation? findSameRelation(ModelRelation other) => other.id.uid == 0
-      ? _findRelationByName(other.name)
+      ? findRelationByName(other.name)
       : _findRelationByUid(other.id.uid);
 
   ModelRelation createRelation(String name, [int uid = 0]) {
@@ -301,6 +301,9 @@ class ModelEntity {
     if (id.uid == searched) return true;
     if (lastPropertyId.uid == searched) return true;
     if (properties.indexWhere((p) => p.id.uid == searched) != -1) {
+      return true;
+    }
+    if (properties.indexWhere((p) => p.indexId?.uid == searched) != -1) {
       return true;
     }
     if (relations.indexWhere((p) => p.id.uid == searched) != -1) {

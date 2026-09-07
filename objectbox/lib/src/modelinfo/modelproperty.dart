@@ -74,6 +74,19 @@ class ModelProperty {
     _type = value;
   }
 
+  /// If the [type] is a 32-bit wide integer.
+  ///
+  /// See [is64BitInt].
+  bool is32BitInt() => type == OBXPropertyType.Int;
+
+  /// If the [type] is a 64-bit wide integer.
+  ///
+  /// See [is32BitInt].
+  bool is64BitInt() =>
+      type == OBXPropertyType.Long ||
+      type == OBXPropertyType.Date ||
+      type == OBXPropertyType.DateNano;
+
   int get flags => _flags;
 
   set flags(int? value) {

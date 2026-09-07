@@ -16,9 +16,11 @@ void main() {
     addTearDown(() => env.closeAndDelete());
 
     final store1 = env.store;
+    // ignore: deprecated_member_use
     final store2 = Store.fromReference(getObjectBoxModel(), store1.reference);
     expect(store1, isNot(store2));
-    expect(InternalStoreAccess.ptr(store1), InternalStoreAccess.ptr(store2));
+    expect(
+        InternalStoreAccess.cStore(store1), InternalStoreAccess.cStore(store2));
 
     final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
     expect(id, 1);
@@ -47,6 +49,23 @@ void main() {
             e.message!.contains('Cannot create multiple Store instances'))));
   });
 
+  test('store attach registers directory and provides reference', () async {
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
+    final receivePort = ReceivePort();
+    await Isolate.spawn(attachTwiceIsolate,
+        StoreAttachIsolateInit(receivePort.sendPort, env.dbDirPath));
+    final results = await receivePort.first as List;
+    receivePort.close();
+    // Store.attach provides a usable reference
+    // (previously threw LateInitializationError).
+    expect(results[0], isTrue);
+    // Attaching twice in the same isolate is rejected as documented
+    // (previously succeeded, the attached store was never registered).
+    expect(results[1], isTrue);
+  });
+
   test('store attach remains open if main store closed', () async {
     final env = TestEnv('store');
     addTearDown(() => env.closeAndDelete());
@@ -60,7 +79,7 @@ void main() {
 
     // Check native instance pointer is different.
     final store2Address = await received.next as int;
-    expect(InternalStoreAccess.ptr(store1).address, isNot(store2Address));
+    expect(InternalStoreAccess.cStore(store1).address, isNot(store2Address));
 
     final id = store1.box<TestEntity>().put(TestEntity(tString: 'foo'));
     expect(id, 1);
@@ -487,12 +506,35 @@ class StoreAttachIsolateInit {
   StoreAttachIsolateInit(this.sendPort, this.path);
 }
 
+void attachTwiceIsolate(StoreAttachIsolateInit init) {
+  final store = Store.attach(getObjectBoxModel(), init.path);
+  bool referenceWorks;
+  try {
+    // Store.attach is the replacement for Store.fromReference, so .reference
+    // shouldn't be used. But test it works anyhow until the API is removed.
+    // ignore: deprecated_member_use
+    store.reference;
+    referenceWorks = true;
+  } catch (_) {
+    referenceWorks = false;
+  }
+  bool doubleAttachThrew;
+  try {
+    Store.attach(getObjectBoxModel(), init.path).close();
+    doubleAttachThrew = false;
+  } on UnsupportedError {
+    doubleAttachThrew = true;
+  }
+  store.close();
+  init.sendPort.send([referenceWorks, doubleAttachThrew]);
+}
+
 void storeAttachIsolate(StoreAttachIsolateInit init) async {
   final store2 = Store.attach(getObjectBoxModel(), init.path);
 
   final commandPort = ReceivePort();
   init.sendPort.send(commandPort.sendPort);
-  init.sendPort.send(InternalStoreAccess.ptr(store2).address);
+  init.sendPort.send(InternalStoreAccess.cStore(store2).address);
 
   await for (final message in commandPort) {
     if (message is int) {

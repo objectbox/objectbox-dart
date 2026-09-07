@@ -47,7 +47,7 @@ class Admin implements Finalizable {
 
     final opt = checkObxPtr(C.admin_opt());
     try {
-      checkObx(C.admin_opt_store(opt, InternalStoreAccess.ptr(store)));
+      checkObx(C.admin_opt_store(opt, InternalStoreAccess.cStore(store)));
       checkObx(C.admin_opt_user_management(opt, false));
       withNativeString(bindUri,
           (Pointer<Char> cStr) => checkObx(C.admin_opt_bind(opt, cStr)));
@@ -56,7 +56,8 @@ class Admin implements Finalizable {
       rethrow;
     }
 
-    _cAdmin = C.admin(opt);
+    // Note: obx_admin takes ownership of the options, even on failure.
+    _cAdmin = checkObxPtr(C.admin(opt), 'failed to create ObjectBox Admin');
 
     _finalizer.attach(this, _cAdmin.cast(),
         detach: this, externalSize: 1024 * 1024);

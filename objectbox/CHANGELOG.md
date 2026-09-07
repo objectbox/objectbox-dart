@@ -2,6 +2,8 @@
 
 * Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
+* `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
+* `Store.fromReference` is deprecated, please migrate to `Store.attach`.
 * Flutter plugins: remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So after updating make sure to run the code generator again using `dart run build_runner build`.
 * Allow analyzer versions up to 14.
 * Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
@@ -24,6 +26,15 @@
 
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
 * Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
+* Reject strings that contain the null character (`U+0000`) in various places that interact with the native C API. Otherwise, such strings would be silently truncated. For example, a query condition like `equals('ab\u0000c')` would return results as if it was `equals('ab')`. This now throws an `ArgumentError` instead. Storing and retrieving strings with null characters remains supported.
+* Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
+* Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
+* When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
+* `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
+* Query subscriptions using `QueryBuilder.watch` properly resume, deliver events that arrived while paused. Also, if resumed, the subscription is no longer leaked, which kept the native observer alive even after cancelling the subscription.
+* Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
+* `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
+* `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
 
 ### Sync
 

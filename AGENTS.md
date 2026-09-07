@@ -107,6 +107,12 @@ For the actually tested versions, see the CI config files linked above.
 3. Update `CHANGELOG.md` under the `## latest` section if the change affects users
 4. Run `dart analyze` to check for issues
 
+## Commit Messages
+
+Do not add AI/agent attribution to commit messages or PR descriptions: no `Co-Authored-By`
+trailers for AI tools (e.g. `Co-Authored-By: Claude ...`) and no "Generated with ..." lines.
+Describe the change itself; authorship is tracked by the regular git author.
+
 ## Package Versioning
 
 All packages share the same version. Use:

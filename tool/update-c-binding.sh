@@ -28,6 +28,10 @@ done
 
 cLibVersion=6.0.0-beta
 
+# The paths below are relative to the repo root: running from elsewhere would
+# scatter downloads/headers into the wrong directories.
+cd "$root"
+
 if [ "${skipDownload}" = false ]; then
     echo "Downloading C library source files from GitHub..."
 

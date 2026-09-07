@@ -162,10 +162,7 @@ class ToOne<EntityT> {
   void attach(Store store) {
     final configuration = _storeConfiguration;
     if (configuration != null) {
-      if (configuration.storeConfiguration.id != store.configuration().id) {
-        throw ArgumentError.value(
-            store, 'store', 'Relation already attached to a different store');
-      }
+      configuration.storeConfiguration.checkIsSameStore(store);
       return;
     }
     _storeConfiguration = _ToOneStoreConfiguration(
@@ -221,8 +218,12 @@ class _ToOneValue<EntityT> {
 /// (this is not marked as show in objectbox.dart)
 /// while remaining accessible by other libraries in this package.
 extension ToOneInternal<EntityT> on ToOne<EntityT> {
-  /// Puts the [target] if it is new.
-  void applyToDb(Store store, PutMode mode, Transaction tx) {
+  /// If it is new ([targetId] is zero), puts the [target] using [PutMode.put].
+  ///
+  /// This doesn't use the put mode meant only for the object owning this ToOne,
+  /// so even on "update" mode a new target is inserted, as documented in
+  /// Box.put().
+  void applyToDb(Store store, Transaction tx) {
     if (!hasValue) return;
     // Attach so can get box below.
     attach(store);
@@ -232,7 +233,7 @@ extension ToOneInternal<EntityT> on ToOne<EntityT> {
       // use dynamic as EntityT. So get box via embedded config class that
       // definitely has a type for EntityT.
       targetId = InternalBoxAccess.put(
-          _getStoreConfigOrThrow().box(store), target, mode, tx);
+          _getStoreConfigOrThrow().box(store), target, PutMode.put, tx);
     }
   }
 }

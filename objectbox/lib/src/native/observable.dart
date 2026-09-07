@@ -82,8 +82,8 @@ extension ObservableStore on Store {
     observer.receivePort.listen((dynamic _) => observer.controller.add(null));
 
     observer.init(() {
-      observer.cObserver =
-          C.dartc_observe_single_type(_ptr, entityId, observer.nativePort);
+      observer.cObserver = C.dartc_observe_single_type(
+          _cStoreChecked, entityId, observer.nativePort);
     });
 
     return observer.stream;
@@ -123,7 +123,7 @@ extension ObservableStore on Store {
     });
 
     observer.init(() {
-      observer.cObserver = C.dartc_observe(_ptr, observer.nativePort);
+      observer.cObserver = C.dartc_observe(_cStoreChecked, observer.nativePort);
     }, broadcast: broadcast);
 
     if (broadcast) {

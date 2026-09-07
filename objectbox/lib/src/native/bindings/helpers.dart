@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -35,7 +36,9 @@ Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
 
 Never throwLatestNativeError({String? context, int codeIfMissing = 0}) {
   var code = C.last_error_code();
-  var message = dartStringFromC(C.last_error_message());
+  // Decode leniently: failing to decode the message (it may embed OS or file
+  // system strings) must not mask the actual error.
+  var message = dartStringFromC(C.last_error_message(), allowMalformed: true);
 
   // Clear the error as the C API does not update error code on some failures.
   // If not cleared, this could then cause an incorrect error message to be
@@ -103,8 +106,14 @@ class ObjectBoxNativeError {
 }
 
 @pragma('vm:prefer-inline')
-String dartStringFromC(Pointer<Char> charPtr) =>
-    charPtr.address == 0 ? '' : charPtr.cast<Utf8>().toDartString();
+String dartStringFromC(Pointer<Char> charPtr, {bool allowMalformed = false}) {
+  if (charPtr.address == 0) return '';
+  final utf8Ptr = charPtr.cast<Utf8>();
+  if (!allowMalformed) return utf8Ptr.toDartString();
+  // Replaces malformed byte sequences with U+FFFD instead of throwing.
+  return utf8.decode(utf8Ptr.cast<Uint8>().asTypedList(utf8Ptr.length),
+      allowMalformed: true);
+}
 
 class CursorHelper<T> {
   final EntityDefinition<T> _entity;
@@ -163,7 +172,21 @@ T withNativeBytes<T>(
   }
 }
 
+/// Throws [ArgumentError] if [str] contains the null character, as it would be
+/// truncated when converted to a null-terminated C string (like by
+/// toNativeUtf8). Prefer [withNativeString], which does this check.
+void checkNoNullChar(String str) {
+  if (str.contains('\u0000')) {
+    throw ArgumentError.value(
+        str,
+        'str',
+        'must not contain the null character U+0000 (it would be truncated '
+            'when converted to a null-terminated C string)');
+  }
+}
+
 T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
+  checkNoNullChar(str);
   final cStr = str.toNativeUtf8();
   try {
     return fn(cStr.cast());
@@ -175,17 +198,22 @@ T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
 T withNativeStrings<T>(
     List<String> items, T Function(Pointer<Pointer<Char>> ptr, int size) fn) {
   final size = items.length;
-  final ptr = malloc<Pointer<Char>>(size);
+  // Use calloc instead of malloc so Char pointers are null (address == 0) by
+  // default so in case toNativeUtf8 throws mid-loop uninitialized ones can be
+  // prevented from getting freed.
+  final ptr = calloc<Pointer<Char>>(size);
   try {
     for (var i = 0; i < size; i++) {
+      checkNoNullChar(items[i]);
       ptr[i] = items[i].toNativeUtf8().cast();
     }
     return fn(ptr, size);
   } finally {
     for (var i = 0; i < size; i++) {
-      malloc.free((ptr + i).value);
+      final cStr = ptr[i];
+      if (cStr.address != 0) malloc.free(cStr);
     }
-    malloc.free(ptr);
+    calloc.free(ptr);
   }
 }
 

@@ -134,6 +134,35 @@ void main() {
     testCaseSensitivity(env2.box, defaultIsTrue: false);
   });
 
+  test('string conditions and params reject embedded null character', () {
+    final t = TestEntity_.tString;
+    final nullString = 'ab\u0000c';
+    // Use a list with an item before the offending value to also smoke test
+    // that withNativeStrings doesn't free the uninitialized pointer to the
+    // offending value.
+    final oneOfValues = ['ok', nullString];
+
+    // C strings are null-terminated, so 'ab\u0000c' would be silently
+    // truncated to 'ab' and wrongly match. Expect an error instead.
+    expect(() => box.query(t.equals(nullString)).build(),
+        throwsA(isA<ArgumentError>()));
+    expect(() => box.query(t.oneOf(oneOfValues)).build(),
+        throwsA(isA<ArgumentError>()));
+
+    final query = box.query(t.equals('ab')).build();
+    addTearDown(query.close);
+    expect(
+        () => query.param(t).value = nullString, throwsA(isA<ArgumentError>()));
+    final propertyQuery = query.property(t);
+    addTearDown(propertyQuery.close);
+    expect(() => propertyQuery.find(replaceNullWith: nullString),
+        throwsA(isA<ArgumentError>()));
+
+    // Storing and reading strings is not affected
+    final testId = box.put(TestEntity(tString: nullString));
+    expect(box.get(testId)!.tString, equals(nullString));
+  });
+
   test('.count doubles and booleans', () {
     box.putMany(<TestEntity>[
       TestEntity(tDouble: 0.1, tBool: true),
@@ -399,6 +428,11 @@ void main() {
     expect((q..offset = 2).find().map((e) => e.tString), equals(['b', 'c']));
     expect((q..limit = 1).find().map((e) => e.tString), equals(['b']));
     expect((q..offset = 0).find().map((e) => e.tString), equals([null]));
+
+    // Negative values would wrap around to huge unsigned values in the
+    // C API and silently return no results.
+    expect(() => q.offset = -1, throwsRangeError);
+    expect(() => q.limit = -1, throwsRangeError);
 
     q.close();
   });
@@ -874,6 +908,30 @@ void main() {
     }
   });
 
+  test('set params list on date properties', () {
+    final dates = [for (var i = 1; i <= 6; i++) DateTime.utc(2000, 1, i)];
+    box.putMany([for (var d in dates) TestEntity(tDate: d, tDateNano: d)]);
+
+    // Date and DateNano list conditions are built as int64, so setting
+    // parameters must use int64 as well.
+    final query = box.query(TestEntity_.tDate.oneOfDate([dates[0]])).build();
+    addTearDown(query.close);
+    expect(query.find().length, 1);
+    query.param(TestEntity_.tDate).values = [
+      dates[1].millisecondsSinceEpoch,
+      dates[2].millisecondsSinceEpoch
+    ];
+    expect(query.find().length, 2);
+
+    final queryNano =
+        box.query(TestEntity_.tDateNano.oneOfDate([dates[0]])).build();
+    addTearDown(queryNano.close);
+    queryNano.param(TestEntity_.tDateNano).values = [
+      dates[1].microsecondsSinceEpoch * 1000
+    ];
+    expect(queryNano.find().length, 1);
+  });
+
   test('alias - set param single', () async {
     final query = box
         .query(TestEntity_.tString.equals('') |
@@ -992,6 +1050,48 @@ void main() {
 
     expect(query.findFirst, ThrowingInConverters.throwsIn('Setter'));
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
+  });
+
+  final throwsClosedError = throwsA(predicate(
+      (StateError e) => e.message.startsWith('QueryBuilder is closed')));
+
+  test('failing to apply condition closes builder', () {
+    // Add a condition that fails to apply: negative value on unsigned property
+    final builder = box.query(TestEntity_.tInt.equals(-1));
+    // First build call fails to apply and closes builder
+    expect(() => builder.build(), throwsA(isA<NumericOverflowException>()));
+    // Second build call fails because builder is closed
+    expect(() => builder.build(), throwsClosedError);
+  });
+
+  test('failing to apply condition to link closes builders', () {
+    final builder = box.query();
+    // Add a condition to a link builder that fails to apply: null character is
+    // not allowed.
+    expect(
+        () => builder.link(
+            TestEntity_.relB, RelatedEntityB_.tString.equals('\u0000')),
+        throwsA(isA<ArgumentError>()));
+    // Indirectly verify builder is closed because build fails with closed error
+    expect(() => builder.build(), throwsClosedError);
+  });
+
+  test('using a built QueryBuilder throws', () async {
+    // build() frees the native builder, so further use must throw instead of
+    // operating on the freed native object (undefined behavior).
+    final builder = box.query();
+    builder.build().close();
+
+    expect(() => builder.build(), throwsClosedError);
+    expect(() => builder.order(TestEntity_.tString), throwsClosedError);
+    expect(() => builder.link(TestEntity_.relA), throwsClosedError);
+    expect(() => builder.watch(), throwsClosedError);
+
+    // The same applies to watch(), which internally calls build().
+    final builder2 = box.query();
+    final stream = builder2.watch(triggerImmediately: true);
+    expect(() => builder2.build(), throwsClosedError);
+    await stream.first.then((query) => query.close());
   });
 
   test('use after close throws', () {

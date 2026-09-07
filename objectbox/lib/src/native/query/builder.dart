@@ -9,14 +9,19 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
             entity,
             qc,
             C.query_builder(
-                InternalStoreAccess.ptr(store), entity.model.id.id));
+                InternalStoreAccess.cStore(store), entity.model.id.id));
 
   /// Finish building a [Query]. Call [Query.close()] after you're done with it
   /// to free resources.
+  ///
+  /// Can only be called once: the builder is closed afterwards, calling any
+  /// of its methods then throws a [StateError].
   Query<T> build() {
-    _applyCondition();
-
+    _checkNotClosed();
     try {
+      // Apply inside try: the native builder must be closed (freed) even if
+      // applying a condition fails.
+      _applyCondition();
       return Query<T>._(_store, _cBuilder, _entity);
     } finally {
       _close();
@@ -71,7 +76,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
     // also does not allow to send an event within).
     controller = StreamController<Query<T>>(
         onListen: subscribe,
-        onResume: subscribe,
+        onResume: () => subscription.resume(),
         onPause: () => subscription.pause(),
         onCancel: () => subscription.cancel());
     if (triggerImmediately) controller.add(query);
@@ -89,7 +94,7 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
   ///     .build();
   /// ```
   QueryBuilder<T> order<D>(QueryProperty<T, D> p, {int flags = 0}) {
-    checkObx(C.qb_order(_cBuilder, p._model.id.id, flags));
+    checkObx(C.qb_order(_cBuilderChecked, p._model.id.id, flags));
     // Using Dart's cascade operator does not allow for nice chaining with
     // build(), so explicitly return this for a more fluent interface.
     // ignore: avoid_returning_this
@@ -102,21 +107,38 @@ class _QueryBuilder<T> {
   final Store _store;
   final EntityDefinition<T> _entity;
   final Condition<T>? _queryCondition;
+
+  /// Pointer to the native instance. Use [_cBuilderChecked] for safe access.
   final Pointer<OBX_query_builder> _cBuilder;
   final _innerQBs = <_QueryBuilder>[];
+  final _QueryBuilder? _rootQBofInnerQB;
+  bool _closed = false;
 
-  _QueryBuilder(
-      this._store, this._entity, this._queryCondition, this._cBuilder) {
+  _QueryBuilder(this._store, this._entity, this._queryCondition, this._cBuilder)
+      : _rootQBofInnerQB = null {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
   }
 
   _QueryBuilder._link(_QueryBuilder srcQB, this._queryCondition, this._cBuilder)
       : _store = srcQB._store,
-        _entity = InternalStoreAccess.entityDef<T>(srcQB._store) {
+        _entity = InternalStoreAccess.entityDef<T>(srcQB._store),
+        _rootQBofInnerQB = srcQB._rootQB {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
-    _applyCondition();
+    // Register first so this native builder is owned by the source builder
+    // and closed with it in case applying a condition throws.
     srcQB._innerQBs.add(this);
+    try {
+      _applyCondition();
+    } catch (_) {
+      // Applying failed: eagerly close the whole builder tree so nothing
+      // leaks even if the caller never calls build().
+      srcQB._rootQB._close();
+      rethrow;
+    }
   }
+
+  // Workaround because this can't be referenced in constructor
+  _QueryBuilder get _rootQB => _rootQBofInnerQB ?? this;
 
   void _fillQueriedEntities(Set<Type> outEntities) {
     outEntities.add(T);
@@ -126,10 +148,27 @@ class _QueryBuilder<T> {
   }
 
   void _close() {
+    if (_closed) return;
+    _closed = true;
     for (var iqb in _innerQBs) {
       iqb._close();
     }
     checkObx(C.qb_close(_cBuilder));
+  }
+
+  @pragma('vm:prefer-inline')
+  void _checkNotClosed() {
+    if (_closed) {
+      throw StateError('QueryBuilder is closed (build() was already called), '
+          'create a new one to build another query.');
+    }
+  }
+
+  /// [_cBuilder], but throws instead of using a freed native builder if this
+  /// was already closed.
+  Pointer<OBX_query_builder> get _cBuilderChecked {
+    _checkNotClosed();
+    return _cBuilder;
   }
 
   @pragma('vm:prefer-inline')
@@ -157,7 +196,7 @@ class _QueryBuilder<T> {
           QueryRelationToOne<T, TargetEntityT> rel,
           [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
-          this, qc, C.qb_link_property(_cBuilder, rel._model.id.id));
+          this, qc, C.qb_link_property(_cBuilderChecked, rel._model.id.id));
 
   /// Like [link], but where the to-one relation is defined in the other object.
   _QueryBuilder<SourceEntityT> backlink<SourceEntityT>(
@@ -167,7 +206,7 @@ class _QueryBuilder<T> {
           this,
           qc,
           C.qb_backlink_property(
-              _cBuilder,
+              _cBuilderChecked,
               InternalStoreAccess.entityDef<SourceEntityT>(_store).model.id.id,
               rel._model.id.id));
 
@@ -183,12 +222,12 @@ class _QueryBuilder<T> {
           QueryRelationToMany<T, TargetEntityT> rel,
           [Condition<TargetEntityT>? qc]) =>
       _QueryBuilder<TargetEntityT>._link(
-          this, qc, C.qb_link_standalone(_cBuilder, rel._model.id.id));
+          this, qc, C.qb_link_standalone(_cBuilderChecked, rel._model.id.id));
 
   /// Like [linkMany], but where the to-many relation is defined in the other object.
   _QueryBuilder<SourceEntityT> backlinkMany<SourceEntityT>(
           QueryRelationToMany<SourceEntityT, T> rel,
           [Condition<SourceEntityT>? qc]) =>
-      _QueryBuilder<SourceEntityT>._link(
-          this, qc, C.qb_backlink_standalone(_cBuilder, rel._model.id.id));
+      _QueryBuilder<SourceEntityT>._link(this, qc,
+          C.qb_backlink_standalone(_cBuilderChecked, rel._model.id.id));
 }

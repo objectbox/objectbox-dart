@@ -42,7 +42,7 @@ enum PutMode {
 class Box<T> {
   final Store _store;
 
-  /// Pointer to the native instance. Use [_ptr] for safe access instead.
+  /// Pointer to the native instance. Use [_cBoxChecked] for safe access.
   final Pointer<OBX_box> _cBox;
   final EntityDefinition<T> _entity;
   final bool _hasToOneRelations;
@@ -58,12 +58,13 @@ class Box<T> {
             .any((ModelProperty prop) => prop.isRelation),
         _hasToManyRelations = _entity.model.relations.isNotEmpty ||
             _entity.model.backlinks.isNotEmpty,
-        _cBox = C.box(InternalStoreAccess.ptr(_store), _entity.model.id.id) {
+        _cBox = C.box(InternalStoreAccess.cStore(_store), _entity.model.id.id) {
     checkObxPtr(_cBox, 'failed to create box');
   }
 
+  /// [_cBox], but throws if the store was already closed.
   @pragma("vm:prefer-inline")
-  Pointer<OBX_box> get _ptr {
+  Pointer<OBX_box> get _cBoxChecked {
     // Box does not have its own closed state as the native store is managing
     // the box pointers.
     _store.checkOpen();
@@ -248,19 +249,19 @@ class Box<T> {
       if (_hasToOneRelations) {
         // In this case, there may be relation cycles so get the ID first.
         if ((_entity.getId(object) ?? 0) == 0) {
-          final newId = C.box_id_for_put(_ptr, 0);
+          final newId = C.box_id_for_put(_cBoxChecked, 0);
           if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
           _entity.setId(object, newId);
         }
-        _putToOneRelFields(object, mode, tx);
+        _putToOneRelFields(object, tx);
       }
     }
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
-    final newId = C.box_put_object4(
-        _ptr, _builder.bufPtr, _builder.fbb.size(), _getOBXPutMode(mode));
+    final newId = C.box_put_object4(_cBoxChecked, _builder.bufPtr,
+        _builder.fbb.size(), _getOBXPutMode(mode));
     id = _handlePutObjectResult(object, id, newId);
-    if (_hasToManyRelations) _putToManyRelFields(object, mode, tx!);
+    if (_hasToManyRelations) _putToManyRelFields(object, tx!);
     _builder.resetIfLarge();
     return id;
   }
@@ -281,7 +282,7 @@ class Box<T> {
         (Transaction tx) {
       if (_hasToOneRelations) {
         for (var object in objects) {
-          _putToOneRelFields(object, mode, tx);
+          _putToOneRelFields(object, tx);
         }
       }
 
@@ -298,7 +299,7 @@ class Box<T> {
 
       if (_hasToManyRelations) {
         for (var object in objects) {
-          _putToManyRelFields(object, mode, tx);
+          _putToManyRelFields(object, tx);
         }
       }
       _builder.resetIfLarge();
@@ -447,7 +448,7 @@ class Box<T> {
   int count({int limit = 0}) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.box_count(_ptr, limit, count));
+      checkObx(C.box_count(_cBoxChecked, limit, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -458,7 +459,7 @@ class Box<T> {
   bool isEmpty() {
     final isEmpty = malloc<Bool>();
     try {
-      checkObx(C.box_is_empty(_ptr, isEmpty));
+      checkObx(C.box_is_empty(_cBoxChecked, isEmpty));
       return isEmpty.value;
     } finally {
       malloc.free(isEmpty);
@@ -469,7 +470,7 @@ class Box<T> {
   bool contains(int id) {
     final contains = malloc<Bool>();
     try {
-      checkObx(C.box_contains(_ptr, id, contains));
+      checkObx(C.box_contains(_cBoxChecked, id, contains));
       return contains.value;
     } finally {
       malloc.free(contains);
@@ -481,7 +482,7 @@ class Box<T> {
     final contains = malloc<Bool>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(C.box_contains_many(_ptr, ptr, contains));
+        checkObx(C.box_contains_many(_cBoxChecked, ptr, contains));
         return contains.value;
       });
     } finally {
@@ -498,7 +499,7 @@ class Box<T> {
   ///
   /// For an async variant see [removeAsync].
   bool remove(int id) {
-    final err = C.box_remove(_ptr, id);
+    final err = C.box_remove(_cBoxChecked, id);
     if (err == OBX_NOT_FOUND) return false;
     checkObx(err); // throws on other errors
     return true;
@@ -523,7 +524,7 @@ class Box<T> {
     final countRemoved = malloc<Uint64>();
     try {
       return executeWithIdArray(ids, (ptr) {
-        checkObx(C.box_remove_many(_ptr, ptr, countRemoved));
+        checkObx(C.box_remove_many(_cBoxChecked, ptr, countRemoved));
         return countRemoved.value;
       });
     } finally {
@@ -549,7 +550,7 @@ class Box<T> {
   int removeAll() {
     final removedItems = malloc<Uint64>();
     try {
-      checkObx(C.box_remove_all(_ptr, removedItems));
+      checkObx(C.box_remove_all(_cBoxChecked, removedItems));
       return removedItems.value;
     } finally {
       malloc.free(removedItems);
@@ -569,22 +570,25 @@ class Box<T> {
   Future<int> removeAllAsync() async =>
       await _store.runAsync(_removeAllAsyncCallback<T>, null);
 
-  void _putToOneRelFields(T object, PutMode mode, Transaction tx) {
+  void _putToOneRelFields(T object, Transaction tx) {
     for (var toOne in _entity.toOneRelations(object)) {
       // To avoid all ToOnes obtaining a Store for each put,
       // pass the store of this box.
-      toOne.applyToDb(_store, mode, tx);
+      toOne.applyToDb(_store, tx);
     }
   }
 
-  void _putToManyRelFields(T object, PutMode mode, Transaction tx) {
+  void _putToManyRelFields(T object, Transaction tx) {
     _entity.toManyRelations(object).forEach((RelInfo info, ToMany rel) {
       // Always set relation info so ToMany applyToDb can be used after initial put
       InternalToManyAccess.setRelInfo<T>(rel, _store, info);
       if (InternalToManyAccess.hasPendingDbChanges(rel)) {
         // To avoid all ToManys obtaining a Store for each put,
         // pass the store of this box.
-        rel.applyToDb(existingStore: _store, mode: mode, tx: tx);
+        // Don't use the put mode of the owning object, so even in "update" mode
+        // new targets can be inserted and in "insert" mode, if rel is a
+        // toOneBacklink, targets' ToOnes can be updated.
+        rel.applyToDb(existingStore: _store, mode: PutMode.put, tx: tx);
       }
     });
   }
@@ -607,7 +611,7 @@ int _getOBXPutMode(PutMode mode) {
 class _AsyncBoxHelper {
   final Pointer<OBX_async> _cAsync;
 
-  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._ptr) {
+  _AsyncBoxHelper(Box box) : _cAsync = C.async1(box._cBoxChecked) {
     initializeDartAPI();
   }
 
@@ -676,7 +680,7 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_put(box._ptr, relationId, sourceId, targetId));
+      checkObx(C.box_rel_put(box._cBoxChecked, relationId, sourceId, targetId));
 
   /// Remove a standalone relation entry between two objects.
   @pragma('vm:prefer-inline')
@@ -686,7 +690,8 @@ class InternalBoxAccess {
     int sourceId,
     int targetId,
   ) =>
-      checkObx(C.box_rel_remove(box._ptr, relationId, sourceId, targetId));
+      checkObx(
+          C.box_rel_remove(box._cBoxChecked, relationId, sourceId, targetId));
 
   /// Read all objects in this Box related to the given object.
   /// Similar to box.getMany() but loads the OBX_id_array and reads objects
@@ -698,14 +703,15 @@ class InternalBoxAccess {
         Pointer<OBX_id_array> cIdsPtr;
         switch (rel.type) {
           case RelType.toMany:
-            cIdsPtr = C.box_rel_get_ids(box._ptr, rel.id, rel.objectId);
+            cIdsPtr = C.box_rel_get_ids(box._cBoxChecked, rel.id, rel.objectId);
             break;
           case RelType.toOneBacklink:
-            cIdsPtr = C.box_get_backlink_ids(box._ptr, rel.id, rel.objectId);
+            cIdsPtr =
+                C.box_get_backlink_ids(box._cBoxChecked, rel.id, rel.objectId);
             break;
           case RelType.toManyBacklink:
-            cIdsPtr =
-                C.box_rel_get_backlink_ids(box._ptr, rel.id, rel.objectId);
+            cIdsPtr = C.box_rel_get_backlink_ids(
+                box._cBoxChecked, rel.id, rel.objectId);
             break;
           default:
             throw UnimplementedError('Invalid relation type ${rel.type}');
