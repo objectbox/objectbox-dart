@@ -1052,13 +1052,36 @@ void main() {
     expect(query.find, ThrowingInConverters.throwsIn('Setter'));
   });
 
+  final throwsClosedError = throwsA(predicate(
+      (StateError e) => e.message.startsWith('QueryBuilder is closed')));
+
+  test('failing to apply condition closes builder', () {
+    // Add a condition that fails to apply: negative value on unsigned property
+    final builder = box.query(TestEntity_.tInt.equals(-1));
+    // First build call fails to apply and closes builder
+    expect(() => builder.build(), throwsA(isA<NumericOverflowException>()));
+    // Second build call fails because builder is closed
+    expect(() => builder.build(), throwsClosedError);
+  });
+
+  test('failing to apply condition to link closes builders', () {
+    final builder = box.query();
+    // Add a condition to a link builder that fails to apply: null character is
+    // not allowed.
+    expect(
+        () => builder.link(
+            TestEntity_.relB, RelatedEntityB_.tString.equals('\u0000')),
+        throwsA(isA<ArgumentError>()));
+    // Indirectly verify builder is closed because build fails with closed error
+    expect(() => builder.build(), throwsClosedError);
+  });
+
   test('using a built QueryBuilder throws', () async {
     // build() frees the native builder, so further use must throw instead of
     // operating on the freed native object (undefined behavior).
     final builder = box.query();
     builder.build().close();
-    final throwsClosedError = throwsA(predicate(
-        (StateError e) => e.message.startsWith('QueryBuilder is closed')));
+
     expect(() => builder.build(), throwsClosedError);
     expect(() => builder.order(TestEntity_.tString), throwsClosedError);
     expect(() => builder.link(TestEntity_.relA), throwsClosedError);

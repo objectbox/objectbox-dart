@@ -111,22 +111,34 @@ class _QueryBuilder<T> {
   /// Pointer to the native instance. Use [_cBuilderChecked] for safe access.
   final Pointer<OBX_query_builder> _cBuilder;
   final _innerQBs = <_QueryBuilder>[];
+  final _QueryBuilder? _rootQBofInnerQB;
   bool _closed = false;
 
-  _QueryBuilder(
-      this._store, this._entity, this._queryCondition, this._cBuilder) {
+  _QueryBuilder(this._store, this._entity, this._queryCondition, this._cBuilder)
+      : _rootQBofInnerQB = null {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
   }
 
   _QueryBuilder._link(_QueryBuilder srcQB, this._queryCondition, this._cBuilder)
       : _store = srcQB._store,
-        _entity = InternalStoreAccess.entityDef<T>(srcQB._store) {
+        _entity = InternalStoreAccess.entityDef<T>(srcQB._store),
+        _rootQBofInnerQB = srcQB._rootQB {
     checkObxPtr(_cBuilder, 'failed to create QueryBuilder');
-    // Register before applying the condition so the native builder is closed
-    // with (and not leaked by) the source builder if applying throws.
+    // Register first so this native builder is owned by the source builder
+    // and closed with it in case applying a condition throws.
     srcQB._innerQBs.add(this);
-    _applyCondition();
+    try {
+      _applyCondition();
+    } catch (_) {
+      // Applying failed: eagerly close the whole builder tree so nothing
+      // leaks even if the caller never calls build().
+      srcQB._rootQB._close();
+      rethrow;
+    }
   }
+
+  // Workaround because this can't be referenced in constructor
+  _QueryBuilder get _rootQB => _rootQBofInnerQB ?? this;
 
   void _fillQueriedEntities(Set<Type> outEntities) {
     outEntities.add(T);
