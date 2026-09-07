@@ -873,6 +873,27 @@ void main() {
     query.close();
   });
 
+  test('stream cancel before first result completes', () async {
+    box.putMany(List<TestEntity>.generate(10, (i) => TestEntity(tInt: i)));
+    final query = box.query().build();
+    addTearDown(query.close);
+    final subscription = query.stream().listen((_) {});
+    // Cancelling before the worker isolate has reported back must still
+    // terminate the worker (previously the exit signal was lost and this
+    // never completed, keeping the worker running forever).
+    await subscription.cancel().timeout(const Duration(seconds: 10));
+  });
+
+  test('stream on closed query emits error', () async {
+    final query = box.query().build();
+    final stream = query.stream();
+    query.close();
+    // Previously this was an unhandled error in the root zone and the
+    // stream never emitted nor closed.
+    await expectLater(
+        stream.toList().timeout(const Duration(seconds: 10)), throwsStateError);
+  });
+
   test('set param single', () async {
     final query = box
         .query(TestEntity_.tString.equals('') |
