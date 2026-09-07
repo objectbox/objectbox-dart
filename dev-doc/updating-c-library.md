@@ -41,7 +41,7 @@ The Flutter plugins use the Maven artifacts:
 - `objectbox-android-db` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-android-db/versions))
 - `objectbox-sync-android-db` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-sync-android-db/versions))
 
-The relations example includes a variant with Admin:
+The relations example and integration test app includes a variant with Admin:
 
 - `objectbox-android-db-admin` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-android-db-admin/versions))
 
