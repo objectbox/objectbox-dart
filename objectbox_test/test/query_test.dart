@@ -137,12 +137,16 @@ void main() {
   test('string conditions and params reject embedded null character', () {
     final t = TestEntity_.tString;
     final nullString = 'ab\u0000c';
+    // Use a list with an item before the offending value to also smoke test
+    // that withNativeStrings doesn't free the uninitialized pointer to the
+    // offending value.
+    final oneOfValues = ['ok', nullString];
 
     // C strings are null-terminated, so 'ab\u0000c' would be silently
     // truncated to 'ab' and wrongly match. Expect an error instead.
     expect(() => box.query(t.equals(nullString)).build(),
         throwsA(isA<ArgumentError>()));
-    expect(() => box.query(t.oneOf([nullString])).build(),
+    expect(() => box.query(t.oneOf(oneOfValues)).build(),
         throwsA(isA<ArgumentError>()));
 
     final query = box.query(t.equals('ab')).build();
