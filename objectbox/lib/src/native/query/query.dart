@@ -1424,7 +1424,7 @@ class Query<T> implements Finalizable {
       // Visit inside a read transaction and copy the data of each object before
       // it ends: the visited data points into database memory, which is only
       // valid while the transaction is active (e.g. a write may reuse it later).
-      InternalStoreAccess.runInTransaction(store, TxMode.read, (_) {
+      store.runInTransaction(TxMode.read, () {
         final maxBatchSize = isolateInit.batchSize;
         var batch = <Uint8List>[];
         var sizes = <int>[];

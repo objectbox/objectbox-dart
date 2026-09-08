@@ -60,6 +60,8 @@ class Store implements Finalizable {
   Stream<List<Type>>? _entityChanges;
 
   final _readPointers = ReadPointers();
+
+  /// Active transaction to be re-used. Currently not used.
   Transaction? _tx;
 
   /// Path to the database directory.
@@ -698,9 +700,8 @@ class Store implements Finalizable {
   /// while the transaction is in progress.
   @pragma('vm:prefer-inline')
   R runInTransaction<R>(TxMode mode, R Function() fn) {
-    // Whether the function is an `async` function. We can't allow those because
-    // the isolate could be transferred to another thread during execution.
-    // Checking the return value seems like the only thing we can in Dart v2.12.
+    // Don't allow `async` functions. See `_runInTransaction` for details.
+    // Checking the return value seems like the only thing possible in Dart 2.12.
     if (fn is Future Function()) {
       // This is a special case when the given function always throws. Triggered
       //  in our test code. No need to even start a DB transaction in that case.
@@ -851,8 +852,22 @@ class Store implements Finalizable {
     }
   }
 
-  /// Internal only - bypasses the main checks for async functions, you may
-  /// only pass synchronous callbacks!
+  /// Creates a new transaction in [mode] and runs the callback function [fn] in
+  /// it.
+  ///
+  /// Finishes the transaction once the callback function returns. If it throws
+  /// instead, the transactions is aborted.
+  ///
+  /// Doesn't await [fn], so it **can't be an async function**. Otherwise, once
+  /// it calls await it returns and the transaction would be closed once it
+  /// resumes! Even if this would await, the isolate might resume on a different
+  /// thread, which is not supported while in a transaction.
+  ///
+  /// This is prepared to re-use an already active transaction [_tx], but [_tx]
+  /// is currently not set.
+  ///
+  /// This doesn't verify that the callback function isn't an async function
+  /// for performance reasons. If not a concern, use [runInTransaction] instead!
   R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
     final reused = _tx != null;
     final tx = reused ? _tx! : Transaction(this, mode);
@@ -975,7 +990,10 @@ class InternalStoreAccess {
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 
-  /// Internal helper to reuse a transaction object (and especially cursors).
+  /// Exposes [Store._runInTransaction] to other libraries in this package.
+  ///
+  /// This doesn't verify that the callback function isn't an async function
+  /// for performance reasons. If not a concern, use [runInTransaction] instead!
   @pragma('vm:prefer-inline')
   static R runInTransaction<R>(
           Store store, TxMode mode, R Function(Transaction) fn) =>
