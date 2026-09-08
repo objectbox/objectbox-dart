@@ -1377,6 +1377,12 @@ class Query<T> implements Finalizable {
     final streamController = StreamController<T>(
         onListen: spawnWorkerIsolate, onCancel: awaitIsolateExit);
     resultPort.listen((dynamic message) {
+      if (streamController.isClosed) {
+        // Skip any further messages after the stream was closed as adding
+        // events is no longer possible.
+        return;
+      }
+
       // Messages are
       // - _StreamIsolateMessage for data,
       // - Exception and Error for errors and
