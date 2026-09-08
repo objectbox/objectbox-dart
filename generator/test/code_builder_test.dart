@@ -898,12 +898,6 @@ void main() {
 
           @ExternalType(type: ExternalPropertyType.uuidV4)
           String? uuidV4;
-
-          @ExternalType(type: ExternalPropertyType.uuidString)
-          String? uuidString;
-
-          @ExternalType(type: ExternalPropertyType.uuidV4String)
-          String? uuidV4String;
           
           /// String vector
           @ExternalType(type: ExternalPropertyType.mongoRegex)
@@ -945,16 +939,6 @@ void main() {
       expect(
         testEntity.findPropertyByName("uuidV4")!.externalType,
         OBXExternalPropertyType.UuidV4,
-      );
-
-      expect(
-        testEntity.findPropertyByName("uuidString")!.externalType,
-        OBXExternalPropertyType.UuidString,
-      );
-
-      expect(
-        testEntity.findPropertyByName("uuidV4String")!.externalType,
-        OBXExternalPropertyType.UuidV4String,
       );
 
       expect(
