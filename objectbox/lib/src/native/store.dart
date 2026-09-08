@@ -548,8 +548,11 @@ class Store implements Finalizable {
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
     // At isolate shutdown, native finalizers run in the order their finalizer
-    // objects were created: create the one for transactions first, so that a
-    // transaction still open at that point is closed before the store.
+    // objects were created (verified empirically, without it, the store close
+    // waits forever; it is not documented VM behaviour): create the one for
+    // transactions first, so that a transaction still open at that point is
+    // closed before the store.
+    // This works because Dart initializes static fields on access.
     Transaction.initFinalizer();
     _finalizer.attach(this, _cStore.cast(),
         detach: this, externalSize: 200 * 1024);

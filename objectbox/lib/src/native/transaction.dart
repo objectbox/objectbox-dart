@@ -26,11 +26,12 @@ class Transaction implements Finalizable {
   CursorHelper? _firstCursor;
   HashMap<int, CursorHelper>? _cursors;
 
-  /// Closes (aborts) a transaction that is still open when its isolate shuts
-  /// down: e.g. an isolate terminated via Isolate.kill() inside a transaction
-  /// does not run finally blocks. This runs on the isolate's thread, which is
-  /// the thread that started the transaction. Without this, closing the store
-  /// waits for the transaction forever.
+  /// Closes a read and aborts a write transaction that is still open when its
+  /// isolate shuts down: for example an isolate terminated via Isolate.kill()
+  /// inside a transaction does not run finally blocks. This may run on an
+  /// arbitrary thread, which may not be the thread that started the
+  /// transaction. But without this, closing the store would wait for a write
+  /// transaction forever.
   ///
   /// Keeps the finalizer itself reachable (static), otherwise it might be
   /// disposed of before the finalizer callback gets a chance to run.
@@ -39,6 +40,7 @@ class Transaction implements Finalizable {
   /// Ensures [_finalizer] exists. Call before the finalizer of Store is created:
   /// at isolate shutdown, native finalizers run in the order their finalizer
   /// objects were created, and transactions must be closed before the store.
+  /// This works because Dart initializes static fields on access.
   static void initFinalizer() => _finalizer;
 
   Transaction(this._store, this.mode)
