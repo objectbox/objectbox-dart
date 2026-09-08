@@ -1367,7 +1367,11 @@ class Query<T> implements Finalizable {
         // Current batch size determined through testing, performs well for
         // smaller objects. Might want to expose in the future for performance
         // tuning by users.
-        final batchSize = 20;
+        // Tested with `benchmark/bin/query.dart` (uses smaller objects) on
+        // Windows with Flutter SDK 3.44.7. Values of 80 to 250 stay around 800,
+        // but 100 was consistently often lower and still leaves room if bigger
+        // objects would be used.
+        final batchSize = 100;
         final isolateInit = _StreamIsolateInit(resultPort.sendPort,
             storeClonePtr.address, queryClonePtr.address, batchSize);
         await Isolate.spawn(_queryAndVisit, isolateInit,
