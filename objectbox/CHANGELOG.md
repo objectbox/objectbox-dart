@@ -1,6 +1,5 @@
 ## latest
 
-* `Query.stream()`: copy results inside the read transaction. Fixes reading database memory after the transaction had ended. Also, the worker isolate no longer waits for the main isolate, which could leave it (and its Store handle) behind forever when the main isolate was terminated, e.g. with its Flutter engine. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
@@ -33,6 +32,11 @@
 * When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
 * `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
 * Query subscriptions using `QueryBuilder.watch` properly resume, deliver events that arrived while paused. Also, if resumed, the subscription is no longer leaked, which kept the native observer alive even after cancelling the subscription.
+* `Query.stream()` improvements:
+  * Its worker isolate now terminates and releases its store reference also when the calling isolate gets terminated, no longer preventing the native store from closing ([#834](https://github.com/objectbox/objectbox-dart/issues/834)).
+  * It no longer crashes or reads garbage data when data was modified in parallel.
+  * It no longer crashes if the stream is closed before all data was processed.
+  * It releases its query and store reference if setup fails, no longer preventing the store from closing.
 * Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
 * `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
