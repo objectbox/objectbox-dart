@@ -66,8 +66,8 @@ void main() {
 
     // The transaction was aborted, none of its data was committed.
     final store = Store(getObjectBoxModel(), directory: env.dbDirPath);
+    addTearDown(() => store.close());
     expect(Box<TestEntity>(store).count(), 0);
-    store.close();
   });
 
   /// Work with a single store across multiple isolates using
@@ -164,13 +164,22 @@ Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
 void writeUntilKilled(List<Object> args) {
   final store = Store.attach(getObjectBoxModel(), args[0] as String);
   final box = Box<TestEntity>(store);
-  store.runInTransaction(TxMode.write, () {
-    (args[1] as SendPort).send(null);
-    for (var i = 0; i < 100000000; i++) {
-      box.put(TestEntity(tInt: i));
-    }
-  });
-  store.close();
+  try {
+    store.runInTransaction(TxMode.write, () {
+      // Signal transaction has started
+      (args[1] as SendPort).send(null);
+      // Keep running for a while to allow this to get killed: can't use sleep
+      // as it will prevent the isolate from getting killed, so keep updating
+      // the same object to avoid consuming too much disk space.
+      final testObject = TestEntity();
+      for (var i = 0; i < 100000000; i++) {
+        box.put(testObject..tInt = i);
+      }
+    });
+  } finally {
+    print('never reached: finally close store');
+    store.close();
+  }
 }
 
 // Echoes back any received message.
