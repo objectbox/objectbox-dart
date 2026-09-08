@@ -1237,6 +1237,10 @@ class Query<T> implements Finalizable {
   ///
   /// Results are streamed from a worker isolate in batches (the stream still
   /// returns objects one by one).
+  ///
+  /// Note that internally always all results are queued, even if only the first
+  /// object is listened to or the stream is canceled. So a large result set
+  /// might still exhaust available memory.
   Stream<T> stream() => _streamIsolate();
 
   /// Stream items by sending full flatbuffers binary as a message.
@@ -1463,6 +1467,9 @@ class Query<T> implements Finalizable {
 
         void sendBatch() {
           // Sends the concatenated data of the batch without copying it again.
+          // send doesn't block until the receiver processed the message, so
+          // sending a large result set might exhaust available memory as
+          // messages queue up.
           resultPort.send(_StreamIsolateMessage(
               TransferableTypedData.fromList(batch), sizes));
           batch = <Uint8List>[];
