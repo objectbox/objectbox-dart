@@ -834,11 +834,12 @@ class Store implements Finalizable {
       // Success, return result.
       return response.result as R;
     } else if (response is List<dynamic>) {
-      // See isolate.addErrorListener docs for message structure.
+      // Sent via Isolate.spawn onError for an uncaught error in the worker
+      // isolate, see isolate.addErrorListener docs for message structure.
       assert(response.length == 2);
       await Future<Never>.error(RemoteError(
-        response[0] as String,
-        response[1] as String,
+        response[0] as String? ?? 'runAsync isolate error',
+        response[1] as String? ?? '',
       ));
     } else {
       // Error thrown by callback.

@@ -1367,7 +1367,7 @@ class Query<T> implements Finalizable {
         final isolateInit = _StreamIsolateInit(resultPort.sendPort,
             storeClonePtr.address, queryClonePtr.address, batchSize);
         await Isolate.spawn(_queryAndVisit, isolateInit,
-            onExit: exitPort.sendPort);
+            onExit: exitPort.sendPort, onError: resultPort.sendPort);
       } catch (e, s) {
         // Failed to clone the query or store or spawning failed.
         // Close the clones the worker isolate did not take over.
@@ -1426,6 +1426,12 @@ class Query<T> implements Finalizable {
         streamController.addError(message);
       } else if (message is Exception) {
         streamController.addError(message);
+      } else if (message is List && message.length == 2) {
+        // Sent via Isolate.spawn onError for an uncaught error in the worker
+        // isolate, see isolate.addErrorListener docs for message structure.
+        streamController.addError(RemoteError(
+            message[0] as String? ?? 'Query stream isolate error',
+            message[1] as String? ?? ''));
       } else if (message != null) {
         streamController.addError(
             ObjectBoxException('Query stream received an invalid message type '
