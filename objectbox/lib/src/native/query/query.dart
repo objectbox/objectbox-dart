@@ -1343,21 +1343,43 @@ class Query<T> implements Finalizable {
     final resultPort = ReceivePort();
     final exitPort = ReceivePort();
 
-    void spawnWorkerIsolate() async {
-      // Pass clones of Store and Query to avoid these getting closed while the
-      // worker isolate is still running. The isolate closes the clones once done.
-      final storeClonePtr = InternalStoreAccess.clone(_store);
-      final queryClonePtr = _clone();
+    void closePorts() {
+      resultPort.close();
+      exitPort.close();
+    }
 
-      // Current batch size determined through testing, performs well for smaller
-      // objects. Might want to expose in the future for performance tuning by
-      // users.
-      final isolateInit = _StreamIsolateInit(resultPort.sendPort,
-          storeClonePtr.address, queryClonePtr.address, 20);
-      // If spawn errors StreamController will propagate the error, no point in
-      // using addError as no listener before this function completes.
-      await Isolate.spawn(_queryAndVisit, isolateInit,
-          onExit: exitPort.sendPort);
+    late StreamController<T> streamController;
+    var exitAwaited = false;
+
+    void spawnWorkerIsolate() async {
+      Pointer<OBX_store>? storeClonePtr;
+      Pointer<OBX_query>? queryClonePtr;
+      try {
+        // Pass clones of Store and Query to avoid these getting closed while
+        // the worker isolate is still running. It closes the clones once done.
+        storeClonePtr = InternalStoreAccess.clone(_store);
+        queryClonePtr = _clone();
+
+        // Current batch size determined through testing, performs well for
+        // smaller objects. Might want to expose in the future for performance
+        // tuning by users.
+        final batchSize = 20;
+        final isolateInit = _StreamIsolateInit(resultPort.sendPort,
+            storeClonePtr.address, queryClonePtr.address, batchSize);
+        await Isolate.spawn(_queryAndVisit, isolateInit,
+            onExit: exitPort.sendPort);
+      } catch (e, s) {
+        // Failed to clone the query or store or spawning failed.
+        // Close the clones the worker isolate did not take over.
+        if (queryClonePtr != null) C.query_close(queryClonePtr);
+        if (storeClonePtr != null) C.store_close(storeClonePtr);
+        // Close the ports as awaitIsolateExit has no isolate to wait for.
+        exitAwaited = true;
+        closePorts();
+        // Send an error to listeners and close the stream.
+        streamController.addError(e, s);
+        streamController.close();
+      }
     }
 
     // Once consumers or this close the stream (potentially before all results
@@ -1365,16 +1387,14 @@ class Query<T> implements Finalizable {
     // own once it has sent all results and has closed its native resources,
     // so e.g. the Store can be closed and database files can be deleted.
     // Must return Future<void>, otherwise StreamController will not wait on it.
-    var exitAwaited = false;
     Future<void> awaitIsolateExit() async {
       if (exitAwaited) return;
       exitAwaited = true;
       await exitPort.first;
-      resultPort.close();
-      exitPort.close();
+      closePorts();
     }
 
-    final streamController = StreamController<T>(
+    streamController = StreamController<T>(
         onListen: spawnWorkerIsolate, onCancel: awaitIsolateExit);
     resultPort.listen((dynamic message) {
       if (streamController.isClosed) {
