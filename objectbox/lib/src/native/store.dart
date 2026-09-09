@@ -833,23 +833,24 @@ class Store implements Finalizable {
     if (response is _RunAsyncResult) {
       // Success, return result.
       return response.result as R;
-    } else if (response is List<dynamic>) {
+    } else if (response is _RunAsyncError) {
+      // Error thrown by callback.
+      await Future<Never>.error(
+        response.error,
+        response.stack,
+      );
+    } else if (response is List && response.length == 2) {
       // Sent via Isolate.spawn onError for an uncaught error in the worker
       // isolate, see isolate.addErrorListener docs for message structure.
-      assert(response.length == 2);
       await Future<Never>.error(RemoteError(
         response[0] as String? ?? 'runAsync isolate error',
         response[1] as String? ?? '',
       ));
     } else {
-      // Error thrown by callback.
-      assert(response is _RunAsyncError);
-      response as _RunAsyncError;
-
-      await Future<Never>.error(
-        response.error,
-        response.stack,
-      );
+      await Future<Never>.error(RemoteError(
+          'runAsync received an invalid message type '
+              '(${response.runtimeType}): $response',
+          ''));
     }
   }
 
