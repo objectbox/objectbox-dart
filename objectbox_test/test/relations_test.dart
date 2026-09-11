@@ -656,6 +656,17 @@ void main() {
       expect(boxA.get(3)!.testEntities.map((e) => e.tString), ['late']);
     });
 
+    test('removing from a ToMany does not remove the target', () {
+      final foo = env.box.get(1)!;
+      expect(foo.relManyA.map(toInt), sameAsList([1]));
+      foo.relManyA.removeAt(0);
+      env.box.put(foo);
+
+      expect(env.box.get(1)!.relManyA, isEmpty);
+      expect(boxA.get(1), isNotNull, reason: 'target is unlinked, not removed');
+      expect(boxA.count(), 3);
+    });
+
     test('query', () {
       final qb = boxA.query();
       qb.backlinkMany(

@@ -989,9 +989,28 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "24:7119237493319054772",
+      "lastPropertyId": "2:8610332008295787396",
+      "name": "TestEntityEnum",
+      "properties": [
+        {
+          "id": "1:492925907307125343",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8610332008295787396",
+          "name": "dbRole",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "23:2245083523377411841",
+  "lastEntityId": "24:7119237493319054772",
   "lastIndexId": "25:5667866372157411357",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",

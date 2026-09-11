@@ -549,3 +549,24 @@ class ModelB {
 
   ModelB({this.dbId = 0});
 }
+
+enum TestEnumRole { unknown, author, admin }
+
+/// Entity for the documented enum pattern: a transient enum field persisted
+/// through an int getter/setter (see docs, "Custom types").
+@Entity()
+class TestEntityEnum {
+  @Id()
+  int id = 0;
+
+  @Transient()
+  TestEnumRole role = TestEnumRole.unknown;
+
+  int get dbRole => role.index;
+
+  set dbRole(int value) =>
+      role =
+          value >= 0 && value < TestEnumRole.values.length
+              ? TestEnumRole.values[value]
+              : TestEnumRole.unknown;
+}
