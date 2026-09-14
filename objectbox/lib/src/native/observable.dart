@@ -35,27 +35,35 @@ class _Observer<StreamValueType> implements Finalizable {
     initializeDartAPI();
   }
 
-  // start() is called whenever user starts listen()-ing to the stream
-  void init(void Function() start,
+  /// Creates the stream [controller].
+  ///
+  /// [createNativeObserver] should create and set [cObserver]. It is called
+  /// whenever a stream is listen()-ed to or resumed.
+  ///
+  /// [onCancel] is run when a non-broadcast stream is cancelled, in addition to
+  /// [finalize].
+  void init(void Function() createNativeObserver,
       {bool broadcast = false, void Function()? onCancel}) {
     controller = broadcast
         ? StreamController<StreamValueType>.broadcast(
-            onListen: start, onCancel: stop)
+            onListen: createNativeObserver, onCancel: closeNativeObserver)
         : StreamController<StreamValueType>(
-            onListen: start,
-            onPause: stop,
-            onResume: start,
+            onListen: createNativeObserver,
+            onPause: closeNativeObserver,
+            onResume: createNativeObserver,
             onCancel: () {
-              stop();
-              close();
+              finalize();
               onCancel?.call();
             });
   }
 
-  // stop() is called when the stream subscription is paused or canceled
+  /// Closes the native observer, leaving the [receivePort] open to allow to
+  /// re-use it (by setting a new [cObserver]).
+  ///
+  /// Call this when the stream subscription is paused or canceled.
   @pragma('vm:prefer-inline')
-  void stop() {
-    _debugLog('stopped');
+  void closeNativeObserver() {
+    _debugLog('closed');
     final cObserver = _cObserver;
     if (cObserver != null) {
       _finalizer.detach(this);
@@ -66,9 +74,15 @@ class _Observer<StreamValueType> implements Finalizable {
     }
   }
 
+  /// Cleans up all associated resources by calling [closeNativeObserver] and
+  /// closing the [receivePort]. This can't be used afterward.
+  ///
+  /// Call if this observer shouldn't be used again, like when the stream is
+  /// cancelled.
   @pragma('vm:prefer-inline')
-  void close() {
-    _debugLog('closed');
+  void finalize() {
+    closeNativeObserver();
+    _debugLog('finished');
     receivePort.close();
   }
 
@@ -110,10 +124,7 @@ extension ObservableStore on Store {
     // Close the native observer before the native store is closed (it is
     // freed with the store; closing it on a later cancel would then be a
     // use-after-free) and the port so it does not keep the isolate alive.
-    _onClose[observer] = () {
-      observer.stop();
-      observer.close();
-    };
+    _onClose[observer] = observer.finalize;
 
     return observer.stream;
   }
@@ -161,10 +172,7 @@ extension ObservableStore on Store {
       // Close the native observer before the native store is closed (it is
       // freed with the store; closing it on a later cancel would then be a
       // use-after-free) and the port so it does not keep the isolate alive.
-      _onClose[observer] = () {
-        observer.stop();
-        observer.close();
-      };
+      _onClose[observer] = observer.finalize;
     }
 
     return observer.stream;
