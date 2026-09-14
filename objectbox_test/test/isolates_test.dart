@@ -80,6 +80,8 @@ void main() {
 
     // The observers of the exited isolate were closed by their finalizers;
     // changes must not fail (e.g. notify a dead isolate) and closing works.
+    // Note: the following calls and the close on tear-down won't fail if the
+    // observer is leaked, they are done only for safety.
     env.box.put(TestEntity(tString: 'after exit'));
     expect(env.box.count(), 1);
   });
