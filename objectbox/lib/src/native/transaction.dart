@@ -12,7 +12,7 @@ import 'bindings/helpers.dart';
 // ignore_for_file: public_member_api_docs
 
 /// Represents a native transaction - it is bound to a current thread so never
-/// use with asychcronous code, or more specifically, never `await` before
+/// use with asynchronous code, or more specifically, never `await` before
 /// calling [successAndClose] or [abortAndClose].
 @internal
 class Transaction implements Finalizable {
