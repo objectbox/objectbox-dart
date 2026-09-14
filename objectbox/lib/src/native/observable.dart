@@ -37,6 +37,9 @@ class _Observer<StreamValueType> implements Finalizable {
 
   /// Creates the stream [controller].
   ///
+  /// Callers need to make sure [finalize] is called if the store is about to
+  /// close, such as by adding a callback to [Store._onClose].
+  ///
   /// [createNativeObserver] should create and set [cObserver]. It is called
   /// whenever a stream is listen()-ed to or resumed.
   ///
@@ -124,17 +127,19 @@ extension ObservableStore on Store {
     // Close the native observer before the native store is closed (it is
     // freed with the store; closing it on a later cancel would then be a
     // use-after-free) and the port so it does not keep the isolate alive.
+    // Remove the callback if the subscription to the stream is cancelled
+    // (see onCancel callback above) as _Observer already cleaned itself up.
     _onClose[observer] = observer.finalize;
 
     return observer.stream;
   }
 
-  /// Create a stream (normal or broadcast) to data changes on all Entity types.
+  /// Create a broadcast stream to data changes on all Entity types.
   ///
   /// The stream receives an event whenever any data changes in the database.
   /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
-  Stream<List<Type>> _watchAll({bool broadcast = false}) {
+  Stream<List<Type>> _watchAll() {
     initializeDartAPI();
     final observer = _Observer<List<Type>>();
     final entityTypesById = InternalStoreAccess.entityTypeById(this);
@@ -166,14 +171,15 @@ extension ObservableStore on Store {
 
     observer.init(() {
       observer.cObserver = C.dartc_observe(_cStoreChecked, observer.nativePort);
-    }, broadcast: broadcast);
+    }, broadcast: true);
 
-    if (broadcast) {
-      // Close the native observer before the native store is closed (it is
-      // freed with the store; closing it on a later cancel would then be a
-      // use-after-free) and the port so it does not keep the isolate alive.
-      _onClose[observer] = observer.finalize;
-    }
+    // Close the native observer before the native store is closed (it is
+    // freed with the store; closing it on a later cancel would then be a
+    // use-after-free) and the port so it does not keep the isolate alive.
+    // As the broadcast stream can be re-used (it is cached in entityChanges)
+    // don't remove the _onClose callback if a subscriber cancels its
+    // subscription.
+    _onClose[observer] = observer.finalize;
 
     return observer.stream;
   }
@@ -183,6 +189,5 @@ extension ObservableStore on Store {
   /// The stream receives an event whenever any data changes in the database.
   /// Make sure to cancel() the subscription after you're done with it to avoid
   /// hanging change listeners.
-  Stream<List<Type>> get entityChanges =>
-      _entityChanges ??= _watchAll(broadcast: true);
+  Stream<List<Type>> get entityChanges => _entityChanges ??= _watchAll();
 }
