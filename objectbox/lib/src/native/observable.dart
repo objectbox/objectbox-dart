@@ -23,8 +23,9 @@ class _Observer<StreamValueType> implements Finalizable {
   int get nativePort => receivePort.sendPort.nativePort;
 
   set cObserver(Pointer<OBX_observer> value) {
-    _cObserver = checkObxPtr(value, 'observer initialization failed');
-    _finalizer.attach(this, _cObserver!.cast(), detach: this);
+    final cObserver = checkObxPtr(value, 'observer initialization failed');
+    _cObserver = cObserver;
+    _finalizer.attach(this, cObserver.cast(), detach: this);
     _debugLog('started');
   }
 
@@ -53,10 +54,13 @@ class _Observer<StreamValueType> implements Finalizable {
   @pragma('vm:prefer-inline')
   void stop() {
     _debugLog('stopped');
-    if (_cObserver != null) {
+    final cObserver = _cObserver;
+    if (cObserver != null) {
       _finalizer.detach(this);
-      checkObx(C.observer_close(_cObserver!));
+      // Mark as closed before the native call: even if it reports an error
+      // the handle must not be used (or closed) again.
       _cObserver = null;
+      checkObx(C.observer_close(cObserver));
     }
   }
 
