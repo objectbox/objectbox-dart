@@ -879,7 +879,10 @@ class _SyncListenerGroup<StreamValueType> {
     return controller.stream;
   }
 
-  /// start() is called whenever user starts listen()-ing to the stream
+  /// Creates a listener group; [name] is only used for debug logging.
+  ///
+  /// Native listeners are not created yet - that only happens once the
+  /// returned stream is listened to, see [finish] and [_start].
   _SyncListenerGroup(this.name) {
     initializeDartAPI();
   }
@@ -890,7 +893,9 @@ class _SyncListenerGroup<StreamValueType> {
     _configs.add(config);
   }
 
-  /// Finish the group, creating a listener.
+  /// Finish the group: no more configs may be [add]ed and the stream becomes
+  /// available via [stream]. Native listeners are created lazily by [_start]
+  /// once the stream is listened to (and torn down by [_stop] on cancel).
   Stream<StreamValueType> finish() {
     assert(!finished, 'finish() may only be called once.');
     controller = StreamController<StreamValueType>.broadcast(
@@ -901,7 +906,7 @@ class _SyncListenerGroup<StreamValueType> {
     return controller.stream;
   }
 
-  // start() is called when the stream subscription is started or resumed
+  // Called via onListen when the (broadcast) stream gets its first listener.
   void _start() {
     _debugLog('starting');
     assert(finished, 'Starting an unfinished group?!');
@@ -960,7 +965,7 @@ class _SyncListenerGroup<StreamValueType> {
     _debugLog('started');
   }
 
-  // stop() is called when the stream subscription is paused or canceled
+  // Called via onCancel when the (broadcast) stream loses its last listener.
   void _stop() {
     _debugLog('stopping');
     assert(finished, 'Stopping an unfinished group?!');
