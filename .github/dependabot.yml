@@ -6,4 +6,13 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    # Wait for 7 days until suggesting a new version to de-risk bugs or supply-chain attacks
+    cooldown:
+      default-days: 7
+    # Group all GitHub Actions updates into a single merge request to simplify review
+    groups:
+      github-actions:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
