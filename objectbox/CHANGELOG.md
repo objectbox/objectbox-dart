@@ -44,6 +44,7 @@
 * Close transactions that are still open when their isolate shuts down, such as when `Isolate.kill()` is called while inside a write transaction. Before, closing the store waited forever for such a transaction. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Close native observers (`Store.watch()`, `Store.entityChanges`, `Query.watch()`) that are still open when their isolate shuts down or when they are garbage collected without the subscription being canceled. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Fix native data observers not being stopped when the store is closed: cancelling a `Store.watch<Entity>()` or `Store.entityChanges` subscription after `Store.close()` closed the already freed native observer (a use-after-free that can corrupt memory or crash). A `watch<Entity>()` subscription also kept its receive port open forever if the store was closed without cancelling, preventing the isolate from exiting.
+* `Store.entityChanges` closes its receive port while there are no listeners, no longer preventing an isolate from exiting.
 * Sync: errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 
 ### Sync

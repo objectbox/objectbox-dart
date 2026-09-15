@@ -4,6 +4,9 @@ import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_benchmark/benchmark.dart';
 import 'package:objectbox_benchmark/model.dart';
 
+// These benchmarks are questionable: they measure the creation of streams,
+// which should typically not be something done frequently, compared to running
+// a query or creating a transaction.
 void main() async {
   await SetupSingle().report();
   await SetupSingleBasedOnMulti().report();
