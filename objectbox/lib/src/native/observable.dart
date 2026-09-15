@@ -61,9 +61,16 @@ class _Observer<StreamValueType> implements Finalizable {
     void start() {
       // For non-broadcast streams, re-uses the port when resuming
       final receivePort = _receivePort ??= ReceivePort()..listen(_onData);
-      final cObserver = checkObxPtr(
-          createNativeObserver(receivePort.sendPort.nativePort),
-          'observer initialization failed');
+      final Pointer<OBX_observer> cObserver;
+      try {
+        cObserver = checkObxPtr(
+            createNativeObserver(receivePort.sendPort.nativePort),
+            'observer initialization failed');
+      } catch (e, s) {
+        controller.addError(e, s);
+        close(); // closes the receive port; native observer was never created
+        return;
+      }
       _cObserver = cObserver;
       _finalizer.attach(this, cObserver.cast(), detach: this);
       _debugLog('started');

@@ -24,6 +24,27 @@ void main() async {
 
   tearDown(() => env.closeAndDelete());
 
+  test('create subscription after store is closed', () async {
+    env.store.close();
+    // Previously the error surfaced only as an unhandled zone error the
+    // subscriber can not catch, and the just-created receive port leaked
+    // (keeping the isolate alive).
+    Future<void> testListenAfterClose(Stream<void> stream) async {
+      final errors = <Object>[];
+      final sub = stream.listen((_) {}, onError: errors.add);
+      await yieldExecution();
+      expect(errors, hasLength(1));
+      expect(
+          errors.first,
+          isA<StateError>().having(
+              (e) => e.message, 'message', contains('Store is closed')));
+      await sub.cancel();
+    }
+
+    await testListenAfterClose(env.store.entityChanges);
+    await testListenAfterClose(env.store.watch<TestEntity>());
+  });
+
   test('cancel subscription after store is closed', () async {
     // Native observers are freed together with the native store, so closing
     // the store must stop them: cancelling afterwards previously closed the
