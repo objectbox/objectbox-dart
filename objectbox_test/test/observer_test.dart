@@ -30,7 +30,7 @@ void main() async {
     final subWatch = env.store.watch<TestEntity>().listen((_) {});
     final subEntityChanges = env.store.entityChanges.listen((_) {});
     box.put(TestEntity(tString: 'event'));
-    await Future<void>.delayed(Duration.zero);
+    await yieldExecution();
     env.store.close();
     await subWatch.cancel();
     await subEntityChanges.cancel();
