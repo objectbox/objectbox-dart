@@ -1,4 +1,4 @@
-library query;
+library;
 
 import 'dart:async';
 import 'dart:collection';

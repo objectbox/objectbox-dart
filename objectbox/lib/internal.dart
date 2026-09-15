@@ -1,6 +1,6 @@
 /// This library serves as an entrypoint for generated code and objectbox tools.
 /// Don't import into your own code, use 'objectbox.dart' instead.
-library objectbox_internal;
+library;
 
 export 'src/modelinfo/index.dart';
 export 'src/native/bindings/flatbuffers_readers.dart';
