@@ -175,13 +175,15 @@ void main() {
       expect(client.state(), equals(SyncState.stopped));
     });
 
+    final isErrorClientClosed = isA<StateError>().having(
+        (e) => e.message, 'message', contains('SyncClient already closed'));
+
     test('SyncClient access after closing must throw', () {
       SyncClient c = createClient(store);
       c.close();
       expect(c.isClosed(), isTrue);
 
-      final error = throwsA(predicate((StateError e) =>
-          e.toString().contains('SyncClient already closed')));
+      final error = throwsA(isErrorClientClosed);
       expect(() => c.start(), error);
       expect(() => c.stop(), error);
       expect(() => c.state(), error);
@@ -217,9 +219,9 @@ void main() {
       // (keeping the isolate alive).
       final errors = <Object>[];
       final sub = events.listen((_) {}, onError: errors.add);
-      await Future<void>.delayed(Duration.zero);
+      await yieldExecution();
       expect(errors, hasLength(1));
-      expect(errors.first, isA<StateError>());
+      expect(errors.first, isErrorClientClosed);
       await sub.cancel();
     });
 

@@ -911,12 +911,7 @@ class _SyncListenerGroup<StreamValueType> {
     _debugLog('starting');
     assert(finished, 'Starting an unfinished group?!');
 
-    var hasError = false;
-    Object? initError;
-    StackTrace? initTrace;
     for (var config in _configs) {
-      if (hasError) continue;
-
       // Initialize a receive port where the native listener will post messages.
       final receivePort = ReceivePort()
         ..listen((dynamic msg) => config.dartListener(msg, controller));
@@ -924,42 +919,28 @@ class _SyncListenerGroup<StreamValueType> {
       // Store the ReceivePort to be able to close it in _stop().
       _receivePorts.add(receivePort);
 
-      // Start the native listener.
-      var cListener = nullptr.cast<OBX_dart_sync_listener>();
+      // Start the native listener; on any failure deliver the error on the
+      // stream (throwing here would only surface as an unhandled zone error
+      // the subscriber can not catch) and clean up all resources created so
+      // far, including the receive port created above to not prevent the
+      // isolate from exiting.
       try {
-        cListener = config.cListenerInit(receivePort.sendPort.nativePort);
-      } catch (e, s) {
-        // E.g. the sync client is already closed. Fall through to the
-        // cleanup below so the receive port just created is closed as well.
-        initError = e;
-        initTrace = s;
-      }
-      if (cListener == nullptr) {
-        hasError = true;
-      } else {
-        _cListeners.add(cListener);
-      }
-    }
-
-    if (hasError) {
-      // Deliver the error on the stream: throwing here would only surface as
-      // an unhandled zone error the subscriber can not catch.
-      try {
-        if (initError != null) {
-          Error.throwWithStackTrace(initError, initTrace ?? StackTrace.current);
+        final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
+        if (cListener == nullptr) {
+          throwLatestNativeError(
+              context: 'Failed to initialize a sync native listener');
         }
-        throwLatestNativeError(
-            context: 'Failed to initialize a sync native listener');
+        _cListeners.add(cListener);
       } catch (e, s) {
+        // For ex., the sync client is already closed.
         controller.addError(e, s);
-      } finally {
         try {
           _stop();
         } catch (_) {
           // Best effort clean-up, an error was already delivered above.
         }
+        return;
       }
-      return;
     }
 
     _debugLog('started');
