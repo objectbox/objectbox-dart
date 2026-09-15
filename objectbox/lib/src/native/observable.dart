@@ -118,10 +118,13 @@ class _Observer<StreamValueType> implements Finalizable {
   ///
   /// Call if the stream is cancelled.
   void close() {
-    _closeNativeObserver();
-    _receivePort?.close();
-    _receivePort = null;
-    _debugLog('closed port');
+    try {
+      _closeNativeObserver();
+    } finally {
+      _receivePort?.close();
+      _receivePort = null;
+      _debugLog('closed port');
+    }
   }
 
   @pragma('vm:prefer-inline')
