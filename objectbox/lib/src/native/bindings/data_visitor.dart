@@ -34,11 +34,14 @@ bool _visitCallbackWrapper(Pointer<Uint8> dataPtr, int size, Pointer<Void> _) =>
     _visitCallbackStack.last(dataPtr, size);
 
 bool _visitWithScoreCallbackWrapper(
-        Pointer<OBX_bytes_score> dataPtr, Pointer<Void> _) =>
-    _visitWithScoreCallbackStack.last(dataPtr);
+  Pointer<OBX_bytes_score> dataPtr,
+  Pointer<Void> _,
+) => _visitWithScoreCallbackStack.last(dataPtr);
 
-final Pointer<obx_data_visitor> _visitCallbackWrapperPtr =
-    Pointer.fromFunction(_visitCallbackWrapper, false);
+final Pointer<obx_data_visitor> _visitCallbackWrapperPtr = Pointer.fromFunction(
+  _visitCallbackWrapper,
+  false,
+);
 
 final Pointer<obx_data_score_visitor> _visitWithScoreCallbackWrapperPtr =
     Pointer.fromFunction(_visitWithScoreCallbackWrapper, false);
@@ -76,12 +79,17 @@ void visit(Pointer<OBX_query> queryPtr, VisitCallback callback) {
 /// Use [ObjectVisitorError] to get an error out of the callback.
 @pragma('vm:prefer-inline')
 void visitWithScore(
-    Pointer<OBX_query> queryPtr, VisitWithScoreCallback callback) {
+  Pointer<OBX_query> queryPtr,
+  VisitWithScoreCallback callback,
+) {
   // Keep callback in case another query is created and visits results
   // within the callback.
   _visitWithScoreCallbackStack.add(callback);
   final code = C.query_visit_with_score(
-      queryPtr, _visitWithScoreCallbackWrapperPtr, nullptr);
+    queryPtr,
+    _visitWithScoreCallbackWrapperPtr,
+    nullptr,
+  );
   _visitWithScoreCallbackStack.removeLast();
   // Clean callback from stack before potentially throwing.
   checkObx(code);

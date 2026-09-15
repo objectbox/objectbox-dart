@@ -25,14 +25,15 @@ class ModelHnswParams {
   final int? vectorCacheHintSizeKB;
 
   /// Create an instance. For use from generated code.
-  ModelHnswParams(
-      {required this.dimensions,
-      this.neighborsPerNode,
-      this.indexingSearchCount,
-      this.flags,
-      this.distanceType,
-      this.reparationBacklinkProbability,
-      this.vectorCacheHintSizeKB});
+  ModelHnswParams({
+    required this.dimensions,
+    this.neighborsPerNode,
+    this.indexingSearchCount,
+    this.flags,
+    this.distanceType,
+    this.reparationBacklinkProbability,
+    this.vectorCacheHintSizeKB,
+  });
 
   /// If [condition] does not evaluate to `true` throws an [ArgumentError]
   /// using the given [argument], [name] and [message].
@@ -83,7 +84,8 @@ class ModelHnswParams {
       // above 0.999 is just mapped to "always": so restrict to max 1.0.
       _checkArgument(
         argument: reparationBacklinkProbability,
-        condition: reparationBacklinkProbability >= 0.0 &&
+        condition:
+            reparationBacklinkProbability >= 0.0 &&
             reparationBacklinkProbability <= 1.0,
         name: "reparationBacklinkProbability",
         message: "must be between 0.0 or 1.0",
@@ -99,13 +101,14 @@ class ModelHnswParams {
       );
     }
     return ModelHnswParams(
-        dimensions: hnsw.dimensions,
-        neighborsPerNode: neighborsPerNode,
-        indexingSearchCount: indexingSearchCount,
-        flags: hnsw.flags?.toFlags(),
-        distanceType: hnsw.distanceType?.toConstant(),
-        reparationBacklinkProbability: reparationBacklinkProbability,
-        vectorCacheHintSizeKB: vectorCacheHintSizeKB);
+      dimensions: hnsw.dimensions,
+      neighborsPerNode: neighborsPerNode,
+      indexingSearchCount: indexingSearchCount,
+      flags: hnsw.flags?.toFlags(),
+      distanceType: hnsw.distanceType?.toConstant(),
+      reparationBacklinkProbability: reparationBacklinkProbability,
+      vectorCacheHintSizeKB: vectorCacheHintSizeKB,
+    );
   }
 
   /// Create from a string map created by [toMap].
@@ -167,7 +170,8 @@ class ModelHnswParams {
     }
     if (reparationBacklinkProbability != null) {
       code.write(
-          "reparationBacklinkProbability: $reparationBacklinkProbability, ");
+        "reparationBacklinkProbability: $reparationBacklinkProbability, ",
+      );
     }
     if (vectorCacheHintSizeKB != null) {
       code.write("vectorCacheHintSizeKB: $vectorCacheHintSizeKB, ");

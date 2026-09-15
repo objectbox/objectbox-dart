@@ -26,12 +26,19 @@ Uint8List toFlexBuffer(Object value) {
 /// elements (like `List<Object>`) and [Map] with non-null values (like
 /// `Map<String, Object>`).
 @pragma('vm:prefer-inline')
-dynamic fromFlexBuffer(BufferContext buffer, int offset, int field,
-    {bool skipNullCollectionValues = false}) {
+dynamic fromFlexBuffer(
+  BufferContext buffer,
+  int offset,
+  int field, {
+  bool skipNullCollectionValues = false,
+}) {
   // Note: Uint8ListReader returns a Uint8List? cast to List<int>, so just cast
   // it back (if that ever changes, add a custom reader)
-  final bytes = const Uint8ListReader(lazy: false)
-      .vTableGetNullable(buffer, offset, field) as Uint8List?;
+  final bytes =
+      const Uint8ListReader(
+            lazy: false,
+          ).vTableGetNullable(buffer, offset, field)
+          as Uint8List?;
   if (bytes == null) return null;
   final ref = flex.Reference.fromBuffer(bytes.buffer);
   return _convertReference(ref, skipNullCollectionValues);
@@ -40,23 +47,38 @@ dynamic fromFlexBuffer(BufferContext buffer, int offset, int field,
 /// Deserializes FlexBuffer bytes to a `Map<String, dynamic>`.
 @pragma('vm:prefer-inline')
 Map<String, dynamic>? flexBufferToMap(
-        BufferContext buffer, int offset, int field, {bool skipNull = false}) =>
+  BufferContext buffer,
+  int offset,
+  int field, {
+  bool skipNull = false,
+}) =>
     fromFlexBuffer(buffer, offset, field, skipNullCollectionValues: skipNull)
         as Map<String, dynamic>?;
 
 /// Deserializes FlexBuffer bytes to a `List<dynamic>`.
 @pragma('vm:prefer-inline')
-List<dynamic>? flexBufferToList(BufferContext buffer, int offset, int field,
-        {bool skipNull = false}) =>
+List<dynamic>? flexBufferToList(
+  BufferContext buffer,
+  int offset,
+  int field, {
+  bool skipNull = false,
+}) =>
     fromFlexBuffer(buffer, offset, field, skipNullCollectionValues: skipNull)
         as List<dynamic>?;
 
 /// Deserializes FlexBuffer bytes to a `List<Map<String, dynamic>>`.
 @pragma('vm:prefer-inline')
 List<Map<String, dynamic>>? flexBufferToListOfMaps(
-        BufferContext buffer, int offset, int field) =>
-    flexBufferToList(buffer, offset, field, skipNull: true)
-        ?.cast<Map<String, dynamic>>();
+  BufferContext buffer,
+  int offset,
+  int field,
+) =>
+    flexBufferToList(
+      buffer,
+      offset,
+      field,
+      skipNull: true,
+    )?.cast<Map<String, dynamic>>();
 
 /// Recursively converts a FlexBuffer Reference to a Dart object.
 ///
@@ -81,8 +103,10 @@ dynamic _convertReference(flex.Reference ref, bool skipNullCollectionValues) {
     final keyIterator = keys.iterator;
     final valueIterator = values.iterator;
     while (keyIterator.moveNext() && valueIterator.moveNext()) {
-      final value =
-          _convertReference(valueIterator.current, skipNullCollectionValues);
+      final value = _convertReference(
+        valueIterator.current,
+        skipNullCollectionValues,
+      );
       if (value != null || !skipNullCollectionValues) {
         map[keyIterator.current] = value;
       }

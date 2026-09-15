@@ -83,10 +83,12 @@ ObjectBoxC? _tryObjectBoxLibFile() {
     // - on Windows in the working directory and System32
     _lib ??= DynamicLibrary.open(libName);
   } catch (e) {
-    print("Failed to load ObjectBox library. For Flutter apps, check if "
-        "objectbox_flutter_libs is added to dependencies. "
-        "For unit tests and Dart apps, check if the ObjectBox library was "
-        "downloaded (https://docs.objectbox.io/getting-started).");
+    print(
+      "Failed to load ObjectBox library. For Flutter apps, check if "
+      "objectbox_flutter_libs is added to dependencies. "
+      "For unit tests and Dart apps, check if the ObjectBox library was "
+      "downloaded (https://docs.objectbox.io/getting-started).",
+    );
     rethrow;
   }
   return ObjectBoxC(_lib!);
@@ -129,8 +131,11 @@ Match _firstMatchOrThrow(RegExp pattern, String value, String argName) {
   if (match == null) {
     // Don't silently pass the version check, if the format is not recognized
     // the check should be fixed.
-    throw ArgumentError.value(value, argName,
-        'Version string not in expected format (MAJOR.MINOR.PATCH-<optional-pre-release>-YYYY-MM-DD)');
+    throw ArgumentError.value(
+      value,
+      argName,
+      'Version string not in expected format (MAJOR.MINOR.PATCH-<optional-pre-release>-YYYY-MM-DD)',
+    );
   }
   return match;
 }
@@ -172,17 +177,19 @@ ObjectBoxC loadObjectBoxLib() {
 
   if (obxc == null) {
     throw UnsupportedError(
-        'Could not load ObjectBox dynamic database library. Platform: ${Platform.operatingSystem}');
+      'Could not load ObjectBox dynamic database library. Platform: ${Platform.operatingSystem}',
+    );
   }
 
   if (!_isSupportedVersion(obxc)) {
     final version = dartStringFromC(obxc.version_string());
     final databaseVersion = dartStringFromC(obxc.version_core_string());
     throw UnsupportedError(
-        'ObjectBox platform-specific database library not compatible: is $version ($databaseVersion),'
-        ' expected $_obxCminMajor.$_obxCminMinor.$_obxCminPatch ($_obxDatabaseMinVersion) or newer.'
-        ' For Flutter apps, check if the ObjectBox Pod or the Android Admin dependency need to be updated.'
-        ' For unit tests or Dart Native apps, re-run the install.sh script to download the latest version.');
+      'ObjectBox platform-specific database library not compatible: is $version ($databaseVersion),'
+      ' expected $_obxCminMajor.$_obxCminMinor.$_obxCminPatch ($_obxDatabaseMinVersion) or newer.'
+      ' For Flutter apps, check if the ObjectBox Pod or the Android Admin dependency need to be updated.'
+      ' For unit tests or Dart Native apps, re-run the install.sh script to download the latest version.',
+    );
   }
 
   return obxc;
@@ -203,9 +210,11 @@ void initializeDartAPI() {
     if (_dartAPIInitialized == -1) {
       try {
         throwLatestNativeError(
-            codeIfMissing: errCode,
-            context: "Dart/Flutter SDK you're using is not compatible with "
-                'ObjectBox observers, query streams and Sync event streams.');
+          codeIfMissing: errCode,
+          context:
+              "Dart/Flutter SDK you're using is not compatible with "
+              'ObjectBox observers, query streams and Sync event streams.',
+        );
       } catch (e) {
         _dartAPIInitException = e;
         rethrow;

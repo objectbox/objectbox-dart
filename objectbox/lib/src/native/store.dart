@@ -234,17 +234,18 @@ class Store implements Finalizable {
   ///
   /// See our [documentation](https://docs.objectbox.io/) and examples for more
   /// details.
-  Store(ModelDefinition modelDefinition,
-      {String? directory,
-      int? maxDBSizeInKB,
-      int? maxDataSizeInKB,
-      int? fileMode,
-      int? maxReaders,
-      int? debugFlags,
-      bool queriesCaseSensitiveDefault = true,
-      String? macosApplicationGroup})
-      : _closesNativeStore = true,
-        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directory) {
+  Store(
+    ModelDefinition modelDefinition, {
+    String? directory,
+    int? maxDBSizeInKB,
+    int? maxDataSizeInKB,
+    int? fileMode,
+    int? maxReaders,
+    int? debugFlags,
+    bool queriesCaseSensitiveDefault = true,
+    String? macosApplicationGroup,
+  }) : _closesNativeStore = true,
+       _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directory) {
     try {
       if (macosApplicationGroup != null) {
         final isGroupEmpty = macosApplicationGroup.isEmpty;
@@ -256,9 +257,10 @@ class Store implements Finalizable {
         // instead of the parameter name used here. So duplicate the checks.
         if (isGroupEmpty || macosApplicationGroup.length > 20) {
           throw ArgumentError.value(
-              macosApplicationGroup,
-              'macosApplicationGroup',
-              'Must be at least 1 and at most 19 characters long');
+            macosApplicationGroup,
+            'macosApplicationGroup',
+            'Must be at least 1 and at most 19 characters long',
+          );
         }
         // This is required to enable additional interprocess communication
         // (IPC) in sandboxed apps (https://developer.apple.com/documentation/xcode/configuring-app-groups),
@@ -269,7 +271,8 @@ class Store implements Finalizable {
         // Note: calling this on all platforms is fine, it will be a no-op if
         // not supported.
         checkObx(
-            withNativeString(macosApplicationGroup, C.posix_sem_prefix_set));
+          withNativeString(macosApplicationGroup, C.posix_sem_prefix_set),
+        );
       }
       _checkStoreDirectoryNotOpen();
       final model = Model(modelDefinition.model);
@@ -280,8 +283,12 @@ class Store implements Finalizable {
 
       try {
         checkObx(C.opt_model(opt, model.ptr));
-        checkObx(withNativeString(
-            safeDirectoryPath, (cStr) => C.opt_directory(opt, cStr)));
+        checkObx(
+          withNativeString(
+            safeDirectoryPath,
+            (cStr) => C.opt_directory(opt, cStr),
+          ),
+        );
         if (maxDBSizeInKB != null && maxDBSizeInKB > 0) {
           C.opt_max_db_size_in_kb(opt, maxDBSizeInKB);
         }
@@ -303,8 +310,9 @@ class Store implements Finalizable {
       }
       if (debugLogs) {
         print(
-            "Opening store (C lib V${libraryVersion()})... path=$safeDirectoryPath"
-            " isOpen=${isOpen(safeDirectoryPath)}");
+          "Opening store (C lib V${libraryVersion()})... path=$safeDirectoryPath"
+          " isOpen=${isOpen(safeDirectoryPath)}",
+        );
       }
 
       _cStore = C.store_open(opt);
@@ -314,8 +322,12 @@ class Store implements Finalizable {
       _setReference();
 
       _openStoreDirectories.add(_absoluteDirectoryPath);
-      _attachConfiguration(_cStore, modelDefinition, safeDirectoryPath,
-          queriesCaseSensitiveDefault);
+      _attachConfiguration(
+        _cStore,
+        modelDefinition,
+        safeDirectoryPath,
+        queriesCaseSensitiveDefault,
+      );
       _attachFinalizer();
     } catch (e) {
       _readPointers.clear();
@@ -361,28 +373,38 @@ class Store implements Finalizable {
   ///   }
   /// ```
   @Deprecated('Use Store.attach instead')
-  Store.fromReference(ModelDefinition modelDefinition, this._reference,
-      {bool queriesCaseSensitiveDefault = true})
-      :
-        // Must not close native store twice, only original store is allowed to.
-        _closesNativeStore = false,
-        _absoluteDirectoryPath = '' {
+  Store.fromReference(
+    ModelDefinition modelDefinition,
+    this._reference, {
+    bool queriesCaseSensitiveDefault = true,
+  }) : // Must not close native store twice, only original store is allowed to.
+       _closesNativeStore = false,
+       _absoluteDirectoryPath = '' {
     try {
       // see [reference] for serialization order
       final readPid = _reference.getUint64(0 * _int64Size);
       if (readPid != pid) {
-        throw ArgumentError("Reference.processId $readPid doesn't match the "
-            'current process PID $pid');
+        throw ArgumentError(
+          "Reference.processId $readPid doesn't match the "
+          'current process PID $pid',
+        );
       }
 
       _cStore = Pointer.fromAddress(_reference.getUint64(1 * _int64Size));
       if (_cStore.address == 0) {
-        throw ArgumentError.value(_cStore.address, 'reference.nativePointer',
-            'Given native pointer is empty');
+        throw ArgumentError.value(
+          _cStore.address,
+          'reference.nativePointer',
+          'Given native pointer is empty',
+        );
       }
 
       _attachConfiguration(
-          _cStore, modelDefinition, '', queriesCaseSensitiveDefault);
+        _cStore,
+        modelDefinition,
+        '',
+        queriesCaseSensitiveDefault,
+      );
     } catch (e) {
       _readPointers.clear();
       rethrow;
@@ -397,12 +419,15 @@ class Store implements Finalizable {
   ///
   /// See [_clone] for details.
   Store._minimal(int ptrAddress, {bool queriesCaseSensitiveDefault = true})
-      : _closesNativeStore = true,
-        _absoluteDirectoryPath = '' {
+    : _closesNativeStore = true,
+      _absoluteDirectoryPath = '' {
     try {
       if (ptrAddress == 0) {
-        throw ArgumentError.value(ptrAddress, 'ptrAddress',
-            'Given native pointer address is invalid');
+        throw ArgumentError.value(
+          ptrAddress,
+          'ptrAddress',
+          'Given native pointer address is invalid',
+        );
       }
       _cStore = Pointer<OBX_store>.fromAddress(ptrAddress);
       _setReference();
@@ -462,10 +487,12 @@ class Store implements Finalizable {
   /// ```
   /// To run a function in a worker isolate that does not have to outlive it,
   /// prefer [runAsync] or [runInTransactionAsync], which handle this.
-  Store.attach(ModelDefinition modelDefinition, String? directoryPath,
-      {bool queriesCaseSensitiveDefault = true})
-      : _closesNativeStore = true,
-        _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directoryPath) {
+  Store.attach(
+    ModelDefinition modelDefinition,
+    String? directoryPath, {
+    bool queriesCaseSensitiveDefault = true,
+  }) : _closesNativeStore = true,
+       _absoluteDirectoryPath = _safeAbsoluteDirectoryPath(directoryPath) {
     try {
       // Do not allow attaching to a store that is already open in the current
       // isolate. While technically possible this is not the intended usage
@@ -482,8 +509,10 @@ class Store implements Finalizable {
         _cStore = C.store_attach(cStr);
       });
 
-      checkObxPtr(_cStore,
-          'could not attach to the store at given path - please ensure it was opened before');
+      checkObxPtr(
+        _cStore,
+        'could not attach to the store at given path - please ensure it was opened before',
+      );
 
       // This constructor is technically a replacement for obtaining a store
       // via reference, but still make it possible to obtain it.
@@ -492,8 +521,12 @@ class Store implements Finalizable {
       // Register so the duplicate-instance check above also guards against
       // attaching twice in the same isolate (close() removes the entry).
       _openStoreDirectories.add(_absoluteDirectoryPath);
-      _attachConfiguration(_cStore, modelDefinition, safeDirectoryPath,
-          queriesCaseSensitiveDefault);
+      _attachConfiguration(
+        _cStore,
+        modelDefinition,
+        safeDirectoryPath,
+        queriesCaseSensitiveDefault,
+      );
       _attachFinalizer();
     } catch (e) {
       _readPointers.clear();
@@ -519,8 +552,8 @@ class Store implements Finalizable {
   /// so [close] this immediately when done using. Closing this will only close
   /// the underlying store if it is not opened elsewhere.
   Store._attachByConfiguration(StoreConfiguration configuration)
-      : _closesNativeStore = true,
-        _absoluteDirectoryPath = '' {
+    : _closesNativeStore = true,
+      _absoluteDirectoryPath = '' {
     try {
       Pointer<OBX_store>? storePtr = C.store_attach_id(configuration.id);
       _checkStorePointer(storePtr);
@@ -537,9 +570,10 @@ class Store implements Finalizable {
   void _checkStoreDirectoryNotOpen() {
     if (_openStoreDirectories.contains(_absoluteDirectoryPath)) {
       throw UnsupportedError(
-          'Cannot create multiple Store instances for the same directory in the same isolate. '
-          'Please use a single Store, close() the previous instance before '
-          'opening another one or attach to it in another isolate.');
+        'Cannot create multiple Store instances for the same directory in the same isolate. '
+        'Please use a single Store, close() the previous instance before '
+        'opening another one or attach to it in another isolate.',
+      );
     }
   }
 
@@ -554,21 +588,31 @@ class Store implements Finalizable {
           e.message.contains('Dir does not exist') &&
           (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
         // ignore: prefer_interpolation_to_compose_strings
-        throw ObjectBoxException(e.message +
-            ' - this usually indicates a problem with permissions; '
-                "if you're using Flutter you may need to use "
-                'getApplicationDocumentsDirectory() from the path_provider '
-                'package, see example/README.md');
+        throw ObjectBoxException(
+          e.message +
+              ' - this usually indicates a problem with permissions; '
+                  "if you're using Flutter you may need to use "
+                  'getApplicationDocumentsDirectory() from the path_provider '
+                  'package, see example/README.md',
+        );
       }
       rethrow;
     }
   }
 
-  void _attachConfiguration(Pointer<OBX_store> storePtr, ModelDefinition model,
-      String directoryPath, bool queriesCaseSensitiveDefault) {
+  void _attachConfiguration(
+    Pointer<OBX_store> storePtr,
+    ModelDefinition model,
+    String directoryPath,
+    bool queriesCaseSensitiveDefault,
+  ) {
     int id = C.store_id(storePtr);
     _configuration = StoreConfiguration._(
-        id, model, directoryPath, queriesCaseSensitiveDefault);
+      id,
+      model,
+      directoryPath,
+      queriesCaseSensitiveDefault,
+    );
   }
 
   /// Attach a finalizer (using Dart C API) so when garbage collected, most
@@ -587,8 +631,12 @@ class Store implements Finalizable {
     // This works because Dart initializes static fields on access.
     Transaction.initFinalizer();
     _Observer.initFinalizer();
-    _finalizer.attach(this, _cStore.cast(),
-        detach: this, externalSize: 200 * 1024);
+    _finalizer.attach(
+      this,
+      _cStore.cast(),
+      detach: this,
+      externalSize: 200 * 1024,
+    );
   }
 
   /// Returns the version and features of the platform-specific ObjectBox
@@ -755,7 +803,8 @@ class Store implements Finalizable {
         throw UnsupportedError('Given transaction callback always fails.');
       }
       throw UnsupportedError(
-          'Executing an "async" function in a transaction is not allowed.');
+        'Executing an "async" function in a transaction is not allowed.',
+      );
     }
 
     return _runInTransaction(mode, (tx) => fn());
@@ -778,18 +827,22 @@ class Store implements Finalizable {
   /// await store.runInTransactionAsync(TxMode.write, readNameAndRemove, objectId);
   /// ```
   Future<R> runInTransactionAsync<R, P>(
-          TxMode mode, TxAsyncCallback<R, P> callback, P param) =>
-      runAsync(
-          (Store store, P p) =>
-              store.runInTransaction(mode, () => callback(store, p)),
-          param);
+    TxMode mode,
+    TxAsyncCallback<R, P> callback,
+    P param,
+  ) => runAsync(
+    (Store store, P p) =>
+        store.runInTransaction(mode, () => callback(store, p)),
+    param,
+  );
 
   // Isolate entry point must be able to be sent via SendPort.send.
   // Must guarantee only a single result event is sent.
   // runAsync only handles a single event, any sent afterwards are ignored. E.g.
   // in case [Error] or [Exception] are thrown after the result is sent.
   static Future<void> _callFunctionWithStoreInIsolate<P, R>(
-      _RunAsyncIsolateConfig<P, R> isoPass) async {
+    _RunAsyncIsolateConfig<P, R> isoPass,
+  ) async {
     final store = Store._attachByConfiguration(isoPass.storeConfiguration);
     dynamic result;
     try {
@@ -858,12 +911,12 @@ class Store implements Finalizable {
     try {
       // Await isolate spawn to avoid waiting forever if it fails to spawn.
       await Isolate.spawn(
-          _callFunctionWithStoreInIsolate<P, R>,
-          _RunAsyncIsolateConfig(
-              configuration(), port.sendPort, callback, param),
-          errorsAreFatal: true,
-          onError: port.sendPort,
-          onExit: port.sendPort);
+        _callFunctionWithStoreInIsolate<P, R>,
+        _RunAsyncIsolateConfig(configuration(), port.sendPort, callback, param),
+        errorsAreFatal: true,
+        onError: port.sendPort,
+        onExit: port.sendPort,
+      );
     } on Object {
       cleanup();
       rethrow;
@@ -879,22 +932,24 @@ class Store implements Finalizable {
       return response.result as R;
     } else if (response is _RunAsyncError) {
       // Error thrown by callback.
-      await Future<Never>.error(
-        response.error,
-        response.stack,
-      );
+      await Future<Never>.error(response.error, response.stack);
     } else if (response is List && response.length == 2) {
       // Sent via Isolate.spawn onError for an uncaught error in the worker
       // isolate, see isolate.addErrorListener docs for message structure.
-      await Future<Never>.error(RemoteError(
-        response[0] as String? ?? 'runAsync isolate error',
-        response[1] as String? ?? '',
-      ));
+      await Future<Never>.error(
+        RemoteError(
+          response[0] as String? ?? 'runAsync isolate error',
+          response[1] as String? ?? '',
+        ),
+      );
     } else {
-      await Future<Never>.error(RemoteError(
+      await Future<Never>.error(
+        RemoteError(
           'runAsync received an invalid message type '
               '(${response.runtimeType}): $response',
-          ''));
+          '',
+        ),
+      );
     }
   }
 
@@ -919,7 +974,8 @@ class Store implements Finalizable {
     final tx = reused ? _tx! : Transaction(this, mode);
     if (reused && tx.mode != TxMode.write && mode == TxMode.write) {
       throw UnsupportedError(
-          'Cannot start a write transaction inside a read-only transaction.');
+        'Cannot start a write transaction inside a read-only transaction.',
+      );
     }
     try {
       final result = fn(tx);
@@ -1027,10 +1083,13 @@ class InternalStoreAccess {
   static Pointer<OBX_store> clone(Store store) => store._clone();
 
   /// See [Store._minimal].
-  static Store createMinimal(int ptrAddress,
-          {bool queriesCaseSensitiveDefault = true}) =>
-      Store._minimal(ptrAddress,
-          queriesCaseSensitiveDefault: queriesCaseSensitiveDefault);
+  static Store createMinimal(
+    int ptrAddress, {
+    bool queriesCaseSensitiveDefault = true,
+  }) => Store._minimal(
+    ptrAddress,
+    queriesCaseSensitiveDefault: queriesCaseSensitiveDefault,
+  );
 
   /// Access entity model for the given class (Dart Type).
   @pragma('vm:prefer-inline')
@@ -1042,24 +1101,29 @@ class InternalStoreAccess {
   /// for performance reasons. If not a concern, use [runInTransaction] instead!
   @pragma('vm:prefer-inline')
   static R runInTransaction<R>(
-          Store store, TxMode mode, R Function(Transaction) fn) =>
-      store._runInTransaction(mode, fn);
+    Store store,
+    TxMode mode,
+    R Function(Transaction) fn,
+  ) => store._runInTransaction(mode, fn);
 
   /// Create a map from Entity ID to Entity type (dart class).
   static Map<int, Type> entityTypeById(Store store) {
     if (store._entityTypeById == null) {
       store._entityTypeById = HashMap<int, Type>();
       store.configuration().modelDefinition.bindings.forEach(
-          (Type entity, EntityDefinition entityDef) =>
-              store._entityTypeById![entityDef.model.id.id] = entity);
+        (Type entity, EntityDefinition entityDef) =>
+            store._entityTypeById![entityDef.model.id.id] = entity,
+      );
     }
     return store._entityTypeById!;
   }
 
   /// Adds a listener to the [Store.close] event.
   static void addCloseListener(
-          Store store, dynamic key, void Function() listener) =>
-      store._onClose[key] = listener;
+    Store store,
+    dynamic key,
+    void Function() listener,
+  ) => store._onClose[key] = listener;
 
   /// Removes a [Store.close] event listener.
   static void removeCloseListener(Store store, dynamic key) =>
@@ -1104,7 +1168,11 @@ class _RunAsyncIsolateConfig<P, R> {
   final RunAsyncCallback<P, R> callback;
 
   const _RunAsyncIsolateConfig(
-      this.storeConfiguration, this.resultPort, this.callback, this.param);
+    this.storeConfiguration,
+    this.resultPort,
+    this.callback,
+    this.param,
+  );
 
   /// Calls [callback] inside this class so types are not lost
   /// (if called in isolate types would be dynamic instead of P and R).

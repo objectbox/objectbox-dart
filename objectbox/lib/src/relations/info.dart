@@ -26,20 +26,26 @@ class RelInfo<SourceEntityT> {
   final ToOne Function(SourceEntityT)? _getToOneSourceField;
 
   const RelInfo._(
-      this._type, this._id, this._objectId, this._getToOneSourceField);
+    this._type,
+    this._id,
+    this._objectId,
+    this._getToOneSourceField,
+  );
 
   /// Create info for a [ToMany] relation field.
   const RelInfo.toMany(int id, int objectId)
-      : this._(RelType.toMany, id, objectId, null);
+    : this._(RelType.toMany, id, objectId, null);
 
   /// Create info for a [ToOne] relation field backlink.
   const RelInfo.toOneBacklink(
-      int id, int objectId, ToOne Function(SourceEntityT) srcFieldAccessor)
-      : this._(RelType.toOneBacklink, id, objectId, srcFieldAccessor);
+    int id,
+    int objectId,
+    ToOne Function(SourceEntityT) srcFieldAccessor,
+  ) : this._(RelType.toOneBacklink, id, objectId, srcFieldAccessor);
 
   /// Create info for a [ToMany] relation field backlink.
   const RelInfo.toManyBacklink(int id, int objectId)
-      : this._(RelType.toManyBacklink, id, objectId, null);
+    : this._(RelType.toManyBacklink, id, objectId, null);
 
   /// Relation or property ID (latter if ToOne relation).
   int get id => _id;

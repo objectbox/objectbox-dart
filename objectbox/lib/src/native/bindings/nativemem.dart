@@ -5,8 +5,9 @@ import 'dart:io';
 
 /// memset(ptr, value, num) sets the first num bytes of the block of memory
 /// pointed by ptr to the specified value (interpreted as an uint8).
-final DartMemset memset =
-    _stdlib.lookupFunction<_CMemset, DartMemset>('memset');
+final DartMemset memset = _stdlib.lookupFunction<_CMemset, DartMemset>(
+  'memset',
+);
 
 final DartMemcpy? _memcpyNative = _lookupMemcpyOrNull();
 
@@ -47,6 +48,8 @@ typedef _CMemset = Void Function(Pointer<Uint8>, Int32, IntPtr);
 typedef DartMemcpy = void Function(Pointer<Uint8>, Pointer<Uint8>, int);
 typedef _CMemcpy = Void Function(Pointer<Uint8>, Pointer<Uint8>, IntPtr);
 
-final DynamicLibrary _stdlib = Platform.isWindows // no .process() on windows
-    ? DynamicLibrary.open('vcruntime140.dll') // required by objectbox.dll
-    : DynamicLibrary.process();
+final DynamicLibrary _stdlib =
+    Platform
+            .isWindows // no .process() on windows
+        ? DynamicLibrary.open('vcruntime140.dll') // required by objectbox.dll
+        : DynamicLibrary.process();

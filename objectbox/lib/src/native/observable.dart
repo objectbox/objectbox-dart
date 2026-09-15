@@ -50,12 +50,13 @@ class _Observer<StreamValueType> implements Finalizable {
   ///
   /// [onCancel] is run when a non-broadcast stream is cancelled, in addition to
   /// [close].
-  void init(
-      {required Pointer<OBX_observer> Function(int nativePort)
-          createNativeObserver,
-      required void Function(dynamic) onData,
-      void Function()? onCancel,
-      bool broadcast = false}) {
+  void init({
+    required Pointer<OBX_observer> Function(int nativePort)
+    createNativeObserver,
+    required void Function(dynamic) onData,
+    void Function()? onCancel,
+    bool broadcast = false,
+  }) {
     _onData = onData;
 
     void start() {
@@ -64,8 +65,9 @@ class _Observer<StreamValueType> implements Finalizable {
       final Pointer<OBX_observer> cObserver;
       try {
         cObserver = checkObxPtr(
-            createNativeObserver(receivePort.sendPort.nativePort),
-            'observer initialization failed');
+          createNativeObserver(receivePort.sendPort.nativePort),
+          'observer initialization failed',
+        );
       } catch (e, s) {
         controller.addError(e, s);
         close(); // closes the receive port; native observer was never created
@@ -76,22 +78,25 @@ class _Observer<StreamValueType> implements Finalizable {
       _debugLog('started');
     }
 
-    controller = broadcast
-        ? StreamController<StreamValueType>.broadcast(
-            onListen: start,
-            // Once the last subscriber cancels, close the native observer and
-            // the receive port so it does not keep the isolate alive. If the
-            // stream is listened to again, start() above recreates both.
-            onCancel: close)
-        : StreamController<StreamValueType>(
-            onListen: start,
-            onPause: _closeNativeObserver,
-            // The port is still open while paused, so start() reuses it as-is.
-            onResume: start,
-            onCancel: () {
-              close();
-              onCancel?.call();
-            });
+    controller =
+        broadcast
+            ? StreamController<StreamValueType>.broadcast(
+              onListen: start,
+              // Once the last subscriber cancels, close the native observer and
+              // the receive port so it does not keep the isolate alive. If the
+              // stream is listened to again, start() above recreates both.
+              onCancel: close,
+            )
+            : StreamController<StreamValueType>(
+              onListen: start,
+              onPause: _closeNativeObserver,
+              // The port is still open while paused, so start() reuses it as-is.
+              onResume: start,
+              onCancel: () {
+                close();
+                onCancel?.call();
+              },
+            );
   }
 
   /// Closes the native observer, leaving the [_receivePort] open to allow to
@@ -149,13 +154,15 @@ extension ObservableStore on Store {
     final entityId = _entityDef<EntityT>().model.id.id;
 
     observer.init(
-        createNativeObserver: (nativePort) =>
-            C.dartc_observe_single_type(_cStoreChecked, entityId, nativePort),
-        // We're listening to events on single entity so there's no argument.
-        // Ideally, controller.add() would work but it doesn't, even though
-        // we're using StreamController<Void> so the argument type is `void`.
-        onData: (dynamic _) => observer.controller.add(null),
-        onCancel: () => _onClose.remove(observer));
+      createNativeObserver:
+          (nativePort) =>
+              C.dartc_observe_single_type(_cStoreChecked, entityId, nativePort),
+      // We're listening to events on single entity so there's no argument.
+      // Ideally, controller.add() would work but it doesn't, even though
+      // we're using StreamController<Void> so the argument type is `void`.
+      onData: (dynamic _) => observer.controller.add(null),
+      onCancel: () => _onClose.remove(observer),
+    );
 
     // Close the native observer before the native store is closed (it is
     // freed with the store; closing it on a later cancel would then be a
@@ -178,34 +185,41 @@ extension ObservableStore on Store {
     final entityTypesById = InternalStoreAccess.entityTypeById(this);
 
     observer.init(
-        createNativeObserver: (nativePort) =>
-            C.dartc_observe(_cStoreChecked, nativePort),
-        // We're listening to a events for all entity types. C-API sends
-        // entity ID and we must map it to a dart type (class) corresponding
-        // to that entity.
-        onData: (dynamic entityIds) {
-          if (entityIds is! Uint32List) {
-            observer.controller.addError(ObjectBoxException(
-                'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds'));
-            return;
-          }
+      createNativeObserver:
+          (nativePort) => C.dartc_observe(_cStoreChecked, nativePort),
+      // We're listening to a events for all entity types. C-API sends
+      // entity ID and we must map it to a dart type (class) corresponding
+      // to that entity.
+      onData: (dynamic entityIds) {
+        if (entityIds is! Uint32List) {
+          observer.controller.addError(
+            ObjectBoxException(
+              'Received invalid data format from the core notification: (${entityIds.runtimeType}) $entityIds',
+            ),
+          );
+          return;
+        }
 
-          final entities = List<Type>.filled(entityIds.length, Null);
-          for (var i = 0; i < entityIds.length; i++) {
-            final entityId = entityIds[i];
-            final entityType = entityTypesById[entityId];
-            if (entityType == null) {
-              observer.controller.addError(ObjectBoxException(
-                  'Received data change notification for an unknown entity ID $entityId'));
-              // Do not also emit an event with placeholder (Null) types.
-              return;
-            } else {
-              entities[i] = entityType;
-            }
+        final entities = List<Type>.filled(entityIds.length, Null);
+        for (var i = 0; i < entityIds.length; i++) {
+          final entityId = entityIds[i];
+          final entityType = entityTypesById[entityId];
+          if (entityType == null) {
+            observer.controller.addError(
+              ObjectBoxException(
+                'Received data change notification for an unknown entity ID $entityId',
+              ),
+            );
+            // Do not also emit an event with placeholder (Null) types.
+            return;
+          } else {
+            entities[i] = entityType;
           }
-          observer.controller.add(entities);
-        },
-        broadcast: true);
+        }
+        observer.controller.add(entities);
+      },
+      broadcast: true,
+    );
 
     // Close the native observer before the native store is closed (it is
     // freed with the store; closing it on a later cancel would then be a

@@ -44,9 +44,10 @@ class Transaction implements Finalizable {
   static void initFinalizer() => _finalizer;
 
   Transaction(this._store, this.mode)
-      : _cTxn = mode == TxMode.write
-            ? C.txn_write(InternalStoreAccess.cStore(_store))
-            : C.txn_read(InternalStoreAccess.cStore(_store)) {
+    : _cTxn =
+          mode == TxMode.write
+              ? C.txn_write(InternalStoreAccess.cStore(_store))
+              : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
     _finalizer.attach(this, _cTxn.cast(), detach: this);
   }

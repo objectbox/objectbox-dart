@@ -24,7 +24,7 @@ enum MeshState {
   stopped,
 
   /// Stopped and being torn down.
-  dead
+  dead,
 }
 
 /// Mesh sync statistics counters, useful for testing and diagnostics.
@@ -185,23 +185,25 @@ class MeshConfig {
 
   final List<int> _networkInternalHandles = [];
 
-  MeshConfig._(this.meshId,
-      {this.maxConnectionCount,
-      this.backoffMillis,
-      this.evictionBackoffMillis,
-      this.randomSeed,
-      this.requestTimeoutMillis,
-      this.advertisingDelayMillis,
-      this.advertisingRetryMillis,
-      this.advertisingRetryMaxMillis,
-      this.connectDelayMillis,
-      this.initialDiscoveryDurationSeconds,
-      this.discoveryDurationSeconds,
-      this.discoveryPauseSeconds,
-      this.discoveryPauseJitterSeconds,
-      this.txLogBatchSizeKb,
-      this.txLogBatchMaxCount,
-      this.txLogMaxAgeSeconds});
+  MeshConfig._(
+    this.meshId, {
+    this.maxConnectionCount,
+    this.backoffMillis,
+    this.evictionBackoffMillis,
+    this.randomSeed,
+    this.requestTimeoutMillis,
+    this.advertisingDelayMillis,
+    this.advertisingRetryMillis,
+    this.advertisingRetryMaxMillis,
+    this.connectDelayMillis,
+    this.initialDiscoveryDurationSeconds,
+    this.discoveryDurationSeconds,
+    this.discoveryPauseSeconds,
+    this.discoveryPauseJitterSeconds,
+    this.txLogBatchSizeKb,
+    this.txLogBatchMaxCount,
+    this.txLogMaxAgeSeconds,
+  });
 }
 
 /// Hides internal [MeshConfig] methods from the public API
@@ -211,40 +213,43 @@ class MeshConfig {
 extension MeshConfigInternal on MeshConfig {
   /// Creates a mesh sync configuration. See [MeshConfig] field documentation
   /// for details on each option.
-  static MeshConfig createMeshConfig(String meshId,
-          {int? maxConnectionCount,
-          int? backoffMillis,
-          int? evictionBackoffMillis,
-          int? randomSeed,
-          int? requestTimeoutMillis,
-          int? advertisingDelayMillis,
-          int? advertisingRetryMillis,
-          int? advertisingRetryMaxMillis,
-          int? connectDelayMillis,
-          int? initialDiscoveryDurationSeconds,
-          int? discoveryDurationSeconds,
-          int? discoveryPauseSeconds,
-          int? discoveryPauseJitterSeconds,
-          int? txLogBatchSizeKb,
-          int? txLogBatchMaxCount,
-          int? txLogMaxAgeSeconds}) =>
-      MeshConfig._(meshId,
-          maxConnectionCount: maxConnectionCount,
-          backoffMillis: backoffMillis,
-          evictionBackoffMillis: evictionBackoffMillis,
-          randomSeed: randomSeed,
-          requestTimeoutMillis: requestTimeoutMillis,
-          advertisingDelayMillis: advertisingDelayMillis,
-          advertisingRetryMillis: advertisingRetryMillis,
-          advertisingRetryMaxMillis: advertisingRetryMaxMillis,
-          connectDelayMillis: connectDelayMillis,
-          initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
-          discoveryDurationSeconds: discoveryDurationSeconds,
-          discoveryPauseSeconds: discoveryPauseSeconds,
-          discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
-          txLogBatchSizeKb: txLogBatchSizeKb,
-          txLogBatchMaxCount: txLogBatchMaxCount,
-          txLogMaxAgeSeconds: txLogMaxAgeSeconds);
+  static MeshConfig createMeshConfig(
+    String meshId, {
+    int? maxConnectionCount,
+    int? backoffMillis,
+    int? evictionBackoffMillis,
+    int? randomSeed,
+    int? requestTimeoutMillis,
+    int? advertisingDelayMillis,
+    int? advertisingRetryMillis,
+    int? advertisingRetryMaxMillis,
+    int? connectDelayMillis,
+    int? initialDiscoveryDurationSeconds,
+    int? discoveryDurationSeconds,
+    int? discoveryPauseSeconds,
+    int? discoveryPauseJitterSeconds,
+    int? txLogBatchSizeKb,
+    int? txLogBatchMaxCount,
+    int? txLogMaxAgeSeconds,
+  }) => MeshConfig._(
+    meshId,
+    maxConnectionCount: maxConnectionCount,
+    backoffMillis: backoffMillis,
+    evictionBackoffMillis: evictionBackoffMillis,
+    randomSeed: randomSeed,
+    requestTimeoutMillis: requestTimeoutMillis,
+    advertisingDelayMillis: advertisingDelayMillis,
+    advertisingRetryMillis: advertisingRetryMillis,
+    advertisingRetryMaxMillis: advertisingRetryMaxMillis,
+    connectDelayMillis: connectDelayMillis,
+    initialDiscoveryDurationSeconds: initialDiscoveryDurationSeconds,
+    discoveryDurationSeconds: discoveryDurationSeconds,
+    discoveryPauseSeconds: discoveryPauseSeconds,
+    discoveryPauseJitterSeconds: discoveryPauseJitterSeconds,
+    txLogBatchSizeKb: txLogBatchSizeKb,
+    txLogBatchMaxCount: txLogBatchMaxCount,
+    txLogMaxAgeSeconds: txLogMaxAgeSeconds,
+  );
 
   /// Builds the native mesh options object from this configuration.
   ///
@@ -252,8 +257,10 @@ extension MeshConfigInternal on MeshConfig {
   /// passed to `sync_opt_mesh` (which frees it) or freed via `mesh_opt_free`.
   /// If building fails, the options are freed and the error is rethrown.
   Pointer<OBX_mesh_options> build() {
-    final opt = checkObxPtr(withNativeString(meshId, C.mesh_opt),
-        'failed to create mesh options (mesh ID: "$meshId")');
+    final opt = checkObxPtr(
+      withNativeString(meshId, C.mesh_opt),
+      'failed to create mesh options (mesh ID: "$meshId")',
+    );
     try {
       if (maxConnectionCount != null) {
         checkObx(C.mesh_opt_max_connection_count(opt, maxConnectionCount!));
@@ -263,7 +270,8 @@ extension MeshConfigInternal on MeshConfig {
       }
       if (evictionBackoffMillis != null) {
         checkObx(
-            C.mesh_opt_eviction_backoff_millis(opt, evictionBackoffMillis!));
+          C.mesh_opt_eviction_backoff_millis(opt, evictionBackoffMillis!),
+        );
       }
       if (randomSeed != null) {
         checkObx(C.mesh_opt_random_seed(opt, randomSeed!));
@@ -273,34 +281,50 @@ extension MeshConfigInternal on MeshConfig {
       }
       if (advertisingDelayMillis != null) {
         checkObx(
-            C.mesh_opt_advertising_delay_millis(opt, advertisingDelayMillis!));
+          C.mesh_opt_advertising_delay_millis(opt, advertisingDelayMillis!),
+        );
       }
       if (advertisingRetryMillis != null) {
         checkObx(
-            C.mesh_opt_advertising_retry_millis(opt, advertisingRetryMillis!));
+          C.mesh_opt_advertising_retry_millis(opt, advertisingRetryMillis!),
+        );
       }
       if (advertisingRetryMaxMillis != null) {
-        checkObx(C.mesh_opt_advertising_retry_max_millis(
-            opt, advertisingRetryMaxMillis!));
+        checkObx(
+          C.mesh_opt_advertising_retry_max_millis(
+            opt,
+            advertisingRetryMaxMillis!,
+          ),
+        );
       }
       if (connectDelayMillis != null) {
         checkObx(C.mesh_opt_connect_delay_millis(opt, connectDelayMillis!));
       }
       if (initialDiscoveryDurationSeconds != null) {
-        checkObx(C.mesh_opt_initial_discovery_duration_seconds(
-            opt, initialDiscoveryDurationSeconds!));
+        checkObx(
+          C.mesh_opt_initial_discovery_duration_seconds(
+            opt,
+            initialDiscoveryDurationSeconds!,
+          ),
+        );
       }
       if (discoveryDurationSeconds != null) {
-        checkObx(C.mesh_opt_discovery_duration_seconds(
-            opt, discoveryDurationSeconds!));
+        checkObx(
+          C.mesh_opt_discovery_duration_seconds(opt, discoveryDurationSeconds!),
+        );
       }
       if (discoveryPauseSeconds != null) {
         checkObx(
-            C.mesh_opt_discovery_pause_seconds(opt, discoveryPauseSeconds!));
+          C.mesh_opt_discovery_pause_seconds(opt, discoveryPauseSeconds!),
+        );
       }
       if (discoveryPauseJitterSeconds != null) {
-        checkObx(C.mesh_opt_discovery_pause_jitter_seconds(
-            opt, discoveryPauseJitterSeconds!));
+        checkObx(
+          C.mesh_opt_discovery_pause_jitter_seconds(
+            opt,
+            discoveryPauseJitterSeconds!,
+          ),
+        );
       }
       if (txLogBatchSizeKb != null) {
         checkObx(C.mesh_opt_tx_log_batch_size_kb(opt, txLogBatchSizeKb!));
@@ -312,8 +336,9 @@ extension MeshConfigInternal on MeshConfig {
         checkObx(C.mesh_opt_tx_log_max_age_seconds(opt, txLogMaxAgeSeconds!));
       }
       for (final handle in _networkInternalHandles) {
-        checkObx(C.mesh_opt_network_internal(
-            opt, Pointer<Void>.fromAddress(handle)));
+        checkObx(
+          C.mesh_opt_network_internal(opt, Pointer<Void>.fromAddress(handle)),
+        );
       }
     } catch (e) {
       // Free the options if any option method call failed (like due to invalid
@@ -345,10 +370,12 @@ class MeshSync {
   /// The native mesh is owned by its Sync client; once the client is closed,
   /// this pointer is invalidated (see [_close]) and any access throws.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_mesh> get _ptr => (_cMesh.address != 0)
-      ? _cMesh
-      : throw StateError(
-          'MeshSync already closed (the owning SyncClient was closed)');
+  Pointer<OBX_mesh> get _ptr =>
+      (_cMesh.address != 0)
+          ? _cMesh
+          : throw StateError(
+            'MeshSync already closed (the owning SyncClient was closed)',
+          );
 
   /// Gets the current state of the mesh sync.
   MeshState state() {

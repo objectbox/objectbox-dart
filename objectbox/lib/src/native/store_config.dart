@@ -16,14 +16,21 @@ class StoreConfiguration {
   final bool queriesCaseSensitiveDefault;
 
   /// Create a new [StoreConfiguration].
-  StoreConfiguration._(this.id, this.modelDefinition, this.directoryPath,
-      this.queriesCaseSensitiveDefault);
+  StoreConfiguration._(
+    this.id,
+    this.modelDefinition,
+    this.directoryPath,
+    this.queriesCaseSensitiveDefault,
+  );
 
   /// Checks that the [store] ID matches [id].
   void checkIsSameStore(Store store) {
     if (id != store.configuration().id) {
       throw ArgumentError.value(
-          store, 'store', 'Relation already attached to a different store');
+        store,
+        'store',
+        'Relation already attached to a different store',
+      );
     }
   }
 }
