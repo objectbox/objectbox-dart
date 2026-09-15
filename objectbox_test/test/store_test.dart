@@ -102,6 +102,44 @@ void main() {
     await received.cancel();
   });
 
+  // This verifies the example given in the Store.attach docs to close a store
+  // used by a worker isolate when the parent isolate shuts down works.
+  test('worker store can be closed using parent isolate exit callback',
+      () async {
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+
+    final parentResponsePort = ReceivePort();
+    final workerResponsePort = ReceivePort();
+    final parentResponses = StreamQueue<dynamic>(parentResponsePort);
+    final workerResponses = StreamQueue<dynamic>(workerResponsePort);
+    addTearDown(() async {
+      await parentResponses.cancel();
+      await workerResponses.cancel();
+    });
+
+    await Isolate.spawn(exitTestMainIsolate, [
+      env.dbDirPath,
+      workerResponsePort.sendPort,
+      parentResponsePort.sendPort
+    ]);
+    final parentCommandPort = await parentResponses.next as SendPort;
+
+    // Worker isolate confirms it attached and set up its exit listener.
+    expect(await workerResponses.next, 'attached');
+
+    // Close the store here so it's only kept open by the worker.
+    env.store.close();
+    // While the parent isolate is still alive the store must remain open.
+    expect(Store.isOpen(env.dbDirPath), true);
+
+    // Once the parent isolate exits, the worker's exit listener triggers,
+    // closing its attached store and reporting back before it exits itself.
+    parentCommandPort.send(null);
+    expect(await workerResponses.next, 'closed');
+    expect(Store.isOpen(env.dbDirPath), false);
+  });
+
   test('store attach with configuration', () {
     final name = "store";
     final env = TestEnv(name);
@@ -549,4 +587,45 @@ void storeAttachIsolate(StoreAttachIsolateInit init) async {
 
   print('Store attach isolate finished');
   Isolate.exit();
+}
+
+/// The "parent" isolate from the doc example: spawns a worker isolate
+/// passing along its own control port, then exits (returns) on command,
+/// simulating a Flutter engine shutting down while the worker isolate
+/// (and process) keeps running. So the test can clean up the store files, this
+/// doesn't actually own the "original" store.
+Future<void> exitTestMainIsolate(List<Object> args) async {
+  final dbDirPath = args[0] as String;
+  final testResponsePortWorker = args[1] as SendPort;
+  final testResponsePortMain = args[2] as SendPort;
+
+  await Isolate.spawn(exitTestWorkerIsolate,
+      [dbDirPath, testResponsePortWorker, Isolate.current.controlPort]);
+
+  final commands = ReceivePort();
+  testResponsePortMain.send(commands.sendPort);
+  // Wait until the test signals to exit.
+  await commands.first;
+  commands.close();
+  // This isolate now exits, which should notify the worker's exit listener.
+}
+
+/// The "worker isolate" from the doc example: attaches to the store, and
+/// closes it and itself once the spawning isolate exits.
+void exitTestWorkerIsolate(List<Object> args) {
+  final dbDirPath = args[0] as String;
+  final testResponsePortWorker = args[1] as SendPort;
+  final parentControlPort = args[2] as SendPort;
+
+  final store = Store.attach(getObjectBoxModel(), dbDirPath);
+  final parentExited = ReceivePort();
+  Isolate(parentControlPort).addOnExitListener(parentExited.sendPort);
+  parentExited.listen((_) {
+    store.close();
+    testResponsePortWorker.send('closed');
+    Isolate.exit();
+  });
+  // Signal that this worker isolate is ready (attached and listening).
+  testResponsePortWorker.send('attached');
+  // This isolate keeps running due to the parentExited subscription.
 }

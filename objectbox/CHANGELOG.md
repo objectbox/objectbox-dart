@@ -4,6 +4,7 @@
   * Android apps: min SDK increased to 24 (Android 7.0).
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
 * `Store.fromReference` is deprecated, please migrate to `Store.attach`.
+* `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.
 * Flutter plugins: remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So after updating make sure to run the code generator again using `dart run build_runner build`.
 * Allow analyzer versions up to 14.
 * Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
@@ -32,9 +33,19 @@
 * When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
 * `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
 * Query subscriptions using `QueryBuilder.watch` properly resume, deliver events that arrived while paused. Also, if resumed, the subscription is no longer leaked, which kept the native observer alive even after cancelling the subscription.
+* `Query.stream()` improvements:
+  * Its worker isolate now terminates and releases its store reference also when the calling isolate gets terminated, no longer preventing the native store from closing ([#834](https://github.com/objectbox/objectbox-dart/issues/834)).
+  * It no longer crashes or reads garbage data when data was modified in parallel.
+  * It no longer crashes if the stream is closed before all data was processed.
+  * It releases its query and store reference if setup fails, no longer preventing the store from closing.
 * Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
 * `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
+* Close transactions that are still open when their isolate shuts down, such as when `Isolate.kill()` is called while inside a write transaction. Before, closing the store waited forever for such a transaction. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
+* Close native observers (`Store.watch()`, `Store.entityChanges`, `Query.watch()`) that are still open when their isolate shuts down or when they are garbage collected without the subscription being canceled. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
+* Fix native data observers not being stopped when the store is closed: cancelling a `Store.watch<Entity>()` or `Store.entityChanges` subscription after `Store.close()` closed the already freed native observer (a use-after-free that can corrupt memory or crash). A `watch<Entity>()` subscription also kept its receive port open forever if the store was closed without cancelling, preventing the isolate from exiting.
+* `Store.entityChanges` closes its receive port if creating the observer fails or while there are no listeners, no longer preventing an isolate from exiting.
+* Sync: errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 
 ### Sync
 

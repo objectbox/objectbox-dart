@@ -1237,6 +1237,10 @@ class Query<T> implements Finalizable {
   ///
   /// Results are streamed from a worker isolate in batches (the stream still
   /// returns objects one by one).
+  ///
+  /// Note that internally always all results are queued, even if only the first
+  /// object is listened to or the stream is canceled. So a large result set
+  /// might still exhaust available memory.
   Stream<T> stream() => _streamIsolate();
 
   /// Stream items by sending full flatbuffers binary as a message.
@@ -1343,63 +1347,84 @@ class Query<T> implements Finalizable {
     final resultPort = ReceivePort();
     final exitPort = ReceivePort();
 
-    void spawnWorkerIsolate() async {
-      // Pass clones of Store and Query to avoid these getting closed while the
-      // worker isolate is still running. The isolate closes the clones once done.
-      final storeClonePtr = InternalStoreAccess.clone(_store);
-      final queryClonePtr = _clone();
-
-      // Current batch size determined through testing, performs well for smaller
-      // objects. Might want to expose in the future for performance tuning by
-      // users.
-      final isolateInit = _StreamIsolateInit(resultPort.sendPort,
-          storeClonePtr.address, queryClonePtr.address, 20);
-      // If spawn errors StreamController will propagate the error, no point in
-      // using addError as no listener before this function completes.
-      await Isolate.spawn(_queryAndVisit, isolateInit,
-          onExit: exitPort.sendPort);
-    }
-
-    SendPort? sendPort;
-
-    // Callback to exit the isolate once consumers or this close the stream
-    // (potentially before all results have been streamed).
-    // Must return Future<void>, otherwise StreamController will not wait on it.
-    var isolateExitSent = false;
-    Future<void> exitIsolate() async {
-      if (isolateExitSent) return;
-      isolateExitSent = true;
-      // Send signal to isolate it should exit.
-      sendPort?.send(null);
-      // Wait for isolate to clean up native resources,
-      // otherwise e.g. Store is still open and
-      // e.g. tests can not delete database files.
-      await exitPort.first;
+    void closePorts() {
       resultPort.close();
       exitPort.close();
     }
 
-    final streamController = StreamController<T>(
-        onListen: spawnWorkerIsolate, onCancel: exitIsolate);
-    resultPort.listen((dynamic message) async {
-      // The first message from the spawned isolate is a SendPort. This port
-      // is used to communicate with the spawned isolate.
-      if (message is SendPort) {
-        sendPort = message;
-        return; // wait for next message.
+    late StreamController<T> streamController;
+    var exitAwaited = false;
+
+    void spawnWorkerIsolate() async {
+      Pointer<OBX_store>? storeClonePtr;
+      Pointer<OBX_query>? queryClonePtr;
+      try {
+        // Pass clones of Store and Query to avoid these getting closed while
+        // the worker isolate is still running. It closes the clones once done.
+        storeClonePtr = InternalStoreAccess.clone(_store);
+        queryClonePtr = _clone();
+
+        // Current batch size determined through testing, performs well for
+        // smaller objects. Might want to expose in the future for performance
+        // tuning by users.
+        // Tested with `benchmark/bin/query.dart` (uses smaller objects) on
+        // Windows with Flutter SDK 3.44.7. Values of 80 to 250 stay around 800,
+        // but 100 was consistently often lower and still leaves room if bigger
+        // objects would be used.
+        final batchSize = 100;
+        final isolateInit = _StreamIsolateInit(resultPort.sendPort,
+            storeClonePtr.address, queryClonePtr.address, batchSize);
+        await Isolate.spawn(_queryAndVisit, isolateInit,
+            onExit: exitPort.sendPort, onError: resultPort.sendPort);
+      } catch (e, s) {
+        // Failed to clone the query or store or spawning failed.
+        // Close the clones the worker isolate did not take over.
+        if (queryClonePtr != null) C.query_close(queryClonePtr);
+        if (storeClonePtr != null) C.store_close(storeClonePtr);
+        // Close the ports as awaitIsolateExit has no isolate to wait for.
+        exitAwaited = true;
+        closePorts();
+        // Send an error to listeners and close the stream.
+        streamController.addError(e, s);
+        streamController.close();
       }
-      // Further messages are
-      // - ObxObjectMessage for data,
+    }
+
+    // Once consumers or this close the stream (potentially before all results
+    // have been streamed), wait for the worker isolate to exit. It exits on its
+    // own once it has sent all results and has closed its native resources,
+    // so e.g. the Store can be closed and database files can be deleted.
+    // Must return Future<void>, otherwise StreamController will not wait on it.
+    Future<void> awaitIsolateExit() async {
+      if (exitAwaited) return;
+      exitAwaited = true;
+      await exitPort.first;
+      closePorts();
+    }
+
+    streamController = StreamController<T>(
+        onListen: spawnWorkerIsolate, onCancel: awaitIsolateExit);
+    resultPort.listen((dynamic message) {
+      if (streamController.isClosed) {
+        // Skip any further messages after the stream was closed as adding
+        // events is no longer possible.
+        return;
+      }
+
+      // Messages are
+      // - _StreamIsolateMessage for data,
       // - Exception and Error for errors and
       // - null if the worker isolate is done sending data.
-      else if (message is _StreamIsolateMessage) {
+      if (message is _StreamIsolateMessage) {
         try {
-          for (var i = 0; i < message.dataPtrAddresses.length; i++) {
-            final dataPtrAddress = message.dataPtrAddresses[i];
-            final size = message.sizes[i];
-            if (size == 0) break; // Reached last object.
-            streamController.add(_entity.objectFromData(
-                _store, Pointer.fromAddress(dataPtrAddress), size));
+          final bytes = message.data.materialize().asUint8List();
+          var offset = 0;
+          for (final size in message.sizes) {
+            streamController.add(_entity.objectFromFB(
+                _store,
+                ByteData.view(
+                    bytes.buffer, bytes.offsetInBytes + offset, size)));
+            offset += size;
           }
           return; // wait for next message.
         } catch (e) {
@@ -1409,6 +1434,12 @@ class Query<T> implements Finalizable {
         streamController.addError(message);
       } else if (message is Exception) {
         streamController.addError(message);
+      } else if (message is List && message.length == 2) {
+        // Sent via Isolate.spawn onError for an uncaught error in the worker
+        // isolate, see isolate.addErrorListener docs for message structure.
+        streamController.addError(RemoteError(
+            message[0] as String? ?? 'Query stream isolate error',
+            message[1] as String? ?? ''));
       } else if (message != null) {
         streamController.addError(
             ObjectBoxException('Query stream received an invalid message type '
@@ -1424,42 +1455,38 @@ class Query<T> implements Finalizable {
   }
 
   // Isolate entry point must be top-level or static.
-  static Future<void> _queryAndVisit(_StreamIsolateInit isolateInit) async {
+  static void _queryAndVisit(_StreamIsolateInit isolateInit) {
     // Init native resources asap so that they do not leak, e.g. on exceptions
     final store =
         InternalStoreAccess.createMinimal(isolateInit.storePtrAddress);
-
-    var resultPort = isolateInit.resultPort;
-
-    // Send a SendPort to the main isolate so that it can send to this isolate.
-    final commandPort = ReceivePort();
-    resultPort.send(commandPort.sendPort);
-
+    final resultPort = isolateInit.resultPort;
     try {
-      // Visit inside transaction and do not complete transaction to ensure
-      // data pointers remain valid until main isolate has deserialized all data.
-      await InternalStoreAccess.runInTransaction(store, TxMode.read,
-          (Transaction tx) async {
-        // Use fixed-length lists to avoid performance hit due to growing.
+      // Visit inside a read transaction and copy the data of each object before
+      // it ends: the visited data points into database memory, which is only
+      // valid while the transaction is active (e.g. a write may reuse it later).
+      store.runInTransaction(TxMode.read, () {
         final maxBatchSize = isolateInit.batchSize;
-        var dataPtrBatch = List<int>.filled(maxBatchSize, 0);
-        var sizeBatch = List<int>.filled(maxBatchSize, 0);
-        var batchSize = 0;
+        var batch = <Uint8List>[];
+        var sizes = <int>[];
+
+        void sendBatch() {
+          // Sends the concatenated data of the batch without copying it again.
+          // send doesn't block until the receiver processed the message, so
+          // sending a large result set might exhaust available memory as
+          // messages queue up.
+          resultPort.send(_StreamIsolateMessage(
+              TransferableTypedData.fromList(batch), sizes));
+          batch = <Uint8List>[];
+          sizes = <int>[];
+        }
+
         visitCallback(Pointer<Uint8> data, int size) {
           // Currently returning all results, even if the stream has been closed
-          // before (e.g. only first element taken). Would need a way to check
-          // for exit command on commandPort synchronously.
-          dataPtrBatch[batchSize] = data.address;
-          sizeBatch[batchSize] = size;
-          batchSize++;
+          // before (e.g. only first element taken).
+          batch.add(Uint8List.fromList(data.asTypedList(size)));
+          sizes.add(size);
           // Send data in batches as sending a message is rather expensive.
-          if (batchSize == maxBatchSize) {
-            resultPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
-            // Re-use list instance to avoid performance hit due to new instance.
-            dataPtrBatch.fillRange(0, dataPtrBatch.length, 0);
-            sizeBatch.fillRange(0, dataPtrBatch.length, 0);
-            batchSize = 0;
-          }
+          if (sizes.length == maxBatchSize) sendBatch();
           return true;
         }
 
@@ -1467,34 +1494,22 @@ class Query<T> implements Finalizable {
             Pointer<OBX_query>.fromAddress(isolateInit.queryPtrAddress);
         try {
           visit(queryPtr, visitCallback);
-        } catch (e) {
-          resultPort.send(e);
-          return;
         } finally {
-          try {
-            checkObx(C.query_close(queryPtr));
-          } catch (e) {
-            resultPort.send(e);
-            return;
-          }
+          checkObx(C.query_close(queryPtr));
         }
-        // Send any remaining data.
-        if (batchSize > 0) {
-          resultPort.send(_StreamIsolateMessage(dataPtrBatch, sizeBatch));
-        }
-
-        // Signal to the main isolate there are no more results.
-        resultPort.send(null);
-        // Wait for main isolate to confirm it is done accessing sent data pointers.
-        await commandPort.first;
-        // Note: when the transaction is closed after await this might lead to an
-        // error log as the isolate could have been transferred to another thread
-        // when resuming execution.
-        // https://github.com/dart-lang/sdk/issues/46943
+        if (sizes.isNotEmpty) sendBatch();
       });
+      // Signal to the main isolate there are no more results.
+      resultPort.send(null);
+    } catch (e) {
+      try {
+        resultPort.send(e);
+      } catch (_) {
+        // The error is not sendable across isolates, send a description.
+        resultPort.send(ObjectBoxException('Query stream failed: $e'));
+      }
     } finally {
       store.close();
-      commandPort.close();
     }
   }
 
@@ -1535,13 +1550,14 @@ class _StreamIsolateInit {
       this.queryPtrAddress, this.batchSize);
 }
 
-/// Message sent to main isolate containing info about a batch of objects.
+/// Message sent to main isolate containing a batch of objects: their data
+/// (concatenated, transferred without copying) and the size of each object.
 @immutable
 class _StreamIsolateMessage {
-  final List<int> dataPtrAddresses;
+  final TransferableTypedData data;
   final List<int> sizes;
 
-  const _StreamIsolateMessage(this.dataPtrAddresses, this.sizes);
+  const _StreamIsolateMessage(this.data, this.sizes);
 }
 
 class _QueryConfiguration<T> {

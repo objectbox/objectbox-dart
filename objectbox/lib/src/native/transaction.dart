@@ -12,10 +12,10 @@ import 'bindings/helpers.dart';
 // ignore_for_file: public_member_api_docs
 
 /// Represents a native transaction - it is bound to a current thread so never
-/// use with asychcronous code, or more specifically, never `await` before
+/// use with asynchronous code, or more specifically, never `await` before
 /// calling [successAndClose] or [abortAndClose].
 @internal
-class Transaction {
+class Transaction implements Finalizable {
   final Store _store;
   final Pointer<OBX_txn> _cTxn;
   bool _closed = false;
@@ -26,11 +26,29 @@ class Transaction {
   CursorHelper? _firstCursor;
   HashMap<int, CursorHelper>? _cursors;
 
+  /// Closes a read and aborts a write transaction that is still open when its
+  /// isolate shuts down: for example an isolate terminated via Isolate.kill()
+  /// inside a transaction does not run finally blocks. This may run on an
+  /// arbitrary thread, which may not be the thread that started the
+  /// transaction. But without this, closing the store would wait for a write
+  /// transaction forever.
+  ///
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.txn_close.cast());
+
+  /// Ensures [_finalizer] exists. Call before the finalizer of Store is created:
+  /// at isolate shutdown, native finalizers run in the order their finalizer
+  /// objects were created, and transactions must be closed before the store.
+  /// This works because Dart initializes static fields on access.
+  static void initFinalizer() => _finalizer;
+
   Transaction(this._store, this.mode)
       : _cTxn = mode == TxMode.write
             ? C.txn_write(InternalStoreAccess.cStore(_store))
             : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
+    _finalizer.attach(this, _cTxn.cast(), detach: this);
   }
 
   /// Indicates the write transaction is complete and closes it.
@@ -48,6 +66,7 @@ class Transaction {
   void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
+    _finalizer.detach(this);
     final firstCursor = _firstCursor;
     if (firstCursor != null) {
       firstCursor.close();

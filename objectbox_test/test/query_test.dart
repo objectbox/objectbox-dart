@@ -844,6 +844,56 @@ void main() {
     query.close();
   });
 
+  test('stream items are valid after concurrent writes', () async {
+    // The worker isolate reads the objects in a read transaction and must copy
+    // their data before the transaction ends: afterwards the database memory
+    // (e.g. LMDB pages) may be reused by writes. Regression test for streamed
+    // objects being read only after the read transaction had ended.
+    final count = 200;
+    box.putMany(List<TestEntity>.generate(
+        count, (i) => TestEntity(tString: 'original $i', tInt: i)));
+    final query = box.query().order(TestEntity_.tInt).build();
+
+    final streamed = <TestEntity>[];
+    await for (final object in query.stream()) {
+      // Keep rewriting all data while streaming: removes the pages of the
+      // streamed objects and writes new content in their place.
+      box.removeAll();
+      box.putMany(List<TestEntity>.generate(
+          count, (i) => TestEntity(tString: 'rewritten $i', tInt: i)));
+
+      streamed.add(object);
+    }
+
+    expect(streamed.length, count);
+    for (var i = 0; i < count; i++) {
+      expect(streamed[i].tInt, i);
+      expect(streamed[i].tString, 'original $i');
+    }
+    query.close();
+  });
+
+  test('stream cancel before first result completes', () async {
+    box.putMany(List<TestEntity>.generate(10, (i) => TestEntity(tInt: i)));
+    final query = box.query().build();
+    addTearDown(query.close);
+    final subscription = query.stream().listen((_) {});
+    // Cancelling before the worker isolate has reported back must still
+    // terminate the worker (previously the exit signal was lost and this
+    // never completed, keeping the worker running forever).
+    await subscription.cancel().timeout(const Duration(seconds: 10));
+  });
+
+  test('stream on closed query emits error', () async {
+    final query = box.query().build();
+    final stream = query.stream();
+    query.close();
+    // Previously this was an unhandled error in the root zone and the
+    // stream never emitted nor closed.
+    await expectLater(
+        stream.toList().timeout(const Duration(seconds: 10)), throwsStateError);
+  });
+
   test('set param single', () async {
     final query = box
         .query(TestEntity_.tString.equals('') |

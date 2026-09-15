@@ -228,11 +228,12 @@ class SyncChange {
 class SyncClient {
   final Store _store;
 
+  /// Pointer to the native instance. Use [_cSyncChecked] for safe access.
   late Pointer<OBX_sync> _cSync;
 
-  /// The low-level pointer to this box.
+  /// [_cSync], but throws if this was already closed.
   @pragma('vm:prefer-inline')
-  Pointer<OBX_sync> get _ptr => (_cSync.address != 0)
+  Pointer<OBX_sync> get _cSyncChecked => (_cSync.address != 0)
       ? _cSync
       : throw StateError('SyncClient already closed');
 
@@ -410,7 +411,7 @@ class SyncClient {
   /// is owned by this client and valid until the client is closed.
   MeshSync? get mesh {
     if (_mesh != null) return _mesh;
-    final meshPtr = C.sync_mesh(_ptr);
+    final meshPtr = C.sync_mesh(_cSyncChecked);
     if (meshPtr.address == 0) return null;
     return _mesh = MeshSyncInternal.createMeshSync(meshPtr);
   }
@@ -420,11 +421,11 @@ class SyncClient {
 
   /// Returns the protocol version of the server after a connection is
   /// established (or attempted), zero otherwise.
-  int protocolVersionServer() => C.sync_protocol_version_server(_ptr);
+  int protocolVersionServer() => C.sync_protocol_version_server(_cSyncChecked);
 
   /// Gets the current sync client state.
   SyncState state() {
-    final state = C.sync_state(_ptr);
+    final state = C.sync_state(_cSyncChecked);
     switch (state) {
       case OBXSyncState.CREATED:
         return SyncState.created;
@@ -465,8 +466,8 @@ class SyncClient {
         name,
         (nameCStr) => withNativeString(
             value,
-            (valueCStr) => checkObx(
-                C.sync_filter_variables_put(_ptr, nameCStr, valueCStr))));
+            (valueCStr) => checkObx(C.sync_filter_variables_put(
+                _cSyncChecked, nameCStr, valueCStr))));
   }
 
   /// Removes a previously added Sync filter variable value.
@@ -476,8 +477,10 @@ class SyncClient {
   ///
   /// See also [putFilterVariable] and [removeAllFilterVariables].
   void removeFilterVariable(String name) {
-    withNativeString(name,
-        (nameCStr) => checkObx(C.sync_filter_variables_remove(_ptr, nameCStr)));
+    withNativeString(
+        name,
+        (nameCStr) =>
+            checkObx(C.sync_filter_variables_remove(_cSyncChecked, nameCStr)));
   }
 
   /// Removes all previously added Sync filter variable values.
@@ -487,7 +490,7 @@ class SyncClient {
   ///
   /// See also [putFilterVariable] and [removeFilterVariable].
   void removeAllFilterVariables() {
-    checkObx(C.sync_filter_variables_remove_all(_ptr));
+    checkObx(C.sync_filter_variables_remove_all(_cSyncChecked));
   }
 
   /// Applies all pending Sync filter variable updates (from [putFilterVariable]
@@ -500,7 +503,7 @@ class SyncClient {
   /// See also [putFilterVariable], [removeFilterVariable] and
   /// [removeAllFilterVariables].
   void applyFilterVariables() {
-    checkObx(C.sync_filter_variables_apply(_ptr));
+    checkObx(C.sync_filter_variables_apply(_cSyncChecked));
   }
 
   /// Sets credentials to authenticate the client with the server.
@@ -517,19 +520,20 @@ class SyncClient {
   /// To pass multiple credentials, use [setMultipleCredentials] instead.
   void setCredentials(SyncCredentials creds) {
     if (creds is _SyncCredentialsNone) {
-      checkObx(C.sync_credentials(_ptr, creds._type, nullptr, 0));
+      checkObx(C.sync_credentials(_cSyncChecked, creds._type, nullptr, 0));
     } else if (creds is _SyncCredentialsUserPassword) {
       withNativeString(
           creds._user,
           (userCStr) => withNativeString(
               creds._password,
               (passwordCStr) => checkObx(C.sync_credentials_user_password(
-                  _ptr, creds._type, userCStr, passwordCStr))));
+                  _cSyncChecked, creds._type, userCStr, passwordCStr))));
     } else if (creds is SyncCredentialsSecret) {
       withNativeBytes(
           creds.data,
           (Pointer<Uint8> credsPtr, int credsSize) => checkObx(
-              C.sync_credentials(_ptr, creds._type, credsPtr, credsSize)));
+              C.sync_credentials(
+                  _cSyncChecked, creds._type, credsPtr, credsSize)));
     }
   }
 
@@ -559,14 +563,14 @@ class SyncClient {
               (userCStr) => withNativeString(
                   credential._password,
                   (passwordCStr) => checkObx(
-                      C.sync_credentials_add_user_password(_ptr,
+                      C.sync_credentials_add_user_password(_cSyncChecked,
                           credential._type, userCStr, passwordCStr, isLast))));
         } else if (credential is SyncCredentialsSecret) {
           withNativeBytes(
               credential.data,
               (Pointer<Uint8> credsPtr, int credsSize) => checkObx(
-                  C.sync_credentials_add(
-                      _ptr, credential._type, credsPtr, credsSize, isLast)));
+                  C.sync_credentials_add(_cSyncChecked, credential._type,
+                      credsPtr, credsSize, isLast)));
         }
       } catch (e) {
         // To make exceptions related to a credential easier to attribute,
@@ -602,7 +606,7 @@ class SyncClient {
       default:
         throw ArgumentError.value(mode, 'mode');
     }
-    checkObx(C.sync_request_updates_mode(_ptr, cMode));
+    checkObx(C.sync_request_updates_mode(_cSyncChecked, cMode));
   }
 
   /// Once the sync client is configured, you can [start] it to initiate
@@ -615,7 +619,7 @@ class SyncClient {
   /// will be retried later automatically. If you haven't set the credentials in
   /// the options during construction, call [setCredentials()] before [start()].
   void start() {
-    checkObx(C.sync_start(_ptr));
+    checkObx(C.sync_start(_cSyncChecked));
   }
 
   /// Stops this sync client and closes the connection to the server.
@@ -623,7 +627,7 @@ class SyncClient {
   /// Does nothing if already stopped. Can be [start]ed again.
   /// Use [close] to fully release resources when done with the client.
   void stop() {
-    checkObx(C.sync_stop(_ptr));
+    checkObx(C.sync_stop(_cSyncChecked));
   }
 
   /// Triggers a reconnection attempt immediately. Returns if a reconnect was
@@ -632,7 +636,8 @@ class SyncClient {
   /// By default, an increasing backoff interval is used for reconnection
   /// attempts. But sometimes the code using this API has additional knowledge
   /// and can initiate a reconnection attempt sooner.
-  bool triggerReconnect() => checkObxSuccess(C.sync_trigger_reconnect(_ptr));
+  bool triggerReconnect() =>
+      checkObxSuccess(C.sync_trigger_reconnect(_cSyncChecked));
 
   /// Requests updates from the server since we last synchronized.
   ///
@@ -641,13 +646,14 @@ class SyncClient {
   ///
   /// Returns `true` if the request was likely sent (client is logged in).
   bool requestUpdates({required bool subscribeForFuturePushes}) =>
-      checkObxSuccess(C.sync_updates_request(_ptr, subscribeForFuturePushes));
+      checkObxSuccess(
+          C.sync_updates_request(_cSyncChecked, subscribeForFuturePushes));
 
   /// Cancels updates from the server so that it will stop sending updates.
   ///
   /// Returns `true` if the request was likely sent (client is logged in).
   /// See also [requestUpdates].
-  bool cancelUpdates() => checkObxSuccess(C.sync_updates_cancel(_ptr));
+  bool cancelUpdates() => checkObxSuccess(C.sync_updates_cancel(_cSyncChecked));
 
   /// Count the number of messages in the outgoing queue, i.e. those waiting to
   /// be sent to the server.
@@ -663,7 +669,7 @@ class SyncClient {
   int outgoingMessageCount({int limit = 0}) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.sync_outgoing_message_count(_ptr, limit, count));
+      checkObx(C.sync_outgoing_message_count(_cSyncChecked, limit, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -674,7 +680,7 @@ class SyncClient {
   int stats(SyncStats counter) {
     final count = malloc<Uint64>();
     try {
-      checkObx(C.sync_stats_u64(_ptr, counter._id, count));
+      checkObx(C.sync_stats_u64(_cSyncChecked, counter._id, count));
       return count.value;
     } finally {
       malloc.free(count);
@@ -694,13 +700,14 @@ class SyncClient {
           _SyncListenerGroup<SyncConnectionEvent>('sync-connection');
 
       _connectionEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_connect(_ptr, nativePort),
+          (int nativePort) =>
+              C.dartc_sync_listener_connect(_cSyncChecked, nativePort),
           (dynamic _, controller) =>
               controller.add(SyncConnectionEvent.connected)));
 
       _connectionEvents!.add(_SyncListenerConfig(
           (int nativePort) =>
-              C.dartc_sync_listener_disconnect(_ptr, nativePort),
+              C.dartc_sync_listener_disconnect(_cSyncChecked, nativePort),
           (dynamic _, controller) =>
               controller.add(SyncConnectionEvent.disconnected)));
 
@@ -721,12 +728,13 @@ class SyncClient {
       _loginEvents = _SyncListenerGroup<SyncLoginEvent>('sync-login');
 
       _loginEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_login(_ptr, nativePort),
+          (int nativePort) =>
+              C.dartc_sync_listener_login(_cSyncChecked, nativePort),
           (dynamic _, controller) => controller.add(SyncLoginEvent.loggedIn)));
 
       _loginEvents!.add(_SyncListenerConfig(
           (int nativePort) =>
-              C.dartc_sync_listener_login_failure(_ptr, nativePort),
+              C.dartc_sync_listener_login_failure(_cSyncChecked, nativePort),
           (dynamic code, controller) {
         // see OBXSyncCode - TODO should we match any other codes?
         switch (code as int) {
@@ -756,7 +764,8 @@ class SyncClient {
       _completionEvents = _SyncListenerGroup<void>('sync-completion');
 
       _completionEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_complete(_ptr, nativePort),
+          (int nativePort) =>
+              C.dartc_sync_listener_complete(_cSyncChecked, nativePort),
           (dynamic _, controller) => controller.add(null)));
 
       _completionEvents!.finish();
@@ -781,7 +790,8 @@ class SyncClient {
       final entityTypesById = InternalStoreAccess.entityTypeById(_store);
 
       _changeEvents!.add(_SyncListenerConfig(
-          (int nativePort) => C.dartc_sync_listener_change(_ptr, nativePort),
+          (int nativePort) =>
+              C.dartc_sync_listener_change(_cSyncChecked, nativePort),
           (dynamic msg, controller) {
         if (msg is! List) {
           controller.addError(ObjectBoxException(
@@ -869,7 +879,10 @@ class _SyncListenerGroup<StreamValueType> {
     return controller.stream;
   }
 
-  /// start() is called whenever user starts listen()-ing to the stream
+  /// Creates a listener group; [name] is only used for debug logging.
+  ///
+  /// Native listeners are not created yet - that only happens once the
+  /// returned stream is listened to, see [finish] and [_start].
   _SyncListenerGroup(this.name) {
     initializeDartAPI();
   }
@@ -880,7 +893,9 @@ class _SyncListenerGroup<StreamValueType> {
     _configs.add(config);
   }
 
-  /// Finish the group, creating a listener.
+  /// Finish the group: no more configs may be [add]ed and the stream becomes
+  /// available via [stream]. Native listeners are created lazily by [_start]
+  /// once the stream is listened to (and torn down by [_stop] on cancel).
   Stream<StreamValueType> finish() {
     assert(!finished, 'finish() may only be called once.');
     controller = StreamController<StreamValueType>.broadcast(
@@ -891,15 +906,12 @@ class _SyncListenerGroup<StreamValueType> {
     return controller.stream;
   }
 
-  // start() is called when the stream subscription is started or resumed
+  // Called via onListen when the (broadcast) stream gets its first listener.
   void _start() {
     _debugLog('starting');
     assert(finished, 'Starting an unfinished group?!');
 
-    var hasError = false;
     for (var config in _configs) {
-      if (hasError) continue;
-
       // Initialize a receive port where the native listener will post messages.
       final receivePort = ReceivePort()
         ..listen((dynamic msg) => config.dartListener(msg, controller));
@@ -907,28 +919,34 @@ class _SyncListenerGroup<StreamValueType> {
       // Store the ReceivePort to be able to close it in _stop().
       _receivePorts.add(receivePort);
 
-      // Start the native listener.
-      final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
-      if (cListener == nullptr) {
-        hasError = true;
-      } else {
-        _cListeners.add(cListener);
-      }
-    }
-
-    if (hasError) {
+      // Start the native listener; on any failure deliver the error on the
+      // stream (throwing here would only surface as an unhandled zone error
+      // the subscriber can not catch) and clean up all resources created so
+      // far, including the receive port created above to not prevent the
+      // isolate from exiting.
       try {
-        throwLatestNativeError(
-            context: 'Failed to initialize a sync native listener');
-      } finally {
-        _stop();
+        final cListener = config.cListenerInit(receivePort.sendPort.nativePort);
+        if (cListener == nullptr) {
+          throwLatestNativeError(
+              context: 'Failed to initialize a sync native listener');
+        }
+        _cListeners.add(cListener);
+      } catch (e, s) {
+        // For ex., the sync client is already closed.
+        controller.addError(e, s);
+        try {
+          _stop();
+        } catch (_) {
+          // Best effort clean-up, an error was already delivered above.
+        }
+        return;
       }
     }
 
     _debugLog('started');
   }
 
-  // stop() is called when the stream subscription is paused or canceled
+  // Called via onCancel when the (broadcast) stream loses its last listener.
   void _stop() {
     _debugLog('stopping');
     assert(finished, 'Stopping an unfinished group?!');

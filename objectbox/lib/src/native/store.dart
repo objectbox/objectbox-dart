@@ -60,6 +60,8 @@ class Store implements Finalizable {
   Stream<List<Type>>? _entityChanges;
 
   final _readPointers = ReadPointers();
+
+  /// Active transaction to be re-used. Currently not used.
   Transaction? _tx;
 
   /// Path to the database directory.
@@ -428,6 +430,38 @@ class Store implements Finalizable {
   /// [UnsupportedError] if this isolate already has an open store (created or
   /// attached) for [directoryPath]. It should be closed first, or attached to
   /// from another isolate.
+  ///
+  /// ## Lifetime of attached stores in worker isolates
+  ///
+  /// An isolate spawned with [Isolate.spawn] is not terminated when the isolate
+  /// that spawned it shuts down, e.g. when a Flutter engine is destroyed while
+  /// the process lives on (like on Android with a foreground service). Such a
+  /// worker keeps running and its attached store keeps the underlying store
+  /// open: [isOpen] returns true and opening the store again fails (error
+  /// code 10001). Calling [close] in the main isolate does not close the
+  /// stores attached in other isolates.
+  ///
+  /// So a worker that keeps an attached store should close it once its work is
+  /// done, and also when the isolate that spawned it exits. For the latter,
+  /// pass the control port of the spawning isolate and use an exit listener:
+  /// ```dart
+  /// // Spawning isolate: pass its control port along with the directory path.
+  /// await Isolate.spawn(workerMain, [dbPath, Isolate.current.controlPort]);
+  ///
+  /// // Worker isolate
+  /// void workerMain(List<Object> args) {
+  ///   final store = Store.attach(getObjectBoxModel(), args[0] as String);
+  ///   final parentExited = ReceivePort();
+  ///   Isolate(args[1] as SendPort).addOnExitListener(parentExited.sendPort);
+  ///   parentExited.listen((_) {
+  ///     store.close();
+  ///     Isolate.exit();
+  ///   });
+  ///   // ... use the store ...
+  /// }
+  /// ```
+  /// To run a function in a worker isolate that does not have to outlive it,
+  /// prefer [runAsync] or [runInTransactionAsync], which handle this.
   Store.attach(ModelDefinition modelDefinition, String? directoryPath,
       {bool queriesCaseSensitiveDefault = true})
       : _closesNativeStore = true,
@@ -545,6 +579,14 @@ class Store implements Finalizable {
   /// close() and not rely on garbage collection [to avoid out-of-memory
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
+    // At isolate shutdown, native finalizers run in the order their finalizer
+    // objects were created (verified empirically, without it, the store close
+    // waits forever; it is not documented VM behaviour): create the ones for
+    // transactions and observers first, so that those still open at that point
+    // are closed before the store.
+    // This works because Dart initializes static fields on access.
+    Transaction.initFinalizer();
+    _Observer.initFinalizer();
     _finalizer.attach(this, _cStore.cast(),
         detach: this, externalSize: 200 * 1024);
   }
@@ -643,6 +685,10 @@ class Store implements Finalizable {
   /// Closes this store.
   ///
   /// Don't try to call any other ObjectBox methods after the store is closed.
+  ///
+  /// This only closes this instance: the underlying native store stays open
+  /// as long as store instances attached in other isolates ([attach]) exist.
+  /// See [attach] on how to close those with the isolate that spawned them.
   void close() {
     if (isClosed()) return;
 
@@ -698,9 +744,8 @@ class Store implements Finalizable {
   /// while the transaction is in progress.
   @pragma('vm:prefer-inline')
   R runInTransaction<R>(TxMode mode, R Function() fn) {
-    // Whether the function is an `async` function. We can't allow those because
-    // the isolate could be transferred to another thread during execution.
-    // Checking the return value seems like the only thing we can in Dart v2.12.
+    // Don't allow `async` functions. See `_runInTransaction` for details.
+    // Checking the return value seems like the only thing possible in Dart 2.12.
     if (fn is Future Function()) {
       // This is a special case when the given function always throws. Triggered
       //  in our test code. No need to even start a DB transaction in that case.
@@ -832,27 +877,43 @@ class Store implements Finalizable {
     if (response is _RunAsyncResult) {
       // Success, return result.
       return response.result as R;
-    } else if (response is List<dynamic>) {
-      // See isolate.addErrorListener docs for message structure.
-      assert(response.length == 2);
-      await Future<Never>.error(RemoteError(
-        response[0] as String,
-        response[1] as String,
-      ));
-    } else {
+    } else if (response is _RunAsyncError) {
       // Error thrown by callback.
-      assert(response is _RunAsyncError);
-      response as _RunAsyncError;
-
       await Future<Never>.error(
         response.error,
         response.stack,
       );
+    } else if (response is List && response.length == 2) {
+      // Sent via Isolate.spawn onError for an uncaught error in the worker
+      // isolate, see isolate.addErrorListener docs for message structure.
+      await Future<Never>.error(RemoteError(
+        response[0] as String? ?? 'runAsync isolate error',
+        response[1] as String? ?? '',
+      ));
+    } else {
+      await Future<Never>.error(RemoteError(
+          'runAsync received an invalid message type '
+              '(${response.runtimeType}): $response',
+          ''));
     }
   }
 
-  /// Internal only - bypasses the main checks for async functions, you may
-  /// only pass synchronous callbacks!
+  /// Creates a new transaction in [mode] and runs the callback function [fn] in
+  /// it.
+  ///
+  /// Finishes the transaction once the callback function returns. If it throws
+  /// instead, the transactions is aborted.
+  ///
+  /// Doesn't await [fn], so it **can't be an async function**. Otherwise, once
+  /// it calls await it returns and the transaction would be closed once it
+  /// resumes! Even if this would await, the isolate might resume on a different
+  /// thread, which is not supported while in a transaction.
+  ///
+  /// This is prepared to re-use an already active transaction [_tx], but [_tx]
+  /// is currently not set.
+  ///
+  /// This doesn't verify that the callback function isn't an async function
+  /// for performance reasons. If not a concern, use [runInTransaction] instead!
   R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
     final reused = _tx != null;
     final tx = reused ? _tx! : Transaction(this, mode);
@@ -975,7 +1036,10 @@ class InternalStoreAccess {
   @pragma('vm:prefer-inline')
   static EntityDefinition<T> entityDef<T>(Store store) => store._entityDef();
 
-  /// Internal helper to reuse a transaction object (and especially cursors).
+  /// Exposes [Store._runInTransaction] to other libraries in this package.
+  ///
+  /// This doesn't verify that the callback function isn't an async function
+  /// for performance reasons. If not a concern, use [runInTransaction] instead!
   @pragma('vm:prefer-inline')
   static R runInTransaction<R>(
           Store store, TxMode mode, R Function(Transaction) fn) =>

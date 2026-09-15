@@ -44,9 +44,11 @@ ffigen:
     symbol-address:
       include:
         - 'obx_admin_close'
+        - 'obx_observer_close'
         - 'obx_query_close'
         - 'obx_query_prop_close'
         - 'obx_store_close'
+        - 'obx_txn_close'
   enums:
     member-rename:
       '(.*)': # Matches any enum.
