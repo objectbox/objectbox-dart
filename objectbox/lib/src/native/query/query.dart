@@ -607,7 +607,7 @@ abstract class Condition<EntityT> {
     if (_alias != null) {
       checkObx(
         withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cStr) => C.qb_param_alias(builder._cBuilder, cStr),
         ),
       );

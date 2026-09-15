@@ -73,7 +73,7 @@ extension QueryParamString on QueryParam<String> {
       );
     } else {
       withNativeStrings(
-        [_alias!, value],
+        [_alias, value],
         (Pointer<Pointer<Char>> ptr, int size) => checkObx(
           C.query_param_alias_string(_query._cQueryChecked, ptr[0], ptr[1]),
         ),
@@ -93,7 +93,7 @@ extension QueryParamString on QueryParam<String> {
             size,
           )
           : withNativeString(
-            _alias!,
+            _alias,
             (Pointer<Char> cAlias) => C.query_param_alias_strings(
               _query._cQueryChecked,
               cAlias,
@@ -119,7 +119,7 @@ extension QueryParamBytes on QueryParam<List<int>> {
             size,
           )
           : withNativeString(
-            _alias!,
+            _alias,
             (Pointer<Char> cAlias) => C.query_param_alias_bytes(
               _query._cQueryChecked,
               cAlias,
@@ -142,7 +142,7 @@ extension QueryParamInt on QueryParam<int> {
           value,
         )
         : withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cAlias) =>
               C.query_param_alias_int(_query._cQueryChecked, cAlias, value),
         ),
@@ -182,7 +182,7 @@ extension QueryParamInt on QueryParam<int> {
         );
       } else {
         withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cAlias) => checkObx(
             is64bit
                 ? C.query_param_alias_int64s(
@@ -216,7 +216,7 @@ extension QueryParamInt on QueryParam<int> {
           b,
         )
         : withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cAlias) =>
               C.query_param_alias_2ints(_query._cQueryChecked, cAlias, a, b),
         ),
@@ -234,7 +234,7 @@ extension QueryParamDouble on QueryParam<double> {
           value,
         )
         : withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cAlias) =>
               C.query_param_alias_double(_query._cQueryChecked, cAlias, value),
         ),
@@ -251,7 +251,7 @@ extension QueryParamDouble on QueryParam<double> {
           b,
         )
         : withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cAlias) =>
               C.query_param_alias_2doubles(_query._cQueryChecked, cAlias, a, b),
         ),
@@ -279,7 +279,7 @@ extension QueryParamDouble on QueryParam<double> {
           ),
         );
       } else {
-        withNativeString(_alias!, (aliasPtr) {
+        withNativeString(_alias, (aliasPtr) {
           checkObx(
             C.query_param_alias_vector_float32(
               _query._cQueryChecked,
@@ -312,7 +312,7 @@ extension QueryParamBool on QueryParam<bool> {
           value ? 1 : 0,
         )
         : withNativeString(
-          _alias!,
+          _alias,
           (Pointer<Char> cAlias) => C.query_param_alias_int(
             _query._cQueryChecked,
             cAlias,

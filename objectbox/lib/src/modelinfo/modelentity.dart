@@ -55,7 +55,7 @@ class ModelEntity {
   }
 
   ModelInfo get model =>
-      (_model == null) ? throw StateError('model is null') : _model!;
+      (_model == null) ? throw StateError('model is null') : _model;
 
   List<ModelProperty> get properties => _properties;
 
