@@ -587,13 +587,11 @@ class Store implements Finalizable {
       if (e.message.contains(OBX_ERROR_STORAGE_GENERAL.toString()) &&
           e.message.contains('Dir does not exist') &&
           (e.message.endsWith(' (13)') || e.message.endsWith(' (30)'))) {
-        // ignore: prefer_interpolation_to_compose_strings
         throw ObjectBoxException(
-          e.message +
-              ' - this usually indicates a problem with permissions; '
-                  "if you're using Flutter you may need to use "
-                  'getApplicationDocumentsDirectory() from the path_provider '
-                  'package, see example/README.md',
+          '${e.message} - this usually indicates a problem with permissions; '
+          "if you're using Flutter you may need to use "
+          'getApplicationDocumentsDirectory() from the path_provider '
+          'package, see example/README.md',
         );
       }
       rethrow;
