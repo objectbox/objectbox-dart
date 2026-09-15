@@ -770,8 +770,6 @@ class InternalBoxAccess {
               rel.objectId,
             );
             break;
-          default:
-            throw UnimplementedError('Invalid relation type ${rel.type}');
         }
         checkObxPtr(cIdsPtr);
         final result = <EntityT>[];

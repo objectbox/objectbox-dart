@@ -271,8 +271,6 @@ class ToMany<EntityT> extends Object with ListMixin<EntityT> {
                 );
               }
               break;
-            default:
-              throw UnimplementedError();
           }
         });
         if (ownedTx) tx.successAndClose();
