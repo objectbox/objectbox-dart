@@ -4,6 +4,7 @@
   * Android apps: min SDK increased to 24 (Android 7.0).
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
 * `Store.fromReference` is deprecated, please migrate to `Store.attach`.
+* `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.
 * Flutter plugins: remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So after updating make sure to run the code generator again using `dart run build_runner build`.
 * Allow analyzer versions up to 14.
 * Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).

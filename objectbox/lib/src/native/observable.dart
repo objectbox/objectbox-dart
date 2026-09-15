@@ -99,18 +99,14 @@ class _Observer<StreamValueType> implements Finalizable {
 /// https://dart.dev/articles/libraries/creating-streams#honoring-the-pause-state
 /// https://dart.dev/articles/libraries/code/stream_controller.dart
 extension ObservableStore on Store {
-  /// Create a stream to data changes on EntityT (stored Entity class).
+  /// Creates a single-subscription stream to data changes of a Box of an
+  /// entity.
   ///
   /// The stream receives an event whenever an object of EntityT is created or
-  /// changed or deleted. Make sure to cancel() the subscription after you're
-  /// done with it to avoid hanging change listeners.
+  /// changed or deleted. Make sure cancel() is called on the subscription after
+  /// being done with it or close the store to clean up resources that prevent
+  /// the isolate from exiting.
   Stream<void> watch<EntityT>() {
-    if (_entityChanges != null) {
-      return _entityChanges!
-          .where((List<Type> entities) => entities.contains(EntityT))
-          .map((_) {});
-    }
-
     final observer = _Observer<void>();
     final entityId = _entityDef<EntityT>().model.id.id;
 
