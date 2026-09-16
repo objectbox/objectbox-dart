@@ -25,42 +25,5 @@ dev_dependencies:
   lints: ^6.1.0
   test: ^1.32.0 # To run coverage on this package.
 
-ffigen:
-  name: 'ObjectBoxC'
-  description: 'Bindings to ObjectBox C-API'
-  output: 'lib/src/native/bindings/objectbox_c.dart'
-  headers:
-    entry-points:
-      # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading
-      # This is to avoid casting Pointer<Uint8> to Pointer<Void> in Dart.
-      - 'lib/src/native/bindings/objectbox.h'
-      - 'lib/src/native/bindings/objectbox-dart.h'
-    include-directives:
-      - '**objectbox*.h'
-  functions:
-    rename:
-      'obx_dart_(.*)': 'dartc_$1'
-      'obx_(.*)': '$1'
-    # Expose some native pointers to use with NativeFinalizer API.
-    # https://pub.dev/packages/ffigen#how-to-expose-the-native-pointers
-    symbol-address:
-      include:
-        - 'obx_admin_close'
-        - 'obx_observer_close'
-        - 'obx_query_close'
-        - 'obx_query_prop_close'
-        - 'obx_store_close'
-        - 'obx_txn_close'
-  enums:
-    # Generate enums as integer constants (like before ffigen v8): the code base
-    # uses the values as integers throughout (bit flags, model JSON, generated code).
-    as-int:
-      include:
-        - '.*'
-    member-rename:
-      '(.*)': # Matches any enum.
-        # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
-        '[^_]+_(.*)': '$1'
-  # pana ignores exclude rules in analysis_options.yaml, explicitly add ignore rules.
-  preamble: |
-    // ignore_for_file: non_constant_identifier_names, public_member_api_docs, prefer_expression_function_bodies, avoid_positional_boolean_parameters, constant_identifier_names, camel_case_types
+# The ffigen configuration was migrated to the FfiGenerator Dart API,
+# see tool/ffigen.dart.

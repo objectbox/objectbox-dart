@@ -124,5 +124,5 @@ All packages share the same version. Use:
 
 See `dev-doc/updating-c-library.md`. Key steps:
 1. Update headers in `objectbox/lib/src/native/bindings/`
-2. Run `dart run ffigen` in `objectbox/`
+2. Run `./tool/update-c-binding.sh --skip-download` (ffigen configuration is in `objectbox/tool/ffigen.dart`)
 3. Update version in `objectbox/lib/src/native/bindings/bindings.dart`
