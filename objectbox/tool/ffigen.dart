@@ -86,6 +86,12 @@ Future<void> main(List<String> args) async {
           // code base uses the values as integers throughout (bit flags, model
           // JSON, generated code). Was enums.as-int.
           node.style = EnumStyle.intConstants;
+          // Silence a SEVERE warning due to ffigen choosing a best guess
+          // integer type for enum function parameters, which can theoretically
+          // not match the enum integer type of the platform (such as signed
+          // int on Windows, see https://github.com/dart-lang/native/pull/1187).
+          // But usages in the ObjectBox C API should be safe.
+          node.silenceWarning = true;
         },
         enumConstant: (node) {
           // Was enums.member-rename: removes anything before the first '_',
