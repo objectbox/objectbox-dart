@@ -21,7 +21,7 @@ dependencies:
   path: ^1.9.1
 
 dev_dependencies:
-  ffigen: ^20.1.1 # Note: regenerating bindings requires Dart 3.8 or newer.
+  ffigen: ^22.0.0 # Requires Dart 3.10, but only used to regenerate bindings.
   lints: ^6.1.0
   test: ^1.32.0 # To run coverage on this package.
 
