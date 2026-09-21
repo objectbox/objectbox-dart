@@ -791,7 +791,7 @@ class Store implements Finalizable {
   @pragma('vm:prefer-inline')
   R runInTransaction<R>(TxMode mode, R Function() fn) {
     // Don't allow `async` functions. See `_runInTransaction` for details.
-    // Checking the return value seems like the only thing possible in Dart 2.12.
+    // Checking the return type is the only thing possible.
     if (fn is Future Function()) {
       // This is a special case when the given function always throws. Triggered
       //  in our test code. No need to even start a DB transaction in that case.
