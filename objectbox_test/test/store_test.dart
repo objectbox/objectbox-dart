@@ -506,12 +506,14 @@ void main() {
 
   test('store dbFileSize', () {
     final testEnv = TestEnv("db-file-size");
+    addTearDown(() => testEnv.closeAndDelete());
     expect(Store.dbFileSize(testEnv.dbDirPath), isPositive);
-    testEnv.closeAndDelete();
   });
 
   test('store dbSize and dbSizeOnDisk', () {
     final testEnv = TestEnv("db-size");
+    addTearDown(() => testEnv.closeAndDelete());
+
     final store = testEnv.store;
     expect(store.dbSize, isPositive);
     if (testEnv.isInMemory) {
@@ -525,19 +527,25 @@ void main() {
     final sizeBefore = store.dbSize;
     testEnv.box.put(TestEntity.filled(id: 0));
     expect(store.dbSize, greaterThan(sizeBefore));
-
-    testEnv.closeAndDelete();
   });
 
   test('store prepareToClose', () {
     final testEnv = TestEnv("prepare-to-close");
+    addTearDown(() => testEnv.closeAndDelete());
+
     final store = testEnv.store;
     store.box<TestEntity>().put(TestEntity(tString: 'closing'));
     store.prepareToClose();
     // Closing state: new transactions are rejected...
     expect(
       () => store.box<TestEntity>().put(TestEntity()),
-      throwsA(isA<Exception>()),
+      throwsA(
+        isA<StorageException>().having(
+          (e) => e.message,
+          'message',
+          contains('Store is closing'),
+        ),
+      ),
     );
     // ...and calling again or closing for real works fine.
     store.prepareToClose();
