@@ -104,7 +104,7 @@ class SyncCredentialsSecret extends SyncCredentials {
   SyncCredentialsSecret._(super.type, this.data) : super._();
 
   SyncCredentialsSecret._encode(super.type, String data)
-    : data = Uint8List.fromList(utf8.encode(data)),
+    : data = utf8.encode(data),
       super._();
 }
 
