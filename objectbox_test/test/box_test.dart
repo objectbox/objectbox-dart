@@ -1,7 +1,5 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:io';
-
 import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
@@ -312,24 +310,16 @@ void main() {
       final object = TestEntity2()..value = 42;
       final future = box.putQueuedAwaitResult(object);
 
-      if (Platform.isMacOS && !atLeastDart('3.1.0')) {
-        // Before Dart 3.1 an incorrect exception is thrown on macOS.
-        expect(
-          () async => await future,
-          throwsA(predicate((e) => e is ObjectBoxException && e.message == '')),
-        );
-      } else {
-        expect(
-          () async => await future,
-          throwsA(
-            predicate(
-              (e) =>
-                  e is UniqueViolationException &&
-                  e.message.contains('Unique constraint'),
-            ),
+      expect(
+        () async => await future,
+        throwsA(
+          predicate(
+            (e) =>
+                e is UniqueViolationException &&
+                e.message.contains('Unique constraint'),
           ),
-        );
-      }
+        ),
+      );
 
       expect(object.id, isNull); // ID must remain unassigned
     }

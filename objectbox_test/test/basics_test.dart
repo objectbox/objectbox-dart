@@ -7,14 +7,7 @@ import 'package:objectbox/src/native/bindings/helpers.dart';
 import 'package:objectbox/src/native/version.dart';
 import 'package:test/test.dart';
 
-import 'test_env.dart';
-
 void main() {
-  test("Dart version test helper", () {
-    expect(atLeastDart("2.15.0"), true);
-    expect(atLeastDart("999.0.0"), false);
-  });
-
   print(
     "Testing basics of ObjectBox using C lib V${libraryVersion()} "
     "with database version ${Store.databaseVersion()}",

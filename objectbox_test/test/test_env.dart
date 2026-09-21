@@ -128,14 +128,3 @@ Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 /// the remainder of the test case.
 Future<void> yieldExecution() async =>
     await Future<void>.delayed(Duration.zero);
-
-bool atLeastDart(String expectedLowestVersion) {
-  final dartVersion = RegExp(
-    '([0-9]+).([0-9]+).([0-9]+)',
-  ).firstMatch(Platform.version)?.group(0);
-  if (dartVersion != null && dartVersion.compareTo(expectedLowestVersion) > 0) {
-    return true;
-  } else {
-    return false;
-  }
-}
