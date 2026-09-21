@@ -45,7 +45,6 @@
 * Close native observers (`Store.watch()`, `Store.entityChanges`, `Query.watch()`) that are still open when their isolate shuts down or when they are garbage collected without the subscription being canceled. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Fix native data observers not being stopped when the store is closed: cancelling a `Store.watch<Entity>()` or `Store.entityChanges` subscription after `Store.close()` closed the already freed native observer (a use-after-free that can corrupt memory or crash). A `watch<Entity>()` subscription also kept its receive port open forever if the store was closed without cancelling, preventing the isolate from exiting.
 * `Store.entityChanges` closes its receive port if creating the observer fails or while there are no listeners, no longer preventing an isolate from exiting.
-* Sync: errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 
 ### Sync
 
@@ -57,6 +56,7 @@
   waiting for the user's decision; pass `onPermissionsGranted` to get notified once permissions are granted
   and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios.
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
+* Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 
 ## 5.3.2 (2026-05-20)
 
