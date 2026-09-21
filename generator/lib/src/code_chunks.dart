@@ -67,9 +67,8 @@ class CodeChunks {
 
   /// Builds openStore method code string wrapping the [Store] constructor.
   ///
-  /// If the ObjectBox Flutter dependency is detected in [pubspec], will
-  /// add its compat loading for the Android library and use its default
-  /// directory detection. Also the method will become async.
+  /// If the ObjectBox Flutter dependency is detected in [pubspec], will use its
+  /// default directory detection and the method will become async.
   static String openStore(ModelInfo model, Pubspec? pubspec) {
     final obxFlutter = pubspec?.hasObxFlutterDependency ?? false;
     return '''${obxFlutter ? 'Future<$obx.Store>' : '$obx.Store'} openStore(
