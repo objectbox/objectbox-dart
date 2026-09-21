@@ -959,7 +959,7 @@ class SyncClient {
 
   /// The callback registered with the C API while [_errorEvents] has
   /// listeners.
-  NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>? _errorListener;
+  NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>? _errorCallback;
 
   /// A broadcast stream of sync-level error events.
   ///
@@ -978,7 +978,7 @@ class SyncClient {
     // and post it to a native port, the error listener only receives an error
     // code, which NativeCallable safely passes to Dart on any thread.
     final controller = _errorEvents!;
-    final listener =
+    final callback =
         NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>.listener((
           Pointer<Void> arg,
           int error,
@@ -991,14 +991,26 @@ class SyncClient {
               controller.add(SyncErrorEvent.unknown);
           }
         });
-    C.sync_listener_error(_cSyncChecked, listener.nativeFunction, nullptr);
-    _errorListener = listener;
+    try {
+      C.sync_listener_error(_cSyncChecked, callback.nativeFunction, nullptr);
+    } catch (e, s) {
+      // For ex. Sync client is already closed
+      controller.addError(e, s);
+      // Close the callback to not prevent the isolate from exiting
+      callback.close();
+      return;
+    }
+    _errorCallback = callback;
   }
 
   void _stopErrorListener() {
-    if (!isClosed()) C.sync_listener_error(_cSyncChecked, nullptr, nullptr);
-    _errorListener?.close();
-    _errorListener = null;
+    try {
+      if (!isClosed()) C.sync_listener_error(_cSyncChecked, nullptr, nullptr);
+    } finally {
+      // Close the callback to not prevent the isolate from exiting
+      _errorCallback?.close();
+      _errorCallback = null;
+    }
   }
 }
 
