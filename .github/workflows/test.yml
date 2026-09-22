@@ -22,9 +22,9 @@ env:
   # Build Flutter test app with latest and lowest supported Flutter SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
   # NOTE: also update matrix configurations below!
-  FLUTTER_VERSION_LATEST: 3.44.1 # Available versions: https://docs.flutter.dev/release/archive
+  FLUTTER_VERSION_LATEST: 3.47.5 # Available versions: https://docs.flutter.dev/release/archive
   FLUTTER_VERSION_LOWEST: 3.44.1 # Lowest supported Flutter SDK
-  DART_VERSION: 3.12.1 # Available versions: https://dart.dev/get-dart/archive
+  DART_VERSION: 3.13.4 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
 
@@ -70,7 +70,7 @@ jobs:
           # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
-          - 3.12.1
+          - 3.13.4
           - 3.7.2 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
@@ -148,7 +148,7 @@ jobs:
         # Env variables can not be used directly here, so reference them by name
         # and resolve them in the steps below via the env context.
         flutter-version-var:
-#          - FLUTTER_VERSION_LATEST # Temporarily disable until versions diverge.
+          - FLUTTER_VERSION_LATEST
           - FLUTTER_VERSION_LOWEST
     runs-on: ubuntu-24.04
     steps:
