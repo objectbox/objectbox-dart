@@ -41,6 +41,8 @@ void main() {
     return query;
   }
 
+  // That a nested query works is also covered by the "query with nested" tests
+  // in box_test.dart.
   test('nested query within callback', () {
     final query = buildQueryAll();
     try {
@@ -64,6 +66,8 @@ void main() {
     }
   });
 
+  // That visit cancels on return false is also covered by findFirst() tests
+  // in query_test.dart.
   test('cancel visiting', () {
     final query = buildQueryAll();
     try {
@@ -78,6 +82,8 @@ void main() {
     }
   });
 
+  // That an exception is (only) propagated via an additional helper is also
+  // covered by the "query with nested throwing query" test in box_test.dart.
   test('exception in callback cancels visiting', () {
     final query = buildQueryAll();
     try {
