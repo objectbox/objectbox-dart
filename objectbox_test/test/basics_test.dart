@@ -7,16 +7,11 @@ import 'package:objectbox/src/native/bindings/helpers.dart';
 import 'package:objectbox/src/native/version.dart';
 import 'package:test/test.dart';
 
-import 'test_env.dart';
-
 void main() {
-  test("Dart version test helper", () {
-    expect(atLeastDart("2.15.0"), true);
-    expect(atLeastDart("999.0.0"), false);
-  });
-
-  print("Testing basics of ObjectBox using C lib V${libraryVersion()} "
-      "with database version ${Store.databaseVersion()}");
+  print(
+    "Testing basics of ObjectBox using C lib V${libraryVersion()} "
+    "with database version ${Store.databaseVersion()}",
+  );
 
   // Prior to Dart 2.6, the exception wasn't accessible and may have crashed.
   // Similarly, this occured in Fluter for Linux (desktop).
@@ -26,13 +21,19 @@ void main() {
     final cStore = C.store_open(ffi.nullptr);
 
     // sanity check - the result is a null pointer
-    expect(cStore,
-        isA<ffi.Pointer>().having((ptr) => ptr.address, 'address', equals(0)));
+    expect(
+      cStore,
+      isA<ffi.Pointer>().having((ptr) => ptr.address, 'address', equals(0)),
+    );
 
     expect(
-        throwLatestNativeError,
-        throwsA(predicate(
-            (ArgumentError e) => e.toString().contains('must not be null'))));
+      throwLatestNativeError,
+      throwsA(
+        predicate(
+          (ArgumentError e) => e.toString().contains('must not be null'),
+        ),
+      ),
+    );
   });
 
   test('dartStringFromC handles malformed UTF-8', () {
@@ -81,15 +82,22 @@ void main() {
     });
 
     test('rejects unrecognized version formats', () {
-      final invalidFormatError = throwsA(isA<ArgumentError>().having(
+      final invalidFormatError = throwsA(
+        isA<ArgumentError>().having(
           (error) => error.message,
           'message',
-          contains('Version string not in expected format')));
+          contains('Version string not in expected format'),
+        ),
+      );
 
       expect(
-          () => isAtLeastDatabaseVersion("unknown", min), invalidFormatError);
+        () => isAtLeastDatabaseVersion("unknown", min),
+        invalidFormatError,
+      );
       expect(
-          () => isAtLeastDatabaseVersion(min, "unknown"), invalidFormatError);
+        () => isAtLeastDatabaseVersion(min, "unknown"),
+        invalidFormatError,
+      );
       expect(() => isAtLeastDatabaseVersion("5.3.2", min), invalidFormatError);
       expect(() => isAtLeastDatabaseVersion(min, "5.3.2"), invalidFormatError);
     });

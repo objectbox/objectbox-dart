@@ -171,24 +171,24 @@ class ModelProperty {
     this.externalName,
     this.externalType,
     this.dartType,
-  })  : _name = name,
-        _type = type,
-        _flags = flags,
-        _indexId = indexId,
-        uidRequest = false;
+  }) : _name = name,
+       _type = type,
+       _flags = flags,
+       _indexId = indexId,
+       uidRequest = false;
 
   ModelProperty.fromMap(Map<String, dynamic> data, this.entity)
-      : id = IdUid.fromString(data[ModelPropertyKey.id] as String?),
-        relationField = data[ModelPropertyKey.relationField] as String?,
-        relationTarget = data[ModelPropertyKey.relationTarget] as String?,
-        _dartFieldType = data[ModelPropertyKey.dartFieldType] as String?,
-        uidRequest = data[ModelPropertyKey.uidRequest] as bool? ?? false,
-        hnswParams = ModelHnswParams.fromMap(
-            data[ModelPropertyKey.hnswParams] as Map<String, dynamic>?),
-        externalName = data[ModelPropertyKey.externalName] as String?,
-        externalType = data[ModelPropertyKey.externalType] as int?,
-        dartType =
-            _propertyTypeFromInt(data[ModelPropertyKey.dartType] as int?) {
+    : id = IdUid.fromString(data[ModelPropertyKey.id] as String?),
+      relationField = data[ModelPropertyKey.relationField] as String?,
+      relationTarget = data[ModelPropertyKey.relationTarget] as String?,
+      _dartFieldType = data[ModelPropertyKey.dartFieldType] as String?,
+      uidRequest = data[ModelPropertyKey.uidRequest] as bool? ?? false,
+      hnswParams = ModelHnswParams.fromMap(
+        data[ModelPropertyKey.hnswParams] as Map<String, dynamic>?,
+      ),
+      externalName = data[ModelPropertyKey.externalName] as String?,
+      externalType = data[ModelPropertyKey.externalType] as int?,
+      dartType = _propertyTypeFromInt(data[ModelPropertyKey.dartType] as int?) {
     name = data[ModelPropertyKey.name] as String?;
     type = data[ModelPropertyKey.type] as int?;
     flags = data[ModelPropertyKey.flags] as int? ?? 0;

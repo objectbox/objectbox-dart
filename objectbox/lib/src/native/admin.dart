@@ -41,7 +41,8 @@ class Admin implements Finalizable {
   Admin(Store store, {String bindUri = 'http://127.0.0.1:8090'}) {
     if (!isAvailable()) {
       throw UnsupportedError(
-          'Admin is not available in the loaded ObjectBox runtime library.');
+        'Admin is not available in the loaded ObjectBox runtime library.',
+      );
     }
     initializeDartAPI();
 
@@ -49,8 +50,10 @@ class Admin implements Finalizable {
     try {
       checkObx(C.admin_opt_store(opt, InternalStoreAccess.cStore(store)));
       checkObx(C.admin_opt_user_management(opt, false));
-      withNativeString(bindUri,
-          (Pointer<Char> cStr) => checkObx(C.admin_opt_bind(opt, cStr)));
+      withNativeString(
+        bindUri,
+        (Pointer<Char> cStr) => checkObx(C.admin_opt_bind(opt, cStr)),
+      );
     } catch (_) {
       C.admin_opt_free(opt);
       rethrow;
@@ -59,8 +62,12 @@ class Admin implements Finalizable {
     // Note: obx_admin takes ownership of the options, even on failure.
     _cAdmin = checkObxPtr(C.admin(opt), 'failed to create ObjectBox Admin');
 
-    _finalizer.attach(this, _cAdmin.cast(),
-        detach: this, externalSize: 1024 * 1024);
+    _finalizer.attach(
+      this,
+      _cAdmin.cast(),
+      detach: this,
+      externalSize: 1024 * 1024,
+    );
   }
 
   /// Closes and cleans up all resources used by this Admin.

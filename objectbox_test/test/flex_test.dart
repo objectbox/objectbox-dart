@@ -44,15 +44,14 @@ void main() {
         'double': 3.14,
         'bool': false,
       };
-      final testMapWithNull = <String, Object?>{
-        'null': null,
-      }..addAll(testMap);
+      final testMapWithNull = <String, Object?>{'null': null}..addAll(testMap);
       final entity = FlexMapEntity(
-          flexDynamic: testMapWithNull,
-          flexObject: testMapWithNull,
-          flexObjectNonNull: testMap,
-          flexNonNull: testMapWithNull,
-          flexExplicit: testMapWithNull);
+        flexDynamic: testMapWithNull,
+        flexObject: testMapWithNull,
+        flexObjectNonNull: testMap,
+        flexNonNull: testMapWithNull,
+        flexExplicit: testMapWithNull,
+      );
       final id = box.put(entity);
 
       assertTestMap(Map<String, dynamic> map) {
@@ -83,10 +82,7 @@ void main() {
         flexDynamic: {
           'user': {
             'name': 'Bob',
-            'address': {
-              'city': 'Berlin',
-              'zip': '10115',
-            },
+            'address': {'city': 'Berlin', 'zip': '10115'},
           },
         },
       );
@@ -122,11 +118,11 @@ void main() {
           'users': [
             {
               'name': 'Alice',
-              'roles': ['admin', 'user']
+              'roles': ['admin', 'user'],
             },
             {
               'name': 'Bob',
-              'roles': ['user']
+              'roles': ['user'],
             },
           ],
           'metadata': {
@@ -224,11 +220,12 @@ void main() {
       final testList = ['Alice', 30, 3.14, true];
       final testListWithNull = List<Object?>.from(testList) + [null];
       final entity = FlexListEntity(
-          flexDynamic: testListWithNull,
-          flexObject: testListWithNull,
-          flexObjectNonNull: testList,
-          flexNonNull: testListWithNull,
-          flexExplicit: testListWithNull);
+        flexDynamic: testListWithNull,
+        flexObject: testListWithNull,
+        flexObjectNonNull: testList,
+        flexNonNull: testListWithNull,
+        flexExplicit: testListWithNull,
+      );
       final id = box.put(entity);
 
       assertTestList(List<dynamic> list) {
@@ -257,7 +254,7 @@ void main() {
           [1, 2, 3],
           ['a', 'b', 'c'],
           [
-            [true, false]
+            [true, false],
           ],
         ],
       );
@@ -294,7 +291,7 @@ void main() {
             'users': [
               {'name': 'Alice'},
               {'name': 'Bob'},
-            ]
+            ],
           },
           [1, 2, 3],
           'string',
@@ -317,11 +314,13 @@ void main() {
         {'key1': 'value1', 'nullable': null},
         {
           'key2': 'value2',
-          'nested': {'a': 1}
+          'nested': {'a': 1},
         },
       ];
       final entity = FlexListEntity(
-          flexListOfMaps: testList, flexListOfMapsObject: testList);
+        flexListOfMaps: testList,
+        flexListOfMapsObject: testList,
+      );
       final id = box.put(entity);
 
       assertNestedMap(List<Map<String, dynamic>> list) {

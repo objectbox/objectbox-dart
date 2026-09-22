@@ -16,18 +16,21 @@ void main() {
   tearDown(() => env.closeAndDelete());
 
   test('query', () async {
-    box.putMany(List.generate(10, (index) {
-      final i = index + 1; // start at 1
-      final value = i.toDouble();
-      return HnswObject()
-        ..name = "node$i"
-        ..floatVector = [value, value];
-    }));
+    box.putMany(
+      List.generate(10, (index) {
+        final i = index + 1; // start at 1
+        final value = i.toDouble();
+        return HnswObject()
+          ..name = "node$i"
+          ..floatVector = [value, value];
+      }),
+    );
 
     final searchVector = [5.0, 4.5];
-    final query = box
-        .query(HnswObject_.floatVector.nearestNeighborsF32(searchVector, 2))
-        .build();
+    final query =
+        box
+            .query(HnswObject_.floatVector.nearestNeighborsF32(searchVector, 2))
+            .build();
     addTearDown(() => query.close());
 
     // Standard search
@@ -80,22 +83,29 @@ void main() {
       [48.8566, 2.3522],
       [41.9028, 12.4964],
       [40.4168, -3.7038],
-      [51.5074, -0.1278]
+      [51.5074, -0.1278],
     ];
 
-    box.putMany(List.generate(cities.length, (i) {
-      return HnswObject()
-        ..name = cities[i]
-        ..floatVectorGeoCoordinates = coordinates[i];
-    }));
+    box.putMany(
+      List.generate(cities.length, (i) {
+        return HnswObject()
+          ..name = cities[i]
+          ..floatVectorGeoCoordinates = coordinates[i];
+      }),
+    );
 
     // lat/lng for Munich
     final List<double> searchVector = [48.1371, 11.5754];
 
-    final query = box
-        .query(HnswObject_.floatVectorGeoCoordinates
-            .nearestNeighborsF32(searchVector, 5))
-        .build();
+    final query =
+        box
+            .query(
+              HnswObject_.floatVectorGeoCoordinates.nearestNeighborsF32(
+                searchVector,
+                5,
+              ),
+            )
+            .build();
     addTearDown(() => query.close());
 
     final nearestCities = query.find();
@@ -108,20 +118,27 @@ void main() {
   });
 
   test('find offset limit', () {
-    box.putMany(List.generate(15, (index) {
-      final i = index + 1; // start at 1
-      final value = i.toDouble();
-      return HnswObject()
-        ..name = "node_$i"
-        ..floatVector = [value, value];
-    }));
+    box.putMany(
+      List.generate(15, (index) {
+        final i = index + 1; // start at 1
+        final value = i.toDouble();
+        return HnswObject()
+          ..name = "node_$i"
+          ..floatVector = [value, value];
+      }),
+    );
 
     final searchVector = [3.1, 3.1];
     final maxResultCount = 4;
-    final query = box
-        .query(HnswObject_.floatVector
-            .nearestNeighborsF32(searchVector, maxResultCount))
-        .build();
+    final query =
+        box
+            .query(
+              HnswObject_.floatVector.nearestNeighborsF32(
+                searchVector,
+                maxResultCount,
+              ),
+            )
+            .build();
     addTearDown(() => query.close());
 
     // No offset
@@ -188,7 +205,7 @@ void main() {
     final ids = env.store.box<RelatedNamedEntity>().putMany([
       RelatedNamedEntity()..name = "Apple",
       RelatedNamedEntity()..name = "Banana",
-      RelatedNamedEntity()..name = "Misc"
+      RelatedNamedEntity()..name = "Misc",
     ]);
     final appleGroupId = ids[0];
     final bananaGroupId = ids[1];
@@ -230,14 +247,18 @@ void main() {
       HnswObject()
         ..name = "One banana"
         ..floatVector = [6.5, 6.5]
-        ..rel.targetId = miscGroupId
+        ..rel.targetId = miscGroupId,
     ]);
 
     // Search nearest starting with "Apple"
-    final queryApple = box
-        .query(HnswObject_.floatVector.nearestNeighborsF32(
-            [2.7, 2.5], 9).and(HnswObject_.name.startsWith("Apple")))
-        .build();
+    final queryApple =
+        box
+            .query(
+              HnswObject_.floatVector
+                  .nearestNeighborsF32([2.7, 2.5], 9)
+                  .and(HnswObject_.name.startsWith("Apple")),
+            )
+            .build();
     addTearDown(() => queryApple.close());
     final apples = queryApple.findWithScores();
     expect(apples.length, 3);
@@ -249,10 +270,16 @@ void main() {
     expect(apples[2].object.name, "Apple seed");
 
     // Search nearest ending with "banana" (ignore case)
-    final queryBanana = box
-        .query(HnswObject_.floatVector.nearestNeighborsF32([2.7, 2.5], 9).and(
-            HnswObject_.name.endsWith("Banana", caseSensitive: false)))
-        .build();
+    final queryBanana =
+        box
+            .query(
+              HnswObject_.floatVector
+                  .nearestNeighborsF32([2.7, 2.5], 9)
+                  .and(
+                    HnswObject_.name.endsWith("Banana", caseSensitive: false),
+                  ),
+            )
+            .build();
     addTearDown(() => queryBanana.close());
     final bananas = queryBanana.findWithScores();
     expect(bananas.length, 3);
@@ -264,10 +291,14 @@ void main() {
     expect(bananas[2].object.name, "One banana");
 
     // Search nearest equals to "Peach"
-    final queryPeach = box
-        .query(HnswObject_.floatVector.nearestNeighborsF32(
-            [2.7, 2.5], 9).and(HnswObject_.name.equals("Peach")))
-        .build();
+    final queryPeach =
+        box
+            .query(
+              HnswObject_.floatVector
+                  .nearestNeighborsF32([2.7, 2.5], 9)
+                  .and(HnswObject_.name.equals("Peach")),
+            )
+            .build();
     addTearDown(() => queryPeach.close());
     final peaches = queryPeach.findWithScores();
     expect(peaches.length, 1);
@@ -275,12 +306,23 @@ void main() {
     expect(peaches[0].object.name, "Peach");
 
     // Get nearest items that either ends with "juice" or "banana"
-    final queryEnds = box
-        .query(HnswObject_.floatVector.nearestNeighborsF32([2.7, 2.5], 9).and(
-            HnswObject_.name
-                .endsWith("juice")
-                .or(HnswObject_.name.endsWith("banana", caseSensitive: false))))
-        .build();
+    final queryEnds =
+        box
+            .query(
+              HnswObject_.floatVector
+                  .nearestNeighborsF32([2.7, 2.5], 9)
+                  .and(
+                    HnswObject_.name
+                        .endsWith("juice")
+                        .or(
+                          HnswObject_.name.endsWith(
+                            "banana",
+                            caseSensitive: false,
+                          ),
+                        ),
+                  ),
+            )
+            .build();
     addTearDown(() => queryEnds.close());
     final ends = queryEnds.findWithScores();
     expect(ends.length, 4);
@@ -290,8 +332,11 @@ void main() {
     expect(ends[3].object.name, "One banana");
 
     // Get "Apple" group elements and among those, take the one that ends with "juice"
-    final builder = box.query(HnswObject_.floatVector.nearestNeighborsF32(
-        [2.7, 2.5], 9).and(HnswObject_.name.endsWith("juice")));
+    final builder = box.query(
+      HnswObject_.floatVector
+          .nearestNeighborsF32([2.7, 2.5], 9)
+          .and(HnswObject_.name.endsWith("juice")),
+    );
     builder.link(HnswObject_.rel, RelatedNamedEntity_.name.equals("Apple"));
     final queryRel = builder.build();
     addTearDown(() => queryRel.close());

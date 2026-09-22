@@ -24,9 +24,7 @@ class IdUid {
     return IdUid(_parse('id', spl[0]), _parse('uid', spl[1]));
   }
 
-  const IdUid.empty()
-      : id = 0,
-        uid = 0;
+  const IdUid.empty() : id = 0, uid = 0;
 
   bool get isEmpty => id == 0 && uid == 0;
 

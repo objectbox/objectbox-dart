@@ -20,20 +20,20 @@ class BuilderWithCBuffer {
   fb.Builder get fbb => _fbb;
 
   @pragma('vm:prefer-inline')
-  Pointer<Void> get bufPtr => Pointer<Void>.fromAddress(
-      _allocator.bufAddress + _allocator._capacity - _fbb.size());
+  Pointer<Void> get bufPtr =>
+      (_allocator._buf + (_allocator._capacity - _fbb.size())).cast();
 
   BuilderWithCBuffer({int initialSize = 256, int resetIfLargerThan = 64 * 1024})
-      : _initialSize = initialSize,
-        _resetIfLargerThan = resetIfLargerThan {
+    : _initialSize = initialSize,
+      _resetIfLargerThan = resetIfLargerThan {
     _fbb = _createBuilder();
   }
 
   fb.Builder _createBuilder() => fb.Builder(
-        initialSize: _initialSize,
-        allocator: _allocator,
-        deduplicateTables: false, // we always have exactly one table
-      );
+    initialSize: _initialSize,
+    allocator: _allocator,
+    deduplicateTables: false, // we always have exactly one table
+  );
 
   @pragma('vm:prefer-inline')
   void resetIfLarge() {
@@ -54,10 +54,11 @@ class Allocator extends fb.Allocator {
   // allocated buffer capacity
   int _capacity = 0;
 
+  /// The allocated buffer, only valid after [allocate].
   @pragma('vm:prefer-inline')
-  int get bufAddress {
+  Pointer<Uint8> get _buf {
     assert(_ptr!.address != 0);
-    return _ptr!.address;
+    return _ptr!;
   }
 
   ByteData get _view => ByteData.view(_ptr!.asTypedList(_capacity).buffer);
@@ -78,14 +79,19 @@ class Allocator extends fb.Allocator {
 
   @override
   ByteData resize(
-      ByteData oldData, int newSize, int inUseBack, int inUseFront) {
+    ByteData oldData,
+    int newSize,
+    int inUseBack,
+    int inUseFront,
+  ) {
     final newPtr = malloc<Uint8>(newSize);
     final oldPtr = _ptr!;
     if (inUseBack != 0) {
       memcpy(
-          Pointer<Uint8>.fromAddress(newPtr.address + newSize - inUseBack),
-          Pointer<Uint8>.fromAddress(oldPtr.address + _capacity - inUseBack),
-          inUseBack);
+        newPtr + (newSize - inUseBack),
+        oldPtr + (_capacity - inUseBack),
+        inUseBack,
+      );
     }
     if (inUseFront != 0) {
       memcpy(newPtr, oldPtr, inUseFront);

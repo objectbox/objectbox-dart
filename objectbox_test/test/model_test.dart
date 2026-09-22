@@ -32,12 +32,19 @@ void main() {
     expect(model.containsUid(prop.indexId!.uid), isTrue);
     expect(model.containsUid(rel.id.uid), isTrue);
 
-    final uidExists = throwsA(isA<StateError>()
-        .having((e) => e.message, 'message', startsWith('uid already exists')));
+    final uidExists = throwsA(
+      isA<StateError>().having(
+        (e) => e.message,
+        'message',
+        startsWith('uid already exists'),
+      ),
+    );
     expect(() => model.createEntity('C', entity.id.uid), uidExists);
     expect(() => entity.createProperty('newProp', prop.id.uid), uidExists);
     expect(
-        () => entity.createProperty('newProp2', prop.indexId!.uid), uidExists);
+      () => entity.createProperty('newProp2', prop.indexId!.uid),
+      uidExists,
+    );
     expect(() => entity.createRelation('newRel', rel.id.uid), uidExists);
   });
 

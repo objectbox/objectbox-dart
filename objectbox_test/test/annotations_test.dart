@@ -9,32 +9,42 @@ void main() {
     expect(HnswFlags().toFlags(), 0);
     expect(HnswFlags(debugLogs: true).toFlags(), OBXHnswFlags.DebugLogs);
     expect(
-        HnswFlags(debugLogs: true, vectorCacheSimdPaddingOff: true).toFlags(),
-        OBXHnswFlags.DebugLogs | OBXHnswFlags.VectorCacheSimdPaddingOff);
+      HnswFlags(debugLogs: true, vectorCacheSimdPaddingOff: true).toFlags(),
+      OBXHnswFlags.DebugLogs | OBXHnswFlags.VectorCacheSimdPaddingOff,
+    );
   });
 
   test("Distance type mapped as expected", () {
-    expect(VectorDistanceType.euclidean.toConstant(),
-        OBXVectorDistanceType.Euclidean);
     expect(
-        VectorDistanceType.cosine.toConstant(), OBXVectorDistanceType.Cosine);
-    expect(VectorDistanceType.dotProduct.toConstant(),
-        OBXVectorDistanceType.DotProduct);
-    expect(VectorDistanceType.dotProductNonNormalized.toConstant(),
-        OBXVectorDistanceType.DotProductNonNormalized);
+      VectorDistanceType.euclidean.toConstant(),
+      OBXVectorDistanceType.Euclidean,
+    );
+    expect(
+      VectorDistanceType.cosine.toConstant(),
+      OBXVectorDistanceType.Cosine,
+    );
+    expect(
+      VectorDistanceType.dotProduct.toConstant(),
+      OBXVectorDistanceType.DotProduct,
+    );
+    expect(
+      VectorDistanceType.dotProductNonNormalized.toConstant(),
+      OBXVectorDistanceType.DotProductNonNormalized,
+    );
     expect(VectorDistanceType.geo.toConstant(), OBXVectorDistanceType.Geo);
   });
 
   test("ModelHnswParams maps values", () {
     final flags = HnswFlags(debugLogs: true);
     final original = HnswIndex(
-        dimensions: 2,
-        neighborsPerNode: 30,
-        indexingSearchCount: 100,
-        flags: flags,
-        distanceType: VectorDistanceType.euclidean,
-        reparationBacklinkProbability: 0.95,
-        vectorCacheHintSizeKB: 2097152);
+      dimensions: 2,
+      neighborsPerNode: 30,
+      indexingSearchCount: 100,
+      flags: flags,
+      distanceType: VectorDistanceType.euclidean,
+      reparationBacklinkProbability: 0.95,
+      vectorCacheHintSizeKB: 2097152,
+    );
 
     // From annotation to model class
     final modelParams = ModelHnswParams.fromAnnotation(original);
@@ -51,28 +61,52 @@ void main() {
 
   test("ModelHnswParams rejects illegal values", () {
     expect(
-        () => ModelHnswParams.fromAnnotation(HnswIndex(dimensions: 0)),
-        throwsA(
-            isA<ArgumentError>().having((e) => e.name, "name", "dimensions")));
+      () => ModelHnswParams.fromAnnotation(HnswIndex(dimensions: 0)),
+      throwsA(isA<ArgumentError>().having((e) => e.name, "name", "dimensions")),
+    );
     expect(
-        () => ModelHnswParams.fromAnnotation(
-            HnswIndex(dimensions: 1, neighborsPerNode: 0)),
-        throwsA(isA<ArgumentError>()
-            .having((e) => e.name, "name", "neighborsPerNode")));
+      () => ModelHnswParams.fromAnnotation(
+        HnswIndex(dimensions: 1, neighborsPerNode: 0),
+      ),
+      throwsA(
+        isA<ArgumentError>().having((e) => e.name, "name", "neighborsPerNode"),
+      ),
+    );
     expect(
-        () => ModelHnswParams.fromAnnotation(
-            HnswIndex(dimensions: 1, indexingSearchCount: 0)),
-        throwsA(isA<ArgumentError>()
-            .having((e) => e.name, "name", "indexingSearchCount")));
+      () => ModelHnswParams.fromAnnotation(
+        HnswIndex(dimensions: 1, indexingSearchCount: 0),
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.name,
+          "name",
+          "indexingSearchCount",
+        ),
+      ),
+    );
     expect(
-        () => ModelHnswParams.fromAnnotation(
-            HnswIndex(dimensions: 1, reparationBacklinkProbability: -1.0)),
-        throwsA(isA<ArgumentError>()
-            .having((e) => e.name, "name", "reparationBacklinkProbability")));
+      () => ModelHnswParams.fromAnnotation(
+        HnswIndex(dimensions: 1, reparationBacklinkProbability: -1.0),
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.name,
+          "name",
+          "reparationBacklinkProbability",
+        ),
+      ),
+    );
     expect(
-        () => ModelHnswParams.fromAnnotation(
-            HnswIndex(dimensions: 1, vectorCacheHintSizeKB: 0)),
-        throwsA(isA<ArgumentError>()
-            .having((e) => e.name, "name", "vectorCacheHintSizeKB")));
+      () => ModelHnswParams.fromAnnotation(
+        HnswIndex(dimensions: 1, vectorCacheHintSizeKB: 0),
+      ),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => e.name,
+          "name",
+          "vectorCacheHintSizeKB",
+        ),
+      ),
+    );
   });
 }

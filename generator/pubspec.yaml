@@ -6,36 +6,30 @@ homepage: https://objectbox.io
 version: 6.0.0-beta
 
 environment:
-  sdk: '^3.7.0' # source_gen 3.0.0 requires 3.7 and 3.7 has new dart format
+  sdk: ^3.7.0 # 3.7 has new dart format rules
 
 dependencies:
   objectbox: 6.0.0-beta
   # https://pub.dev/packages/analyzer/changelog
-  # source_gen 4.0.1 requires 8.1.1
   analyzer: '>=8.1.1 <15.0.0'
   # https://pub.dev/packages/build/changelog
-  # Require 4.0.0 to remove discontinued build_runner_core, also build_test 3.5.0 requires 4.0.0
-  build: '>=4.0.0 <5.0.0'
+  build: ^4.0.6
   # https://pub.dev/packages/collection/changelog
-  # Require 1.19.1 because lowest supported Flutter 3.29 has it pinned
-  # https://github.com/dart-lang/sdk/blob/main/docs/Flutter-Pinned-Packages.md
   collection: ^1.19.1
-  dart_style: '>=2.3.7 <4.0.0' # require 2.3.7 for languageVersion in DartFormatter constructor
-  glob: ^2.1.3
+  dart_style: ^3.1.2
+  glob: ^2.2.0
   path: ^1.9.1
   # https://pub.dev/packages/source_gen/changelog
-  # Require 4.0.1, older versions use APIs removed in analyzer 8.4.0
-  source_gen: ^4.0.1
-  pubspec_parse: ^1.4.0
-  yaml: ^3.1.3
-  http: ^1.3.0
+  source_gen: ^4.2.0
+  pubspec_parse: ^1.5.0
+  yaml: ^3.1.4
+  http: ^1.6.0
   pointycastle: ^4.0.0
 
 dev_dependencies:
-  test: ^1.25.8
-  lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
-  pub_semver: ^2.2.0
+  test: ^1.31.0 # 1.31.1 requires Dart 3.10, but still testing with 3.7
+  lints: ">=5.1.1 <7.0.0" # 6.0.0 requires Dart 3.8, but still testing with 3.7
+  pub_semver: ^2.2.1
   # https://pub.dev/packages/build_test/changelog
-  # Require 3.5.0 to use new TestBuilderResult APIs
-  build_test: ^3.5.0
+  build_test: ^3.5.15 # 3.5.16 requires Dart 3.8, but still testing with 3.7
   logging: ^1.3.0

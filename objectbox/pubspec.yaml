@@ -8,52 +8,22 @@ version: 6.0.0-beta
 
 environment:
   # minimum Dart SDK (also see generator and flutter_libs)
-  sdk: '>=2.17.0 <4.0.0'
+  sdk: ^3.7.0 # 3.7 has new dart format rules
 
 dependencies:
-  collection: ^1.15.0
+  collection: ^1.19.1
   # take care updating flatbuffers - keep aligned with other bindings
   flat_buffers: 25.9.23
-  ffi: ^2.0.2
-  meta: ^1.3.0
-  path: ^1.8.0
+  ffi: ^2.2.0
+  # Allow 1.18.0 because lowest supported Flutter 3.44 has it pinned
+  # https://dart.dev/go/sdk-version-pinning
+  meta: ^1.18.0
+  path: ^1.9.1
 
 dev_dependencies:
-  ffigen: ^7.2.11 # v8 requires Dart 3, not requiring it, yet.
-  lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
-  test: ^1.16.5 # To run coverage on this package.
+  ffigen: ^22.0.0 # Requires Dart 3.10, but only used to regenerate bindings.
+  lints: ^6.1.0
+  test: ^1.32.0 # To run coverage on this package.
 
-ffigen:
-  name: 'ObjectBoxC'
-  description: 'Bindings to ObjectBox C-API'
-  output: 'lib/src/native/bindings/objectbox_c.dart'
-  headers:
-    entry-points:
-      # NOTE: replace `const void*` by `const uint8_t*` in all objectbox*.h files when upgrading
-      # This is to avoid casting Pointer<Uint8> to Pointer<Void> in Dart.
-      - 'lib/src/native/bindings/objectbox.h'
-      - 'lib/src/native/bindings/objectbox-dart.h'
-    include-directives:
-      - '**objectbox*.h'
-  functions:
-    rename:
-      'obx_dart_(.*)': 'dartc_$1'
-      'obx_(.*)': '$1'
-    # Expose some native pointers to use with NativeFinalizer API.
-    # https://pub.dev/packages/ffigen#how-to-expose-the-native-pointers
-    symbol-address:
-      include:
-        - 'obx_admin_close'
-        - 'obx_observer_close'
-        - 'obx_query_close'
-        - 'obx_query_prop_close'
-        - 'obx_store_close'
-        - 'obx_txn_close'
-  enums:
-    member-rename:
-      '(.*)': # Matches any enum.
-        # Removes anything before the first '_', i.e. OBXOrderFlags_CASE_SENSITIVE becomes CASE_SENSITIVE.
-        '[^_]+_(.*)': '$1'
-  # pana ignores exclude rules in analysis_options.yaml, explicitly add ignore rules.
-  preamble: |
-    // ignore_for_file: non_constant_identifier_names, public_member_api_docs, prefer_expression_function_bodies, avoid_positional_boolean_parameters, constant_identifier_names, camel_case_types
+# The ffigen configuration was migrated to the FfiGenerator Dart API,
+# see tool/ffigen.dart.

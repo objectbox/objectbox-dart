@@ -19,10 +19,12 @@ defaults:
 
 env:
   # Run generator integration tests and init script with latest SDK.
+  # Build Flutter test app with latest and lowest supported Flutter SDK.
   # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
   # NOTE: also update matrix configurations below!
-  FLUTTER_VERSION: 3.44.1 # Available versions: https://docs.flutter.dev/release/archive
-  DART_VERSION: 3.12.1 # Available versions: https://dart.dev/get-dart/archive
+  FLUTTER_VERSION_LATEST: 3.47.5 # Available versions: https://docs.flutter.dev/release/archive
+  FLUTTER_VERSION_LOWEST: 3.44.1 # Lowest supported Flutter SDK
+  DART_VERSION: 3.13.4 # Available versions: https://dart.dev/get-dart/archive
 
 jobs:
 
@@ -50,7 +52,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ env.FLUTTER_VERSION_LATEST }}
           cache: true
       - run: ./tool/init.sh
 
@@ -68,7 +70,7 @@ jobs:
           # Pick a concrete version instead of "latest" to avoid builds breaking due to changes in new SDKs.
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
-          - 3.12.1
+          - 3.13.4
           - 3.7.2 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
@@ -112,7 +114,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ env.FLUTTER_VERSION_LATEST }}
           cache: true
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         # Test building for Android (must use a Linux OS, see build-example.sh) with the
@@ -133,3 +135,32 @@ jobs:
       - run: flutter doctor -v
       - run: make examples
         working-directory: objectbox
+
+  # Verifies dependencies can be resolved (the Flutter SDK might pin lower versions than possible
+  # based on its bundled Dart SDK, see https://dart.dev/go/sdk-version-pinning) and a Flutter app
+  # can be built (currently only for Android) with latest and lowest supported Flutter SDK.
+  # Running integration tests requires an emulator, so this is still done manually.
+  test-app-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test latest available and lowest supported Flutter SDK.
+        # Env variables can not be used directly here, so reference them by name
+        # and resolve them in the steps below via the env context.
+        flutter-version-var:
+          - FLUTTER_VERSION_LATEST
+          - FLUTTER_VERSION_LOWEST
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env[matrix.flutter-version-var] }}
+          cache: true
+      - run: flutter doctor -v
+      - name: Build Android App Bundle
+        working-directory: objectbox_test_app
+        run: |
+          flutter pub get
+          dart run build_runner build
+          flutter build appbundle

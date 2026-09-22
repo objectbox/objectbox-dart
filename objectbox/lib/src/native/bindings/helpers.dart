@@ -26,8 +26,10 @@ bool checkObxSuccess(int code) {
 }
 
 @pragma('vm:prefer-inline')
-Pointer<T> checkObxPtr<T extends NativeType>(Pointer<T>? ptr,
-    [String? context]) {
+Pointer<T> checkObxPtr<T extends NativeType>(
+  Pointer<T>? ptr, [
+  String? context,
+]) {
   if (ptr == null || ptr.address == 0) {
     throwLatestNativeError(context: context);
   }
@@ -67,9 +69,10 @@ class ObjectBoxNativeError {
   String get messageWithContext =>
       context == null ? message : '$context: $message';
 
-  String get messageWithErrorCode => code == 0
-      ? messageWithContext
-      : '$messageWithContext (OBX_ERROR code $code)';
+  String get messageWithErrorCode =>
+      code == 0
+          ? messageWithContext
+          : '$messageWithContext (OBX_ERROR code $code)';
 
   Never throwMapped() {
     switch (code) {
@@ -111,8 +114,10 @@ String dartStringFromC(Pointer<Char> charPtr, {bool allowMalformed = false}) {
   final utf8Ptr = charPtr.cast<Utf8>();
   if (!allowMalformed) return utf8Ptr.toDartString();
   // Replaces malformed byte sequences with U+FFFD instead of throwing.
-  return utf8.decode(utf8Ptr.cast<Uint8>().asTypedList(utf8Ptr.length),
-      allowMalformed: true);
+  return utf8.decode(
+    utf8Ptr.cast<Uint8>().asTypedList(utf8Ptr.length),
+    allowMalformed: true,
+  );
 }
 
 class CursorHelper<T> {
@@ -123,8 +128,10 @@ class CursorHelper<T> {
   bool _closed = false;
 
   CursorHelper(this._store, Pointer<OBX_txn> txn, this._entity)
-      : ptr = checkObxPtr(
-            C.cursor(txn, _entity.model.id.id), 'failed to create cursor');
+    : ptr = checkObxPtr(
+        C.cursor(txn, _entity.model.id.id),
+        'failed to create cursor',
+      );
 
   EntityDefinition<T> get entity => _entity;
 
@@ -135,7 +142,10 @@ class CursorHelper<T> {
   }
 
   T _deserializeObject(ReadPointers pointers) => _entity.objectFromData(
-      _store, pointers.dataPtrPtr.value, pointers.sizePtr.value);
+    _store,
+    pointers.dataPtrPtr.value,
+    pointers.sizePtr.value,
+  );
 
   @pragma('vm:prefer-inline')
   T? get(int id) {
@@ -160,7 +170,9 @@ class CursorHelper<T> {
 }
 
 T withNativeBytes<T>(
-    Uint8List data, T Function(Pointer<Uint8> ptr, int size) fn) {
+  Uint8List data,
+  T Function(Pointer<Uint8> ptr, int size) fn,
+) {
   final size = data.length;
   assert(size == data.lengthInBytes);
   final ptr = malloc<Uint8>(size);
@@ -178,10 +190,11 @@ T withNativeBytes<T>(
 void checkNoNullChar(String str) {
   if (str.contains('\u0000')) {
     throw ArgumentError.value(
-        str,
-        'str',
-        'must not contain the null character U+0000 (it would be truncated '
-            'when converted to a null-terminated C string)');
+      str,
+      'str',
+      'must not contain the null character U+0000 (it would be truncated '
+          'when converted to a null-terminated C string)',
+    );
   }
 }
 
@@ -196,7 +209,9 @@ T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
 }
 
 T withNativeStrings<T>(
-    List<String> items, T Function(Pointer<Pointer<Char>> ptr, int size) fn) {
+  List<String> items,
+  T Function(Pointer<Pointer<Char>> ptr, int size) fn,
+) {
   final size = items.length;
   // Use calloc instead of malloc so Char pointers are null (address == 0) by
   // default so in case toNativeUtf8 throws mid-loop uninitialized ones can be
@@ -218,7 +233,9 @@ T withNativeStrings<T>(
 }
 
 T withNativeFloats<T>(
-    List<double> items, T Function(Pointer<Float> ptr, int size) fn) {
+  List<double> items,
+  T Function(Pointer<Float> ptr, int size) fn,
+) {
   final size = items.length;
   final ptr = malloc<Float>(size);
   try {

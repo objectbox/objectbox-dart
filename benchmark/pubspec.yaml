@@ -3,7 +3,7 @@ description: Simple ObjectBox-Dart performance benchmark
 publish_to: none
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.7.0 # 3.7 has new dart format rules
 
 dependencies:
   objectbox: any
@@ -11,6 +11,6 @@ dependencies:
   ffi: ^2.2.0
 
 dev_dependencies:
-  lints: ^6.1.0
+  lints: ">=5.1.1 <7.0.0" # 6.0.0 requires Dart 3.8
   objectbox_generator: any
   build_runner: any

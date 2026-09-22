@@ -35,7 +35,9 @@ void main() {
       fb1.fbb.reset();
       expect(addFbData(fb1.fbb), equals(list1a));
       expect(
-          fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()), equals(list1b));
+        fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()),
+        equals(list1b),
+      );
 
       fb1.clear();
     }
@@ -65,8 +67,9 @@ void main() {
     // Closing manually below, but clean up if any expect fails before
     addTearDown(() => env.closeAndDelete());
 
-    final binding = getObjectBoxModel().bindings[TestEntityNonRel]
-        as EntityDefinition<TestEntityNonRel>;
+    final binding =
+        getObjectBoxModel().bindings[TestEntityNonRel]
+            as EntityDefinition<TestEntityNonRel>;
 
     final source = TestEntityNonRel.filled();
     // Test the "dagger" char (0x20 0x20) which may cause problems if
@@ -76,7 +79,8 @@ void main() {
     final fb1 = BuilderWithCBuffer();
     binding.objectToFB(source, fb1.fbb);
     final fbData = ByteData.view(
-        fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()).buffer);
+      fb1.bufPtr.cast<Uint8>().asTypedList(fb1.fbb.size()).buffer,
+    );
 
     // must have the same content after reading back
     final target = binding.objectFromFB(env.store, fbData);
@@ -97,7 +101,9 @@ void main() {
 
     // must be empty after reading again
     checkSameEntities(
-        binding.objectFromFB(env.store, fbData), TestEntityNonRel());
+      binding.objectFromFB(env.store, fbData),
+      TestEntityNonRel(),
+    );
 
     // note: accessing fbData after fb1.clear() is illegal (memory is freed)
     fb1.clear();

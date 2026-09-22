@@ -1,7 +1,8 @@
 ## latest
 
-* Requires at least Dart SDK 3.12 or Flutter SDK 3.44.
+* The Flutter packages (`objectbox_flutter_libs` and `objectbox_sync_flutter_libs`) require at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
+* The `objectbox` package requires at least Dart SDK 3.7.
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
 * `Store.fromReference` is deprecated, please migrate to `Store.attach`.
 * `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.

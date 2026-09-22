@@ -49,8 +49,10 @@ void main() {
     final env = TestEnv('isolate-kill-tx');
     addTearDown(() => env.closeAndDelete());
     final started = ReceivePort();
-    final worker = await Isolate.spawn(
-        writeUntilKilled, [env.dbDirPath, started.sendPort]);
+    final worker = await Isolate.spawn(writeUntilKilled, [
+      env.dbDirPath,
+      started.sendPort,
+    ]);
     await started.first;
     started.close();
 
@@ -74,9 +76,10 @@ void main() {
   /// the legacy way of passing a pointer reference to the isolate.
   test('single store using reference', () async {
     await testUsingStoreFromIsolate(
-        storeCreatorFromRef,
-        // ignore: deprecated_member_use
-        (env) => env.store.reference);
+      storeCreatorFromRef,
+      // ignore: deprecated_member_use
+      (env) => env.store.reference,
+    );
   });
 
   /// Work with a single store across multiple isolates using
@@ -90,7 +93,7 @@ void main() {
 // Note: can't use closures, are only supported from Dart SDK 2.15.
 Store storeCreatorFromRef(dynamic msg) =>
 // ignore: deprecated_member_use
-    Store.fromReference(getObjectBoxModel(), msg as ByteData);
+Store.fromReference(getObjectBoxModel(), msg as ByteData);
 
 Store storeCreatorAttach(dynamic msg) {
   Store.debugLogs = true;
@@ -104,8 +107,10 @@ class IsolateInitMessage {
   IsolateInitMessage(this.sendPort, this.storeCreator);
 }
 
-Future<void> testUsingStoreFromIsolate(Store Function(dynamic) storeCreator,
-    dynamic Function(TestEnv) storeRefGetter) async {
+Future<void> testUsingStoreFromIsolate(
+  Store Function(dynamic) storeCreator,
+  dynamic Function(TestEnv) storeRefGetter,
+) async {
   final receivePort = ReceivePort();
   final initMessage = IsolateInitMessage(receivePort.sendPort, storeCreator);
   await Isolate.spawn(createDataIsolate, initMessage);

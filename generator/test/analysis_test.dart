@@ -140,8 +140,7 @@ void main() {
 /// Encrypt to obfuscate token and use MAC to ensure token did not get damaged.
 /// This is explicitly not used for security purposes.
 ObfuscatedToken _obfuscateToken(String token) {
-  // Note: support Dart before 3.2 where encode returns List<int>
-  final message = Uint8List.fromList(utf8.encode(token));
+  final message = utf8.encode(token);
   final key = _generateRandomBytes(32);
   final nonce = _generateRandomBytes(ObfuscatedToken.nonceLengthBytes);
 

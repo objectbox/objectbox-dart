@@ -49,12 +49,15 @@ class ModelRelation {
   }
 
   // used in code generator
-  ModelRelation.create(this.id, String? name,
-      {String? targetId,
-      String? targetName,
-      String? externalName,
-      int? externalType,
-      this.uidRequest = false}) {
+  ModelRelation.create(
+    this.id,
+    String? name, {
+    String? targetId,
+    String? targetName,
+    String? externalName,
+    int? externalType,
+    this.uidRequest = false,
+  }) {
     this.name = name;
     if (targetId != null) this.targetId = IdUid.fromString(targetId);
     if (targetName != null) this.targetName = targetName;
@@ -63,24 +66,26 @@ class ModelRelation {
   }
 
   // used in generated code
-  ModelRelation(
-      {required this.id,
-      required String name,
-      required IdUid targetId,
-      this.externalName,
-      this.externalType})
-      : _name = name,
-        _targetId = targetId,
-        uidRequest = false;
+  ModelRelation({
+    required this.id,
+    required String name,
+    required IdUid targetId,
+    this.externalName,
+    this.externalType,
+  }) : _name = name,
+       _targetId = targetId,
+       uidRequest = false;
 
   ModelRelation.fromMap(Map<String, dynamic> data)
-      : this.create(IdUid.fromString(data[ModelRelationKey.id] as String?),
-            data[ModelRelationKey.name] as String?,
-            targetId: data[ModelRelationKey.targetId] as String?,
-            targetName: data[ModelRelationKey.targetName] as String?,
-            uidRequest: data[ModelRelationKey.uidRequest] as bool? ?? false,
-            externalName: data[ModelRelationKey.externalName] as String?,
-            externalType: data[ModelRelationKey.externalType] as int?);
+    : this.create(
+        IdUid.fromString(data[ModelRelationKey.id] as String?),
+        data[ModelRelationKey.name] as String?,
+        targetId: data[ModelRelationKey.targetId] as String?,
+        targetName: data[ModelRelationKey.targetName] as String?,
+        uidRequest: data[ModelRelationKey.uidRequest] as bool? ?? false,
+        externalName: data[ModelRelationKey.externalName] as String?,
+        externalType: data[ModelRelationKey.externalType] as int?,
+      );
 
   /// See [ModelEntity.toMap] for important details.
   ///

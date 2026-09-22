@@ -51,8 +51,9 @@ void main() {
 
   // lambda to easily create clients in the tests below
   SyncClient createAuthenticatedClient(
-          Store store, List<SyncCredentials> credentials) =>
-      SyncClient(store, [serverUrl()], credentials);
+    Store store,
+    List<SyncCredentials> credentials,
+  ) => SyncClient(store, [serverUrl()], credentials);
 
   SyncClient createClient(Store store) =>
       createAuthenticatedClient(store, [SyncCredentials.none()]);
@@ -67,8 +68,9 @@ void main() {
 
   test('Model Entity has sync enabled', () {
     final model = getObjectBoxModel().model;
-    final entity =
-        model.entities.firstWhere((e) => e.name == 'TestEntitySynced');
+    final entity = model.entities.firstWhere(
+      (e) => e.name == 'TestEntitySynced',
+    );
     expect(entity.hasFlag(OBXEntityFlags.SYNC_ENABLED), isTrue);
   });
 
@@ -78,696 +80,813 @@ void main() {
     // an utf-8 encoded json file (i.e. the usual way).
     final str = 'uũú';
     expect(
-        (SyncCredentials.sharedSecretString(str) as SyncCredentialsSecret).data,
-        equals(Uint8List.fromList([117, 197, 169, 195, 186])));
+      (SyncCredentials.sharedSecretString(str) as SyncCredentialsSecret).data,
+      equals(Uint8List.fromList([117, 197, 169, 195, 186])),
+    );
   });
 
-  group('Tests if Sync is not available', () {
-    // TESTS to run when SYNC is NOT available
+  group(
+    'Tests if Sync is not available',
+    () {
+      // TESTS to run when SYNC is NOT available
 
-    test('SyncClient cannot be created when running with non-sync library', () {
-      expect(
+      test('SyncClient cannot be created when running with non-sync library', () {
+        expect(
           () => createClient(store),
-          throwsA(predicate((UnsupportedError e) => e.toString().contains(
-              'Sync is not available in the loaded ObjectBox runtime library'))));
-    });
-  },
-      skip: Sync.isAvailable()
-          ? 'Sync is available in the loaded database library'
-          : null);
+          throwsA(
+            predicate(
+              (UnsupportedError e) => e.toString().contains(
+                'Sync is not available in the loaded ObjectBox runtime library',
+              ),
+            ),
+          ),
+        );
+      });
+    },
+    skip:
+        Sync.isAvailable()
+            ? 'Sync is available in the loaded database library'
+            : null,
+  );
 
-  group('Tests if Sync is available', () {
-    // TESTS to run when SYNC is available
-    print("Testing Sync with protocol version ${SyncClient.protocolVersion()}");
+  group(
+    'Tests if Sync is available',
+    () {
+      // TESTS to run when SYNC is available
+      print(
+        "Testing Sync with protocol version ${SyncClient.protocolVersion()}",
+      );
 
-    test('SyncClient lifecycle', () {
-      expect(store.syncClient(), isNull);
+      test('SyncClient lifecycle', () {
+        expect(store.syncClient(), isNull);
 
-      SyncClient c1 = createClient(store);
+        SyncClient c1 = createClient(store);
 
-      // Store now has the client available in cache.
-      expect(store.syncClient(), equals(c1));
+        // Store now has the client available in cache.
+        expect(store.syncClient(), equals(c1));
 
-      // Can't have two clients on the same store.
-      expect(
+        // Can't have two clients on the same store.
+        expect(
           () => createClient(store),
-          throwsA(predicate(
-              (StateError e) => e.toString().contains('one sync client'))));
+          throwsA(
+            predicate(
+              (StateError e) => e.toString().contains('one sync client'),
+            ),
+          ),
+        );
 
-      // But we can have another one after the previous is closed or destroyed.
-      expect(c1.isClosed(), isFalse);
-      c1.close();
-      expect(c1.isClosed(), isTrue);
-      expect(store.syncClient(), isNull);
-    });
-
-    test('SyncClient instance caching', () {
-      {
-        // Just losing the variable scope doesn't close the client automatically.
-        // Store holds onto the same instance.
-        final client = createClient(store);
-        expect(client.isClosed(), isFalse);
-      }
-
-      // But we can still get a handle of the client in the store - we're never
-      // completely without an option to close it.
-      SyncClient? client = store.syncClient();
-      expect(client, isNotNull);
-      expect(client!.isClosed(), isFalse);
-      client.close();
-      expect(store.syncClient(), isNull);
-    });
-
-    test('SyncClient throws if empty URL list', () {
-      expect(
-          () => SyncClient(store, [], [SyncCredentials.none()]),
-          throwsA(isArgumentError.having((e) => e.message, 'message',
-              contains('At least one URL must be added'))));
-    });
-
-    test('SyncClient throws if empty credential list', () {
-      expect(
-          () => SyncClient(store, ['test-url'], []),
-          throwsA(isArgumentError.having((e) => e.message, 'message',
-              contains('Credentials must be provided'))));
-    });
-
-    test('SyncClient is closed when a store is closed', () {
-      final client = createClient(env2.store);
-      env2.closeAndDelete();
-      expect(client.isClosed(), isTrue);
-    });
-
-    test('different Store => different SyncClient', () {
-      SyncClient c1 = createClient(store);
-
-      SyncClient c2 = createClient(env2.store);
-      expect(c1, isNot(equals(c2)));
-      env2.closeAndDelete();
-    });
-
-    test('SyncClient states (no server available)', () {
-      SyncClient client = createClient(store);
-      expect(client.state(), equals(SyncState.created));
-      client.start();
-      expect(client.state(), equals(SyncState.started));
-      client.stop();
-      expect(client.state(), equals(SyncState.stopped));
-    });
-
-    final isErrorClientClosed = isA<StateError>().having(
-        (e) => e.message, 'message', contains('SyncClient already closed'));
-
-    test('SyncClient access after closing must throw', () {
-      SyncClient c = createClient(store);
-      c.close();
-      expect(c.isClosed(), isTrue);
-
-      final error = throwsA(isErrorClientClosed);
-      expect(() => c.start(), error);
-      expect(() => c.stop(), error);
-      expect(() => c.state(), error);
-      expect(() => c.cancelUpdates(), error);
-      expect(() => c.requestUpdates(subscribeForFuturePushes: true), error);
-      expect(() => c.outgoingMessageCount(), error);
-
-      expect(() => c.setCredentials(SyncCredentials.none()), error);
-      expect(
-          () => c.setCredentials(SyncCredentials.sharedSecretString('secret')),
-          error);
-      expect(
-          () => c
-              .setCredentials(SyncCredentials.userAndPassword('obx', 'secret')),
-          error);
-
-      expect(
-          () => c.setMultipleCredentials([
-                SyncCredentials.sharedSecretString('secret'),
-                SyncCredentials.userAndPassword('obx', 'secret')
-              ]),
-          error);
-
-      expect(() => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto), error);
-    });
-
-    test('listen on closed SyncClient delivers error on stream', () async {
-      SyncClient c = createClient(store);
-      final events = c.connectionEvents;
-      c.close();
-      // Previously the error surfaced only as an unhandled zone error the
-      // subscriber can not catch, and the just-created receive port leaked
-      // (keeping the isolate alive).
-      final errors = <Object>[];
-      final sub = events.listen((_) {}, onError: errors.add);
-      await yieldExecution();
-      expect(errors, hasLength(1));
-      expect(errors.first, isErrorClientClosed);
-      await sub.cancel();
-    });
-
-    test('SyncClient simple coverage (no server available)', () async {
-      SyncClient c = createClient(store);
-      expect(c.isClosed(), isFalse);
-
-      expect(SyncClient.protocolVersion(), greaterThanOrEqualTo(7));
-      expect(c.protocolVersionServer(), 0);
-
-      c.setCredentials(SyncCredentials.none());
-      c.setCredentials(SyncCredentials.googleAuthString('secret'));
-      c.setCredentials(SyncCredentials.sharedSecretString('secret'));
-      c.setCredentials(
-          SyncCredentials.googleAuthUint8List(Uint8List.fromList([13, 0, 25])));
-      c.setCredentials(SyncCredentials.sharedSecretUint8List(
-          Uint8List.fromList([13, 0, 25])));
-      c.setCredentials(SyncCredentials.userAndPassword('obx', 'secret'));
-      c.setCredentials(SyncCredentials.jwtIdToken('id-token'));
-      c.setCredentials(SyncCredentials.jwtAccessToken('access-token'));
-      c.setCredentials(SyncCredentials.jwtRefreshToken('refresh-token'));
-      c.setCredentials(SyncCredentials.jwtCustomToken('custom-token'));
-
-      c.setCredentials(SyncCredentials.none());
-      c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
-      c.start();
-      // false because not connected
-      expect(c.requestUpdates(subscribeForFuturePushes: true), isFalse);
-      expect(c.requestUpdates(subscribeForFuturePushes: false), isFalse);
-      expect(c.outgoingMessageCount(), isZero);
-      // Wait until client reaches state disconnected (as there is no server),
-      // only then reconnect will be attempted.
-      var waitedForDisconnected = 0;
-      while (c.state() != SyncState.disconnected) {
-        if (waitedForDisconnected == 0) {
-          print('Waiting until SyncClient state is disconnected...');
-        }
-        if (waitedForDisconnected == 100) {
-          fail('SyncClient did not reach disconnected state within 10 seconds');
-        }
-        await Future.delayed(const Duration(milliseconds: 100));
-        waitedForDisconnected++;
-      }
-      expect(c.triggerReconnect(), true);
-      c.stop();
-      expect(c.state(), equals(SyncState.stopped));
-    });
-
-    test('SyncClient setMultipleCredentials', () {
-      SyncClient c = createClient(store);
-
-      expect(
-          () => c.setMultipleCredentials([]),
-          throwsA(isA<ArgumentError>()
-              .having((e) => e.name, "name", "credentials")));
-
-      // none() not supported
-      expect(
-          () => c.setMultipleCredentials([SyncCredentials.none()]),
-          throwsA(isA<ArgumentError>()
-              .having((e) => e.name, "name", "credentials")));
-
-      // Not throwing in Dart for any supported type
-      c.setMultipleCredentials([
-        SyncCredentials.googleAuthString('secret'),
-        SyncCredentials.sharedSecretString('secret'),
-        SyncCredentials.userAndPassword('obx', 'secret'),
-        SyncCredentials.jwtIdToken('id-token'),
-        SyncCredentials.jwtAccessToken('access-token'),
-        SyncCredentials.jwtRefreshToken('refresh-token'),
-        SyncCredentials.jwtCustomToken('custom-token')
-      ]);
-    });
-
-    test('SyncClient filter variables', () {
-      final filterVariables = {
-        'test-var-1': 'test value 1',
-        'test-var-2': 'test value 2'
-      };
-      SyncClient client = SyncClient(
-          store, [serverUrl()], [SyncCredentials.none()],
-          filterVariables: filterVariables);
-      addTearDown(() {
-        client.close();
+        // But we can have another one after the previous is closed or destroyed.
+        expect(c1.isClosed(), isFalse);
+        c1.close();
+        expect(c1.isClosed(), isTrue);
+        expect(store.syncClient(), isNull);
       });
 
-      client.putFilterVariable('test-var-2', 'test value 2');
-      client.removeFilterVariable('test-var-2');
-      client.putFilterVariable('test-var-2', '');
-      client.removeAllFilterVariables();
-      client.putFilterVariable('test-var-1', 'test value 1 updated');
-      client.applyFilterVariables();
+      test('SyncClient instance caching', () {
+        {
+          // Just losing the variable scope doesn't close the client automatically.
+          // Store holds onto the same instance.
+          final client = createClient(store);
+          expect(client.isClosed(), isFalse);
+        }
 
-      expect(
+        // But we can still get a handle of the client in the store - we're never
+        // completely without an option to close it.
+        SyncClient? client = store.syncClient();
+        expect(client, isNotNull);
+        expect(client!.isClosed(), isFalse);
+        client.close();
+        expect(store.syncClient(), isNull);
+      });
+
+      test('SyncClient throws if empty URL list', () {
+        expect(
+          () => SyncClient(store, [], [SyncCredentials.none()]),
+          throwsA(
+            isArgumentError.having(
+              (e) => e.message,
+              'message',
+              contains('At least one URL must be added'),
+            ),
+          ),
+        );
+      });
+
+      test('SyncClient throws if empty credential list', () {
+        expect(
+          () => SyncClient(store, ['test-url'], []),
+          throwsA(
+            isArgumentError.having(
+              (e) => e.message,
+              'message',
+              contains('Credentials must be provided'),
+            ),
+          ),
+        );
+      });
+
+      test('SyncClient is closed when a store is closed', () {
+        final client = createClient(env2.store);
+        env2.closeAndDelete();
+        expect(client.isClosed(), isTrue);
+      });
+
+      test('different Store => different SyncClient', () {
+        SyncClient c1 = createClient(store);
+
+        SyncClient c2 = createClient(env2.store);
+        expect(c1, isNot(equals(c2)));
+        env2.closeAndDelete();
+      });
+
+      test('SyncClient states (no server available)', () {
+        SyncClient client = createClient(store);
+        expect(client.state(), equals(SyncState.created));
+        client.start();
+        expect(client.state(), equals(SyncState.started));
+        client.stop();
+        expect(client.state(), equals(SyncState.stopped));
+      });
+
+      final isErrorClientClosed = isA<StateError>().having(
+        (e) => e.message,
+        'message',
+        contains('SyncClient already closed'),
+      );
+
+      test('SyncClient access after closing must throw', () {
+        SyncClient c = createClient(store);
+        c.close();
+        expect(c.isClosed(), isTrue);
+
+        final error = throwsA(isErrorClientClosed);
+        expect(() => c.start(), error);
+        expect(() => c.stop(), error);
+        expect(() => c.state(), error);
+        expect(() => c.cancelUpdates(), error);
+        expect(() => c.requestUpdates(subscribeForFuturePushes: true), error);
+        expect(() => c.outgoingMessageCount(), error);
+
+        expect(() => c.setCredentials(SyncCredentials.none()), error);
+        expect(
+          () => c.setCredentials(SyncCredentials.sharedSecretString('secret')),
+          error,
+        );
+        expect(
+          () => c.setCredentials(
+            SyncCredentials.userAndPassword('obx', 'secret'),
+          ),
+          error,
+        );
+
+        expect(
+          () => c.setMultipleCredentials([
+            SyncCredentials.sharedSecretString('secret'),
+            SyncCredentials.userAndPassword('obx', 'secret'),
+          ]),
+          error,
+        );
+
+        expect(
+          () => c.setRequestUpdatesMode(SyncRequestUpdatesMode.auto),
+          error,
+        );
+      });
+
+      test('listen on closed SyncClient delivers error on stream', () async {
+        SyncClient c = createClient(store);
+        final events = c.connectionEvents;
+        c.close();
+        // Previously the error surfaced only as an unhandled zone error the
+        // subscriber can not catch, and the just-created receive port leaked
+        // (keeping the isolate alive).
+        final errors = <Object>[];
+        final sub = events.listen((_) {}, onError: errors.add);
+        await yieldExecution();
+        expect(errors, hasLength(1));
+        expect(errors.first, isErrorClientClosed);
+        await sub.cancel();
+      });
+
+      test('SyncClient simple coverage (no server available)', () async {
+        SyncClient c = createClient(store);
+        expect(c.isClosed(), isFalse);
+
+        expect(SyncClient.protocolVersion(), greaterThanOrEqualTo(7));
+        expect(c.protocolVersionServer(), 0);
+
+        c.setCredentials(SyncCredentials.none());
+        c.setCredentials(SyncCredentials.googleAuthString('secret'));
+        c.setCredentials(SyncCredentials.sharedSecretString('secret'));
+        c.setCredentials(
+          SyncCredentials.googleAuthUint8List(Uint8List.fromList([13, 0, 25])),
+        );
+        c.setCredentials(
+          SyncCredentials.sharedSecretUint8List(
+            Uint8List.fromList([13, 0, 25]),
+          ),
+        );
+        c.setCredentials(SyncCredentials.userAndPassword('obx', 'secret'));
+        c.setCredentials(SyncCredentials.jwtIdToken('id-token'));
+        c.setCredentials(SyncCredentials.jwtAccessToken('access-token'));
+        c.setCredentials(SyncCredentials.jwtRefreshToken('refresh-token'));
+        c.setCredentials(SyncCredentials.jwtCustomToken('custom-token'));
+
+        c.setCredentials(SyncCredentials.none());
+        c.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
+        c.start();
+        // false because not connected
+        expect(c.requestUpdates(subscribeForFuturePushes: true), isFalse);
+        expect(c.requestUpdates(subscribeForFuturePushes: false), isFalse);
+        expect(c.outgoingMessageCount(), isZero);
+        // Wait until client reaches state disconnected (as there is no server),
+        // only then reconnect will be attempted.
+        var waitedForDisconnected = 0;
+        while (c.state() != SyncState.disconnected) {
+          if (waitedForDisconnected == 0) {
+            print('Waiting until SyncClient state is disconnected...');
+          }
+          if (waitedForDisconnected == 100) {
+            fail(
+              'SyncClient did not reach disconnected state within 10 seconds',
+            );
+          }
+          await Future.delayed(const Duration(milliseconds: 100));
+          waitedForDisconnected++;
+        }
+        expect(c.triggerReconnect(), true);
+        c.stop();
+        expect(c.state(), equals(SyncState.stopped));
+      });
+
+      test('SyncClient setMultipleCredentials', () {
+        SyncClient c = createClient(store);
+
+        expect(
+          () => c.setMultipleCredentials([]),
+          throwsA(
+            isA<ArgumentError>().having((e) => e.name, "name", "credentials"),
+          ),
+        );
+
+        // none() not supported
+        expect(
+          () => c.setMultipleCredentials([SyncCredentials.none()]),
+          throwsA(
+            isA<ArgumentError>().having((e) => e.name, "name", "credentials"),
+          ),
+        );
+
+        // Not throwing in Dart for any supported type
+        c.setMultipleCredentials([
+          SyncCredentials.googleAuthString('secret'),
+          SyncCredentials.sharedSecretString('secret'),
+          SyncCredentials.userAndPassword('obx', 'secret'),
+          SyncCredentials.jwtIdToken('id-token'),
+          SyncCredentials.jwtAccessToken('access-token'),
+          SyncCredentials.jwtRefreshToken('refresh-token'),
+          SyncCredentials.jwtCustomToken('custom-token'),
+        ]);
+      });
+
+      test('SyncClient filter variables', () {
+        final filterVariables = {
+          'test-var-1': 'test value 1',
+          'test-var-2': 'test value 2',
+        };
+        SyncClient client = SyncClient(
+          store,
+          [serverUrl()],
+          [SyncCredentials.none()],
+          filterVariables: filterVariables,
+        );
+        addTearDown(() {
+          client.close();
+        });
+
+        client.putFilterVariable('test-var-2', 'test value 2');
+        client.removeFilterVariable('test-var-2');
+        client.putFilterVariable('test-var-2', '');
+        client.removeAllFilterVariables();
+        client.putFilterVariable('test-var-1', 'test value 1 updated');
+        client.applyFilterVariables();
+
+        expect(
           () => client.putFilterVariable('', 'value'),
-          throwsA(isA<ArgumentError>().having((e) => e.message, 'message',
-              contains('Filter variables must have a name'))));
-    });
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('Filter variables must have a name'),
+            ),
+          ),
+        );
+      });
 
-    test('SyncClient certificatePaths', () {
-      // Test with multiple certificate paths
-      SyncClient multiple = SyncClient(store, [
-        serverUrl()
-      ], [
-        SyncCredentials.none()
-      ], certificatePaths: [
-        '/path/to/does-not-exist-1.crt',
-        '/path/to/does-not-exist-2.crt',
-      ]);
-      multiple.close();
+      test('SyncClient certificatePaths', () {
+        // Test with multiple certificate paths
+        SyncClient multiple = SyncClient(
+          store,
+          [serverUrl()],
+          [SyncCredentials.none()],
+          certificatePaths: [
+            '/path/to/does-not-exist-1.crt',
+            '/path/to/does-not-exist-2.crt',
+          ],
+        );
+        multiple.close();
 
-      // Test with empty list (should work, just no certificates added)
-      SyncClient empty = SyncClient(
-          store, [serverUrl()], [SyncCredentials.none()],
-          certificatePaths: []);
-      empty.close();
-    });
+        // Test with empty list (should work, just no certificates added)
+        SyncClient empty = SyncClient(
+          store,
+          [serverUrl()],
+          [SyncCredentials.none()],
+          certificatePaths: [],
+        );
+        empty.close();
+      });
 
-    test('SyncClient flags', () {
-      // Test all flags combined
-      SyncClient client = SyncClient(
-          store, [serverUrl()], [SyncCredentials.none()],
-          flags: OBXSyncFlags.DebugLogIdMapping |
+      test('SyncClient flags', () {
+        // Test all flags combined
+        SyncClient client = SyncClient(
+          store,
+          [serverUrl()],
+          [SyncCredentials.none()],
+          flags:
+              OBXSyncFlags.DebugLogIdMapping |
               OBXSyncFlags.KeepDataOnSyncError |
               OBXSyncFlags.DebugLogFilterVariables |
               OBXSyncFlags.RemoveWithObjectData |
               OBXSyncFlags.DebugLogTxLogs |
-              OBXSyncFlags.SkipInvalidTxOps);
-      client.close();
-    });
+              OBXSyncFlags.SkipInvalidTxOps,
+        );
+        client.close();
+      });
 
-    // This test passes, but no actual network is registered with the mesh.
-    // A full test with a platform-specific network is available in the
-    // objectbox_test_app in integration_test/sync_test.dart.
-    test('Mesh sync smoke test', () async {
-      final meshConfig = MeshConfigInternal.createMeshConfig(
-        'test-mesh',
-        maxConnectionCount: 3,
-        backoffMillis: 5000,
-        evictionBackoffMillis: 31000,
-        randomSeed: 42,
-        requestTimeoutMillis: 5100,
-        advertisingDelayMillis: 2100,
-        advertisingRetryMillis: 5000,
-        advertisingRetryMaxMillis: 60000,
-        connectDelayMillis: 1100,
-        initialDiscoveryDurationSeconds: 31,
-        discoveryDurationSeconds: 10,
-        discoveryPauseSeconds: 46,
-        discoveryPauseJitterSeconds: 16,
-        txLogBatchSizeKb: 110,
-        txLogBatchMaxCount: 1100,
-        txLogMaxAgeSeconds: 8 * 3600,
-      );
+      // This test passes, but no actual network is registered with the mesh.
+      // A full test with a platform-specific network is available in the
+      // objectbox_test_app in integration_test/sync_test.dart.
+      test('Mesh sync smoke test', () async {
+        final meshConfig = MeshConfigInternal.createMeshConfig(
+          'test-mesh',
+          maxConnectionCount: 3,
+          backoffMillis: 5000,
+          evictionBackoffMillis: 31000,
+          randomSeed: 42,
+          requestTimeoutMillis: 5100,
+          advertisingDelayMillis: 2100,
+          advertisingRetryMillis: 5000,
+          advertisingRetryMaxMillis: 60000,
+          connectDelayMillis: 1100,
+          initialDiscoveryDurationSeconds: 31,
+          discoveryDurationSeconds: 10,
+          discoveryPauseSeconds: 46,
+          discoveryPauseJitterSeconds: 16,
+          txLogBatchSizeKb: 110,
+          txLogBatchMaxCount: 1100,
+          txLogMaxAgeSeconds: 8 * 3600,
+        );
 
-      SyncClient client = SyncClient(
-        store,
-        [serverUrl()],
-        [SyncCredentials.none()],
-        mesh: meshConfig,
-      );
-      addTearDown(() => client.close());
+        SyncClient client = SyncClient(
+          store,
+          [serverUrl()],
+          [SyncCredentials.none()],
+          mesh: meshConfig,
+        );
+        addTearDown(() => client.close());
 
-      MeshSync? mesh = client.mesh;
-      expect(mesh, isNotNull);
+        MeshSync? mesh = client.mesh;
+        expect(mesh, isNotNull);
 
-      // Before start, the mesh is just created.
-      expect(mesh!.state(), equals(MeshState.created));
-      expect(mesh.stateString(), isNotEmpty);
-      expect(mesh.connectedPeerCount(), isZero);
+        // Before start, the mesh is just created.
+        expect(mesh!.state(), equals(MeshState.created));
+        expect(mesh.stateString(), isNotEmpty);
+        expect(mesh.connectedPeerCount(), isZero);
 
-      // All statistics counters should be readable and zero initially.
-      for (final counter in MeshStats.values) {
-        expect(mesh.stats(counter), isZero, reason: counter.name);
-      }
-
-      // Starting the client also starts the mesh: it begins discovering peers.
-      // The transition happens on a background thread, so wait for it.
-      client.start();
-      var waitedForDiscovering = 0;
-      while (mesh.state() != MeshState.discovering) {
-        if (waitedForDiscovering == 100) {
-          fail('Mesh did not reach discovering state within 10 seconds');
+        // All statistics counters should be readable and zero initially.
+        for (final counter in MeshStats.values) {
+          expect(mesh.stats(counter), isZero, reason: counter.name);
         }
-        await Future.delayed(const Duration(milliseconds: 100));
-        waitedForDiscovering++;
-      }
 
-      // Requesting an immediate retry of the network radios on a running
-      // mesh must not throw (the retry itself happens asynchronously).
-      mesh.retryNetworks();
-
-      client.stop();
-      expect(mesh.state(), equals(MeshState.stopped));
-
-      // Closing the client invalidates the mesh; any further access must throw.
-      client.close();
-      final error = throwsA(
-        predicate(
-          (StateError e) => e.toString().contains('MeshSync already closed'),
-        ),
-      );
-      expect(() => mesh.state(), error);
-      expect(() => mesh.stateString(), error);
-      expect(() => mesh.connectedPeerCount(), error);
-      expect(() => mesh.stats(MeshStats.peersConnected), error);
-      expect(() => mesh.retryNetworks(), error);
-    });
-
-    test('SyncClient without mesh config has no mesh', () {
-      SyncClient client = createClient(store);
-      addTearDown(() => client.close());
-
-      expect(client.mesh, isNull);
-    });
-
-    test('SyncClient stats', () {
-      SyncClient client = createClient(store);
-      addTearDown(() => client.close());
-
-      // All counters are readable and zero before connecting to a server.
-      for (final counter in SyncStats.values) {
-        expect(client.stats(counter), isZero, reason: counter.name);
-      }
-    });
-
-    test('syncClockTimestamp', () {
-      final clockValue = 1860802100721610852;
-      final expectedTime = 1774599171372;
-
-      expect(Sync.syncClockTimestamp(clockValue), equals(expectedTime));
-      expect(Sync.syncClockTimestampCorrected(clockValue),
-          equals(expectedTime - 10));
-    });
-
-    group('Server tests using sync-server in PATH', () {
-      late SyncServer server;
-
-      setUp(() async {
-        server = SyncServer();
-        serverPort = await server.start();
-      });
-
-      tearDown(() async => await server.stop());
-
-      test('SyncClient data sync', () async {
-        await server.online();
-        final client1 = loggedInClient(env.store);
-        final client2 = loggedInClient(env2.store);
-        addTearDown(() {
-          client1.close();
-          client2.close();
-        });
-
-        final box = env.store.box<TestEntitySynced>();
-        final box2 = env2.store.box<TestEntitySynced>();
-        int id = box.put(TestEntitySynced(value: Random().nextInt(1 << 32)));
-        expect(waitUntil(() => box2.get(id) != null), isTrue);
-
-        TestEntitySynced? read1 = box.get(id);
-        TestEntitySynced? read2 = box2.get(id);
-        expect(read1, isNotNull);
-        expect(read2, isNotNull);
-        expect(read1!.id, equals(read2!.id));
-        expect(read1.value, equals(read2.value));
-      });
-
-      test('SyncClient listeners: connection', () async {
-        final client = createClient(env.store);
-        addTearDown(() => client.close());
-
-        // collect connection events
-        final events = <SyncConnectionEvent>[];
-        final streamSub = client.connectionEvents.listen(events.add);
-
-        // multiple subscriptions work as well
-        final events2 = <SyncConnectionEvent>[];
-        final streamSub2 = client.connectionEvents.listen(events2.add);
-
-        await server.online();
+        // Starting the client also starts the mesh: it begins discovering peers.
+        // The transition happens on a background thread, so wait for it.
         client.start();
-
-        waitUntilLoggedIn(client);
-        await yieldExecution();
-        expect(events, equals([SyncConnectionEvent.connected]));
-        expect(events2, equals([SyncConnectionEvent.connected]));
-
-        await streamSub2.cancel();
-
-        await server.stop(keepDb: true);
-
-        expect(
-            waitUntil(() => client.state() == SyncState.disconnected), isTrue);
-        await yieldExecution();
-        expect(
-            events,
-            equals([
-              SyncConnectionEvent.connected,
-              SyncConnectionEvent.disconnected
-            ]));
-
-        await server.start(keepDb: true);
-        await server.online();
-
-        waitUntilLoggedIn(client);
-        await yieldExecution();
-
-        expect(
-            events,
-            equals([
-              SyncConnectionEvent.connected,
-              SyncConnectionEvent.disconnected,
-              SyncConnectionEvent.connected
-            ]));
-        expect(events2, equals([SyncConnectionEvent.connected]));
-
-        await streamSub.cancel();
-      });
-
-      test('SyncClient listeners: login', () async {
-        final client = createClient(env.store);
-        addTearDown(() => client.close());
-
-        client.setCredentials(SyncCredentials.sharedSecretString('foo'));
-
-        // collect login events
-        final events = <SyncLoginEvent>[];
-        client.loginEvents.listen(events.add);
-
-        await server.online();
-        client.start();
-
-        expect(await client.loginEvents.first.timeout(defaultTimeout),
-            equals(SyncLoginEvent.credentialsRejected));
-
-        client.setCredentials(SyncCredentials.none());
-
-        waitUntilLoggedIn(client);
-        await yieldExecution();
-        expect(
-            events,
-            equals(
-                [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
-      });
-
-      test('SyncClient listeners: completion', () async {
-        await server.online();
-        final client = loggedInClient(store);
-        addTearDown(() {
-          client.close();
-        });
-        final box = env.store.box<TestEntitySynced>();
-        final box2 = env2.store.box<TestEntitySynced>();
-        expect(box.isEmpty(), isTrue);
-        // Do multiple changes to verify only a single completion event is sent
-        // after all changes are received.
-        box.put(TestEntitySynced(value: 1));
-        box.put(TestEntitySynced(value: 100));
-
-        // Note: wait for the client to finish sending to the server.
-        // There's currently no other way to recognize this.
-        sleep(const Duration(milliseconds: 100));
-
-        final client2 = createClient(env2.store);
-        addTearDown(() {
-          client2.close();
-        });
-        final Completer firstEvent = Completer();
-        var receivedEvents = 0;
-        final subscription = client2.completionEvents.listen((event) {
-          if (!firstEvent.isCompleted) {
-            firstEvent.complete();
+        var waitedForDiscovering = 0;
+        while (mesh.state() != MeshState.discovering) {
+          if (waitedForDiscovering == 100) {
+            fail('Mesh did not reach discovering state within 10 seconds');
           }
-          receivedEvents++;
-        });
+          await Future.delayed(const Duration(milliseconds: 100));
+          waitedForDiscovering++;
+        }
 
-        client2.start();
-        waitUntilLoggedIn(client2);
+        // Requesting an immediate retry of the network radios on a running
+        // mesh must not throw (the retry itself happens asynchronously).
+        mesh.retryNetworks();
 
-        // Yield and wait for the first event...
-        await firstEvent.future.timeout(defaultTimeout);
-        // ...and some more on any additional events (should be none)
-        await Future.delayed(Duration(milliseconds: 200));
-        expect(receivedEvents, 1);
-        // Note: the ID just happens to be the same as the box was unused
-        expect(box2.get(2)!.value, 100);
+        client.stop();
+        expect(mesh.state(), equals(MeshState.stopped));
 
-        // Do another change
-        box.put(TestEntitySynced(value: 200));
-        // Yield and wait for event(s) to come in
-        await Future.delayed(Duration(milliseconds: 200));
-        await subscription.cancel();
-        expect(receivedEvents, 2);
+        // Closing the client invalidates the mesh; any further access must throw.
+        client.close();
+        final error = throwsA(
+          predicate(
+            (StateError e) => e.toString().contains('MeshSync already closed'),
+          ),
+        );
+        expect(() => mesh.state(), error);
+        expect(() => mesh.stateString(), error);
+        expect(() => mesh.connectedPeerCount(), error);
+        expect(() => mesh.stats(MeshStats.peersConnected), error);
+        expect(() => mesh.retryNetworks(), error);
       });
 
-      test('SyncClient listeners: changes', () async {
-        await server.online();
-        final client = loggedInClient(store);
-        final client2 = loggedInClient(env2.store);
-        addTearDown(() {
-          client.close();
-          client2.close();
-        });
-
-        final events = <List<SyncChange>>[];
-        client2.changeEvents.listen(events.add);
-
-        expect(env2.store.box<TestEntitySynced>().get(1), isNull);
-        final box = env.store.box<TestEntitySynced>();
-        final box2 = env2.store.box<TestEntitySynced>();
-        box.put(TestEntitySynced(value: 10));
-        env.store.runInTransaction(TxMode.write, () {
-          Box<TestEntity>(env.store).put(TestEntity()); // not synced
-          box.put(TestEntitySynced(value: 20));
-          box.put(TestEntitySynced(value: 1));
-          expect(box.remove(1), isTrue);
-        });
-
-        // wait for the data to be transferred
-        expect(waitUntil(() => box2.count() == 2), isTrue);
-
-        // check the events
-        await yieldExecution();
-        expect(events.length, 2);
-
-        // box.put(TestEntitySynced(value: 10));
-        expect(events[0].length, 1);
-        expect(events[0][0].entity, TestEntitySynced);
-        expect(events[0][0].entityId,
-            InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
-        expect(events[0][0].puts, [1]);
-        expect(events[0][0].removals, isEmpty);
-
-        // env.store.runInTransaction(TxMode.Write, () {
-        //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
-        //   box.put(TestEntitySynced(value: 20));
-        //   box.put(TestEntitySynced(value: 1));
-        //   expect(box.remove(1), isTrue);
-        // });
-        expect(events[1].length, 1);
-        expect(events[1][0].entity, TestEntitySynced);
-        expect(events[1][0].entityId,
-            InternalStoreAccess.entityDef<TestEntitySynced>(store).model.id.id);
-        expect(events[1][0].puts, [2, 3]);
-        expect(events[1][0].removals, [1]);
-      });
-
-      test('SyncClient stats after logging in', () async {
-        await server.online();
-        final client = loggedInClient(store);
+      test('SyncClient without mesh config has no mesh', () {
+        SyncClient client = createClient(store);
         addTearDown(() => client.close());
 
-        // All but the send failures counter should be positive
+        expect(client.mesh, isNull);
+      });
+
+      test('SyncClient stats', () {
+        SyncClient client = createClient(store);
+        addTearDown(() => client.close());
+
+        // All counters are readable and zero before connecting to a server.
         for (final counter in SyncStats.values) {
-          if (counter == SyncStats.messageSendFailures) {
-            expect(client.stats(counter), isZero,
-                reason: 'Value: ${counter.name}');
-          } else {
-            expect(client.stats(counter), isPositive,
-                reason: 'Value: ${counter.name}');
-          }
+          expect(client.stats(counter), isZero, reason: counter.name);
         }
       });
 
-      test('Put and get entity with SyncClock and SyncPrecedence', () async {
-        // Putting a sync-enabled entity requires to enable Sync by starting a
-        // client.
-        await server.online();
-        final client = loggedInClient(store);
-        addTearDown(() => client.close());
+      test('syncClockTimestamp', () {
+        final clockValue = 1860802100721610852;
+        final expectedTime = 1774599171372;
 
-        final box = store.box<TestEntityPrecedence>();
-        final object = TestEntityPrecedence()
-          ..clock = 0
-          ..precedence = 42;
-        final id = box.put(object);
-
-        final read = box.get(id)!;
-        final clockMs = Sync.syncClockTimestamp(read.clock!);
-        final nowMs = DateTime.now().millisecondsSinceEpoch;
-        expect((clockMs - nowMs).abs(),
-            lessThanOrEqualTo(Duration.millisecondsPerMinute),
-            reason: 'clock value should be current milliseconds since epoch');
-        // Lowest 10+10 bits (local time offset + counter) are 0
-        expect(read.clock! & 0xFFFFF, equals(0));
-        expect(read.precedence, equals(42));
+        expect(Sync.syncClockTimestamp(clockValue), equals(expectedTime));
+        expect(
+          Sync.syncClockTimestampCorrected(clockValue),
+          equals(expectedTime - 10),
+        );
       });
-    },
-        skip: SyncServer.isAvailable()
-            ? null
-            : 'sync-server executable is not available in PATH - tests requiring it are skipped');
 
-    group('Server tests expecting running Sync server', () {
-      final String testJwtToken = "INSERT_VALID_JWT";
-      final String testInvalidJwtToken =
-          "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIiwiZXhwIjoxNzM4MjE1NjAwLCJpYXQiOjE3MzgyMTc0MDN9.3auqtgaSEqpFqXhuCyoDM-LbfTOIEGGF6X0AjCcykJ2Nv1WN6LaVbuMDjMf-tKSLyeqFkzQbIckP4FvLHh7wQJ6rafDiT4H2pb6xhouU1QH3szK2S_7VDl_4BhxRbW5pEUt9086HXaVFHEZVS0417pxomlPHxrc1n4Z_A4QxZM5_xh5xcHV8PiGgXWb6_2basjBj5z6POTrazRs67IOQ-ob6ROIsOUGu3om6b8i0h_QSMmeJbujfr2EZqhYWTKijeyidbjRWZ97NFxtGRYN_jPOvy-T3gANXs2a32Er8XvgZTjr_-O8tl_1fHPo2kDE-UCNdwUfBQFhTokDUdJ81bg";
+      group(
+        'Server tests using sync-server in PATH',
+        () {
+          late SyncServer server;
 
-      /// NOTE Unlike the other tests, this test assumes a Sync server is
-      /// already running on [serverPort] and has JWT auth configured.
-      /// Then obtain a JWT and insert it in [testJwtToken] above.
-      ///
-      /// Background: Sync server needs to run in a supported environment to
-      /// enable JWT authentication. So this test can not interact with a
-      /// sync-server binary like the other tests.
-      test('Auth with JSON Web Token (JWT)', () async {
-        // Note: the objectbox project covers all cases, this test just
-        // ensures the Dart parts work as expected.
+          setUp(() async {
+            server = SyncServer();
+            serverPort = await server.start();
+          });
 
-        expect(testJwtToken, isNot("INSERT_VALID_JWT"),
+          tearDown(() async => await server.stop());
+
+          test('SyncClient data sync', () async {
+            await server.online();
+            final client1 = loggedInClient(env.store);
+            final client2 = loggedInClient(env2.store);
+            addTearDown(() {
+              client1.close();
+              client2.close();
+            });
+
+            final box = env.store.box<TestEntitySynced>();
+            final box2 = env2.store.box<TestEntitySynced>();
+            int id = box.put(
+              TestEntitySynced(value: Random().nextInt(1 << 32)),
+            );
+            expect(waitUntil(() => box2.get(id) != null), isTrue);
+
+            TestEntitySynced? read1 = box.get(id);
+            TestEntitySynced? read2 = box2.get(id);
+            expect(read1, isNotNull);
+            expect(read2, isNotNull);
+            expect(read1!.id, equals(read2!.id));
+            expect(read1.value, equals(read2.value));
+          });
+
+          test('SyncClient listeners: connection', () async {
+            final client = createClient(env.store);
+            addTearDown(() => client.close());
+
+            // collect connection events
+            final events = <SyncConnectionEvent>[];
+            final streamSub = client.connectionEvents.listen(events.add);
+
+            // multiple subscriptions work as well
+            final events2 = <SyncConnectionEvent>[];
+            final streamSub2 = client.connectionEvents.listen(events2.add);
+
+            await server.online();
+            client.start();
+
+            waitUntilLoggedIn(client);
+            await yieldExecution();
+            expect(events, equals([SyncConnectionEvent.connected]));
+            expect(events2, equals([SyncConnectionEvent.connected]));
+
+            await streamSub2.cancel();
+
+            await server.stop(keepDb: true);
+
+            expect(
+              waitUntil(() => client.state() == SyncState.disconnected),
+              isTrue,
+            );
+            await yieldExecution();
+            expect(
+              events,
+              equals([
+                SyncConnectionEvent.connected,
+                SyncConnectionEvent.disconnected,
+              ]),
+            );
+
+            await server.start(keepDb: true);
+            await server.online();
+
+            waitUntilLoggedIn(client);
+            await yieldExecution();
+
+            expect(
+              events,
+              equals([
+                SyncConnectionEvent.connected,
+                SyncConnectionEvent.disconnected,
+                SyncConnectionEvent.connected,
+              ]),
+            );
+            expect(events2, equals([SyncConnectionEvent.connected]));
+
+            await streamSub.cancel();
+          });
+
+          test('SyncClient listeners: login', () async {
+            final client = createClient(env.store);
+            addTearDown(() => client.close());
+
+            client.setCredentials(SyncCredentials.sharedSecretString('foo'));
+
+            // collect login events
+            final events = <SyncLoginEvent>[];
+            client.loginEvents.listen(events.add);
+
+            await server.online();
+            client.start();
+
+            expect(
+              await client.loginEvents.first.timeout(defaultTimeout),
+              equals(SyncLoginEvent.credentialsRejected),
+            );
+
+            client.setCredentials(SyncCredentials.none());
+
+            waitUntilLoggedIn(client);
+            await yieldExecution();
+            expect(
+              events,
+              equals([
+                SyncLoginEvent.credentialsRejected,
+                SyncLoginEvent.loggedIn,
+              ]),
+            );
+          });
+
+          test('SyncClient listeners: completion', () async {
+            await server.online();
+            final client = loggedInClient(store);
+            addTearDown(() {
+              client.close();
+            });
+            final box = env.store.box<TestEntitySynced>();
+            final box2 = env2.store.box<TestEntitySynced>();
+            expect(box.isEmpty(), isTrue);
+            // Do multiple changes to verify only a single completion event is sent
+            // after all changes are received.
+            box.put(TestEntitySynced(value: 1));
+            box.put(TestEntitySynced(value: 100));
+
+            // Note: wait for the client to finish sending to the server.
+            // There's currently no other way to recognize this.
+            sleep(const Duration(milliseconds: 100));
+
+            final client2 = createClient(env2.store);
+            addTearDown(() {
+              client2.close();
+            });
+            final Completer firstEvent = Completer();
+            var receivedEvents = 0;
+            final subscription = client2.completionEvents.listen((event) {
+              if (!firstEvent.isCompleted) {
+                firstEvent.complete();
+              }
+              receivedEvents++;
+            });
+
+            client2.start();
+            waitUntilLoggedIn(client2);
+
+            // Yield and wait for the first event...
+            await firstEvent.future.timeout(defaultTimeout);
+            // ...and some more on any additional events (should be none)
+            await Future.delayed(Duration(milliseconds: 200));
+            expect(receivedEvents, 1);
+            // Note: the ID just happens to be the same as the box was unused
+            expect(box2.get(2)!.value, 100);
+
+            // Do another change
+            box.put(TestEntitySynced(value: 200));
+            // Yield and wait for event(s) to come in
+            await Future.delayed(Duration(milliseconds: 200));
+            await subscription.cancel();
+            expect(receivedEvents, 2);
+          });
+
+          test('SyncClient listeners: changes', () async {
+            await server.online();
+            final client = loggedInClient(store);
+            final client2 = loggedInClient(env2.store);
+            addTearDown(() {
+              client.close();
+              client2.close();
+            });
+
+            final events = <List<SyncChange>>[];
+            client2.changeEvents.listen(events.add);
+
+            expect(env2.store.box<TestEntitySynced>().get(1), isNull);
+            final box = env.store.box<TestEntitySynced>();
+            final box2 = env2.store.box<TestEntitySynced>();
+            box.put(TestEntitySynced(value: 10));
+            env.store.runInTransaction(TxMode.write, () {
+              Box<TestEntity>(env.store).put(TestEntity()); // not synced
+              box.put(TestEntitySynced(value: 20));
+              box.put(TestEntitySynced(value: 1));
+              expect(box.remove(1), isTrue);
+            });
+
+            // wait for the data to be transferred
+            expect(waitUntil(() => box2.count() == 2), isTrue);
+
+            // check the events
+            await yieldExecution();
+            expect(events.length, 2);
+
+            // box.put(TestEntitySynced(value: 10));
+            expect(events[0].length, 1);
+            expect(events[0][0].entity, TestEntitySynced);
+            expect(
+              events[0][0].entityId,
+              InternalStoreAccess.entityDef<TestEntitySynced>(
+                store,
+              ).model.id.id,
+            );
+            expect(events[0][0].puts, [1]);
+            expect(events[0][0].removals, isEmpty);
+
+            // env.store.runInTransaction(TxMode.Write, () {
+            //   Box<TestEntity>(env.store).put(TestEntity()); // not synced
+            //   box.put(TestEntitySynced(value: 20));
+            //   box.put(TestEntitySynced(value: 1));
+            //   expect(box.remove(1), isTrue);
+            // });
+            expect(events[1].length, 1);
+            expect(events[1][0].entity, TestEntitySynced);
+            expect(
+              events[1][0].entityId,
+              InternalStoreAccess.entityDef<TestEntitySynced>(
+                store,
+              ).model.id.id,
+            );
+            expect(events[1][0].puts, [2, 3]);
+            expect(events[1][0].removals, [1]);
+          });
+
+          test('SyncClient stats after logging in', () async {
+            await server.online();
+            final client = loggedInClient(store);
+            addTearDown(() => client.close());
+
+            // All but the send failures counter should be positive
+            for (final counter in SyncStats.values) {
+              if (counter == SyncStats.messageSendFailures) {
+                expect(
+                  client.stats(counter),
+                  isZero,
+                  reason: 'Value: ${counter.name}',
+                );
+              } else {
+                expect(
+                  client.stats(counter),
+                  isPositive,
+                  reason: 'Value: ${counter.name}',
+                );
+              }
+            }
+          });
+
+          test('Put and get entity with SyncClock and SyncPrecedence', () async {
+            // Putting a sync-enabled entity requires to enable Sync by starting a
+            // client.
+            await server.online();
+            final client = loggedInClient(store);
+            addTearDown(() => client.close());
+
+            final box = store.box<TestEntityPrecedence>();
+            final object =
+                TestEntityPrecedence()
+                  ..clock = 0
+                  ..precedence = 42;
+            final id = box.put(object);
+
+            final read = box.get(id)!;
+            final clockMs = Sync.syncClockTimestamp(read.clock!);
+            final nowMs = DateTime.now().millisecondsSinceEpoch;
+            expect(
+              (clockMs - nowMs).abs(),
+              lessThanOrEqualTo(Duration.millisecondsPerMinute),
+              reason: 'clock value should be current milliseconds since epoch',
+            );
+            // Lowest 10+10 bits (local time offset + counter) are 0
+            expect(read.clock! & 0xFFFFF, equals(0));
+            expect(read.precedence, equals(42));
+          });
+        },
+        skip:
+            SyncServer.isAvailable()
+                ? null
+                : 'sync-server executable is not available in PATH - tests requiring it are skipped',
+      );
+
+      group('Server tests expecting running Sync server', () {
+        final String testJwtToken = "INSERT_VALID_JWT";
+        final String testInvalidJwtToken =
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIiwiZXhwIjoxNzM4MjE1NjAwLCJpYXQiOjE3MzgyMTc0MDN9.3auqtgaSEqpFqXhuCyoDM-LbfTOIEGGF6X0AjCcykJ2Nv1WN6LaVbuMDjMf-tKSLyeqFkzQbIckP4FvLHh7wQJ6rafDiT4H2pb6xhouU1QH3szK2S_7VDl_4BhxRbW5pEUt9086HXaVFHEZVS0417pxomlPHxrc1n4Z_A4QxZM5_xh5xcHV8PiGgXWb6_2basjBj5z6POTrazRs67IOQ-ob6ROIsOUGu3om6b8i0h_QSMmeJbujfr2EZqhYWTKijeyidbjRWZ97NFxtGRYN_jPOvy-T3gANXs2a32Er8XvgZTjr_-O8tl_1fHPo2kDE-UCNdwUfBQFhTokDUdJ81bg";
+
+        /// NOTE Unlike the other tests, this test assumes a Sync server is
+        /// already running on [serverPort] and has JWT auth configured.
+        /// Then obtain a JWT and insert it in [testJwtToken] above.
+        ///
+        /// Background: Sync server needs to run in a supported environment to
+        /// enable JWT authentication. So this test can not interact with a
+        /// sync-server binary like the other tests.
+        test('Auth with JSON Web Token (JWT)', () async {
+          // Note: the objectbox project covers all cases, this test just
+          // ensures the Dart parts work as expected.
+
+          expect(
+            testJwtToken,
+            isNot("INSERT_VALID_JWT"),
             reason:
-                "Paste a valid JWT into testJwtToken before running this test");
+                "Paste a valid JWT into testJwtToken before running this test",
+          );
 
-        // Using an already running server, at least check it's available
-        await SyncServer.onlineAt(serverPort);
+          // Using an already running server, at least check it's available
+          await SyncServer.onlineAt(serverPort);
 
-        // invalid token should fail to log in
-        var client = createAuthenticatedClient(
-            env.store, [SyncCredentials.jwtIdToken(testInvalidJwtToken)]);
+          // invalid token should fail to log in
+          var client = createAuthenticatedClient(env.store, [
+            SyncCredentials.jwtIdToken(testInvalidJwtToken),
+          ]);
 
-        final events = <SyncLoginEvent>[];
-        client.loginEvents.listen(events.add);
-        client.start();
-        addTearDown(() => client.close());
+          final events = <SyncLoginEvent>[];
+          client.loginEvents.listen(events.add);
+          client.start();
+          addTearDown(() => client.close());
 
-        expect(
-            await client.loginEvents.first.timeout(defaultTimeout,
-                onTimeout: () => throw TimeoutException(
-                    "Did not receive login event within $defaultTimeout")),
-            equals(SyncLoginEvent.credentialsRejected));
+          expect(
+            await client.loginEvents.first.timeout(
+              defaultTimeout,
+              onTimeout:
+                  () =>
+                      throw TimeoutException(
+                        "Did not receive login event within $defaultTimeout",
+                      ),
+            ),
+            equals(SyncLoginEvent.credentialsRejected),
+          );
 
-        // valid token should succeed to log in
-        client.setCredentials(SyncCredentials.jwtIdToken(testJwtToken));
+          // valid token should succeed to log in
+          client.setCredentials(SyncCredentials.jwtIdToken(testJwtToken));
 
-        waitUntilLoggedIn(client);
-        await yieldExecution();
+          waitUntilLoggedIn(client);
+          await yieldExecution();
 
-        expect(
+          expect(
             events,
-            equals(
-                [SyncLoginEvent.credentialsRejected, SyncLoginEvent.loggedIn]));
-      });
-    }, skip: "Test requires to manually run Sync server");
-  },
-      skip: Sync.isAvailable()
-          ? null
-          : 'Sync is not available in the loaded database library');
+            equals([
+              SyncLoginEvent.credentialsRejected,
+              SyncLoginEvent.loggedIn,
+            ]),
+          );
+        });
+      }, skip: "Test requires to manually run Sync server");
+    },
+    skip:
+        Sync.isAvailable()
+            ? null
+            : 'Sync is not available in the loaded database library',
+  );
 }
 
 /// sync-server process wrapper for testing clients
@@ -793,7 +912,9 @@ class SyncServer {
   }
 
   static Future<File> _writeConfFile(
-      Directory directory, String contents) async {
+    Directory directory,
+    String contents,
+  ) async {
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -855,25 +976,30 @@ class SyncServer {
   /// This simple check speeds up test by only trying to log in after the server
   /// has started, avoiding the reconnect backoff intervals altogether.
   static Future<void> onlineAt(int port) async => Future(() async {
-        final httpClient = HttpClient();
-        while (true) {
-          try {
-            await httpClient.get('127.0.0.1', port, '');
-            break;
-          } on SocketException catch (e) {
-            // Only retry if "Connection refused" (not using error codes as they
-            // differ by platform).
-            if (e.osError!.message.contains('Connection refused')) {
-              await Future<void>.delayed(const Duration(milliseconds: 1));
-            } else {
-              rethrow;
-            }
-          }
+    final httpClient = HttpClient();
+    while (true) {
+      try {
+        await httpClient.get('127.0.0.1', port, '');
+        break;
+      } on SocketException catch (e) {
+        // Only retry if "Connection refused" (not using error codes as they
+        // differ by platform).
+        if (e.osError!.message.contains('Connection refused')) {
+          await Future<void>.delayed(const Duration(milliseconds: 1));
+        } else {
+          rethrow;
         }
-        httpClient.close(force: true);
-      }).timeout(defaultTimeout,
-          onTimeout: () => throw TimeoutException(
-              "Server did not come online within $defaultTimeout ms"));
+      }
+    }
+    httpClient.close(force: true);
+  }).timeout(
+    defaultTimeout,
+    onTimeout:
+        () =>
+            throw TimeoutException(
+              "Server did not come online within $defaultTimeout ms",
+            ),
+  );
 
   Future<void> stop({bool keepDb = false}) async {
     final proc = _process;

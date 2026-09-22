@@ -98,7 +98,7 @@ the objectbox commit it points to (see `external/objectbox`).
 
 To download the C library header files and generate bindings with ffigen (requires LLVM libraries,
 see [ffigen docs](https://pub.dev/packages/ffigen#requirements)
-and the ffigen section in [pubspec.yaml](../objectbox/pubspec.yaml)):
+and the ffigen configuration in [ffigen.dart](../objectbox/tool/ffigen.dart)):
 
 ```bash
 ./tool/update-c-binding.sh

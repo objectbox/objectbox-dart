@@ -14,17 +14,24 @@ class ModelBacklink {
   /// Set and used by code generator, not included in JSON mapping.
   BacklinkSource? source;
 
-  ModelBacklink(
-      {required this.name, required this.srcEntity, required this.srcField});
+  ModelBacklink({
+    required this.name,
+    required this.srcEntity,
+    required this.srcField,
+  });
 
   ModelBacklink.fromMap(Map<String, dynamic> data)
-      : this(
-            name: data['name'] as String,
-            srcEntity: data['srcEntity'] as String,
-            srcField: data['srcField'] as String);
+    : this(
+        name: data['name'] as String,
+        srcEntity: data['srcEntity'] as String,
+        srcField: data['srcField'] as String,
+      );
 
-  Map<String, String> toMap() =>
-      {'name': name, 'srcEntity': srcEntity, 'srcField': srcField};
+  Map<String, String> toMap() => {
+    'name': name,
+    'srcEntity': srcEntity,
+    'srcField': srcField,
+  };
 
   @override
   String toString() => 'relation backlink $name from $srcEntity.$srcField';

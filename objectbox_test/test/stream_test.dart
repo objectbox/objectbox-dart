@@ -26,12 +26,18 @@ void main() {
     await subscription1.cancel();
 
     // Query stream is currently a single subscription stream.
-    expect(() {
-      stream.listen((event) {});
-    },
-        throwsA(predicate((e) =>
-            e is StateError &&
-            e.message == 'Stream has already been listened to.')));
+    expect(
+      () {
+        stream.listen((event) {});
+      },
+      throwsA(
+        predicate(
+          (e) =>
+              e is StateError &&
+              e.message == 'Stream has already been listened to.',
+        ),
+      ),
+    );
     // await subscription2.cancel();
   });
 
@@ -51,7 +57,7 @@ void main() {
 
     box.putMany(<TestEntity>[
       TestEntity(tString: 'Goodbye'),
-      TestEntity(tString: 'for now')
+      TestEntity(tString: 'for now'),
     ]);
 
     await yieldExecution();
@@ -77,7 +83,7 @@ void main() {
     // idem, see above
     box.putMany(<TestEntity>[
       TestEntity(tString: 'Goodbye'),
-      TestEntity(tString: 'for now')
+      TestEntity(tString: 'for now'),
     ]);
 
     await yieldExecution();
@@ -89,8 +95,9 @@ void main() {
 
   test('pause and resume', () async {
     final events = <int>[];
-    final subscription =
-        box.query().watch().listen((query) => events.add(query.count()));
+    final subscription = box.query().watch().listen(
+      (query) => events.add(query.count()),
+    );
 
     subscription.pause();
     box.put(TestEntity(tString: 'while paused'));
@@ -124,9 +131,13 @@ void main() {
     completer = Completer<void>();
     final sub2 = box.query().watch().listen((query) => completer.complete());
     expect(
-        completer.future.timeout(const Duration(milliseconds: 100)),
-        throwsA(predicate((TimeoutException e) =>
-            e.toString().contains('Future not completed'))));
+      completer.future.timeout(const Duration(milliseconds: 100)),
+      throwsA(
+        predicate(
+          (TimeoutException e) => e.toString().contains('Future not completed'),
+        ),
+      ),
+    );
     await sub2.cancel();
   });
 
@@ -144,54 +155,55 @@ void main() {
   });
 
   test(
-      'Only observers of a single entity are notified, no cross-entity observer notification',
-      () async {
-    // setup listeners
-    final box2 = Box<TestEntity2>(env.store);
+    'Only observers of a single entity are notified, no cross-entity observer notification',
+    () async {
+      // setup listeners
+      final box2 = Box<TestEntity2>(env.store);
 
-    var counter1 = 0, counter2 = 0;
+      var counter1 = 0, counter2 = 0;
 
-    final subscription2 = box2.query().watch().listen((_) {
-      counter2++;
-    });
+      final subscription2 = box2.query().watch().listen((_) {
+        counter2++;
+      });
 
-    final subscription1 = box.query().watch().listen((_) {
-      counter1++;
-    });
+      final subscription1 = box.query().watch().listen((_) {
+        counter1++;
+      });
 
-    // counter2 test #.1
-    final t2 = TestEntity2();
-    box2.put(t2);
+      // counter2 test #.1
+      final t2 = TestEntity2();
+      box2.put(t2);
 
-    await yieldExecution();
-    expect(counter1, 0);
-    expect(counter2, 1);
+      await yieldExecution();
+      expect(counter1, 0);
+      expect(counter2, 1);
 
-    // counter1 test #.1
-    final t1 = TestEntity();
-    box.put(t1);
+      // counter1 test #.1
+      final t1 = TestEntity();
+      box.put(t1);
 
-    await yieldExecution();
-    expect(counter1, 1);
-    expect(counter2, 1);
+      await yieldExecution();
+      expect(counter1, 1);
+      expect(counter2, 1);
 
-    // counter1 many test #.2
-    final ts1 = [1, 2, 3].map((i) => TestEntity(tInt: i)).toList();
-    box.putMany(ts1);
+      // counter1 many test #.2
+      final ts1 = [1, 2, 3].map((i) => TestEntity(tInt: i)).toList();
+      box.putMany(ts1);
 
-    await yieldExecution();
-    expect(counter1, 2);
-    expect(counter2, 1);
+      await yieldExecution();
+      expect(counter1, 2);
+      expect(counter2, 1);
 
-    // counter2 many test #.2
-    final ts2 = [1, 2, 3].map((i) => TestEntity2()).toList();
-    box2.putMany(ts2);
+      // counter2 many test #.2
+      final ts2 = [1, 2, 3].map((i) => TestEntity2()).toList();
+      box2.putMany(ts2);
 
-    await yieldExecution();
-    expect(counter1, 2);
-    expect(counter2, 2);
+      await yieldExecution();
+      expect(counter1, 2);
+      expect(counter2, 2);
 
-    await subscription1.cancel();
-    await subscription2.cancel();
-  });
+      await subscription1.cancel();
+      await subscription2.cancel();
+    },
+  );
 }

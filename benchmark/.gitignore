@@ -10,3 +10,5 @@ doc/api/
 
 # ObjectBox DB files
 **.mdb
+# Built executables
+bin/*.exe

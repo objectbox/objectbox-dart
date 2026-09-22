@@ -84,26 +84,27 @@ class TestEntity {
   // OBXPropertyType.ByteVector
   Uint8List? tUint8List;
 
-  TestEntity(
-      {this.tString,
-      this.tLong,
-      this.tDouble,
-      this.tBool,
-      this.tByte,
-      this.tShort,
-      this.tChar,
-      this.tInt,
-      this.tFloat,
-      this.tStrings,
-      this.tByteList,
-      this.tInt8List,
-      this.tUint8List,
-      this.ignore,
-      this.tDate,
-      this.tDateExplicit,
-      this.tDateNano,
-      this.tDateUtc,
-      this.tDateNanoUtc});
+  TestEntity({
+    this.tString,
+    this.tLong,
+    this.tDouble,
+    this.tBool,
+    this.tByte,
+    this.tShort,
+    this.tChar,
+    this.tInt,
+    this.tFloat,
+    this.tStrings,
+    this.tByteList,
+    this.tInt8List,
+    this.tUint8List,
+    this.ignore,
+    this.tDate,
+    this.tDateExplicit,
+    this.tDateNano,
+    this.tDateUtc,
+    this.tDateNanoUtc,
+  });
 
   TestEntity.filled({
     this.id = 1,
@@ -332,24 +333,24 @@ class TestEntityNotNull {
   // OBXPropertyType.ByteVector
   Uint8List tUint8List;
 
-  TestEntityNotNull(
-      {this.id = 0,
-      this.tString = 'Foo',
-      this.tBool = true,
-      this.tLong = 123456789123456789,
-      this.tDouble = 2.3,
-      DateTime? tDate,
-      DateTime? tDateNano,
-      List<String>? tStrings,
-      List<int>? tByteList,
-      Int8List? tInt8List,
-      Uint8List? tUint8List})
-      : tDate = tDate ?? DateTime.now(),
-        tDateNano = tDateNano ?? DateTime.now(),
-        tStrings = tStrings ?? [],
-        tByteList = tByteList ?? [],
-        tInt8List = tInt8List ?? Int8List(0),
-        tUint8List = tUint8List ?? Uint8List(0);
+  TestEntityNotNull({
+    this.id = 0,
+    this.tString = 'Foo',
+    this.tBool = true,
+    this.tLong = 123456789123456789,
+    this.tDouble = 2.3,
+    DateTime? tDate,
+    DateTime? tDateNano,
+    List<String>? tStrings,
+    List<int>? tByteList,
+    Int8List? tInt8List,
+    Uint8List? tUint8List,
+  }) : tDate = tDate ?? DateTime.now(),
+       tDateNano = tDateNano ?? DateTime.now(),
+       tStrings = tStrings ?? [],
+       tByteList = tByteList ?? [],
+       tInt8List = tInt8List ?? Int8List(0),
+       tUint8List = tUint8List ?? Uint8List(0);
 }
 
 @Entity()
@@ -391,24 +392,25 @@ class TestEntityScalarVectors {
   List<double>? tDoubleList;
   Float64List? tFloat64List;
 
-  TestEntityScalarVectors(
-      {this.tByteList,
-      this.tInt8List,
-      this.tUint8List,
-      this.tCharList,
-      this.tShortList,
-      this.tInt16List,
-      this.tUint16List,
-      this.tIntList,
-      this.tInt32List,
-      this.tUint32List,
-      this.tLongList,
-      this.tInt64List,
-      this.tUint64List,
-      this.tFloatList,
-      this.tFloat32List,
-      this.tDoubleList,
-      this.tFloat64List});
+  TestEntityScalarVectors({
+    this.tByteList,
+    this.tInt8List,
+    this.tUint8List,
+    this.tCharList,
+    this.tShortList,
+    this.tInt16List,
+    this.tUint16List,
+    this.tIntList,
+    this.tInt32List,
+    this.tUint32List,
+    this.tLongList,
+    this.tInt64List,
+    this.tUint64List,
+    this.tFloatList,
+    this.tFloat32List,
+    this.tDoubleList,
+    this.tFloat64List,
+  });
 
   TestEntityScalarVectors.withData(int nr) {
     final byte = 10 + nr;
@@ -455,7 +457,9 @@ class TestEntityScalarVectors {
   /// ```
   static List<TestEntityScalarVectors> createTen() {
     return List.generate(
-        10, (index) => TestEntityScalarVectors.withData(index));
+      10,
+      (index) => TestEntityScalarVectors.withData(index),
+    );
   }
 }
 

@@ -4,21 +4,20 @@ version: 1.0.0
 publish_to: none
 
 environment:
-  # Minimum Dart SDK required.
-  sdk: '>=2.15.0 <4.0.0'
+  sdk: ^3.7.0 # 3.7 has new dart format rules
 
 dependencies:
   objectbox: any
 
 dev_dependencies:
-  async: ^2.8.2
+  async: ^2.13.1
   collection: any # via objectbox
-  build_runner: ^2.0.0
+  build_runner: ^2.15.0 # 2.15.1 requires Dart 3.8, but still testing with 3.7
   ffi: ^2.2.0
   flat_buffers: any # via objectbox
-  lints: '>=5.0.0 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
+  lints: '>=5.1.1 <7.0.0' # 6.0.0 requires Dart 3.8, but still testing with 3.7
   objectbox_generator: any
-  test: ^1.27.0
+  test: ^1.31.0 # 1.31.1 requires Dart 3.10, but still testing with 3.7
 
 dependency_overrides:
   objectbox:

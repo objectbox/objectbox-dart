@@ -53,12 +53,19 @@ class TestEnv {
     final Store store;
     var modelDefinition = getObjectBoxModel();
     try {
-      store = queryCaseSensitive == null
-          ? Store(modelDefinition, directory: dbDirPath, debugFlags: debugFlag)
-          : Store(modelDefinition,
-              directory: dbDirPath,
-              debugFlags: debugFlag,
-              queriesCaseSensitiveDefault: queryCaseSensitive);
+      store =
+          queryCaseSensitive == null
+              ? Store(
+                modelDefinition,
+                directory: dbDirPath,
+                debugFlags: debugFlag,
+              )
+              : Store(
+                modelDefinition,
+                directory: dbDirPath,
+                debugFlags: debugFlag,
+                queriesCaseSensitiveDefault: queryCaseSensitive,
+              );
     } catch (ex) {
       if (!inMemory) {
         final dir = Directory(dbDirPath);
@@ -68,8 +75,12 @@ class TestEnv {
       print("Model Info: ${modelDefinition.model.toMap()}");
       rethrow;
     }
-    return TestEnv._(inMemory, dbDirPath, store,
-        Platform.environment.containsKey('TEST_SHORT'));
+    return TestEnv._(
+      inMemory,
+      dbDirPath,
+      store,
+      Platform.environment.containsKey('TEST_SHORT'),
+    );
   }
 
   TestEnv._(this.isInMemory, this.dbDirPath, this.store, this.short);
@@ -117,14 +128,3 @@ Matcher sameAsList<T>(List<T> list) => unorderedEquals(list);
 /// the remainder of the test case.
 Future<void> yieldExecution() async =>
     await Future<void>.delayed(Duration.zero);
-
-bool atLeastDart(String expectedLowestVersion) {
-  final dartVersion = RegExp('([0-9]+).([0-9]+).([0-9]+)')
-      .firstMatch(Platform.version)
-      ?.group(0);
-  if (dartVersion != null && dartVersion.compareTo(expectedLowestVersion) > 0) {
-    return true;
-  } else {
-    return false;
-  }
-}

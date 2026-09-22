@@ -27,7 +27,7 @@ void main() {
         tByteList: [14, -50, 44],
         tInt8List: Int8List.fromList([1, 8, -17]),
         tUint8List: Uint8List.fromList([2, 199]),
-      )
+      ),
     ];
     box.put(objects[0]);
     box.putMany(objects.sublist(1));

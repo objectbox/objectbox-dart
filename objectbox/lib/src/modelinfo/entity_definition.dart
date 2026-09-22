@@ -21,14 +21,15 @@ class EntityDefinition<T> {
   final List<ToOne> Function(T) toOneRelations;
   final Map<RelInfo, ToMany> Function(T) toManyRelations;
 
-  const EntityDefinition(
-      {required this.model,
-      required this.objectToFB,
-      required this.objectFromFB,
-      required this.getId,
-      required this.setId,
-      required this.toOneRelations,
-      required this.toManyRelations});
+  const EntityDefinition({
+    required this.model,
+    required this.objectToFB,
+    required this.objectFromFB,
+    required this.getId,
+    required this.setId,
+    required this.toOneRelations,
+    required this.toManyRelations,
+  });
 
   Type type() => T;
 
@@ -38,8 +39,11 @@ class EntityDefinition<T> {
     // small buffers, but this is not longer faster than asTypedList.
     // See /benchmark/bin/native_pointers.dart.
     final uInt8List = data.asTypedList(size);
-    final byteData =
-        ByteData.view(uInt8List.buffer, uInt8List.offsetInBytes, size);
+    final byteData = ByteData.view(
+      uInt8List.buffer,
+      uInt8List.offsetInBytes,
+      size,
+    );
     return objectFromFB(store, byteData);
   }
 }
