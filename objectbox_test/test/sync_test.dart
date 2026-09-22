@@ -818,73 +818,69 @@ void main() {
                 : 'sync-server executable is not available in PATH - tests requiring it are skipped',
       );
 
-      group(
-        'Server tests expecting running Sync server',
-        () {
-          final String testJwtToken = "INSERT_VALID_JWT";
-          final String testInvalidJwtToken =
-              "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIiwiZXhwIjoxNzM4MjE1NjAwLCJpYXQiOjE3MzgyMTc0MDN9.3auqtgaSEqpFqXhuCyoDM-LbfTOIEGGF6X0AjCcykJ2Nv1WN6LaVbuMDjMf-tKSLyeqFkzQbIckP4FvLHh7wQJ6rafDiT4H2pb6xhouU1QH3szK2S_7VDl_4BhxRbW5pEUt9086HXaVFHEZVS0417pxomlPHxrc1n4Z_A4QxZM5_xh5xcHV8PiGgXWb6_2basjBj5z6POTrazRs67IOQ-ob6ROIsOUGu3om6b8i0h_QSMmeJbujfr2EZqhYWTKijeyidbjRWZ97NFxtGRYN_jPOvy-T3gANXs2a32Er8XvgZTjr_-O8tl_1fHPo2kDE-UCNdwUfBQFhTokDUdJ81bg";
+      group('Server tests expecting running Sync server', () {
+        final String testJwtToken = "INSERT_VALID_JWT";
+        final String testInvalidJwtToken =
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJzeW5jLXNlcnZlciIsImlzcyI6Im9iamVjdGJveC1hdXRoIiwiZXhwIjoxNzM4MjE1NjAwLCJpYXQiOjE3MzgyMTc0MDN9.3auqtgaSEqpFqXhuCyoDM-LbfTOIEGGF6X0AjCcykJ2Nv1WN6LaVbuMDjMf-tKSLyeqFkzQbIckP4FvLHh7wQJ6rafDiT4H2pb6xhouU1QH3szK2S_7VDl_4BhxRbW5pEUt9086HXaVFHEZVS0417pxomlPHxrc1n4Z_A4QxZM5_xh5xcHV8PiGgXWb6_2basjBj5z6POTrazRs67IOQ-ob6ROIsOUGu3om6b8i0h_QSMmeJbujfr2EZqhYWTKijeyidbjRWZ97NFxtGRYN_jPOvy-T3gANXs2a32Er8XvgZTjr_-O8tl_1fHPo2kDE-UCNdwUfBQFhTokDUdJ81bg";
 
-          /// NOTE Unlike the other tests, this test assumes a Sync server is
-          /// already running on [serverPort] and has JWT auth configured.
-          /// Then obtain a JWT and insert it in [testJwtToken] above.
-          ///
-          /// Background: Sync server needs to run in a supported environment to
-          /// enable JWT authentication. So this test can not interact with a
-          /// sync-server binary like the other tests.
-          test('Auth with JSON Web Token (JWT)', () async {
-            // Note: the objectbox project covers all cases, this test just
-            // ensures the Dart parts work as expected.
+        /// NOTE Unlike the other tests, this test assumes a Sync server is
+        /// already running on [serverPort] and has JWT auth configured.
+        /// Then obtain a JWT and insert it in [testJwtToken] above.
+        ///
+        /// Background: Sync server needs to run in a supported environment to
+        /// enable JWT authentication. So this test can not interact with a
+        /// sync-server binary like the other tests.
+        test('Auth with JSON Web Token (JWT)', () async {
+          // Note: the objectbox project covers all cases, this test just
+          // ensures the Dart parts work as expected.
 
-            expect(
-              testJwtToken,
-              isNot("INSERT_VALID_JWT"),
-              reason:
-                  "Paste a valid JWT into testJwtToken before running this test",
-            );
+          expect(
+            testJwtToken,
+            isNot("INSERT_VALID_JWT"),
+            reason:
+                "Paste a valid JWT into testJwtToken before running this test",
+          );
 
-            // Using an already running server, at least check it's available
-            await SyncServer.onlineAt(serverPort);
+          // Using an already running server, at least check it's available
+          await SyncServer.onlineAt(serverPort);
 
-            // invalid token should fail to log in
-            var client = createAuthenticatedClient(env.store, [
-              SyncCredentials.jwtIdToken(testInvalidJwtToken),
-            ]);
+          // invalid token should fail to log in
+          var client = createAuthenticatedClient(env.store, [
+            SyncCredentials.jwtIdToken(testInvalidJwtToken),
+          ]);
 
-            final events = <SyncLoginEvent>[];
-            client.loginEvents.listen(events.add);
-            client.start();
-            addTearDown(() => client.close());
+          final events = <SyncLoginEvent>[];
+          client.loginEvents.listen(events.add);
+          client.start();
+          addTearDown(() => client.close());
 
-            expect(
-              await client.loginEvents.first.timeout(
-                defaultTimeout,
-                onTimeout:
-                    () =>
-                        throw TimeoutException(
-                          "Did not receive login event within $defaultTimeout",
-                        ),
-              ),
-              equals(SyncLoginEvent.credentialsRejected),
-            );
+          expect(
+            await client.loginEvents.first.timeout(
+              defaultTimeout,
+              onTimeout:
+                  () =>
+                      throw TimeoutException(
+                        "Did not receive login event within $defaultTimeout",
+                      ),
+            ),
+            equals(SyncLoginEvent.credentialsRejected),
+          );
 
-            // valid token should succeed to log in
-            client.setCredentials(SyncCredentials.jwtIdToken(testJwtToken));
+          // valid token should succeed to log in
+          client.setCredentials(SyncCredentials.jwtIdToken(testJwtToken));
 
-            waitUntilLoggedIn(client);
-            await yieldExecution();
+          waitUntilLoggedIn(client);
+          await yieldExecution();
 
-            expect(
-              events,
-              equals([
-                SyncLoginEvent.credentialsRejected,
-                SyncLoginEvent.loggedIn,
-              ]),
-            );
-          });
-        },
-        skip: "Test requires to manually run Sync server",
-      );
+          expect(
+            events,
+            equals([
+              SyncLoginEvent.credentialsRejected,
+              SyncLoginEvent.loggedIn,
+            ]),
+          );
+        });
+      }, skip: "Test requires to manually run Sync server");
     },
     skip:
         Sync.isAvailable()
