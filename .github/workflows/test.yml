@@ -80,9 +80,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Generator Test
         working-directory: generator
+        # Generator test suites must not run in parallel (see notes on GeneratorTestEnv):
+        # set concurrency=1 to run only one test suite (== test file) at a time.
         run: |
           ../tool/pub.sh get
-          ../tool/pub.sh run test
+          ../tool/pub.sh run test --concurrency=1
       - name: Install ObjectBox C library
         working-directory: objectbox_test
         # Use Sync-enabled library to at least partially run sync_test.dart
