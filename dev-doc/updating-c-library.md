@@ -104,6 +104,16 @@ and the ffigen configuration in [ffigen.dart](../objectbox/tool/ffigen.dart)):
 ./tool/update-c-binding.sh
 ```
 
+The script downloads the header files from the GitHub release tag of the C library version set in
+the script. If the header files are not available there yet (e.g. for an unreleased version),
+manually copy them (`objectbox.h`, `objectbox-dart.h`, `objectbox-sync.h` from the `include`
+directory of the C library sources) to [bindings](../objectbox/lib/src/native/bindings) and skip
+the download:
+
+```bash
+./tool/update-c-binding.sh --skip-download
+```
+
 Then manually:
 
 - Copy/update enums that need to be exposed to users

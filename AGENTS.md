@@ -1,7 +1,7 @@
 # ObjectBox Dart/Flutter Guidelines
 
-ObjectBox is a high-performance NoSQL database for Dart and Flutter with on-device vector search support.
-This ObjectBox Dart SDK uses FFI bindings to a native C library.
+ObjectBox is a high-performance NoSQL database for Dart and Flutter with on-device vector search
+support. This ObjectBox Dart SDK uses FFI bindings to a native C library.
 
 ## Repository Structure
 
@@ -41,9 +41,10 @@ This is a **multi-package monorepo**:
 This initializes the workspace, downloads native libraries, and generates code.
 
 To download the native library for a specific package:
+
 ```bash
+./install.sh --sync    # Sync-enabled library, recommended
 ./install.sh           # Standard library
-./install.sh --sync    # Sync-enabled library
 ```
 
 ## Code Style & Formatting
@@ -51,51 +52,73 @@ To download the native library for a specific package:
 - **Always run `dart format` on changed files before committing**
 - CI checks formatting with `dart format --set-exit-if-changed`
 - Use `dart analyze` to check for issues
+- In Markdown files, wrap lines so they don't exceed 100 characters. Exception: in `CHANGELOG.md`,
+  don't wrap lines, so entries can be copied as-is to GitHub release notes.
 
 ## Testing
 
-Tests are in `objectbox_test/`. Run with:
+Unit tests for the `objectbox` package are in `objectbox_test/`. See its
+[README](objectbox_test/README.md) for setup and options (in-memory database, Sync server, better
+log output). In short:
+
 ```bash
 cd objectbox_test
 dart pub get
 dart run build_runner build
-dart test
+dart test --concurrency=1 --reporter expanded
 ```
 
-Generator integration tests:
-```bash
-./generator/test.sh
-```
-
-Flutter Android integration tests are in `objectbox_test_app/`.
-Run them on an already-started Android emulator, for example, if `flutter devices` lists an emulator as `emulator-5554`:
+Generator unit tests are in `generator/test/`. Test suites must not run in parallel, see its
+[README](generator/test/README.md). In short:
 
 ```bash
-cd objectbox_test_app
-flutter test integration_test/sync_test.dart -d emulator-5554
+cd generator
+dart pub get
+dart test --concurrency=1 --reporter expanded
 ```
+
+Generator integration tests are in `generator/integration-tests/`. They require the native library
+to be installed globally (`./install.sh --install`) or in the tested directory. See their
+[README](generator/integration-tests/README.md) for how test cases are structured. In short:
+
+```bash
+./generator/test.sh             # Run all tests
+./generator/test.sh basics      # Run a specific test (directory name)
+```
+
+Flutter Android integration tests are in `objectbox_test_app/`. They run on an already-started
+Android emulator. See its [README](objectbox_test_app/README.md).
 
 ## CI Pipeline
 
-This project is set up to run a pipeline in GitLab CI and two workflows on GitHub CI.
+This project runs a pipeline on GitLab CI and workflows on GitHub CI. In general, CI checks
+formatting, runs code analysis, runs generator and unit tests with the latest and lowest supported
+SDK, and computes test code coverage.
 
-GitLab CI (see [.gitlab-ci.yml](.gitlab-ci.yml)) runs checks and tests for packages that use only
-the Dart SDK. Also, tests are only run on Linux.
+GitLab CI (see [.gitlab-ci.yml](.gitlab-ci.yml)) checks and tests only packages that don't require
+a Flutter SDK, and only on Linux. Unlike GitHub CI, it runs the Sync tests against a Sync server. It
+also builds and runs the Dart Native vector search example.
 
-GitHub CI (see [test](/.github/workflows/test.yml) and [code analysis](/.github/workflows/code-analysis.yml)
-workflows) also runs checks and tests that require a Flutter SDK. Tests are run on all supported
-platforms (macOS, Linux, Windows). Also, the main examples are verified to build for all supported
-platforms (including Android and iOS), indirectly verifying the generator works on all platforms.
+GitHub CI (see the [test](/.github/workflows/test.yml) and
+[code analysis](/.github/workflows/code-analysis.yml) workflows) additionally:
 
-In general, CI runs code analysis and format checks, tests the generator, runs unit tests and 
-computes test code coverage.
+- checks formatting and analyzes all packages, including Flutter packages
+- runs unit tests on Linux, macOS and Windows
+- builds the main Flutter examples for all supported platforms (including Android and iOS),
+  indirectly verifying the generator works on all platforms
+- builds the Flutter test app with the latest and lowest supported Flutter SDK
+- checks the `./tool/init.sh` script works
+- checks the pub.dev score of the `objectbox` package
+- requires a minimum test code coverage
 
-For notes about updating the tested Dart and Flutter SDK versions, see the [related dev doc](/dev-doc/updating-dart-flutter-and-dependencies.md).
+For notes about updating the tested Dart and Flutter SDK versions, see the
+[related dev doc](/dev-doc/updating-dart-flutter-and-dependencies.md).
 For the actually tested versions, see the CI config files linked above.
 
 ## Key Technical Details
 
-- **FFI bindings**: ObjectBox uses Dart FFI to call the [ObjectBox C API](https://github.com/objectbox/objectbox-c)
+- **FFI bindings**: ObjectBox uses Dart FFI to call the
+  [ObjectBox C API](https://github.com/objectbox/objectbox-c)
 - **FlatBuffers**: Objects are serialized using FlatBuffers internally
 - **Code generation**: `build_runner` generates entity bindings at compile time
 - **Sync**: Optional data synchronization feature (requires sync-enabled native library)
@@ -122,7 +145,10 @@ All packages share the same version. Use:
 
 ## Updating C Library Bindings
 
-See `dev-doc/updating-c-library.md`. Key steps:
-1. Update headers in `objectbox/lib/src/native/bindings/`
-2. Run `./tool/update-c-binding.sh --skip-download` (ffigen configuration is in `objectbox/tool/ffigen.dart`)
-3. Update version in `objectbox/lib/src/native/bindings/bindings.dart`
+See the [related dev doc](dev-doc/updating-c-library.md). Key steps:
+
+1. Run `./tool/update-c-binding.sh` to download the header files and generate bindings with ffigen
+   (configuration is in `objectbox/tool/ffigen.dart`). If the header files are not available on
+   GitHub yet, manually copy them to `objectbox/lib/src/native/bindings/` and run the script with
+   `--skip-download`.
+2. Update version in `objectbox/lib/src/native/bindings/bindings.dart`
