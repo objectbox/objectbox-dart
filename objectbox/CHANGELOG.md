@@ -1,5 +1,7 @@
 ## latest
 
+**To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions` (or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
+
 * The Flutter packages (`objectbox_flutter_libs` and `objectbox_sync_flutter_libs`) require at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Android apps: min SDK increased to 24 (Android 7.0).
 * The `objectbox` package requires at least Dart SDK 3.7.
