@@ -71,7 +71,7 @@ jobs:
           # Can not use env variables here, only within 'steps'.
           # For available versions see https://dart.dev/get-dart/archive
           - 3.13.4
-          - 3.7.2 # Use latest bugfix release to get tooling fixes
+          - 3.7.3 # Use latest bugfix release to get tooling fixes
     runs-on: ${{ matrix.os }}
     steps:
       - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
