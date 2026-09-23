@@ -72,7 +72,6 @@ generator-integ-tests:
   extends: .cache
   stage: test
   script:
-    - ./install.sh --install # Install globally for generator integration tests
     - ./generator/test.sh
 
 # Runs generator and objectbox unit tests.

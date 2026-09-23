@@ -6,7 +6,15 @@ set -euo pipefail
 # or a specific one with
 # ./test.sh <folder> e.g. ./test.sh basics
 
-myDir=$(dirname "$0")
+# Absolute path, runTestCase changes the working directory
+myDir=$(cd "$(dirname "$0")" && pwd)
+
+# Download the database library once into a temporary directory,
+# runTestCase copies it into the lib directory of each test case.
+# Use --quiet to skip interactive questions of the download script.
+libDownloadDir=$(mktemp -d)
+trap 'rm -rf "$libDownloadDir"' EXIT
+(cd "${libDownloadDir}" && "${myDir}/../install.sh" --quiet)
 
 function runTestFile() {
   file="${1}.dart"
@@ -35,6 +43,10 @@ function runTestCase() {
   git clean -fXd "${testCase}"
 
   cd "${testCase}"
+
+  # Copy the database library (the test case loads it from its lib directory)
+  mkdir -p lib
+  cp "${libDownloadDir}"/lib/* lib/
 
   dart pub get
   for i in {0..9}; do

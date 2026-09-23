@@ -77,8 +77,8 @@ dart pub get
 dart test --concurrency=1 --reporter expanded
 ```
 
-Generator integration tests are in `generator/integration-tests/`. They require the native library
-to be installed globally (`./install.sh --install`) or in the tested directory. See their
+Generator integration tests are in `generator/integration-tests/`. The script downloads the
+native library and copies it into each test case. See their
 [README](generator/integration-tests/README.md) for how test cases are structured. In short:
 
 ```bash
@@ -96,8 +96,8 @@ formatting, runs code analysis, runs generator and unit tests with the latest an
 SDK, and computes test code coverage.
 
 GitLab CI (see [.gitlab-ci.yml](.gitlab-ci.yml)) checks and tests only packages that don't require
-a Flutter SDK, and only on Linux. Unlike GitHub CI, it runs the Sync tests against a Sync server. It
-also builds and runs the Dart Native vector search example.
+a Flutter SDK, and only on Linux. Unlike GitHub CI, it runs the Sync tests against a Sync server.
+It also builds and runs the Dart Native vector search example.
 
 GitHub CI (see the [test](/.github/workflows/test.yml) and
 [code analysis](/.github/workflows/code-analysis.yml) workflows) additionally:

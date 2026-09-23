@@ -11,6 +11,7 @@ Run using the [`../test.sh`](../test.sh) script:
 
 Each subdirectory contains a test case, a complete dart package (with some shared files: pubspec.yaml, test_env.dart, ...).
 * before a test starts, it's content is cleaned by running `git clean -fXd directory-path`, i.e. removing all ignored files 
+* the script downloads the ObjectBox database library once and copies it into the `lib` directory of each test case
 * each directory may contain `[0-9].dart` test files which are executed in ascending order using `pub run test N.dart` 
 * `pub run build_runner build` is executed before each test file, except `0.dart`
 * you can skip any number (including `0.dart`) - if the file is not there, the test.sh will just skip it
@@ -23,10 +24,3 @@ used to further prepare the environment **before** code generation for the step 
 
 To enable Dart Analysis, including code auto-complete, temporarily remove the `exclude` for this directory in
 the parent [analysis_options.yaml](../analysis_options.yaml).
-  
-## Troubleshooting
-
-```
-Invalid argument(s): Failed to load dynamic library 'lib/objectbox.dll'
-```
-Ensure `objectbox-c` is installed globally, or in the tested directory run [`../../../install.sh`](../../install.sh).
