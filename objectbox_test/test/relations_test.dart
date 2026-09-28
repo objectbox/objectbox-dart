@@ -294,8 +294,9 @@ void main() {
       expect(src.relManyA, isNotNull);
       // Add three
       src.relManyA.add(RelatedEntityA(tInt: 1));
+      final relEntityA2 = RelatedEntityA(tInt: 2);
       src.relManyA.addAll([
-        RelatedEntityA(tInt: 2),
+        relEntityA2,
         src.relManyA[0],
         RelatedEntityA(tInt: 3),
       ]);
@@ -311,6 +312,14 @@ void main() {
 
       src = env.box.get(1)!;
       check(src.relManyA, items: [1, 3], added: [], removed: []);
+      // Removed target is not removed from its box
+      Box<RelatedEntityA> boxOfA = env.store.box();
+      expect(
+        boxOfA.get(relEntityA2.id!),
+        isNotNull,
+        reason: 'target is unlinked, not removed',
+      );
+      expect(boxOfA.count(), 3);
 
       // Add existing again, add new one
       src.relManyA.add(src.relManyA[0]);
@@ -643,6 +652,17 @@ void main() {
 
       // The previous put also affects TestEntity(foo) - added target (tInt=4).
       expect(env.box.get(1)!.relManyA.map(toInt), sameAsList([1, 2, 4]));
+    });
+
+    test('loaded backlink is cached until the owner is read again', () {
+      final a = boxA.get(3)!; // not referenced by any TestEntity yet
+      expect(a.testEntities, isEmpty); // loads (and caches) the backlink
+
+      // Add a relation from the other side, bypassing the loaded ToMany.
+      env.box.put(TestEntity(tString: 'late')..relManyA.add(a));
+
+      expect(a.testEntities, isEmpty, reason: 'ToMany was loaded before');
+      expect(boxA.get(3)!.testEntities.map((e) => e.tString), ['late']);
     });
 
     test('query', () {

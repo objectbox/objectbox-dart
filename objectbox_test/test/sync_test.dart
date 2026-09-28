@@ -102,6 +102,21 @@ void main() {
           ),
         );
       });
+
+      test('put of sync-enabled entity fails without sync', () {
+        // The non-sync library can never activate sync, so sync-enabled types
+        // are read-only with it.
+        expect(
+          () => store.box<TestEntitySynced>().put(TestEntitySynced(value: 1)),
+          throwsA(
+            predicate(
+              (e) => e.toString().contains(
+                'sync has not been activated for this store',
+              ),
+            ),
+          ),
+        );
+      });
     },
     skip:
         Sync.isAvailable()
@@ -242,6 +257,32 @@ void main() {
         // Values outside of the range 1-20 throw.
         expect(() => client.setMaxMessagesInFlight(0), throwsArgumentError);
         expect(() => client.setMaxMessagesInFlight(21), throwsArgumentError);
+      });
+
+      test('sync-enabled entity writes require a started client', () {
+        final box = store.box<TestEntitySynced>();
+        final notActivated = throwsA(
+          predicate(
+            (e) => e.toString().contains(
+              'sync has not been activated for this store',
+            ),
+          ),
+        );
+
+        expect(() => box.put(TestEntitySynced(value: 1)), notActivated);
+
+        // Creating a client is not enough, it must be started.
+        SyncClient client = createClient(store);
+        expect(() => box.put(TestEntitySynced(value: 1)), notActivated);
+
+        // A started client activates writes, even without a reachable server.
+        client.start();
+        final int id = box.put(TestEntitySynced(value: 1));
+        expect(box.get(id)!.value, 1);
+
+        // Closing the client deactivates writes again.
+        client.close();
+        expect(() => box.put(TestEntitySynced(value: 2)), notActivated);
       });
 
       test('SyncClient access after closing must throw', () {

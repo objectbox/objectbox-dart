@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 
 import 'entity.dart';
 import 'entity2.dart';
+import 'objectbox.g.dart';
 import 'test_env.dart';
 
 // We want to have types explicit - verifying the return types of functions.
@@ -406,6 +407,17 @@ void main() {
 
   test('.get() returns null on non-existent item', () {
     expect(box.get(1), isNull);
+  });
+
+  test('.get() returns a new instance each time', () {
+    final id = box.put(TestEntity(tString: 'first'));
+    final first = box.get(id)!;
+    final second = box.get(id)!;
+    expect(identical(first, second), isFalse);
+    // Changing an instance affects neither the database nor other instances.
+    first.tString = 'changed in memory only';
+    expect(box.get(id)!.tString, 'first');
+    expect(second.tString, 'first');
   });
 
   test('.put() and box.get() keep Unicode characters', () {
@@ -1226,6 +1238,23 @@ void main() {
     expect(allNull.tDateNano, isNull);
     expect(allNull.tDateUtc, isNull);
     expect(allNull.tDateNanoUtc, isNull);
+  });
+
+  test('enum via int getter and setter', () {
+    final enumBox = env.store.box<TestEntityEnum>();
+    final id = enumBox.put(TestEntityEnum()..role = TestEnumRole.admin);
+    expect(enumBox.get(id)!.role, TestEnumRole.admin);
+
+    // The getter/setter pair is the persisted property and can be queried.
+    final query =
+        enumBox
+            .query(TestEntityEnum_.dbRole.equals(TestEnumRole.admin.index))
+            .build();
+    expect(query.count(), 1);
+    query.close();
+
+    // Unknown values (e.g. written by a newer app version) map to the fallback.
+    expect((TestEntityEnum()..dbRole = 99).role, TestEnumRole.unknown);
   });
 
   test('large-data', () {
