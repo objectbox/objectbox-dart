@@ -425,14 +425,18 @@ class SyncClient {
     _loginEvents?._stop();
     _completionEvents?._stop();
     _changeEvents?._stop();
-    _stopErrorListener();
-    _errorEvents?.close();
     // The native mesh is owned by the client and freed by sync_close; invalidate
     // any MeshSync wrapper so later access throws instead of using a dangling
     // pointer.
     _mesh?.close();
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
+    // Only close the error callback after sync_close: it stops the native
+    // client, so no sync thread can still call the callback (see
+    // _stopErrorListener).
+    _errorCallback?.close();
+    _errorCallback = null;
+    _errorEvents?.close();
     syncClientsStorage.remove(_store);
     InternalStoreAccess.removeCloseListener(_store, this);
     checkObx(err);
@@ -966,7 +970,8 @@ class SyncClient {
   StreamController<SyncErrorEvent>? _errorEvents;
 
   /// The callback registered with the C API while [_errorEvents] has
-  /// listeners.
+  /// listeners. Once created, it is only closed by [close], see
+  /// [_stopErrorListener].
   NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>? _errorCallback;
 
   /// A broadcast stream of sync-level error events.
@@ -982,43 +987,49 @@ class SyncClient {
   }
 
   void _startErrorListener() {
+    final controller = _errorEvents!;
+    final Pointer<OBX_sync> cSync;
+    try {
+      cSync = _cSyncChecked;
+    } catch (e, s) {
+      // Sync client is already closed
+      controller.addError(e, s);
+      return;
+    }
     // Unlike the other listeners, which need C glue code to copy the message
     // and post it to a native port, the error listener only receives an error
     // code, which NativeCallable safely passes to Dart on any thread.
-    final controller = _errorEvents!;
     final callback =
-        NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>.listener((
-          Pointer<Void> arg,
-          int error,
-        ) {
-          switch (error) {
-            case OBXSyncError.REJECT_TX_NO_PERMISSION:
-              controller.add(SyncErrorEvent.rejectTxNoPermission);
-              break;
-            default:
-              controller.add(SyncErrorEvent.unknown);
-          }
-        });
-    try {
-      C.sync_listener_error(_cSyncChecked, callback.nativeFunction, nullptr);
-    } catch (e, s) {
-      // For ex. Sync client is already closed
-      controller.addError(e, s);
-      // Close the callback to not prevent the isolate from exiting
-      callback.close();
-      return;
-    }
-    _errorCallback = callback;
+        _errorCallback ??=
+            NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>.listener((
+              Pointer<Void> arg,
+              int error,
+            ) {
+              if (controller.isClosed) return;
+              switch (error) {
+                case OBXSyncError.REJECT_TX_NO_PERMISSION:
+                  controller.add(SyncErrorEvent.rejectTxNoPermission);
+                  break;
+                default:
+                  controller.add(SyncErrorEvent.unknown);
+              }
+            });
+    // Make callback keep isolate alive again if listener was stopped before,
+    // see _stopErrorListener.
+    callback.keepIsolateAlive = true;
+    C.sync_listener_error(cSync, callback.nativeFunction, nullptr);
   }
 
   void _stopErrorListener() {
-    try {
-      if (!isClosed()) C.sync_listener_error(_cSyncChecked, nullptr, nullptr);
-    } finally {
-      // Close the callback to not prevent the isolate from exiting
-      _errorCallback?.close();
-      _errorCallback = null;
-    }
+    final callback = _errorCallback;
+    if (callback == null) return; // Not started or already closed
+    if (!isClosed()) C.sync_listener_error(_cSyncChecked, nullptr, nullptr);
+    // The listener might still be called after it was cleared (the native
+    // client releases the lock before calling it). So to avoid it calling a
+    // closed NativeCallback, only set the callback to no longer keep the
+    // isolate alive. The callback is closed once the Sync client is (see
+    // close()).
+    callback.keepIsolateAlive = false;
   }
 }
 
