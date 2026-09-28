@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:build_test/build_test.dart';
 import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/objectbox.dart' show PropertyType;
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
 import 'package:objectbox_generator/src/code_chunks.dart';
@@ -1256,24 +1257,6 @@ void main() {
       );
     });
 
-    test('Flex kind is not written to model JSON', () {
-      final property = ModelProperty.create(
-        IdUid(1, 42),
-        'flex',
-        OBXPropertyType.Flex,
-        dartFieldType: 'Map<String, Object?>?',
-        flexKind: FlexKind.map,
-      );
-
-      final map = property.toMap();
-      expect(map[ModelPropertyKey.flexKind], FlexKind.map.index);
-      expect(ModelProperty.fromMap(map, null).flexKind, FlexKind.map);
-
-      final modelJsonMap = property.toMap(forModelJson: true);
-      expect(modelJsonMap.containsKey(ModelPropertyKey.flexKind), isFalse);
-      expect(ModelProperty.fromMap(modelJsonMap, null).flexKind, isNull);
-    });
-
     test('Flex type implementing Map errors', () async {
       final source = sourceFile('''
         ${entity(withName: 'FlexEntity', withBody: r'''
@@ -1290,6 +1273,135 @@ void main() {
         "Map, List, dynamic, and Object? (not with types implementing Map or List), but is 'MyMap?'.",
       );
     });
+  });
+
+  test('Generator-only attributes are not written to model JSON', () {
+    // Set all attributes, so all keys are written. Note that not all of these
+    // combinations are valid, this only tests serialization.
+    final entity = ModelEntity.create(
+      IdUid(1, 10),
+      'Example',
+      null,
+      uidRequest: true,
+    );
+    entity.lastPropertyId = IdUid(2, 42);
+    entity.externalName = 'example-ext';
+    entity.flags = OBXEntityFlags.SYNC_ENABLED;
+    entity.constructorParams = ['id positional int'];
+    entity.properties.add(
+      ModelProperty.create(
+        IdUid(1, 41),
+        'id',
+        OBXPropertyType.Long,
+        flags: OBXPropertyFlags.ID,
+        dartFieldType: 'int',
+        entity: entity,
+      ),
+    );
+    entity.properties.add(
+      ModelProperty.create(
+          IdUid(2, 42),
+          'prop',
+          OBXPropertyType.Flex,
+          flags: OBXPropertyFlags.INDEXED,
+          indexId: '1:50',
+          dartFieldType: 'Map<String, Object?>?',
+          relationTarget: 'Target',
+          uidRequest: true,
+          dartType: PropertyType.flex,
+          flexKind: FlexKind.map,
+          entity: entity,
+        )
+        ..relationField = 'propRel'
+        ..hnswParams = ModelHnswParams(dimensions: 3)
+        ..externalName = 'prop-ext'
+        ..externalType = OBXExternalPropertyType.FlexMap,
+    );
+    entity.relations.add(
+      ModelRelation.create(
+        IdUid(1, 20),
+        'rel',
+        targetId: '2:30',
+        targetName: 'Target',
+        externalName: 'rel-ext',
+        externalType: OBXExternalPropertyType.UuidVector,
+        uidRequest: true,
+      ),
+    );
+    entity.backlinks.add(
+      ModelBacklink(name: 'backlink', srcEntity: 'Source', srcField: 'field'),
+    );
+
+    final modelJsonEntityKeys = {
+      ModelEntityKey.id,
+      ModelEntityKey.lastPropertyId,
+      ModelEntityKey.name,
+      ModelEntityKey.externalName,
+      ModelEntityKey.flags,
+      ModelEntityKey.properties,
+      ModelEntityKey.relations,
+    };
+    final generatorOnlyEntityKeys = {
+      ModelEntityKey.backlinks,
+      ModelEntityKey.constructorParams,
+      ModelEntityKey.uidRequest,
+    };
+    final modelJsonPropertyKeys = {
+      ModelPropertyKey.id,
+      ModelPropertyKey.name,
+      ModelPropertyKey.indexId,
+      ModelPropertyKey.type,
+      ModelPropertyKey.externalName,
+      ModelPropertyKey.externalType,
+      ModelPropertyKey.flags,
+      ModelPropertyKey.relationTarget,
+    };
+    final generatorOnlyPropertyKeys = {
+      ModelPropertyKey.relationField,
+      ModelPropertyKey.dartFieldType,
+      ModelPropertyKey.uidRequest,
+      ModelPropertyKey.hnswParams,
+      ModelPropertyKey.dartType,
+      ModelPropertyKey.flexKind,
+    };
+    final modelJsonRelationKeys = {
+      ModelRelationKey.id,
+      ModelRelationKey.name,
+      ModelRelationKey.externalName,
+      ModelRelationKey.externalType,
+      ModelRelationKey.targetId,
+    };
+    final generatorOnlyRelationKeys = {
+      ModelRelationKey.targetName,
+      ModelRelationKey.uidRequest,
+    };
+
+    Set<String> keysOf(Object? map) =>
+        (map as Map<String, dynamic>).keys.toSet();
+    Object? propertyMap(Map<String, dynamic> entityMap) =>
+        (entityMap[ModelEntityKey.properties] as List)[1];
+    Object? relationMap(Map<String, dynamic> entityMap) =>
+        (entityMap[ModelEntityKey.relations] as List)[0];
+
+    // All keys are written for the generator (EntityResolver to CodeBuilder)
+    final map = entity.toMap();
+    expect(keysOf(map), {...modelJsonEntityKeys, ...generatorOnlyEntityKeys});
+    expect(keysOf(propertyMap(map)), {
+      ...modelJsonPropertyKeys,
+      ...generatorOnlyPropertyKeys,
+    });
+    expect(keysOf(relationMap(map)), {
+      ...modelJsonRelationKeys,
+      ...generatorOnlyRelationKeys,
+    });
+    // and all attributes are restored when reading
+    expect(ModelEntity.fromMap(map, check: false).toMap(), map);
+
+    // Generator-only keys are not written to the model JSON
+    final modelJsonMap = entity.toMap(forModelJson: true);
+    expect(keysOf(modelJsonMap), modelJsonEntityKeys);
+    expect(keysOf(propertyMap(modelJsonMap)), modelJsonPropertyKeys);
+    expect(keysOf(relationMap(modelJsonMap)), modelJsonRelationKeys);
   });
 
   group('GeneratorVersion', () {
