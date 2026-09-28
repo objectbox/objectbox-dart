@@ -12,22 +12,6 @@ class CodeChunks {
   /// Alias for internal.dart import. Prefix classes from it like '$obxInt.Class'.
   static String obxInt = "obx_int";
 
-  static List<String> flexVectorTypeNames = [
-    'List<dynamic>',
-    'List<Object?>',
-    'List<Object>',
-    'List<Map<String, dynamic>>',
-    'List<Map<String, Object?>>',
-  ];
-
-  static List<String> flexMapTypeNames = [
-    'Map<String, dynamic>',
-    'Map<String, Object?>',
-    'Map<String, Object>',
-  ];
-
-  static List<String> flexValueTypeNames = ['dynamic', 'Object?', 'Object'];
-
   /// Note: objectbox imports in generated code are aliased to avoid name
   /// collisions with entity classes.
   static String objectboxDart(
@@ -892,7 +876,15 @@ class CodeChunks {
           fieldType = 'StringVector';
           break;
         case OBXPropertyType.Flex:
-          fieldType = 'Flex';
+          fieldType = switch (prop.flexKind) {
+            FlexKind.value => 'FlexValue',
+            FlexKind.map => 'FlexMap',
+            FlexKind.list || FlexKind.listOfMaps => 'FlexVector',
+            null =>
+              throw InvalidGenerationSourceError(
+                'Flex kind must be set by EntityResolver for ${entity.name}.$name',
+              ),
+          };
           break;
         default:
           throw InvalidGenerationSourceError(
@@ -909,15 +901,7 @@ class CodeChunks {
       } else if (prop.hnswParams != null) {
         propCode += '$obx.QueryHnswProperty<${entity.name}>';
       } else {
-        if (flexMapTypeNames.contains(prop.fieldType)) {
-          propCode += '$obx.QueryFlexMapProperty<${entity.name}>';
-        } else if (flexVectorTypeNames.contains(prop.fieldType)) {
-          propCode += '$obx.QueryFlexVectorProperty<${entity.name}>';
-        } else if (flexValueTypeNames.contains(prop.fieldType)) {
-          propCode += '$obx.QueryFlexValueProperty<${entity.name}>';
-        } else {
-          propCode += '$obx.Query${fieldType}Property<${entity.name}>';
-        }
+        propCode += '$obx.Query${fieldType}Property<${entity.name}>';
       }
       propCode += '(_entities[$i].properties[$p]);';
       fields.add(propCode);
