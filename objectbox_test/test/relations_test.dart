@@ -287,70 +287,69 @@ void main() {
   });
 
   group('ToMany', () {
-    TestEntity? src;
-    setUp(() {
-      src = TestEntity(tString: 'Hello');
-    });
+    testEntity() => TestEntity(tString: 'Hello');
 
     test('put', () {
-      expect(src!.relManyA, isNotNull);
+      TestEntity src = testEntity();
+      expect(src.relManyA, isNotNull);
       // Add three
-      src!.relManyA.add(RelatedEntityA(tInt: 1));
-      src!.relManyA.addAll([
+      src.relManyA.add(RelatedEntityA(tInt: 1));
+      src.relManyA.addAll([
         RelatedEntityA(tInt: 2),
-        src!.relManyA[0],
+        src.relManyA[0],
         RelatedEntityA(tInt: 3),
       ]);
-      env.box.put(src!);
+      env.box.put(src);
 
-      src = env.box.get(1);
-      check(src!.relManyA, items: [1, 2, 3], added: [], removed: []);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [1, 2, 3], added: [], removed: []);
 
       // Remove one
-      src!.relManyA.removeWhere((e) => e.tInt == 2);
-      check(src!.relManyA, items: [1, 3], added: [], removed: [2]);
-      env.box.put(src!);
+      src.relManyA.removeWhere((e) => e.tInt == 2);
+      check(src.relManyA, items: [1, 3], added: [], removed: [2]);
+      env.box.put(src);
 
-      src = env.box.get(1);
-      check(src!.relManyA, items: [1, 3], added: [], removed: []);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [1, 3], added: [], removed: []);
 
       // Add existing again, add new one
-      src!.relManyA.add(src!.relManyA[0]);
-      src!.relManyA.add(RelatedEntityA(tInt: 4));
-      check(src!.relManyA, items: [1, 1, 3, 4], added: [1, 4], removed: []);
-      env.box.put(src!);
+      src.relManyA.add(src.relManyA[0]);
+      src.relManyA.add(RelatedEntityA(tInt: 4));
+      check(src.relManyA, items: [1, 1, 3, 4], added: [1, 4], removed: []);
+      env.box.put(src);
 
-      src = env.box.get(1);
-      check(src!.relManyA, items: [1, 3, 4], added: [], removed: []);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [1, 3, 4], added: [], removed: []);
 
       // Remove one, add one
-      src!.relManyA.removeWhere((element) => element.tInt == 3);
-      src!.relManyA.add(RelatedEntityA(tInt: 5));
-      check(src!.relManyA, items: [1, 4, 5], added: [5], removed: [3]);
-      env.box.put(src!);
-      src = env.box.get(1);
-      check(src!.relManyA, items: [1, 4, 5], added: [], removed: []);
+      src.relManyA.removeWhere((element) => element.tInt == 3);
+      src.relManyA.add(RelatedEntityA(tInt: 5));
+      check(src.relManyA, items: [1, 4, 5], added: [5], removed: [3]);
+      env.box.put(src);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [1, 4, 5], added: [], removed: []);
 
       // Remove all
-      src!.relManyA.clear();
-      check(src!.relManyA, items: [], added: [], removed: [1, 4, 5]);
-      env.box.put(src!);
-      src = env.box.get(1);
-      check(src!.relManyA, items: [], added: [], removed: []);
+      src.relManyA.clear();
+      check(src.relManyA, items: [], added: [], removed: [1, 4, 5]);
+      env.box.put(src);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [], added: [], removed: []);
     });
 
     // note: this requires box.attach() in Java/Kotlin, should not here.
     test('put: self-assigned ID on source', () {
-      src!.id = 42;
-      src!.relManyA.add(RelatedEntityA(tInt: 1));
-      env.box.put(src!);
+      TestEntity src = testEntity();
+      src.id = 42;
+      src.relManyA.add(RelatedEntityA(tInt: 1));
+      env.box.put(src);
 
-      src = env.box.get(42);
-      check(src!.relManyA, items: [1], added: [], removed: []);
+      src = env.box.get(42)!;
+      check(src.relManyA, items: [1], added: [], removed: []);
     });
 
     test('put mode does not apply to new target', () {
-      final srcId = env.box.put(src!);
+      final srcId = env.box.put(testEntity());
       final src2 = env.box.get(srcId)!;
       src2.relManyA.add(RelatedEntityA(tInt: 8));
       // The target is new, so it must be inserted even in update mode.
@@ -359,7 +358,7 @@ void main() {
     });
 
     test('applyToDb', () {
-      final entity = src!;
+      final entity = testEntity();
       expect(entity.relManyA, isNotNull);
 
       // Put with empty ToMany
@@ -378,7 +377,7 @@ void main() {
     });
 
     test('applyToDb not attached throws', () {
-      final entity = src!;
+      final entity = testEntity();
       expect(entity.relManyA, isNotNull);
 
       entity.relManyA.add(RelatedEntityA(tInt: 1));
@@ -397,7 +396,7 @@ void main() {
     test('applyToDb rejects a different store', () {
       final env2 = TestEnv('relations2');
       addTearDown(() => env2.closeAndDelete());
-      final srcId = env.box.put(src!);
+      final srcId = env.box.put(testEntity());
       final src2 = env.box.get(srcId)!;
       src2.relManyA.add(RelatedEntityA(tInt: 1));
       // Applying against another store would use IDs from the wrong database.
@@ -408,29 +407,30 @@ void main() {
     });
 
     test("don't load old data when just adding", () {
-      expect(src!.relManyA, isNotNull);
-      src!.relManyA.add(RelatedEntityA(tInt: 1));
-      src!.relManyA.addAll([
+      TestEntity src = testEntity();
+      expect(src.relManyA, isNotNull);
+      src.relManyA.add(RelatedEntityA(tInt: 1));
+      src.relManyA.addAll([
         RelatedEntityA(tInt: 2),
-        src!.relManyA[0],
+        src.relManyA[0],
         RelatedEntityA(tInt: 3),
       ]);
-      env.box.put(src!);
+      env.box.put(src);
 
-      src = env.box.get(1);
-      check(src!.relManyA, items: [1, 2, 3], added: [], removed: []);
-      expect(InternalToManyTestAccess(src!.relManyA).itemsLoaded, isTrue);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [1, 2, 3], added: [], removed: []);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isTrue);
 
-      src = env.box.get(1);
-      expect(InternalToManyTestAccess(src!.relManyA).itemsLoaded, isFalse);
+      src = env.box.get(1)!;
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
       final rel = RelatedEntityA(tInt: 4);
-      src!.relManyA.add(rel);
-      src!.relManyA.addAll([RelatedEntityA(tInt: 5), rel]);
-      expect(InternalToManyTestAccess(src!.relManyA).itemsLoaded, isFalse);
-      env.box.put(src!);
-      expect(InternalToManyTestAccess(src!.relManyA).itemsLoaded, isFalse);
-      src = env.box.get(1);
-      check(src!.relManyA, items: [1, 2, 3, 4, 5], added: [], removed: []);
+      src.relManyA.add(rel);
+      src.relManyA.addAll([RelatedEntityA(tInt: 5), rel]);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
+      env.box.put(src);
+      expect(InternalToManyTestAccess(src.relManyA).itemsLoaded, isFalse);
+      src = env.box.get(1)!;
+      check(src.relManyA, items: [1, 2, 3, 4, 5], added: [], removed: []);
     });
 
     test('query link', () {
