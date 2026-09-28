@@ -25,4 +25,6 @@ curl --fail --silent --show-error --retry 3 \
   --output "$downloadScript" \
   https://raw.githubusercontent.com/objectbox/objectbox-c/main/download.sh
 
-bash "$downloadScript" ${cLibArgs} ${cLibVersion}
+# Pass --quiet to not ask about installing to a global directory. This avoids
+# users accidentally testing with an unexpected version.
+bash "$downloadScript" --quiet ${cLibArgs} ${cLibVersion}

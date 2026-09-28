@@ -205,7 +205,7 @@ bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/i
 ```
 
 > [!NOTE]
-> By default the library is downloaded into the `lib` subdirectory of the working directory. 
+> The database library is downloaded into the `lib` subdirectory of the working directory. 
 > It's not necessary to install the library system-wide. This also allows to use different versions 
 > for different projects. See the notes on deploying below.
 
@@ -217,7 +217,7 @@ Natively compiled Dart applications that use ObjectBox Dart require a reference 
 [ObjectBox C](https://github.com/objectbox/objectbox-c) library. Hence, the shared library file 
 downloaded with `install.sh` needs to be shipped with the executable.
 
-The `install.sh` script downloads the library by default to the `lib` subdirectory of the working 
+The `install.sh` script downloads the library to the `lib` subdirectory of the working 
 directory. An executable using ObjectBox Dart looks for the library in this `lib` directory.
 
 If it is not found there, it falls back to using system directories 

@@ -11,10 +11,9 @@ myDir=$(cd "$(dirname "$0")" && pwd)
 
 # Download the database library once into a temporary directory,
 # runTestCase copies it into the lib directory of each test case.
-# Use --quiet to skip interactive questions of the download script.
 libDownloadDir=$(mktemp -d)
 trap 'rm -rf "$libDownloadDir"' EXIT
-(cd "${libDownloadDir}" && "${myDir}/../install.sh" --quiet)
+(cd "${libDownloadDir}" && "${myDir}/../install.sh")
 
 function runTestFile() {
   file="${1}.dart"
