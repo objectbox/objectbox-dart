@@ -1,6 +1,5 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:objectbox/objectbox.dart';
 import 'package:test/test.dart';
 
 import 'entity.dart';
