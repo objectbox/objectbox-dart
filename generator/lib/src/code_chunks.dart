@@ -47,7 +47,8 @@ class CodeChunks {
     ///
     /// Note: for desktop apps it is recommended to specify a unique [directory].
     /// 
-    /// See [$obx.Store.new] for an explanation of all parameters.
+    /// Use [$obx.Store.new] directly to use all its options. See its 
+    /// documentation for an explanation of all parameters.
     ${openStore(model, pubspec)}
 
     /// Returns the ObjectBox model definition for this project for use with 

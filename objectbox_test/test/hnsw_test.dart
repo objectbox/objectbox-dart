@@ -345,4 +345,86 @@ void main() {
     expect(juice[0].object.id, 6);
     expect(juice[0].object.name, "Apple juice");
   });
+
+  test('VectorDistances distance', () {
+    expect(VectorDistances.isAvailable(), isTrue);
+
+    // Euclidean distance is squared: (3-0)^2 + (4-0)^2 = 25
+    expect(
+      VectorDistances.distance(
+        VectorDistanceType.euclidean,
+        [0.0, 0.0],
+        [3.0, 4.0],
+      ),
+      25.0,
+    );
+
+    // Cosine: orthogonal vectors have distance 1.0.
+    expect(
+      VectorDistances.distance(
+        VectorDistanceType.cosine,
+        [1.0, 0.0],
+        [0.0, 1.0],
+      ),
+      1.0,
+    );
+    // Same direction: distance 0.0.
+    expect(
+      VectorDistances.distance(
+        VectorDistanceType.cosine,
+        [1.0, 0.0],
+        [2.0, 0.0],
+      ),
+      0.0,
+    );
+
+    // Dot product (normalized vectors): same direction is nearest (0.0).
+    expect(
+      VectorDistances.distance(
+        VectorDistanceType.dotProduct,
+        [1.0, 0.0],
+        [1.0, 0.0],
+      ),
+      0.0,
+    );
+
+    // Different number of elements throws.
+    expect(
+      () => VectorDistances.distance(
+        VectorDistanceType.euclidean,
+        [1.0],
+        [1.0, 2.0],
+      ),
+      throwsA(
+        isArgumentError.having(
+          (e) => e.message,
+          'message',
+          contains('same number of elements'),
+        ),
+      ),
+    );
+  });
+
+  test('VectorDistances distanceToRelevance', () {
+    // Nearest distance is most relevant.
+    expect(
+      VectorDistances.distanceToRelevance(VectorDistanceType.euclidean, 0.0),
+      1.0,
+    );
+    // Relevance is always within 0.0 to 1.0.
+    for (final type in VectorDistanceType.values) {
+      // Not supported for geo (returns NaN, see below).
+      if (type == VectorDistanceType.geo) continue;
+      for (final distance in [0.0, 0.5, 1.0, 2.0, 100.0]) {
+        final relevance = VectorDistances.distanceToRelevance(type, distance);
+        expect(relevance, greaterThanOrEqualTo(0.0), reason: '$type $distance');
+        expect(relevance, lessThanOrEqualTo(1.0), reason: '$type $distance');
+      }
+    }
+    // Unsupported conversion returns NaN.
+    expect(
+      VectorDistances.distanceToRelevance(VectorDistanceType.geo, 0.0),
+      isNaN,
+    );
+  });
 }

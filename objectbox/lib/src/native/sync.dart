@@ -180,6 +180,21 @@ enum SyncLoginEvent {
   unknownError,
 }
 
+/// Sync-level error event.
+///
+/// Received via [SyncClient.errorEvents].
+enum SyncErrorEvent {
+  /// The client received a rejection of transaction writes due to missing
+  /// permissions.
+  ///
+  /// Until reconnecting with new credentials the client will run in
+  /// receive-only mode.
+  rejectTxNoPermission,
+
+  /// An error not (yet) known to this version of the Dart library.
+  unknown,
+}
+
 /// Sync client statistics counters, useful for testing and diagnostics.
 ///
 /// Read a counter value with [SyncClient.stats].
@@ -416,6 +431,12 @@ class SyncClient {
     _mesh?.close();
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
+    // Only close the error callback after sync_close: it stops the native
+    // client, so no sync thread can still call the callback (see
+    // _stopErrorListener).
+    _errorCallback?.close();
+    _errorCallback = null;
+    _errorEvents?.close();
     syncClientsStorage.remove(_store);
     InternalStoreAccess.removeCloseListener(_store, this);
     checkObx(err);
@@ -639,6 +660,14 @@ class SyncClient {
         }
       }
     }
+  }
+
+  /// Configures the maximum number of outgoing transaction messages that can
+  /// be sent without an ACK from the server.
+  ///
+  /// The [value] must be in the range 1-20, otherwise this throws.
+  void setMaxMessagesInFlight(int value) {
+    checkObx(C.sync_max_messages_in_flight(_cSyncChecked, value));
   }
 
   /// Configures how sync updates are received from the server.
@@ -936,6 +965,71 @@ class SyncClient {
       _changeEvents!.finish();
     }
     return _changeEvents!.stream;
+  }
+
+  StreamController<SyncErrorEvent>? _errorEvents;
+
+  /// The callback registered with the C API while [_errorEvents] has
+  /// listeners. Once created, it is only closed by [close], see
+  /// [_stopErrorListener].
+  NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>? _errorCallback;
+
+  /// A broadcast stream of sync-level error events.
+  ///
+  /// Subscribe (listen) to the stream to start receiving events.
+  /// Cancel the subscription when no longer needed to free resources.
+  Stream<SyncErrorEvent> get errorEvents {
+    _errorEvents ??= StreamController<SyncErrorEvent>.broadcast(
+      onListen: _startErrorListener,
+      onCancel: _stopErrorListener,
+    );
+    return _errorEvents!.stream;
+  }
+
+  void _startErrorListener() {
+    final controller = _errorEvents!;
+    final Pointer<OBX_sync> cSync;
+    try {
+      cSync = _cSyncChecked;
+    } catch (e, s) {
+      // Sync client is already closed
+      controller.addError(e, s);
+      return;
+    }
+    // Unlike the other listeners, which need C glue code to copy the message
+    // and post it to a native port, the error listener only receives an error
+    // code, which NativeCallable safely passes to Dart on any thread.
+    final callback =
+        _errorCallback ??=
+            NativeCallable<Void Function(Pointer<Void>, UnsignedInt)>.listener((
+              Pointer<Void> arg,
+              int error,
+            ) {
+              if (controller.isClosed) return;
+              switch (error) {
+                case OBXSyncError.REJECT_TX_NO_PERMISSION:
+                  controller.add(SyncErrorEvent.rejectTxNoPermission);
+                  break;
+                default:
+                  controller.add(SyncErrorEvent.unknown);
+              }
+            });
+    // Make callback keep isolate alive again if listener was stopped before,
+    // see _stopErrorListener.
+    callback.keepIsolateAlive = true;
+    C.sync_listener_error(cSync, callback.nativeFunction, nullptr);
+  }
+
+  void _stopErrorListener() {
+    final callback = _errorCallback;
+    if (callback == null) return; // Not started or already closed
+    if (!isClosed()) C.sync_listener_error(_cSyncChecked, nullptr, nullptr);
+    // The listener might still be called after it was cleared (the native
+    // client releases the lock before calling it). So to avoid it calling a
+    // closed NativeCallback, only set the callback to no longer keep the
+    // isolate alive. The callback is closed once the Sync client is (see
+    // close()).
+    callback.keepIsolateAlive = false;
   }
 }
 

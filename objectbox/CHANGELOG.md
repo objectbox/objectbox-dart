@@ -48,6 +48,10 @@
 * Close native observers (`Store.watch()`, `Store.entityChanges`, `Query.watch()`) that are still open when their isolate shuts down or when they are garbage collected without the subscription being canceled. [#834](https://github.com/objectbox/objectbox-dart/issues/834)
 * Fix native data observers not being stopped when the store is closed: cancelling a `Store.watch<Entity>()` or `Store.entityChanges` subscription after `Store.close()` closed the already freed native observer (a use-after-free that can corrupt memory or crash). A `watch<Entity>()` subscription also kept its receive port open forever if the store was closed without cancelling, preventing the isolate from exiting.
 * `Store.entityChanges` closes its receive port if creating the observer fails or while there are no listeners, no longer preventing an isolate from exiting.
+* Add store options to open a store in read-only mode (`readOnly`), to use the previous data snapshot for data recovery (`usePreviousCommit`, check with `Store.openedWithPreviousCommit`) and to validate the database when opening it (`validateOnOpenPageLimit`, `validateOnOpenPagesFlags` and `validateOnOpenKv`).
+* Add `Store.dbSize` and `Store.dbSizeOnDisk` to get the size of the database of an open store (also works for an in-memory database) and `Store.prepareToClose` to start an orderly shutdown in stages.
+* Add static `Store.logLevel` to change (or get) the runtime log level of ObjectBox internals, e.g. to debug issues.
+* Add `VectorDistances` utility to calculate the distance of two vectors (like a vector search would) and to convert a distance (e.g. a query score) to a relevance score with a fixed range from 0.0 to 1.0.
 
 ### Sync
 
@@ -60,6 +64,8 @@
   and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios.
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 * Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
+* Add `SyncClient.errorEvents` stream that emits sync-level errors, like the client entering receive-only mode after its transaction writes were rejected.
+* Add `SyncClient.setMaxMessagesInFlight()` to configure how many outgoing transaction messages can be sent without an ACK from the server.
 
 ## 5.3.2 (2026-05-20)
 
