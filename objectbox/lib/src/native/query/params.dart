@@ -160,6 +160,34 @@ class QueryParamDouble extends QueryParam {
 
   /// Sets the values of a condition with two values, like `between`.
   void twoValues(double a, double b) => _set2Doubles(a, b);
+}
+
+/// Query parameter for [QueryIntegerVectorProperty] conditions.
+class QueryParamIntVector extends QueryParam {
+  QueryParamIntVector._(super.query, super.entityId, super.model, super.alias)
+    : super._();
+
+  /// Sets the value of a condition with a single value, like `greaterThan`.
+  set value(int value) => _setInt(value);
+}
+
+/// Query parameter for [QueryDoubleVectorProperty] conditions.
+class QueryParamDoubleVector extends QueryParam {
+  QueryParamDoubleVector._(
+    super.query,
+    super.entityId,
+    super.model,
+    super.alias,
+  ) : super._();
+
+  /// Sets the value of a condition with a single value, like `greaterThan`.
+  set value(double value) => _setDouble(value);
+}
+
+/// Query parameter for [QueryHnswProperty] conditions.
+class QueryParamHnsw extends QueryParamDoubleVector {
+  QueryParamHnsw._(super.query, super.entityId, super.model, super.alias)
+    : super._();
 
   /// Sets the values for the nearest neighbor condition.
   void nearestNeighborsF32(List<double> queryVector, int maxResultCount) {

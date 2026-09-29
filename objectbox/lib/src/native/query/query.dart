@@ -632,8 +632,9 @@ class QueryFlexMapProperty<EntityT>
 /// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
 /// equal are supported on elements of the vector (e.g. "has element greater").
 class QueryIntegerVectorProperty<EntityT>
-    extends QueryProperty<EntityT, int, QueryParamInt> {
-  QueryIntegerVectorProperty(super.model) : super(createParam: QueryParamInt._);
+    extends QueryProperty<EntityT, int, QueryParamIntVector> {
+  QueryIntegerVectorProperty(super.model)
+    : super(createParam: QueryParamIntVector._);
 
   Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
       _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
@@ -700,9 +701,19 @@ class QueryDoubleProperty<EntityT>
 /// For double vectors greater and less queries are supported on elements of
 /// the vector (e.g. "has element greater").
 class QueryDoubleVectorProperty<EntityT>
-    extends QueryProperty<EntityT, double, QueryParamDouble> {
+    extends _QueryDoubleVectorPropertyBase<EntityT, QueryParamDoubleVector> {
   QueryDoubleVectorProperty(super.model)
-    : super(createParam: QueryParamDouble._);
+    : super(createParam: QueryParamDoubleVector._);
+}
+
+/// Conditions of [QueryDoubleVectorProperty], generic over the [QueryParam]
+/// type so [QueryHnswProperty] can use its own.
+abstract class _QueryDoubleVectorPropertyBase<
+  EntityT,
+  QueryParamT extends QueryParamDoubleVector
+>
+    extends QueryProperty<EntityT, double, QueryParamT> {
+  _QueryDoubleVectorPropertyBase(super.model, {required super.createParam});
 
   Condition<EntityT> _op(
     _ConditionOp op,
@@ -808,8 +819,9 @@ class _NearestNeighborsCondition<EntityT> extends Condition<EntityT> {
 }
 
 /// Provides extra conditions for float vector properties with an [HnswIndex].
-class QueryHnswProperty<EntityT> extends QueryDoubleVectorProperty<EntityT> {
-  QueryHnswProperty(super.model);
+class QueryHnswProperty<EntityT>
+    extends _QueryDoubleVectorPropertyBase<EntityT, QueryParamHnsw> {
+  QueryHnswProperty(super.model) : super(createParam: QueryParamHnsw._);
 
   /// Performs an approximate nearest neighbor (ANN) search to find objects near to the given [queryVector].
   ///
