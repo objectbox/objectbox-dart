@@ -456,13 +456,14 @@ void main() {
     }
   });
 
-  test('.count matches of List<String> `contains`', () {
+  test('List<String> containsElement', () {
     box.put(TestEntity(tStrings: ['foo', 'bar']));
     box.put(TestEntity(tStrings: ['barbar']));
     box.put(TestEntity(tStrings: ['foo']));
 
     final prop = TestEntity_.tStrings;
 
+    // Matches elements, not substrings
     final qs0 = box.query(prop.containsElement('bar')).build();
     expect(qs0.count(), 1);
 
@@ -472,7 +473,26 @@ void main() {
     final qs2 = box.query(prop.containsElement('foo')).build();
     expect(qs2.count(), 2);
 
-    for (var q in [qs0, qs1, qs2]) {
+    // Set param
+    qs0.param(prop).value = 'barbar';
+    expect(qs0.count(), 1);
+    qs0.param(prop).value = 'barb';
+    expect(qs0.count(), 0);
+
+    // Set param with alias, only the aliased condition changes
+    final alias = 'a';
+    final qs3 =
+        box
+            .query(
+              prop.containsElement('foo') |
+                  prop.containsElement('', alias: alias),
+            )
+            .build();
+    expect(qs3.count(), 2);
+    qs3.param(prop, alias: alias).value = 'barbar';
+    expect(qs3.count(), 3);
+
+    for (var q in [qs0, qs1, qs2, qs3]) {
       q.close();
     }
   });

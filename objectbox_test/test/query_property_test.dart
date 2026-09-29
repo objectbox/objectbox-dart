@@ -562,7 +562,7 @@ int toUint32(int v) => v >= 0 ? v : (1 << 32) + v;
 
 T _propQueryExec<T, DartType>(
   Query query,
-  QueryProperty<TestEntity, DartType> prop,
+  QueryProperty<TestEntity, DartType, QueryParam> prop,
   T Function(PropertyQuery<DartType> propQuery) fn,
 ) {
   final propQuery = query.property(prop);

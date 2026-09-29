@@ -58,13 +58,30 @@ ModelProperty queryPropertyModel(QueryProperty property) => property._model;
 
 /// The QueryProperty types allow users to build query conditions on a property.
 ///
-/// The [DartType] is used by
-/// - [QuerySetParam.param] and determines which [QueryParam] extension is used,
-/// - [Query.property] and determines which [PropertyQuery] extension is used.
-class QueryProperty<EntityT, DartType> {
+/// The [DartType] is used by [Query.property] and determines which
+/// [PropertyQuery] extension is used.
+///
+/// The [QueryParamT] is the type of [QueryParam] returned by [Query.param].
+abstract class QueryProperty<
+  EntityT,
+  DartType,
+  QueryParamT extends QueryParam
+> {
   final ModelProperty _model;
 
-  QueryProperty(this._model);
+  final QueryParamT Function(
+    Query query,
+    int entityId,
+    ModelProperty model,
+    String? alias,
+  )
+  _createParam;
+
+  QueryProperty(
+    this._model, {
+    required QueryParamT Function(Query, int, ModelProperty, String?)
+    createParam,
+  }) : _createParam = createParam;
 
   Condition<EntityT> isNull({String? alias}) =>
       _NullCondition<EntityT, DartType>(_ConditionOp.isNull, this, alias);
@@ -73,8 +90,9 @@ class QueryProperty<EntityT, DartType> {
       _NullCondition<EntityT, DartType>(_ConditionOp.notNull, this, alias);
 }
 
-class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
-  QueryStringProperty(super.model);
+class QueryStringProperty<EntityT>
+    extends QueryProperty<EntityT, String, QueryParamString> {
+  QueryStringProperty(super.model) : super(createParam: QueryParamString._);
 
   Condition<EntityT> _op(
     String p,
@@ -158,8 +176,8 @@ class QueryStringProperty<EntityT> extends QueryProperty<EntityT, String> {
 }
 
 class QueryByteVectorProperty<EntityT>
-    extends QueryProperty<EntityT, Uint8List> {
-  QueryByteVectorProperty(super.model);
+    extends QueryProperty<EntityT, Uint8List, QueryParamBytes> {
+  QueryByteVectorProperty(super.model) : super(createParam: QueryParamBytes._);
 
   Condition<EntityT> _op(List<int> val, _ConditionOp cop, String? alias) =>
       _ByteVectorCondition<EntityT>(cop, this, Uint8List.fromList(val), alias);
@@ -180,8 +198,9 @@ class QueryByteVectorProperty<EntityT>
       _op(val, _ConditionOp.lessOrEq, alias);
 }
 
-class QueryIntegerProperty<EntityT> extends QueryProperty<EntityT, int> {
-  QueryIntegerProperty(super.model);
+class QueryIntegerProperty<EntityT>
+    extends QueryProperty<EntityT, int, QueryParamInt> {
+  QueryIntegerProperty(super.model) : super(createParam: QueryParamInt._);
 
   Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
       _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
@@ -330,8 +349,9 @@ class QueryDateNanoProperty<EntityT> extends QueryIntegerProperty<EntityT> {
 }
 
 class QueryFlexVectorProperty<EntityT>
-    extends QueryProperty<EntityT, List<dynamic>> {
-  QueryFlexVectorProperty(super.model);
+    extends QueryProperty<EntityT, List<dynamic>, QueryParamFlexVector> {
+  QueryFlexVectorProperty(super.model)
+    : super(createParam: QueryParamFlexVector._);
 
   /// Matches if the vector contains the given value.
   Condition<EntityT> containsElementString(
@@ -358,8 +378,10 @@ class QueryFlexVectorProperty<EntityT>
       );
 }
 
-class QueryFlexValueProperty<EntityT> extends QueryProperty<EntityT, dynamic> {
-  QueryFlexValueProperty(super.model);
+class QueryFlexValueProperty<EntityT>
+    extends QueryProperty<EntityT, dynamic, QueryParamFlexValue> {
+  QueryFlexValueProperty(super.model)
+    : super(createParam: QueryParamFlexValue._);
 
   /// Matches if the property equals the given value.
   Condition<EntityT> equalsString(
@@ -387,8 +409,8 @@ class QueryFlexValueProperty<EntityT> extends QueryProperty<EntityT, dynamic> {
 }
 
 class QueryFlexMapProperty<EntityT>
-    extends QueryProperty<EntityT, Map<String, dynamic>> {
-  QueryFlexMapProperty(super.model);
+    extends QueryProperty<EntityT, Map<String, dynamic>, QueryParamFlexMap> {
+  QueryFlexMapProperty(super.model) : super(createParam: QueryParamFlexMap._);
 
   /// Matches if the map contains the given key.
   Condition<EntityT> containsElement(
@@ -609,8 +631,9 @@ class QueryFlexMapProperty<EntityT>
 
 /// For integer vectors (excluding [QueryByteVectorProperty]) greater, less and
 /// equal are supported on elements of the vector (e.g. "has element greater").
-class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
-  QueryIntegerVectorProperty(super.model);
+class QueryIntegerVectorProperty<EntityT>
+    extends QueryProperty<EntityT, int, QueryParamInt> {
+  QueryIntegerVectorProperty(super.model) : super(createParam: QueryParamInt._);
 
   Condition<EntityT> _op(_ConditionOp cop, int p1, int p2, String? alias) =>
       _IntegerCondition<EntityT, int>(cop, this, p1, p2, alias);
@@ -635,8 +658,9 @@ class QueryIntegerVectorProperty<EntityT> extends QueryProperty<EntityT, int> {
   Condition<EntityT> operator >(int p) => greaterThan(p);
 }
 
-class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
-  QueryDoubleProperty(super.model);
+class QueryDoubleProperty<EntityT>
+    extends QueryProperty<EntityT, double, QueryParamDouble> {
+  QueryDoubleProperty(super.model) : super(createParam: QueryParamDouble._);
 
   Condition<EntityT> _op(
     _ConditionOp op,
@@ -676,8 +700,9 @@ class QueryDoubleProperty<EntityT> extends QueryProperty<EntityT, double> {
 /// For double vectors greater and less queries are supported on elements of
 /// the vector (e.g. "has element greater").
 class QueryDoubleVectorProperty<EntityT>
-    extends QueryProperty<EntityT, double> {
-  QueryDoubleVectorProperty(super.model);
+    extends QueryProperty<EntityT, double, QueryParamDouble> {
+  QueryDoubleVectorProperty(super.model)
+    : super(createParam: QueryParamDouble._);
 
   Condition<EntityT> _op(
     _ConditionOp op,
@@ -835,8 +860,9 @@ class QueryHnswProperty<EntityT> extends QueryDoubleVectorProperty<EntityT> {
   );
 }
 
-class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
-  QueryBooleanProperty(super.model);
+class QueryBooleanProperty<EntityT>
+    extends QueryProperty<EntityT, bool, QueryParamBool> {
+  QueryBooleanProperty(super.model) : super(createParam: QueryParamBool._);
 
   // ignore: avoid_positional_boolean_parameters
   Condition<EntityT> equals(bool p, {String? alias}) =>
@@ -860,8 +886,9 @@ class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
 }
 
 class QueryStringVectorProperty<EntityT>
-    extends QueryProperty<EntityT, List<String>> {
-  QueryStringVectorProperty(super.model);
+    extends QueryProperty<EntityT, List<String>, QueryParamStringVector> {
+  QueryStringVectorProperty(super.model)
+    : super(createParam: QueryParamStringVector._);
 
   /// Matches if at least one element of the list equals the given value.
   Condition<EntityT> containsElement(
@@ -993,7 +1020,7 @@ abstract class Condition<EntityT> {
 }
 
 class _NullCondition<EntityT, DartType> extends Condition<EntityT> {
-  final QueryProperty<EntityT, DartType> _property;
+  final QueryProperty<EntityT, DartType, QueryParam> _property;
   final _ConditionOp _op;
 
   _NullCondition(this._op, this._property, String? alias) : super(alias);
@@ -1037,7 +1064,7 @@ class _RelationCountCondition<Source, Target> extends Condition<Target> {
 
 abstract class _PropertyCondition<EntityT, PropertyDartType, ValueDartType>
     extends Condition<EntityT> {
-  final QueryProperty<EntityT, PropertyDartType> _property;
+  final QueryProperty<EntityT, PropertyDartType, QueryParam> _property;
   final ValueDartType _value;
   final ValueDartType? _value2;
 
@@ -1059,7 +1086,7 @@ abstract class _KeyValuePropertyCondition<
   ValueDartType2
 >
     extends Condition<EntityT> {
-  final QueryProperty<EntityT, PropertyDartType> _property;
+  final QueryProperty<EntityT, PropertyDartType, QueryParam> _property;
   final ValueDartType _value;
   final ValueDartType2 _value2;
 
@@ -1271,7 +1298,7 @@ class _StringListCondition<EntityT>
 
   _StringListCondition(
     _ConditionOp op,
-    QueryProperty<EntityT, String> prop,
+    QueryProperty<EntityT, String, QueryParam> prop,
     List<String> value,
     String? alias, {
     this.caseSensitive,
@@ -1346,7 +1373,7 @@ class _IntegerListCondition<EntityT>
     extends _PropertyCondition<EntityT, int, List<int>> {
   _IntegerListCondition(
     _ConditionOp op,
-    QueryProperty<EntityT, int> prop,
+    QueryProperty<EntityT, int, QueryParam> prop,
     List<int> value,
     String? alias,
   ) : super(op, prop, value, null, alias);
@@ -1427,7 +1454,7 @@ class _DoubleCondition<EntityT>
     extends _PropertyCondition<EntityT, double, double> {
   _DoubleCondition(
     _ConditionOp op,
-    QueryProperty<EntityT, double> prop,
+    QueryProperty<EntityT, double, QueryParam> prop,
     double value,
     double? value2,
     String? alias,
@@ -1482,7 +1509,7 @@ class _ByteVectorCondition<EntityT>
     extends _PropertyCondition<EntityT, Uint8List, Uint8List> {
   _ByteVectorCondition(
     _ConditionOp op,
-    QueryProperty<EntityT, Uint8List> prop,
+    QueryProperty<EntityT, Uint8List, QueryParam> prop,
     Uint8List value,
     String? alias,
   ) : super(op, prop, value, null, alias);
@@ -2262,6 +2289,49 @@ class Query<T> implements Finalizable {
   String describeParameters() =>
       dartStringFromC(C.query_describe_params(_cQueryChecked));
 
+  /// Allows overwriting a query condition value, making queries reusable.
+  ///
+  /// Example for a property that's used only once in a query (no alias needed):
+  /// ```dart
+  /// class App {
+  ///   // a reusable query
+  ///   late final query = box.query(Person_.name.startsWith('')).build();
+  /// }
+  ///
+  /// // later in app code, reuse the query as many times as you want
+  /// app.query.param(Person_.name).value = 'A';
+  /// final peopleStartingWithA = app.query.find();
+  /// app.query.param(Person_.name).value = 'B';
+  /// final peopleStartingWithB = app.query.find();
+  /// ```
+  ///
+  /// Example for a property used multiple times (requires an [alias] that is
+  /// unique for the whole query):
+  /// ```dart
+  /// class App {
+  ///   // a reusable query
+  ///   late final query = box.query(
+  ///     Person_.name.startsWith('', alias: 'start') &
+  ///     Person_.name.endsWith('', alias: 'end')
+  ///   ).build();
+  /// }
+  ///
+  /// // later in app code, reuse the query as many times as you want
+  /// app.query
+  ///   ..param(Person_.name, alias: 'start').value = 'A'
+  ///   ..param(Person_.name, alias: 'end').value = 'b';
+  /// final people = app.query.find();
+  /// ```
+  QueryParamT param<EntityT, QueryParamT extends QueryParam>(
+    QueryProperty<EntityT, dynamic, QueryParamT> prop, {
+    String? alias,
+  }) => prop._createParam(
+    this,
+    InternalStoreAccess.entityDef<EntityT>(_store).model.id.id,
+    prop._model,
+    alias,
+  );
+
   /// Use the same query conditions but only return a single property (field).
   ///
   /// Note: currently doesn't support [QueryBuilder.order] and always returns
@@ -2270,7 +2340,9 @@ class Query<T> implements Finalizable {
   /// ```dart
   /// var results = query.property(tInteger).find();
   /// ```
-  PropertyQuery<DartType> property<DartType>(QueryProperty<T, DartType> prop) {
+  PropertyQuery<DartType> property<DartType>(
+    QueryProperty<T, DartType, QueryParam> prop,
+  ) {
     final result = PropertyQuery<DartType>._(
       this,
       C.query_prop(_cQueryChecked, prop._model.id.id),
