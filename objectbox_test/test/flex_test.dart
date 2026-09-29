@@ -534,6 +534,8 @@ void main() {
       expect(read.flexObject, isNull);
       expect(read.flexNonNull, isEmpty);
       expect(read.flexListOfMaps, isNull);
+      expect(read.flexListOfMapsObject, isNull);
+      expect(read.flexListOfMapsObjectNonNull, isNull);
       expect(read.flexExplicit, isNull);
     });
 
@@ -630,9 +632,9 @@ void main() {
       expect(read.flexDynamic![3], 42);
     });
 
-    test('put and get list with nested map', () {
-      var testList = [
-        {'key1': 'value1', 'nullable': null},
+    test('put and get list of maps', () {
+      final List<Map<String, Object>> testList = [
+        {'key1': 'value1'},
         {
           'key2': 'value2',
           'nested': {'a': 1},
@@ -641,17 +643,14 @@ void main() {
       final entity = FlexListEntity(
         flexListOfMaps: testList,
         flexListOfMapsObject: testList,
+        flexListOfMapsObjectNonNull: testList,
       );
       final id = box.put(entity);
 
-      assertNestedMap(List<Map<String, dynamic>> list) {
+      assertNestedMap(List<Map<String, Object?>> list) {
         expect(list.length, 2);
         final first = list[0];
         expect(first['key1'], 'value1');
-        // Because the List element type of the properties is defined as
-        // non-null, null values are skipped, which also affects nested maps
-        // (and lists).
-        expect(first.containsKey('nullable'), false);
         final second = list[1];
         expect(second['key2'], 'value2');
         expect((second['nested'] as Map)['a'], 1);
@@ -660,6 +659,39 @@ void main() {
       final read = box.get(id)!;
       assertNestedMap(read.flexListOfMaps!);
       assertNestedMap(read.flexListOfMapsObject!);
+      assertNestedMap(read.flexListOfMapsObjectNonNull!);
+    });
+
+    test('put and get list of maps with null values', () {
+      final testList = [
+        {
+          'key': 'value',
+          'nullable': null,
+          'list': [1, null, 2],
+          'nested': {'a': null},
+        },
+      ];
+      final entity = FlexListEntity(
+        flexListOfMaps: testList,
+        flexListOfMapsObject: testList,
+      );
+      final id = box.put(entity);
+
+      // Because the List element type of the properties is defined as
+      // non-null, null values are skipped, which also affects nested maps
+      // (and lists).
+      assertNullsSkipped(List<Map<String, Object?>> list) {
+        expect(list.length, 1);
+        final map = list[0];
+        expect(map['key'], 'value');
+        expect(map.containsKey('nullable'), false);
+        expect(map['list'], [1, 2]);
+        expect(map['nested'], isEmpty);
+      }
+
+      final read = box.get(id)!;
+      assertNullsSkipped(read.flexListOfMaps!);
+      assertNullsSkipped(read.flexListOfMapsObject!);
     });
 
     test('update list value', () {
