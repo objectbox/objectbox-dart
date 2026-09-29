@@ -1,7 +1,10 @@
 part of 'query.dart';
 
-/// Property query base.
-class PropertyQuery<T> implements Finalizable {
+/// Property query base, created by [Query.property].
+///
+/// The type of the property query depends on the type of the property and
+/// only offers operations that are supported for that property type.
+class PropertyQuery implements Finalizable {
   final Query<dynamic> _query;
 
   /// Pointer to the native instance. Use [_cPropChecked] for safe access.
@@ -87,7 +90,9 @@ class PropertyQuery<T> implements Finalizable {
 }
 
 /// "Property query" for an integer field. Created by [Query.property()].
-extension IntegerPropertyQuery on PropertyQuery<int> {
+class IntegerPropertyQuery extends PropertyQuery {
+  IntegerPropertyQuery._(super.query, super.cProp, super.type) : super._();
+
   int _op(
     int Function(Pointer<OBX_query_prop>, Pointer<Int64>, Pointer<Int64>) fn,
   ) {
@@ -192,7 +197,9 @@ extension IntegerPropertyQuery on PropertyQuery<int> {
 }
 
 /// "Property query" for a double field. Created by [Query.property()].
-extension DoublePropertyQuery on PropertyQuery<double> {
+class DoublePropertyQuery extends PropertyQuery {
+  DoublePropertyQuery._(super.query, super.cProp, super.type) : super._();
+
   double _op(
     int Function(Pointer<OBX_query_prop>, Pointer<Double>, Pointer<Int64>) fn,
   ) {
@@ -271,7 +278,11 @@ extension DoublePropertyQuery on PropertyQuery<double> {
 }
 
 /// "Property query" for a string field. Created by [Query.property()].
-extension StringPropertyQuery on PropertyQuery<String> {
+class StringPropertyQuery extends PropertyQuery {
+  StringPropertyQuery._(super.query, super.cProp, super.type) : super._() {
+    _caseSensitive = InternalStoreAccess.queryCS(_query._store);
+  }
+
   /// Use case-sensitive comparison when querying [distinct] values.
   /// E.g. returning "foo","Foo","FOO" instead of just "foo".
   set caseSensitive(bool caseSensitive) {

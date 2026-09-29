@@ -46,9 +46,10 @@
 * Queries: support query conditions `oneOf` and `notOneOf` for `ToOne` relation properties (such as `YourEntity_.relation.oneOf([1, 2])`).
 * Queries: support query conditions for flex properties, like contains element for maps and lists, equals key value conditions for maps and equals for values.
 * Queries: support setting query parameters for `containsElement` conditions of string list properties, like `query.param(YourEntity_.strings).value = 'foo'`.
-* Queries: some helper classes (`QueryProperty` and `QueryParam`) have changed that might require updates in your code if used directly.
+* Queries: some helper classes (`QueryProperty`, `QueryParam` and `PropertyQuery`) have changed that might require updates in your code if used directly.
 * Queries: setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
 * Queries: for integer and double vector properties, removed `values` and `twoValues` parameter setters as there never were matching query conditions.
+* Queries: removed property queries for integer and double vector properties, they were never officially supported.
 * Queries: removed the `nearestNeighborsF32` condition for properties without an HNSW index, it never worked.
 * `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).

@@ -94,7 +94,10 @@ class QueryBuilder<T> extends _QueryBuilder<T> {
   ///     .order(Person_.name, flags: Order.ascending)
   ///     .build();
   /// ```
-  QueryBuilder<T> order<D>(QueryProperty<T, D, QueryParam> p, {int flags = 0}) {
+  QueryBuilder<T> order(
+    QueryProperty<T, QueryParam, PropertyQuery> p, {
+    int flags = 0,
+  }) {
     checkObx(C.qb_order(_cBuilderChecked, p._model.id.id, flags));
     // Using Dart's cascade operator does not allow for nice chaining with
     // build(), so explicitly return this for a more fluent interface.
