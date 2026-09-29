@@ -328,6 +328,6 @@ enum FlexKind {
   /// `List<dynamic/Object?/Object>`
   list,
 
-  /// `List<Map<String, dynamic/Object?/Object>>`
+  /// `List<Map<String, dynamic/Object?>>`
   listOfMaps,
 }

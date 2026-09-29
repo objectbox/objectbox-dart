@@ -843,7 +843,7 @@
     },
     {
       "id": "20:2500264942388145684",
-      "lastPropertyId": "9:3021255329278263196",
+      "lastPropertyId": "8:7205400955656991881",
       "name": "FlexListEntity",
       "properties": [
         {
@@ -885,11 +885,6 @@
         {
           "id": "8:7205400955656991881",
           "name": "flexListOfMapsObject",
-          "type": 13
-        },
-        {
-          "id": "9:3021255329278263196",
-          "name": "flexListOfMapsObjectNonNull",
           "type": 13
         }
       ],

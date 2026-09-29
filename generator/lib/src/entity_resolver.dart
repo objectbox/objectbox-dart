@@ -531,8 +531,7 @@ class EntityResolver extends Builder {
   /// - dynamic
   /// - Object? (nullable Object)
   /// - `Map<String, dynamic/Object?/Object>`
-  /// - `List<dynamic/Object?/Object>` or
-  ///   `List<Map<String, dynamic/Object?/Object>>`
+  /// - `List<dynamic/Object?/Object>` or `List<Map<String, dynamic/Object?>>`
   ///
   /// Types that only implement `Map` or `List` are not supported, as the
   /// generated code can not create instances of them when reading.
@@ -548,12 +547,17 @@ class EntityResolver extends Builder {
     if (type.isDartCoreMap && _isMapSupportedForFlex(type)) {
       return FlexKind.map;
     }
-    // List<dynamic/Object?/Object> or List<Map<String, dynamic/Object?/Object>>
+    // List<dynamic/Object?/Object> or List<Map<String, dynamic/Object?>>
     if (type.isDartCoreList) {
       final itemType = listItemType(type);
       if (itemType != null) {
         if (_isDynamicOrObject(itemType)) return FlexKind.list;
-        if (itemType.isDartCoreMap && _isMapSupportedForFlex(itemType)) {
+        // List<Map<String, Object>> (non-null map values) isn't supported
+        // because Dart can't cast the List with Map<String, dynamic> elements
+        // created by the FlexBuffers reader (and supporting this would make
+        // the reader logic more complicated for this edge case).
+        if (itemType.isDartCoreMap &&
+            _isMapSupportedForFlex(itemType, nullableValuesOnly: true)) {
           return FlexKind.listOfMaps;
         }
       }
@@ -561,15 +565,24 @@ class EntityResolver extends Builder {
     return null;
   }
 
-  bool _isMapSupportedForFlex(DartType dartType) {
+  /// Returns true if [dartType] is a `Map<String, dynamic/Object?/Object>`.
+  ///
+  /// If [nullableValuesOnly] is set, `Map<String, Object>` is not supported.
+  bool _isMapSupportedForFlex(
+    DartType dartType, {
+    bool nullableValuesOnly = false,
+  }) {
     if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
       final keyType = dartType.typeArguments[0];
       final valueType = dartType.typeArguments[1];
       // Key must be String
+      if (!keyType.isDartCoreString) return false;
       // Value must be dynamic or Object (nullable or not)
-      if (keyType.isDartCoreString && _isDynamicOrObject(valueType)) {
-        return true;
-      }
+      if (!_isDynamicOrObject(valueType)) return false;
+      // Note: dynamic is always nullable
+      return !nullableValuesOnly ||
+          valueType is DynamicType ||
+          isNullable(valueType);
     }
     return false;
   }

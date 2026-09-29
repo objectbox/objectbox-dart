@@ -55,9 +55,6 @@ class FlexListEntity {
   // Auto-detected List<Map<String, Object?>> - nullable
   List<Map<String, Object?>>? flexListOfMapsObject;
 
-  // Auto-detected List<Map<String, Object>> (non-nullable values) - nullable
-  List<Map<String, Object>>? flexListOfMapsObjectNonNull;
-
   // Explicit annotation
   @Property(type: PropertyType.flex)
   List<dynamic>? flexExplicit;
@@ -69,7 +66,6 @@ class FlexListEntity {
     this.flexNonNull = const [],
     this.flexListOfMaps,
     this.flexListOfMapsObject,
-    this.flexListOfMapsObjectNonNull,
     this.flexExplicit,
   });
 }

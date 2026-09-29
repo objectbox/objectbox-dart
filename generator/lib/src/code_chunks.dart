@@ -629,7 +629,8 @@ class CodeChunks {
                 // The deserializer already skips nulls
                 skipNull = false;
                 defaultValue = '<$elementType>[]';
-                // Cast needed for Map<String, Object?> and Map<String, Object>
+                // Cast needed for Map<String, Object?>
+                // (Map<String, Object> is not supported, see EntityResolver)
                 if (elementType == 'Map<String, dynamic>') {
                   castSuffix = '';
                 } else {

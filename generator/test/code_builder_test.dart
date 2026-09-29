@@ -1194,9 +1194,9 @@ void main() {
         
           // Auto-detected List<Map<String, Object?>> - nullable
           List<Map<String, Object?>>? flexListOfMapsObject;
-
-          // Auto-detected List<Map<String, Object>> (non-nullable values)
-          List<Map<String, Object>> flexListOfMapsObjectNonNull = [];
+          
+          // Not detected: list of maps with non-nullable map values
+          List<Map<String, Object>>? unsupported;
 
           // Explicit annotation
           @Property(type: PropertyType.flex)
@@ -1209,7 +1209,6 @@ void main() {
           'flexNonNull': FlexKind.list,
           'flexListOfMaps': FlexKind.listOfMaps,
           'flexListOfMapsObject': FlexKind.listOfMaps,
-          'flexListOfMapsObjectNonNull': FlexKind.listOfMaps,
           'flexExplicit': FlexKind.list,
         },
       );
@@ -1240,7 +1239,10 @@ void main() {
       );
     });
 
-    test('Flex unsupported type errors', () async {
+    final errorUnsupported =
+        "'FlexEntity.unsupported': PropertyType.flex can only be used with";
+
+    test('Flex unsupported non-null object errors', () async {
       final source = sourceFile(
         entity(
           withName: 'FlexEntity',
@@ -1251,10 +1253,21 @@ void main() {
         ),
       );
 
-      await expectGeneratorThrows(
-        source,
-        "'FlexEntity.unsupported': PropertyType.flex can only be used with",
+      await expectGeneratorThrows(source, errorUnsupported);
+    });
+
+    test('Flex unsupported list of maps with non-null values errors', () async {
+      final source = sourceFile(
+        entity(
+          withName: 'FlexEntity',
+          withBody: r'''
+          @Property(type: PropertyType.flex)
+          List<Map<String, Object>>? unsupported;
+          ''',
+        ),
       );
+
+      await expectGeneratorThrows(source, errorUnsupported);
     });
 
     test('Flex type implementing Map errors', () async {
@@ -1267,11 +1280,7 @@ void main() {
         abstract class MyMap implements Map<String, Object?> {}
       ''');
 
-      await expectGeneratorThrows(
-        source,
-        "'FlexEntity.unsupported': PropertyType.flex can only be used with "
-        "Map, List, dynamic, and Object? (not with types implementing Map or List), but is 'MyMap?'.",
-      );
+      await expectGeneratorThrows(source, errorUnsupported);
     });
   });
 

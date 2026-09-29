@@ -30,6 +30,7 @@
 * Generator: allow analyzer versions up to 14.
 * Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
 * Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
+* Generator: flex properties with a list of maps with non-null values (`List<Map<String, Object>>`) are properly ignored, reading them was never supported. Use a map with nullable values instead (`List<Map<String, Object?>>`, preferably `List<Map<String, Object?>?>`).
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
 * `Store.fromReference` is deprecated, please migrate to `Store.attach`.
 * `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.
