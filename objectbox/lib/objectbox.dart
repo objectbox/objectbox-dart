@@ -52,7 +52,6 @@ export 'src/sync.dart'
         SyncClient,
         SyncConnectionEvent,
         SyncCredentials,
-        SyncErrorEvent,
         SyncRequestUpdatesMode,
         SyncState,
         SyncStats,

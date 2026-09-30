@@ -65,7 +65,6 @@
   and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios.
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 * Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
-* Add `SyncClient.errorEvents` stream that emits sync-level errors, like the client entering receive-only mode after its transaction writes were rejected.
 * Add `SyncClient.setMaxMessagesInFlight()` to configure how many outgoing transaction messages can be sent without an ACK from the server.
 
 ## 5.3.2 (2026-05-20)
