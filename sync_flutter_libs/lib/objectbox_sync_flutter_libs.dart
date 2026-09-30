@@ -23,20 +23,26 @@ Future<Directory> defaultStoreDirectory() async {
 
 const _platform = MethodChannel("objectbox_sync_flutter_libs");
 
-/// If on Android, invokes the `createMeshNetwork` platform method passing
-/// [serviceId] and [requestPermissions] as arguments. Returns a Future that on
-/// success completes with the handle to the native network instance.
+/// If on Android, iOS or macOS, invokes the `createMeshNetwork` platform
+/// method passing [serviceId] and [requestPermissions] as arguments. Returns a
+/// Future that on success completes with the handle to the native network
+/// instance (what the handle points to differs by platform, see the caller).
 ///
-/// See the `ObjectboxSyncFlutterLibsPlugin` documentation for details on the
-/// arguments, the platform method called in case requested permissions were
-/// granted (which should be handled in a method call handler) and special error
-/// codes returned (which will cause the Future returned by this to complete
-/// with a [PlatformException]).
+/// See the `ObjectboxSyncFlutterLibsPlugin` documentation (Kotlin for Android,
+/// Swift for iOS and macOS) for details on the arguments, the platform method
+/// called in case requested permissions were granted (Android only; which
+/// should be handled in a method call handler) and special error codes returned
+/// (which will cause the Future returned by this to complete with a
+/// [PlatformException]). If the platform plugin was built without a mesh
+/// network implementation, the Future completes with a
+/// [MissingPluginException].
 Future<int?> _createMeshNetwork(
   String serviceId, {
   required bool requestPermissions,
 }) async {
-  if (!Platform.isAndroid) return null; // Not implemented on other platforms.
+  if (!Platform.isAndroid && !Platform.isIOS && !Platform.isMacOS) {
+    return null; // Not implemented on other platforms.
+  }
   return _platform.invokeMethod<int>('createMeshNetwork', {
     'serviceId': serviceId,
     'requestPermissions': requestPermissions,
@@ -45,7 +51,10 @@ Future<int?> _createMeshNetwork(
 
 /// Creates a mesh sync configuration with the given options.
 ///
-/// Only on Flutter Android this comes with an actual network implementation.
+/// On Flutter Android, iOS and macOS this comes with an actual network
+/// implementation (based on Google Nearby Connections). On iOS and macOS this
+/// requires the Swift Package Manager integration of Flutter (see the README
+/// of this package); otherwise this throws an [UnsupportedError].
 /// On other platforms, this returns a plain [MeshConfig],
 /// which will not result in a working mesh sync yet.
 ///
@@ -60,8 +69,8 @@ Future<int?> _createMeshNetwork(
 /// final client = SyncClient(store, urls, credentials, mesh: mesh);
 /// ```
 ///
-/// This may request missing runtime permissions required by the platform's
-/// mesh transport (e.g., required for Android).
+/// On Android, this may request missing runtime permissions required by the
+/// platform's mesh transport.
 /// The mesh network is created immediately, without waiting for the user to
 /// grant the permissions. Once the user has granted (some of) the requested
 /// permissions, [onPermissionsGranted] is called; it should call
@@ -77,6 +86,12 @@ Future<int?> _createMeshNetwork(
 ///
 /// Pass [requestPermissions] as `false` if your app requests and grants these
 /// permissions before calling this function.
+///
+/// On iOS and macOS, there is nothing to request upfront: the system shows its
+/// Local Network and Bluetooth prompts on first use and the mesh retries
+/// starting its network radios by itself, so [requestPermissions] and
+/// [onPermissionsGranted] are not used there (see the README of this package
+/// for the Info.plist entries and entitlements an app needs).
 Future<MeshConfig> createMeshConfig(
   String meshId, {
   bool requestPermissions = true,
@@ -118,40 +133,56 @@ Future<MeshConfig> createMeshConfig(
     txLogMaxAgeSeconds: txLogMaxAgeSeconds,
   );
 
-  // While the config above can be created fine, building it will fail for iOS
-  // and macOS Flutter apps as the current ObjectBox Swift Package and CocoaPod
-  // used don't provide the required C APIs.
-  // Not adding this check when a mesh config is provided to the SyncClient
-  // constructor as the APIs are available for macOS unit tests, which use the
-  // C library.
-  if (Platform.isIOS || Platform.isMacOS) {
-    throw UnsupportedError(
-      'Mesh Sync APIs are not available for Flutter iOS or macOS apps.',
+  if (Platform.isAndroid) {
+    // Get notified by the plugin once the user has granted (some of) the
+    // requested permissions. Note: there can only be one method call handler
+    // per channel, so the callback of the latest call to this function wins.
+    _platform.setMethodCallHandler((MethodCall call) async {
+      switch (call.method) {
+        case 'onMeshSyncPermissionsGranted':
+          onPermissionsGranted?.call();
+        default:
+          throw MissingPluginException('Unknown method ${call.method}');
+      }
+    });
+
+    final handle = await _createMeshNetwork(
+      meshId,
+      requestPermissions: requestPermissions,
     );
-  }
-
-  if (!Platform.isAndroid) return mesh;
-
-  // Get notified by the plugin once the user has granted (some of) the
-  // requested permissions. Note: there can only be one method call handler
-  // per channel, so the callback of the latest call to this function wins.
-  _platform.setMethodCallHandler((MethodCall call) async {
-    switch (call.method) {
-      case 'onMeshSyncPermissionsGranted':
-        onPermissionsGranted?.call();
-      default:
-        throw MissingPluginException('Unknown method ${call.method}');
+    if (handle == null || handle == 0) {
+      throw StateError('Failed to create Android Nearby mesh network');
     }
-  });
 
-  final handle = await _createMeshNetwork(
-    meshId,
-    requestPermissions: requestPermissions,
-  );
-  if (handle == null || handle == 0) {
-    throw StateError('Failed to create Android Nearby mesh network');
+    // The Android plugin returns an internal network pointer.
+    mesh.addNetworkInternalHandle(handle);
+  } else if (Platform.isIOS || Platform.isMacOS) {
+    // No permissions to request upfront on Apple platforms (see the docs
+    // above), so the plugin ignores requestPermissions and never calls back.
+    final int? handle;
+    try {
+      handle = await _createMeshNetwork(
+        meshId,
+        requestPermissions: requestPermissions,
+      );
+    } on MissingPluginException {
+      // The Swift plugin only implements the method if it was built with the
+      // mesh sync add-on of the ObjectBox Swift Package.
+      throw UnsupportedError(
+        'Mesh Sync is not available in this build: on iOS and macOS it '
+        'requires the Swift Package Manager integration of Flutter and Xcode '
+        '16.3 or newer (the CocoaPods integration does not include the mesh '
+        'sync add-on).',
+      );
+    }
+    if (handle == null || handle == 0) {
+      throw StateError('Failed to create Apple Nearby mesh network');
+    }
+
+    // The Apple plugin returns an OBX_mesh_network handle (C mesh network API).
+    mesh.addNetworkHandle(handle);
   }
+  // Other platforms: no network implementation yet.
 
-  mesh.addNetworkInternalHandle(handle);
   return mesh;
 }
