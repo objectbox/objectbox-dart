@@ -6,7 +6,7 @@
   * Requires at least Android 7.0 (API 24).
   * Remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So **after updating make sure to run the code generator again** using `dart run build_runner build`.
 * The `objectbox` package requires at least Dart SDK 3.7.
-* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta-2026-09-11](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta2).
 * Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
 * Flutter plugins: depend on new database-only Android artifacts (`objectbox-android-db`, `objectbox-sync-android-db`).
   * **Note: If your Flutter Android app is using Admin for debugging**, you may have to update your build script to exclude the new artifact name:
