@@ -677,6 +677,195 @@ OBX_C_API obx_err obx_mesh_opt_tx_log_batch_max_count(OBX_mesh_options* opt, int
 /// Sets the maximum age in seconds of TX logs kept in the local mesh storage (default: 8 hours).
 OBX_C_API obx_err obx_mesh_opt_tx_log_max_age_seconds(OBX_mesh_options* opt, int64_t seconds);
 
+//----------------------------------------------
+// Mesh network (custom transport)
+//----------------------------------------------
+// Experimental/internal API to implement a mesh transport in any language that speaks C (e.g. Swift or Dart),
+// without touching ObjectBox internals: outbound calls (core -> transport) go through a versioned function table
+// (OBX_mesh_network_functions), and inbound events (transport -> core) are fed via the obx_mesh_network_* event
+// functions. This plays the role JNI plays for the Android Nearby transport. The ABI of this section may still
+// change; like obx_mesh_opt_network_internal(), it is intended for ObjectBox platform SDKs.
+
+/// Type of the transport behind a mesh network, as passed to obx_mesh_network_create().
+/// Each transport implementation must use its own value.
+/// Values below 1000 are reserved for ObjectBox internal transports;
+/// custom (third-party) transports must use values of 1000 or above.
+/// Transports built on this generic C mesh network API use values above 100
+/// (values below that are built into the core, e.g. via the JNI bridge).
+typedef enum {
+    OBXMeshType_AndroidNearby = 1,  ///< Google Nearby Connections on Android (via the built-in JNI bridge)
+    OBXMeshType_TestLocal = 100,    ///< In-process test transport (used by tests only)
+    OBXMeshType_AppleNearby = 101,  ///< Google Nearby Connections on Apple platforms (on the C mesh network API)
+} OBXMeshType;
+
+/// An opaque handle to a callback-driven mesh network (a transport); see obx_mesh_network_create().
+struct OBX_mesh_network;
+typedef struct OBX_mesh_network OBX_mesh_network;
+
+/// Callback to start the transport for the given mesh; guaranteed to be the first outbound call
+/// (made once, when the mesh sync starts running).
+/// The mesh ID scopes the transport to this mesh: derive any medium-specific scoping from it
+/// (e.g. the Nearby transports use it as their service ID).
+/// Radio activity itself starts later via func_start_advertising / func_start_discovery.
+/// @param mesh_id the mesh ID as configured via obx_mesh_opt() (valid only during the call; copy if needed later)
+typedef void OBX_mesh_network_func_start(const char* mesh_id, void* user_data);
+
+/// Callback to start advertising this node so other peers can discover it.
+/// Advertising start may fail asynchronously (e.g. missing permissions); report the outcome via
+/// obx_mesh_network_advertising_result() once known (required if this callback returned true).
+/// @param endpoint_info metadata to advertise (valid only during the call; copy if needed later)
+/// @returns true if the start request was initiated (the actual outcome may still be reported asynchronously)
+typedef bool OBX_mesh_network_func_start_advertising(const uint8_t* endpoint_info, size_t size, void* user_data);
+
+/// Callback to stop advertising this node.
+typedef void OBX_mesh_network_func_stop_advertising(void* user_data);
+
+/// Callback to start discovering peers; report discoveries via obx_mesh_network_endpoint_found().
+/// @returns true if the start request was initiated
+typedef bool OBX_mesh_network_func_start_discovery(void* user_data);
+
+/// Callback to stop discovering peers.
+typedef void OBX_mesh_network_func_stop_discovery(void* user_data);
+
+/// Callback to start an asynchronous connection attempt to the given endpoint.
+/// Report the outcome via obx_mesh_network_connection_result() (or obx_mesh_network_connection_requested()
+/// on an early failure to even request the connection).
+/// @param endpoint_info our connection metadata to transmit to the endpoint (valid only during the call)
+/// @returns true if the connection attempt was started
+typedef bool OBX_mesh_network_func_connect(const char* endpoint_id, const uint8_t* endpoint_info, size_t size,
+                                           void* user_data);
+
+/// Callback to disconnect from the given endpoint.
+typedef void OBX_mesh_network_func_disconnect(const char* endpoint_id, void* user_data);
+
+/// Callback to send a message to the given (connected) endpoint.
+/// The transport takes ownership of the given bytes regardless of the returned value: get the data via
+/// obx_bytes_lazy_get() and free it via obx_bytes_lazy_free() once the data was handed to the transport
+/// (this enables zero-copy sending of large TX logs, e.g. via stream payloads).
+/// @returns true if the message was accepted for (asynchronous) sending
+typedef bool OBX_mesh_network_func_send(const char* endpoint_id, OBX_bytes_lazy* bytes, void* user_data);
+
+/// Callback to stop the transport and release transport-side resources (e.g. the reference held via user_data).
+/// Guaranteed to be the last outbound call and to fire exactly once: from the mesh sync thread when the sync client
+/// stops, or, if the sync client never started the network, from the thread releasing the last reference to the
+/// network (see obx_mesh_network_free()). Inbound events fed after this call are ignored.
+typedef void OBX_mesh_network_func_stop(void* user_data);
+
+/// Struct of the mesh network transport callbacks (outbound calls: core -> transport). All members must be set.
+/// Outbound callbacks are invoked sequentially from the mesh sync thread, never from within an inbound event
+/// function (so a transport may hold its own lock while feeding events); the one exception is func_stop, which may
+/// also fire from the thread releasing the network (see there). Outbound callbacks must not block for long:
+/// dispatch to the transport's own queue/thread and return; report asynchronous outcomes via the
+/// obx_mesh_network_* event functions (which are callable from any thread).
+typedef struct OBX_mesh_network_functions {
+    /// Must be initialized with sizeof(OBX_mesh_network_functions) to "version" the struct.
+    /// This allows the library to detect older or newer versions and react properly.
+    size_t version;
+
+    OBX_mesh_network_func_start* func_start;
+    OBX_mesh_network_func_start_advertising* func_start_advertising;
+    OBX_mesh_network_func_stop_advertising* func_stop_advertising;
+    OBX_mesh_network_func_start_discovery* func_start_discovery;
+    OBX_mesh_network_func_stop_discovery* func_stop_discovery;
+    OBX_mesh_network_func_connect* func_connect;
+    OBX_mesh_network_func_disconnect* func_disconnect;
+    OBX_mesh_network_func_send* func_send;
+    OBX_mesh_network_func_stop* func_stop;
+} OBX_mesh_network_functions;
+
+/// Creates a callback-driven mesh network for the given transport; register it via obx_mesh_opt_network().
+/// The returned handle holds one reference to the network; free it via obx_mesh_network_free() when the
+/// transport wrapper is done with it (typically when the wrapper object is destroyed).
+/// @param type the transport type; each transport implementation must use its own OBXMeshType value
+/// @param msg_size_limit max size in bytes for a single plain message the transport can carry
+///        (e.g. Android Nearby BYTES payloads: 1023 KB); must be positive
+/// @param extended_msg_size_limit max size in bytes for a single large message the transport can carry via an
+///        extended mechanism (e.g. a stream payload); must be >= msg_size_limit, or 0 if the transport has no
+///        extended mechanism (large messages are then limited to msg_size_limit)
+/// @param functions the outbound callbacks; the struct is copied, so it may be stack-allocated
+/// @param user_data passed to all outbound callbacks; must stay valid until func_stop fires (the guaranteed last
+///        outbound call), e.g. a retained reference to the transport object that func_stop releases.
+///        Such a retained object must not (transitively) own the returned handle: a network that never ran fires
+///        func_stop only once its last reference is released (see obx_mesh_network_free()), so that cycle would
+///        never resolve (e.g. the Swift transport retains a separate holder, not the wrapper owning the handle).
+/// @returns NULL if the network could not be created (e.g. invalid arguments; check obx_last_error_code())
+OBX_C_API OBX_mesh_network* obx_mesh_network_create(OBXMeshType type, size_t msg_size_limit,
+                                                    size_t extended_msg_size_limit,
+                                                    const OBX_mesh_network_functions* functions, void* user_data);
+
+/// Registers the given mesh network with the mesh options (the public sibling of
+/// obx_mesh_opt_network_internal()). The options only add their own reference to the underlying network;
+/// the given handle stays valid and must still be freed via obx_mesh_network_free().
+/// A network can serve at most one sync client over its lifetime (it cannot restart once its client stopped it);
+/// create a new network for each client (attaching a used network fails at sync client creation).
+OBX_C_API obx_err obx_mesh_opt_network(OBX_mesh_options* opt, OBX_mesh_network* net);
+
+/// Frees the given mesh network handle, releasing the transport wrapper's reference to the network.
+/// A mesh sync using the network (via obx_mesh_opt_network()) keeps its own reference, so this is safe to call
+/// while the sync client is still running; the underlying network is destroyed with the last reference.
+/// If no sync client ever started the network, releasing the last reference fires func_stop (from the releasing
+/// thread) so the transport can release its user_data reference.
+/// Do not call any obx_mesh_network_* function with the handle after this call.
+OBX_C_API void obx_mesh_network_free(OBX_mesh_network* net);
+
+// Inbound event functions (transport -> core); thread-safe, callable from any transport thread/queue.
+// Late events arriving after func_stop or after the sync client was closed are dropped gracefully
+// (as long as the handle is valid).
+
+/// Notifies the mesh sync that a peer endpoint was discovered (while discovery is active).
+/// Only feed endpoints discovered for this network's own service: the service ID is a per-network constant
+/// known to the transport only, so filtering foreign services (if the medium requires it) is the transport's job.
+/// @param endpoint_info the metadata the endpoint advertises (valid only during the call)
+OBX_C_API obx_err obx_mesh_network_endpoint_found(OBX_mesh_network* net, const char* endpoint_id,
+                                                  const uint8_t* endpoint_info, size_t size);
+
+/// Notifies the mesh sync that a previously discovered endpoint is no longer available.
+OBX_C_API obx_err obx_mesh_network_endpoint_lost(OBX_mesh_network* net, const char* endpoint_id);
+
+/// Checks whether a connection (initiated by us or by the peer) shall be accepted; the transport must then
+/// accept or reject the connection accordingly. This is the one synchronous inbound call; it is cheap.
+/// @param endpoint_info the metadata received from the endpoint: the endpoint's advertising info for an
+///        outgoing connection (incoming == false), or its connection info for an incoming one (incoming == true)
+/// @returns true if the connection shall be accepted; false to reject (also on errors, e.g. a closed client)
+OBX_C_API bool obx_mesh_network_check_connection_request(OBX_mesh_network* net, const char* endpoint_id,
+                                                         const uint8_t* endpoint_info, size_t size, bool incoming);
+
+/// Notifies the mesh sync that a connection attempt concluded: the connection is now established (success)
+/// or failed to establish.
+OBX_C_API obx_err obx_mesh_network_connection_result(OBX_mesh_network* net, const char* endpoint_id, bool success);
+
+/// Notifies the mesh sync that the connection to the given endpoint was lost/closed.
+OBX_C_API obx_err obx_mesh_network_disconnected(OBX_mesh_network* net, const char* endpoint_id);
+
+/// Delivers a message received from the given (connected) endpoint to the mesh sync.
+/// The data is copied during the call.
+OBX_C_API obx_err obx_mesh_network_message_received(OBX_mesh_network* net, const char* endpoint_id, const uint8_t* data,
+                                                    size_t size);
+
+/// Reports the asynchronous outcome of a func_start_advertising request. On failure, the mesh sync retries
+/// advertising with exponential backoff (see obx_mesh_opt_advertising_retry_millis()).
+/// Note: results are not correlated to individual start requests; e.g. with retries in play, a late result from
+/// an earlier attempt is attributed to the latest one. This is fine while advertising is a per-network singleton;
+/// if that ever changes, a correlation token needs to be added here.
+/// @param error_message optional failure details for logging/diagnostics, e.g. "missing permission X";
+///        may be NULL and is ignored on success; only read during the call (copy if needed)
+OBX_C_API obx_err obx_mesh_network_advertising_result(OBX_mesh_network* net, bool success,
+                                                      const char* error_message);
+
+/// Reports the asynchronous outcome of a func_start_discovery request (currently informational only).
+OBX_C_API obx_err obx_mesh_network_discovery_started(OBX_mesh_network* net, bool success);
+
+/// Reports the asynchronous outcome of a func_connect request (whether the connection *request* was made;
+/// the connection itself concludes via obx_mesh_network_connection_result()). A failure marks the connection
+/// attempt as failed.
+/// @param error_message optional failure details for logging/diagnostics, e.g. "radio is off";
+///        may be NULL and is ignored on success; only read during the call (copy if needed)
+OBX_C_API obx_err obx_mesh_network_connection_requested(OBX_mesh_network* net, const char* endpoint_id, bool success,
+                                                        const char* error_message);
+
+/// Reports the asynchronous outcome of a func_send request (currently informational only).
+OBX_C_API obx_err obx_mesh_network_payload_sent(OBX_mesh_network* net, const char* endpoint_id, bool success);
+
 /// Returns the mesh sync attached to the given sync client (configured via obx_sync_opt_mesh()).
 /// The returned mesh sync is owned by the sync client; it is valid as long as the sync client is alive.
 /// @returns NULL if no mesh sync is attached (no error is set in that case).
