@@ -282,6 +282,44 @@ void main() {
         box,
         [largeApple],
       );
+
+      // Set key and value with a query parameter
+      final query =
+          box
+              .query(FlexMapEntity_.flexObject.equalsKeyValueString('', ''))
+              .build();
+      query
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesString('key-string', 'Apple');
+      expect(query.findIds(), [largeApple]);
+      query
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesString('key-string', 'Cherry');
+      expect(query.findIds(), [objects[1].id]);
+      query
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesString('no-such-key', 'Apple');
+      expect(query.findIds(), isEmpty);
+      query.close();
+
+      // With an alias, setting two strings is not supported
+      final aliasQuery =
+          box
+              .query(
+                FlexMapEntity_.flexObject.equalsKeyValueString(
+                  '',
+                  '',
+                  alias: 'kv',
+                ),
+              )
+              .build();
+      expect(
+        () => aliasQuery
+            .param(FlexMapEntity_.flexObject, alias: 'kv')
+            .twoValuesString('key-string', 'Apple'),
+        throwsUnsupportedError,
+      );
+      aliasQuery.close();
     });
 
     test('greaterKeyValue_stringObjectMap', () {
