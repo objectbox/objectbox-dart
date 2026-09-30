@@ -7,6 +7,11 @@ import 'package:objectbox_test_app/entity.dart';
 import 'package:objectbox_test_app/objectbox.g.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// Sandboxed macOS apps need an app group for ObjectBox (see the Store docs);
+/// matches the entitlements of the macOS Runner.
+final String? _macosApplicationGroup =
+    Platform.isMacOS ? 'objectbox.test' : null;
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -14,10 +19,16 @@ void main() {
   late String dbDir;
 
   setUp(() async {
-    final appDir = await getApplicationDocumentsDirectory();
+    // Not the documents directory: on macOS that is the user's Documents folder,
+    // which needs user consent (TCC) that a test run cannot give.
+    final appDir = await getApplicationSupportDirectory();
     dbDir = '${appDir.path}/testdata-admin';
     _cleanDir(dbDir);
-    store = Store(getObjectBoxModel(), directory: dbDir);
+    store = Store(
+      getObjectBoxModel(),
+      directory: dbDir,
+      macosApplicationGroup: _macosApplicationGroup,
+    );
   });
 
   tearDown(() {
