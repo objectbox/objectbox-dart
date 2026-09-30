@@ -15,6 +15,11 @@ import 'package:path_provider/path_provider.dart';
 // Using print is fine, this isn't production code.
 // ignore_for_file: avoid_print
 
+/// Sandboxed macOS apps need an app group for ObjectBox (see the Store docs);
+/// matches the entitlements of the macOS Runner.
+final String? _macosApplicationGroup =
+    Platform.isMacOS ? 'objectbox.test' : null;
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -27,13 +32,23 @@ void main() {
   serverUrl() => 'ws://127.0.0.1:$serverPort';
 
   setUp(() async {
-    final appDir = await getApplicationDocumentsDirectory();
+    // Not the documents directory: on macOS that is the user's Documents folder,
+    // which needs user consent (TCC) that a test run cannot give.
+    final appDir = await getApplicationSupportDirectory();
     dbDir = '${appDir.path}/testdata-sync';
     dbDir2 = '${appDir.path}/testdata-sync2';
     _cleanDir(dbDir);
     _cleanDir(dbDir2);
-    store = Store(getObjectBoxModel(), directory: dbDir);
-    store2 = Store(getObjectBoxModel(), directory: dbDir2);
+    store = Store(
+      getObjectBoxModel(),
+      directory: dbDir,
+      macosApplicationGroup: _macosApplicationGroup,
+    );
+    store2 = Store(
+      getObjectBoxModel(),
+      directory: dbDir2,
+      macosApplicationGroup: _macosApplicationGroup,
+    );
   });
 
   tearDown(() {
@@ -150,7 +165,11 @@ void main() {
         final client = createClient(store2);
         store2.close();
         _cleanDir(dbDir2);
-        store2 = Store(getObjectBoxModel(), directory: dbDir2);
+        store2 = Store(
+          getObjectBoxModel(),
+          directory: dbDir2,
+          macosApplicationGroup: _macosApplicationGroup,
+        );
         expect(client.isClosed(), isTrue);
       });
 
