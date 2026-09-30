@@ -29,3 +29,6 @@ update flutter_libs/ios/objectbox_flutter_libs/Package.swift "${versionExpr}"
 update flutter_libs/macos/objectbox_flutter_libs/Package.swift "${versionExpr}"
 update sync_flutter_libs/ios/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
 update sync_flutter_libs/macos/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
+# Manifests used by older Swift tools (without the Mesh Sync add-on)
+update sync_flutter_libs/ios/objectbox_sync_flutter_libs/Package@swift-5.9.swift "${versionExpr}"
+update sync_flutter_libs/macos/objectbox_sync_flutter_libs/Package@swift-5.9.swift "${versionExpr}"
