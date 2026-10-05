@@ -5,6 +5,7 @@
 * The Flutter packages (`objectbox_flutter_libs` and `objectbox_sync_flutter_libs`) require at least Dart SDK 3.12 or Flutter SDK 3.44.
   * Requires at least Android 7.0 (API 24).
   * Remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So **after updating make sure to run the code generator again** using `dart run build_runner build`.
+  * Requires at least macOS 12.
 * The `objectbox` package requires at least Dart SDK 3.7.
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta-2026-09-11](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta2).
 * Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
