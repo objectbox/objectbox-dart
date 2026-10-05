@@ -27,6 +27,7 @@ update sync_flutter_libs/macos/objectbox_sync_flutter_libs.podspec "${versionExp
 versionExpr="s/objectbox-swift-spm.git\", exact: \"[^\"]*\"/objectbox-swift-spm.git\", exact: \"${version}\"/g"
 update flutter_libs/ios/objectbox_flutter_libs/Package.swift "${versionExpr}"
 update flutter_libs/macos/objectbox_flutter_libs/Package.swift "${versionExpr}"
+echo "⚠️ Doesn't update ios/objectbox_sync_flutter_libs/Package.swift and macos/objectbox_sync_flutter_libs/Package.swift as version is pinned, see notes in files!"
 update sync_flutter_libs/ios/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
 update sync_flutter_libs/macos/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
 # Manifests used by older Swift tools (without the Mesh Sync add-on)
