@@ -70,5 +70,9 @@
 	<string>Mesh sync discovers nearby devices on the local network.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Mesh sync uses Bluetooth to find nearby devices.</string>
+	<key>NSBonjourServices</key>
+    <array>
+        <string>_560B6041340C._tcp</string>
+    </array>
 </dict>
 </plist>
