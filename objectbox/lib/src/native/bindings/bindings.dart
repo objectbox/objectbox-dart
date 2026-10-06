@@ -96,13 +96,18 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 
 // Require the minimum C API version of all supported platform-specific
 // libraries.
-// Library                         | C API | Database
-// --------------------------------|-------|----------------------
-// C library 6.0.0-beta2           | 6.0.0 | 6.0.0-beta-2026-09-11
-// objectbox-android 6.0.0-beta    | 6.0.0 | 6.0.0-beta-2026-07-13
-// ObjectBox CocoaPod 5.3.0        | 5.3.2 | 5.3.2-next-2026-05-16
-// Keeping at 5.3.2 as CocoaPod/Swift Package with C API 6.0.0 is not ready
-// and there are no breaking changes and new APIs are guarded.
+// Library                              | C API | Database
+// -------------------------------------|-------|----------------------
+// C library 6.0.0-beta2                | 6.0.0 | 6.0.0-beta-2026-09-11
+// objectbox-android 6.0.0-beta         | 6.0.0 | 6.0.0-beta-2026-07-13
+// ObjectBox CocoaPod 5.3.0             | 5.3.2 | 5.3.2-next-2026-05-16
+// ObjectBox Swift Package 5.3.0        | 5.3.2 | 5.3.2-next-2026-05-16
+// ObjectBox Swift Package 6.0.0-beta.2 | 6.0.0 | 6.0.0-beta-2026-09-11
+// Swift Package 5.3.0 is used by flutter_libs.
+// Swift Package 6.0.0-beta.2 is used by sync_flutter_libs.
+// Keeping at 5.3.2 as the CocoaPods and the Swift Package used by
+// flutter_libs with C API 6.0.0 are not ready and there are no breaking
+// changes (new APIs aren't guarded, though).
 var _obxCminMajor = 5;
 var _obxCminMinor = 3;
 var _obxCminPatch = 2;
