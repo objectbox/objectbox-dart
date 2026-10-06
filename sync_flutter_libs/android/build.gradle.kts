@@ -75,10 +75,10 @@ dependencies {
     // ObjectBox Android database library (Sync variant) that includes a C API
     // compatible with the binding of the objectbox package.
     // See dev-doc/updating-c-library.md for details.
-    implementation("io.objectbox:objectbox-sync-android-db:6.0.0-beta")
+    implementation("io.objectbox:objectbox-sync-android-db:6.0.0-beta2")
     // Mesh Sync permissions helper; pulls in Google Play services Nearby
     // dependency and adds permissions to manifest. As this package does not
     // enable mesh sync by default, the permissions are manually excluded
     // in this projects AndroidManifest.xml.
-    implementation("io.objectbox:objectbox-meshsync-android:6.0.0-beta")
+    implementation("io.objectbox:objectbox-meshsync-android:6.0.0-beta2")
 }

@@ -53,5 +53,5 @@ configurations {
 
 dependencies {
     // For admin_test.dart, add the Android library with ObjectBox Admin.
-    debugImplementation("io.objectbox:objectbox-sync-android-db-admin:6.0.0-beta")
+    debugImplementation("io.objectbox:objectbox-sync-android-db-admin:6.0.0-beta2")
 }
