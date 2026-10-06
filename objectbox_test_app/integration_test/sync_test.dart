@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:objectbox_test_app/objectbox.g.dart';
@@ -8,54 +7,31 @@ import 'package:objectbox/internal.dart';
 import 'package:objectbox/src/native/sync.dart';
 import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart'
     show createMeshConfig;
-import 'package:path_provider/path_provider.dart';
+
+import 'test_env.dart';
 
 // We want to have types explicit - verifying the return types of functions.
 // ignore_for_file: omit_local_variable_types
 // Using print is fine, this isn't production code.
 // ignore_for_file: avoid_print
 
-/// Sandboxed macOS apps need an app group for ObjectBox (see the Store docs);
-/// matches the entitlements of the macOS Runner.
-final String? _macosApplicationGroup =
-    Platform.isMacOS ? 'objectbox.test' : null;
-
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  late Store store;
-  late Store store2;
-  late String dbDir;
-  late String dbDir2;
+  late TestEnv env;
+  late TestEnv env2;
   int serverPort = 9999;
 
   serverUrl() => 'ws://127.0.0.1:$serverPort';
 
   setUp(() async {
-    // Not the documents directory: on macOS that is the user's Documents folder,
-    // which needs user consent (TCC) that a test run cannot give.
-    final appDir = await getApplicationSupportDirectory();
-    dbDir = '${appDir.path}/testdata-sync';
-    dbDir2 = '${appDir.path}/testdata-sync2';
-    _cleanDir(dbDir);
-    _cleanDir(dbDir2);
-    store = Store(
-      getObjectBoxModel(),
-      directory: dbDir,
-      macosApplicationGroup: _macosApplicationGroup,
-    );
-    store2 = Store(
-      getObjectBoxModel(),
-      directory: dbDir2,
-      macosApplicationGroup: _macosApplicationGroup,
-    );
+    env = await TestEnv.create('testdata-sync');
+    env2 = await TestEnv.create('testdata-sync2');
   });
 
   tearDown(() {
-    store.close();
-    store2.close();
-    _cleanDir(dbDir);
-    _cleanDir(dbDir2);
+    env.close();
+    env2.close();
   });
 
   SyncClient createClient(Store s) =>
@@ -82,7 +58,7 @@ void main() {
     () {
       test('SyncClient cannot be created when running with non-sync library', () {
         expect(
-          () => createClient(store),
+          () => createClient(env.store),
           throwsA(
             predicate(
               (UnsupportedError e) => e.toString().contains(
@@ -103,13 +79,13 @@ void main() {
     'Tests if Sync is available',
     () {
       test('SyncClient lifecycle', () {
-        expect(store.syncClient(), isNull);
+        expect(env.store.syncClient(), isNull);
 
-        SyncClient c1 = createClient(store);
-        expect(store.syncClient(), equals(c1));
+        SyncClient c1 = createClient(env.store);
+        expect(env.store.syncClient(), equals(c1));
 
         expect(
-          () => createClient(store),
+          () => createClient(env.store),
           throwsA(
             predicate(
               (StateError e) => e.toString().contains('one sync client'),
@@ -120,24 +96,24 @@ void main() {
         expect(c1.isClosed(), isFalse);
         c1.close();
         expect(c1.isClosed(), isTrue);
-        expect(store.syncClient(), isNull);
+        expect(env.store.syncClient(), isNull);
       });
 
       test('SyncClient instance caching', () {
         {
-          final client = createClient(store);
+          final client = createClient(env.store);
           expect(client.isClosed(), isFalse);
         }
-        SyncClient? client = store.syncClient();
+        SyncClient? client = env.store.syncClient();
         expect(client, isNotNull);
         expect(client!.isClosed(), isFalse);
         client.close();
-        expect(store.syncClient(), isNull);
+        expect(env.store.syncClient(), isNull);
       });
 
       test('SyncClient throws if empty URL list', () {
         expect(
-          () => SyncClient(store, [], [SyncCredentials.none()]),
+          () => SyncClient(env.store, [], [SyncCredentials.none()]),
           throwsA(
             isArgumentError.having(
               (e) => e.message,
@@ -150,7 +126,7 @@ void main() {
 
       test('SyncClient throws if empty credential list', () {
         expect(
-          () => SyncClient(store, ['test-url'], []),
+          () => SyncClient(env.store, ['test-url'], []),
           throwsA(
             isArgumentError.having(
               (e) => e.message,
@@ -162,25 +138,19 @@ void main() {
       });
 
       test('SyncClient is closed when a store is closed', () {
-        final client = createClient(store2);
-        store2.close();
-        _cleanDir(dbDir2);
-        store2 = Store(
-          getObjectBoxModel(),
-          directory: dbDir2,
-          macosApplicationGroup: _macosApplicationGroup,
-        );
+        final client = createClient(env2.store);
+        env2.reopenEmpty();
         expect(client.isClosed(), isTrue);
       });
 
       test('different Store => different SyncClient', () {
-        SyncClient c1 = createClient(store);
-        SyncClient c2 = createClient(store2);
+        SyncClient c1 = createClient(env.store);
+        SyncClient c2 = createClient(env2.store);
         expect(c1, isNot(equals(c2)));
       });
 
       test('SyncClient states (no server available)', () {
-        SyncClient client = createClient(store);
+        SyncClient client = createClient(env.store);
         expect(client.state(), equals(SyncState.created));
         client.start();
         expect(client.state(), equals(SyncState.started));
@@ -190,7 +160,7 @@ void main() {
       });
 
       test('SyncClient access after closing must throw', () {
-        SyncClient c = createClient(store);
+        SyncClient c = createClient(env.store);
         c.close();
         expect(c.isClosed(), isTrue);
 
@@ -231,7 +201,7 @@ void main() {
       });
 
       test('SyncClient simple coverage (no server available)', () async {
-        SyncClient c = createClient(store);
+        SyncClient c = createClient(env.store);
         expect(c.isClosed(), isFalse);
 
         expect(SyncClient.protocolVersion(), greaterThanOrEqualTo(7));
@@ -282,7 +252,7 @@ void main() {
       });
 
       test('SyncClient setMultipleCredentials', () {
-        SyncClient c = createClient(store);
+        SyncClient c = createClient(env.store);
 
         expect(
           () => c.setMultipleCredentials([]),
@@ -312,7 +282,7 @@ void main() {
 
       test('SyncClient filter variables', () {
         SyncClient client = SyncClient(
-          store,
+          env.store,
           [serverUrl()],
           [SyncCredentials.none()],
           filterVariables: {
@@ -343,7 +313,7 @@ void main() {
 
       test('SyncClient certificatePaths', () {
         SyncClient multiple = SyncClient(
-          store,
+          env.store,
           [serverUrl()],
           [SyncCredentials.none()],
           certificatePaths: [
@@ -354,7 +324,7 @@ void main() {
         multiple.close();
 
         SyncClient empty = SyncClient(
-          store,
+          env.store,
           [serverUrl()],
           [SyncCredentials.none()],
           certificatePaths: [],
@@ -364,7 +334,7 @@ void main() {
 
       test('SyncClient flags', () {
         SyncClient client = SyncClient(
-          store,
+          env.store,
           [serverUrl()],
           [SyncCredentials.none()],
           flags:
@@ -405,7 +375,7 @@ void main() {
         );
 
         SyncClient client = SyncClient(
-          store,
+          env.store,
           [serverUrl()],
           [SyncCredentials.none()],
           mesh: meshConfig,
@@ -459,13 +429,13 @@ void main() {
       });
 
       test('SyncClient without mesh config has no mesh', () {
-        SyncClient client = createClient(store);
+        SyncClient client = createClient(env.store);
         addTearDown(() => client.close());
         expect(client.mesh, isNull);
       });
 
       test('SyncClient stats', () {
-        SyncClient client = createClient(store);
+        SyncClient client = createClient(env.store);
         addTearDown(() => client.close());
 
         // All counters are readable and zero before connecting to a server.
@@ -490,10 +460,4 @@ void main() {
             ? null
             : 'Sync is not available in the loaded database library',
   );
-}
-
-void _cleanDir(String path) {
-  Store.removeDbFiles(path);
-  final dir = Directory(path);
-  if (dir.existsSync()) dir.deleteSync(recursive: true);
 }
