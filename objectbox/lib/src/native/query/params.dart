@@ -368,13 +368,9 @@ class QueryParamFlexVector extends QueryParam {
   QueryParamFlexVector._(super.query, super.entityId, super.model, super.alias)
     : super._();
 
-  /// Sets the value of a condition created with a string value, like
-  /// `containsElementString`.
-  set valueString(String value) => _setString(value);
-
-  /// Sets the value of a condition created with an integer value, like
-  /// `containsElementInt`.
-  set valueInt(int value) => _setString('$value');
+  /// Sets the value of a condition with a single value, like
+  /// `containsElement`.
+  set value(String value) => _setString(value);
 }
 
 /// Query parameter for [QueryFlexValueProperty] conditions.
@@ -382,13 +378,8 @@ class QueryParamFlexValue extends QueryParam {
   QueryParamFlexValue._(super.query, super.entityId, super.model, super.alias)
     : super._();
 
-  /// Sets the value of a condition created with a string value, like
-  /// `equalsString`.
-  set valueString(String value) => _setString(value);
-
-  /// Sets the value of a condition created with an integer value, like
-  /// `equalsInt`.
-  set valueInt(int value) => _setString('$value');
+  /// Sets the value of a condition with a single value, like `equals`.
+  set value(String value) => _setString(value);
 }
 
 /// Query parameter for [QueryFlexMapProperty] conditions.

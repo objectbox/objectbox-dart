@@ -761,18 +761,16 @@ void main() {
       box.putMany(entities);
 
       final query =
-          box
-              .query(FlexListEntity_.flexDynamic.containsElementString(''))
-              .build();
-      query.param(FlexListEntity_.flexDynamic).valueString = 'first';
+          box.query(FlexListEntity_.flexDynamic.containsElement('')).build();
+      query.param(FlexListEntity_.flexDynamic).value = 'first';
       final results = query.findIds();
       expect(results, [entities[0].id]);
 
-      query.param(FlexListEntity_.flexDynamic).valueString = 'fifth';
+      query.param(FlexListEntity_.flexDynamic).value = 'fifth';
       final results2 = query.findIds();
       expect(results2, isEmpty);
 
-      query.param(FlexListEntity_.flexDynamic).valueInt = 2;
+      query.param(FlexListEntity_.flexDynamic).value = '2';
       final results3 = query.findIds();
       expect(results3, [entities[2].id]);
 
@@ -811,27 +809,27 @@ void main() {
       final obj4 = objects[3].id;
 
       assertQueryCondition(
-        FlexListEntity_.flexDynamic.containsElementString('Banana'),
+        FlexListEntity_.flexDynamic.containsElement('Banana'),
         box,
         [obj2, obj4],
       );
       assertQueryCondition(
-        FlexListEntity_.flexObject.containsElementString('banana'),
+        FlexListEntity_.flexObject.containsElement('banana'),
         box,
         [obj1],
       );
       assertQueryCondition(
-        FlexListEntity_.flexObjectNonNull.containsElementString('grape'),
+        FlexListEntity_.flexObjectNonNull.containsElement('grape'),
         box,
         [obj3],
       );
       assertQueryCondition(
-        FlexListEntity_.flexObject.containsElementInt(42),
+        FlexListEntity_.flexObject.containsElement('42'),
         box,
         [obj1, obj3],
       );
       assertQueryCondition(
-        FlexListEntity_.flexObject.containsElementInt(-1000),
+        FlexListEntity_.flexObject.containsElement('-1000'),
         box,
         [obj4],
       );
@@ -938,13 +936,11 @@ void main() {
       final id1 = entity1.id;
       final id2 = entity2.id;
 
-      assertQueryCondition(
-        FlexValueEntity_.flexDynamic.equalsString('test'),
-        box,
-        [id1],
-      );
+      assertQueryCondition(FlexValueEntity_.flexDynamic.equals('test'), box, [
+        id1,
+      ]);
 
-      assertQueryCondition(FlexValueEntity_.flexObject.equalsInt(456), box, [
+      assertQueryCondition(FlexValueEntity_.flexObject.equals('456'), box, [
         id2,
       ]);
     });
@@ -954,13 +950,12 @@ void main() {
       final entity2 = FlexValueEntity(flexDynamic: 2);
       box.putMany([entity1, entity2]);
 
-      final query =
-          box.query(FlexValueEntity_.flexDynamic.equalsString('')).build();
-      query.param(FlexValueEntity_.flexDynamic).valueString = 'first';
+      final query = box.query(FlexValueEntity_.flexDynamic.equals('')).build();
+      query.param(FlexValueEntity_.flexDynamic).value = 'first';
       final results = query.findIds();
       expect(results, [entity1.id]);
 
-      query.param(FlexValueEntity_.flexDynamic).valueInt = 2;
+      query.param(FlexValueEntity_.flexDynamic).value = '2';
       final results2 = query.findIds();
       expect(results2, [entity2.id]);
 

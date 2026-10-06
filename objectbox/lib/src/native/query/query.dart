@@ -379,7 +379,7 @@ class QueryFlexVectorProperty<EntityT>
       );
 
   /// Matches if the vector contains the given value.
-  Condition<EntityT> containsElementString(
+  Condition<EntityT> containsElement(
     String value, {
     bool? caseSensitive,
     String? alias,
@@ -391,16 +391,6 @@ class QueryFlexVectorProperty<EntityT>
     alias,
     caseSensitive: caseSensitive,
   );
-
-  /// Matches if the vector contains the given value.
-  Condition<EntityT> containsElementInt(int value, {String? alias}) =>
-      _StringCondition<EntityT>(
-        _ConditionOp.containsElement,
-        this,
-        '$value',
-        null,
-        alias,
-      );
 }
 
 class QueryFlexValueProperty<EntityT>
@@ -412,7 +402,7 @@ class QueryFlexValueProperty<EntityT>
       );
 
   /// Matches if the property equals the given value.
-  Condition<EntityT> equalsString(
+  Condition<EntityT> equals(
     String value, {
     bool? caseSensitive,
     String? alias,
@@ -424,10 +414,6 @@ class QueryFlexValueProperty<EntityT>
     alias,
     caseSensitive: caseSensitive,
   );
-
-  /// Matches if the property equals the given value.
-  Condition<EntityT> equalsInt(int value, {String? alias}) =>
-      _StringCondition<EntityT>(_ConditionOp.eq, this, '$value', null, alias);
 }
 
 class QueryFlexMapProperty<EntityT>
