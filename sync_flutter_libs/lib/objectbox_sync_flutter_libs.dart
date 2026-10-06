@@ -146,6 +146,8 @@ Future<MeshConfig> createMeshConfig(
       }
     });
 
+    // The Android plugin doesn't actually require the mesh ID, but pass it to
+    // share the same method signature with the iOS and macOS plugin.
     final handle = await _createMeshNetwork(
       meshId,
       requestPermissions: requestPermissions,

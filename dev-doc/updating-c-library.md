@@ -45,21 +45,25 @@ The relations example and integration test app includes a variant with Admin:
 
 - `objectbox-android-db-admin` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-android-db-admin/versions))
 
+The Flutter Sync plugin also uses the Android mesh sync artifact:
+
+- `objectbox-meshsync-android` ([releases](https://central.sonatype.com/artifact/io.objectbox/objectbox-meshsync-android/versions))`
+
 To change to a different version:
 
 ```bash
-./tool/set-android-version.sh 5.4.2
+./tool/set-android-version.sh 6.0.0-beta2
 ```
 
 ```text
-* Update ObjectBox database for Flutter Android apps to `5.3.2-2026-05-05`.  
-  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to update to `io.objectbox:objectbox-android-db-admin:5.4.2` in `android/app/build.gradle.kts` or `android/app/build.gradle`.
+* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-10-05`.  
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to update to `io.objectbox:objectbox-android-db-admin:6.0.0-beta2` in `android/app/build.gradle.kts` or `android/app/build.gradle`.
 ```
 
 ```text
-Update Android library [5.4.1 -> 5.4.2]
+Update Android library [6.0.0-beta -> 6.0.0-beta2]
 
-Includes C API 5.3.2 and database 5.3.2-2026-05-05
+Includes C API 6.0.0 and database 6.0.0-beta-2026-10-05
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up

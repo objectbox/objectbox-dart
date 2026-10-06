@@ -8,7 +8,8 @@
   * Requires at least macOS 12.
 * The `objectbox` package requires at least Dart SDK 3.7.
 * Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta-2026-09-11](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta2).
-* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
+* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-10-05`.  
+  If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to update to `io.objectbox:objectbox-android-db-admin:6.0.0-beta2` in `android/app/build.gradle.kts` or `android/app/build.gradle`.
 * Flutter plugins: depend on new database-only Android artifacts (`objectbox-android-db`, `objectbox-sync-android-db`).
   * **Note: If your Flutter Android app is using Admin for debugging**, you may have to update your build script to exclude the new artifact name:
 

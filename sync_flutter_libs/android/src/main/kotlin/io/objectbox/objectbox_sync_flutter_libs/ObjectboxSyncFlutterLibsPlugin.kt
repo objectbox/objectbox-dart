@@ -21,16 +21,11 @@ import io.flutter.plugin.common.PluginRegistry
  * -  `createMeshNetwork`: creates a [NearbyMeshNetwork] instance for Mesh Sync and returns its
  *    [NearbyMeshNetwork.getNativeHandle].
  *
- *    Requires a `serviceId` (`String`) argument for the mesh network.
- *
  *    Optionally, a `requestPermissions` (`Boolean`, defaults to `true`) argument to prevent
  *    requesting any missing permissions using the [MeshSyncPermissions] helper.
  *
  *    If permissions were requested and any were granted invokes the `onMeshSyncPermissionsGranted`
  *    platform method.
- *
- *    If the service ID is null or empty, returns an error result with code
- *    `OBX_MESH_INVALID_SERVICE_ID`.
  *
  *    If creating the mesh instance throws, returns an error result with code
  *    `OBX_MESH_CREATE_FAILED`.
@@ -55,12 +50,6 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
   override fun onMethodCall(call: MethodCall, result: Result) {
     when (call.method) {
       "createMeshNetwork" -> {
-        val serviceId = call.argument<String>("serviceId")
-        if (serviceId.isNullOrEmpty()) {
-          result.error("OBX_MESH_INVALID_SERVICE_ID", "serviceId must not be empty", null)
-          return
-        }
-
         val requestPermissions = call.argument<Boolean>("requestPermissions") ?: true
         if (requestPermissions) {
           val permissions = meshSyncPermissions
@@ -75,7 +64,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
         // Create and return the network without waiting for a permissions grant; once permissions
         // are granted, the Dart side is notified (see onRequestPermissionsResult) so it can retry
         // the mesh networks.
-        createMeshNetwork(serviceId, result)
+        createMeshNetwork(result)
       }
       else -> {
         result.notImplemented()
@@ -119,7 +108,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
     return true
   }
 
-  private fun createMeshNetwork(serviceId: String, result: Result) {
+  private fun createMeshNetwork(result: Result) {
     try {
       loadObjectBoxLibrary()
     } catch (e: Throwable) {
@@ -127,7 +116,7 @@ class ObjectboxSyncFlutterLibsPlugin: FlutterPlugin, MethodCallHandler, Activity
       // Ignore
     }
     try {
-      val network = NearbyMeshNetwork(applicationContext, serviceId)
+      val network = NearbyMeshNetwork(applicationContext)
       // Note: there is no need to keep a reference to the Java network instance,
       // the Java object is referenced by the native object represented by the handle.
       result.success(network.nativeHandle)
