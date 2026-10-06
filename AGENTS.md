@@ -22,6 +22,9 @@ This is a **multi-package monorepo**:
 - **`objectbox_test/`** – Internal test package (not published)
   - Comprehensive tests for Box, Query, relations, Sync, observers, isolates
 
+- **`objectbox_test_app/`** – Internal Flutter test app (not published)
+  - Runs Flutter integration tests on some platforms
+
 - **`flutter_libs/`** – Flutter plugin bundling native libraries for all platforms
 
 - **`sync_flutter_libs/`** – Flutter plugin with ObjectBox Sync support

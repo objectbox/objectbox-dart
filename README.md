@@ -142,6 +142,7 @@ This repository holds all ObjectBox Dart/Flutter packages as separate directorie
 
 - [objectbox](objectbox) - ObjectBox Dart APIs
 - [objectbox_test](objectbox_test) - unit tests of the ObjectBox Dart APIs
+- [objectbox_test_app](objectbox_test_app) - Flutter integration tests of the ObjectBox Dart APIs
 - [objectbox_generator](generator) - code generator
 - [objectbox_flutter_libs](flutter_libs) - provides the native database libraries for Flutter apps
 - [objectbox_sync_flutter_libs](sync_flutter_libs) - provides the native database libraries with [**ObjectBox Sync**](https://objectbox.io/sync/) enabled
