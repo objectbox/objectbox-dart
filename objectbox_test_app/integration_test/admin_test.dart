@@ -5,36 +5,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:objectbox_test_app/entity.dart';
 import 'package:objectbox_test_app/objectbox.g.dart';
-import 'package:path_provider/path_provider.dart';
 
-/// Sandboxed macOS apps need an app group for ObjectBox (see the Store docs);
-/// matches the entitlements of the macOS Runner.
-final String? _macosApplicationGroup =
-    Platform.isMacOS ? 'objectbox.test' : null;
+import 'test_env.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  late Store store;
-  late String dbDir;
+  late TestEnv env;
 
   setUp(() async {
-    // Not the documents directory: on macOS that is the user's Documents folder,
-    // which needs user consent (TCC) that a test run cannot give.
-    final appDir = await getApplicationSupportDirectory();
-    dbDir = '${appDir.path}/testdata-admin';
-    _cleanDir(dbDir);
-    store = Store(
-      getObjectBoxModel(),
-      directory: dbDir,
-      macosApplicationGroup: _macosApplicationGroup,
-    );
+    env = await TestEnv.create('testdata-admin');
   });
 
-  tearDown(() {
-    store.close();
-    _cleanDir(dbDir);
-  });
+  tearDown(() => env.close());
 
   // These tests require that the Android database library dependency added by
   // the ObjectBox Flutter package is excluded and instead one with the Admin
@@ -47,9 +30,9 @@ void main() {
     'Tests if Admin is available',
     () {
       test('Admin instance works', () async {
-        store.box<TestEntity>().put(TestEntity(tString: 'Hello'));
+        env.store.box<TestEntity>().put(TestEntity(tString: 'Hello'));
 
-        final admin = Admin(store);
+        final admin = Admin(env.store);
 
         // Check that it serves requests and has correct permissions configured.
         final response = await HttpClient()
@@ -74,7 +57,7 @@ void main() {
         final socket = await ServerSocket.bind('127.0.0.1', 0);
         addTearDown(socket.close);
         expect(
-          () => Admin(store, bindUri: 'http://127.0.0.1:${socket.port}'),
+          () => Admin(env.store, bindUri: 'http://127.0.0.1:${socket.port}'),
           throwsA(
             isA<ObjectBoxException>().having(
               (e) => e.message,
@@ -90,10 +73,4 @@ void main() {
             ? null
             : 'Admin is not available in the loaded library',
   );
-}
-
-void _cleanDir(String path) {
-  Store.removeDbFiles(path);
-  final dir = Directory(path);
-  if (dir.existsSync()) dir.deleteSync(recursive: true);
 }
