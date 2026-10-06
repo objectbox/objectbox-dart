@@ -3,15 +3,11 @@
 **To upgrade to this major release** run `flutter pub upgrade objectbox --major-versions` (or for Dart Native apps `dart pub upgrade objectbox --major-versions`).
 
 * The Flutter packages (`objectbox_flutter_libs` and `objectbox_sync_flutter_libs`) require at least Dart SDK 3.12 or Flutter SDK 3.44.
-  * Android apps: min SDK increased to 24 (Android 7.0).
+  * Requires at least Android 7.0 (API 24).
+  * Remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So **after updating make sure to run the code generator again** using `dart run build_runner build`.
 * The `objectbox` package requires at least Dart SDK 3.7.
-* `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
-* `Store.fromReference` is deprecated, please migrate to `Store.attach`.
-* `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.
-* Flutter plugins: remove `loadObjectBoxLibraryAndroidCompat` for Android 6. This method is used in `objectbox.g.dart`. So after updating make sure to run the code generator again using `dart run build_runner build`.
-* Allow analyzer versions up to 14.
-* Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
-* Flutter plugins: resolve FetchContent deprecation warnings. [#701](https://github.com/objectbox/objectbox-dart/issues/701)
+* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
+* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
 * Flutter plugins: depend on new database-only Android artifacts (`objectbox-android-db`, `objectbox-sync-android-db`).
   * **Note: If your Flutter Android app is using Admin for debugging**, you may have to update your build script to exclude the new artifact name:
 
@@ -27,12 +23,15 @@
         }
     }
     ```
-
-* Update ObjectBox database for Flutter Linux/Windows, Dart Native apps to [6.0.0-beta](https://github.com/objectbox/objectbox-c/releases/tag/v6.0.0-beta)
-* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-07-13`.
-* Reject strings that contain the null character (`U+0000`) in various places that interact with the native C API. Otherwise, such strings would be silently truncated. For example, a query condition like `equals('ab\u0000c')` would return results as if it was `equals('ab')`. This now throws an `ArgumentError` instead. Storing and retrieving strings with null characters remains supported.
+* Flutter plugins: support Swift Package Manager [#707](https://github.com/objectbox/objectbox-dart/issues/707) and built-in Kotlin [#812](https://github.com/objectbox/objectbox-dart/issues/812).
+* Flutter plugins: resolve FetchContent deprecation warnings. [#701](https://github.com/objectbox/objectbox-dart/issues/701)
+* Generator: allow analyzer versions up to 14.
 * Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
 * Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
+* `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
+* `Store.fromReference` is deprecated, please migrate to `Store.attach`.
+* `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.
+* Reject strings that contain the null character (`U+0000`) in various places that interact with the native C API. Otherwise, such strings would be silently truncated. For example, a query condition like `equals('ab\u0000c')` would return results as if it was `equals('ab')`. This now throws an `ArgumentError` instead. Storing and retrieving strings with null characters remains supported.
 * When using `Box.put` (or `putMany`) with `PutMode.update` and an object has new relation targets, they no longer fail but instead put the new target objects, as documented. Also, when using `PutMode.insert` and an object has a `ToMany` that is a "backlink" from a `ToOne`, instead of failing the `ToOne` of the target is updated, as documented. In short, the put mode now only applies to the objects and not any relation targets.
 * `ToMany.applyToDb` now throws `ArgumentError` if the given store is not the store the relation is attached to (this would use object IDs from the wrong database). Also do not leak an internal store reference if lazily loading the target objects fails.
 * Query subscriptions using `QueryBuilder.watch` properly resume, deliver events that arrived while paused. Also, if resumed, the subscription is no longer leaked, which kept the native observer alive even after cancelling the subscription.
@@ -56,7 +55,7 @@
 
 ### Sync
 
-* Add support for Mesh Sync (peer-to-peer synchronization without a central server, preview):
+* Add support for **Mesh Sync** (peer-to-peer synchronization without a central server, preview):
   pass a `MeshConfig` to the `SyncClient` constructor and query the running mesh via `SyncClient.mesh`
   (a new `MeshSync` exposing state and statistics).
   This is currently only supported on Android via `createMeshConfig()` from `objectbox_sync_flutter_libs`,
@@ -64,8 +63,8 @@
   waiting for the user's decision; pass `onPermissionsGranted` to get notified once permissions are granted
   and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios.
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
-* Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 * Add `SyncClient.setMaxMessagesInFlight()` to configure how many outgoing transaction messages can be sent without an ACK from the server.
+* Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 
 ## 5.3.2 (2026-05-20)
 
