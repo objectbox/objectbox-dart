@@ -11,7 +11,7 @@ environment:
 dependencies:
   objectbox: 6.0.0-beta
   # https://pub.dev/packages/analyzer/changelog
-  # analyzer 14.5.0 removes API used by build_runner, so don't allow it
+  # analyzer 14.5.0 removes API used by build_runner, so don't allow it https://github.com/dart-lang/build/issues/5197
   analyzer: '>=8.1.1 <14.5.0'
   # https://pub.dev/packages/build/changelog
   build: ^4.0.6
