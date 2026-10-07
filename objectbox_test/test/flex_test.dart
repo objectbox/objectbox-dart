@@ -326,7 +326,56 @@ void main() {
           .param(FlexMapEntity_.flexObject, alias: 'kv')
           .twoValuesString('no-such-key', 'Apple');
       expect(aliasQuery.findIds(), isEmpty);
+      // Change the condition to compare against int and double values
+      aliasQuery
+          .param(FlexMapEntity_.flexObject, alias: 'kv')
+          .twoValuesInt('key-long', 3);
+      expect(aliasQuery.findIds(), [largeCherry]);
+      aliasQuery
+          .param(FlexMapEntity_.flexObject, alias: 'kv')
+          .twoValuesDouble('key-double', 1234.56);
+      expect(aliasQuery.findIds(), [largeApple]);
       aliasQuery.close();
+
+      // Set key and int value with a query parameter
+      final intQuery =
+          box.query(FlexMapEntity_.flexObject.equalsKeyValueInt('', 0)).build();
+      intQuery
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesInt('key-long', 234234234);
+      expect(intQuery.findIds(), [largeApple]);
+      intQuery.param(FlexMapEntity_.flexObject).twoValuesInt('key-long', 3);
+      expect(intQuery.findIds(), [largeCherry]);
+      intQuery.param(FlexMapEntity_.flexObject).twoValuesInt('no-such-key', 3);
+      expect(intQuery.findIds(), isEmpty);
+      // Change the condition to compare against a string value
+      intQuery
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesString('key-string', 'Apple');
+      expect(intQuery.findIds(), [largeApple]);
+      intQuery.close();
+
+      // Set key and double value with a query parameter
+      final doubleQuery =
+          box
+              .query(FlexMapEntity_.flexObject.equalsKeyValueDouble('', 0.0))
+              .build();
+      doubleQuery
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesDouble('key-double', 1234.56);
+      expect(doubleQuery.findIds(), [largeApple]);
+      doubleQuery
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesDouble('key-double', -1234.56);
+      expect(doubleQuery.findIds(), [largeCherry]);
+      doubleQuery
+          .param(FlexMapEntity_.flexObject)
+          .twoValuesDouble('no-such-key', 1234.56);
+      expect(doubleQuery.findIds(), isEmpty);
+      // Change the condition to compare against an int value
+      doubleQuery.param(FlexMapEntity_.flexObject).twoValuesInt('key-long', 3);
+      expect(doubleQuery.findIds(), [largeCherry]);
+      doubleQuery.close();
     });
 
     test('greaterKeyValue_stringObjectMap', () {

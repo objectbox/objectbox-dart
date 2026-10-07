@@ -106,6 +106,14 @@ abstract class QueryParam {
     (q, alias) => C.query_param_alias_2ints(q, alias, a, b),
   );
 
+  void _setKeyValueInt(String key, int value) => withNativeString(
+    key,
+    (cKey) => _set(
+      (q, e, p) => C.query_param_key_value_int(q, e, p, cKey, value),
+      (q, a) => C.query_param_alias_key_value_int(q, a, cKey, value),
+    ),
+  );
+
   void _setDouble(double value) => _set(
     (q, e, p) => C.query_param_double(q, e, p, value),
     (q, a) => C.query_param_alias_double(q, a, value),
@@ -114,6 +122,14 @@ abstract class QueryParam {
   void _set2Doubles(double a, double b) => _set(
     (q, e, p) => C.query_param_2doubles(q, e, p, a, b),
     (q, alias) => C.query_param_alias_2doubles(q, alias, a, b),
+  );
+
+  void _setKeyValueDouble(String key, double value) => withNativeString(
+    key,
+    (cKey) => _set(
+      (q, e, p) => C.query_param_key_value_double(q, e, p, cKey, value),
+      (q, a) => C.query_param_alias_key_value_double(q, a, cKey, value),
+    ),
   );
 
   void _setFloats(List<double> values) => withNativeFloats(
@@ -377,7 +393,26 @@ class QueryParamFlexMap extends QueryParam {
   /// Sets the key of a condition created with a key, like `containsElement`.
   set valueString(String value) => _setString(value);
 
-  /// Sets the key and value of a condition created with a string key and
-  /// string value, like `equalsKeyValueString` or `greaterKeyValueString`.
+  /// Sets the key and value of a key/value condition, like
+  /// `equalsKeyValueString` or `greaterKeyValueString`.
+  ///
+  /// If the condition was created with an int or double value, it is changed
+  /// to compare against a string value. Case sensitivity is kept as given when
+  /// creating the condition (int and double conditions are case-sensitive).
   void twoValuesString(String key, String value) => _set2Strings(key, value);
+
+  /// Sets the key and value of a key/value condition, like `equalsKeyValueInt`
+  /// or `greaterKeyValueInt`.
+  ///
+  /// If the condition was created with a string or double value, it is changed
+  /// to compare against an int value.
+  void twoValuesInt(String key, int value) => _setKeyValueInt(key, value);
+
+  /// Sets the key and value of a key/value condition, like
+  /// `equalsKeyValueDouble` or `greaterKeyValueDouble`.
+  ///
+  /// If the condition was created with a string or int value, it is changed to
+  /// compare against a double value.
+  void twoValuesDouble(String key, double value) =>
+      _setKeyValueDouble(key, value);
 }
