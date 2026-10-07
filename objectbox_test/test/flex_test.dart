@@ -265,6 +265,7 @@ void main() {
     test('equalsKeyValue', () {
       final objects = createObjectsWithStringObjectMap();
       box.putMany(objects);
+      final largeCherry = objects[1].id;
       final largeApple = objects[2].id;
 
       assertQueryCondition(
@@ -295,14 +296,14 @@ void main() {
       query
           .param(FlexMapEntity_.flexObject)
           .twoValuesString('key-string', 'Cherry');
-      expect(query.findIds(), [objects[1].id]);
+      expect(query.findIds(), [largeCherry]);
       query
           .param(FlexMapEntity_.flexObject)
           .twoValuesString('no-such-key', 'Apple');
       expect(query.findIds(), isEmpty);
       query.close();
 
-      // With an alias, setting two strings is not supported
+      // Set key and value with a query parameter using an alias
       final aliasQuery =
           box
               .query(
@@ -313,12 +314,18 @@ void main() {
                 ),
               )
               .build();
-      expect(
-        () => aliasQuery
-            .param(FlexMapEntity_.flexObject, alias: 'kv')
-            .twoValuesString('key-string', 'Apple'),
-        throwsUnsupportedError,
-      );
+      aliasQuery
+          .param(FlexMapEntity_.flexObject, alias: 'kv')
+          .twoValuesString('key-string', 'Apple');
+      expect(aliasQuery.findIds(), [largeApple]);
+      aliasQuery
+          .param(FlexMapEntity_.flexObject, alias: 'kv')
+          .twoValuesString('key-string', 'Cherry');
+      expect(aliasQuery.findIds(), [largeCherry]);
+      aliasQuery
+          .param(FlexMapEntity_.flexObject, alias: 'kv')
+          .twoValuesString('no-such-key', 'Apple');
+      expect(aliasQuery.findIds(), isEmpty);
       aliasQuery.close();
     });
 

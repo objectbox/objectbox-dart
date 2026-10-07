@@ -45,29 +45,16 @@ abstract class QueryParam {
     ),
   );
 
-  void _set2Strings(String a, String b) {
-    // The C API has no alias variant of obx_query_param_2strings.
-    if (_alias != null) {
-      throw UnsupportedError(
-        'Setting two string values is not supported when using an alias',
-      );
-    }
-    withNativeString(
-      a,
-      (cA) => withNativeString(
-        b,
-        (cB) => checkObx(
-          C.query_param_2strings(
-            _query._cQueryChecked,
-            _entityId,
-            _model.id.id,
-            cA,
-            cB,
-          ),
-        ),
+  void _set2Strings(String a, String b) => withNativeString(
+    a,
+    (cA) => withNativeString(
+      b,
+      (cB) => _set(
+        (q, e, p) => C.query_param_2strings(q, e, p, cA, cB),
+        (q, a) => C.query_param_alias_2strings(q, a, cA, cB),
       ),
-    );
-  }
+    ),
+  );
 
   void _setBytes(List<int> value) => withNativeBytes(
     Uint8List.fromList(value),
@@ -392,7 +379,5 @@ class QueryParamFlexMap extends QueryParam {
 
   /// Sets the key and value of a condition created with a string key and
   /// string value, like `equalsKeyValueString` or `greaterKeyValueString`.
-  ///
-  /// Not supported if the condition uses an alias.
   void twoValuesString(String key, String value) => _set2Strings(key, value);
 }
