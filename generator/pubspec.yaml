@@ -11,7 +11,8 @@ environment:
 dependencies:
   objectbox: 6.0.0-beta
   # https://pub.dev/packages/analyzer/changelog
-  analyzer: '>=8.1.1 <15.0.0'
+  # analyzer 14.5.0 removes API used by build_runner, so don't allow it
+  analyzer: '>=8.1.1 <14.5.0'
   # https://pub.dev/packages/build/changelog
   build: ^4.0.6
   # https://pub.dev/packages/collection/changelog
