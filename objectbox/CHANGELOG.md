@@ -41,6 +41,7 @@
   * It no longer crashes if the stream is closed before all data was processed.
   * It releases its query and store reference if setup fails, no longer preventing the store from closing.
 * Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
+* Query conditions `oneOf` and `notOneOf` on a `ToOne` relation property (such as `YourEntity_.relation.oneOf([1, 2])`) no longer throw `UnsupportedError: Unsupported type for IN: 11` when building the query. Setting a list parameter for such a condition also works now.
 * `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
 * Close transactions that are still open when their isolate shuts down, such as when `Isolate.kill()` is called while inside a write transaction. Before, closing the store waited forever for such a transaction. [#834](https://github.com/objectbox/objectbox-dart/issues/834)

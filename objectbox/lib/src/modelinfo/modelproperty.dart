@@ -79,13 +79,15 @@ class ModelProperty {
   /// See [is64BitInt].
   bool is32BitInt() => type == OBXPropertyType.Int;
 
-  /// If the [type] is a 64-bit wide integer.
+  /// If the [type] is a 64-bit wide integer (this includes `ToOne` relation
+  /// properties, which store the 64-bit target ID).
   ///
   /// See [is32BitInt].
   bool is64BitInt() =>
       type == OBXPropertyType.Long ||
       type == OBXPropertyType.Date ||
-      type == OBXPropertyType.DateNano;
+      type == OBXPropertyType.DateNano ||
+      type == OBXPropertyType.Relation;
 
   int get flags => _flags;
 

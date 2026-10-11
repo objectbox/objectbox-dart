@@ -140,6 +140,31 @@ void main() {
       query.close();
     });
 
+    test('ID oneOf and notOneOf query and params', () {
+      final entities = [
+        for (var i = 1; i <= 3; i++)
+          TestEntity(tString: 's$i')..relA.target = RelatedEntityA(tInt: i),
+        TestEntity(tString: 'none'),
+      ];
+      env.box.putMany(entities);
+      expect(entities.map((e) => e.relA.targetId), [1, 2, 3, 0]);
+
+      List<String?> findStrings(Query<TestEntity> query) =>
+          query.find().map((e) => e.tString).toList();
+
+      final oneOf = env.box.query(TestEntity_.relA.oneOf([1, 3])).build();
+      expect(findStrings(oneOf), ['s1', 's3']);
+      oneOf.param(TestEntity_.relA).values = [2, 3];
+      expect(findStrings(oneOf), ['s2', 's3']);
+      oneOf.close();
+
+      final notOneOf = env.box.query(TestEntity_.relA.notOneOf([1, 3])).build();
+      expect(findStrings(notOneOf), ['s2', 'none']);
+      notOneOf.param(TestEntity_.relA).values = [0, 2];
+      expect(findStrings(notOneOf), ['s1', 's3']);
+      notOneOf.close();
+    });
+
     test('query link', () {
       final src1 = TestEntity(tString: 'foo');
       src1.relA.target = RelatedEntityA(tInt: 5);
