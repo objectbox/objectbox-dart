@@ -184,6 +184,7 @@ class MeshConfig {
   final int? txLogMaxAgeSeconds;
 
   final List<int> _networkInternalHandles = [];
+  final List<int> _networkHandles = [];
 
   MeshConfig._(
     this.meshId, {
@@ -340,6 +341,14 @@ extension MeshConfigInternal on MeshConfig {
           C.mesh_opt_network_internal(opt, Pointer<Void>.fromAddress(handle)),
         );
       }
+      for (final handle in _networkHandles) {
+        checkObx(
+          C.mesh_opt_network(
+            opt,
+            Pointer<OBX_mesh_network>.fromAddress(handle),
+          ),
+        );
+      }
     } catch (e) {
       // Free the options if any option method call failed (like due to invalid
       // arguments).
@@ -350,8 +359,23 @@ extension MeshConfigInternal on MeshConfig {
   }
 
   /// Adds a platform-specific native network to a mesh config.
+  ///
+  /// [networkInternalHandle] is the address of an internal network pointer as
+  /// expected by `obx_mesh_opt_network_internal()`, e.g. as returned by the
+  /// Android Nearby transport of `objectbox-meshsync-android`.
   void addNetworkInternalHandle(int networkInternalHandle) {
     _networkInternalHandles.add(networkInternalHandle);
+  }
+
+  /// Adds a callback-driven mesh network created with the C mesh network API
+  /// (an `OBX_mesh_network`, e.g. by the `MeshNetwork` class of ObjectBox
+  /// Swift) to a mesh config.
+  ///
+  /// [networkHandle] is the address of the `OBX_mesh_network` handle. The mesh
+  /// options only add their own reference to the network when built; whoever
+  /// created the handle keeps owning (and eventually freeing) it.
+  void addNetworkHandle(int networkHandle) {
+    _networkHandles.add(networkHandle);
   }
 }
 

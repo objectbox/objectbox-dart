@@ -17,6 +17,9 @@ versionExpr="s/-android-db:[^\"]*/-android-db:${version}/g"
 update flutter_libs/android/build.gradle.kts "${versionExpr}"
 update sync_flutter_libs/android/build.gradle.kts "${versionExpr}"
 
+versionExpr="s/-meshsync-android:[^\"]*/-meshsync-android:${version}/g"
+update sync_flutter_libs/android/build.gradle.kts "${versionExpr}"
+
 versionExpr="s/-android-db-admin:[^\"]*/-android-db-admin:${version}/g"
 update objectbox/example/flutter/objectbox_demo_relations/android/app/build.gradle.kts "${versionExpr}"
 update objectbox_test_app/android/app/build.gradle.kts "${versionExpr}"
