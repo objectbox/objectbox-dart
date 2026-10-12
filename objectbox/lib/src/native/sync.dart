@@ -1122,7 +1122,7 @@ class Sync {
   ///
   /// Note that sync clock values are assigned by ObjectBox and are not to be
   /// interpreted on their own. Use this function to extract a meaningful
-  /// timestamp from a sync clock value (e.g. stored in a [@SyncClock] field).
+  /// timestamp from a sync clock value (e.g. stored in a [SyncClock] field).
   static int syncClockTimestamp(int syncClockValue) =>
       C.sync_clock_timestamp(syncClockValue);
 
