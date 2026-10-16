@@ -704,7 +704,8 @@ class SyncClient implements Finalizable {
 
   /// Stops this sync client and closes the connection to the server.
   ///
-  /// Does nothing if already stopped. Can be [start]ed again.
+  /// Does nothing if already stopped. A stopped client can not be [start]ed
+  /// again (throws); to sync again, [close] it and create a new client.
   /// Use [close] to fully release resources when done with the client.
   void stop() {
     checkObx(C.sync_stop(_cSyncChecked));
@@ -881,7 +882,6 @@ class SyncClient implements Finalizable {
   /// Cancel the subscription when no longer needed to free resources.
   Stream<List<SyncChange>> get changeEvents {
     if (_changeEvents == null) {
-      // This stream combines events from two C listeners: connect & disconnect.
       _changeEvents = _SyncListenerGroup<List<SyncChange>>('sync-change');
 
       final entityTypesById = InternalStoreAccess.entityTypeById(_store);

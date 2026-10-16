@@ -221,6 +221,8 @@ void main() {
         expect(client.state(), equals(SyncState.started));
         client.stop();
         expect(client.state(), equals(SyncState.stopped));
+        // A stopped client can not be started again
+        expect(() => client.start(), throwsA(isA<StateError>()));
       });
 
       final isErrorClientClosed = isA<StateError>().having(
