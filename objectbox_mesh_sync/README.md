@@ -11,11 +11,12 @@ information how to use it.
 
 ## Getting started
 
-Add this package to an app set up for
-[ObjectBox Sync](https://pub.dev/packages/objectbox_sync_flutter_libs):
+Add this package instead of
+[objectbox_sync_flutter_libs](https://pub.dev/packages/objectbox_sync_flutter_libs) (it depends on
+it, so includes the ObjectBox Sync libraries):
 
 ```
-flutter pub add objectbox objectbox_sync_flutter_libs:any objectbox_mesh_sync:any
+flutter pub add objectbox objectbox_mesh_sync:any
 flutter pub add --dev build_runner objectbox_generator:any
 ```
 

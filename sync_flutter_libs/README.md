@@ -13,6 +13,7 @@ information how to use it.
 ## Mesh Sync
 
 To use [Mesh Sync](https://sync.objectbox.io/mesh-sync) (peer-to-peer) in a Flutter Android, iOS
-or macOS app, also add the [objectbox_mesh_sync](https://pub.dev/packages/objectbox_mesh_sync)
-package. It is a separate package as its network transport (based on Google Nearby Connections)
-adds dependencies that apps not using Mesh Sync should not need to include.
+or macOS app, use the [objectbox_mesh_sync](https://pub.dev/packages/objectbox_mesh_sync) package
+instead (it depends on this package). It is a separate package as its network transport (based on
+Google Nearby Connections) adds dependencies that apps not using Mesh Sync should not need to
+include.

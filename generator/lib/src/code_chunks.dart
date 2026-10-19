@@ -935,13 +935,17 @@ class CodeChunks {
 }
 
 extension _Pubspec on Pubspec {
-  static final infixes = ['', '_sync'];
-
-  static String depPackage(String infix) => 'objectbox${infix}_flutter_libs';
+  /// ObjectBox Flutter packages that provide `defaultStoreDirectory()`, in
+  /// order of preference. objectbox_mesh_sync depends on (and re-exports it
+  /// from) objectbox_sync_flutter_libs, so apps may only depend on it.
+  static final obxFlutterPackages = [
+    'objectbox_flutter_libs',
+    'objectbox_sync_flutter_libs',
+    'objectbox_mesh_sync',
+  ];
 
   String get obxFlutterImport {
-    for (var i = 0; i < infixes.length; i++) {
-      final dep = depPackage(infixes[i]);
+    for (final dep in obxFlutterPackages) {
       if (dependencies[dep] != null) {
         return "\nimport 'package:$dep/$dep.dart';";
       }
@@ -950,5 +954,5 @@ extension _Pubspec on Pubspec {
   }
 
   bool get hasObxFlutterDependency =>
-      infixes.any((infix) => dependencies[depPackage(infix)] != null);
+      obxFlutterPackages.any((dep) => dependencies[dep] != null);
 }

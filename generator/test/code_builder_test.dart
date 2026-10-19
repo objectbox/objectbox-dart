@@ -5,8 +5,10 @@ import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
+import 'package:objectbox_generator/src/code_chunks.dart';
 import 'package:objectbox_generator/src/config.dart';
 import 'package:path/path.dart' as path;
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
@@ -1159,6 +1161,62 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('ObjectBox Flutter dependency', () {
+    String generate(List<String> dependencies) {
+      final pubspec = Pubspec(
+        'example',
+        dependencies: {for (final dep in dependencies) dep: HostedDependency()},
+      );
+      return CodeChunks.objectboxDart(ModelInfo.empty(), [], pubspec) +
+          CodeChunks.openStore(ModelInfo.empty(), pubspec);
+    }
+
+    void expectFlutterImport(String code, String package) {
+      expect(code, contains("import 'package:$package/$package.dart';"));
+      expect(code, contains('Future<obx.Store> openStore('));
+      expect(code, contains('(await defaultStoreDirectory()).path'));
+    }
+
+    test('none (Dart Native)', () {
+      final code = generate(['objectbox']);
+      expect(code, isNot(contains('_flutter_libs')));
+      expect(code, isNot(contains('objectbox_mesh_sync')));
+      expect(code, contains('obx.Store openStore('));
+      expect(code, isNot(contains('await defaultStoreDirectory()')));
+    });
+
+    test('objectbox_flutter_libs', () {
+      expectFlutterImport(
+        generate(['objectbox', 'objectbox_flutter_libs']),
+        'objectbox_flutter_libs',
+      );
+    });
+
+    test('objectbox_sync_flutter_libs', () {
+      expectFlutterImport(
+        generate(['objectbox', 'objectbox_sync_flutter_libs']),
+        'objectbox_sync_flutter_libs',
+      );
+    });
+
+    test('only objectbox_mesh_sync', () {
+      expectFlutterImport(
+        generate(['objectbox', 'objectbox_mesh_sync']),
+        'objectbox_mesh_sync',
+      );
+    });
+
+    test('objectbox_mesh_sync and objectbox_sync_flutter_libs', () {
+      final code = generate([
+        'objectbox',
+        'objectbox_mesh_sync',
+        'objectbox_sync_flutter_libs',
+      ]);
+      expectFlutterImport(code, 'objectbox_sync_flutter_libs');
+      expect(code, isNot(contains('objectbox_mesh_sync')));
     });
   });
 }
