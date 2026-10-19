@@ -1,0 +1,1 @@
+See [ObjectBox changelog](https://pub.dev/packages/objectbox/changelog).

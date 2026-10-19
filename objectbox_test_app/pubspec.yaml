@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   objectbox: any
   objectbox_sync_flutter_libs: any
+  objectbox_mesh_sync: any
   async: ^2.8.2
   path_provider: ^2.0.0
 
@@ -30,6 +31,8 @@ dependency_overrides:
     path: ../objectbox
   objectbox_sync_flutter_libs:
     path: ../sync_flutter_libs
+  objectbox_mesh_sync:
+    path: ../objectbox_mesh_sync
   objectbox_generator:
     path: ../generator
 

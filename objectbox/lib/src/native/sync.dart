@@ -313,10 +313,10 @@ class SyncClient {
   /// created and attached to the client; it starts and stops together with the
   /// client. Query the running mesh via [SyncClient.mesh].
   ///
-  /// Import `createMeshConfig` from
-  /// `package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart` and
-  /// use it to create the mesh configuration before creating the sync client.
-  /// This currently works only on Android.
+  /// Add the `objectbox_mesh_sync` package, import `createMeshConfig` from
+  /// `package:objectbox_mesh_sync/objectbox_mesh_sync.dart` and use it to
+  /// create the mesh configuration before creating the sync client.
+  /// This currently works only on Flutter Android, iOS and macOS.
   SyncClient(
     this._store,
     List<String> serverUrls,

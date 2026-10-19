@@ -91,3 +91,8 @@ echo "⚠️ WAIT A MINUTE before publishing the Flutter packages, or resolving 
 
 publish flutter_libs
 publish sync_flutter_libs
+
+echo ""
+echo "⚠️ WAIT A MINUTE before publishing the Mesh Sync package, or resolving the objectbox_sync_flutter_libs package version will fail"
+
+publish objectbox_mesh_sync

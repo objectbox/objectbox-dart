@@ -42,6 +42,7 @@ jobs:
           flutter pub get --directory=objectbox_test_app
           flutter pub get --directory=flutter_libs
           flutter pub get --directory=sync_flutter_libs
+          flutter pub get --directory=objectbox_mesh_sync
         # Since Dart 3.7, dart format needs pub get to run before formatting,
         # so to check formatting of Flutter packages run pub get for them as well.
         # Also run before generating code to exclude generated code.
@@ -65,6 +66,7 @@ jobs:
           dart analyze objectbox_test_app
           dart analyze flutter_libs
           dart analyze sync_flutter_libs
+          dart analyze objectbox_mesh_sync
 
   pana:
     runs-on: ubuntu-24.04

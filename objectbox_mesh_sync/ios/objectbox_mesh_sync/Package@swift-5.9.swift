@@ -1,27 +1,31 @@
 // swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 // Used by Swift tools 5.9 to 6.0 (Xcode 15 to 16.2) instead of Package.swift, which needs tools 6.1 (package traits)
-// for the Mesh Sync add-on. So this build lacks the add-on; keep everything else in sync with Package.swift.
+// for the Mesh Sync add-on. So this build lacks the add-on (the plugin reports the platform method as not
+// implemented), but the app still builds; keep everything else in sync with Package.swift.
 
 import PackageDescription
 
 let package = Package(
-    name: "objectbox_sync_flutter_libs",
+    name: "objectbox_mesh_sync",
     platforms: [
-        // ObjectBox Swift Package requires macOS 12
-        .macOS(.v12)
+        // ObjectBox Swift Package requires iOS 15
+        .iOS(.v15)
     ],
     products: [
-        .library(name: "objectbox-sync-flutter-libs", targets: ["objectbox_sync_flutter_libs"])
+        .library(name: "objectbox-mesh-sync", targets: ["objectbox_mesh_sync"])
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
-        // Use exact instead of from as new versions might contain breaking C API changes
-        .package(url: "https://github.com/objectbox/objectbox-swift-spm.git", exact: "6.0.0-beta.2")
+        // Same requirement as in Package.swift (and in the objectbox_sync_flutter_libs plugin), just without the
+        // trait.
+        .package(
+            url: "https://github.com/objectbox/objectbox-swift-spm.git",
+            revision: "910840f73816ce78cbefef12d7869402675ae1bf")  // 6.0.0-beta.2
     ],
     targets: [
         .target(
-            name: "objectbox_sync_flutter_libs",
+            name: "objectbox_mesh_sync",
             dependencies: [
                 .product(name: "FlutterFramework", package: "FlutterFramework"),
                 .product(name: "ObjectBox-Sync.xcframework", package: "objectbox-swift-spm")

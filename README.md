@@ -146,6 +146,7 @@ This repository holds all ObjectBox Dart/Flutter packages as separate directorie
 - [objectbox_generator](generator) - code generator
 - [objectbox_flutter_libs](flutter_libs) - provides the native database libraries for Flutter apps
 - [objectbox_sync_flutter_libs](sync_flutter_libs) - provides the native database libraries with [**ObjectBox Sync**](https://objectbox.io/sync/) enabled
+- [objectbox_mesh_sync](objectbox_mesh_sync) - adds the network transport for [Mesh Sync](https://sync.objectbox.io/mesh-sync) (peer-to-peer) to Flutter Android, iOS and macOS apps
 - [benchmark](benchmark) - used internally to microbenchmark and compare various implementations during development
 
 There's also a separate repository benchmarking objectbox (and other databases) in Flutter: 
