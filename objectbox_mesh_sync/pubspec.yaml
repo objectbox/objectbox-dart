@@ -3,7 +3,7 @@ description: Fast Flutter database for persisting Dart objects. This package add
 # Link to actual directory in repository so file links on pub.dev work.
 repository: https://github.com/objectbox/objectbox-dart/tree/main/objectbox_mesh_sync
 homepage: https://objectbox.io
-version: 6.0.0-preview.4
+version: 6.0.0-preview.5
 
 environment:
   sdk: ^3.12.0
@@ -14,9 +14,9 @@ dependencies:
     sdk: flutter
   # This is here just to ensure compatibility between objectbox-dart code and the libraries used
   # You should still depend on objectbox directly in your Flutter application.
-  objectbox: 6.0.0-preview.4
+  objectbox: 6.0.0-preview.5
   # Mesh Sync requires the Sync-enabled native libraries.
-  objectbox_sync_flutter_libs: 6.0.0-preview.4
+  objectbox_sync_flutter_libs: 6.0.0-preview.5
 
 dev_dependencies:
   flutter_lints: ^6.0.0
