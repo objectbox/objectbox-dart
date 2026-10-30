@@ -12248,6 +12248,8 @@ class _SymbolAddresses {
   get query_prop_close => _library._query_prop_closePtr;
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_store>)>>
   get store_close => _library._store_closePtr;
+  ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_sync>)>>
+  get sync_close => _library._sync_closePtr;
   ffi.Pointer<ffi.NativeFunction<obx_err Function(ffi.Pointer<OBX_txn>)>>
   get txn_close => _library._txn_closePtr;
 }

@@ -69,6 +69,10 @@
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 * Add `SyncClient.setMaxMessagesInFlight()` to configure how many outgoing transaction messages can be sent without an ACK from the server.
 * Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
+* Close a `SyncClient` that is still running when its isolate shuts down, before closing its store.
+  Before, the client kept using the closed store and the app crashed (SIGABRT, "store instance is dead"),
+  such as when Android destroyed the Flutter engine while the app process stayed alive.
+  [#841](https://github.com/objectbox/objectbox-dart/issues/841)
 
 ## 5.3.2 (2026-05-20)
 
