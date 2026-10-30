@@ -861,6 +861,30 @@ void main() {
             expect(read.clock! & 0xFFFFF, equals(0));
             expect(read.precedence, equals(42));
           });
+
+          // https://github.com/objectbox/objectbox-dart/issues/841
+          test('SyncClient left running when its isolate exits', () async {
+            await server.online();
+            final dbDir = TestEnv.testDbDirPath(
+              'sync-isolate-exit',
+              inMemory: env.isInMemory,
+            );
+            addTearDown(() {
+              final dir = Directory(dbDir);
+              if (dir.existsSync()) dir.deleteSync(recursive: true);
+            });
+            // Runs in a separate process, as it aborts if this fails.
+            final result = await Process.run(Platform.resolvedExecutable, [
+              'test/sync_isolate_exit.dart',
+              serverUrl(),
+              dbDir,
+            ]);
+            expect(
+              result.exitCode,
+              isZero,
+              reason: 'stdout:\n${result.stdout}\nstderr:\n${result.stderr}',
+            );
+          });
         },
         skip:
             SyncServer.isAvailable()
