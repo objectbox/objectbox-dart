@@ -61,7 +61,7 @@ jobs:
       matrix:
         os:
           - windows-2025
-          - macos-15
+          - macos-26
           - ubuntu-24.04
         sdk:
           # Test latest available and lowest supported SDK (see dev-doc/updating-dart-flutter-and-dependencies.md).
@@ -106,7 +106,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-15
+          - macos-26
           - ubuntu-24.04
           - windows-2025
     runs-on: ${{ matrix.os }}
@@ -146,7 +146,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-15
+          - macos-26
           - ubuntu-24.04
         # Test latest available and lowest supported Flutter SDK.
         # Env variables can not be used directly here, so reference them by name
