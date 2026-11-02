@@ -69,7 +69,7 @@ void main() {
     // The transaction was aborted, none of its data was committed.
     final store = Store(getObjectBoxModel(), directory: env.dbDirPath);
     addTearDown(() => store.close());
-    expect(Box<TestEntity>(store).count(), 0);
+    expect(Box<TestEntityNonRel>(store).count(), 0);
   });
 
   /// Work with a single store across multiple isolates using
@@ -168,7 +168,11 @@ Future<void> testUsingStoreFromIsolate(
 /// Puts objects in a write transaction until killed.
 void writeUntilKilled(List<Object> args) {
   final store = Store.attach(getObjectBoxModel(), args[0] as String);
-  final box = Box<TestEntity>(store);
+  // Use an entity without relations: put() then does not create a (nested)
+  // transaction, so only the outer transaction is open when killed. Otherwise,
+  // the kill likely happens while attaching or detaching a nested transaction
+  // to its finalizer, which crashes the VM when running finalizers on shutdown.
+  final box = Box<TestEntityNonRel>(store);
   try {
     store.runInTransaction(TxMode.write, () {
       // Signal transaction has started
@@ -176,7 +180,7 @@ void writeUntilKilled(List<Object> args) {
       // Keep running for a while to allow this to get killed: can't use sleep
       // as it will prevent the isolate from getting killed, so keep updating
       // the same object to avoid consuming too much disk space.
-      final testObject = TestEntity();
+      final testObject = TestEntityNonRel();
       for (var i = 0; i < 100000000; i++) {
         box.put(testObject..tInt = i);
       }
