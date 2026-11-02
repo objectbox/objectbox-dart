@@ -36,3 +36,6 @@ Icon?
 /Flutter/Generated.xcconfig
 /Flutter/ephemeral/
 /Flutter/flutter_export_environment.sh
+
+# ObjectBox: re-include the plugin directory (excluded by *sync/ rule above)
+!objectbox_mesh_sync/
