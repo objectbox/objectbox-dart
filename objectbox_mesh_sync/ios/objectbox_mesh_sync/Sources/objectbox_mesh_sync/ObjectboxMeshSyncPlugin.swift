@@ -24,7 +24,7 @@ import ObjectBoxMeshSync
 ///   If creating the network throws, returns an error result with code `OBX_MESH_CREATE_FAILED`.
 ///
 ///   Returns a not-implemented result if the add-on is not part of the build: it requires the Swift Package
-///   Manager integration of Flutter (the CocoaPods integration does not include it) and Xcode 16.3 or newer.
+///   Manager integration of Flutter (the CocoaPods integration does not include it) and Xcode 26.3 or newer.
 public class ObjectboxMeshSyncPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(
@@ -75,7 +75,7 @@ public class ObjectboxMeshSyncPlugin: NSObject, FlutterPlugin {
   }
   #else
   private func createMeshNetwork(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-    // Built without the ObjectBoxMeshSync add-on (e.g. via CocoaPods or with Swift tools before 6.1)
+    // Built without the ObjectBoxMeshSync add-on (e.g. via CocoaPods or with Swift tools before 6.2.4)
     result(FlutterMethodNotImplemented)
   }
   #endif

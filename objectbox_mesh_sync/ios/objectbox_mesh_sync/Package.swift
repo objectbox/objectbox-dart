@@ -1,7 +1,8 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.2.4
 // The swift-tools-version declares the minimum version of Swift required to build this package.
-// Older tools (5.9 to 6.0, so Xcode 15 to 16.2) use Package@swift-5.9.swift instead, which lacks the Mesh Sync
-// add-on (it needs package traits). Keep both manifests in sync.
+// Older tools (5.9 to 6.2.3, so Xcode 15 to 26.2) use Package@swift-5.9.swift instead, which lacks the Mesh Sync
+// add-on: it needs package traits (tools 6.1), and tools before 6.2.4 fail to resolve the trait-enabled nearby
+// dependency ("product 'NearbyConnections' [...] not found in package 'nearby'"). Keep both manifests in sync.
 
 import PackageDescription
 
@@ -52,7 +53,7 @@ let package = Package(
                 // the following instructions to add them:
                 // https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package
             ],
-            // Tools 6.1 default to the Swift 6 language mode; stay on Swift 5 like the Package@swift-5.9.swift build
+            // Tools 6 default to the Swift 6 language mode; stay on Swift 5 like the Package@swift-5.9.swift build
             swiftSettings: [.swiftLanguageMode(.v5)]
         )
     ]

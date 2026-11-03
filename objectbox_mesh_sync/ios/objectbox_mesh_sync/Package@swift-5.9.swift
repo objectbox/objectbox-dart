@@ -1,7 +1,7 @@
 // swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
-// Used by Swift tools 5.9 to 6.0 (Xcode 15 to 16.2) instead of Package.swift, which needs tools 6.1 (package traits)
-// for the Mesh Sync add-on. So this build lacks the add-on (the plugin reports the platform method as not
+// Used by Swift tools 5.9 to 6.2.3 (Xcode 15 to 26.2) instead of Package.swift, which needs tools 6.2.4 for the Mesh
+// Sync add-on (see there). So this build lacks the add-on (the plugin reports the platform method as not
 // implemented), but the app still builds; keep everything else in sync with Package.swift.
 
 import PackageDescription

@@ -84,7 +84,7 @@ final mesh = await createMeshConfig(
 ## iOS and macOS
 
 On iOS and macOS, Mesh Sync requires the Swift Package Manager integration of
-Flutter (the default since Flutter 3.44) and Xcode 16.3 or newer: the Nearby
+Flutter (the default since Flutter 3.44) and Xcode 26.3 or newer: the Nearby
 transport is the `ObjectBoxMeshSync` add-on of the ObjectBox Swift Package,
 which this plugin enables via the package's `MeshSync` trait. With the CocoaPods
 integration (or older Xcode versions), the add-on is not part of the build and

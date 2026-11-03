@@ -166,7 +166,7 @@ Future<MeshConfig> createMeshConfig(
       throw UnsupportedError(
         'Mesh Sync is not available in this build: on iOS and macOS it '
         'requires the Swift Package Manager integration of Flutter and Xcode '
-        '16.3 or newer (the CocoaPods integration does not include the mesh '
+        '26.3 or newer (the CocoaPods integration does not include the mesh '
         'sync add-on).',
       );
     }
