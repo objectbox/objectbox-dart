@@ -6,8 +6,8 @@ This package adds the network transport for [Mesh Sync](https://sync.objectbox.i
 (peer-to-peer sync of [ObjectBox Sync](https://objectbox.io/sync) clients without a central server)
 to Flutter Android, iOS and macOS apps. The transport is based on Google Nearby Connections.
 
-See package [objectbox](https://pub.dev/packages/objectbox) for more details and
-information how to use it.
+This package is part of the ObjectBox database Flutter SDK, see package 
+[objectbox](https://pub.dev/packages/objectbox) for more details.
 
 ## Getting started
 
