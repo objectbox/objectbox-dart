@@ -76,10 +76,10 @@ dependencies {
     // dependency (used by NearbyMeshNetwork) and adds permissions to the manifest. As
     // apps are expected to declare the permissions they need explicitly, they are removed in the
     // AndroidManifest.xml of this project.
-    implementation("io.objectbox:objectbox-meshsync-android:6.0.0-beta2")
+    implementation("io.objectbox:objectbox-meshsync-android:6.0.0-beta3")
     // Compile against the ObjectBox Android database library (Sync variant), which contains the
     // NearbyMeshNetwork class. At runtime, it is provided by the objectbox_sync_flutter_libs plugin
     // (or replaced by the Admin variant by apps using Admin), so only compileOnly; keep the version
     // the same as there.
-    compileOnly("io.objectbox:objectbox-sync-android-db:6.0.0-beta2")
+    compileOnly("io.objectbox:objectbox-sync-android-db:6.0.0-beta3")
 }
