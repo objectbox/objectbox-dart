@@ -46,6 +46,8 @@ android {
 
     defaultConfig {
         minSdk = 24
+        // Temporary rule to prevent R8 error from mesh sync only NearbyMeshNetwork class
+        consumerProguardFiles("consumer-proguard-rules.pro")
     }
 
     testOptions {

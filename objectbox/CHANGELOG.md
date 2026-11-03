@@ -55,6 +55,8 @@
 * Add static `Store.logLevel` to change (or get) the runtime log level of ObjectBox internals, e.g. to debug issues.
 * Add `VectorDistances` utility to calculate the distance of two vectors (like a vector search would) and to convert a distance (e.g. a query score) to a relevance score with a fixed range from 0.0 to 1.0.
 * The `install.sh` script no longer asks to install the database library in a global directory.
+* **Changed from previous preview releases**:
+  * `objectbox_sync_flutter_libs` no longer prevents R8 from minifying an Android app build ("ERROR: Missing classes detected while running R8."). 
 
 ### Sync
 
@@ -62,7 +64,7 @@
   * Only for Android, iOS and macOS (requires Xcode 26.3 or newer and [Flutter Swift Package Manager support](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers))
   * Add **new `objectbox_mesh_sync` package**: use it instead of `objectbox_sync_flutter_libs` to build a `MeshConfig` to pass to `SyncClient`, see its [README for details](https://pub.dev/packages/objectbox_mesh_sync).
   * Add `SyncClient.mesh` to query the running mesh (exposing state and statistics)
-  * **Changes from previous preview releases**:
+  * **Changed from previous preview releases**:
     * `createMeshConfig()` moved from `objectbox_sync_flutter_libs` to the new `objectbox_mesh_sync` package
     * Xcode requirement increased to Xcode 26.3 (Swift tools 6.2.4)
     * `objectbox_mesh_sync` correctly includes Swift Package dependencies for iOS
