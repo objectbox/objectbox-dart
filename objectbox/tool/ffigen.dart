@@ -26,6 +26,7 @@ Future<void> main(List<String> args) async {
     'obx_query_close',
     'obx_query_prop_close',
     'obx_store_close',
+    'obx_sync_close',
     'obx_txn_close',
   };
 

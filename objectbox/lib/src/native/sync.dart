@@ -238,8 +238,21 @@ class SyncChange {
 }
 
 /// A Sync client is used to connect to an ObjectBox Sync server.
-class SyncClient {
+class SyncClient implements Finalizable {
   final Store _store;
+
+  /// Closes the native client if [close] was not called, most importantly when
+  /// the isolate shuts down (e.g. when a Flutter engine is destroyed). Sync
+  /// client threads use the store, so a client must be closed before its store.
+  /// Keeps the finalizer itself reachable (static), otherwise it might be
+  /// disposed of before the finalizer callback gets a chance to run.
+  static final _finalizer = NativeFinalizer(C.addresses.sync_close.cast());
+
+  /// Ensures [_finalizer] exists. Call before the finalizer of Store is created:
+  /// at isolate shutdown, native finalizers run in the order their finalizer
+  /// objects were created, and sync clients must be closed before the store.
+  /// This works because Dart initializes static fields on access.
+  static void initFinalizer() => _finalizer;
 
   /// Pointer to the native instance. Use [_cSyncChecked] for safe access.
   late Pointer<OBX_sync> _cSync;
@@ -398,6 +411,7 @@ class SyncClient {
       rethrow;
     }
 
+    _finalizer.attach(this, _cSync.cast(), detach: this);
     syncClientsStorage[_store] = this;
     InternalStoreAccess.addCloseListener(_store, this, close);
   }
@@ -414,6 +428,7 @@ class SyncClient {
     // any MeshSync wrapper so later access throws instead of using a dangling
     // pointer.
     _mesh?.close();
+    _finalizer.detach(this);
     final err = C.sync_close(_cSync);
     _cSync = nullptr;
     syncClientsStorage.remove(_store);
