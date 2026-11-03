@@ -21,7 +21,8 @@ flutter pub add --dev build_runner objectbox_generator:any
 ```
 
 Mesh Sync is a separate package so apps not using it do not have to include the Google Nearby
-dependencies.
+dependencies. Note that for iOS and macOS the Google Nearby dependencies currently may conflict with
+other dependencies, like those of Firebase.
 
 ## Usage
 
