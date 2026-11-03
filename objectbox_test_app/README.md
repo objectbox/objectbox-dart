@@ -1,7 +1,7 @@
 # objectbox_test_app
 
 objectbox test application. Helps run integration tests on Android, and on macOS (Mesh Sync via the
-Swift Package Manager integration, see the `objectbox_sync_flutter_libs` README).
+Swift Package Manager integration, see the `objectbox_mesh_sync` README).
 
 ## Running the tests
 

@@ -7,6 +7,8 @@ Currently published packages on pub.dev:
 * Flutter packages (to pull in platform-specific dependencies):
   * https://pub.dev/packages/objectbox_flutter_libs
   * https://pub.dev/packages/objectbox_sync_flutter_libs
+  * https://pub.dev/packages/objectbox_mesh_sync (Mesh Sync network transport, a separate
+    package so apps not using Mesh Sync don't pull in its Google Nearby dependencies)
 
 Given requirements by Flutter and pub.dev
 -----------------------------------------

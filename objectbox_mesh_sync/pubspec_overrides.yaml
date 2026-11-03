@@ -1,0 +1,9 @@
+# For development: use the packages in this repository.
+# This file is only used for get and upgrade, but ignored by publish.
+# https://dart.dev/tools/pub/dependencies#pubspec-overrides
+# https://github.com/dart-lang/pub/pull/3215
+dependency_overrides:
+  objectbox:
+    path: ../objectbox
+  objectbox_sync_flutter_libs:
+    path: ../sync_flutter_libs

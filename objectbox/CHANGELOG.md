@@ -58,7 +58,14 @@
 
 ### Sync
 
-* Add support for **Mesh Sync** (peer-to-peer synchronization without a central server, preview): pass a `MeshConfig` to the `SyncClient` constructor and query the running mesh via `SyncClient.mesh` (a new `MeshSync` exposing state and statistics). This is currently supported on Android, and on iOS and macOS with the Swift Package Manager integration of Flutter (requires Xcode 16.3 or newer; not with CocoaPods), via `createMeshConfig()` from `objectbox_sync_flutter_libs`. On Android, it requests missing runtime permissions unless opted out. The mesh network is created without waiting for the user's decision; pass `onPermissionsGranted` to get notified once permissions are granted and call the new `MeshSync.retryNetworks()` so the mesh retries starting its network radios. iOS and macOS show their Local Network and Bluetooth prompts on first use; see the README of `objectbox_sync_flutter_libs` for the Info.plist entries and entitlements needed.
+* **Preview** of [Mesh Sync](https://sync.objectbox.io/mesh-sync): peer-to-peer synchronization without a central server
+  * Only for Android, iOS and macOS (requires Xcode 26.3 or newer and [Flutter Swift Package Manager support](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers))
+  * Add **new `objectbox_mesh_sync` package**: use it instead of `objectbox_sync_flutter_libs` to build a `MeshConfig` to pass to `SyncClient`, see its [README for details](https://pub.dev/packages/objectbox_mesh_sync).
+  * Add `SyncClient.mesh` to query the running mesh (exposing state and statistics)
+  * **Changes from previous preview releases**:
+    * `createMeshConfig()` moved from `objectbox_sync_flutter_libs` to the new `objectbox_mesh_sync` package
+    * Xcode requirement increased to Xcode 26.3 (Swift tools 6.2.4)
+    * `objectbox_mesh_sync` correctly includes Swift Package dependencies for iOS
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 * Add `SyncClient.setMaxMessagesInFlight()` to configure how many outgoing transaction messages can be sent without an ACK from the server.
 * Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).

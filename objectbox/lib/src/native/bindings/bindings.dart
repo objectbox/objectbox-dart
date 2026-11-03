@@ -104,7 +104,8 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // ObjectBox Swift Package 5.3.0        | 5.3.2 | 5.3.2-next-2026-05-16
 // ObjectBox Swift Package 6.0.0-beta.2 | 6.0.0 | 6.0.0-beta-2026-09-11
 // Swift Package 5.3.0 is used by flutter_libs.
-// Swift Package 6.0.0-beta.2 is used by sync_flutter_libs.
+// Swift Package 6.0.0-beta.2 is used by sync_flutter_libs and
+// objectbox_mesh_sync.
 // Keeping at 5.3.2 as the CocoaPods and the Swift Package used by
 // flutter_libs with C API 6.0.0 are not ready and there are no breaking
 // changes (new APIs aren't guarded, though).

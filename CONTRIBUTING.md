@@ -28,7 +28,7 @@ Internally, ObjectBox uses [FlatBuffers](https://google.github.io/flatbuffers/) 
 This is a multi-package Dart/Flutter repository.
 The core runtime library (`objectbox/`) provides the database API via Dart FFI bindings to the ObjectBox C library.
 Code generation (`generator/`) uses `build_runner` to produce entity bindings at compile time.
-Flutter apps include native libraries via platform-specific plugin packages (`flutter_libs/`, `sync_flutter_libs/`).
+Flutter apps include native libraries via platform-specific plugin packages (`flutter_libs/`, `sync_flutter_libs/`, `objectbox_mesh_sync/`).
 
 - **`objectbox/`** – Core runtime package published as `objectbox` on pub.dev.
   - `lib/objectbox.dart` – Public API exports (Store, Box, Query, annotations, Sync, etc.).
@@ -48,6 +48,8 @@ Flutter apps include native libraries via platform-specific plugin packages (`fl
 - **`flutter_libs/`** – Flutter plugin package (`objectbox_flutter_libs`) bundling native ObjectBox libraries for Android, iOS, Linux, macOS, and Windows.
 
 - **`sync_flutter_libs/`** – Flutter plugin package (`objectbox_sync_flutter_libs`) bundling native libraries with ObjectBox Sync support.
+
+- **`objectbox_mesh_sync/`** – Flutter plugin package (`objectbox_mesh_sync`) adding the Mesh Sync network transport (Google Nearby Connections) for Android, iOS and macOS. Separate from `sync_flutter_libs/` so apps not using Mesh Sync don't include its dependencies.
 
 - **`objectbox_test/`** – Internal test package (not published).
   Contains comprehensive tests for the runtime: Box, Query, relations, Sync, observers, isolates, etc.

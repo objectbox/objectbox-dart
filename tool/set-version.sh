@@ -17,6 +17,7 @@ update objectbox/pubspec.yaml "${versionExpr}"
 update generator/pubspec.yaml "${versionExpr}"
 update flutter_libs/pubspec.yaml "${versionExpr}"
 update sync_flutter_libs/pubspec.yaml "${versionExpr}"
+update objectbox_mesh_sync/pubspec.yaml "${versionExpr}"
 
 # Version constant in generator package
 versionDartExpr="s/current = \".*\"/current = \"${version}\"/g"
@@ -36,6 +37,11 @@ update objectbox/example/flutter/objectbox_demo_relations/pubspec.yaml "${depend
 update generator/pubspec.yaml "${dependencyExactExpr}"
 update flutter_libs/pubspec.yaml "${dependencyExactExpr}"
 update sync_flutter_libs/pubspec.yaml "${dependencyExactExpr}"
+update objectbox_mesh_sync/pubspec.yaml "${dependencyExactExpr}"
+
+# The Mesh Sync plugin depends on the concrete version of the Sync plugin
+syncDependencyExactExpr="s/objectbox_sync_flutter_libs: [0-9]\+.*/objectbox_sync_flutter_libs: ${version}/g"
+update objectbox_mesh_sync/pubspec.yaml "${syncDependencyExactExpr}"
 
 # Changelog latest title
 # Note: not using `date -I` as BSD date (macOS) does not support it and the

@@ -11,12 +11,13 @@
 
 function create() {
   dir=$1
+  platforms=${2:-ios,android,linux,macos,windows}
   cd "$root/$dir" || exit 1
 
   flutter create \
     --template=plugin \
     --org=io.objectbox \
-    --platforms=ios,android,linux,macos,windows \
+    --platforms=$platforms \
     --project-name=objectbox_$dir \
     .
 
@@ -27,3 +28,4 @@ function create() {
 
 create flutter_libs
 create sync_flutter_libs
+create objectbox_mesh_sync ios,android,macos

@@ -27,9 +27,11 @@ update sync_flutter_libs/macos/objectbox_sync_flutter_libs.podspec "${versionExp
 versionExpr="s/objectbox-swift-spm.git\", exact: \"[^\"]*\"/objectbox-swift-spm.git\", exact: \"${version}\"/g"
 update flutter_libs/ios/objectbox_flutter_libs/Package.swift "${versionExpr}"
 update flutter_libs/macos/objectbox_flutter_libs/Package.swift "${versionExpr}"
-echo "⚠️ Doesn't update ios/objectbox_sync_flutter_libs/Package.swift and macos/objectbox_sync_flutter_libs/Package.swift as version is pinned, see notes in files!"
-update sync_flutter_libs/ios/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
-update sync_flutter_libs/macos/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
-# Manifests used by older Swift tools (without the Mesh Sync add-on)
-update sync_flutter_libs/ios/objectbox_sync_flutter_libs/Package@swift-5.9.swift "${versionExpr}"
-update sync_flutter_libs/macos/objectbox_sync_flutter_libs/Package@swift-5.9.swift "${versionExpr}"
+echo "⚠️ Currently, doesn't update the Package.swift and Package@swift-5.9.swift files of sync_flutter_libs and objectbox_mesh_sync as the Swift Package is pinned by revision there, see notes in files! Update all of them to the same revision."
+#update sync_flutter_libs/ios/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
+#update sync_flutter_libs/macos/objectbox_sync_flutter_libs/Package.swift "${versionExpr}"
+#update objectbox_mesh_sync/ios/objectbox_mesh_sync/Package.swift "${versionExpr}"
+#update objectbox_mesh_sync/macos/objectbox_mesh_sync/Package.swift "${versionExpr}"
+## Manifests used by older Swift tools (without the Mesh Sync trait)
+#update objectbox_mesh_sync/ios/objectbox_mesh_sync/Package@swift-5.9.swift "${versionExpr}"
+#update objectbox_mesh_sync/macos/objectbox_mesh_sync/Package@swift-5.9.swift "${versionExpr}"

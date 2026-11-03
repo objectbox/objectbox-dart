@@ -29,6 +29,9 @@ This is a **multi-package monorepo**:
 
 - **`sync_flutter_libs/`** – Flutter plugin with ObjectBox Sync support
 
+- **`objectbox_mesh_sync/`** – Flutter plugin adding the Mesh Sync network transport (opt-in, as
+  it pulls in Google Nearby dependencies)
+
 - **`benchmark/`** – Performance benchmarks
 
 - **`tool/`** – Shell scripts for versioning, publishing, and C library updates
