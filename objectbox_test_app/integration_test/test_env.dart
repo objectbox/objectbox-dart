@@ -6,7 +6,6 @@ import 'package:objectbox/src/native/version.dart';
 import 'package:objectbox_test_app/objectbox.g.dart';
 import 'package:path_provider/path_provider.dart';
 
-
 /// Opens a [Store] in an empty database directory and deletes it on [close].
 class TestEnv {
   /// Sandboxed macOS apps need an app group for ObjectBox (see the Store docs);
