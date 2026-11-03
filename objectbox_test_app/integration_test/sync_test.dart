@@ -18,6 +18,8 @@ import 'test_env.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  TestEnv.printVersions();
+
   late TestEnv env;
   late TestEnv env2;
   int serverPort = 9999;

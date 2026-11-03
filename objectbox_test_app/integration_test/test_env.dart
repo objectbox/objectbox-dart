@@ -1,7 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
+import 'package:objectbox/src/native/version.dart';
 import 'package:objectbox_test_app/objectbox.g.dart';
 import 'package:path_provider/path_provider.dart';
+
 
 /// Opens a [Store] in an empty database directory and deletes it on [close].
 class TestEnv {
@@ -12,6 +16,14 @@ class TestEnv {
 
   final String dir;
   late Store store;
+
+  static void printVersions() {
+    print("Database version: ${Store.databaseVersion()}");
+    print("C API version: ${libraryVersion()} ");
+    if (Sync.isAvailable()) {
+      print("Sync protocol version: ${SyncClient.protocolVersion()}");
+    }
+  }
 
   /// Creates an environment with a database in the [name] directory inside
   /// the application support directory.

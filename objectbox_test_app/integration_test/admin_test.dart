@@ -11,6 +11,8 @@ import 'test_env.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  TestEnv.printVersions();
+
   late TestEnv env;
 
   setUp(() async {
