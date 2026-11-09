@@ -686,15 +686,18 @@ class SyncClient implements Finalizable {
     checkObx(C.sync_request_updates_mode(_cSyncChecked, cMode));
   }
 
-  /// Once the sync client is configured, you can [start] it to initiate
-  /// synchronization.
+  /// Starts this Sync client to initiate synchronization.
   ///
-  /// This method triggers communication in the background and returns
-  /// immediately. The background thread will try to connect to the server,
-  /// log-in and start syncing data (depends on [SyncRequestUpdatesMode]).
-  /// If the device, network or server is currently offline, connection attempts
-  /// will be retried later automatically. If you haven't set the credentials in
-  /// the options during construction, call [setCredentials()] before [start()].
+  /// This method triggers communication in the background and will return
+  /// immediately. If the synchronization destination is reachable, this
+  /// client's background thread will connect to the server, log in
+  /// (authenticate) and, depending on "update request mode"
+  /// ([setRequestUpdatesMode]), start syncing data. If the device, network or
+  /// server is currently offline, connection attempts will be retried later
+  /// using increasing backoff intervals.
+  ///
+  /// A Sync client may be started only once (subsequent calls will likely
+  /// throw).
   void start() {
     checkObx(C.sync_start(_cSyncChecked));
   }
