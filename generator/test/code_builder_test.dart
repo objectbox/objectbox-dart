@@ -522,6 +522,13 @@ void main() {
       expect(vectorProperty.hnswParams!.distanceType, isNull);
       expect(vectorProperty.hnswParams!.reparationBacklinkProbability, isNull);
       expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, isNull);
+      expect(vectorProperty.hnswParams!.quantization, isNull);
+      expect(vectorProperty.hnswParams!.quantizationOversample, isNull);
+      expect(vectorProperty.hnswParams!.quantizationRescoreFactor, isNull);
+      expect(vectorProperty.hnswParams!.searchLevel, isNull);
+      expect(vectorProperty.hnswParams!.buildLevel, isNull);
+      expect(vectorProperty.hnswParams!.bruteForceMaxCandidates, isNull);
+      expect(vectorProperty.hnswParams!.filteredSearchMaxNodes, isNull);
     });
 
     test('HNSW annotation with all properties', () async {
@@ -539,7 +546,14 @@ void main() {
                   vectorCacheSimdPaddingOff: true),
               distanceType: VectorDistanceType.euclidean,
               reparationBacklinkProbability: 0.95,
-              vectorCacheHintSizeKB: 2097152)
+              vectorCacheHintSizeKB: 2097152,
+              quantization: VectorQuantization.turboQuant1_5,
+              quantizationOversample: 2,
+              quantizationRescoreFactor: 1.5,
+              searchLevel: VectorSearchLevel.l10QualityMax,
+              buildLevel: VectorBuildLevel.l1Fastest,
+              bruteForceMaxCandidates: 100,
+              filteredSearchMaxNodes: 1000)
           List<double>? coordinates;
           ''',
         ),
@@ -568,6 +582,37 @@ void main() {
       );
       expect(vectorProperty.hnswParams!.reparationBacklinkProbability, 0.95);
       expect(vectorProperty.hnswParams!.vectorCacheHintSizeKB, 2097152);
+      expect(
+        vectorProperty.hnswParams!.quantization,
+        OBXHnswQuantType.TurboQuant1_5,
+      );
+      // An int literal for a double parameter is read as a double
+      expect(vectorProperty.hnswParams!.quantizationOversample, 2.0);
+      expect(vectorProperty.hnswParams!.quantizationRescoreFactor, 1.5);
+      expect(
+        vectorProperty.hnswParams!.searchLevel,
+        OBXHnswSearchLevel.L10_QualityMax,
+      );
+      expect(
+        vectorProperty.hnswParams!.buildLevel,
+        OBXHnswBuildLevel.L1_Fastest,
+      );
+      expect(vectorProperty.hnswParams!.bruteForceMaxCandidates, 100);
+      expect(vectorProperty.hnswParams!.filteredSearchMaxNodes, 1000);
+    });
+
+    test('HNSW annotation with illegal value', () async {
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @Property(type: PropertyType.floatVector)
+          @HnswIndex(dimensions: 3, quantizationOversample: 0.5)
+          List<double>? coordinates;
+          ''',
+        ),
+      );
+
+      await expectGeneratorThrows(source, 'quantizationOversample');
     });
 
     test('Sync annotation with shared global IDs', () async {

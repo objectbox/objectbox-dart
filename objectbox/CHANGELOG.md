@@ -54,10 +54,21 @@
 * Add `Store.dbSize` and `Store.dbSizeOnDisk` to get the size of the database of an open store (also works for an in-memory database) and `Store.prepareToClose` to start an orderly shutdown in stages.
 * Add static `Store.logLevel` to change (or get) the runtime log level of ObjectBox internals, e.g. to debug issues.
 * Add `VectorDistances` utility to calculate the distance of two vectors (like a vector search would) and to convert a distance (e.g. a query score) to a relevance score with a fixed range from 0.0 to 1.0.
-* **Breaking change:** remove `HnswFlags.reparationLimitCandidates`. Removing objects from an HNSW index is fast now, so the database no longer supports this flag.
 * The `install.sh` script no longer asks to install the database library in a global directory.
 * **Changed from previous preview releases**:
   * `objectbox_sync_flutter_libs` no longer prevents R8 from minifying an Android app build ("ERROR: Missing classes detected while running R8."). 
+
+### Vector search
+
+* Vector quantization with TurboQuant enables much faster searches while preserving quality. New indexes with at least 32 dimensions hold their vectors in memory as TurboQuant4 by default, which takes 1/8 of the memory of full-precision vectors. The stored vectors remain unchanged: changing the quantization requires no data migration and no re-indexing. To use another quantization, set `@HnswIndex(quantization: ...)`, see `VectorQuantization`. Existing indexes keep running without quantization, unless they set one or are re-indexed.
+* Simplified configuration: instead of tuning HNSW parameters like `neighborsPerNode` and `indexingSearchCount` yourself, choose one of 10 levels from fast to high quality (recall).
+  * Search levels trade search speed for quality: set the default level of an index with `@HnswIndex(searchLevel: ...)` (default: `VectorSearchLevel.l4Balanced`).
+  * Build levels trade indexing time and memory for graph quality, for data that does not reach your recall target at the highest search levels: `@HnswIndex(buildLevel: ...)`, see `VectorBuildLevel`.
+  * The individual parameters remain available for fine-tuning; new are oversampling and rescoring (`@HnswIndex(quantizationOversample: ..., quantizationRescoreFactor: ...)`).
+* Nearest neighbor search with other conditions now returns the nearest among the matching objects (previously: the nearest of all objects, of which only the matching ones remained, often fewer than requested). Few candidates are searched by brute force; otherwise, the graph search accepts only matching objects. Both limits are tunable per index (`@HnswIndex(bruteForceMaxCandidates: ..., filteredSearchMaxNodes: ...)`).
+* Faster vector search, also without quantization, faster index builds and much faster removal of objects.
+* The default `indexingSearchCount` (efConstruction) is now 128 instead of 100. Existing indexes keep their value and are not re-indexed.
+* **Breaking change:** remove `HnswFlags.reparationLimitCandidates`. Removing objects from an HNSW index is fast now, so the database no longer supports this flag.
 
 ### Sync
 

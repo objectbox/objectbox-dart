@@ -427,4 +427,77 @@ void main() {
       isNaN,
     );
   });
+
+  group('index options', () {
+    late Box<HnswTunedObject> tunedBox;
+
+    /// A vector with all elements set to [value]; the (squared Euclidean)
+    /// distance of two such vectors is 32 * (a - b)^2.
+    List<double> vectorOf(double value) =>
+        List.filled(hnswTunedDimensions, value);
+
+    setUp(() {
+      tunedBox = env.store.box<HnswTunedObject>();
+      tunedBox.putMany(
+        List.generate(50, (index) {
+          final i = index + 1; // start at 1
+          return HnswTunedObject()
+            ..group = i % 2
+            ..vector = vectorOf(i.toDouble())
+            ..vectorDefault = vectorOf(i.toDouble());
+        }),
+      );
+    });
+
+    // Expects the given results are objects 5, 6 and 4 with exact distances.
+    void expectNearestTo5_25(List<ObjectWithScore<HnswTunedObject>> results) {
+      expect(results.map((r) => r.object.id).toList(), [5, 6, 4]);
+      expect(results.map((r) => r.score).toList(), [2.0, 18.0, 50.0]);
+    }
+
+    test('store with all options set supports search', () {
+      // The index of `vector` sets a search level that rescores, so the
+      // results have the exact distances.
+      final query =
+          tunedBox
+              .query(
+                HnswTunedObject_.vector.nearestNeighborsF32(vectorOf(5.25), 3),
+              )
+              .build();
+      addTearDown(query.close);
+      expectNearestTo5_25(query.findWithScores());
+    });
+
+    test('default quantization supports search', () {
+      // TurboQuant4 at the default search level rescores, so the results
+      // have the exact distances.
+      final query =
+          tunedBox
+              .query(
+                HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+                  vectorOf(5.25),
+                  3,
+                ),
+              )
+              .build();
+      addTearDown(query.close);
+      expectNearestTo5_25(query.findWithScores());
+    });
+
+    test('filtered search returns nearest matching objects', () {
+      // Only even objects match, 25 candidates are below the brute force
+      // limit of the index (100).
+      final query =
+          tunedBox
+              .query(
+                HnswTunedObject_.vector.nearestNeighborsF32(vectorOf(5.25), 2) &
+                    HnswTunedObject_.group.equals(0),
+              )
+              .build();
+      addTearDown(query.close);
+      final results = query.findWithScores();
+      expect(results.map((r) => r.object.id).toList(), [6, 4]);
+      expect(results.map((r) => r.score).toList(), [18.0, 50.0]);
+    });
+  });
 }

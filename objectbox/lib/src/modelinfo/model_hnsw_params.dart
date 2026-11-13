@@ -24,6 +24,27 @@ class ModelHnswParams {
   /// See [HnswIndex.vectorCacheHintSizeKB].
   final int? vectorCacheHintSizeKB;
 
+  /// See [HnswIndex.quantization].
+  final int? quantization;
+
+  /// See [HnswIndex.quantizationOversample].
+  final double? quantizationOversample;
+
+  /// See [HnswIndex.quantizationRescoreFactor].
+  final double? quantizationRescoreFactor;
+
+  /// See [HnswIndex.searchLevel].
+  final int? searchLevel;
+
+  /// See [HnswIndex.buildLevel].
+  final int? buildLevel;
+
+  /// See [HnswIndex.bruteForceMaxCandidates].
+  final int? bruteForceMaxCandidates;
+
+  /// See [HnswIndex.filteredSearchMaxNodes].
+  final int? filteredSearchMaxNodes;
+
   /// Create an instance. For use from generated code.
   ModelHnswParams({
     required this.dimensions,
@@ -33,7 +54,17 @@ class ModelHnswParams {
     this.distanceType,
     this.reparationBacklinkProbability,
     this.vectorCacheHintSizeKB,
+    this.quantization,
+    this.quantizationOversample,
+    this.quantizationRescoreFactor,
+    this.searchLevel,
+    this.buildLevel,
+    this.bruteForceMaxCandidates,
+    this.filteredSearchMaxNodes,
   });
+
+  /// The max value of the C API's uint32_t parameters.
+  static const _maxUint32 = 0xFFFFFFFF;
 
   /// If [condition] does not evaluate to `true` throws an [ArgumentError]
   /// using the given [argument], [name] and [message].
@@ -100,6 +131,45 @@ class ModelHnswParams {
         message: "must be 1 or greater",
       );
     }
+    final quantizationOversample = hnsw.quantizationOversample;
+    if (quantizationOversample != null) {
+      _checkArgument(
+        argument: quantizationOversample,
+        condition: quantizationOversample >= 1.0,
+        name: "quantizationOversample",
+        message: "must be 1.0 or greater",
+      );
+    }
+    final quantizationRescoreFactor = hnsw.quantizationRescoreFactor;
+    if (quantizationRescoreFactor != null) {
+      _checkArgument(
+        argument: quantizationRescoreFactor,
+        condition: quantizationRescoreFactor >= 1.0,
+        name: "quantizationRescoreFactor",
+        message: "must be 1.0 or greater",
+      );
+    }
+    final bruteForceMaxCandidates = hnsw.bruteForceMaxCandidates;
+    if (bruteForceMaxCandidates != null) {
+      _checkArgument(
+        argument: bruteForceMaxCandidates,
+        condition:
+            bruteForceMaxCandidates > 0 &&
+            bruteForceMaxCandidates <= _maxUint32,
+        name: "bruteForceMaxCandidates",
+        message: "must be between 1 and $_maxUint32",
+      );
+    }
+    final filteredSearchMaxNodes = hnsw.filteredSearchMaxNodes;
+    if (filteredSearchMaxNodes != null) {
+      _checkArgument(
+        argument: filteredSearchMaxNodes,
+        condition:
+            filteredSearchMaxNodes > 0 && filteredSearchMaxNodes <= _maxUint32,
+        name: "filteredSearchMaxNodes",
+        message: "must be between 1 and $_maxUint32",
+      );
+    }
     return ModelHnswParams(
       dimensions: hnsw.dimensions,
       neighborsPerNode: neighborsPerNode,
@@ -108,6 +178,13 @@ class ModelHnswParams {
       distanceType: hnsw.distanceType?.toConstant(),
       reparationBacklinkProbability: reparationBacklinkProbability,
       vectorCacheHintSizeKB: vectorCacheHintSizeKB,
+      quantization: hnsw.quantization?.toConstant(),
+      quantizationOversample: quantizationOversample,
+      quantizationRescoreFactor: quantizationRescoreFactor,
+      searchLevel: hnsw.searchLevel?.toConstant(),
+      buildLevel: hnsw.buildLevel?.toConstant(),
+      bruteForceMaxCandidates: bruteForceMaxCandidates,
+      filteredSearchMaxNodes: filteredSearchMaxNodes,
     );
   }
 
@@ -123,6 +200,13 @@ class ModelHnswParams {
       reparationBacklinkProbability:
           map["reparationBacklinkProbability"] as double?,
       vectorCacheHintSizeKB: map["vectorCacheHintSizeKB"] as int?,
+      quantization: map["quantization"] as int?,
+      quantizationOversample: map["quantizationOversample"] as double?,
+      quantizationRescoreFactor: map["quantizationRescoreFactor"] as double?,
+      searchLevel: map["searchLevel"] as int?,
+      buildLevel: map["buildLevel"] as int?,
+      bruteForceMaxCandidates: map["bruteForceMaxCandidates"] as int?,
+      filteredSearchMaxNodes: map["filteredSearchMaxNodes"] as int?,
     );
   }
 
@@ -147,6 +231,27 @@ class ModelHnswParams {
     }
     if (vectorCacheHintSizeKB != null) {
       map["vectorCacheHintSizeKB"] = vectorCacheHintSizeKB!;
+    }
+    if (quantization != null) {
+      map["quantization"] = quantization!;
+    }
+    if (quantizationOversample != null) {
+      map["quantizationOversample"] = quantizationOversample!;
+    }
+    if (quantizationRescoreFactor != null) {
+      map["quantizationRescoreFactor"] = quantizationRescoreFactor!;
+    }
+    if (searchLevel != null) {
+      map["searchLevel"] = searchLevel!;
+    }
+    if (buildLevel != null) {
+      map["buildLevel"] = buildLevel!;
+    }
+    if (bruteForceMaxCandidates != null) {
+      map["bruteForceMaxCandidates"] = bruteForceMaxCandidates!;
+    }
+    if (filteredSearchMaxNodes != null) {
+      map["filteredSearchMaxNodes"] = filteredSearchMaxNodes!;
     }
     return map;
   }
@@ -175,6 +280,27 @@ class ModelHnswParams {
     }
     if (vectorCacheHintSizeKB != null) {
       code.write("vectorCacheHintSizeKB: $vectorCacheHintSizeKB, ");
+    }
+    if (quantization != null) {
+      code.write("quantization: $quantization, ");
+    }
+    if (quantizationOversample != null) {
+      code.write("quantizationOversample: $quantizationOversample, ");
+    }
+    if (quantizationRescoreFactor != null) {
+      code.write("quantizationRescoreFactor: $quantizationRescoreFactor, ");
+    }
+    if (searchLevel != null) {
+      code.write("searchLevel: $searchLevel, ");
+    }
+    if (buildLevel != null) {
+      code.write("buildLevel: $buildLevel, ");
+    }
+    if (bruteForceMaxCandidates != null) {
+      code.write("bruteForceMaxCandidates: $bruteForceMaxCandidates, ");
+    }
+    if (filteredSearchMaxNodes != null) {
+      code.write("filteredSearchMaxNodes: $filteredSearchMaxNodes, ");
     }
     code.write(")");
     return code.toString();
@@ -209,5 +335,54 @@ extension ModelVectorDistanceType on VectorDistanceType {
     VectorDistanceType.dotProductNonNormalized =>
       OBXVectorDistanceType.DotProductNonNormalized,
     VectorDistanceType.geo => OBXVectorDistanceType.Geo,
+  };
+}
+
+/// Adds mapping to internal constants.
+extension ModelVectorQuantization on VectorQuantization {
+  /// Convert to internal constant value.
+  int toConstant() => switch (this) {
+    VectorQuantization.none => OBXHnswQuantType.None,
+    VectorQuantization.turboQuant1 => OBXHnswQuantType.TurboQuant1,
+    VectorQuantization.turboQuant1_5 => OBXHnswQuantType.TurboQuant1_5,
+    VectorQuantization.turboQuant2 => OBXHnswQuantType.TurboQuant2,
+    VectorQuantization.turboQuant3 => OBXHnswQuantType.TurboQuant3,
+    VectorQuantization.turboQuant4 => OBXHnswQuantType.TurboQuant4,
+    VectorQuantization.scalarQuant8 => OBXHnswQuantType.ScalarQuant8,
+  };
+}
+
+/// Adds mapping to internal constants.
+extension ModelVectorSearchLevel on VectorSearchLevel {
+  /// Convert to internal constant value.
+  int toConstant() => switch (this) {
+    VectorSearchLevel.l1Fastest => OBXHnswSearchLevel.L1_Fastest,
+    VectorSearchLevel.l2VeryFast => OBXHnswSearchLevel.L2_VeryFast,
+    VectorSearchLevel.l3Fast => OBXHnswSearchLevel.L3_Fast,
+    VectorSearchLevel.l4Balanced => OBXHnswSearchLevel.L4_Balanced,
+    VectorSearchLevel.l5BalancedQuality =>
+      OBXHnswSearchLevel.L5_BalancedQuality,
+    VectorSearchLevel.l6Quality => OBXHnswSearchLevel.L6_Quality,
+    VectorSearchLevel.l7QualityHigh => OBXHnswSearchLevel.L7_QualityHigh,
+    VectorSearchLevel.l8QualityHigher => OBXHnswSearchLevel.L8_QualityHigher,
+    VectorSearchLevel.l9QualityUltra => OBXHnswSearchLevel.L9_QualityUltra,
+    VectorSearchLevel.l10QualityMax => OBXHnswSearchLevel.L10_QualityMax,
+  };
+}
+
+/// Adds mapping to internal constants.
+extension ModelVectorBuildLevel on VectorBuildLevel {
+  /// Convert to internal constant value.
+  int toConstant() => switch (this) {
+    VectorBuildLevel.l1Fastest => OBXHnswBuildLevel.L1_Fastest,
+    VectorBuildLevel.l2VeryFast => OBXHnswBuildLevel.L2_VeryFast,
+    VectorBuildLevel.l3Fast => OBXHnswBuildLevel.L3_Fast,
+    VectorBuildLevel.l4Balanced => OBXHnswBuildLevel.L4_Balanced,
+    VectorBuildLevel.l5BalancedQuality => OBXHnswBuildLevel.L5_BalancedQuality,
+    VectorBuildLevel.l6Quality => OBXHnswBuildLevel.L6_Quality,
+    VectorBuildLevel.l7QualityHigh => OBXHnswBuildLevel.L7_QualityHigh,
+    VectorBuildLevel.l8QualityHigher => OBXHnswBuildLevel.L8_QualityHigher,
+    VectorBuildLevel.l9QualityUltra => OBXHnswBuildLevel.L9_QualityUltra,
+    VectorBuildLevel.l10QualityMax => OBXHnswBuildLevel.L10_QualityMax,
   };
 }
