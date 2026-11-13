@@ -244,6 +244,13 @@ OBX_C_API obx_err obx_sync_opt_add_cert_path(OBX_sync_options* opt, const char* 
 /// Combine multiple flags using bitwise OR.
 OBX_C_API obx_err obx_sync_opt_flags(OBX_sync_options* opt, uint32_t flags);
 
+/// Sets the initial estimated number of objects that differ between the client and the server for resyncs;
+/// see obx_sync_resync_assumed_changes() for details.
+/// Note: this is an advanced optimization, which users typically do not need to set (the default fits most cases).
+/// @param count the estimated number of differing objects (> 0); 200 by default
+/// @returns OBX_ERROR_ILLEGAL_ARGUMENT if count is 0
+OBX_C_API obx_err obx_sync_opt_resync_assumed_changes(OBX_sync_options* opt, uint32_t count);
+
 struct OBX_mesh_options;
 typedef struct OBX_mesh_options OBX_mesh_options;
 
@@ -314,7 +321,8 @@ OBX_C_API obx_err obx_sync_filter_variables_remove(OBX_sync* sync, const char* n
 OBX_C_API obx_err obx_sync_filter_variables_remove_all(OBX_sync* sync);
 
 /// Applies all pending filter variable updates (from put/remove filter variables calls).
-/// If the client is connected, sends the updated variables to the server.
+/// If the client is connected and the variables changed, it reconnects to apply them,
+/// which re-syncs its data according to the new variables (objects not changed are kept).
 /// If the client is not connected, the updated variables will be included in the next login message.
 OBX_C_API obx_err obx_sync_filter_variables_apply(OBX_sync* sync);
 
@@ -438,10 +446,38 @@ OBX_C_API obx_err obx_sync_outgoing_message_count(OBX_sync* sync, uint64_t limit
 /// Experimental. This API is likely to be replaced/removed in a future version.
 /// Quickly bring our database up-to-date in a single transaction, without transmitting all the history.
 /// Good for initial sync of new clients.
+/// For clients with existing data, consider obx_sync_resync(), which keeps local data and only transfers differences.
 /// @returns OBX_SUCCESS if the request was likely sent (e.g. the sync client is in "logged in" state)
 /// @returns OBX_NO_SUCCESS if the request was not sent (and will not be sent in the future).
 ///          Note: obx_last_error_code() is not set.
 OBX_C_API obx_err obx_sync_full(OBX_sync* sync);
+
+/// Requests a resync with the server: like a full sync, but the client keeps its local data and only the differences
+/// are transferred (objects and relations are compared via their IDs and content hashes).
+/// Use this e.g. if the client's data may have diverged from the server.
+/// To ensure the server has all local changes first, the request is only sent once the outgoing queue is empty.
+/// Note: building the request reads all synced objects, which may take a while for large databases
+///       (it is done on the calling thread or on a sync thread once the outgoing queue is empty).
+/// If the server does not support resync (older server versions) or the request would be too large,
+/// the client falls back to a full sync, which first removes all local synced data.
+/// Do not call this while holding a write transaction on the calling thread (the fallback writes).
+/// @returns OBX_SUCCESS if the resync was requested (the sync client is in "logged in" state)
+/// @returns OBX_NO_SUCCESS if the sync client is not logged in (no resync will be done).
+///          Note: obx_last_error_code() is not set.
+/// @returns another error code if building the request or the fallback failed (e.g. a database error)
+OBX_C_API obx_err obx_sync_resync(OBX_sync* sync);
+
+/// Sets the estimated number of objects that differ between the client and the server for resyncs
+/// (obx_sync_resync() and resyncs after sync filter changes); the resync request is optimized for it.
+/// Note: this is an advanced optimization, which users typically do not need to set (the default fits most cases).
+/// A higher value results in a larger resync request, but less data sent back by the server;
+/// a lower value results in a smaller request, but potentially more data sent back
+/// (e.g. unchanged objects next to changed ones).
+/// Takes effect with the next resync request built (also if a resync is already pending).
+/// @param count the estimated number of differing objects (> 0); 200 by default
+///        (or as set via obx_sync_opt_resync_assumed_changes())
+/// @returns OBX_ERROR_ILLEGAL_ARGUMENT if count is 0
+OBX_C_API obx_err obx_sync_resync_assumed_changes(OBX_sync* sync, uint32_t count);
 
 /// Estimates the current server timestamp based on the last known server time and local steady clock.
 /// @param out_timestamp_ns - unix timestamp in nanoseconds - may be set to zero if the last server's time is unknown.

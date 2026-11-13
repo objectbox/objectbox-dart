@@ -537,11 +537,162 @@ typedef enum {
     /// Padding for SIMD is enabled by default, which uses more memory but may be faster. This flag turns it off.
     OBXHnswFlags_VectorCacheSimdPaddingOff = 4,
 
-    /// If the speed of removing nodes becomes a concern in your use case, you can speed it up by setting this flag.
-    /// By default, repairing the graph after node removals creates more connections to improve the graph's quality.
-    /// The extra costs for this are relatively low (e.g. vs. regular indexing), and thus the default is recommended.
-    OBXHnswFlags_ReparationLimitCandidates = 8,
+    /// Allows indexing vectors whose dimensions (and other index parameters) are only known at runtime, not at build
+    /// time; e.g. if the embedding model is chosen at runtime.
+    /// The index parameters are given after the store was opened ("late") via obx_store_hnsw_index_init();
+    /// the other index parameters of the model are then not needed.
+    /// Until the first init call, putting objects of the type and nearest neighbor queries throw;
+    /// reading and removing objects and other queries work.
+    /// The parameters are persisted, and later sessions use them without another init call; other parameters can be
+    /// given in a later session before the index is used (e.g. for another embedding model; see the init function).
+    OBXHnswFlags_LateInit = 16,
 } OBXHnswFlags;
+
+/// Quantization (compression) of the vectors held in memory for the HNSW index (vector search).
+/// This only affects the in-memory representation: the vectors persisted on disk always stay unchanged,
+/// thus changing the quantization requires no data migration and no re-indexing.
+/// The search level (OBXHnswSearchLevel) selects how searches explore and rescore candidates;
+/// each quantization type has its own measured levels.
+///
+/// Which type to use (bytes per vector of d dimensions in parentheses; full-precision f32: 4 d):
+/// - TurboQuant4 (the default; d / 2 + 12): the best all-rounder; at the same recall, it is as fast as or faster
+///   than the other types on most data, at about 1/8 of f32's memory. Start here.
+/// - ScalarQuant8 (d + 8): for low to medium dimensions (e.g. up to 256) if twice TQ4's memory is acceptable;
+///   the most accurate quantized distances, thus the highest recall without rescoring (search levels 1-3) and
+///   the fastest type at a medium recall (e.g. 0.9) on such data; slower than TQ4 at high dimensions.
+/// - TurboQuant2, TurboQuant1_5 and TurboQuant1 (d / 4, 3 d / 16 and d / 8, each + 12): only to save memory at high
+///   dimensions (e.g. 768+, for TQ1 1000+); in this order, less memory and less recall; lower recall than TQ4 at its
+///   speed, slower than TQ4 at its recall; avoid them on low dimensions (e.g. 100-128), where they lose much recall.
+/// - TurboQuant3 (3 d / 8 + 12): rarely useful; between TQ2 and TQ4 in memory at high dimensions,
+///   but slower than TQ4 at about its recall; at up to 128 dimensions, it takes more memory than TQ4.
+/// - None (4 d): small data sets, vectors with less than 32 dimensions, or if the exact distances are needed at
+///   every search level.
+/// The codes are padded to multiples of 32 bytes (e.g. at 100-128 dimensions, TQ1, TQ1.5 and TQ2 take 44 bytes,
+/// TQ4 76).
+typedef enum {
+    /// Not a real type; the default applies (see obx_model_property_index_hnsw_quantization()).
+    OBXHnswQuantType_Undefined = 0,
+
+    /// No quantization; the full-precision vectors are used.
+    OBXHnswQuantType_None = 1,
+
+    /// TurboQuant with 1 bit per dimension ("TQ1"); needs high dimensions (e.g. 1000+).
+    /// Its search levels rescore from level 3 on (all explored candidates), to compensate for the low precision.
+    OBXHnswQuantType_TurboQuant1 = 10,
+
+    /// TurboQuant with 1.5 bits per dimension ("TQ1.5"; 1-bit codes over the vector zero-extended to 1.5x its
+    /// dimensions); for high dimensions (e.g. 1000+), between TQ1 and TQ2 in memory and recall.
+    /// Its search levels rescore from level 3 on, to compensate for the low precision.
+    OBXHnswQuantType_TurboQuant1_5 = 11,
+
+    /// TurboQuant with 2 bits per dimension ("TQ2"); for high dimensions (e.g. 768+).
+    /// Its search levels rescore from level 3 on, to compensate for the low precision.
+    OBXHnswQuantType_TurboQuant2 = 12,
+
+    /// TurboQuant with 3 bits per dimension ("TQ3"); rarely useful (see above).
+    OBXHnswQuantType_TurboQuant3 = 13,
+
+    /// TurboQuant with 4 bits per dimension ("TQ4"): the default and the recommended quantization.
+    /// It uses about 1/8 of the memory of the full-precision f32 vectors.
+    OBXHnswQuantType_TurboQuant4 = 14,
+
+    /// Scalar quantization with 8 bits per dimension ("SQ8"; int8 with one scale per vector, training-free);
+    /// for low to medium dimensions (e.g. up to 256).
+    /// It uses about 1/4 of the memory of the full-precision f32 vectors.
+    OBXHnswQuantType_ScalarQuant8 = 20,
+} OBXHnswQuantType;
+
+/// Build levels define the essential parameters for building the HNSW graph;
+/// see obx_model_property_index_hnsw_build_level().
+/// Start with the default L4_Balanced and adjust from there if you want to optimize the graph further.
+/// The trade-off is the graph's build time and memory against search quality (recall) and speed.
+/// In HNSW terms, this defines the neighbors per node ("M") and the indexing search count ("efConstruction") together.
+/// Unlike the search level, this applies when vectors are inserted (indexed); thus, a changed build level requires
+/// re-indexing (rebuilding the entire graph, which can be time-consuming).
+/// Higher levels pay off on "hard" data only (e.g. GloVe word embeddings), where the default graph limits the recall
+/// even at the highest search levels (OBXHnswSearchLevel); on "easy" data, which reaches a high recall already with the
+/// default, they cost build time, memory and search speed.
+/// The values' comments give the underlying M and efConstruction values (these may change in future versions;
+/// existing indexes keep the values they were built with), which you can use as a starting point if you want to
+/// optimize them further.
+typedef enum {
+    /// M 10 / efConstruction 64: about 0.3-0.6x the build time of L4
+    OBXHnswBuildLevel_L1_Fastest = 1,
+    /// M 20 / efConstruction 64
+    OBXHnswBuildLevel_L2_VeryFast = 2,
+    /// M 20 / efConstruction 128
+    OBXHnswBuildLevel_L3_Fast = 3,
+    /// M 30 / efConstruction 128: the default and a good starting point
+    OBXHnswBuildLevel_L4_Balanced = 4,
+    /// M 32 / efConstruction 160: recommended if you can afford a longer build time
+    OBXHnswBuildLevel_L5_BalancedQuality = 5,
+    /// M 32 / efConstruction 256: about 1.7-2.8x the build time of L4
+    OBXHnswBuildLevel_L6_Quality = 6,
+    /// M 48 / efConstruction 192
+    OBXHnswBuildLevel_L7_QualityHigh = 7,
+    /// M 64 / efConstruction 192
+    OBXHnswBuildLevel_L8_QualityHigher = 8,
+    /// M 96 / efConstruction 128: about 1.6-3.4x the build time of L4; reaches a recall of 0.99 on hard data
+    OBXHnswBuildLevel_L9_QualityUltra = 9,
+    /// M 96 / efConstruction 256
+    OBXHnswBuildLevel_L10_QualityMax = 10,
+} OBXHnswBuildLevel;
+
+/// Search levels of a HNSW index: the preferred way to trade search speed for quality (recall);
+/// see obx_query_param_vector_search_level().
+/// Start from L4_Balanced and adjust from there if you want to optimize the speed/quality trade-off.
+/// The levels range from the fastest search (lowest recall) to the highest recall (slowest search);
+/// each level costs roughly 1.3-2x the time of the previous one.
+/// With quantization, levels 1-3 do not rescore, so their result distances are estimates; levels 4 and higher rescore
+/// (TurboQuant1, TurboQuant1_5 and TurboQuant2 already rescore at level 3).
+/// Queries without a level search at the index's level (obx_model_property_index_hnsw_search_level(); default:
+/// L4_Balanced).
+/// The single search parameters (e.g. obx_query_param_vector_oversample_factor()) are for power users only, who tune
+/// them for their data.
+/// If the highest levels do not reach a recall target, build the graph at a higher build level (OBXHnswBuildLevel)
+/// instead.
+/// Each quantization type has its own measured levels. The table gives the explored / rescored candidates per level
+/// for result_count 10 ("-": no rescoring; other counts scale proportionally, rounded, at least
+/// result_count). These values may change in future versions. For TQ4, TQ3 and SQ8, they include the index's
+/// default quantization oversample (1.25 with rescoring, 1.5 without) and rescore factor (max(1.5, sqrt(oversample)));
+/// changing these index options changes them (obx_model_property_index_hnsw_quantization_oversample() and
+/// obx_model_property_index_hnsw_quantization_rescore_factor()). TQ1, TQ1.5 and TQ2 rescore more candidates than TQ4
+/// to compensate for their low precision (TQ1: all explored ones), and their counts are fixed.
+///
+/// | Level | None (f32) | TQ4, TQ3 | SQ8      | TQ2       | TQ1.5     | TQ1       |
+/// |-------|------------|----------|----------|-----------|-----------|-----------|
+/// | 1     | 10         | 10 / -   | 10 / -   | 10 / -    | 10 / -    | 10 / -    |
+/// | 2     | 15         | 15 / -   | 15 / -   | 20 / -    | 15 / -    | 15 / -    |
+/// | 3     | 20         | 30 / -   | 25 / -   | 20 / 20   | 20 / 15   | 20 / 20   |
+/// | 4     | 30         | 25 / 15  | 30 / 15  | 30 / 20   | 25 / 25   | 25 / 25   |
+/// | 5     | 40         | 50 / 20  | 50 / 20  | 50 / 30   | 40 / 40   | 50 / 50   |
+/// | 6     | 80         | 100 / 28 | 100 / 28 | 100 / 50  | 100 / 50  | 70 / 70   |
+/// | 7     | 150        | 150 / 35 | 150 / 35 | 150 / 50  | 100 / 100 | 100 / 100 |
+/// | 8     | 250        | 250 / 45 | 250 / 45 | 200 / 200 | 150 / 150 | 150 / 150 |
+/// | 9     | 400        | 400 / 57 | 400 / 57 | 300 / 300 | 200 / 200 | 300 / 300 |
+/// | 10    | 600        | 600 / 69 | 600 / 69 | 600 / 69  | 400 / 400 | 400 / 400 |
+typedef enum {
+    /// The fastest: explores only result_count candidates; with quantization, no rescoring (estimated distances)
+    OBXHnswSearchLevel_L1_Fastest = 1,
+    /// With quantization, no rescoring (estimated distances)
+    OBXHnswSearchLevel_L2_VeryFast = 2,
+    /// With quantization, no rescoring (estimated distances) except for TQ1, TQ1.5 and TQ2
+    OBXHnswSearchLevel_L3_Fast = 3,
+    /// The default and a good starting point; with quantization, the best candidates are rescored (exact distances)
+    OBXHnswSearchLevel_L4_Balanced = 4,
+    /// If level 4 misses too many neighbors; reaches a recall of about 0.97 on "easy" data such as OpenAI embeddings
+    OBXHnswSearchLevel_L5_BalancedQuality = 5,
+    /// If missing a neighbor matters (e.g. for RAG); reaches a recall of about 0.99 on "easy" data
+    OBXHnswSearchLevel_L6_Quality = 6,
+    /// "Easy" data saturates here; higher levels pay off only on "hard" data (e.g. GloVe word embeddings)
+    OBXHnswSearchLevel_L7_QualityHigh = 7,
+    /// For "hard" data; on "easy" data, it costs time without gaining recall
+    OBXHnswSearchLevel_L8_QualityHigher = 8,
+    /// For "hard" data and high recall targets; a higher build level (OBXHnswBuildLevel) is often faster
+    OBXHnswSearchLevel_L9_QualityUltra = 9,
+    /// The highest recall (slowest search); if it misses your recall target, use a higher build level instead
+    OBXHnswSearchLevel_L10_QualityMax = 10,
+} OBXHnswSearchLevel;
 
 /// Bit-flags defining the behavior of entities.
 /// Note: Numbers indicate the bit position
@@ -823,14 +974,17 @@ OBX_C_API obx_err obx_model_property_index_hnsw_dimensions(OBX_model* model, siz
 /// Higher number increases the graph connectivity which can lead to better results, but higher resources usage.
 /// If no value is set, a default value taken (currently 30).
 /// Try e.g. 16 for faster but less accurate results, or 64 for more accurate results.
+/// See also obx_model_property_index_hnsw_build_level() to set this together with the indexing search count.
 OBX_C_API obx_err obx_model_property_index_hnsw_neighbors_per_node(OBX_model* model, uint32_t value);
 
 /// Sets the max number of neighbors searched while indexing (aka "efConstruction") for the HNSW index of the latest
 /// property.
-/// If no value is set, a default value taken (currently 100, which can change in future version).
+/// If no value is set, a default value taken (currently 128, which can change in future version);
+/// an existing index keeps the value it was built with (e.g. 100, the default before 6.0), so it is not re-indexed.
 /// The default value serves as a starting point that can likely be optimized for specific datasets and use cases.
 /// The higher the value, the more accurate the search, but the longer the indexing will take.
 /// If indexing time is not a major concern, a value of at least 200 is recommended to improve search quality.
+/// See also obx_model_property_index_hnsw_build_level() to set this together with the neighbors per node.
 OBX_C_API obx_err obx_model_property_index_hnsw_indexing_search_count(OBX_model* model, uint32_t value);
 
 /// Sets flags for the HNSW index of the latest property.
@@ -849,7 +1003,83 @@ OBX_C_API obx_err obx_model_property_index_hnsw_reparation_backlink_probability(
 
 /// Sets the vector cache hint size for the HNSW index of the latest property.
 /// This is a non-binding hint of the maximum size of the vector cache in KB (default: 2097152 or 2 GB/GiB).
+/// Note: a minimum size applies, derived from the index parameters (neighbors per node, indexing search count) and
+/// the cached vector/record byte size; a value below the minimum is rejected with an error naming the minimum.
 OBX_C_API obx_err obx_model_property_index_hnsw_vector_cache_hint_size_kb(OBX_model* model, size_t value);
+
+/// Sets the quantization of the in-memory vectors for the HNSW index of the latest property.
+/// Memory only: the persisted vectors are unaffected; thus, changing this value does not cause re-indexing.
+/// The search level (OBXHnswSearchLevel) selects how searches explore and rescore candidates.
+/// If not set, a new index uses OBXHnswQuantType_TurboQuant4 if the vectors have at least 32 dimensions and the
+/// distance type is Euclidean, Cosine, DotProduct or DotProductNonNormalized; otherwise OBXHnswQuantType_None.
+/// If not set, an existing index keeps its quantization (OBXHnswQuantType_None if created before version 6.0)
+/// unless a change of other options re-indexes it (e.g. a different build level); then it is treated as new.
+/// @param value See OBXHnswQuantType for values; OBXHnswQuantType_Undefined is not allowed.
+OBX_C_API obx_err obx_model_property_index_hnsw_quantization(OBX_model* model, OBXHnswQuantType value);
+
+/// With quantization, sets the oversample factor that corrects for the quantization error, for searches that do not
+/// set one (obx_query_param_vector_quantization_oversample()): they explore this factor times as many candidates
+/// (rounded, at least result_count). 0 (default) selects 1.25 with rescoring and 1.5 without it; other values
+/// must be at least 1. Higher values increase recall at the cost of speed. Does not cause re-indexing.
+/// Note: the search levels of TQ1, TQ1.5 and TQ2 set their candidate counts explicitly and ignore this value.
+OBX_C_API obx_err obx_model_property_index_hnsw_quantization_oversample(OBX_model* model, float value);
+
+/// With quantization and rescoring, sets how many of the explored candidates are rescored, for searches that do not
+/// set it (obx_query_param_vector_rescore_factor()): only the value * result_count candidates with the nearest
+/// estimates (rounded, at least result_count, at most the explored candidates), i.e. fewer object reads when
+/// exploring many candidates. 0 (default) grows with the search's oversample: max(1.5, sqrt(oversample));
+/// other values must be at least 1. Does not cause re-indexing.
+/// Note: the search levels of TQ1, TQ1.5 and TQ2 set their rescore counts explicitly and ignore this value.
+OBX_C_API obx_err obx_model_property_index_hnsw_quantization_rescore_factor(OBX_model* model, float value);
+
+/// Sets the neighbors per node and the indexing search count of the given build level (see OBXHnswBuildLevel) for the
+/// HNSW index of the latest property; a convenient alternative to obx_model_property_index_hnsw_neighbors_per_node()
+/// and obx_model_property_index_hnsw_indexing_search_count(). The last call wins: call these afterwards to override a
+/// single value of the level. Changing the values causes re-indexing.
+OBX_C_API obx_err obx_model_property_index_hnsw_build_level(OBX_model* model, OBXHnswBuildLevel value);
+
+/// Sets the search level of queries that do not set one (default: OBXHnswSearchLevel_L4_Balanced) for the HNSW index
+/// of the latest property; see OBXHnswSearchLevel. Queries can set another level per search
+/// (obx_query_param_vector_search_level()). Only affects searching; thus, changing this value does not cause
+/// re-indexing.
+OBX_C_API obx_err obx_model_property_index_hnsw_search_level(OBX_model* model, OBXHnswSearchLevel value);
+
+/// For queries combining nearest neighbor search with other conditions: if the lookups of the other conditions (indexes
+/// and relations) leave at most this many candidates, the nearest neighbors among the matching candidates are found by
+/// brute force instead of by the graph search with a filter. Brute force scores each candidate: exact without
+/// quantization; with quantization, it rescores the nearest estimates with the exact vectors, which finds most of the
+/// exact nearest neighbors (e.g. recall@10 0.996 with OBXHnswQuantType_TurboQuant4; less with fewer bits).
+/// Brute force does not use the search level or the oversample and rescore parameters: its results always carry exact
+/// distances, also if the graph search of that query would not rescore.
+/// Queries use this value unless they set their own, which overrides it: when building the query
+/// (obx_qb_vector_brute_force_max_candidates()) or per search (obx_query_param_vector_brute_force_max_candidates()).
+/// 0 (default) selects 10,000.
+/// Does not cause re-indexing.
+OBX_C_API obx_err obx_model_property_index_hnsw_brute_force_max_candidates(OBX_model* model, uint32_t value);
+
+/// For queries combining nearest neighbor search with other conditions: the graph search, which accepts only objects
+/// matching the other conditions as results, explores at most this many nodes; if few objects match, it would otherwise
+/// walk through much of the graph. At the limit, the query returns the matching objects found so far, which may be
+/// fewer than the result count.
+/// Queries use this value unless they set their own, which overrides it: when building the query
+/// (obx_qb_vector_filtered_search_max_nodes()) or per search (obx_query_param_vector_filtered_search_max_nodes()).
+/// 0 (default) selects 25,000.
+/// The limit applies to any search with other conditions, whatever share of the objects matches: also to a search
+/// that would explore more nodes for a high result count or oversample factor (raise the limit for those).
+/// It limits the explored nodes, not the checked ones: the neighbors of each explored node are checked, which costs an
+/// object read each if a condition has no index. E.g. on 290k objects of which 0.01% matched, a search at the default
+/// limit checked 210k objects and took 120-160 ms (19-35 ms if indexes cover all other conditions).
+/// Does not cause re-indexing.
+OBX_C_API obx_err obx_model_property_index_hnsw_filtered_search_max_nodes(OBX_model* model, uint32_t value);
+
+/// Seeds the random levels of new graph nodes of the HNSW index of the latest property (0: a random seed, the
+/// default), e.g. for reproducible tests: putting the same objects in the same order builds the same graph.
+/// Each store opening restarts the random sequence, transactions do not.
+/// The seed semantics may change in future versions; currently, seeds up to 32 bits give the same levels on all
+/// platforms (larger seeds may not).
+/// Graphs may still differ between platforms, as distance calculations depend on the CPU and SIMD instructions.
+/// Changing this value causes re-indexing.
+OBX_C_API obx_err obx_model_property_index_hnsw_random_seed(OBX_model* model, uint64_t value);
 
 /// Add a standalone relation between the active entity and the target entity to the model
 /// @param relation_id Must be unique within this version of the model
@@ -1376,6 +1606,71 @@ OBX_C_API obx_schema_id obx_store_entity_id(OBX_store* store, const char* entity
 /// Return the property id from the property name or 0 if the name is not found
 OBX_C_API obx_schema_id obx_store_entity_property_id(OBX_store* store, obx_schema_id entity_id,
                                                      const char* property_name);
+
+/// What obx_store_hnsw_index_init() does with the existing objects of the type.
+typedef enum {
+    /// Keeps the objects: indexes them if needed (the first init or other parameters requiring re-indexing).
+    /// Objects whose vectors do not fit the parameters (fewer dimensions) are kept, but not indexed (and not counted);
+    /// consider OBXHnswInitMode_RemoveAllObjectsOnReindex for those.
+    OBXHnswInitMode_KeepObjects = 0,
+
+    /// Removes all objects of the type instead of indexing them (the first init or other parameters requiring
+    /// re-indexing), e.g. if their vectors would not fit the parameters anyway (other dimensions or embedding model);
+    /// keeps them otherwise, e.g. with the parameters in effect.
+    /// Removing all objects at once is much cheaper than indexing them (and than removing them one by one).
+    OBXHnswInitMode_RemoveAllObjectsOnReindex = 1,
+
+    /// Always removes all objects of the type, also with the parameters in effect.
+    OBXHnswInitMode_RemoveAllObjectsAlways = 2,
+} OBXHnswInitMode;
+
+/// Bit flags of what obx_store_hnsw_index_init() did; 0: nothing changed.
+typedef enum {
+    /// The parameters were set (and persisted): the first init or other parameters.
+    OBXHnswInitResult_ParamsChanged = 1,
+
+    /// Objects of the type were indexed; their count is given via out_object_count (those with vectors fitting the
+    /// dimensions).
+    OBXHnswInitResult_ObjectsIndexed = 2,
+
+    /// Objects of the type were removed (see OBXHnswInitMode); their count is given via out_object_count.
+    OBXHnswInitResult_ObjectsRemoved = 4,
+} OBXHnswInitResult;
+
+/// Initializes the HNSW index of a property with late init (OBXHnswFlags_LateInit in the model) with parameters only
+/// known at runtime, e.g. the dimensions of an embedding model chosen at runtime.
+/// Call it after opening the store; until the first call, puts of the type and nearest neighbor queries throw.
+/// The first call indexes the existing objects of the type (in a write transaction) or removes them (see
+/// OBXHnswInitMode).
+/// The parameters are persisted, and later sessions use them without another call.
+/// Intended use: call it once after each opening of the store (e.g. at each app start) with the parameters the app
+/// wants; this works regardless of whether a previous session already initialized the index.
+/// A call with the parameters in effect changes nothing (except for OBXHnswInitMode_RemoveAllObjectsAlways); thus,
+/// further calls in the same session are not needed, but harmless.
+/// Other parameters (e.g. a higher indexing search count or another embedding model) are accepted only until the
+/// index is used in this session (putting or removing objects of the type, or a nearest neighbor query); call it
+/// right after opening the store. Then, the objects are re-indexed (or removed; see OBXHnswInitMode) if the
+/// parameters require it (e.g. other dimensions); some parameters do not (e.g. the search level).
+/// Warning: during a call setting parameters, the type must not be used concurrently, and no other process may use
+/// the store; transactions begun before the call cannot use the index afterwards (OBX_ERROR_ILLEGAL_STATE).
+/// @param hnsw_params a finished FlatBuffers HnswParams table (the schema of the model's HNSW index parameters);
+///        the full set: values not given use their defaults; the dimensions are required
+/// @param size the size of hnsw_params in bytes
+/// @param mode what to do with the existing objects of the type; OBXHnswInitMode_KeepObjects (0) to keep them
+/// @param out_result optional (may be null): receives what was done as OBXHnswInitResult bit flags (0: nothing),
+///        e.g. to recompute the vectors of the objects if they were removed
+/// @param out_object_count optional (may be null): receives the number of indexed or removed objects
+/// @returns OBX_ERROR_ILLEGAL_ARGUMENT if the property has no HNSW index with late init or for invalid parameters
+/// @returns OBX_ERROR_ILLEGAL_STATE for other parameters than in effect if the index was already used in this session
+OBX_C_API obx_err obx_store_hnsw_index_init(OBX_store* store, obx_schema_id entity_id, obx_schema_id property_id,
+                                            const uint8_t* hnsw_params, size_t size, OBXHnswInitMode mode,
+                                            uint32_t* out_result, uint64_t* out_object_count);
+
+/// Gets the HNSW index parameters in effect for the given property as a FlatBuffers HnswParams table, e.g. to check
+/// if an index with late init (OBXHnswFlags_LateInit) still needs its init (then, the parameters have no dimensions)
+/// or which dimensions a previous session gave it.
+/// @returns null if the property has no HNSW index (or for other errors); free the result with obx_bytes_free()
+OBX_C_API OBX_bytes* obx_store_hnsw_index_params(OBX_store* store, obx_schema_id entity_id, obx_schema_id property_id);
 
 /// Await for all (including future) async submissions to be completed (the async queue becomes empty).
 /// @returns true if all submissions were completed or async processing was not started
@@ -2011,6 +2306,7 @@ OBX_C_API obx_qb_cond obx_qb_contains_element_string(OBX_query_builder* builder,
 
 /// For flex properties that have a map as root value, this looks for a matching key/value pair,
 /// with the map value equal to the given one.
+/// @note To change the key and value of a built query, use obx_query_param_2strings().
 /// @param key must match exactly (case-sensitive)
 /// @param value the map's value must equal this one.
 /// @param case_sensitive if true, the value's match is case-sensitive, otherwise case-insensitive.
@@ -2019,6 +2315,7 @@ OBX_C_API obx_qb_cond obx_qb_equals_key_value_string(OBX_query_builder* builder,
 
 /// For flex properties that have a map as root value, this looks for a matching key/value pair,
 /// with the map value equal to the given one.
+/// @note To change the key and value of a built query, use obx_query_param_key_value_int().
 /// @param key must match exactly (case-sensitive)
 /// @param value the map's value must equal this one.
 OBX_C_API obx_qb_cond obx_qb_equals_key_value_int(OBX_query_builder* builder, obx_schema_id property_id,
@@ -2026,6 +2323,7 @@ OBX_C_API obx_qb_cond obx_qb_equals_key_value_int(OBX_query_builder* builder, ob
 
 /// For flex properties that have a map as root value, this looks for a matching key/value pair,
 /// with the map value equal to the given one.
+/// @note To change the key and value of a built query, use obx_query_param_key_value_double().
 /// @param key must match exactly (case-sensitive)
 /// @param value the map's value must equal this one.
 OBX_C_API obx_qb_cond obx_qb_equals_key_value_double(OBX_query_builder* builder, obx_schema_id property_id,
@@ -2272,13 +2570,46 @@ OBX_C_API OBX_query_builder* obx_qb_link_time(OBX_query_builder* builder, obx_sc
 /// This requires the vector property to have a HNSW index.
 /// @param vector_property_id the vector property ID of the entity
 /// @param query_vector the query vector; its dimensions should be at least the dimensions of the vector property.
-/// @param max_result_count maximum number of objects to return by the ANN condition.
-///        Hint: it can also be used as the "ef" HNSW parameter to increase the search quality in combination with a
-///        query limit.
-///        For example, use 100 here with a query limit of 10 to have 10 results that are of potentially better quality
-///        than just passing in 10 here (quality/performance tradeoff).
+/// @param result_count maximum number of objects to return by the ANN condition; typically the query limit.
+///        The search usually explores more nodes internally, as defined by the search level (see OBXHnswSearchLevel).
+///        To adjust the search to your needs, set the search level via obx_qb_vector_search_level() (when building
+///        the query) or obx_query_param_vector_search_level() (per search).
+///        With other conditions, the result_count nearest objects among the ones matching them are returned (by brute
+///        force among few candidates, see obx_qb_vector_brute_force_max_candidates(), else by a graph search with a
+///        filter, see obx_qb_vector_filtered_search_max_nodes()).
 OBX_C_API obx_qb_cond obx_qb_nearest_neighbors_f32(OBX_query_builder* builder, obx_schema_id vector_property_id,
-                                                   const float* query_vector, size_t max_result_count);
+                                                   const float* query_vector, size_t result_count);
+
+/// Modifiers of the nearest neighbor condition added last (obx_qb_nearest_neighbors_f32()); the last condition of the
+/// builder must be that condition. They set the condition's initial search parameters, which a built query can change
+/// (obx_query_param_vector_*()).
+///
+/// Sets the search level (see OBXHnswSearchLevel), the preferred way to trade search speed for quality (recall);
+/// without it, the condition uses the index's level (obx_model_property_index_hnsw_search_level()).
+/// It replaces the oversample and rescore parameters, so call it before their modifiers; it keeps the limits for
+/// searches with other conditions (obx_qb_vector_brute_force_max_candidates(),
+/// obx_qb_vector_filtered_search_max_nodes()).
+OBX_C_API obx_err obx_qb_vector_search_level(OBX_query_builder* builder, OBXHnswSearchLevel level);
+
+/// For power users (prefer a search level): sets how many candidates the search explores per result, independent of
+/// quantization (at least 1); see obx_query_param_vector_oversample_factor().
+OBX_C_API obx_err obx_qb_vector_oversample_factor(OBX_query_builder* builder, float value);
+
+/// For power users (prefer a search level): with quantization, rescores value * result_count of the explored
+/// candidates (those with the nearest estimates; at least 1, capped at the explored candidates) with the exact vectors;
+/// this also turns rescoring on, e.g. for the search levels that do not rescore otherwise (1-3).
+/// See obx_query_param_vector_rescore_factor().
+OBX_C_API obx_err obx_qb_vector_rescore_factor(OBX_query_builder* builder, float value);
+
+/// For power users: with other conditions, brute force among at most value candidates of their lookups; overrides
+/// the index's value (0: uses it; see obx_model_property_index_hnsw_brute_force_max_candidates()).
+/// See obx_query_param_vector_brute_force_max_candidates().
+OBX_C_API obx_err obx_qb_vector_brute_force_max_candidates(OBX_query_builder* builder, uint32_t value);
+
+/// For power users: with other conditions, the graph search explores at most value nodes; overrides the index's value
+/// (0: uses it; see obx_model_property_index_hnsw_filtered_search_max_nodes()).
+/// See obx_query_param_vector_filtered_search_max_nodes().
+OBX_C_API obx_err obx_qb_vector_filtered_search_max_nodes(OBX_query_builder* builder, uint32_t value);
 
 //----------------------------------------------
 // Query
@@ -2400,6 +2731,9 @@ OBX_C_API obx_err obx_query_cursor_remove(OBX_query* query, OBX_cursor* cursor, 
 //----------------------------------------------
 OBX_C_API obx_err obx_query_param_string(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
                                          const char* value);
+/// Also sets the key and value of key/value conditions with a string value (e.g. obx_qb_equals_key_value_string()).
+/// This also works for key/value conditions created with int or double values;
+/// case sensitivity is kept as given when building the query (int/double conditions are case-sensitive).
 OBX_C_API obx_err obx_query_param_2strings(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
                                            const char* value, const char* value2);
 OBX_C_API obx_err obx_query_param_strings(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
@@ -2421,6 +2755,73 @@ OBX_C_API obx_err obx_query_param_bytes(OBX_query* query, obx_schema_id entity_i
 OBX_C_API obx_err obx_query_param_vector_float32(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
                                                  const float* value, size_t element_count);
 
+/// Sets the search level (see OBXHnswSearchLevel) of a nearest neighbor condition (obx_qb_nearest_neighbors_f32()):
+/// this is the preferred way to trade search speed for quality. It replaces the previously set oversample and rescore
+/// parameters; it keeps the limits for searches with other conditions
+/// (obx_query_param_vector_brute_force_max_candidates(), obx_query_param_vector_filtered_search_max_nodes()).
+///
+/// The following functions set single search parameters instead. They are for power users who tune the search for
+/// their data (e.g. by measuring recall and speed on a representative query set); the defaults and the levels
+/// suit most uses. They change one value each, e.g. to adjust a level; a query starts with the values of the index's
+/// search level (see obx_model_property_index_hnsw_search_level()).
+/// A search explores ef = result_count * oversample * quantization oversample candidates (rounded, at least
+/// result_count); without quantization, the quantization oversample factor does not apply.
+OBX_C_API obx_err obx_query_param_vector_search_level(OBX_query* query, obx_schema_id entity_id,
+                                                      obx_schema_id property_id, OBXHnswSearchLevel level);
+
+/// Sets how many candidates a nearest neighbor search explores per result for a higher recall, independent of
+/// quantization (must be at least 1).
+OBX_C_API obx_err obx_query_param_vector_oversample_factor(OBX_query* query, obx_schema_id entity_id,
+                                                           obx_schema_id property_id, float value);
+
+/// With quantization, sets the oversample factor that corrects for the quantization error only (0 or at least 1);
+/// 0 uses the index's (see obx_model_property_index_hnsw_quantization_oversample()).
+OBX_C_API obx_err obx_query_param_vector_quantization_oversample(OBX_query* query, obx_schema_id entity_id,
+                                                                 obx_schema_id property_id, float value);
+
+/// With quantization, sets whether a nearest neighbor search rescores its candidates with the exact vectors read from
+/// the objects (exact result distances and higher recall levels), or returns the nearest by their quantized distance
+/// estimates (faster; the result distances are estimates).
+OBX_C_API obx_err obx_query_param_vector_rescore(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
+                                                 bool value);
+
+/// With quantization, sets how many candidates are rescored: value * result_count candidates with the nearest
+/// estimates (0 or at least 1; capped at the explored candidates); 0 uses the index's (see
+/// obx_model_property_index_hnsw_quantization_rescore_factor()).
+/// Like obx_qb_vector_rescore_factor(), a non-zero value also turns rescoring on (obx_query_param_vector_rescore()),
+/// e.g. for the search levels that do not rescore otherwise (1-3); 0 keeps the rescore setting.
+OBX_C_API obx_err obx_query_param_vector_rescore_factor(OBX_query* query, obx_schema_id entity_id,
+                                                        obx_schema_id property_id, float value);
+
+/// With other conditions, sets up to how many candidates of their lookups (indexes and relations) the nearest neighbors
+/// are found by brute force (exact without quantization) instead of by a graph search with a filter; overrides the
+/// index's value (0: uses it; see obx_model_property_index_hnsw_brute_force_max_candidates()).
+/// Higher values let more queries use brute force, but its costs grow with the candidates, while the graph search gets
+/// cheaper the more objects match (e.g. on 290k objects, the graph search was faster from about 15k candidates, or
+/// from about 5k if the other conditions need to be checked on the objects).
+OBX_C_API obx_err obx_query_param_vector_brute_force_max_candidates(OBX_query* query, obx_schema_id entity_id,
+                                                                    obx_schema_id property_id, uint32_t value);
+
+/// With other conditions, sets how many nodes the graph search (with a filter for the matching objects) explores at
+/// most; overrides the index's value (0: uses it; see obx_model_property_index_hnsw_filtered_search_max_nodes()).
+/// Higher values increase the recall if few objects match, at the cost of speed; at the limit, fewer than
+/// result_count objects may be found.
+OBX_C_API obx_err obx_query_param_vector_filtered_search_max_nodes(OBX_query* query, obx_schema_id entity_id,
+                                                                   obx_schema_id property_id, uint32_t value);
+
+/// Sets the key and the int value of key/value conditions (e.g. obx_qb_equals_key_value_int() for flex properties).
+/// This also works for key/value conditions created with string or double values,
+/// which are then changed to compare against an int value.
+OBX_C_API obx_err obx_query_param_key_value_int(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
+                                                const char* key, int64_t value);
+
+/// Sets the key and the double value of key/value conditions (e.g. obx_qb_equals_key_value_double() for flex
+/// properties).
+/// This also works for key/value conditions created with string or int values, which are then changed to
+/// compare against a double value.
+OBX_C_API obx_err obx_query_param_key_value_double(OBX_query* query, obx_schema_id entity_id, obx_schema_id property_id,
+                                                   const char* key, double value);
+
 /// Gets the size of the property type used in a query condition.
 /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
 /// if the language has a bias towards another type (e.g. 64 bit ints).
@@ -2433,6 +2834,8 @@ OBX_C_API size_t obx_query_param_get_type_size(OBX_query* query, obx_schema_id e
 // Similar to obx_query_param_{type}, but when an alias was used for a parameter, see obx_qb_param_alias().
 //----------------------------------------------
 OBX_C_API obx_err obx_query_param_alias_string(OBX_query* query, const char* alias, const char* value);
+OBX_C_API obx_err obx_query_param_alias_2strings(OBX_query* query, const char* alias, const char* value,
+                                                 const char* value2);
 OBX_C_API obx_err obx_query_param_alias_strings(OBX_query* query, const char* alias, const char* const values[],
                                                 size_t count);
 OBX_C_API obx_err obx_query_param_alias_int(OBX_query* query, const char* alias, int64_t value);
@@ -2446,6 +2849,21 @@ OBX_C_API obx_err obx_query_param_alias_2doubles(OBX_query* query, const char* a
 OBX_C_API obx_err obx_query_param_alias_bytes(OBX_query* query, const char* alias, const uint8_t* value, size_t size);
 OBX_C_API obx_err obx_query_param_alias_vector_float32(OBX_query* query, const char* alias, const float* value,
                                                        size_t element_count);
+OBX_C_API obx_err obx_query_param_alias_vector_search_level(OBX_query* query, const char* alias,
+                                                            OBXHnswSearchLevel level);
+OBX_C_API obx_err obx_query_param_alias_vector_oversample_factor(OBX_query* query, const char* alias, float value);
+OBX_C_API obx_err obx_query_param_alias_vector_quantization_oversample(OBX_query* query, const char* alias,
+                                                                       float value);
+OBX_C_API obx_err obx_query_param_alias_vector_rescore(OBX_query* query, const char* alias, bool value);
+OBX_C_API obx_err obx_query_param_alias_vector_rescore_factor(OBX_query* query, const char* alias, float value);
+OBX_C_API obx_err obx_query_param_alias_vector_brute_force_max_candidates(OBX_query* query, const char* alias,
+                                                                          uint32_t value);
+OBX_C_API obx_err obx_query_param_alias_vector_filtered_search_max_nodes(OBX_query* query, const char* alias,
+                                                                         uint32_t value);
+OBX_C_API obx_err obx_query_param_alias_key_value_int(OBX_query* query, const char* alias, const char* key,
+                                                      int64_t value);
+OBX_C_API obx_err obx_query_param_alias_key_value_double(OBX_query* query, const char* alias, const char* key,
+                                                         double value);
 
 /// Gets the size of the property type used in a query condition.
 /// A typical use case of this is to allow language bindings (e.g. Swift) use the right type (e.g. 32 bit ints) even
