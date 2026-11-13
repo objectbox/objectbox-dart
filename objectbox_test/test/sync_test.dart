@@ -240,6 +240,54 @@ void main() {
         expect(() => client.setMaxMessagesInFlight(21), throwsArgumentError);
       });
 
+      test('SyncClient resync and full sync (no server available)', () {
+        final client = createClient(store);
+        addTearDown(() => client.close());
+        // Not started
+        expect(client.requestResync(), isFalse);
+        expect(client.requestFullSync(), isFalse);
+        // No server: does not log in
+        client.start();
+        expect(client.requestResync(), isFalse);
+        expect(client.requestFullSync(), isFalse);
+      });
+
+      test('SyncClient resyncAssumedChanges', () {
+        SyncClient(
+          store,
+          [serverUrl()],
+          [SyncCredentials.none()],
+          resyncAssumedChanges: 1000,
+        ).close();
+
+        // Rejected by the C API
+        expect(
+          () => SyncClient(
+            store,
+            [serverUrl()],
+            [SyncCredentials.none()],
+            resyncAssumedChanges: 0,
+          ),
+          throwsArgumentError,
+        );
+        // Would be truncated
+        expect(
+          () => SyncClient(
+            store,
+            [serverUrl()],
+            [SyncCredentials.none()],
+            resyncAssumedChanges: -1,
+          ),
+          throwsRangeError,
+        );
+
+        final client = createClient(store);
+        addTearDown(() => client.close());
+        client.setResyncAssumedChanges(50);
+        expect(() => client.setResyncAssumedChanges(0), throwsArgumentError);
+        expect(() => client.setResyncAssumedChanges(-1), throwsRangeError);
+      });
+
       test('sync-enabled entity writes require a started client', () {
         final box = store.box<TestEntitySynced>();
         final notActivated = throwsA(
@@ -278,6 +326,9 @@ void main() {
         expect(() => c.cancelUpdates(), error);
         expect(() => c.requestUpdates(subscribeForFuturePushes: true), error);
         expect(() => c.outgoingMessageCount(), error);
+        expect(() => c.requestResync(), error);
+        expect(() => c.requestFullSync(), error);
+        expect(() => c.setResyncAssumedChanges(100), error);
 
         expect(() => c.setCredentials(SyncCredentials.none()), error);
         expect(
@@ -615,6 +666,65 @@ void main() {
             expect(read2, isNotNull);
             expect(read1!.id, equals(read2!.id));
             expect(read1.value, equals(read2.value));
+          });
+
+          test('SyncClient resync and full sync keep syncing', () async {
+            await server.online();
+            final client1 = loggedInClient(env.store);
+            final client2 = loggedInClient(env2.store);
+            addTearDown(() {
+              client1.close();
+              client2.close();
+            });
+            // Resync requires Sync protocol version 12
+            expect(client1.protocolVersionServer(), greaterThanOrEqualTo(12));
+
+            final box = env.store.box<TestEntitySynced>();
+            final box2 = env2.store.box<TestEntitySynced>();
+            final ids = box.putMany(
+              List.generate(10, (i) => TestEntitySynced(value: i)),
+            );
+            expect(
+              waitUntil(() => box2.count() == 10, timeout: defaultTimeout * 5),
+              isTrue,
+            );
+            expect(
+              waitUntil(() => client1.outgoingMessageCount() == 0),
+              isTrue,
+            );
+
+            client1.setResyncAssumedChanges(10);
+            expect(client1.requestResync(), isTrue);
+
+            // Keeps syncing and has the same data. Note: this does not check
+            // that it actually resynced, as its fallback, a full sync (which
+            // replaces the local data), results in the same data.
+            final id2 = box2.put(TestEntitySynced(value: 42));
+            expect(
+              waitUntil(
+                () => box.get(id2) != null,
+                timeout: defaultTimeout * 5,
+              ),
+              isTrue,
+            );
+            expect(box.count(), 11);
+            expect(
+              box.getMany(ids).map((e) => e!.value),
+              List.generate(10, (i) => i),
+            );
+            expect(client1.state(), SyncState.loggedIn);
+
+            expect(client2.requestFullSync(), isTrue);
+            final id3 = box.put(TestEntitySynced(value: 43));
+            expect(
+              waitUntil(
+                () => box2.get(id3) != null,
+                timeout: defaultTimeout * 5,
+              ),
+              isTrue,
+            );
+            expect(box2.count(), 12);
+            expect(client2.state(), SyncState.loggedIn);
           });
 
           test('SyncClient listeners: connection', () async {

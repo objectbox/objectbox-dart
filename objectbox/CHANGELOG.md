@@ -84,6 +84,9 @@
     * `objectbox_mesh_sync` correctly includes Swift Package dependencies for iOS
 * Add `SyncClient.stats(SyncStats)` to read Sync client statistics counters.
 * Add `SyncClient.setMaxMessagesInFlight()` to configure how many outgoing transaction messages can be sent without an ACK from the server.
+* New resync: `SyncClient.requestResync()` reconciles a client with the server while keeping its local data and only transferring the differences (compares object IDs and content hashes; requires a server supporting Sync protocol version 12). Advanced tuning (typically not needed): the `resyncAssumedChanges` parameter of the `SyncClient` constructor and `SyncClient.setResyncAssumedChanges()`.
+* Changed Sync filters (e.g. changed filter variables) now resync instead of resetting the client's data (with servers supporting Sync protocol version 12). `SyncClient.applyFilterVariables()` reconnects to apply changed variables.
+* Add `SyncClient.requestFullSync()` (experimental) to request a full sync from the server.
 * Errors when starting to listen to a Sync event stream (e.g. the client was already closed) are now delivered on the stream instead of surfacing as an uncatchable unhandled zone error and leaking the internal receive port (which kept the isolate alive).
 * Close a `SyncClient` that is still running when its isolate shuts down, before closing its store.
   Before, the client kept using the closed store and the app crashed (SIGABRT, "store instance is dead"),

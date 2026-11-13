@@ -319,6 +319,14 @@ class SyncClient implements Finalizable {
   /// a local development environment or custom CAs, pass certificate paths
   /// referring to the local file system to [certificatePaths].
   ///
+  /// ## Resync
+  ///
+  /// Advanced optimization, typically not needed (the default fits most
+  /// cases): to set the initial estimated number of objects that differ between
+  /// the client and the server for resyncs, pass it to [resyncAssumedChanges]
+  /// (greater than 0; 200 by default). See [setResyncAssumedChanges] for
+  /// details.
+  ///
   /// ## Mesh Sync (peer-to-peer)
   ///
   /// To enable peer-to-peer (P2P) synchronization between sync clients without
@@ -337,6 +345,7 @@ class SyncClient implements Finalizable {
     Map<String, String>? filterVariables,
     List<String>? certificatePaths,
     int? flags,
+    int? resyncAssumedChanges,
     MeshConfig? mesh,
   }) {
     if (syncClientsStorage.containsKey(_store)) {
@@ -373,6 +382,13 @@ class SyncClient implements Finalizable {
       // Note: 0 or invalid flags are ignored by sync_opt_flags
       if (flags != null) {
         checkObx(C.sync_opt_flags(options, flags));
+      }
+
+      if (resyncAssumedChanges != null) {
+        checkUint32(resyncAssumedChanges, 'resyncAssumedChanges');
+        checkObx(
+          C.sync_opt_resync_assumed_changes(options, resyncAssumedChanges),
+        );
       }
 
       if (mesh != null) {
@@ -537,9 +553,12 @@ class SyncClient implements Finalizable {
   /// Applies all pending Sync filter variable updates (from [putFilterVariable]
   /// and [removeFilterVariable] calls).
   ///
-  /// If the client is connected, sends the updated variables to the server.
-  /// If the client is not connected, the updated variables will be included in
-  /// the next login message.
+  /// If the client is connected and the variables changed, it reconnects to
+  /// apply them. This resyncs the data of this client according to the new
+  /// variables: objects that did not change are kept (with servers supporting
+  /// Sync protocol version 12; older servers reset the data of this client
+  /// instead). If the client is not connected, the updated variables will be
+  /// included in the next login message.
   ///
   /// See also [putFilterVariable], [removeFilterVariable] and
   /// [removeAllFilterVariables].
@@ -730,6 +749,61 @@ class SyncClient implements Finalizable {
       checkObxSuccess(
         C.sync_updates_request(_cSyncChecked, subscribeForFuturePushes),
       );
+
+  /// Requests a resync with the server: like a full sync, but this client keeps
+  /// its local data and only the differences are transferred (objects and
+  /// relations are compared via their IDs and content hashes). Use this, for
+  /// example, if the data of this client may have diverged from the server.
+  ///
+  /// To ensure the server has all local changes first, the request is only
+  /// sent once the outgoing queue is empty. Note: building the request reads
+  /// all synced objects, which may take a while for large databases (it is
+  /// done by this call or on a sync thread once the outgoing queue is empty).
+  ///
+  /// If the server does not support resync (it requires a server supporting
+  /// Sync protocol version 12) or the request would be too large, this client
+  /// falls back to a full sync, which first removes all local synced data.
+  ///
+  /// Do not call this inside a write transaction (like in
+  /// [Store.runInTransaction]), the fallback writes.
+  ///
+  /// Returns `true` if the resync was requested (the client is logged in) or
+  /// `false` if the client is not logged in (no resync will be done).
+  ///
+  /// See also [setResyncAssumedChanges].
+  bool requestResync() => checkObxSuccess(C.sync_resync(_cSyncChecked));
+
+  /// Advanced optimization, typically not needed (the default fits most
+  /// cases): sets the estimated number of objects that differ between this
+  /// client and the server for resyncs ([requestResync] and resyncs after Sync
+  /// filter changes); the resync request is optimized for it.
+  ///
+  /// A higher value results in a larger resync request, but less data sent back
+  /// by the server; a lower value results in a smaller request, but potentially
+  /// more data sent back (e.g. unchanged objects next to changed ones).
+  ///
+  /// Takes effect with the next resync request built (also if a resync is
+  /// already pending).
+  ///
+  /// The [count] must be greater than 0; it is 200 by default (or as given to
+  /// the `resyncAssumedChanges` parameter of the constructor).
+  void setResyncAssumedChanges(int count) {
+    checkUint32(count, 'count');
+    checkObx(C.sync_resync_assumed_changes(_cSyncChecked, count));
+  }
+
+  /// Experimental, this API might change or be removed in the future.
+  ///
+  /// Requests a full sync from the server: quickly brings the database
+  /// up-to-date in a single transaction, without transmitting all the history.
+  /// Good for the initial sync of new clients.
+  ///
+  /// For clients with existing data, consider [requestResync], which keeps the
+  /// local data and only transfers the differences.
+  ///
+  /// Returns `true` if the request was likely sent (the client is logged in) or
+  /// `false` if the request was not sent (and will not be sent in the future).
+  bool requestFullSync() => checkObxSuccess(C.sync_full(_cSyncChecked));
 
   /// Cancels updates from the server so that it will stop sending updates.
   ///
