@@ -499,5 +499,225 @@ void main() {
       expect(results.map((r) => r.object.id).toList(), [6, 4]);
       expect(results.map((r) => r.score).toList(), [18.0, 50.0]);
     });
+
+    // TurboQuant4 (the default for vectorDefault) does not rescore at search
+    // levels 1-3, so the result distances are estimates.
+    const exactScores = [2.0, 18.0, 50.0];
+    List<double> scoresOf(Query<HnswTunedObject> query) =>
+        query.findWithScores().map((r) => r.score).toList();
+    Query<HnswTunedObject> buildQuery(QueryBuilder<HnswTunedObject> builder) {
+      final query = builder.build();
+      addTearDown(query.close);
+      return query;
+    }
+
+    test('search level and factors of condition', () {
+      final v = vectorOf(5.25);
+      final atLevel1 = buildQuery(
+        tunedBox.query(
+          HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+            v,
+            3,
+            searchLevel: VectorSearchLevel.l1Fastest,
+          ),
+        ),
+      );
+      expect(scoresOf(atLevel1), isNot(exactScores));
+
+      final atLevel4 = buildQuery(
+        tunedBox.query(
+          HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+            v,
+            3,
+            searchLevel: VectorSearchLevel.l4Balanced,
+          ),
+        ),
+      );
+      expect(scoresOf(atLevel4), exactScores);
+
+      // A rescore factor also turns on rescoring at level 1
+      final rescored = buildQuery(
+        tunedBox.query(
+          HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+            v,
+            3,
+            searchLevel: VectorSearchLevel.l1Fastest,
+            oversampleFactor: 2.0,
+            rescoreFactor: 1.0,
+          ),
+        ),
+      );
+      expect(scoresOf(rescored), exactScores);
+    });
+
+    test('filtered search limits of condition', () {
+      final v = vectorOf(5.25);
+      // Brute force (default: up to 10,000 candidates) has exact distances
+      final bruteForce = buildQuery(
+        tunedBox.query(
+          HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+                v,
+                2,
+                searchLevel: VectorSearchLevel.l1Fastest,
+              ) &
+              HnswTunedObject_.group.equals(0),
+        ),
+      );
+      expect(scoresOf(bruteForce), [18.0, 50.0]);
+
+      // With a lower limit than the 25 candidates, a graph search is used
+      final graphSearch = buildQuery(
+        tunedBox.query(
+          HnswTunedObject_.group.equals(0) &
+              HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+                v,
+                2,
+                searchLevel: VectorSearchLevel.l1Fastest,
+                bruteForceMaxCandidates: 1,
+                filteredSearchMaxNodes: 1000,
+              ),
+        ),
+      );
+      final results = graphSearch.findWithScores();
+      expect(results.map((r) => r.object.id), [6, 4]);
+      expect(results.map((r) => r.score), isNot([18.0, 50.0]));
+    });
+
+    test('search parameters of built query', () {
+      for (final alias in [null, 'nn']) {
+        final query = buildQuery(
+          tunedBox.query(
+            HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+              vectorOf(5.25),
+              3,
+              alias: alias,
+            ),
+          ),
+        );
+        param() => query.param(HnswTunedObject_.vectorDefault, alias: alias);
+        expect(scoresOf(query), exactScores);
+
+        param().searchLevel = VectorSearchLevel.l1Fastest;
+        expect(scoresOf(query), isNot(exactScores));
+
+        param().rescore = true;
+        expect(scoresOf(query), exactScores);
+
+        param().searchLevel = VectorSearchLevel.l4Balanced;
+        expect(scoresOf(query), exactScores);
+        param().rescore = false;
+        expect(scoresOf(query), isNot(exactScores));
+
+        // Like the condition modifier, a rescore factor turns on rescoring
+        param()
+          ..searchLevel = VectorSearchLevel.l1Fastest
+          ..oversampleFactor = 2.0
+          ..quantizationOversample = 1.5
+          ..rescoreFactor = 1.0;
+        expect(scoresOf(query), exactScores);
+        // The last one set wins
+        param().rescore = false;
+        expect(scoresOf(query), isNot(exactScores));
+
+        // 0 resets factors to the ones of the index, the rescore factor keeps
+        // the rescore setting
+        param()
+          ..quantizationOversample = 0
+          ..rescoreFactor = 0;
+        expect(scoresOf(query), isNot(exactScores));
+      }
+    });
+
+    test('filtered search parameters of built query', () {
+      for (final alias in [null, 'nn']) {
+        final query = buildQuery(
+          tunedBox.query(
+            HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+                  vectorOf(5.25),
+                  2,
+                  alias: alias,
+                  searchLevel: VectorSearchLevel.l1Fastest,
+                ) &
+                HnswTunedObject_.group.equals(0),
+          ),
+        );
+        param() => query.param(HnswTunedObject_.vectorDefault, alias: alias);
+        expect(scoresOf(query), [18.0, 50.0]);
+
+        param()
+          ..bruteForceMaxCandidates = 1
+          ..filteredSearchMaxNodes = 1000;
+        expect(scoresOf(query), isNot([18.0, 50.0]));
+
+        // 0 uses the values of the index again
+        param()
+          ..bruteForceMaxCandidates = 0
+          ..filteredSearchMaxNodes = 0;
+        expect(scoresOf(query), [18.0, 50.0]);
+      }
+    });
+
+    test('illegal search parameters throw', () {
+      final v = vectorOf(5.25);
+      // Checked by the C API
+      expect(
+        () =>
+            tunedBox
+                .query(
+                  HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+                    v,
+                    3,
+                    oversampleFactor: 0.5,
+                  ),
+                )
+                .build(),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('oversample factor'),
+          ),
+        ),
+      );
+      // Would be truncated
+      expect(
+        () => HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+          v,
+          3,
+          bruteForceMaxCandidates: -1,
+        ),
+        throwsRangeError,
+      );
+      expect(
+        () => HnswTunedObject_.vectorDefault.nearestNeighborsF32(
+          v,
+          3,
+          filteredSearchMaxNodes: 0x100000000,
+        ),
+        throwsRangeError,
+      );
+
+      final query = buildQuery(
+        tunedBox.query(
+          HnswTunedObject_.vectorDefault.nearestNeighborsF32(v, 3),
+        ),
+      );
+      final param = query.param(HnswTunedObject_.vectorDefault);
+      expect(() => param.rescoreFactor = 0.5, throwsArgumentError);
+      expect(() => param.quantizationOversample = 0.5, throwsArgumentError);
+      expect(() => param.oversampleFactor = 0.0, throwsArgumentError);
+      expect(() => param.bruteForceMaxCandidates = -1, throwsRangeError);
+      expect(
+        () => param.filteredSearchMaxNodes = 0x100000000,
+        throwsRangeError,
+      );
+      // Not a nearest neighbor condition of this query
+      expect(
+        () =>
+            query.param(HnswTunedObject_.vector).searchLevel =
+                VectorSearchLevel.l1Fastest,
+        throwsArgumentError,
+      );
+    });
   });
 }

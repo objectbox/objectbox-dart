@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 import '../../annotations.dart';
 import '../../common.dart';
 import '../../modelinfo/entity_definition.dart';
+import '../../modelinfo/model_hnsw_params.dart';
 import '../../modelinfo/modelproperty.dart';
 import '../../modelinfo/modelrelation.dart';
 import '../../store.dart';
@@ -425,25 +426,78 @@ class _NearestNeighborsCondition<EntityT> extends Condition<EntityT> {
   final QueryHnswProperty<EntityT> property;
   final List<double> queryVector;
   final int maxResultCount;
+  final VectorSearchLevel? searchLevel;
+  final double? oversampleFactor;
+  final double? rescoreFactor;
+  final int? bruteForceMaxCandidates;
+  final int? filteredSearchMaxNodes;
 
   _NearestNeighborsCondition(
     this.property,
     this.queryVector,
     this.maxResultCount,
-    String? alias,
-  ) : super(alias);
+    String? alias, {
+    this.searchLevel,
+    this.oversampleFactor,
+    this.rescoreFactor,
+    this.bruteForceMaxCandidates,
+    this.filteredSearchMaxNodes,
+  }) : super(alias) {
+    final bruteForceMaxCandidates = this.bruteForceMaxCandidates;
+    if (bruteForceMaxCandidates != null) {
+      checkUint32(bruteForceMaxCandidates, 'bruteForceMaxCandidates');
+    }
+    final filteredSearchMaxNodes = this.filteredSearchMaxNodes;
+    if (filteredSearchMaxNodes != null) {
+      checkUint32(filteredSearchMaxNodes, 'filteredSearchMaxNodes');
+    }
+  }
 
   @override
-  int _apply(_QueryBuilder<dynamic> builder, {required bool isRoot}) =>
-      withNativeFloats<int>(
-        queryVector,
-        (ptr, size) => C.qb_nearest_neighbors_f32(
-          builder._cBuilder,
-          property._model.id.id,
-          ptr,
-          maxResultCount,
+  int _apply(_QueryBuilder<dynamic> builder, {required bool isRoot}) {
+    final cid = withNativeFloats<int>(
+      queryVector,
+      (ptr, size) => C.qb_nearest_neighbors_f32(
+        builder._cBuilder,
+        property._model.id.id,
+        ptr,
+        maxResultCount,
+      ),
+    );
+    if (cid == 0) return cid;
+    // The modifiers apply to the condition just added (must be the last one).
+    final cBuilder = builder._cBuilder;
+    // The search level replaces the oversample and rescore factors, so set it
+    // first.
+    final searchLevel = this.searchLevel;
+    if (searchLevel != null) {
+      checkObx(C.qb_vector_search_level(cBuilder, searchLevel.toConstant()));
+    }
+    final oversampleFactor = this.oversampleFactor;
+    if (oversampleFactor != null) {
+      checkObx(C.qb_vector_oversample_factor(cBuilder, oversampleFactor));
+    }
+    final rescoreFactor = this.rescoreFactor;
+    if (rescoreFactor != null) {
+      checkObx(C.qb_vector_rescore_factor(cBuilder, rescoreFactor));
+    }
+    final bruteForceMaxCandidates = this.bruteForceMaxCandidates;
+    if (bruteForceMaxCandidates != null) {
+      checkObx(
+        C.qb_vector_brute_force_max_candidates(
+          cBuilder,
+          bruteForceMaxCandidates,
         ),
       );
+    }
+    final filteredSearchMaxNodes = this.filteredSearchMaxNodes;
+    if (filteredSearchMaxNodes != null) {
+      checkObx(
+        C.qb_vector_filtered_search_max_nodes(cBuilder, filteredSearchMaxNodes),
+      );
+    }
+    return cid;
+  }
 }
 
 /// Provides extra conditions for float vector properties with an [HnswIndex].
@@ -456,16 +510,47 @@ class QueryHnswProperty<EntityT> extends QueryDoubleVectorProperty<EntityT> {
   ///
   /// The dimensions of the query vector should be at least the dimensions of this vector property.
   ///
-  /// Use [maxResultCount] to set the maximum number of objects to return by the ANN condition.
-  /// Hint: it can also be used as the "ef" HNSW parameter to increase the search quality in combination with a
-  /// query limit.
-  /// For example, use maxResultCount of 100 with a [Query.limit] of 10 to have 10 results that are of potentially better quality
-  /// than just passing in 10 for maxResultCount (quality/performance tradeoff).
+  /// Use [maxResultCount] to set the maximum number of objects to return by the ANN condition; typically, this is
+  /// the query limit. The search usually explores more nodes internally, as defined by the search level.
+  ///
+  /// To trade search speed for quality (recall), set a [searchLevel]; without it, the
+  /// [HnswIndex.searchLevel] of the index is used (default: [VectorSearchLevel.l4Balanced]).
+  ///
+  /// With other conditions, the [maxResultCount] nearest objects among the objects matching them are returned: by
+  /// brute force if the other conditions leave at most [bruteForceMaxCandidates] candidates, otherwise by a graph
+  /// search that accepts only matching objects and explores at most [filteredSearchMaxNodes] nodes. If not set,
+  /// these use the values of the index ([HnswIndex.bruteForceMaxCandidates], [HnswIndex.filteredSearchMaxNodes]); 0
+  /// also uses them.
+  ///
+  /// For power users (prefer a [searchLevel]):
+  /// - [oversampleFactor]: how many candidates the search explores per result, independent of quantization (at least
+  ///   1).
+  /// - [rescoreFactor]: with [HnswIndex.quantization], rescores this factor times [maxResultCount] of the explored
+  ///   candidates (those with the nearest estimates; at least 1) with the exact vectors; this also turns rescoring on,
+  ///   e.g. for the search levels that do not rescore otherwise (1-3).
+  ///
+  /// These are the initial search parameters of the condition. To change them for a built query, use [Query.param],
+  /// e.g. `query.param(Entity_.vector).searchLevel = VectorSearchLevel.l6Quality`.
   Condition<EntityT> nearestNeighborsF32(
     List<double> queryVector,
     int maxResultCount, {
     String? alias,
-  }) => _NearestNeighborsCondition(this, queryVector, maxResultCount, alias);
+    VectorSearchLevel? searchLevel,
+    double? oversampleFactor,
+    double? rescoreFactor,
+    int? bruteForceMaxCandidates,
+    int? filteredSearchMaxNodes,
+  }) => _NearestNeighborsCondition(
+    this,
+    queryVector,
+    maxResultCount,
+    alias,
+    searchLevel: searchLevel,
+    oversampleFactor: oversampleFactor,
+    rescoreFactor: rescoreFactor,
+    bruteForceMaxCandidates: bruteForceMaxCandidates,
+    filteredSearchMaxNodes: filteredSearchMaxNodes,
+  );
 }
 
 class QueryBooleanProperty<EntityT> extends QueryProperty<EntityT, bool> {
