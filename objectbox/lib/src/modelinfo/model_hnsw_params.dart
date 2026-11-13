@@ -195,9 +195,6 @@ extension ModelHnswFlags on HnswFlags {
     if (vectorCacheSimdPaddingOff) {
       flags |= OBXHnswFlags.VectorCacheSimdPaddingOff;
     }
-    if (reparationLimitCandidates) {
-      flags |= OBXHnswFlags.ReparationLimitCandidates;
-    }
     return flags;
   }
 }

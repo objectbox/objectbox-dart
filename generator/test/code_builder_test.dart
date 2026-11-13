@@ -536,8 +536,7 @@ void main() {
               flags: HnswFlags(
                   debugLogs: true,
                   debugLogsDetailed: true,
-                  vectorCacheSimdPaddingOff: true,
-                  reparationLimitCandidates: true),
+                  vectorCacheSimdPaddingOff: true),
               distanceType: VectorDistanceType.euclidean,
               reparationBacklinkProbability: 0.95,
               vectorCacheHintSizeKB: 2097152)
@@ -563,7 +562,6 @@ void main() {
       expect(flags! & OBXHnswFlags.DebugLogs != 0, true);
       expect(flags & OBXHnswFlags.DebugLogsDetailed != 0, true);
       expect(flags & OBXHnswFlags.VectorCacheSimdPaddingOff != 0, true);
-      expect(flags & OBXHnswFlags.ReparationLimitCandidates != 0, true);
       expect(
         vectorProperty.hnswParams!.distanceType,
         OBXVectorDistanceType.Euclidean,

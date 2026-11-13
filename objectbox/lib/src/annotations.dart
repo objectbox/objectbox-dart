@@ -427,21 +427,11 @@ class HnswFlags {
   /// faster. This flag turns it off.
   final bool vectorCacheSimdPaddingOff;
 
-  /// If the speed of removing nodes becomes a concern in your use case, you can
-  /// speed it up by setting this flag.
-  ///
-  /// By default, repairing the graph after node removals creates more
-  /// connections to improve the graph's quality. The extra costs for this are
-  /// relatively low (e.g. vs. regular indexing), and thus the default is
-  /// recommended.
-  final bool reparationLimitCandidates;
-
   /// Create flags for the [HnswIndex] annotation.
   const HnswFlags({
     this.debugLogs = false,
     this.debugLogsDetailed = false,
     this.vectorCacheSimdPaddingOff = false,
-    this.reparationLimitCandidates = false,
   });
 }
 

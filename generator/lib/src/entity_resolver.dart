@@ -960,8 +960,6 @@ extension _HnswFlagsState on HnswFlags {
           state.getField('debugLogsDetailed')!.toBoolValue() ?? false,
       vectorCacheSimdPaddingOff:
           state.getField('vectorCacheSimdPaddingOff')!.toBoolValue() ?? false,
-      reparationLimitCandidates:
-          state.getField('reparationLimitCandidates')!.toBoolValue() ?? false,
     );
   }
 }

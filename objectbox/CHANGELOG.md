@@ -54,6 +54,7 @@
 * Add `Store.dbSize` and `Store.dbSizeOnDisk` to get the size of the database of an open store (also works for an in-memory database) and `Store.prepareToClose` to start an orderly shutdown in stages.
 * Add static `Store.logLevel` to change (or get) the runtime log level of ObjectBox internals, e.g. to debug issues.
 * Add `VectorDistances` utility to calculate the distance of two vectors (like a vector search would) and to convert a distance (e.g. a query score) to a relevance score with a fixed range from 0.0 to 1.0.
+* **Breaking change:** remove `HnswFlags.reparationLimitCandidates`. Removing objects from an HNSW index is fast now, so the database no longer supports this flag.
 * The `install.sh` script no longer asks to install the database library in a global directory.
 * **Changed from previous preview releases**:
   * `objectbox_sync_flutter_libs` no longer prevents R8 from minifying an Android app build ("ERROR: Missing classes detected while running R8."). 
