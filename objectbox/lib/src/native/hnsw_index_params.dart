@@ -62,6 +62,9 @@ class HnswIndexParams {
   /// See [HnswIndex.filteredSearchMaxNodes].
   final int? filteredSearchMaxNodes;
 
+  /// See [HnswIndex.randomSeed].
+  final int? randomSeed;
+
   /// Creates parameters for an HNSW index; see [HnswIndex.new] for details.
   const HnswIndexParams({
     required this.dimensions,
@@ -78,6 +81,7 @@ class HnswIndexParams {
     this.buildLevel,
     this.bruteForceMaxCandidates,
     this.filteredSearchMaxNodes,
+    this.randomSeed,
   });
 
   @override
@@ -96,6 +100,7 @@ class HnswIndexParams {
       '${buildLevel != null ? ', buildLevel: ${buildLevel!.name}' : ''}'
       '${bruteForceMaxCandidates != null ? ', bruteForceMaxCandidates: $bruteForceMaxCandidates' : ''}'
       '${filteredSearchMaxNodes != null ? ', filteredSearchMaxNodes: $filteredSearchMaxNodes' : ''}'
+      '${randomSeed != null ? ', randomSeed: $randomSeed' : ''}'
       '}';
 }
 
@@ -195,7 +200,8 @@ const _fieldSearchLevel = 10; // ubyte
 const _fieldBruteForceMaxCandidates = 11; // uint
 const _fieldFilteredSearchMaxNodes = 12; // uint
 const _fieldBuildLevel = 13; // ubyte
-const _fieldCount = 14;
+const _fieldRandomSeed = 14; // ulong
+const _fieldCount = 15;
 
 /// The offset of a field in the vtable of a FlatBuffers table, as used by
 /// readers.
@@ -231,6 +237,7 @@ Uint8List hnswIndexParamsToFlatBuffers(HnswIndexParams params) {
       buildLevel: params.buildLevel,
       bruteForceMaxCandidates: params.bruteForceMaxCandidates,
       filteredSearchMaxNodes: params.filteredSearchMaxNodes,
+      randomSeed: params.randomSeed,
     ),
   );
   final fbb = fb.Builder(initialSize: 128);
@@ -256,6 +263,7 @@ Uint8List hnswIndexParamsToFlatBuffers(HnswIndexParams params) {
   fbb.addUint32(_fieldBruteForceMaxCandidates, model.bruteForceMaxCandidates);
   fbb.addUint32(_fieldFilteredSearchMaxNodes, model.filteredSearchMaxNodes);
   fbb.addUint8(_fieldBuildLevel, model.buildLevel);
+  fbb.addUint64(_fieldRandomSeed, model.randomSeed);
   fbb.finish(fbb.endTable());
   return fbb.buffer;
 }
@@ -297,17 +305,20 @@ HnswIndexParams hnswIndexParamsFromFlatBuffers(Uint8List bytes) {
     return value == 0 ? null : value;
   }
 
+  int? uint64(int field) {
+    final value = const fb.Uint64Reader().vTableGet(
+      buffer,
+      table,
+      _vTableOffset(field),
+      0,
+    );
+    return value == 0 ? null : value;
+  }
+
   double? float32(int field) => const fb.Float32Reader().vTableGetNullable(
     buffer,
     table,
     _vTableOffset(field),
-  );
-
-  final vectorCacheHintSizeKB = const fb.Uint64Reader().vTableGet(
-    buffer,
-    table,
-    _vTableOffset(_fieldVectorCacheHintSizeKB),
-    0,
   );
 
   final flags = uint32(_fieldFlags);
@@ -328,8 +339,7 @@ HnswIndexParams hnswIndexParamsFromFlatBuffers(Uint8List bytes) {
       distanceType,
     ),
     reparationBacklinkProbability: float32(_fieldReparationBacklinkProbability),
-    vectorCacheHintSizeKB:
-        vectorCacheHintSizeKB == 0 ? null : vectorCacheHintSizeKB,
+    vectorCacheHintSizeKB: uint64(_fieldVectorCacheHintSizeKB),
     quantization: _fromConstant(
       VectorQuantization.values,
       (q) => q.toConstant(),
@@ -351,6 +361,7 @@ HnswIndexParams hnswIndexParamsFromFlatBuffers(Uint8List bytes) {
     ),
     bruteForceMaxCandidates: uint32(_fieldBruteForceMaxCandidates),
     filteredSearchMaxNodes: uint32(_fieldFilteredSearchMaxNodes),
+    randomSeed: uint64(_fieldRandomSeed),
   );
 }
 

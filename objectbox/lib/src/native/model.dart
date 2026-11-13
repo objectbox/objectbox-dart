@@ -236,6 +236,14 @@ class Model {
           ),
         );
       }
+      if (hnswParams.randomSeed != null) {
+        _check(
+          C.model_property_index_hnsw_random_seed(
+            _cModel,
+            hnswParams.randomSeed!,
+          ),
+        );
+      }
     }
 
     final externalType = prop.externalType;

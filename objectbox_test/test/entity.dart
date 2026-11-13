@@ -523,6 +523,7 @@ class HnswTunedObject {
     buildLevel: VectorBuildLevel.l2VeryFast,
     bruteForceMaxCandidates: 100,
     filteredSearchMaxNodes: 1000,
+    randomSeed: 42,
   )
   List<double>? vector;
 

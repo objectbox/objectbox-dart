@@ -799,6 +799,19 @@ class HnswIndex {
   /// result count. Does not cause re-indexing.
   final int? filteredSearchMaxNodes;
 
+  /// Seeds the random levels of new graph nodes (if not set or 0: a random
+  /// seed), e.g. for reproducible tests: putting the same objects in the same
+  /// order builds the same graph. Each store opening restarts the random
+  /// sequence, transactions do not.
+  ///
+  /// The seed semantics may change in future versions; currently, seeds up to
+  /// 32 bits give the same levels on all platforms (larger seeds may not).
+  /// Graphs may still differ between platforms, as distance calculations
+  /// depend on the CPU and SIMD instructions.
+  ///
+  /// Changing this value causes re-indexing.
+  final int? randomSeed;
+
   /// Creates an HNSW index for a field of an [Entity] class.
   ///
   /// Use the parameters to configure HNSW-based approximate nearest neighbor
@@ -825,6 +838,7 @@ class HnswIndex {
     this.buildLevel,
     this.bruteForceMaxCandidates,
     this.filteredSearchMaxNodes,
+    this.randomSeed,
   });
 }
 

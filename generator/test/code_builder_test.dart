@@ -529,6 +529,7 @@ void main() {
       expect(vectorProperty.hnswParams!.buildLevel, isNull);
       expect(vectorProperty.hnswParams!.bruteForceMaxCandidates, isNull);
       expect(vectorProperty.hnswParams!.filteredSearchMaxNodes, isNull);
+      expect(vectorProperty.hnswParams!.randomSeed, isNull);
     });
 
     test('HNSW annotation with all properties', () async {
@@ -553,7 +554,8 @@ void main() {
               searchLevel: VectorSearchLevel.l10QualityMax,
               buildLevel: VectorBuildLevel.l1Fastest,
               bruteForceMaxCandidates: 100,
-              filteredSearchMaxNodes: 1000)
+              filteredSearchMaxNodes: 1000,
+              randomSeed: 0x123456789ABCDEF0)
           List<double>? coordinates;
           ''',
         ),
@@ -599,6 +601,7 @@ void main() {
       );
       expect(vectorProperty.hnswParams!.bruteForceMaxCandidates, 100);
       expect(vectorProperty.hnswParams!.filteredSearchMaxNodes, 1000);
+      expect(vectorProperty.hnswParams!.randomSeed, 0x123456789ABCDEF0);
     });
 
     test('HNSW annotation with late init', () async {

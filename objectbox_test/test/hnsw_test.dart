@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' show Random;
 
 import 'package:test/test.dart';
 
@@ -723,6 +724,48 @@ void main() {
     });
   });
 
+  test('random seed builds reproducible graphs', () {
+    // A new store with the same seed and objects builds the same graph:
+    // approximate results (here: random vectors and the fastest search level)
+    // are the same.
+    List<(int, double)> putRandomVectorsAndSearch() {
+      final seedEnv = TestEnv('hnsw-seed');
+      try {
+        final random = Random(1);
+        List<double> randomVector() =>
+            List.generate(hnswTunedDimensions, (_) => random.nextDouble());
+        final seedBox = seedEnv.store.box<HnswTunedObject>();
+        seedBox.putMany(
+          List.generate(
+            1000,
+            (_) => HnswTunedObject()..vector = randomVector(),
+          ),
+        );
+        final query =
+            seedBox
+                .query(
+                  HnswTunedObject_.vector.nearestNeighborsF32(
+                    randomVector(),
+                    10,
+                    searchLevel: VectorSearchLevel.l1Fastest,
+                  ),
+                )
+                .build();
+        try {
+          final results = query.findWithScores();
+          expect(results, hasLength(10));
+          return results.map((r) => (r.object.id, r.score)).toList();
+        } finally {
+          query.close();
+        }
+      } finally {
+        seedEnv.closeAndDelete();
+      }
+    }
+
+    expect(putRandomVectorsAndSearch(), putRandomVectorsAndSearch());
+  });
+
   group('late init', () {
     // Replaces env.store when reopened
     late Store store;
@@ -800,6 +843,7 @@ void main() {
       expect(params.flags?.lateInit, isTrue);
       // The default for 32 dimensions
       expect(params.quantization, VectorQuantization.turboQuant4);
+      expect(params.randomSeed, isNull); // A random seed
 
       putObjects(100);
       expect(findNearest3Names(), ['42', '43', '41']);
@@ -948,6 +992,7 @@ void main() {
           buildLevel: VectorBuildLevel.l3Fast,
           bruteForceMaxCandidates: 500,
           filteredSearchMaxNodes: 5000,
+          randomSeed: 0x123456789ABCDEF0, // More than 32 bits
         ),
       );
       expect(result.paramsChanged, isTrue);
@@ -971,6 +1016,7 @@ void main() {
       expect(params.indexingSearchCount, 128);
       expect(params.bruteForceMaxCandidates, 500);
       expect(params.filteredSearchMaxNodes, 5000);
+      expect(params.randomSeed, 0x123456789ABCDEF0);
       expect(params.toString(), contains('dimensions: $hnswTunedDimensions'));
 
       putObjects(100);
@@ -1030,6 +1076,7 @@ void main() {
       expect(tuned.indexingSearchCount, 64);
       expect(tuned.bruteForceMaxCandidates, 100);
       expect(tuned.filteredSearchMaxNodes, 1000);
+      expect(tuned.randomSeed, 42);
       expect(tuned.flags?.lateInit ?? false, isFalse);
 
       final geo = store.hnswIndexParams(HnswObject_.floatVectorGeoCoordinates);

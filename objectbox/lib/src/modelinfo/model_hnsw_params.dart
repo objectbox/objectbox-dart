@@ -45,6 +45,9 @@ class ModelHnswParams {
   /// See [HnswIndex.filteredSearchMaxNodes].
   final int? filteredSearchMaxNodes;
 
+  /// See [HnswIndex.randomSeed].
+  final int? randomSeed;
+
   /// Create an instance. For use from generated code.
   ModelHnswParams({
     this.dimensions,
@@ -61,6 +64,7 @@ class ModelHnswParams {
     this.buildLevel,
     this.bruteForceMaxCandidates,
     this.filteredSearchMaxNodes,
+    this.randomSeed,
   });
 
   /// The max value of the C API's uint32_t parameters.
@@ -181,6 +185,15 @@ class ModelHnswParams {
         message: "must be between 1 and $_maxUint32",
       );
     }
+    final randomSeed = hnsw.randomSeed;
+    if (randomSeed != null) {
+      _checkArgument(
+        argument: randomSeed,
+        condition: randomSeed >= 0,
+        name: "randomSeed",
+        message: "must be 0 or greater",
+      );
+    }
     return ModelHnswParams(
       dimensions: dimensions,
       neighborsPerNode: neighborsPerNode,
@@ -196,6 +209,7 @@ class ModelHnswParams {
       buildLevel: hnsw.buildLevel?.toConstant(),
       bruteForceMaxCandidates: bruteForceMaxCandidates,
       filteredSearchMaxNodes: filteredSearchMaxNodes,
+      randomSeed: randomSeed,
     );
   }
 
@@ -218,6 +232,7 @@ class ModelHnswParams {
       buildLevel: map["buildLevel"] as int?,
       bruteForceMaxCandidates: map["bruteForceMaxCandidates"] as int?,
       filteredSearchMaxNodes: map["filteredSearchMaxNodes"] as int?,
+      randomSeed: map["randomSeed"] as int?,
     );
   }
 
@@ -265,6 +280,9 @@ class ModelHnswParams {
     }
     if (filteredSearchMaxNodes != null) {
       map["filteredSearchMaxNodes"] = filteredSearchMaxNodes!;
+    }
+    if (randomSeed != null) {
+      map["randomSeed"] = randomSeed!;
     }
     return map;
   }
@@ -316,6 +334,9 @@ class ModelHnswParams {
     }
     if (filteredSearchMaxNodes != null) {
       code.write("filteredSearchMaxNodes: $filteredSearchMaxNodes, ");
+    }
+    if (randomSeed != null) {
+      code.write("randomSeed: $randomSeed, ");
     }
     code.write(")");
     return code.toString();

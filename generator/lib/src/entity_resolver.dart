@@ -947,6 +947,7 @@ class EntityResolver extends Builder {
           annotation.getField('bruteForceMaxCandidates')!.toIntValue(),
       filteredSearchMaxNodes:
           annotation.getField('filteredSearchMaxNodes')!.toIntValue(),
+      randomSeed: annotation.getField('randomSeed')!.toIntValue(),
     );
     property.hnswParams = ModelHnswParams.fromAnnotation(hnswRestored);
   }

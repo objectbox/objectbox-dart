@@ -117,6 +117,7 @@ void main() {
       buildLevel: VectorBuildLevel.l2VeryFast,
       bruteForceMaxCandidates: 100,
       filteredSearchMaxNodes: 1000,
+      randomSeed: 0x123456789ABCDEF0,
     );
 
     // From annotation to model class
@@ -137,6 +138,7 @@ void main() {
     expect(converted.buildLevel, OBXHnswBuildLevel.L2_VeryFast);
     expect(converted.bruteForceMaxCandidates, 100);
     expect(converted.filteredSearchMaxNodes, 1000);
+    expect(converted.randomSeed, 0x123456789ABCDEF0);
 
     // Not set values stay not set
     final defaults =
@@ -150,6 +152,7 @@ void main() {
     expect(defaults.buildLevel, isNull);
     expect(defaults.bruteForceMaxCandidates, isNull);
     expect(defaults.filteredSearchMaxNodes, isNull);
+    expect(defaults.randomSeed, isNull);
   });
 
   test("ModelHnswParams dimensions optional with late init", () {
@@ -259,6 +262,7 @@ void main() {
       HnswIndex(dimensions: 1, filteredSearchMaxNodes: 0x100000000),
       "filteredSearchMaxNodes",
     );
+    expectRejected(HnswIndex(dimensions: 1, randomSeed: -1), "randomSeed");
     // Lowest legal values are accepted
     final lowest = ModelHnswParams.fromAnnotation(
       HnswIndex(
@@ -267,9 +271,11 @@ void main() {
         quantizationRescoreFactor: 1.0,
         bruteForceMaxCandidates: 1,
         filteredSearchMaxNodes: 1,
+        randomSeed: 0,
       ),
     );
     expect(lowest.quantizationOversample, 1.0);
     expect(lowest.filteredSearchMaxNodes, 1);
+    expect(lowest.randomSeed, 0);
   });
 }
