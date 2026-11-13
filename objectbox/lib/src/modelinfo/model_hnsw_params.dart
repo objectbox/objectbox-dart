@@ -4,7 +4,7 @@ import '../native/bindings/objectbox_c.dart';
 /// Describes HNSW index parameters for a float vector property.
 class ModelHnswParams {
   /// See [HnswIndex.dimensions].
-  final int dimensions;
+  final int? dimensions;
 
   /// See [HnswIndex.neighborsPerNode].
   final int? neighborsPerNode;
@@ -47,7 +47,7 @@ class ModelHnswParams {
 
   /// Create an instance. For use from generated code.
   ModelHnswParams({
-    required this.dimensions,
+    this.dimensions,
     this.neighborsPerNode,
     this.indexingSearchCount,
     this.flags,
@@ -85,28 +85,39 @@ class ModelHnswParams {
     // otherwise would error at runtime (which might not be easily attributable,
     // see model.dart).
     // See allowed ranges in objectbox-c/src/model.cpp
-    _checkArgument(
-      argument: hnsw.dimensions,
-      condition: hnsw.dimensions > 0,
-      name: "dimensions",
-      message: "must be 1 or greater",
-    );
+    final dimensions = hnsw.dimensions;
+    if (dimensions == null) {
+      if (!(hnsw.flags?.lateInit ?? false)) {
+        throw ArgumentError.value(
+          dimensions,
+          "dimensions",
+          "is required, unless the index uses late init (HnswFlags.lateInit)",
+        );
+      }
+    } else {
+      _checkArgument(
+        argument: dimensions,
+        condition: dimensions > 0 && dimensions <= _maxUint32,
+        name: "dimensions",
+        message: "must be between 1 and $_maxUint32",
+      );
+    }
     final neighborsPerNode = hnsw.neighborsPerNode;
     if (neighborsPerNode != null) {
       _checkArgument(
         argument: neighborsPerNode,
-        condition: neighborsPerNode > 0,
+        condition: neighborsPerNode > 0 && neighborsPerNode <= _maxUint32,
         name: "neighborsPerNode",
-        message: "must be 1 or greater",
+        message: "must be between 1 and $_maxUint32",
       );
     }
     final indexingSearchCount = hnsw.indexingSearchCount;
     if (indexingSearchCount != null) {
       _checkArgument(
         argument: indexingSearchCount,
-        condition: indexingSearchCount > 0,
+        condition: indexingSearchCount > 0 && indexingSearchCount <= _maxUint32,
         name: "indexingSearchCount",
-        message: "must be 1 or greater",
+        message: "must be between 1 and $_maxUint32",
       );
     }
     final reparationBacklinkProbability = hnsw.reparationBacklinkProbability;
@@ -171,7 +182,7 @@ class ModelHnswParams {
       );
     }
     return ModelHnswParams(
-      dimensions: hnsw.dimensions,
+      dimensions: dimensions,
       neighborsPerNode: neighborsPerNode,
       indexingSearchCount: indexingSearchCount,
       flags: hnsw.flags?.toFlags(),
@@ -192,7 +203,7 @@ class ModelHnswParams {
   static ModelHnswParams? fromMap(Map<String, dynamic>? map) {
     if (map == null) return null;
     return ModelHnswParams(
-      dimensions: map["dimensions"] as int,
+      dimensions: map["dimensions"] as int?,
       neighborsPerNode: map["neighborsPerNode"] as int?,
       indexingSearchCount: map["indexingSearchCount"] as int?,
       flags: map["flags"] as int?,
@@ -213,7 +224,9 @@ class ModelHnswParams {
   /// Convert to string map to store in entity info cache file.
   Map<String, Object> toMap() {
     final map = <String, Object>{};
-    map["dimensions"] = dimensions;
+    if (dimensions != null) {
+      map["dimensions"] = dimensions!;
+    }
     if (neighborsPerNode != null) {
       map["neighborsPerNode"] = neighborsPerNode!;
     }
@@ -260,7 +273,9 @@ class ModelHnswParams {
   String toCodeString(String libraryPrefix) {
     var code = StringBuffer("$libraryPrefix.ModelHnswParams(");
     // Note: Dart does not care about trailing commas
-    code.write("dimensions: $dimensions, ");
+    if (dimensions != null) {
+      code.write("dimensions: $dimensions, ");
+    }
     if (neighborsPerNode != null) {
       code.write("neighborsPerNode: $neighborsPerNode, ");
     }
@@ -320,6 +335,9 @@ extension ModelHnswFlags on HnswFlags {
     }
     if (vectorCacheSimdPaddingOff) {
       flags |= OBXHnswFlags.VectorCacheSimdPaddingOff;
+    }
+    if (lateInit) {
+      flags |= OBXHnswFlags.LateInit;
     }
     return flags;
   }

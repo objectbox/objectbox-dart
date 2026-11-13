@@ -625,11 +625,26 @@ class HnswFlags {
   /// faster. This flag turns it off.
   final bool vectorCacheSimdPaddingOff;
 
+  /// Late init: for vectors whose dimensions (and other index parameters) are
+  /// only known at runtime, e.g. if the embedding model is chosen at runtime.
+  ///
+  /// With this flag, the [HnswIndex.dimensions] are optional; without them,
+  /// the index is not initialized: putting objects of the type and nearest
+  /// neighbor queries throw, while reading and removing objects and other
+  /// queries work.
+  ///
+  /// Set the index parameters after opening the store, before the index is
+  /// used (e.g. before putting objects of the type), with
+  /// `Store.initHnswIndex()`. The parameters are persisted, so later sessions
+  /// use them, and can be changed later (e.g. for another embedding model).
+  final bool lateInit;
+
   /// Create flags for the [HnswIndex] annotation.
   const HnswFlags({
     this.debugLogs = false,
     this.debugLogsDetailed = false,
     this.vectorCacheSimdPaddingOff = false,
+    this.lateInit = false,
   });
 }
 
@@ -640,8 +655,10 @@ class HnswIndex {
   /// Vectors with more dimensions than specified here are only evaluated up to
   /// the given dimension value.
   ///
+  /// Required, unless the index uses late init ([HnswFlags.lateInit]).
+  ///
   /// Changing this value causes re-indexing.
-  final int dimensions;
+  final int? dimensions;
 
   /// Aka "M": the max number of connections per node (default: 30).
   ///
@@ -794,7 +811,7 @@ class HnswIndex {
   /// To trade search speed for quality (recall), prefer the [searchLevel] (and
   /// if needed, the [buildLevel]) over tuning the single parameters.
   const HnswIndex({
-    required this.dimensions,
+    this.dimensions,
     this.neighborsPerNode,
     this.indexingSearchCount,
     this.flags,

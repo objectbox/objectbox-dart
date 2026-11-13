@@ -18,7 +18,9 @@ import '../util.dart';
 import 'bindings/bindings.dart';
 import 'bindings/helpers.dart';
 import 'box.dart';
+import 'hnsw_index_params.dart';
 import 'model.dart';
+import 'query/query.dart';
 import 'sync.dart';
 import 'version.dart';
 
@@ -823,6 +825,112 @@ class Store implements Finalizable {
   ///
   /// Returns 0 for an in-memory database.
   int get dbSizeOnDisk => C.store_size_on_disk(_cStoreChecked);
+
+  /// Initializes the HNSW index of a [property] with late init
+  /// ([HnswFlags.lateInit]) with parameters only known at runtime, e.g. the
+  /// dimensions of an embedding model chosen at runtime.
+  ///
+  /// Call it after opening the store; until the first call, putting objects of
+  /// the type and nearest neighbor queries throw. The first call indexes the
+  /// existing objects of the type (in a write transaction) or removes them (see
+  /// [mode]). The parameters are persisted, and later sessions use them
+  /// without another call.
+  ///
+  /// Intended use: call it once after each opening of the store (e.g. at each
+  /// app start) with the parameters the app wants; this works regardless of
+  /// whether a previous session already initialized the index. A call with the
+  /// parameters in effect changes nothing (except for
+  /// [HnswInitMode.removeAllObjectsAlways]); thus, further calls in the same
+  /// session are not needed, but harmless.
+  ///
+  /// Other parameters (e.g. a higher indexing search count or another
+  /// embedding model) are accepted only until the index is used in this
+  /// session (putting or removing objects of the type, or a nearest neighbor
+  /// query); call it right after opening the store. Then, the objects are
+  /// re-indexed (or removed; see [mode]) if the parameters require it (e.g.
+  /// other dimensions); some parameters do not (e.g. the search level).
+  ///
+  /// Warning: during a call setting parameters, the type must not be used
+  /// concurrently (also not from other isolates), and no other process may use
+  /// the store; transactions begun before the call cannot use the index
+  /// afterwards ([StateError]). Indexing many objects can take a while, which
+  /// blocks the calling isolate.
+  ///
+  /// Caution with Sync: for a sync-enabled type, the removing modes remove the
+  /// objects like other changes do, so if a sync client is running, the
+  /// removals are synced to the server (and thus to other clients).
+  ///
+  /// The [params] are the full set of parameters: values not given use their
+  /// defaults; the dimensions are required. The [mode] sets what to do with the
+  /// existing objects of the type (by default, keeps them).
+  ///
+  /// Returns what was done, e.g. to recompute the vectors of the objects if
+  /// they were removed.
+  ///
+  /// Throws [ArgumentError] if the property has no HNSW index with late init or
+  /// for invalid parameters. Throws [StateError] for other parameters than in
+  /// effect if the index was already used in this session.
+  HnswInitResult initHnswIndex<EntityT>(
+    QueryHnswProperty<EntityT> property,
+    HnswIndexParams params, {
+    HnswInitMode mode = HnswInitMode.keepObjects,
+  }) {
+    final paramsBytes = hnswIndexParamsToFlatBuffers(params);
+    final entityId = _entityDef<EntityT>().model.id.id;
+    final propertyId = queryPropertyModel(property).id.id;
+    final outResult = malloc<Uint32>();
+    final outCount = malloc<Uint64>();
+    try {
+      withNativeBytes(
+        paramsBytes,
+        (Pointer<Uint8> ptr, int size) => checkObx(
+          C.store_hnsw_index_init(
+            _cStoreChecked,
+            entityId,
+            propertyId,
+            ptr,
+            size,
+            mode.toConstant(),
+            outResult,
+            outCount,
+          ),
+        ),
+      );
+      return HnswInitResult.fromNative(outResult.value, outCount.value);
+    } finally {
+      malloc.free(outResult);
+      malloc.free(outCount);
+    }
+  }
+
+  /// Gets the parameters in effect of the HNSW index of the given [property],
+  /// e.g. to check if an index with late init ([HnswFlags.lateInit]) still
+  /// needs its init (then, the [HnswIndexParams.dimensions] are 0) or which
+  /// dimensions a previous session gave it (see [initHnswIndex]).
+  ///
+  /// Values that are not set may be returned as such (`null`, e.g. for an
+  /// indexing search count that uses the default). The build level is not
+  /// returned, but the neighbors per node and indexing search count it
+  /// resolved to.
+  HnswIndexParams hnswIndexParams<EntityT>(
+    QueryHnswProperty<EntityT> property,
+  ) {
+    final entityId = _entityDef<EntityT>().model.id.id;
+    final propertyId = queryPropertyModel(property).id.id;
+    final cBytes = checkObxPtr(
+      C.store_hnsw_index_params(_cStoreChecked, entityId, propertyId),
+      'Failed to get HNSW index parameters',
+    );
+    try {
+      // Copy, the native bytes are freed below
+      final bytes = Uint8List.fromList(
+        cBytes.ref.data.asTypedList(cBytes.ref.size),
+      );
+      return hnswIndexParamsFromFlatBuffers(bytes);
+    } finally {
+      C.bytes_free(cBytes);
+    }
+  }
 
   /// Prepares this store to close by setting its internal state to "closing".
   ///

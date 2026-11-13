@@ -12,6 +12,7 @@ void main() {
       HnswFlags(debugLogs: true, vectorCacheSimdPaddingOff: true).toFlags(),
       OBXHnswFlags.DebugLogs | OBXHnswFlags.VectorCacheSimdPaddingOff,
     );
+    expect(HnswFlags(lateInit: true).toFlags(), OBXHnswFlags.LateInit);
   });
 
   test("Distance type mapped as expected", () {
@@ -151,10 +152,40 @@ void main() {
     expect(defaults.filteredSearchMaxNodes, isNull);
   });
 
+  test("ModelHnswParams dimensions optional with late init", () {
+    final lateInit = ModelHnswParams.fromAnnotation(
+      HnswIndex(flags: HnswFlags(lateInit: true)),
+    );
+    expect(lateInit.dimensions, isNull);
+    expect(lateInit.flags, OBXHnswFlags.LateInit);
+    expect(lateInit.toCodeString('obx'), isNot(contains('dimensions')));
+    expect(ModelHnswParams.fromMap(lateInit.toMap())!.dimensions, isNull);
+    // Dimensions may be given with late init
+    expect(
+      ModelHnswParams.fromAnnotation(
+        HnswIndex(dimensions: 3, flags: HnswFlags(lateInit: true)),
+      ).dimensions,
+      3,
+    );
+  });
+
   test("ModelHnswParams rejects illegal values", () {
     expect(
       () => ModelHnswParams.fromAnnotation(HnswIndex(dimensions: 0)),
       throwsA(isA<ArgumentError>().having((e) => e.name, "name", "dimensions")),
+    );
+    // Required without late init
+    expect(
+      () => ModelHnswParams.fromAnnotation(HnswIndex()),
+      throwsA(isA<ArgumentError>().having((e) => e.name, "name", "dimensions")),
+    );
+    expect(
+      () => ModelHnswParams.fromAnnotation(
+        HnswIndex(dimensions: 1, neighborsPerNode: 0x100000000),
+      ),
+      throwsA(
+        isA<ArgumentError>().having((e) => e.name, "name", "neighborsPerNode"),
+      ),
     );
     expect(
       () => ModelHnswParams.fromAnnotation(

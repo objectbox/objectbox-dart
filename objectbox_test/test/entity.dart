@@ -533,6 +533,19 @@ class HnswTunedObject {
   List<double>? vectorDefault;
 }
 
+/// Has an HNSW index with late init (its parameters are set at runtime).
+@Entity()
+class HnswLateInitObject {
+  @Id()
+  int id = 0;
+
+  String? name;
+
+  @Property(type: PropertyType.floatVector)
+  @HnswIndex(flags: HnswFlags(lateInit: true))
+  List<double>? vector;
+}
+
 @Entity()
 @ExternalName(name: 'my-mongo-entity')
 class EntityWithExternalType {

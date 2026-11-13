@@ -601,6 +601,43 @@ void main() {
       expect(vectorProperty.hnswParams!.filteredSearchMaxNodes, 1000);
     });
 
+    test('HNSW annotation with late init', () async {
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @Property(type: PropertyType.floatVector)
+          @HnswIndex(flags: HnswFlags(lateInit: true))
+          List<double>? coordinates;
+          ''',
+        ),
+      );
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(source);
+
+      final vectorProperty =
+          testEnv.model.entities[0].findPropertyByName("coordinates")!;
+      expect(vectorProperty.hnswParams!.dimensions, isNull);
+      expect(vectorProperty.hnswParams!.flags, OBXHnswFlags.LateInit);
+    });
+
+    test('HNSW annotation without dimensions', () async {
+      final source = sourceFile(
+        entity(
+          withBody: r'''
+          @Property(type: PropertyType.floatVector)
+          @HnswIndex()
+          List<double>? coordinates;
+          ''',
+        ),
+      );
+
+      await expectGeneratorThrows(
+        source,
+        'unless the index uses late init (HnswFlags.lateInit)',
+      );
+    });
+
     test('HNSW annotation with illegal value', () async {
       final source = sourceFile(
         entity(

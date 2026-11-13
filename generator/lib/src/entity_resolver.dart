@@ -917,7 +917,7 @@ class EntityResolver extends Builder {
     );
 
     final hnswRestored = HnswIndex(
-      dimensions: annotation.getField('dimensions')!.toIntValue()!,
+      dimensions: annotation.getField('dimensions')!.toIntValue(),
       neighborsPerNode: annotation.getField('neighborsPerNode')!.toIntValue(),
       indexingSearchCount:
           annotation.getField('indexingSearchCount')!.toIntValue(),
@@ -993,6 +993,7 @@ extension _HnswFlagsState on HnswFlags {
           state.getField('debugLogsDetailed')!.toBoolValue() ?? false,
       vectorCacheSimdPaddingOff:
           state.getField('vectorCacheSimdPaddingOff')!.toBoolValue() ?? false,
+      lateInit: state.getField('lateInit')!.toBoolValue() ?? false,
     );
   }
 }

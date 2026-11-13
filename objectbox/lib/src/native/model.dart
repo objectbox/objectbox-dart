@@ -130,9 +130,11 @@ class Model {
 
     final hnswParams = prop.hnswParams;
     if (hnswParams != null) {
-      _check(
-        C.model_property_index_hnsw_dimensions(_cModel, hnswParams.dimensions),
-      );
+      // Not set for an index with late init (set via Store.initHnswIndex)
+      final dimensions = hnswParams.dimensions;
+      if (dimensions != null) {
+        _check(C.model_property_index_hnsw_dimensions(_cModel, dimensions));
+      }
       // Set the build level first: for the C API the last call wins, so the
       // neighbors per node and indexing search count, if set, take precedence.
       if (hnswParams.buildLevel != null) {

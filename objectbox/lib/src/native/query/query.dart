@@ -52,6 +52,10 @@ class Order {
   static final nullsAsZero = 16;
 }
 
+/// Returns the model of [property]; for internal use (e.g. by [Store]).
+@internal
+ModelProperty queryPropertyModel(QueryProperty property) => property._model;
+
 /// The QueryProperty types allow users to build query conditions on a property.
 ///
 /// The [DartType] is used by
