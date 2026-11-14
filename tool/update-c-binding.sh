@@ -26,7 +26,7 @@ for arg in "$@"; do
     esac
 done
 
-cLibVersion=6.0.0-beta2
+cLibVersion=6.0.0-rc
 
 # The paths below are relative to the repo root: running from elsewhere would
 # scatter downloads/headers into the wrong directories.

@@ -98,7 +98,7 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // libraries.
 // Library                              | C API | Database
 // -------------------------------------|-------|----------------------
-// C library 6.0.0-beta2                | 6.0.0 | 6.0.0-beta-2026-09-11
+// C library 6.0.0-rc                   | 6.0.0 | 6.0.0-rc-2026-11-13
 // objectbox-android 6.0.0-beta3        | 6.0.0 | 6.0.0-beta-2026-10-16
 // ObjectBox CocoaPod 5.3.0             | 5.3.2 | 5.3.2-next-2026-05-16
 // ObjectBox Swift Package 5.3.0        | 5.3.2 | 5.3.2-next-2026-05-16
