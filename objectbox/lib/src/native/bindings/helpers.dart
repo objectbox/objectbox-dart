@@ -198,6 +198,11 @@ void checkNoNullChar(String str) {
   }
 }
 
+/// Throws [RangeError] if [value] does not fit into a uint32_t parameter of the
+/// C API, which would silently truncate it.
+void checkUint32(int value, String name) =>
+    RangeError.checkValueInInterval(value, 0, 0xFFFFFFFF, name);
+
 T withNativeString<T>(String str, T Function(Pointer<Char> cStr) fn) {
   checkNoNullChar(str);
   final cStr = str.toNativeUtf8();

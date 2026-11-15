@@ -1008,10 +1008,71 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "25:7468110561075527926",
+      "lastPropertyId": "4:1247824181883408766",
+      "name": "HnswTunedObject",
+      "properties": [
+        {
+          "id": "1:5123325078551562598",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5987298822458213252",
+          "name": "group",
+          "indexId": "26:9146758534326309280",
+          "type": 6,
+          "flags": 8
+        },
+        {
+          "id": "3:8397450256843888256",
+          "name": "vector",
+          "indexId": "27:709941435724930172",
+          "type": 28,
+          "flags": 8
+        },
+        {
+          "id": "4:1247824181883408766",
+          "name": "vectorDefault",
+          "indexId": "28:7478568635466772249",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "26:4055841705895467933",
+      "lastPropertyId": "3:44643331404242631",
+      "name": "HnswLateInitObject",
+      "properties": [
+        {
+          "id": "1:8392053741860662941",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7380280567901452468",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:44643331404242631",
+          "name": "vector",
+          "indexId": "29:6395412051059570574",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "24:7119237493319054772",
-  "lastIndexId": "25:5667866372157411357",
+  "lastEntityId": "26:4055841705895467933",
+  "lastIndexId": "29:6395412051059570574",
   "lastRelationId": "2:313640065593441165",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

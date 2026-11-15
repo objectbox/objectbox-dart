@@ -130,9 +130,21 @@ class Model {
 
     final hnswParams = prop.hnswParams;
     if (hnswParams != null) {
-      _check(
-        C.model_property_index_hnsw_dimensions(_cModel, hnswParams.dimensions),
-      );
+      // Not set for an index with late init (set via Store.initHnswIndex)
+      final dimensions = hnswParams.dimensions;
+      if (dimensions != null) {
+        _check(C.model_property_index_hnsw_dimensions(_cModel, dimensions));
+      }
+      // Set the build level first: for the C API the last call wins, so the
+      // neighbors per node and indexing search count, if set, take precedence.
+      if (hnswParams.buildLevel != null) {
+        _check(
+          C.model_property_index_hnsw_build_level(
+            _cModel,
+            hnswParams.buildLevel!,
+          ),
+        );
+      }
       if (hnswParams.neighborsPerNode != null) {
         _check(
           C.model_property_index_hnsw_neighbors_per_node(
@@ -173,6 +185,62 @@ class Model {
           C.model_property_index_hnsw_vector_cache_hint_size_kb(
             _cModel,
             hnswParams.vectorCacheHintSizeKB!,
+          ),
+        );
+      }
+      if (hnswParams.quantization != null) {
+        _check(
+          C.model_property_index_hnsw_quantization(
+            _cModel,
+            hnswParams.quantization!,
+          ),
+        );
+      }
+      if (hnswParams.quantizationOversample != null) {
+        _check(
+          C.model_property_index_hnsw_quantization_oversample(
+            _cModel,
+            hnswParams.quantizationOversample!,
+          ),
+        );
+      }
+      if (hnswParams.quantizationRescoreFactor != null) {
+        _check(
+          C.model_property_index_hnsw_quantization_rescore_factor(
+            _cModel,
+            hnswParams.quantizationRescoreFactor!,
+          ),
+        );
+      }
+      if (hnswParams.searchLevel != null) {
+        _check(
+          C.model_property_index_hnsw_search_level(
+            _cModel,
+            hnswParams.searchLevel!,
+          ),
+        );
+      }
+      if (hnswParams.bruteForceMaxCandidates != null) {
+        _check(
+          C.model_property_index_hnsw_brute_force_max_candidates(
+            _cModel,
+            hnswParams.bruteForceMaxCandidates!,
+          ),
+        );
+      }
+      if (hnswParams.filteredSearchMaxNodes != null) {
+        _check(
+          C.model_property_index_hnsw_filtered_search_max_nodes(
+            _cModel,
+            hnswParams.filteredSearchMaxNodes!,
+          ),
+        );
+      }
+      if (hnswParams.randomSeed != null) {
+        _check(
+          C.model_property_index_hnsw_random_seed(
+            _cModel,
+            hnswParams.randomSeed!,
           ),
         );
       }

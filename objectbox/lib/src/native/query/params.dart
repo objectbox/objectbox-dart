@@ -299,6 +299,144 @@ extension QueryParamDouble on QueryParam<double> {
       }
     });
   }
+
+  /// Calls [byProperty] or, if this has an alias, [byAlias] and checks the
+  /// result.
+  void _setVectorSearchParam(
+    int Function(Pointer<OBX_query> cQuery, int entityId, int propertyId)
+    byProperty,
+    int Function(Pointer<OBX_query> cQuery, Pointer<Char> cAlias) byAlias,
+  ) {
+    final alias = _alias;
+    checkObx(
+      (alias == null)
+          ? byProperty(_query._cQueryChecked, _entityId, _prop._model.id.id)
+          : withNativeString(
+            alias,
+            (Pointer<Char> cAlias) => byAlias(_query._cQueryChecked, cAlias),
+          ),
+    );
+  }
+
+  /// For a nearest neighbor condition
+  /// ([QueryHnswProperty.nearestNeighborsF32]): sets the search level, the
+  /// preferred way to trade search speed for quality (recall); see
+  /// [VectorSearchLevel].
+  ///
+  /// This replaces the previously set oversample and rescore parameters
+  /// ([oversampleFactor], [quantizationOversample], [rescore],
+  /// [rescoreFactor]), so set those afterwards; it keeps the limits for
+  /// searches with other conditions ([bruteForceMaxCandidates],
+  /// [filteredSearchMaxNodes]).
+  ///
+  /// The other setters change single search parameters instead. They are for
+  /// power users who tune the search for their data (e.g. by measuring recall
+  /// and speed on a representative query set). A query starts with the values
+  /// of the search level of the condition or of the index
+  /// ([HnswIndex.searchLevel]).
+  set searchLevel(VectorSearchLevel level) {
+    final cLevel = level.toConstant();
+    _setVectorSearchParam(
+      (q, e, p) => C.query_param_vector_search_level(q, e, p, cLevel),
+      (q, a) => C.query_param_alias_vector_search_level(q, a, cLevel),
+    );
+  }
+
+  /// For a nearest neighbor condition: sets how many candidates the search
+  /// explores per result for a higher recall, independent of quantization
+  /// (must be at least 1).
+  ///
+  /// For power users; prefer the [searchLevel].
+  set oversampleFactor(double factor) => _setVectorSearchParam(
+    (q, e, p) => C.query_param_vector_oversample_factor(q, e, p, factor),
+    (q, a) => C.query_param_alias_vector_oversample_factor(q, a, factor),
+  );
+
+  /// For a nearest neighbor condition with [HnswIndex.quantization]: sets the
+  /// oversample factor that corrects for the quantization error only (0 or at
+  /// least 1); 0 uses the one of the index
+  /// ([HnswIndex.quantizationOversample]).
+  ///
+  /// For power users; prefer the [searchLevel].
+  set quantizationOversample(double factor) => _setVectorSearchParam(
+    (q, e, p) => C.query_param_vector_quantization_oversample(q, e, p, factor),
+    (q, a) => C.query_param_alias_vector_quantization_oversample(q, a, factor),
+  );
+
+  /// For a nearest neighbor condition with [HnswIndex.quantization]: sets
+  /// whether the search rescores its candidates with the exact vectors read
+  /// from the objects (exact result distances and a higher recall), or returns
+  /// the nearest by their quantized distance estimates (faster; the result
+  /// distances are estimates).
+  ///
+  /// A non-zero [rescoreFactor] also turns rescoring on; the last one set wins,
+  /// e.g. setting this to `false` after a factor turns rescoring off.
+  ///
+  /// For power users; prefer the [searchLevel].
+  set rescore(bool rescore) => _setVectorSearchParam(
+    (q, e, p) => C.query_param_vector_rescore(q, e, p, rescore),
+    (q, a) => C.query_param_alias_vector_rescore(q, a, rescore),
+  );
+
+  /// For a nearest neighbor condition with [HnswIndex.quantization]: sets how
+  /// many candidates are rescored: this factor times the result count of the
+  /// candidates with the nearest estimates (0 or at least 1; at most the
+  /// explored candidates); 0 uses the one of the index
+  /// ([HnswIndex.quantizationRescoreFactor]).
+  ///
+  /// Like the `rescoreFactor` of [QueryHnswProperty.nearestNeighborsF32], a
+  /// non-zero factor also turns rescoring on (see [rescore]), e.g. for the
+  /// search levels that do not rescore otherwise (1-3); 0 keeps the rescore
+  /// setting.
+  ///
+  /// For power users; prefer the [searchLevel].
+  set rescoreFactor(double factor) => _setVectorSearchParam(
+    (q, e, p) => C.query_param_vector_rescore_factor(q, e, p, factor),
+    (q, a) => C.query_param_alias_vector_rescore_factor(q, a, factor),
+  );
+
+  /// For a nearest neighbor condition with other conditions: sets up to how
+  /// many candidates of their lookups (indexes and relations) the nearest
+  /// neighbors are found by brute force (exact distances) instead of by a graph
+  /// search with a filter; 0 uses the value of the index
+  /// ([HnswIndex.bruteForceMaxCandidates]).
+  ///
+  /// Higher values let more queries use brute force, but its costs grow with
+  /// the candidates, while the graph search gets cheaper the more objects
+  /// match.
+  set bruteForceMaxCandidates(int maxCandidates) {
+    checkUint32(maxCandidates, 'maxCandidates');
+    _setVectorSearchParam(
+      (q, e, p) => C.query_param_vector_brute_force_max_candidates(
+        q,
+        e,
+        p,
+        maxCandidates,
+      ),
+      (q, a) => C.query_param_alias_vector_brute_force_max_candidates(
+        q,
+        a,
+        maxCandidates,
+      ),
+    );
+  }
+
+  /// For a nearest neighbor condition with other conditions: sets how many
+  /// nodes the graph search (with a filter for the matching objects) explores
+  /// at most; 0 uses the value of the index
+  /// ([HnswIndex.filteredSearchMaxNodes]).
+  ///
+  /// Higher values increase the recall if few objects match, at the cost of
+  /// speed; at the limit, fewer objects than requested may be found.
+  set filteredSearchMaxNodes(int maxNodes) {
+    checkUint32(maxNodes, 'maxNodes');
+    _setVectorSearchParam(
+      (q, e, p) =>
+          C.query_param_vector_filtered_search_max_nodes(q, e, p, maxNodes),
+      (q, a) =>
+          C.query_param_alias_vector_filtered_search_max_nodes(q, a, maxNodes),
+    );
+  }
 }
 
 /// QueryParam for boolean properties

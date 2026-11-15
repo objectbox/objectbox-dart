@@ -4,7 +4,7 @@ import '../native/bindings/objectbox_c.dart';
 /// Describes HNSW index parameters for a float vector property.
 class ModelHnswParams {
   /// See [HnswIndex.dimensions].
-  final int dimensions;
+  final int? dimensions;
 
   /// See [HnswIndex.neighborsPerNode].
   final int? neighborsPerNode;
@@ -24,16 +24,51 @@ class ModelHnswParams {
   /// See [HnswIndex.vectorCacheHintSizeKB].
   final int? vectorCacheHintSizeKB;
 
+  /// See [HnswIndex.quantization].
+  final int? quantization;
+
+  /// See [HnswIndex.quantizationOversample].
+  final double? quantizationOversample;
+
+  /// See [HnswIndex.quantizationRescoreFactor].
+  final double? quantizationRescoreFactor;
+
+  /// See [HnswIndex.searchLevel].
+  final int? searchLevel;
+
+  /// See [HnswIndex.buildLevel].
+  final int? buildLevel;
+
+  /// See [HnswIndex.bruteForceMaxCandidates].
+  final int? bruteForceMaxCandidates;
+
+  /// See [HnswIndex.filteredSearchMaxNodes].
+  final int? filteredSearchMaxNodes;
+
+  /// See [HnswIndex.randomSeed].
+  final int? randomSeed;
+
   /// Create an instance. For use from generated code.
   ModelHnswParams({
-    required this.dimensions,
+    this.dimensions,
     this.neighborsPerNode,
     this.indexingSearchCount,
     this.flags,
     this.distanceType,
     this.reparationBacklinkProbability,
     this.vectorCacheHintSizeKB,
+    this.quantization,
+    this.quantizationOversample,
+    this.quantizationRescoreFactor,
+    this.searchLevel,
+    this.buildLevel,
+    this.bruteForceMaxCandidates,
+    this.filteredSearchMaxNodes,
+    this.randomSeed,
   });
+
+  /// The max value of the C API's uint32_t parameters.
+  static const _maxUint32 = 0xFFFFFFFF;
 
   /// If [condition] does not evaluate to `true` throws an [ArgumentError]
   /// using the given [argument], [name] and [message].
@@ -54,28 +89,39 @@ class ModelHnswParams {
     // otherwise would error at runtime (which might not be easily attributable,
     // see model.dart).
     // See allowed ranges in objectbox-c/src/model.cpp
-    _checkArgument(
-      argument: hnsw.dimensions,
-      condition: hnsw.dimensions > 0,
-      name: "dimensions",
-      message: "must be 1 or greater",
-    );
+    final dimensions = hnsw.dimensions;
+    if (dimensions == null) {
+      if (!(hnsw.flags?.lateInit ?? false)) {
+        throw ArgumentError.value(
+          dimensions,
+          "dimensions",
+          "is required, unless the index uses late init (HnswFlags.lateInit)",
+        );
+      }
+    } else {
+      _checkArgument(
+        argument: dimensions,
+        condition: dimensions > 0 && dimensions <= _maxUint32,
+        name: "dimensions",
+        message: "must be between 1 and $_maxUint32",
+      );
+    }
     final neighborsPerNode = hnsw.neighborsPerNode;
     if (neighborsPerNode != null) {
       _checkArgument(
         argument: neighborsPerNode,
-        condition: neighborsPerNode > 0,
+        condition: neighborsPerNode > 0 && neighborsPerNode <= _maxUint32,
         name: "neighborsPerNode",
-        message: "must be 1 or greater",
+        message: "must be between 1 and $_maxUint32",
       );
     }
     final indexingSearchCount = hnsw.indexingSearchCount;
     if (indexingSearchCount != null) {
       _checkArgument(
         argument: indexingSearchCount,
-        condition: indexingSearchCount > 0,
+        condition: indexingSearchCount > 0 && indexingSearchCount <= _maxUint32,
         name: "indexingSearchCount",
-        message: "must be 1 or greater",
+        message: "must be between 1 and $_maxUint32",
       );
     }
     final reparationBacklinkProbability = hnsw.reparationBacklinkProbability;
@@ -100,14 +146,70 @@ class ModelHnswParams {
         message: "must be 1 or greater",
       );
     }
+    final quantizationOversample = hnsw.quantizationOversample;
+    if (quantizationOversample != null) {
+      _checkArgument(
+        argument: quantizationOversample,
+        condition: quantizationOversample >= 1.0,
+        name: "quantizationOversample",
+        message: "must be 1.0 or greater",
+      );
+    }
+    final quantizationRescoreFactor = hnsw.quantizationRescoreFactor;
+    if (quantizationRescoreFactor != null) {
+      _checkArgument(
+        argument: quantizationRescoreFactor,
+        condition: quantizationRescoreFactor >= 1.0,
+        name: "quantizationRescoreFactor",
+        message: "must be 1.0 or greater",
+      );
+    }
+    final bruteForceMaxCandidates = hnsw.bruteForceMaxCandidates;
+    if (bruteForceMaxCandidates != null) {
+      _checkArgument(
+        argument: bruteForceMaxCandidates,
+        condition:
+            bruteForceMaxCandidates > 0 &&
+            bruteForceMaxCandidates <= _maxUint32,
+        name: "bruteForceMaxCandidates",
+        message: "must be between 1 and $_maxUint32",
+      );
+    }
+    final filteredSearchMaxNodes = hnsw.filteredSearchMaxNodes;
+    if (filteredSearchMaxNodes != null) {
+      _checkArgument(
+        argument: filteredSearchMaxNodes,
+        condition:
+            filteredSearchMaxNodes > 0 && filteredSearchMaxNodes <= _maxUint32,
+        name: "filteredSearchMaxNodes",
+        message: "must be between 1 and $_maxUint32",
+      );
+    }
+    final randomSeed = hnsw.randomSeed;
+    if (randomSeed != null) {
+      _checkArgument(
+        argument: randomSeed,
+        condition: randomSeed >= 0,
+        name: "randomSeed",
+        message: "must be 0 or greater",
+      );
+    }
     return ModelHnswParams(
-      dimensions: hnsw.dimensions,
+      dimensions: dimensions,
       neighborsPerNode: neighborsPerNode,
       indexingSearchCount: indexingSearchCount,
       flags: hnsw.flags?.toFlags(),
       distanceType: hnsw.distanceType?.toConstant(),
       reparationBacklinkProbability: reparationBacklinkProbability,
       vectorCacheHintSizeKB: vectorCacheHintSizeKB,
+      quantization: hnsw.quantization?.toConstant(),
+      quantizationOversample: quantizationOversample,
+      quantizationRescoreFactor: quantizationRescoreFactor,
+      searchLevel: hnsw.searchLevel?.toConstant(),
+      buildLevel: hnsw.buildLevel?.toConstant(),
+      bruteForceMaxCandidates: bruteForceMaxCandidates,
+      filteredSearchMaxNodes: filteredSearchMaxNodes,
+      randomSeed: randomSeed,
     );
   }
 
@@ -115,7 +217,7 @@ class ModelHnswParams {
   static ModelHnswParams? fromMap(Map<String, dynamic>? map) {
     if (map == null) return null;
     return ModelHnswParams(
-      dimensions: map["dimensions"] as int,
+      dimensions: map["dimensions"] as int?,
       neighborsPerNode: map["neighborsPerNode"] as int?,
       indexingSearchCount: map["indexingSearchCount"] as int?,
       flags: map["flags"] as int?,
@@ -123,13 +225,23 @@ class ModelHnswParams {
       reparationBacklinkProbability:
           map["reparationBacklinkProbability"] as double?,
       vectorCacheHintSizeKB: map["vectorCacheHintSizeKB"] as int?,
+      quantization: map["quantization"] as int?,
+      quantizationOversample: map["quantizationOversample"] as double?,
+      quantizationRescoreFactor: map["quantizationRescoreFactor"] as double?,
+      searchLevel: map["searchLevel"] as int?,
+      buildLevel: map["buildLevel"] as int?,
+      bruteForceMaxCandidates: map["bruteForceMaxCandidates"] as int?,
+      filteredSearchMaxNodes: map["filteredSearchMaxNodes"] as int?,
+      randomSeed: map["randomSeed"] as int?,
     );
   }
 
   /// Convert to string map to store in entity info cache file.
   Map<String, Object> toMap() {
     final map = <String, Object>{};
-    map["dimensions"] = dimensions;
+    if (dimensions != null) {
+      map["dimensions"] = dimensions!;
+    }
     if (neighborsPerNode != null) {
       map["neighborsPerNode"] = neighborsPerNode!;
     }
@@ -148,6 +260,30 @@ class ModelHnswParams {
     if (vectorCacheHintSizeKB != null) {
       map["vectorCacheHintSizeKB"] = vectorCacheHintSizeKB!;
     }
+    if (quantization != null) {
+      map["quantization"] = quantization!;
+    }
+    if (quantizationOversample != null) {
+      map["quantizationOversample"] = quantizationOversample!;
+    }
+    if (quantizationRescoreFactor != null) {
+      map["quantizationRescoreFactor"] = quantizationRescoreFactor!;
+    }
+    if (searchLevel != null) {
+      map["searchLevel"] = searchLevel!;
+    }
+    if (buildLevel != null) {
+      map["buildLevel"] = buildLevel!;
+    }
+    if (bruteForceMaxCandidates != null) {
+      map["bruteForceMaxCandidates"] = bruteForceMaxCandidates!;
+    }
+    if (filteredSearchMaxNodes != null) {
+      map["filteredSearchMaxNodes"] = filteredSearchMaxNodes!;
+    }
+    if (randomSeed != null) {
+      map["randomSeed"] = randomSeed!;
+    }
     return map;
   }
 
@@ -155,7 +291,9 @@ class ModelHnswParams {
   String toCodeString(String libraryPrefix) {
     var code = StringBuffer("$libraryPrefix.ModelHnswParams(");
     // Note: Dart does not care about trailing commas
-    code.write("dimensions: $dimensions, ");
+    if (dimensions != null) {
+      code.write("dimensions: $dimensions, ");
+    }
     if (neighborsPerNode != null) {
       code.write("neighborsPerNode: $neighborsPerNode, ");
     }
@@ -176,6 +314,30 @@ class ModelHnswParams {
     if (vectorCacheHintSizeKB != null) {
       code.write("vectorCacheHintSizeKB: $vectorCacheHintSizeKB, ");
     }
+    if (quantization != null) {
+      code.write("quantization: $quantization, ");
+    }
+    if (quantizationOversample != null) {
+      code.write("quantizationOversample: $quantizationOversample, ");
+    }
+    if (quantizationRescoreFactor != null) {
+      code.write("quantizationRescoreFactor: $quantizationRescoreFactor, ");
+    }
+    if (searchLevel != null) {
+      code.write("searchLevel: $searchLevel, ");
+    }
+    if (buildLevel != null) {
+      code.write("buildLevel: $buildLevel, ");
+    }
+    if (bruteForceMaxCandidates != null) {
+      code.write("bruteForceMaxCandidates: $bruteForceMaxCandidates, ");
+    }
+    if (filteredSearchMaxNodes != null) {
+      code.write("filteredSearchMaxNodes: $filteredSearchMaxNodes, ");
+    }
+    if (randomSeed != null) {
+      code.write("randomSeed: $randomSeed, ");
+    }
     code.write(")");
     return code.toString();
   }
@@ -195,6 +357,9 @@ extension ModelHnswFlags on HnswFlags {
     if (vectorCacheSimdPaddingOff) {
       flags |= OBXHnswFlags.VectorCacheSimdPaddingOff;
     }
+    if (lateInit) {
+      flags |= OBXHnswFlags.LateInit;
+    }
     return flags;
   }
 }
@@ -209,5 +374,54 @@ extension ModelVectorDistanceType on VectorDistanceType {
     VectorDistanceType.dotProductNonNormalized =>
       OBXVectorDistanceType.DotProductNonNormalized,
     VectorDistanceType.geo => OBXVectorDistanceType.Geo,
+  };
+}
+
+/// Adds mapping to internal constants.
+extension ModelVectorQuantization on VectorQuantization {
+  /// Convert to internal constant value.
+  int toConstant() => switch (this) {
+    VectorQuantization.none => OBXHnswQuantType.None,
+    VectorQuantization.turboQuant1 => OBXHnswQuantType.TurboQuant1,
+    VectorQuantization.turboQuant1_5 => OBXHnswQuantType.TurboQuant1_5,
+    VectorQuantization.turboQuant2 => OBXHnswQuantType.TurboQuant2,
+    VectorQuantization.turboQuant3 => OBXHnswQuantType.TurboQuant3,
+    VectorQuantization.turboQuant4 => OBXHnswQuantType.TurboQuant4,
+    VectorQuantization.scalarQuant8 => OBXHnswQuantType.ScalarQuant8,
+  };
+}
+
+/// Adds mapping to internal constants.
+extension ModelVectorSearchLevel on VectorSearchLevel {
+  /// Convert to internal constant value.
+  int toConstant() => switch (this) {
+    VectorSearchLevel.l1Fastest => OBXHnswSearchLevel.L1_Fastest,
+    VectorSearchLevel.l2VeryFast => OBXHnswSearchLevel.L2_VeryFast,
+    VectorSearchLevel.l3Fast => OBXHnswSearchLevel.L3_Fast,
+    VectorSearchLevel.l4Balanced => OBXHnswSearchLevel.L4_Balanced,
+    VectorSearchLevel.l5BalancedQuality =>
+      OBXHnswSearchLevel.L5_BalancedQuality,
+    VectorSearchLevel.l6Quality => OBXHnswSearchLevel.L6_Quality,
+    VectorSearchLevel.l7QualityHigh => OBXHnswSearchLevel.L7_QualityHigh,
+    VectorSearchLevel.l8QualityHigher => OBXHnswSearchLevel.L8_QualityHigher,
+    VectorSearchLevel.l9QualityUltra => OBXHnswSearchLevel.L9_QualityUltra,
+    VectorSearchLevel.l10QualityMax => OBXHnswSearchLevel.L10_QualityMax,
+  };
+}
+
+/// Adds mapping to internal constants.
+extension ModelVectorBuildLevel on VectorBuildLevel {
+  /// Convert to internal constant value.
+  int toConstant() => switch (this) {
+    VectorBuildLevel.l1Fastest => OBXHnswBuildLevel.L1_Fastest,
+    VectorBuildLevel.l2VeryFast => OBXHnswBuildLevel.L2_VeryFast,
+    VectorBuildLevel.l3Fast => OBXHnswBuildLevel.L3_Fast,
+    VectorBuildLevel.l4Balanced => OBXHnswBuildLevel.L4_Balanced,
+    VectorBuildLevel.l5BalancedQuality => OBXHnswBuildLevel.L5_BalancedQuality,
+    VectorBuildLevel.l6Quality => OBXHnswBuildLevel.L6_Quality,
+    VectorBuildLevel.l7QualityHigh => OBXHnswBuildLevel.L7_QualityHigh,
+    VectorBuildLevel.l8QualityHigher => OBXHnswBuildLevel.L8_QualityHigher,
+    VectorBuildLevel.l9QualityUltra => OBXHnswBuildLevel.L9_QualityUltra,
+    VectorBuildLevel.l10QualityMax => OBXHnswBuildLevel.L10_QualityMax,
   };
 }

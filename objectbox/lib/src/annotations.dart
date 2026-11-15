@@ -415,6 +415,204 @@ enum VectorDistanceType {
   geo,
 }
 
+/// The quantization (compression) of the vectors an [HnswIndex] holds in
+/// memory for searching.
+///
+/// This only affects the vectors in memory: the vectors stored in the database
+/// always stay unchanged (full-precision 32-bit floats). Thus, changing the
+/// quantization requires no data migration and no re-indexing.
+///
+/// If [HnswIndex.quantization] is not set, a new index uses [turboQuant4] if
+/// the vectors have at least 32 dimensions and the distance type is not
+/// [VectorDistanceType.geo], otherwise [none]. An existing index keeps its
+/// quantization ([none] if it was created before version 6.0), unless a change
+/// of other parameters re-indexes it (e.g. a different build level); then it is
+/// treated as new.
+///
+/// Which type to use (bytes per vector of d dimensions in parentheses; full
+/// precision: 4 d):
+/// - [turboQuant4] (d / 2 + 12): the best all-rounder; at the same recall, it
+///   is as fast as or faster than the other types on most data, at about 1/8 of
+///   the memory of full-precision vectors.
+/// - [scalarQuant8] (d + 8): for low to medium dimensions (e.g. up to 256) if
+///   twice the memory of [turboQuant4] is acceptable; the most accurate
+///   quantized distances, thus the highest recall without rescoring (search
+///   levels 1-3) and the fastest type at a medium recall (e.g. 0.9) on such
+///   data; slower than [turboQuant4] at high dimensions.
+/// - [turboQuant2], [turboQuant1_5] and [turboQuant1] (d / 4, 3 d / 16 and
+///   d / 8, each + 12): only to save memory at high dimensions (e.g. 768+, for
+///   [turboQuant1] 1000+); in this order, less memory and less recall; lower
+///   recall than [turboQuant4] at its speed, slower than [turboQuant4] at its
+///   recall; avoid them on low dimensions (e.g. 100-128), where they lose much
+///   recall.
+/// - [turboQuant3] (3 d / 8 + 12): rarely useful; between [turboQuant2] and
+///   [turboQuant4] in memory at high dimensions, but slower than [turboQuant4]
+///   at about its recall; at up to 128 dimensions, it takes more memory than
+///   [turboQuant4].
+/// - [none] (4 d): small data sets, vectors with less than 32 dimensions, or if
+///   the exact distances are needed at every [VectorSearchLevel].
+///
+/// The codes are padded to multiples of 32 bytes (e.g. at 100-128 dimensions,
+/// [turboQuant1], [turboQuant1_5] and [turboQuant2] take 44 bytes,
+/// [turboQuant4] 76).
+enum VectorQuantization {
+  /// No quantization; the full-precision vectors are used.
+  none,
+
+  /// TurboQuant with 1 bit per dimension ("TQ1"); needs high dimensions (e.g.
+  /// 1000+).
+  ///
+  /// Its search levels rescore from level 3 on (all explored candidates), to
+  /// compensate for the low precision.
+  turboQuant1,
+
+  /// TurboQuant with 1.5 bits per dimension ("TQ1.5"; 1-bit codes over the
+  /// vector zero-extended to 1.5x its dimensions); for high dimensions (e.g.
+  /// 1000+), between [turboQuant1] and [turboQuant2] in memory and recall.
+  ///
+  /// Its search levels rescore from level 3 on, to compensate for the low
+  /// precision.
+  turboQuant1_5,
+
+  /// TurboQuant with 2 bits per dimension ("TQ2"); for high dimensions (e.g.
+  /// 768+).
+  ///
+  /// Its search levels rescore from level 3 on, to compensate for the low
+  /// precision.
+  turboQuant2,
+
+  /// TurboQuant with 3 bits per dimension ("TQ3"); rarely useful (see
+  /// [VectorQuantization]).
+  turboQuant3,
+
+  /// TurboQuant with 4 bits per dimension ("TQ4"): the default and the
+  /// recommended quantization.
+  ///
+  /// It uses about 1/8 of the memory of the full-precision vectors.
+  turboQuant4,
+
+  /// Scalar quantization with 8 bits per dimension ("SQ8"; int8 with one scale
+  /// per vector, training-free); for low to medium dimensions (e.g. up to 256).
+  ///
+  /// It uses about 1/4 of the memory of the full-precision vectors.
+  scalarQuant8,
+}
+
+/// Search levels of an [HnswIndex]: the preferred way to trade search speed for
+/// quality (recall).
+///
+/// Start from [l4Balanced] (the default) and adjust from there if you want to
+/// optimize the speed/quality trade-off. The levels range from the fastest
+/// search (lowest recall) to the highest recall (slowest search); each level
+/// costs roughly 1.3-2x the time of the previous one.
+///
+/// With [VectorQuantization], levels 1-3 do not rescore, so their result
+/// distances are estimates; levels 4 and higher rescore with the
+/// full-precision vectors, so their result distances are exact
+/// ([VectorQuantization.turboQuant1], [VectorQuantization.turboQuant1_5] and
+/// [VectorQuantization.turboQuant2] already rescore at level 3).
+///
+/// Queries without a level search at the level of the index
+/// ([HnswIndex.searchLevel]).
+///
+/// If the highest levels do not reach a recall target, build the graph at a
+/// higher [VectorBuildLevel] instead.
+enum VectorSearchLevel {
+  /// The fastest: explores only as many candidates as results are requested;
+  /// with quantization, no rescoring (estimated distances).
+  l1Fastest,
+
+  /// With quantization, no rescoring (estimated distances).
+  l2VeryFast,
+
+  /// With quantization, no rescoring (estimated distances) except for
+  /// [VectorQuantization.turboQuant1], [VectorQuantization.turboQuant1_5] and
+  /// [VectorQuantization.turboQuant2].
+  l3Fast,
+
+  /// The default and a good starting point; with quantization, the best
+  /// candidates are rescored (exact distances).
+  l4Balanced,
+
+  /// If level 4 misses too many neighbors; reaches a recall of about 0.97 on
+  /// "easy" data such as OpenAI embeddings.
+  l5BalancedQuality,
+
+  /// If missing a neighbor matters (e.g. for RAG); reaches a recall of about
+  /// 0.99 on "easy" data.
+  l6Quality,
+
+  /// "Easy" data saturates here; higher levels pay off only on "hard" data
+  /// (e.g. GloVe word embeddings).
+  l7QualityHigh,
+
+  /// For "hard" data; on "easy" data, it costs time without gaining recall.
+  l8QualityHigher,
+
+  /// For "hard" data and high recall targets; a higher [VectorBuildLevel] is
+  /// often faster.
+  l9QualityUltra,
+
+  /// The highest recall (slowest search); if it misses your recall target, use
+  /// a higher [VectorBuildLevel] instead.
+  l10QualityMax,
+}
+
+/// Build levels of an [HnswIndex]: they define the essential parameters for
+/// building the HNSW graph, the [HnswIndex.neighborsPerNode] ("M") and the
+/// [HnswIndex.indexingSearchCount] ("efConstruction") together.
+///
+/// Start with the default [l4Balanced] and adjust from there if you want to
+/// optimize the graph further. The trade-off is the graph's build time and
+/// memory against search quality (recall) and speed.
+///
+/// Unlike the [VectorSearchLevel], this applies when vectors are inserted
+/// (indexed); thus, a changed build level causes re-indexing (rebuilding the
+/// entire graph, which can take a while).
+///
+/// Higher levels pay off on "hard" data only (e.g. GloVe word embeddings),
+/// where the default graph limits the recall even at the highest search levels;
+/// on "easy" data, which reaches a high recall already with the default, they
+/// cost build time, memory and search speed.
+///
+/// The values' comments give the underlying neighbors per node (M) and indexing
+/// search count (efConstruction), which you can use as a starting point if you
+/// want to optimize them further. These may change in future versions; existing
+/// indexes keep the values they were built with.
+enum VectorBuildLevel {
+  /// M 10 / efConstruction 64: about 0.3-0.6x the build time of [l4Balanced].
+  l1Fastest,
+
+  /// M 20 / efConstruction 64.
+  l2VeryFast,
+
+  /// M 20 / efConstruction 128.
+  l3Fast,
+
+  /// M 30 / efConstruction 128: the default and a good starting point.
+  l4Balanced,
+
+  /// M 32 / efConstruction 160: recommended if you can afford a longer build
+  /// time.
+  l5BalancedQuality,
+
+  /// M 32 / efConstruction 256: about 1.7-2.8x the build time of [l4Balanced].
+  l6Quality,
+
+  /// M 48 / efConstruction 192.
+  l7QualityHigh,
+
+  /// M 64 / efConstruction 192.
+  l8QualityHigher,
+
+  /// M 96 / efConstruction 128: about 1.6-3.4x the build time of [l4Balanced];
+  /// reaches a recall of 0.99 on hard data.
+  l9QualityUltra,
+
+  /// M 96 / efConstruction 256.
+  l10QualityMax,
+}
+
 /// Flags as a part of the [HnswIndex] configuration.
 class HnswFlags {
   /// Enables debug logs.
@@ -427,11 +625,26 @@ class HnswFlags {
   /// faster. This flag turns it off.
   final bool vectorCacheSimdPaddingOff;
 
+  /// Late init: for vectors whose dimensions (and other index parameters) are
+  /// only known at runtime, e.g. if the embedding model is chosen at runtime.
+  ///
+  /// With this flag, the [HnswIndex.dimensions] are optional; without them,
+  /// the index is not initialized: putting objects of the type and nearest
+  /// neighbor queries throw, while reading and removing objects and other
+  /// queries work.
+  ///
+  /// Set the index parameters after opening the store, before the index is
+  /// used (e.g. before putting objects of the type), with
+  /// `Store.initHnswIndex()`. The parameters are persisted, so later sessions
+  /// use them, and can be changed later (e.g. for another embedding model).
+  final bool lateInit;
+
   /// Create flags for the [HnswIndex] annotation.
   const HnswFlags({
     this.debugLogs = false,
     this.debugLogsDetailed = false,
     this.vectorCacheSimdPaddingOff = false,
+    this.lateInit = false,
   });
 }
 
@@ -442,8 +655,10 @@ class HnswIndex {
   /// Vectors with more dimensions than specified here are only evaluated up to
   /// the given dimension value.
   ///
+  /// Required, unless the index uses late init ([HnswFlags.lateInit]).
+  ///
   /// Changing this value causes re-indexing.
-  final int dimensions;
+  final int? dimensions;
 
   /// Aka "M": the max number of connections per node (default: 30).
   ///
@@ -455,10 +670,14 @@ class HnswIndex {
   /// results.
   ///
   /// Changing this value causes re-indexing.
+  ///
+  /// See also [buildLevel] to set this together with the
+  /// [indexingSearchCount].
   final int? neighborsPerNode;
 
   /// Aka "efConstruction": the number of neighbor searched for while indexing
-  /// (default: 100).
+  /// (default: 128; an existing index keeps the value it was built with, e.g.
+  /// 100, the default before 6.0).
   ///
   /// The higher the value, the more accurate the search, but the longer the
   /// indexing.
@@ -467,6 +686,8 @@ class HnswIndex {
   /// recommended to improve search quality.
   ///
   /// Changing this value causes re-indexing.
+  ///
+  /// See also [buildLevel] to set this together with the [neighborsPerNode].
   final int? indexingSearchCount;
 
   /// See [HnswFlags.new].
@@ -502,23 +723,122 @@ class HnswIndex {
   /// for large changes, it can double due to multi-version transactions.
   final int? vectorCacheHintSizeKB;
 
+  /// The quantization (compression) of the vectors held in memory for
+  /// searching; see [VectorQuantization] for the available types and the
+  /// default.
+  ///
+  /// This only affects the vectors in memory, not the stored ones; thus,
+  /// changing this value does not cause re-indexing.
+  final VectorQuantization? quantization;
+
+  /// With [quantization]: the oversample factor that corrects for the
+  /// quantization error, for searches that do not set one: they explore this
+  /// factor times as many candidates (rounded, at least the requested result
+  /// count).
+  ///
+  /// If not set, uses 1.25 with rescoring and 1.5 without it; must be at least
+  /// 1. Higher values increase recall at the cost of speed. Does not cause
+  /// re-indexing.
+  ///
+  /// For power users only; prefer the [searchLevel]. The search levels of
+  /// [VectorQuantization.turboQuant1], [VectorQuantization.turboQuant1_5] and
+  /// [VectorQuantization.turboQuant2] set their candidate counts explicitly and
+  /// ignore this value.
+  final double? quantizationOversample;
+
+  /// With [quantization] and rescoring: sets how many of the explored
+  /// candidates are rescored with the full-precision vectors, for searches that
+  /// do not set it: only this factor times the requested result count of the
+  /// candidates with the nearest estimates (rounded, at least the result count,
+  /// at most the explored candidates), i.e. fewer object reads when exploring
+  /// many candidates.
+  ///
+  /// If not set, grows with the oversample factor of the search:
+  /// max(1.5, sqrt(oversample)); must be at least 1. Does not cause
+  /// re-indexing.
+  ///
+  /// For power users only; prefer the [searchLevel]. The search levels of
+  /// [VectorQuantization.turboQuant1], [VectorQuantization.turboQuant1_5] and
+  /// [VectorQuantization.turboQuant2] set their rescore counts explicitly and
+  /// ignore this value.
+  final double? quantizationRescoreFactor;
+
+  /// The search level of queries that do not set one (default:
+  /// [VectorSearchLevel.l4Balanced]); see [VectorSearchLevel].
+  ///
+  /// This only affects searching; thus, changing this value does not cause
+  /// re-indexing.
+  final VectorSearchLevel? searchLevel;
+
+  /// Sets the [neighborsPerNode] and the [indexingSearchCount] of a build
+  /// level; see [VectorBuildLevel]. If those are set too, they take precedence
+  /// over the level.
+  ///
+  /// Changing this value causes re-indexing (if the resulting values change).
+  final VectorBuildLevel? buildLevel;
+
+  /// For queries combining nearest neighbor search with other conditions: if
+  /// the other conditions (using indexes and relations) leave at most this many
+  /// candidates, the nearest neighbors among the matching candidates are found
+  /// by brute force instead of by a graph search with a filter. Brute force
+  /// results always carry exact distances.
+  ///
+  /// Queries use this value unless they set their own. If not set, uses
+  /// 10,000. Does not cause re-indexing.
+  final int? bruteForceMaxCandidates;
+
+  /// For queries combining nearest neighbor search with other conditions: the
+  /// graph search, which accepts only objects matching the other conditions as
+  /// results, explores at most this many nodes; if few objects match, it would
+  /// otherwise walk through much of the graph. At the limit, the query returns
+  /// the matching objects found so far, which may be fewer than the requested
+  /// result count.
+  ///
+  /// Queries use this value unless they set their own. If not set, uses
+  /// 25,000. Raise it for searches that explore many nodes, e.g. with a high
+  /// result count. Does not cause re-indexing.
+  final int? filteredSearchMaxNodes;
+
+  /// Seeds the random levels of new graph nodes (if not set or 0: a random
+  /// seed), e.g. for reproducible tests: putting the same objects in the same
+  /// order builds the same graph. Each store opening restarts the random
+  /// sequence, transactions do not.
+  ///
+  /// The seed semantics may change in future versions; currently, seeds up to
+  /// 32 bits give the same levels on all platforms (larger seeds may not).
+  /// Graphs may still differ between platforms, as distance calculations
+  /// depend on the CPU and SIMD instructions.
+  ///
+  /// Changing this value causes re-indexing.
+  final int? randomSeed;
+
   /// Creates an HNSW index for a field of an [Entity] class.
   ///
   /// Use the parameters to configure HNSW-based approximate nearest neighbor
   /// (ANN) search.
   ///
   /// Some of the parameters can influence index construction and searching.
+  /// Changing parameters of the index construction causes re-indexing, which
+  /// can take a while due to the complex nature of HNSW (see each parameter).
   ///
-  /// Changing these values causes re-indexing, which can take a while due to
-  /// the complex nature of HNSW.
+  /// To trade search speed for quality (recall), prefer the [searchLevel] (and
+  /// if needed, the [buildLevel]) over tuning the single parameters.
   const HnswIndex({
-    required this.dimensions,
+    this.dimensions,
     this.neighborsPerNode,
     this.indexingSearchCount,
     this.flags,
     this.distanceType,
     this.reparationBacklinkProbability,
     this.vectorCacheHintSizeKB,
+    this.quantization,
+    this.quantizationOversample,
+    this.quantizationRescoreFactor,
+    this.searchLevel,
+    this.buildLevel,
+    this.bruteForceMaxCandidates,
+    this.filteredSearchMaxNodes,
+    this.randomSeed,
   });
 }
 

@@ -903,8 +903,21 @@ class EntityResolver extends Builder {
             ? VectorDistanceType.values[distanceTypeIndex]
             : null;
 
+    final quantizationIndex = _enumValueIndex(
+      annotation.getField('quantization')!,
+      "HnswIndex.quantization",
+    );
+    final searchLevelIndex = _enumValueIndex(
+      annotation.getField('searchLevel')!,
+      "HnswIndex.searchLevel",
+    );
+    final buildLevelIndex = _enumValueIndex(
+      annotation.getField('buildLevel')!,
+      "HnswIndex.buildLevel",
+    );
+
     final hnswRestored = HnswIndex(
-      dimensions: annotation.getField('dimensions')!.toIntValue()!,
+      dimensions: annotation.getField('dimensions')!.toIntValue(),
       neighborsPerNode: annotation.getField('neighborsPerNode')!.toIntValue(),
       indexingSearchCount:
           annotation.getField('indexingSearchCount')!.toIntValue(),
@@ -914,6 +927,27 @@ class EntityResolver extends Builder {
           annotation.getField('reparationBacklinkProbability')!.toDoubleValue(),
       vectorCacheHintSizeKB:
           annotation.getField('vectorCacheHintSizeKB')!.toIntValue(),
+      quantization:
+          quantizationIndex != null
+              ? VectorQuantization.values[quantizationIndex]
+              : null,
+      quantizationOversample:
+          annotation.getField('quantizationOversample')!.toDoubleValue(),
+      quantizationRescoreFactor:
+          annotation.getField('quantizationRescoreFactor')!.toDoubleValue(),
+      searchLevel:
+          searchLevelIndex != null
+              ? VectorSearchLevel.values[searchLevelIndex]
+              : null,
+      buildLevel:
+          buildLevelIndex != null
+              ? VectorBuildLevel.values[buildLevelIndex]
+              : null,
+      bruteForceMaxCandidates:
+          annotation.getField('bruteForceMaxCandidates')!.toIntValue(),
+      filteredSearchMaxNodes:
+          annotation.getField('filteredSearchMaxNodes')!.toIntValue(),
+      randomSeed: annotation.getField('randomSeed')!.toIntValue(),
     );
     property.hnswParams = ModelHnswParams.fromAnnotation(hnswRestored);
   }
@@ -960,6 +994,7 @@ extension _HnswFlagsState on HnswFlags {
           state.getField('debugLogsDetailed')!.toBoolValue() ?? false,
       vectorCacheSimdPaddingOff:
           state.getField('vectorCacheSimdPaddingOff')!.toBoolValue() ?? false,
+      lateInit: state.getField('lateInit')!.toBoolValue() ?? false,
     );
   }
 }

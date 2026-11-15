@@ -499,6 +499,54 @@ class HnswObject {
   final rel = ToOne<RelatedNamedEntity>();
 }
 
+/// Number of dimensions of [HnswTunedObject.vector].
+const hnswTunedDimensions = 32;
+
+/// Has vectors with enough dimensions to be quantized by default and HNSW
+/// indexes using all 6.0 index options.
+@Entity()
+class HnswTunedObject {
+  @Id()
+  int id = 0;
+
+  @Index()
+  int group = 0;
+
+  /// Uses all index options set to non-default values.
+  @Property(type: PropertyType.floatVector)
+  @HnswIndex(
+    dimensions: hnswTunedDimensions,
+    quantization: VectorQuantization.scalarQuant8,
+    quantizationOversample: 2.0,
+    quantizationRescoreFactor: 1.5,
+    searchLevel: VectorSearchLevel.l6Quality,
+    buildLevel: VectorBuildLevel.l2VeryFast,
+    bruteForceMaxCandidates: 100,
+    filteredSearchMaxNodes: 1000,
+    randomSeed: 42,
+  )
+  List<double>? vector;
+
+  /// Uses the default quantization ([VectorQuantization.turboQuant4] for this
+  /// number of dimensions).
+  @Property(type: PropertyType.floatVector)
+  @HnswIndex(dimensions: hnswTunedDimensions)
+  List<double>? vectorDefault;
+}
+
+/// Has an HNSW index with late init (its parameters are set at runtime).
+@Entity()
+class HnswLateInitObject {
+  @Id()
+  int id = 0;
+
+  String? name;
+
+  @Property(type: PropertyType.floatVector)
+  @HnswIndex(flags: HnswFlags(lateInit: true))
+  List<double>? vector;
+}
+
 @Entity()
 @ExternalName(name: 'my-mongo-entity')
 class EntityWithExternalType {
