@@ -253,6 +253,7 @@ class CodeBuilder extends Builder {
     propInModel.externalName = prop.externalName;
     propInModel.externalType = prop.externalType;
     propInModel.dartType = prop.dartType;
+    propInModel.flexKind = prop.flexKind;
 
     if (!prop.hasIndexFlag()) {
       propInModel.removeIndex();

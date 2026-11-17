@@ -72,20 +72,20 @@ void main() {
     for (var prop in tSignedInts) {
       final qp = query.property(prop);
       // ignore: unnecessary_type_check
-      expect(qp is PropertyQuery<int>, true);
+      expect(qp is IntegerPropertyQuery, true);
       qp.close();
     }
 
     for (var prop in tFloats) {
       final qp = query.property(prop);
       // ignore: unnecessary_type_check
-      expect(qp is PropertyQuery<double>, true);
+      expect(qp is DoublePropertyQuery, true);
       qp.close();
     }
 
     final qp = query.property(tString);
     // ignore: unnecessary_type_check
-    expect(qp is PropertyQuery<String>, true);
+    expect(qp is StringPropertyQuery, true);
     qp.close();
 
     query.close();
@@ -560,10 +560,10 @@ T _add<T extends num>(T lhs, T rhs) => (lhs + rhs) as T;
 
 int toUint32(int v) => v >= 0 ? v : (1 << 32) + v;
 
-T _propQueryExec<T, DartType>(
+T _propQueryExec<T, PropertyQueryT extends PropertyQuery>(
   Query query,
-  QueryProperty<TestEntity, DartType> prop,
-  T Function(PropertyQuery<DartType> propQuery) fn,
+  QueryProperty<TestEntity, QueryParam, PropertyQueryT> prop,
+  T Function(PropertyQueryT propQuery) fn,
 ) {
   final propQuery = query.property(prop);
   try {
@@ -573,14 +573,14 @@ T _propQueryExec<T, DartType>(
   }
 }
 
-int _pqSumInt(PropertyQuery<int> propQuery) => propQuery.sum();
+int _pqSumInt(IntegerPropertyQuery propQuery) => propQuery.sum();
 
-int _pqMinInt(PropertyQuery<int> propQuery) => propQuery.min();
+int _pqMinInt(IntegerPropertyQuery propQuery) => propQuery.min();
 
-int _pqMaxInt(PropertyQuery<int> propQuery) => propQuery.max();
+int _pqMaxInt(IntegerPropertyQuery propQuery) => propQuery.max();
 
-double _pqSumDouble(PropertyQuery<double> propQuery) => propQuery.sum();
+double _pqSumDouble(DoublePropertyQuery propQuery) => propQuery.sum();
 
-double _pqMinDouble(PropertyQuery<double> propQuery) => propQuery.min();
+double _pqMinDouble(DoublePropertyQuery propQuery) => propQuery.min();
 
-double _pqMaxDouble(PropertyQuery<double> propQuery) => propQuery.max();
+double _pqMaxDouble(DoublePropertyQuery propQuery) => propQuery.max();

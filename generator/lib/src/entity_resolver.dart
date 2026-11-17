@@ -214,10 +214,10 @@ class EntityResolver extends Builder {
 
         // Error if Flex is used on unsupported type
         if (fieldType == OBXPropertyType.Flex) {
-          if (!_isSupportedFlexType(f.type)) {
+          if (_flexKindOf(f.type) == null) {
             throw InvalidGenerationSourceError(
               "'${classElement.displayName}.${f.displayName}': PropertyType.flex can only be used with "
-              "Map, List, dynamic, and Object?, but is '${f.type}'.",
+              "Map, List, dynamic, and Object? (not with types implementing Map or List), but is '${f.type}'.",
             );
           }
         }
@@ -398,6 +398,7 @@ class EntityResolver extends Builder {
         // For Flex properties, store the full type string including generics
         if (fieldType == OBXPropertyType.Flex) {
           prop.dartFieldType = f.type.getDisplayString();
+          prop.flexKind = _flexKindOf(f.type);
         }
         entity.properties.add(prop);
       }
@@ -476,7 +477,7 @@ class EntityResolver extends Builder {
       } else if (itemType.isDartCoreString) {
         // List<String>
         return OBXPropertyType.StringVector;
-      } else if (_isSupportedFlexType(dartType)) {
+      } else if (_flexKindOf(dartType) != null) {
         return OBXPropertyType.Flex;
       }
     } else if ([
@@ -512,7 +513,7 @@ class EntityResolver extends Builder {
       return OBXPropertyType.Date;
     } else if (isToOneRelationField(field)) {
       return OBXPropertyType.Relation;
-    } else if (_isSupportedFlexType(dartType)) {
+    } else if (_flexKindOf(dartType) != null) {
       // dynamic, Object?, Map<String, dynamic/Object?/Object>, or List<...>
       return OBXPropertyType.Flex;
     }
@@ -525,43 +526,63 @@ class EntityResolver extends Builder {
     return dartType is DynamicType || dartType.isDartCoreObject;
   }
 
-  /// Returns true if [type] is supported for Flex properties:
+  /// Returns the [FlexKind] if [type] is supported for Flex properties,
+  /// otherwise null:
   /// - dynamic
   /// - Object? (nullable Object)
   /// - `Map<String, dynamic/Object?/Object>`
   /// - `List<dynamic/Object?/Object>` or `List<Map<String, dynamic/Object?>>`
-  bool _isSupportedFlexType(DartType type) {
+  ///
+  /// Types that only implement `Map` or `List` are not supported, as the
+  /// generated code can not create instances of them when reading.
+  FlexKind? _flexKindOf(DartType type) {
     // dynamic is always nullable
-    if (type is DynamicType) return true;
+    if (type is DynamicType) return FlexKind.value;
     // Object? (nullable Object)
     if (type.isDartCoreObject &&
         type.nullabilitySuffix == NullabilitySuffix.question) {
-      return true;
+      return FlexKind.value;
     }
     // Map<String, dynamic/Object?/Object>
-    if (type.isDartCoreMap && _isMapSupportedForFlex(type)) return true;
+    if (type.isDartCoreMap && _isMapSupportedForFlex(type)) {
+      return FlexKind.map;
+    }
     // List<dynamic/Object?/Object> or List<Map<String, dynamic/Object?>>
     if (type.isDartCoreList) {
       final itemType = listItemType(type);
       if (itemType != null) {
-        if (_isDynamicOrObject(itemType)) return true;
-        if (itemType.isDartCoreMap && _isMapSupportedForFlex(itemType)) {
-          return true;
+        if (_isDynamicOrObject(itemType)) return FlexKind.list;
+        // List<Map<String, Object>> (non-null map values) isn't supported
+        // because Dart can't cast the List with Map<String, dynamic> elements
+        // created by the FlexBuffers reader (and supporting this would make
+        // the reader logic more complicated for this edge case).
+        if (itemType.isDartCoreMap &&
+            _isMapSupportedForFlex(itemType, nullableValuesOnly: true)) {
+          return FlexKind.listOfMaps;
         }
       }
     }
-    return false;
+    return null;
   }
 
-  bool _isMapSupportedForFlex(DartType dartType) {
+  /// Returns true if [dartType] is a `Map<String, dynamic/Object?/Object>`.
+  ///
+  /// If [nullableValuesOnly] is set, `Map<String, Object>` is not supported.
+  bool _isMapSupportedForFlex(
+    DartType dartType, {
+    bool nullableValuesOnly = false,
+  }) {
     if (dartType is ParameterizedType && dartType.typeArguments.length == 2) {
       final keyType = dartType.typeArguments[0];
       final valueType = dartType.typeArguments[1];
       // Key must be String
+      if (!keyType.isDartCoreString) return false;
       // Value must be dynamic or Object (nullable or not)
-      if (keyType.isDartCoreString && _isDynamicOrObject(valueType)) {
-        return true;
-      }
+      if (!_isDynamicOrObject(valueType)) return false;
+      // Note: dynamic is always nullable
+      return !nullableValuesOnly ||
+          valueType is DynamicType ||
+          isNullable(valueType);
     }
     return false;
   }

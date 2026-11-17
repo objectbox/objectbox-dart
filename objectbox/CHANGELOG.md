@@ -30,6 +30,7 @@
 * Generator: allow analyzer versions up to 14.
 * Generator: fix removing an entity that has a standalone relation (`ToMany`) breaking all subsequent builds with "lastRelationId ... does not match any standalone relation" if that relation was the most recently added one. Relation and index UIDs of a removed entity are now correctly retired in `objectbox-model.json`.
 * Generator: `@ExternalType` types `uuidString`, `uuidV4` and `uuidV4String` (used for MongoDB data mapping) are now actually supported.
+* Generator: flex properties with a list of maps with non-null values (`List<Map<String, Object>>`) are properly ignored, reading them was never supported. Use a map with nullable values instead (`List<Map<String, Object?>>`, preferably `List<Map<String, Object?>?>`).
 * `Store.attach` actually throws when trying to attach again to the same store in the same isolate. Now is a good time to check your code closes the store before an isolate exits or before attaching to or opening it again.
 * `Store.fromReference` is deprecated, please migrate to `Store.attach`.
 * `Store.watch` consistently creates a single-subscription stream. Previously, if `Store.entityChanges` was accessed before, it returned a broadcast stream that behaved differently.
@@ -42,8 +43,14 @@
   * It no longer crashes or reads garbage data when data was modified in parallel.
   * It no longer crashes if the stream is closed before all data was processed.
   * It releases its query and store reference if setup fails, no longer preventing the store from closing.
-* Setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
-* Query conditions `oneOf` and `notOneOf` on a `ToOne` relation property (such as `YourEntity_.relation.oneOf([1, 2])`) no longer throw `UnsupportedError: Unsupported type for IN: 11` when building the query. Setting a list parameter for such a condition also works now.
+* Queries: support query conditions `oneOf` and `notOneOf` for `ToOne` relation properties (such as `YourEntity_.relation.oneOf([1, 2])`).
+* Queries: support query conditions for flex properties, like contains element for maps and lists, equals key value conditions for maps and equals for values.
+* Queries: support setting query parameters for `containsElement` conditions of string list properties, like `query.param(YourEntity_.strings).value = 'foo'`.
+* Queries: some helper classes (`QueryProperty`, `QueryParam` and `PropertyQuery`) have changed that might require updates in your code if used directly.
+* Queries: setting a query parameter for a `Date` or `DateNano` property to a list of values (such as `query.param(YourEntity_.dateProp).values = [...]`) no longer fails with an `ObjectBoxNativeError`.
+* Queries: for integer and double vector properties, removed `values` and `twoValues` parameter setters as there never were matching query conditions.
+* Queries: removed property queries for integer and double vector properties, they were never officially supported.
+* Queries: removed the `nearestNeighborsF32` condition for properties without an HNSW index, it never worked.
 * `QueryBuilder` methods throw `StateError` when used after `build()` instead of resulting in a crash. Also, the native builder is no longer leaked if applying a condition fails.
 * `Query.offset` and `Query.limit` throw `RangeError` for negative values instead of silently returning no results (the value wrapped around to a huge unsigned integer).
 * Close transactions that are still open when their isolate shuts down, such as when `Isolate.kill()` is called while inside a write transaction. Before, closing the store waited forever for such a transaction. [#834](https://github.com/objectbox/objectbox-dart/issues/834)

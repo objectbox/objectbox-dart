@@ -131,14 +131,17 @@ void main() {
       }),
     );
 
+    // Also tests parameter alias
     final searchVector = [3.1, 3.1];
     final maxResultCount = 4;
+    final alias = 'nn';
     final query =
         box
             .query(
               HnswObject_.floatVector.nearestNeighborsF32(
                 searchVector,
                 maxResultCount,
+                alias: alias,
               ),
             )
             .build();
@@ -173,7 +176,10 @@ void main() {
 
     // Check limit 5 to 1
     query.offset = 0;
-    query.param(HnswObject_.floatVector).nearestNeighborsF32([8.9, 8.8], 5);
+    query.param(HnswObject_.floatVector, alias: alias).nearestNeighborsF32([
+      8.9,
+      8.8,
+    ], 5);
     final expectedLimit = [9, 8, 10, 7, 11];
     for (int limit = 5; limit > 0; --limit) {
       query.limit = limit;
@@ -347,6 +353,29 @@ void main() {
     expect(juice.length, 1);
     expect(juice[0].object.id, 6);
     expect(juice[0].object.name, "Apple juice");
+  });
+
+  test('vector element conditions', () {
+    final ids = box.putMany(
+      List.generate(10, (index) {
+        final value = (index + 1).toDouble(); // start at 1
+        return HnswObject()..floatVector = [value, value];
+      }),
+    );
+
+    // HNSW properties also support the regular vector conditions
+    final queryGreater =
+        box.query(HnswObject_.floatVector.greaterThan(8.5)).build();
+    addTearDown(() => queryGreater.close());
+    expect(queryGreater.findIds(), [ids[8], ids[9]]);
+    queryGreater.param(HnswObject_.floatVector).value = 9.5;
+    expect(queryGreater.findIds(), [ids[9]]);
+
+    final queryLess = box.query(HnswObject_.floatVector.lessThan(2.5)).build();
+    addTearDown(() => queryLess.close());
+    expect(queryLess.findIds(), [ids[0], ids[1]]);
+    queryLess.param(HnswObject_.floatVector).value = 1.5;
+    expect(queryLess.findIds(), [ids[0]]);
   });
 
   test('VectorDistances distance', () {

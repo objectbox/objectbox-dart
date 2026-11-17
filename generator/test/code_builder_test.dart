@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:build_test/build_test.dart';
 import 'package:logging/logging.dart';
 import 'package:objectbox/internal.dart';
+import 'package:objectbox/objectbox.dart' show PropertyType;
 import 'package:objectbox_generator/src/builder_dirs.dart';
 import 'package:objectbox_generator/src/code_builder.dart';
 import 'package:objectbox_generator/src/code_chunks.dart';
@@ -1100,24 +1101,53 @@ void main() {
   });
 
   group("Flex properties", () {
-    expectFlexProperties(List<ModelProperty> properties, int number) {
-      expect(properties.length, number);
-      for (var property in properties) {
-        if (property.name != 'id') {
-          expect(
-            property.type,
-            OBXPropertyType.Flex,
-            reason: 'Property "${property.name}" should be of Flex type',
-          );
-        }
-      }
+    /// Runs the generator for an entity with the given [body] and expects all
+    /// properties (except the ID) to be Flex properties of the kind given in
+    /// [expectedKinds] that use the matching query property class.
+    Future<void> expectFlexProperties(
+      String body,
+      Map<String, FlexKind> expectedKinds,
+    ) async {
+      String queryPropertyClass(FlexKind kind) => switch (kind) {
+        FlexKind.value => 'QueryFlexValueProperty',
+        FlexKind.map => 'QueryFlexMapProperty',
+        FlexKind.list || FlexKind.listOfMaps => 'QueryFlexVectorProperty',
+      };
+
+      final testEnv = GeneratorTestEnv();
+      await testEnv.run(
+        sourceFile(entity(withName: 'FlexEntity', withBody: body)),
+        generatedCodeMatcher: decodedMatches(
+          allOf([
+            for (final MapEntry(key: name, value: kind)
+                in expectedKinds.entries)
+              matches(
+                RegExp(
+                  'static final $name =\\s*'
+                  'obx\\.${queryPropertyClass(kind)}<FlexEntity>\\(',
+                ),
+              ),
+          ]),
+        ),
+      );
+
+      final testEntity = testEnv.model.entities[0];
+      expect(testEntity.properties.length, expectedKinds.length + 1);
+      expect(testEntity.findPropertyByName('id')!.flexKind, isNull);
+      expectedKinds.forEach((name, kind) {
+        final property = testEntity.findPropertyByName(name)!;
+        expect(
+          property.type,
+          OBXPropertyType.Flex,
+          reason: 'Property "$name" should be of Flex type',
+        );
+        expect(property.flexKind, kind, reason: 'Flex kind of "$name"');
+      });
     }
 
     test('Flex Map type detection', () async {
-      final source = sourceFile(
-        entity(
-          withName: 'FlexEntity',
-          withBody: r'''
+      await expectFlexProperties(
+        r'''
           // Auto-detected Map<String, dynamic> - nullable
           Map<String, dynamic>? flexDynamic;
         
@@ -1134,21 +1164,19 @@ void main() {
           @Property(type: PropertyType.flex)
           Map<String, dynamic>? flexExplicit;
           ''',
-        ),
+        {
+          'flexDynamic': FlexKind.map,
+          'flexObject': FlexKind.map,
+          'flexObjectNonNull': FlexKind.map,
+          'flexNonNull': FlexKind.map,
+          'flexExplicit': FlexKind.map,
+        },
       );
-
-      final testEnv = GeneratorTestEnv();
-      await testEnv.run(source);
-
-      var properties = testEnv.model.entities[0].properties;
-      expectFlexProperties(properties, 6);
     });
 
     test('Flex List type detection', () async {
-      final source = sourceFile(
-        entity(
-          withName: 'FlexEntity',
-          withBody: r'''
+      await expectFlexProperties(
+        r'''
           // Auto-detected List<dynamic> - nullable
           List<dynamic>? flexDynamic;
         
@@ -1166,26 +1194,29 @@ void main() {
         
           // Auto-detected List<Map<String, Object?>> - nullable
           List<Map<String, Object?>>? flexListOfMapsObject;
-        
+          
+          // Not detected: list of maps with non-nullable map values
+          List<Map<String, Object>>? unsupported;
+
           // Explicit annotation
           @Property(type: PropertyType.flex)
           List<dynamic>? flexExplicit;
           ''',
-        ),
+        {
+          'flexDynamic': FlexKind.list,
+          'flexObject': FlexKind.list,
+          'flexObjectNonNull': FlexKind.list,
+          'flexNonNull': FlexKind.list,
+          'flexListOfMaps': FlexKind.listOfMaps,
+          'flexListOfMapsObject': FlexKind.listOfMaps,
+          'flexExplicit': FlexKind.list,
+        },
       );
-
-      final testEnv = GeneratorTestEnv();
-      await testEnv.run(source);
-
-      var properties = testEnv.model.entities[0].properties;
-      expectFlexProperties(properties, 8);
     });
 
     test('Flex Value type detection', () async {
-      final source = sourceFile(
-        entity(
-          withName: 'FlexEntity',
-          withBody: r'''
+      await expectFlexProperties(
+        r'''
           // Auto-detected dynamic
           dynamic flexDynamic;
         
@@ -1199,17 +1230,19 @@ void main() {
           @Property(type: PropertyType.flex)
           Object? flexObjectExplicit;
           ''',
-        ),
+        {
+          'flexDynamic': FlexKind.value,
+          'flexObject': FlexKind.value,
+          'flexDynamicExplicit': FlexKind.value,
+          'flexObjectExplicit': FlexKind.value,
+        },
       );
-
-      final testEnv = GeneratorTestEnv();
-      await testEnv.run(source);
-
-      var properties = testEnv.model.entities[0].properties;
-      expectFlexProperties(properties, 5);
     });
 
-    test('Flex unsupported type errors', () async {
+    final errorUnsupported =
+        "'FlexEntity.unsupported': PropertyType.flex can only be used with";
+
+    test('Flex unsupported non-null object errors', () async {
       final source = sourceFile(
         entity(
           withName: 'FlexEntity',
@@ -1220,11 +1253,164 @@ void main() {
         ),
       );
 
-      await expectGeneratorThrows(
-        source,
-        "'FlexEntity.unsupported': PropertyType.flex can only be used with",
-      );
+      await expectGeneratorThrows(source, errorUnsupported);
     });
+
+    test('Flex unsupported list of maps with non-null values errors', () async {
+      final source = sourceFile(
+        entity(
+          withName: 'FlexEntity',
+          withBody: r'''
+          @Property(type: PropertyType.flex)
+          List<Map<String, Object>>? unsupported;
+          ''',
+        ),
+      );
+
+      await expectGeneratorThrows(source, errorUnsupported);
+    });
+
+    test('Flex type implementing Map errors', () async {
+      final source = sourceFile('''
+        ${entity(withName: 'FlexEntity', withBody: r'''
+          @Property(type: PropertyType.flex)
+          MyMap? unsupported;
+        ''')}
+
+        abstract class MyMap implements Map<String, Object?> {}
+      ''');
+
+      await expectGeneratorThrows(source, errorUnsupported);
+    });
+  });
+
+  test('Generator-only attributes are not written to model JSON', () {
+    // Set all attributes, so all keys are written. Note that not all of these
+    // combinations are valid, this only tests serialization.
+    final entity = ModelEntity.create(
+      IdUid(1, 10),
+      'Example',
+      null,
+      uidRequest: true,
+    );
+    entity.lastPropertyId = IdUid(2, 42);
+    entity.externalName = 'example-ext';
+    entity.flags = OBXEntityFlags.SYNC_ENABLED;
+    entity.constructorParams = ['id positional int'];
+    entity.properties.add(
+      ModelProperty.create(
+        IdUid(1, 41),
+        'id',
+        OBXPropertyType.Long,
+        flags: OBXPropertyFlags.ID,
+        dartFieldType: 'int',
+        entity: entity,
+      ),
+    );
+    entity.properties.add(
+      ModelProperty.create(
+          IdUid(2, 42),
+          'prop',
+          OBXPropertyType.Flex,
+          flags: OBXPropertyFlags.INDEXED,
+          indexId: '1:50',
+          dartFieldType: 'Map<String, Object?>?',
+          relationTarget: 'Target',
+          uidRequest: true,
+          dartType: PropertyType.flex,
+          flexKind: FlexKind.map,
+          entity: entity,
+        )
+        ..relationField = 'propRel'
+        ..hnswParams = ModelHnswParams(dimensions: 3)
+        ..externalName = 'prop-ext'
+        ..externalType = OBXExternalPropertyType.FlexMap,
+    );
+    entity.relations.add(
+      ModelRelation.create(
+        IdUid(1, 20),
+        'rel',
+        targetId: '2:30',
+        targetName: 'Target',
+        externalName: 'rel-ext',
+        externalType: OBXExternalPropertyType.UuidVector,
+        uidRequest: true,
+      ),
+    );
+    entity.backlinks.add(
+      ModelBacklink(name: 'backlink', srcEntity: 'Source', srcField: 'field'),
+    );
+
+    final modelJsonEntityKeys = {
+      ModelEntityKey.id,
+      ModelEntityKey.lastPropertyId,
+      ModelEntityKey.name,
+      ModelEntityKey.externalName,
+      ModelEntityKey.flags,
+      ModelEntityKey.properties,
+      ModelEntityKey.relations,
+    };
+    final generatorOnlyEntityKeys = {
+      ModelEntityKey.backlinks,
+      ModelEntityKey.constructorParams,
+      ModelEntityKey.uidRequest,
+    };
+    final modelJsonPropertyKeys = {
+      ModelPropertyKey.id,
+      ModelPropertyKey.name,
+      ModelPropertyKey.indexId,
+      ModelPropertyKey.type,
+      ModelPropertyKey.externalName,
+      ModelPropertyKey.externalType,
+      ModelPropertyKey.flags,
+      ModelPropertyKey.relationTarget,
+    };
+    final generatorOnlyPropertyKeys = {
+      ModelPropertyKey.relationField,
+      ModelPropertyKey.dartFieldType,
+      ModelPropertyKey.uidRequest,
+      ModelPropertyKey.hnswParams,
+      ModelPropertyKey.dartType,
+      ModelPropertyKey.flexKind,
+    };
+    final modelJsonRelationKeys = {
+      ModelRelationKey.id,
+      ModelRelationKey.name,
+      ModelRelationKey.externalName,
+      ModelRelationKey.externalType,
+      ModelRelationKey.targetId,
+    };
+    final generatorOnlyRelationKeys = {
+      ModelRelationKey.targetName,
+      ModelRelationKey.uidRequest,
+    };
+
+    Set<String> keysOf(Object? map) =>
+        (map as Map<String, dynamic>).keys.toSet();
+    Object? propertyMap(Map<String, dynamic> entityMap) =>
+        (entityMap[ModelEntityKey.properties] as List)[1];
+    Object? relationMap(Map<String, dynamic> entityMap) =>
+        (entityMap[ModelEntityKey.relations] as List)[0];
+
+    // All keys are written for the generator (EntityResolver to CodeBuilder)
+    final map = entity.toMap();
+    expect(keysOf(map), {...modelJsonEntityKeys, ...generatorOnlyEntityKeys});
+    expect(keysOf(propertyMap(map)), {
+      ...modelJsonPropertyKeys,
+      ...generatorOnlyPropertyKeys,
+    });
+    expect(keysOf(relationMap(map)), {
+      ...modelJsonRelationKeys,
+      ...generatorOnlyRelationKeys,
+    });
+    // and all attributes are restored when reading
+    expect(ModelEntity.fromMap(map, check: false).toMap(), map);
+
+    // Generator-only keys are not written to the model JSON
+    final modelJsonMap = entity.toMap(forModelJson: true);
+    expect(keysOf(modelJsonMap), modelJsonEntityKeys);
+    expect(keysOf(propertyMap(modelJsonMap)), modelJsonPropertyKeys);
+    expect(keysOf(relationMap(modelJsonMap)), modelJsonRelationKeys);
   });
 
   group('GeneratorVersion', () {

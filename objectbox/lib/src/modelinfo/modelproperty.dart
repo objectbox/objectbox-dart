@@ -44,6 +44,9 @@ class ModelProperty {
   /// The optional [ExternalType] of this property.
   int? externalType;
 
+  /// For Flex properties, the kind of Dart type - used by the code generator.
+  FlexKind? flexKind;
+
   /// Type used in the source dart code - used by the code generator.
   /// Starts with [_fieldReadOnlyPrefix] if the field (currently IDs only) is
   /// read-only. Ends with `?` if the field is nullable.
@@ -153,6 +156,7 @@ class ModelProperty {
     this.relationTarget,
     this.uidRequest = false,
     this.dartType,
+    this.flexKind,
   }) : _dartFieldType = dartFieldType {
     this.name = name;
     this.type = type;
@@ -190,7 +194,8 @@ class ModelProperty {
       ),
       externalName = data[ModelPropertyKey.externalName] as String?,
       externalType = data[ModelPropertyKey.externalType] as int?,
-      dartType = _propertyTypeFromInt(data[ModelPropertyKey.dartType] as int?) {
+      dartType = _propertyTypeFromInt(data[ModelPropertyKey.dartType] as int?),
+      flexKind = _flexKindFromInt(data[ModelPropertyKey.flexKind] as int?) {
     name = data[ModelPropertyKey.name] as String?;
     type = data[ModelPropertyKey.type] as int?;
     flags = data[ModelPropertyKey.flags] as int? ?? 0;
@@ -226,6 +231,9 @@ class ModelProperty {
         ret[ModelPropertyKey.hnswParams] = hnswParams!.toMap();
       }
       ret[ModelPropertyKey.dartType] = dartType?.index;
+      if (flexKind != null) {
+        ret[ModelPropertyKey.flexKind] = flexKind!.index;
+      }
     }
     return ret;
   }
@@ -297,7 +305,29 @@ class ModelPropertyKey {
   static const String externalName = 'externalName';
   static const String externalType = 'externalType';
   static const String dartType = 'dartType';
+  static const String flexKind = 'flexKind';
 }
 
 PropertyType? _propertyTypeFromInt(int? index) =>
     index == null ? null : PropertyType.values[index];
+
+FlexKind? _flexKindFromInt(int? index) =>
+    index == null ? null : FlexKind.values[index];
+
+/// The kind of Dart type of a Flex property, detected by the generator.
+///
+/// Used by the code generator to decide how to read the property and which
+/// query property class to use.
+enum FlexKind {
+  /// `dynamic` or `Object?`
+  value,
+
+  /// `Map<String, dynamic/Object?/Object>`
+  map,
+
+  /// `List<dynamic/Object?/Object>`
+  list,
+
+  /// `List<Map<String, dynamic/Object?>>`
+  listOfMaps,
+}

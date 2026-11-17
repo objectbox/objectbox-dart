@@ -629,7 +629,8 @@ class CodeChunks {
                 // The deserializer already skips nulls
                 skipNull = false;
                 defaultValue = '<$elementType>[]';
-                // Cast needed for Map<String, Object?> and Map<String, Object>
+                // Cast needed for Map<String, Object?>
+                // (Map<String, Object> is not supported, see EntityResolver)
                 if (elementType == 'Map<String, dynamic>') {
                   castSuffix = '';
                 } else {
@@ -876,8 +877,16 @@ class CodeChunks {
           fieldType = 'StringVector';
           break;
         case OBXPropertyType.Flex:
-          // Flex properties don't have query support yet, skip generating query property
-          continue;
+          fieldType = switch (prop.flexKind) {
+            FlexKind.value => 'FlexValue',
+            FlexKind.map => 'FlexMap',
+            FlexKind.list || FlexKind.listOfMaps => 'FlexVector',
+            null =>
+              throw InvalidGenerationSourceError(
+                'Flex kind must be set by EntityResolver for ${entity.name}.$name',
+              ),
+          };
+          break;
         default:
           throw InvalidGenerationSourceError(
             'Unsupported property type (${prop.type}): ${entity.name}.$name',
