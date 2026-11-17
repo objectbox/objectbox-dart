@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
@@ -48,7 +47,9 @@ class Box<T> {
   final bool _hasToOneRelations;
   final bool _hasToManyRelations;
   final _builder = BuilderWithCBuffer();
-  _AsyncBoxHelper? _async;
+
+  /// Lazily created by [putQueued].
+  Pointer<OBX_async>? _cAsync;
 
   /// Create a box for an Entity.
   factory Box(Store store) => store.box();
@@ -158,63 +159,6 @@ class Box<T> {
         _PutAsyncArgs(object, mode),
       );
 
-  /// Like [putQueued], but waits on the put to complete.
-  ///
-  /// For typical use cases, use [putAsync] instead which supports objects with
-  /// relations. Use this when a large number of puts needs to be performed in
-  /// parallel (e.g. this is called many times) for better performance. But then
-  /// [putQueued] will achieve even better performance as it does not have to
-  /// notify all callers of completion.
-  ///
-  /// The returned future completes with an ID of the object. If it is a new
-  /// object (its ID property is 0), a new ID will be assigned to [object],
-  /// after the returned [Future] completes.
-  ///
-  /// In extreme scenarios (e.g. having hundreds of thousands async operations
-  /// per second), this may fail as internal queues fill up if the disk can't
-  /// keep up. However, this should not be a concern for typical apps.
-  ///
-  /// The returned future may complete with an error if the put failed
-  /// for another reason, for example a unique constraint violation. In that
-  /// case the [object]'s id field remains unchanged (0 if it was a new object).
-  ///
-  /// See also [putQueued] which doesn't return a [Future] but a pre-allocated
-  /// ID immediately, even though the actual database put operation may fail.
-  @Deprecated(
-    "Use putAsync which supports relations, or for a large number of parallel calls putQueued.",
-  )
-  Future<int> putQueuedAwaitResult(
-    T object, {
-    PutMode mode = PutMode.put,
-  }) async =>
-  // Wrap with [Future.sync] to avoid mixing sync and async errors.
-  // Note: doesn't seem to decrease performance at all.
-  // https://dart.dev/guides/libraries/futures-error-handling#potential-problem-accidentally-mixing-synchronous-and-asynchronous-errors
-  Future.sync(() async {
-    if (_hasRelations) {
-      throw UnsupportedError(
-        'putAsync() is currently not supported on entity '
-        '${T.toString()} because it has relations.',
-      );
-    }
-    _async ??= _AsyncBoxHelper(this);
-
-    // Note: we can use the shared flatbuffer object, because:
-    // https://dart.dev/codelabs/async-await#execution-flow-with-async-and-await
-    // > An async function runs synchronously until the first await keyword.
-    // > This means that within an async function body, all synchronous code
-    // > before the first await keyword executes immediately.
-    _builder.fbb.reset();
-    var id = _entity.objectToFB(object, _builder.fbb);
-    final newId = _async!.put(id, _builder, mode);
-    _builder.resetIfLarge(); // reset before `await`
-    if (id == 0) {
-      // Note: if the newId future completes with an error, ID isn't set.
-      _entity.setId(object, await newId);
-    }
-    return newId;
-  });
-
   /// Schedules the given object to be put later on, by an asynchronous queue.
   ///
   /// For typical use cases, use [putAsync] instead which supports objects with
@@ -242,12 +186,12 @@ class Box<T> {
         '${T.toString()} because it has relations.',
       );
     }
-    _async ??= _AsyncBoxHelper(this);
+    final cAsync = _cAsync ??= C.async(_cBoxChecked);
 
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.async_put_object4(
-      _async!._cAsync,
+      cAsync,
       _builder.bufPtr,
       _builder.fbb.size(),
       _getOBXPutMode(mode),
@@ -650,66 +594,6 @@ int _getOBXPutMode(PutMode mode) {
   assert(__getOBXPutMode(PutMode.update) == OBXPutMode.UPDATE);
   assert(PutMode.values.length == 3);
   return __getOBXPutMode(mode);
-}
-
-/// Something like an "async box": keeps an OBX_async pointer and offers
-/// functions to handle async messages (e.g. via ReceivePort).
-class _AsyncBoxHelper {
-  final Pointer<OBX_async> _cAsync;
-
-  _AsyncBoxHelper(Box box) : _cAsync = C.async(box._cBoxChecked) {
-    initializeDartAPI();
-  }
-
-  /// Put the given buffer as an object asynchronously.
-  /// Internally, this depends on the dartc_async_put_object C function,
-  /// which call an obx_async_put function with a callback. The callback sends
-  /// an empty message if successful, or an error string.
-  Future<int> put(int id, BuilderWithCBuffer fbb, PutMode mode) async {
-    final port = ReceivePort();
-    final newId = C.dartc_async_put_object(
-      _cAsync,
-      port.sendPort.nativePort,
-      fbb.bufPtr,
-      fbb.fbb.size(),
-      _getOBXPutMode(mode),
-    );
-
-    final completer = Completer<int>();
-
-    // Zero is returned to indicate an immediate error, object won't be stored.
-    if (newId == 0) {
-      port.close();
-      try {
-        throwLatestNativeError(context: 'putAsync failed');
-      } catch (e) {
-        completer.completeError(e);
-      }
-    }
-
-    port.listen((dynamic message) {
-      if (!completer.isCompleted) {
-        // Null is sent if the put was successful (there is no error, thus NULL)
-        if (message == null) {
-          completer.complete(newId);
-        } else if (message is String) {
-          completer.completeError(
-            message.startsWith('Unique constraint')
-                ? UniqueViolationException(message)
-                : ObjectBoxException(message),
-          );
-        } else {
-          completer.completeError(
-            ObjectBoxException(
-              'Unknown message type (${message.runtimeType}: $message',
-            ),
-          );
-        }
-      }
-      port.close();
-    });
-    return completer.future;
-  }
 }
 
 /// Internal only.

@@ -14,15 +14,11 @@ void main() async {
   await PutMany().report();
   await PutManyAsync().report();
   await PutAndGetManyAsync().report();
-  await PutQueuedAwaitResult().report();
   await PutQueued().report();
   await PutAsync().report();
   await PutAndGetAsync().report();
-  await PutQueuedAwaitResultParallel().report();
   await PutQueuedParallel().report();
   await PutAsyncParallel().report();
-  await PutAsyncToList().report();
-  await PutAsyncAwait().report();
   await RunInTx().report();
   await RunInTxAsync().report();
   await RunAsync().report();
@@ -85,18 +81,6 @@ class PutAndGetManyAsync extends DbBenchmark {
 
 const putAsyncCount = 10;
 
-/// Runs putAsync one-by-one, use to measure time of a single call.
-class PutQueuedAwaitResult extends DbBenchmark {
-  final items = prepareTestEntities(putAsyncCount, assignedIds: true);
-
-  PutQueuedAwaitResult()
-    : super('$PutQueuedAwaitResult', iterations: putAsyncCount);
-
-  @override
-  FutureOr<void> runIteration(int iteration) =>
-      box.putQueuedAwaitResult(items[iteration]);
-}
-
 /// Runs putQueued one-by-one, use to measure time of a single call.
 class PutQueued extends DbBenchmark {
   final items = prepareTestEntities(putAsyncCount, assignedIds: true);
@@ -133,18 +117,6 @@ class PutAndGetAsync extends DbBenchmark {
 
 const putAsyncParallelCount = 100;
 
-/// Runs many PutQueuedAwaitResult calls in parallel and waits until the last one completes,
-/// use to assert parallelization capability.
-class PutQueuedAwaitResultParallel extends DbBenchmark {
-  final items = prepareTestEntities(putAsyncParallelCount, assignedIds: true);
-
-  PutQueuedAwaitResultParallel() : super('$PutQueuedAwaitResultParallel');
-
-  @override
-  Future<void> run() async =>
-      await Future.wait(items.map(box.putQueuedAwaitResult));
-}
-
 /// Runs many putQueuedParallel calls in parallel and waits until the last one
 /// completes, use to assert parallelization capability.
 class PutQueuedParallel extends DbBenchmark {
@@ -168,35 +140,6 @@ class PutAsyncParallel extends DbBenchmark {
 
   @override
   Future<void> run() async => await Future.wait(items.map(box.putAsync));
-}
-
-/// This is slightly different (slower) then [PutAsyncParallel] - all futures are
-/// prepared beforehand, only then it starts to wait for them to complete.
-class PutAsyncToList extends DbBenchmark {
-  final items = prepareTestEntities(count, assignedIds: true);
-
-  PutAsyncToList() : super('$PutAsyncToList');
-
-  @override
-  Future<void> run() async {
-    final futures = items.map(box.putQueuedAwaitResult).toList(growable: false);
-    await Future.wait(futures);
-    store.awaitQueueSubmitted();
-  }
-}
-
-class PutAsyncAwait extends DbBenchmark {
-  final items = prepareTestEntities(count, assignedIds: true);
-
-  PutAsyncAwait() : super('$PutAsyncAwait');
-
-  @override
-  Future<void> run() async {
-    for (var item in items) {
-      await box.putQueuedAwaitResult(item);
-    }
-    store.awaitQueueSubmitted();
-  }
 }
 
 class RunInTx extends DbBenchmark {
