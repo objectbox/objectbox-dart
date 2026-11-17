@@ -122,15 +122,8 @@ bool _isSupportedVersion(ObjectBoxC obxc) {
   }
   // Require a minimum database version.
   final databaseVersion = dartStringFromC(obxc.version_core_string());
-  try {
-    return isAtLeastDatabaseVersion(databaseVersion, _obxDatabaseMinVersion);
-  } on ArgumentError {
-    // The version string is not in the expected format, so it can not be
-    // determined if it is recent enough. Treat as not supported: the caller
-    // then reports the actual and expected version strings and how to update
-    // the library, which is more helpful than the format error alone.
-    return false;
-  }
+  // Note: don't catch ArgumentError, see note in match function!
+  return isAtLeastDatabaseVersion(databaseVersion, _obxDatabaseMinVersion);
 }
 
 /// Pattern to match MAJOR.MINOR.PATCH version number, like 5.3.10.
