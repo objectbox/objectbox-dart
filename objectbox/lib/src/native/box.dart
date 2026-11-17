@@ -186,7 +186,10 @@ class Box<T> {
         '${T.toString()} because it has relations.',
       );
     }
-    final cAsync = _cAsync ??= C.async(_cBoxChecked);
+    // Check before writing to the builder: its buffer is freed once the store
+    // is closed.
+    final cBox = _cBoxChecked;
+    final cAsync = _cAsync ??= C.async(cBox);
 
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
@@ -202,6 +205,9 @@ class Box<T> {
   }
 
   int _put(T object, PutMode mode, Transaction? tx) {
+    // Check before writing to the builder: its buffer is freed once the store
+    // is closed.
+    final cBox = _cBoxChecked;
     if (_hasRelations) {
       if (tx == null) {
         throw StateError(
@@ -211,7 +217,7 @@ class Box<T> {
       if (_hasToOneRelations) {
         // In this case, there may be relation cycles so get the ID first.
         if ((_entity.getId(object) ?? 0) == 0) {
-          final newId = C.box_id_for_put(_cBoxChecked, 0);
+          final newId = C.box_id_for_put(cBox, 0);
           if (newId == 0) throwLatestNativeError(context: 'id-for-put failed');
           _entity.setId(object, newId);
         }
@@ -221,7 +227,7 @@ class Box<T> {
     _builder.fbb.reset();
     var id = _entity.objectToFB(object, _builder.fbb);
     final newId = C.box_put_object4(
-      _cBoxChecked,
+      cBox,
       _builder.bufPtr,
       _builder.fbb.size(),
       _getOBXPutMode(mode),
@@ -604,7 +610,7 @@ class InternalBoxAccess {
       Box._(store, entity);
 
   /// Close the box, freeing resources.
-  static void close(Box box) => box._builder.clear();
+  static void close(Box box) => box._builder.free();
 
   /// Put the object in a given transaction.
   @pragma('vm:prefer-inline')

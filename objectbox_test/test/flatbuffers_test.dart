@@ -39,8 +39,22 @@ void main() {
         equals(list1b),
       );
 
-      fb1.clear();
+      fb1.free();
     }
+  });
+
+  test('custom flatbuffers builder throws after free', () {
+    final fb1 = BuilderWithCBuffer();
+    fb1.free();
+    // Must not allow writing to the freed buffer.
+    expect(
+      () => fb1.fbb,
+      throwsA(
+        predicate((StateError e) => e.message == 'Builder buffer was freed'),
+      ),
+    );
+    // Freeing again is fine.
+    fb1.free();
   });
 
   bytesSum(ByteData data) => data.buffer.asInt8List().reduce((v, e) => v + e);
@@ -105,8 +119,8 @@ void main() {
       TestEntityNonRel(),
     );
 
-    // note: accessing fbData after fb1.clear() is illegal (memory is freed)
-    fb1.clear();
+    // note: accessing fbData after fb1.free() is illegal (memory is freed)
+    fb1.free();
     env.closeAndDelete();
 
     // clearing the data must not affect already read objects

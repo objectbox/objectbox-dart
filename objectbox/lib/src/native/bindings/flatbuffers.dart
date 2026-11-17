@@ -17,7 +17,14 @@ class BuilderWithCBuffer {
 
   late fb.Builder _fbb;
 
-  fb.Builder get fbb => _fbb;
+  /// Throws if [free] was called: the builder would write to freed memory.
+  @pragma('vm:prefer-inline')
+  fb.Builder get fbb {
+    if (_allocator._ptr == null) {
+      throw StateError('Builder buffer was freed');
+    }
+    return _fbb;
+  }
 
   @pragma('vm:prefer-inline')
   Pointer<Void> get bufPtr =>
@@ -38,12 +45,14 @@ class BuilderWithCBuffer {
   @pragma('vm:prefer-inline')
   void resetIfLarge() {
     if (_allocator._capacity > _resetIfLargerThan) {
-      clear();
+      free();
       _fbb = _createBuilder();
     }
   }
 
-  void clear() => _allocator.freeAll();
+  /// Frees the native buffer. This builder can not be used afterwards, [fbb]
+  /// throws. Calling this again has no effect.
+  void free() => _allocator.freeAll();
 
   Allocator get allocator => _allocator;
 }

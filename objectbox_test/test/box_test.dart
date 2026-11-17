@@ -101,6 +101,10 @@ void main() {
     // Obtain box reference before store is closed.
     final box = env.box;
     final boxNonRel = env.store.box<TestEntityNonRel>();
+    // Create the native async queue before closing to test putQueued checks the
+    // store even if it exists.
+    boxNonRel.putQueued(TestEntityNonRel.filled(id: 0));
+    env.store.awaitQueueCompletion();
     env.closeAndDelete();
 
     expectStoreClosed(Function function) {
