@@ -52,18 +52,18 @@ The Flutter Sync plugin also uses the Android mesh sync artifact:
 To change to a different version:
 
 ```bash
-./tool/set-android-version.sh 6.0.0-beta3
+./tool/set-android-version.sh 6.0.0-rc
 ```
 
 ```text
-* Update ObjectBox database for Flutter Android apps to `6.0.0-beta-2026-10-16`.  
+* Update ObjectBox database for Flutter Android apps to `6.0.0-rc-2026-11-13`.  
   If your project is [using Admin](https://docs.objectbox.io/data-browser#admin-for-android), make sure to update to `io.objectbox:objectbox-android-db-admin:6.0.0-beta3` in `android/app/build.gradle.kts` or `android/app/build.gradle`.
 ```
 
 ```text
-Update Android library [6.0.0-beta2 -> 6.0.0-beta3]
+Update Android library [6.0.0-beta3 -> 6.0.0-rc]
 
-Includes C API 6.0.0 and database 6.0.0-beta-2026-10-16
+Includes C API 6.0.0 and database 6.0.0-rc-2026-11-13
 ```
 
 Note: the embedded C API and ObjectBox version can be looked up
