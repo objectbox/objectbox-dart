@@ -127,6 +127,12 @@ jobs:
           java-version: 21
           verify-signature: true
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        # Cache Gradle distribution and dependencies downloaded by the Android build (only built on
+        # Linux). Only writes the cache on the default branch, other branches restore only.
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          add-job-summary: on-failure
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         # Install Ubuntu packages required for Flutter build
         # https://docs.flutter.dev/platform-integration/linux/setup#set-up-tooling
         # Note: clang, cmake, pkg-config and libstdc++-12-dev are pre-installed on ubuntu-24.04
@@ -161,6 +167,12 @@ jobs:
         with:
           flutter-version: ${{ env[matrix.flutter-version-var] }}
           cache: true
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        # Cache Gradle distribution and dependencies downloaded by the Android build (only built on
+        # Linux). Only writes the cache on the default branch, other branches restore only.
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          add-job-summary: on-failure
       - run: flutter doctor -v
       - name: Get dependencies and generate code
         working-directory: objectbox_test_app
