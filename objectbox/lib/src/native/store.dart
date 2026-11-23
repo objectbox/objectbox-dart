@@ -63,9 +63,6 @@ class Store implements Finalizable {
 
   final _readPointers = ReadPointers();
 
-  /// Active transaction to be re-used. Currently not used.
-  Transaction? _tx;
-
   /// ID of the native store, the same for all [Store] instances attached to
   /// the same native store. Unique and stable during the lifetime of the
   /// process.
@@ -1188,29 +1185,18 @@ class Store implements Finalizable {
   /// resumes! Even if this would await, the isolate might resume on a different
   /// thread, which is not supported while in a transaction.
   ///
-  /// This is prepared to re-use an already active transaction [_tx], but [_tx]
-  /// is currently not set.
-  ///
   /// This doesn't verify that the callback function isn't an async function
   /// for performance reasons. If not a concern, use [runInTransaction] instead!
   R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
-    final reused = _tx != null;
-    final tx = reused ? _tx! : Transaction(this, mode);
-    if (reused && tx.mode != TxMode.write && mode == TxMode.write) {
-      throw UnsupportedError(
-        'Cannot start a write transaction inside a read-only transaction.',
-      );
-    }
+    final tx = Transaction(this, mode);
     try {
       final result = fn(tx);
-      if (!reused) tx.successAndClose();
+      tx.successAndClose();
       return result;
     } catch (ex) {
       // Is a no-op if successAndClose did throw.
-      if (!reused) tx.abortAndClose();
+      tx.abortAndClose();
       rethrow;
-    } finally {
-      if (!reused) _tx = null;
     }
   }
 

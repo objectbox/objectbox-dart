@@ -212,6 +212,8 @@ void main() {
     expect(Store.isOpen(env.dbDirPath), false);
   });
 
+  // Note: Additional transaction tests are in box_test.dart!
+
   test('transactions', () {
     final env = TestEnv('store');
     addTearDown(() => env.closeAndDelete());
@@ -252,6 +254,22 @@ void main() {
         ),
       );
     }
+  });
+
+  test('nested transactions create their own transaction', () {
+    final env = TestEnv('store');
+    addTearDown(() => env.closeAndDelete());
+    final store = env.store;
+
+    // Unlike the Java API, nested transactions are created.
+    InternalStoreAccess.runInTransaction(store, TxMode.write, (outer) {
+      InternalStoreAccess.runInTransaction(store, TxMode.read, (inner) {
+        expect(inner, isNot(same(outer)));
+      });
+      InternalStoreAccess.runInTransaction(store, TxMode.write, (inner) {
+        expect(inner, isNot(same(outer)));
+      });
+    });
   });
 
   test('async transactions', () async {

@@ -440,6 +440,25 @@ void main() {
       );
     });
 
+    test('applyToDb in transaction is aborted with it', () {
+      final relatedBox = env.store.box<RelatedEntityA>();
+      final id = env.box.put(testEntity());
+      final owner = env.box.get(id)!;
+      expect(
+        () => env.store.runInTransaction(TxMode.write, () {
+          owner.relManyA.add(RelatedEntityA(tInt: 1));
+          owner.relManyA.applyToDb();
+          expect(relatedBox.count(), 1);
+          // Throw conditionally so the return type is not Never (rejected by
+          // runInTransaction).
+          if (owner.id == id) throw 'test-exception';
+        }),
+        throwsA('test-exception'),
+      );
+      expect(relatedBox.count(), 0);
+      expect(env.box.get(id)!.relManyA, isEmpty);
+    });
+
     test("don't load old data when just adding", () {
       TestEntity src = testEntity();
       expect(src.relManyA, isNotNull);
