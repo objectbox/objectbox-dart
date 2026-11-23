@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:ffi';
+import 'dart:io';
 
+import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../modelinfo/entity_definition.dart';
@@ -41,7 +43,22 @@ class Transaction implements Finalizable {
   /// at isolate shutdown, native finalizers run in the order their finalizer
   /// objects were created, and transactions must be closed before the store.
   /// This works because Dart initializes static fields on access.
-  static void initFinalizer() => _finalizer;
+  static void initFinalizer() {
+    // Create the debug finalizer first, so it logs before any txn_close runs.
+    _debugFinalizer;
+    _finalizer;
+  }
+
+  // TODO Temporary: logs the order in which transaction finalizers run at
+  // isolate shutdown by calling perror (writes unbuffered to stderr) with a
+  // label containing the transaction depth.
+  static final _debugFinalizer = NativeFinalizer(
+    (Platform.isWindows
+            ? DynamicLibrary.open('ucrtbase.dll')
+            : DynamicLibrary.process())
+        .lookup<NativeFunction<Void Function(Pointer<Utf8>)>>('perror')
+        .cast(),
+  );
 
   Transaction(this._store, this.mode)
     : _cTxn =
@@ -49,6 +66,13 @@ class Transaction implements Finalizable {
               ? C.txn_write(InternalStoreAccess.cStore(_store))
               : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
+    final depth = InternalStoreAccess.debugTxDepthIncrement(_store);
+    // Label is never freed, it is only for testing.
+    _debugFinalizer.attach(
+      this,
+      'obx-txn-finalizer depth=$depth'.toNativeUtf8().cast(),
+      detach: this,
+    );
     _finalizer.attach(this, _cTxn.cast(), detach: this);
   }
 
@@ -68,6 +92,8 @@ class Transaction implements Finalizable {
     if (_closed) return;
     _closed = true;
     _finalizer.detach(this);
+    _debugFinalizer.detach(this);
+    InternalStoreAccess.debugTxDepthDecrement(_store);
     final firstCursor = _firstCursor;
     if (firstCursor != null) {
       firstCursor.close();

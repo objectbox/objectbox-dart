@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -70,6 +71,32 @@ void main() {
     final store = Store(getObjectBoxModel(), directory: env.dbDirPath);
     addTearDown(() => store.close());
     expect(Box<TestEntityNonRel>(store).count(), 0);
+  });
+
+  // TODO Temporary: requires the debug finalizer of Transaction.
+  test('nested transaction finalizer runs before parent', () async {
+    final dbDir = TestEnv.testDbDirPath('nested-tx-finalizer');
+    addTearDown(() {
+      final dir = Directory(dbDir);
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
+    });
+    // Runs in a separate process: the finalizers log natively to stderr, which
+    // is not captured otherwise.
+    final result = await Process.run(Platform.resolvedExecutable, [
+      'test/nested_tx_finalizer_order.dart',
+      dbDir,
+    ]).timeout(const Duration(seconds: 60));
+    final output =
+        'exit code: ${result.exitCode}\n'
+        'stdout:\n${result.stdout}\nstderr:\n${result.stderr}';
+    print(output);
+    final depths =
+        RegExp(r'obx-txn-finalizer depth=(\d+)')
+            .allMatches(result.stderr as String)
+            .map((m) => int.parse(m[1]!))
+            .toList();
+    // The nested transaction must be closed before its parent.
+    expect(depths, [1, 0], reason: output);
   });
 
   /// Work with a single store across multiple isolates using

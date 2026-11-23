@@ -66,6 +66,9 @@ class Store implements Finalizable {
   /// Active transaction to be re-used. Currently not used.
   Transaction? _tx;
 
+  // TODO Temporary: depth of open transactions, to log the finalizer order.
+  int _debugTxDepth = 0;
+
   /// Path to the database directory.
   String get directoryPath {
     final configuration = _configuration;
@@ -1348,6 +1351,12 @@ class InternalStoreAccess {
   /// Pointer to the native instance, but throws if [store] was already closed.
   @pragma('vm:prefer-inline')
   static Pointer<OBX_store> cStore(Store store) => store._cStoreChecked;
+
+  /// TODO Temporary: to log the finalizer order of transactions.
+  static int debugTxDepthIncrement(Store store) => store._debugTxDepth++;
+
+  /// TODO Temporary: to log the finalizer order of transactions.
+  static void debugTxDepthDecrement(Store store) => store._debugTxDepth--;
 
   /// String query case-sensitive default
   @pragma('vm:prefer-inline')
