@@ -1,8 +1,6 @@
 import 'dart:collection';
 import 'dart:ffi';
-import 'dart:io';
 
-import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../modelinfo/entity_definition.dart';
@@ -62,21 +60,7 @@ class Transaction implements Finalizable {
   /// at isolate shutdown, native finalizers run in the order their finalizer
   /// objects were created, and transactions must be closed before the store.
   /// This works because Dart initializes static fields on access.
-  static void initFinalizer() {
-    // Create the debug finalizer first, so it logs before any txn_close runs.
-    _debugFinalizer;
-    _finalizer;
-  }
-
-  // TODO Temporary: logs which transactions get finalized at isolate shutdown
-  // by calling perror (writes unbuffered to stderr) with a label.
-  static final _debugFinalizer = NativeFinalizer(
-    (Platform.isWindows
-            ? DynamicLibrary.open('ucrtbase.dll')
-            : DynamicLibrary.process())
-        .lookup<NativeFunction<Void Function(Pointer<Utf8>)>>('perror')
-        .cast(),
-  );
+  static void initFinalizer() => _finalizer;
 
   factory Transaction(Store store, TxMode mode) {
     final storeId = store.nativeId;
@@ -94,15 +78,7 @@ class Transaction implements Finalizable {
               ? C.txn_write(InternalStoreAccess.cStore(_store))
               : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
-    if (_topLevel) {
-      // TODO Temporary: label is never freed, it is only for testing.
-      _debugFinalizer.attach(
-        this,
-        'obx-txn-finalizer top-level'.toNativeUtf8().cast(),
-        detach: this,
-      );
-      _finalizer.attach(this, _cTxn.cast(), detach: this);
-    }
+    if (_topLevel) _finalizer.attach(this, _cTxn.cast(), detach: this);
   }
 
   /// Indicates the write transaction is complete and closes it.
@@ -120,10 +96,7 @@ class Transaction implements Finalizable {
   void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
-    if (_topLevel) {
-      _finalizer.detach(this);
-      _debugFinalizer.detach(this);
-    }
+    if (_topLevel) _finalizer.detach(this);
     final openCount = _openCountByStoreId[_storeId]! - 1;
     if (openCount == 0) {
       _openCountByStoreId.remove(_storeId);

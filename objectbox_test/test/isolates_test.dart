@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -71,33 +70,6 @@ void main() {
     final store = Store(getObjectBoxModel(), directory: env.dbDirPath);
     addTearDown(() => store.close());
     expect(Box<TestEntity>(store).count(), 0);
-  });
-
-  // TODO Temporary: requires the debug finalizer of Transaction.
-  test('only top-level transaction has finalizer', () async {
-    final dbDir = TestEnv.testDbDirPath('nested-tx-finalizer');
-    addTearDown(() {
-      final dir = Directory(dbDir);
-      if (dir.existsSync()) dir.deleteSync(recursive: true);
-    });
-    // Runs in a separate process: the finalizers log natively to stderr, which
-    // is not captured otherwise.
-    final result = await Process.run(Platform.resolvedExecutable, [
-      'test/nested_tx_finalizer_order.dart',
-      dbDir,
-    ]).timeout(const Duration(seconds: 60));
-    final output =
-        'exit code: ${result.exitCode}\n'
-        'stdout:\n${result.stdout}\nstderr:\n${result.stderr}';
-    print(output);
-    final finalized =
-        RegExp(
-          r'obx-txn-finalizer ([\w-]+)',
-        ).allMatches(result.stderr as String).map((m) => m[1]!).toList();
-    // A nested transaction must not be closed after its parent (which would
-    // use freed memory), so only the top-level one has a finalizer.
-    expect(finalized, ['top-level'], reason: output);
-    expect(result.exitCode, 0, reason: output);
   });
 
   /// Work with a single store across multiple isolates using
