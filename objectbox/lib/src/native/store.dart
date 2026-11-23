@@ -66,8 +66,10 @@ class Store implements Finalizable {
   /// Active transaction to be re-used. Currently not used.
   Transaction? _tx;
 
-  // TODO Temporary: depth of open transactions, to log the finalizer order.
-  int _debugTxDepth = 0;
+  /// ID of the native store, the same for all [Store] instances attached to
+  /// the same native store. Unique and stable during the lifetime of the
+  /// process.
+  late final int _nativeId = C.store_id(_cStoreChecked);
 
   /// Path to the database directory.
   String get directoryPath {
@@ -681,10 +683,13 @@ class Store implements Finalizable {
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
     // At isolate shutdown, native finalizers run in the order their finalizer
-    // objects were created (verified empirically, without it, the store close
-    // waits forever; it is not documented VM behaviour): create the ones for
-    // transactions, observers and sync clients first, so that those still open
-    // at that point are closed before the store.
+    // objects were created, and for each finalizer in the order objects were
+    // attached to it. This is not documented VM behaviour, it was verified
+    // empirically (without it, the store close waits forever), last on
+    // macOS, Ubuntu and Windows using Flutter SDK 3.50.1.
+    // So create the finalizers for transactions, observers and sync clients
+    // first, so that those still open at that point are closed before the
+    // store.
     // This works because Dart initializes static fields on access.
     Transaction.initFinalizer();
     _Observer.initFinalizer();
@@ -1294,6 +1299,9 @@ extension StoreInternal on Store {
   ///
   /// See [ReadPointers].
   ReadPointers readPointers() => _readPointers;
+
+  /// See [Store._nativeId].
+  int get nativeId => _nativeId;
 }
 
 /// Internal only.
@@ -1351,12 +1359,6 @@ class InternalStoreAccess {
   /// Pointer to the native instance, but throws if [store] was already closed.
   @pragma('vm:prefer-inline')
   static Pointer<OBX_store> cStore(Store store) => store._cStoreChecked;
-
-  /// TODO Temporary: to log the finalizer order of transactions.
-  static int debugTxDepthIncrement(Store store) => store._debugTxDepth++;
-
-  /// TODO Temporary: to log the finalizer order of transactions.
-  static void debugTxDepthDecrement(Store store) => store._debugTxDepth--;
 
   /// String query case-sensitive default
   @pragma('vm:prefer-inline')

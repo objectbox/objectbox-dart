@@ -70,11 +70,11 @@ void main() {
     // The transaction was aborted, none of its data was committed.
     final store = Store(getObjectBoxModel(), directory: env.dbDirPath);
     addTearDown(() => store.close());
-    expect(Box<TestEntityNonRel>(store).count(), 0);
+    expect(Box<TestEntity>(store).count(), 0);
   });
 
   // TODO Temporary: requires the debug finalizer of Transaction.
-  test('nested transaction finalizer runs before parent', () async {
+  test('only top-level transaction has finalizer', () async {
     final dbDir = TestEnv.testDbDirPath('nested-tx-finalizer');
     addTearDown(() {
       final dir = Directory(dbDir);
@@ -90,13 +90,14 @@ void main() {
         'exit code: ${result.exitCode}\n'
         'stdout:\n${result.stdout}\nstderr:\n${result.stderr}';
     print(output);
-    final depths =
-        RegExp(r'obx-txn-finalizer depth=(\d+)')
-            .allMatches(result.stderr as String)
-            .map((m) => int.parse(m[1]!))
-            .toList();
-    // The nested transaction must be closed before its parent.
-    expect(depths, [1, 0], reason: output);
+    final finalized =
+        RegExp(
+          r'obx-txn-finalizer ([\w-]+)',
+        ).allMatches(result.stderr as String).map((m) => m[1]!).toList();
+    // A nested transaction must not be closed after its parent (which would
+    // use freed memory), so only the top-level one has a finalizer.
+    expect(finalized, ['top-level'], reason: output);
+    expect(result.exitCode, 0, reason: output);
   });
 
   /// Work with a single store across multiple isolates using
@@ -195,11 +196,12 @@ Future<void> testUsingStoreFromIsolate(
 /// Puts objects in a write transaction until killed.
 void writeUntilKilled(List<Object> args) {
   final store = Store.attach(getObjectBoxModel(), args[0] as String);
-  // Use an entity without relations: put() then does not create a (nested)
-  // transaction, so only the outer transaction is open when killed. Otherwise,
-  // the kill likely happens while attaching or detaching a nested transaction
-  // to its finalizer, which crashes the VM when running finalizers on shutdown.
-  final box = Box<TestEntityNonRel>(store);
+  // Note: each put() creates a nested transaction as the entity has relations.
+  // This was previously an issue where the VM would crash as the isolate could
+  // have been shut down exactly when the finalizer of a nested transaction was
+  // attached or detached. It no longer is, because a finalizer is now only
+  // attached for the outer-most transaction.
+  final box = Box<TestEntity>(store);
   try {
     store.runInTransaction(TxMode.write, () {
       // Signal transaction has started
@@ -207,7 +209,7 @@ void writeUntilKilled(List<Object> args) {
       // Keep running for a while to allow this to get killed: can't use sleep
       // as it will prevent the isolate from getting killed, so keep updating
       // the same object to avoid consuming too much disk space.
-      final testObject = TestEntityNonRel();
+      final testObject = TestEntity();
       for (var i = 0; i < 100000000; i++) {
         box.put(testObject..tInt = i);
       }

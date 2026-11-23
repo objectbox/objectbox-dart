@@ -28,12 +28,31 @@ class Transaction implements Finalizable {
   CursorHelper? _firstCursor;
   HashMap<int, CursorHelper>? _cursors;
 
+  /// Whether this is the outermost transaction of its native store in this
+  /// isolate (the native store considers transactions on the same thread
+  /// nested).
+  final bool _topLevel;
+
+  /// ID of the native store, see [StoreInternal.nativeId].
+  final int _storeId;
+
+  /// Number of open transactions by native store ID in this isolate.
+  static final _openCountByStoreId = HashMap<int, int>();
+
   /// Closes a read and aborts a write transaction that is still open when its
   /// isolate shuts down: for example an isolate terminated via Isolate.kill()
   /// inside a transaction does not run finally blocks. This may run on an
   /// arbitrary thread, which may not be the thread that started the
   /// transaction. But without this, closing the store would wait for a write
   /// transaction forever.
+  ///
+  /// Only attached to top-level transactions: at isolate shutdown, native
+  /// finalizers run in the order objects were attached (this is undocumented VM
+  /// behavior, see the notes in `Store._attachFinalizer()`), so a parent would
+  /// be closed before its nested transactions. But closing the parent deletes
+  /// the native transaction, which a nested write transaction would then access
+  /// when closed (use after free). Closing the parent alone is sufficient, it
+  /// aborts the native transaction (the nested ones are then leaked).
   ///
   /// Keeps the finalizer itself reachable (static), otherwise it might be
   /// disposed of before the finalizer callback gets a chance to run.
@@ -49,9 +68,8 @@ class Transaction implements Finalizable {
     _finalizer;
   }
 
-  // TODO Temporary: logs the order in which transaction finalizers run at
-  // isolate shutdown by calling perror (writes unbuffered to stderr) with a
-  // label containing the transaction depth.
+  // TODO Temporary: logs which transactions get finalized at isolate shutdown
+  // by calling perror (writes unbuffered to stderr) with a label.
   static final _debugFinalizer = NativeFinalizer(
     (Platform.isWindows
             ? DynamicLibrary.open('ucrtbase.dll')
@@ -60,20 +78,31 @@ class Transaction implements Finalizable {
         .cast(),
   );
 
-  Transaction(this._store, this.mode)
-    : _cTxn =
+  factory Transaction(Store store, TxMode mode) {
+    final storeId = store.nativeId;
+    final openCount = _openCountByStoreId[storeId] ?? 0;
+    final tx = Transaction._(store, mode, storeId, topLevel: openCount == 0);
+    // Only count once successfully created.
+    _openCountByStoreId[storeId] = openCount + 1;
+    return tx;
+  }
+
+  Transaction._(this._store, this.mode, this._storeId, {required bool topLevel})
+    : _topLevel = topLevel,
+      _cTxn =
           mode == TxMode.write
               ? C.txn_write(InternalStoreAccess.cStore(_store))
               : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
-    final depth = InternalStoreAccess.debugTxDepthIncrement(_store);
-    // Label is never freed, it is only for testing.
-    _debugFinalizer.attach(
-      this,
-      'obx-txn-finalizer depth=$depth'.toNativeUtf8().cast(),
-      detach: this,
-    );
-    _finalizer.attach(this, _cTxn.cast(), detach: this);
+    if (_topLevel) {
+      // TODO Temporary: label is never freed, it is only for testing.
+      _debugFinalizer.attach(
+        this,
+        'obx-txn-finalizer top-level'.toNativeUtf8().cast(),
+        detach: this,
+      );
+      _finalizer.attach(this, _cTxn.cast(), detach: this);
+    }
   }
 
   /// Indicates the write transaction is complete and closes it.
@@ -91,9 +120,16 @@ class Transaction implements Finalizable {
   void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
-    _finalizer.detach(this);
-    _debugFinalizer.detach(this);
-    InternalStoreAccess.debugTxDepthDecrement(_store);
+    if (_topLevel) {
+      _finalizer.detach(this);
+      _debugFinalizer.detach(this);
+    }
+    final openCount = _openCountByStoreId[_storeId]! - 1;
+    if (openCount == 0) {
+      _openCountByStoreId.remove(_storeId);
+    } else {
+      _openCountByStoreId[_storeId] = openCount;
+    }
     final firstCursor = _firstCursor;
     if (firstCursor != null) {
       firstCursor.close();

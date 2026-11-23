@@ -1,10 +1,11 @@
 // Not a test suite, a program started by a test in isolates_test.dart:
 // dart test/nested_tx_finalizer_order.dart <database directory>
 //
-// An isolate exits inside a nested write transaction, so both transactions are
-// only closed by their finalizers when the isolate shuts down. The (temporary)
-// debug finalizer of Transaction logs the order in which the finalizers run to
-// stderr, like "obx-txn-finalizer depth=0: ...".
+// An isolate exits inside a nested write transaction, so the transactions are
+// only closed by finalizers when the isolate shuts down. The (temporary) debug
+// finalizer of Transaction logs which transactions get finalized to stderr,
+// like "obx-txn-finalizer top-level: ...". Exits with code 0 if the
+// transactions were aborted and the store could be closed.
 
 import 'dart:io';
 import 'dart:isolate';
@@ -46,5 +47,13 @@ Future<void> main(List<String> args) async {
   await Future<void>.delayed(const Duration(milliseconds: 500));
   // Waits for active write transactions, so would hang if they were not closed.
   store.close();
+  // The transactions were aborted, none of their data was committed.
+  final reopened = Store(getObjectBoxModel(), directory: args[0]);
+  final count = Box<TestEntityNonRel>(reopened).count();
+  reopened.close();
+  if (count != 0) {
+    stderr.writeln('Expected no objects, but found $count');
+    exit(1);
+  }
   exit(0);
 }
