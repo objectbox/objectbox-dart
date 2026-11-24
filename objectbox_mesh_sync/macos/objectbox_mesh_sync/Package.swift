@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
-        // Pinned to the commit of tag 6.0.0-beta.2 (new versions might contain breaking C API changes, so it is
+        // Pinned to the commit of tag 6.0.0-rc (new versions might contain breaking C API changes, so it is
         // pinned at all). Pinned by revision rather than exact version: with the MeshSync trait, the package depends
         // on Google's nearby package, which has no version tags and is pinned by revision. SwiftPM does not allow a
         // version-based dependency to depend on a revision-based one ("required using a stable-version but depends
@@ -31,7 +31,7 @@ let package = Package(
         // Flutter lists plugins sorted by name.
         .package(
             url: "https://github.com/objectbox/objectbox-swift-spm.git",
-            revision: "910840f73816ce78cbefef12d7869402675ae1bf",  // 6.0.0-beta.2
+            revision: "d2ef3d68c85dfb62e407c5a06f18395e93ac109f",  // 6.0.0-rc
             traits: ["MeshSync"])
     ],
     targets: [

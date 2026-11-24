@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
         // Use exact instead of from as new versions might contain breaking C API changes
-        .package(url: "https://github.com/objectbox/objectbox-swift-spm.git", exact: "5.3.0")
+        .package(url: "https://github.com/objectbox/objectbox-swift-spm.git", exact: "6.0.0-rc")
     ],
     targets: [
         .target(
