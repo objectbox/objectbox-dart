@@ -958,7 +958,7 @@ void main() {
     expect(box.count(), equals(0));
   });
 
-  test('recursive write in write transaction', () {
+  test('nested write in write transaction', () {
     store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
       store.runInTransaction(TxMode.write, () {
@@ -968,7 +968,7 @@ void main() {
     expect(box.count(), equals(12));
   });
 
-  test('recursive write in write transaction - async', () async {
+  test('nested write in write transaction - async', () async {
     await store.runInTransactionAsync(TxMode.write, (
       Store store,
       List<TestEntity> param,
@@ -986,7 +986,7 @@ void main() {
     expect(box.count(), equals(12));
   });
 
-  test('recursive read in write transaction', () {
+  test('nested read in write transaction', () {
     int count = store.runInTransaction(TxMode.write, () {
       box.putMany(simpleItems());
       return store.runInTransaction(TxMode.read, box.count);
@@ -994,7 +994,7 @@ void main() {
     expect(count, equals(6));
   });
 
-  test('recursive read in write transaction - async', () async {
+  test('nested read in write transaction - async', () async {
     int count = await store.runInTransactionAsync(TxMode.write, (
       Store store,
       List<TestEntity> param,
@@ -1006,7 +1006,7 @@ void main() {
     expect(count, equals(6));
   });
 
-  test('recursive write in read -> fails during creation', () {
+  test('nested write in read -> fails during creation', () {
     expect(
       () => store.runInTransaction(TxMode.read, () {
         box.count();
@@ -1024,7 +1024,7 @@ void main() {
     );
   });
 
-  test('recursive write in async read -> fails during creation', () {
+  test('nested write in async read -> fails during creation', () {
     expect(
       () => store.runInTransactionAsync(TxMode.read, (
         Store store,
@@ -1044,15 +1044,50 @@ void main() {
     );
   });
 
-  test('failing in recursive txn', () {
+  test('write in nested read in write transaction', () {
     store.runInTransaction(TxMode.write, () {
-      //should throw code10001 -> valid until fix
+      // The nested, native read transaction uses the top-level write
+      // transaction, so writing is allowed.
       List<int> ids = store.runInTransaction(
         TxMode.read,
         () => box.putMany(simpleItems()),
       );
       expect(ids.length, equals(6));
     });
+  });
+
+  // Catching the exception isn't recommended, but test to verify behavior
+  test('nested write: caught exception of inner aborts all', () {
+    store.runInTransaction(TxMode.write, () {
+      box.put(TestEntity(tString: 'outer'));
+      try {
+        store.runInTransaction(TxMode.write, () {
+          box.put(TestEntity(tString: 'inner'));
+          // Throw conditionally so the return type is not Never (rejected by
+          // runInTransaction).
+          if (box == env.box) throw 'inner-exception';
+        });
+      } on String catch (e) {
+        expect(e, 'inner-exception');
+      }
+    });
+    expect(box.count(), 0);
+  });
+
+  test('nested write: uncaught exception of inner aborts all', () {
+    expect(
+      () => store.runInTransaction(TxMode.write, () {
+        box.put(TestEntity(tString: 'outer'));
+        store.runInTransaction(TxMode.write, () {
+          box.put(TestEntity(tString: 'inner'));
+          // Throw conditionally so the return type is not Never (rejected by
+          // runInTransaction).
+          if (box == env.box) throw 'inner-exception';
+        });
+      }),
+      throwsA('inner-exception'),
+    );
+    expect(box.count(), 0);
   });
 
   test('assignable IDs', () {

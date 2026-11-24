@@ -26,12 +26,43 @@ class Transaction implements Finalizable {
   CursorHelper? _firstCursor;
   HashMap<int, CursorHelper>? _cursors;
 
+  /// Whether this is the outermost transaction of its native store in this
+  /// isolate (the native store considers transactions on the same thread
+  /// nested).
+  final bool _topLevel;
+
+  /// ID of the native store, see [StoreInternal.nativeId].
+  final int _storeId;
+
+  /// Number of open transactions by native store ID in this isolate.
+  ///
+  /// Only used to determine if a new transaction is top-level ([_topLevel]),
+  /// so [_finalizer] is only attached to top-level transactions. The native
+  /// store nests transactions per native store and thread, but the C API does
+  /// not expose if a transaction is top-level, so this mirrors it:
+  /// - static, so per isolate: transactions are synchronous, so all open
+  ///   transactions of an isolate are on the same thread,
+  /// - keyed by native store ID, as [Store] instances attached to the same
+  ///   native store share its nesting.
+  ///
+  /// Once the C API exposes a function to check if a transaction is top-level,
+  /// use that and remove this (and [_storeId] and [StoreInternal.nativeId]).
+  static final _openCountByStoreId = HashMap<int, int>();
+
   /// Closes a read and aborts a write transaction that is still open when its
   /// isolate shuts down: for example an isolate terminated via Isolate.kill()
   /// inside a transaction does not run finally blocks. This may run on an
   /// arbitrary thread, which may not be the thread that started the
   /// transaction. But without this, closing the store would wait for a write
   /// transaction forever.
+  ///
+  /// Only attached to top-level transactions: at isolate shutdown, native
+  /// finalizers run in the order objects were attached (this is undocumented VM
+  /// behavior, see the notes in `Store._attachFinalizer()`), so a parent would
+  /// be closed before its nested transactions. But closing the parent deletes
+  /// the native transaction, which a nested write transaction would then access
+  /// when closed (use after free). Closing the parent alone is sufficient, it
+  /// aborts the native transaction (the nested ones are then leaked).
   ///
   /// Keeps the finalizer itself reachable (static), otherwise it might be
   /// disposed of before the finalizer callback gets a chance to run.
@@ -43,13 +74,23 @@ class Transaction implements Finalizable {
   /// This works because Dart initializes static fields on access.
   static void initFinalizer() => _finalizer;
 
-  Transaction(this._store, this.mode)
-    : _cTxn =
+  factory Transaction(Store store, TxMode mode) {
+    final storeId = store.nativeId;
+    final openCount = _openCountByStoreId[storeId] ?? 0;
+    final tx = Transaction._(store, mode, storeId, topLevel: openCount == 0);
+    // Only count once successfully created.
+    _openCountByStoreId[storeId] = openCount + 1;
+    return tx;
+  }
+
+  Transaction._(this._store, this.mode, this._storeId, {required bool topLevel})
+    : _topLevel = topLevel,
+      _cTxn =
           mode == TxMode.write
               ? C.txn_write(InternalStoreAccess.cStore(_store))
               : C.txn_read(InternalStoreAccess.cStore(_store)) {
     checkObxPtr(_cTxn, 'failed to create transaction');
-    _finalizer.attach(this, _cTxn.cast(), detach: this);
+    if (_topLevel) _finalizer.attach(this, _cTxn.cast(), detach: this);
   }
 
   /// Indicates the write transaction is complete and closes it.
@@ -67,7 +108,13 @@ class Transaction implements Finalizable {
   void _finish(bool successful) {
     if (_closed) return;
     _closed = true;
-    _finalizer.detach(this);
+    if (_topLevel) _finalizer.detach(this);
+    final openCount = _openCountByStoreId[_storeId]! - 1;
+    if (openCount == 0) {
+      _openCountByStoreId.remove(_storeId);
+    } else {
+      _openCountByStoreId[_storeId] = openCount;
+    }
     final firstCursor = _firstCursor;
     if (firstCursor != null) {
       firstCursor.close();

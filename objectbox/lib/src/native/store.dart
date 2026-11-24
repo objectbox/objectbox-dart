@@ -63,8 +63,10 @@ class Store implements Finalizable {
 
   final _readPointers = ReadPointers();
 
-  /// Active transaction to be re-used. Currently not used.
-  Transaction? _tx;
+  /// ID of the native store, the same for all [Store] instances attached to
+  /// the same native store. Unique and stable during the lifetime of the
+  /// process.
+  late final int _nativeId = C.store_id(_cStoreChecked);
 
   /// Path to the database directory.
   String get directoryPath {
@@ -678,10 +680,13 @@ class Store implements Finalizable {
   /// errors](https://github.com/dart-lang/language/issues/1847#issuecomment-1002751632).
   void _attachFinalizer() {
     // At isolate shutdown, native finalizers run in the order their finalizer
-    // objects were created (verified empirically, without it, the store close
-    // waits forever; it is not documented VM behaviour): create the ones for
-    // transactions, observers and sync clients first, so that those still open
-    // at that point are closed before the store.
+    // objects were created, and for each finalizer in the order objects were
+    // attached to it. This is not documented VM behaviour, it was verified
+    // empirically (without it, the store close waits forever), last on
+    // macOS, Ubuntu and Windows using Flutter SDK 3.50.1.
+    // So create the finalizers for transactions, observers and sync clients
+    // first, so that those still open at that point are closed before the
+    // store.
     // This works because Dart initializes static fields on access.
     Transaction.initFinalizer();
     _Observer.initFinalizer();
@@ -1180,29 +1185,18 @@ class Store implements Finalizable {
   /// resumes! Even if this would await, the isolate might resume on a different
   /// thread, which is not supported while in a transaction.
   ///
-  /// This is prepared to re-use an already active transaction [_tx], but [_tx]
-  /// is currently not set.
-  ///
   /// This doesn't verify that the callback function isn't an async function
   /// for performance reasons. If not a concern, use [runInTransaction] instead!
   R _runInTransaction<R>(TxMode mode, R Function(Transaction) fn) {
-    final reused = _tx != null;
-    final tx = reused ? _tx! : Transaction(this, mode);
-    if (reused && tx.mode != TxMode.write && mode == TxMode.write) {
-      throw UnsupportedError(
-        'Cannot start a write transaction inside a read-only transaction.',
-      );
-    }
+    final tx = Transaction(this, mode);
     try {
       final result = fn(tx);
-      if (!reused) tx.successAndClose();
+      tx.successAndClose();
       return result;
     } catch (ex) {
       // Is a no-op if successAndClose did throw.
-      if (!reused) tx.abortAndClose();
+      tx.abortAndClose();
       rethrow;
-    } finally {
-      if (!reused) _tx = null;
     }
   }
 
@@ -1291,6 +1285,9 @@ extension StoreInternal on Store {
   ///
   /// See [ReadPointers].
   ReadPointers readPointers() => _readPointers;
+
+  /// See [Store._nativeId].
+  int get nativeId => _nativeId;
 }
 
 /// Internal only.
