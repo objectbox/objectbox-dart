@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
   # s.resource_bundles = {'objectbox_flutter_libs_privacy' => ['objectbox_flutter_libs/Sources/objectbox_flutter_libs/PrivacyInfo.xcprivacy']}
 
   s.dependency 'Flutter'
-  s.dependency 'ObjectBox', '5.3.0'
+  s.dependency 'ObjectBox', '6.0.0-rc'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
