@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://objectbox.io'
   s.license          = 'Apache 2.0, ObjectBox Binary License'
   s.author           = 'ObjectBox'
-  s.platform         = :osx, '11.0' # ObjectBox CocoaPod requires macOS 11
+  s.platform         = :osx, '12.0' # ObjectBox CocoaPod requires macOS 12
   s.source           = { :path => '.' }
   s.source_files     = 'objectbox_flutter_libs/Sources/objectbox_flutter_libs/**/*'
 
@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
   # s.resource_bundles = {'objectbox_flutter_libs_privacy' => ['objectbox_flutter_libs/Sources/objectbox_flutter_libs/PrivacyInfo.xcprivacy']}
 
   s.dependency 'FlutterMacOS'
-  s.dependency 'ObjectBox', '5.3.0'
+  s.dependency 'ObjectBox', '6.0.0-rc'
 
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.3'
