@@ -153,14 +153,16 @@ dev_dependencies:
 4. Your project can now use ObjectBox, [continue by defining entity classes](https://docs.objectbox.io/getting-started#define-entity-classes).
 
 > [!NOTE]
-> **For all iOS apps** target iOS 15.0: in `ios/Podfile` change the platform and in the 
-> `ios/Runner.xcodeproj/poject.pbxproj` file update `IPHONEOS_DEPLOYMENT_TARGET` (or open the Runner
-> workspace in Xcode and edit the build setting). In `ios/Flutter/AppframeworkInfo.plist` update 
-> `MinimumOSVersion` to `15.0`.
+> **For iOS apps target at least iOS 15.0**:
+> in the `ios/Runner.xcodeproj/poject.pbxproj` file update `IPHONEOS_DEPLOYMENT_TARGET` (or open the
+> Runner workspace in Xcode and edit the build setting).
+> In `ios/Flutter/AppframeworkInfo.plist` update `MinimumOSVersion` to `15.0`.
+> If still using CocoaPods, in `ios/Podfile` change the platform.
 >
-> **For all macOS apps** target macOS 11.0: in `macos/Podfile` change the platform and in the 
-> `macos/Runner.xcodeproj/poject.pbxproj` file update `MACOSX_DEPLOYMENT_TARGET` (or open the Runner
-> workspace in Xcode and edit the build setting).
+> **For macOS apps target at least macOS 12.0**: 
+> in the `macos/Runner.xcodeproj/poject.pbxproj` file update `MACOSX_DEPLOYMENT_TARGET` (or open the
+> Runner workspace in Xcode and edit the build setting).
+> If still using CocoaPods, in `macos/Podfile` change the platform.
 >
 > **For macOS apps using Sync,** open `macos/Runner.xcodeproj` in Xcode and for the Runner target 
 > under Signing & Capabilities in the App Sandbox sections, enable incoming and outgoing network 
