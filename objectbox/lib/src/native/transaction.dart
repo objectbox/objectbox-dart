@@ -35,6 +35,18 @@ class Transaction implements Finalizable {
   final int _storeId;
 
   /// Number of open transactions by native store ID in this isolate.
+  ///
+  /// Only used to determine if a new transaction is top-level ([_topLevel]),
+  /// so [_finalizer] is only attached to top-level transactions. The native
+  /// store nests transactions per native store and thread, but the C API does
+  /// not expose if a transaction is top-level, so this mirrors it:
+  /// - static, so per isolate: transactions are synchronous, so all open
+  ///   transactions of an isolate are on the same thread,
+  /// - keyed by native store ID, as [Store] instances attached to the same
+  ///   native store share its nesting.
+  ///
+  /// Once the C API exposes a function to check if a transaction is top-level,
+  /// use that and remove this (and [_storeId] and [StoreInternal.nativeId]).
   static final _openCountByStoreId = HashMap<int, int>();
 
   /// Closes a read and aborts a write transaction that is still open when its
