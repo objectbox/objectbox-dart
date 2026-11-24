@@ -102,14 +102,11 @@ ObjectBoxC? _tryObjectBoxLibFile() {
 // objectbox-android 6.0.0-rc           | 6.0.0 | 6.0.0-rc-2026-11-13
 // ObjectBox CocoaPod 6.0.0-rc          | 6.0.0 | 6.0.0-rc-2026-11-13
 // ObjectBox Swift Package 6.0.0-rc     | 6.0.0 | 6.0.0-rc-2026-11-13
-// Keeping at 5.3.2 as the CocoaPods and the Swift Package used by
-// flutter_libs with C API 6.0.0 are not ready and there are no breaking
-// changes (new APIs aren't guarded, though).
-var _obxCminMajor = 5;
-var _obxCminMinor = 3;
-var _obxCminPatch = 2;
+var _obxCminMajor = 6;
+var _obxCminMinor = 0;
+var _obxCminPatch = 0;
 // Require minimum database version guaranteeing actual C API availability.
-var _obxDatabaseMinVersion = "5.3.2-2026-05-05";
+var _obxDatabaseMinVersion = "6.0.0-rc-2026-11-13";
 
 bool _isSupportedVersion(ObjectBoxC obxc) {
   // Require a minimum C API version
