@@ -27,16 +27,19 @@ Build smarter apps with our easy-to-use native Dart API, and enjoy our seamless 
 
 ## Features
 
-🧠 **Artificial Intelligence** - superfast [on-device vector search](https://docs.objectbox.io/on-device-ann-vector-search).\
-🏁 **Super fast** - 10X faster than SQLite - see the [performance benchmarks](#flutter-database-performance-benchmarks).\
-🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
-💻 **Cross-platform** - Android, iOS, macOS, Linux, Windows.\
-🌱 **Scalable** - grows with your app, handling millions of objects with ease.
-
-🎯 **NoSQL database** - no rows or columns, only pure Dart objects.\
-🔗 **[Relations](https://docs.objectbox.io/relations)** - object links / relationships are built-in.\
-💐 **[Queries](https://docs.objectbox.io/queries)** - filter data as needed, even across relations.\
-📃 **Schema migration** - simply change your model, we handle the rest.
+- 🧠 **Artificial Intelligence** - superfast
+  [on-device vector search](https://docs.objectbox.io/on-device-ann-vector-search).
+- 🏁 **Super fast** - 10X faster than SQLite - see the
+  [performance benchmarks](#flutter-database-performance-benchmarks).
+- 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.
+- 💻 **Cross-platform** - Android, iOS, macOS, Linux, Windows.
+- 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
+- 🎯 **NoSQL database** - no rows or columns, only pure Dart objects.
+- 🔗 **[Relations](https://docs.objectbox.io/relations)** - object links / relationships are
+  built-in.
+- 💐 **[Queries](https://docs.objectbox.io/queries)** - filter data as needed, even across
+  relations.
+- 📃 **Schema migration** - simply change your model, we handle the rest.
 
 Oh, and there is one more thing...
 
@@ -47,7 +50,7 @@ Oh, and there is one more thing...
 - [Sneak peek](#sneak-peek---persist-dart-objects-with-objectbox)
 - [Getting Started](#getting-started)
 - [Flutter Database Performance Benchmarks](#flutter-database-performance-benchmarks)
-- [Do you 💙 ObjectBox?](#do-you--objectbox)
+- [Feedback](#feedback)
 - [FAQ](#faq)
 - [See also](#see-also)
 - [License](#license)
@@ -113,40 +116,32 @@ To add ObjectBox to your Flutter project:
 
 1. Run these commands:
 
-```
-flutter pub add objectbox objectbox_flutter_libs:any
-flutter pub add --dev build_runner objectbox_generator:any
-```
+   ```
+   flutter pub add objectbox objectbox_flutter_libs:any
+   flutter pub add --dev build_runner objectbox_generator:any
+   ```
 
-Or to use [ObjectBox Sync](https://objectbox.io/sync/) (requires access to the Sync feature) instead run:
+   Or to use [ObjectBox Sync](https://objectbox.io/sync/) (requires access to the Sync feature)
+   instead run:
 
-```
-flutter pub add objectbox objectbox_sync_flutter_libs:any
-flutter pub add --dev build_runner objectbox_generator:any
-```
-
-> [!NOTE]
-> **To run unit tests on your machine**, download the latest ObjectBox database library for your 
-> system by running this script in your package directory in a bash shell (e.g. Git Bash on 
-> Windows):
->
-> `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)`
->
-> To get the variant for **ObjectBox Sync**, append the `--sync` argument to the above command.
+   ```
+   flutter pub add objectbox objectbox_sync_flutter_libs:any
+   flutter pub add --dev build_runner objectbox_generator:any
+   ```
 
 2. This should add lines like this to your `pubspec.yaml`:
 
-```yaml
-dependencies:
-  objectbox: ^6.0.0-preview.6
-  objectbox_flutter_libs: any
-  # If you run the command for ObjectBox Sync it should add instead:
-  # objectbox_sync_flutter_libs: any
+   ```yaml
+   dependencies:
+     objectbox: ^6.0.0-preview.6
+     objectbox_flutter_libs: any
+     # If you run the command for ObjectBox Sync it should add instead:
+     # objectbox_sync_flutter_libs: any
 
-dev_dependencies:
-  build_runner: ^2.4.11
-  objectbox_generator: any
-```
+   dev_dependencies:
+     build_runner: ^2.4.11
+     objectbox_generator: any
+   ```
 
 3. If you added the above lines manually, then install the packages with `flutter pub get`.
 
@@ -175,27 +170,36 @@ dev_dependencies:
 >	<true/>
 > ```
 
+> [!NOTE]
+> **To run unit tests on your machine**, download the latest ObjectBox database library for your
+> system by running this script in your package directory in a bash shell (e.g. Git Bash on
+> Windows):
+>
+> `bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)`
+>
+> To get the variant for **ObjectBox Sync**, append the `--sync` argument to the above command.
+
 ### Dart Native projects
 
 To add ObjectBox to your Dart Native project:
 
 1. Run these commands:
 
-```
-dart pub add objectbox
-dart pub add --dev build_runner objectbox_generator:any
-```
+   ```
+   dart pub add objectbox
+   dart pub add --dev build_runner objectbox_generator:any
+   ```
 
 2. This should add lines like this to your `pubspec.yaml`:
 
-```yaml
-dependencies:
-  objectbox: ^6.0.0-preview.6
+   ```yaml
+   dependencies:
+     objectbox: ^6.0.0-preview.6
 
-dev_dependencies:
-  build_runner: ^2.4.11
-  objectbox_generator: any
-```
+   dev_dependencies:
+     build_runner: ^2.4.11
+     objectbox_generator: any
+   ```
 
 3. If you added the above lines manually, then install the packages with `dart pub get`
 
@@ -203,22 +207,23 @@ dev_dependencies:
    the [ObjectBox C library](https://github.com/objectbox/objectbox-c) for your system (on Windows
    you can use "Git Bash"):
 
-```bash
-bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
-```
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh)
+   ```
 
-Or to use [ObjectBox Sync](https://objectbox.io/sync/) (requires access to the Sync feature) instead run:
+   Or to use [ObjectBox Sync](https://objectbox.io/sync/) (requires access to the Sync feature)
+   instead run:
 
-```bash
-bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
-```
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/objectbox/objectbox-dart/main/install.sh) --sync
+   ```
+
+5. Your project can now use ObjectBox, [continue by defining entity classes](https://docs.objectbox.io/getting-started#define-entity-classes).
 
 > [!NOTE]
 > The database library is downloaded into the `lib` subdirectory of the working directory. 
 > It's not necessary to install the library system-wide. This also allows to use different versions 
 > for different projects. See the notes on deploying below.
-
-5. Your project can now use ObjectBox, [continue by defining entity classes](https://docs.objectbox.io/getting-started#define-entity-classes).
 
 #### Deploying Dart Native projects
 
@@ -242,16 +247,23 @@ We tested across the four main database operations, CRUD (create, read, update, 
 
 Here are the benchmarks for ObjectBox vs sqflite vs Hive (last updated 2021-09-11) 👇
 
-![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
+![Bar chart of CRUD objects per second (more is better): ObjectBox is fastest in all four operations, ahead of Hive and far ahead of sqflite](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
+
+| Operation | ObjectBox | sqflite |      Hive |
+|-----------|----------:|--------:|----------:|
+| Create    |   472,858 |   4,415 |   220,486 |
+| Read      | 1,870,487 |  47,581 | 1,645,170 |
+| Update    |   488,048 |   4,310 |   108,429 |
+| Delete    | 1,585,791 | 183,731 |   364,764 |
 
 You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
 
-## Do you 💙 ObjectBox?
+## Feedback
 
 We strive to bring joy to Flutter developers and appreciate any feedback
---> Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
+→ Please fill in this 2-minute [Anonymous Feedback Form](https://forms.gle/LvVjN6jfFHuivxZX6).
 
-**We ❤️ you & are looking forward to your comments and ideas:**
+**We are looking forward to your comments and ideas:**
 
 - Add [GitHub issues](https://github.com/objectbox/objectbox-dart/issues)
 - Upvote issues you find important by adding the 👍 (thumbs up) reaction

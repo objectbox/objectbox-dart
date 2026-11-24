@@ -72,18 +72,20 @@ and servers, both online and offline.
 
 ### Features
 
-🏁 **Very first [on-device vector database](https://docs.objectbox.io/on-device-ann-vector-search)** - for AI apps that work any place.
-
-🏁 **High performance** - superfast response rates enabling real-time applications.\
-🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.\
-💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows, any POSIX-system.\
-🌱 **Scalable** - grows with your app, handling millions of objects with ease.\
-💚 **Sustainable** - frugal on CPU, Memory and battery / power use, reducing CO2 emissions.
-
-🔗 **[Relations](https://docs.objectbox.io/relations)** - object links / relationships are built-in.\
-💐 **[Queries](https://docs.objectbox.io/queries)** - filter data as needed, even across relations.\
-🦮 **Statically typed** - compile time checks & optimizations.\
-📃 **Schema migration** - change your model with confidence.
+- 🏁 **Very first
+  [on-device vector database](https://docs.objectbox.io/on-device-ann-vector-search)** - for AI
+  apps that work any place.
+- 🏁 **High performance** - superfast response rates enabling real-time applications.
+- 🪂 **ACID compliant** - Atomic, Consistent, Isolated, Durable.
+- 💻 **Multiplatform** - Android, iOS, macOS, Linux, Windows, any POSIX-system.
+- 🌱 **Scalable** - grows with your app, handling millions of objects with ease.
+- 💚 **Sustainable** - frugal on CPU, Memory and battery / power use, reducing CO2 emissions.
+- 🔗 **[Relations](https://docs.objectbox.io/relations)** - object links / relationships are
+  built-in.
+- 💐 **[Queries](https://docs.objectbox.io/queries)** - filter data as needed, even across
+  relations.
+- 🦮 **Statically typed** - compile time checks & optimizations.
+- 📃 **Schema migration** - change your model with confidence.
 
 Oh, and there is one more thing...
 
@@ -107,11 +109,18 @@ Data preparation and evaluation were done outside the measured time.
 
 Here are the benchmarks for ObjectBox vs sqflite vs Hive (last updated 2021-09-11) 👇
 
-![](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
+![Bar chart of CRUD objects per second (more is better): ObjectBox is fastest in all four operations, ahead of Hive and far ahead of sqflite](https://raw.githubusercontent.com/objectbox/objectbox-dart/main/.github/benchmarks.png)
+
+| Operation | ObjectBox | sqflite |      Hive |
+|-----------|----------:|--------:|----------:|
+| Create    |   472,858 |   4,415 |   220,486 |
+| Read      | 1,870,487 |  47,581 | 1,645,170 |
+| Update    |   488,048 |   4,310 |   108,429 |
+| Delete    | 1,585,791 | 183,731 |   364,764 |
 
 You can run these yourself using our [objectbox-dart-performance](https://github.com/objectbox/objectbox-dart-performance) Flutter benchmark app.
 
-## How do you 💙 ObjectBox?
+## Feedback
 
 **We're looking forward to receiving your comments and requests:**
 
