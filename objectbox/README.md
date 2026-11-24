@@ -169,7 +169,7 @@ dev_dependencies:
 > `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements` files:
 >
 > ```
-> 	<key>com.apple.security.network.server</key>
+>   <key>com.apple.security.network.server</key>
 >	<true/>
 >	<key>com.apple.security.network.client</key>
 >	<true/>
