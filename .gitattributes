@@ -1,3 +1,5 @@
-# Keep LF line endings for ObjectBox model JSON files
-# (to avoid plugin detecting changes if checked out on Windows due to core.autocrlf = true)
-objectbox-model.json text eol=lf
+# Store text files with LF line endings, and check them out with LF on all
+# platforms, regardless of core.autocrlf.
+# This ensures package sources are published with LF line endings.
+# And LF line endings are kept for ObjectBox model JSON files.
+* text=auto eol=lf
