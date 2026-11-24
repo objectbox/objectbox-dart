@@ -14,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "FlutterFramework", path: "../FlutterFramework"),
-        // Pinned to the commit of tag 6.0.0-beta.2 (new versions might contain breaking C API changes, so it is
+        // Pinned to the commit of tag 6.0.0-rc (new versions might contain breaking C API changes, so it is
         // pinned at all). Pinned by revision rather than exact version as the objectbox_mesh_sync plugin
         // must pin it by revision (it enables the MeshSync trait, see its Package.swift) and both plugins must use
         // the same requirement. Keep both in sync.
@@ -22,7 +22,7 @@ let package = Package(
         // package) are not part of the build unless an app adds objectbox_mesh_sync.
         .package(
             url: "https://github.com/objectbox/objectbox-swift-spm.git",
-            revision: "910840f73816ce78cbefef12d7869402675ae1bf")  // 6.0.0-beta.2
+            revision: "d2ef3d68c85dfb62e407c5a06f18395e93ac109f")  // 6.0.0-rc
     ],
     targets: [
         .target(

@@ -21,7 +21,7 @@ let package = Package(
         // trait.
         .package(
             url: "https://github.com/objectbox/objectbox-swift-spm.git",
-            revision: "910840f73816ce78cbefef12d7869402675ae1bf")  // 6.0.0-beta.2
+            revision: "d2ef3d68c85dfb62e407c5a06f18395e93ac109f")  // 6.0.0-rc
     ],
     targets: [
         .target(
