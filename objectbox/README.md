@@ -133,7 +133,7 @@ To add ObjectBox to your Flutter project:
 
    ```yaml
    dependencies:
-     objectbox: ^6.0.0-preview.6
+     objectbox: ^6.0.0-rc.1
      objectbox_flutter_libs: any
      # If you run the command for ObjectBox Sync it should add instead:
      # objectbox_sync_flutter_libs: any
@@ -194,7 +194,7 @@ To add ObjectBox to your Dart Native project:
 
    ```yaml
    dependencies:
-     objectbox: ^6.0.0-preview.6
+     objectbox: ^6.0.0-rc.1
 
    dev_dependencies:
      build_runner: ^2.4.11
