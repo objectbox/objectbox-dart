@@ -156,7 +156,7 @@ dev_dependencies:
 > **For iOS apps target at least iOS 15.0**:
 > in the `ios/Runner.xcodeproj/poject.pbxproj` file update `IPHONEOS_DEPLOYMENT_TARGET` (or open the
 > Runner workspace in Xcode and edit the build setting).
-> In `ios/Flutter/AppframeworkInfo.plist` update `MinimumOSVersion` to `15.0`.
+> In `ios/Flutter/AppframeworkInfo.plist`, if it's there, update `MinimumOSVersion`.
 > If still using CocoaPods, in `ios/Podfile` change the platform.
 >
 > **For macOS apps target at least macOS 12.0**: 
@@ -164,9 +164,16 @@ dev_dependencies:
 > Runner workspace in Xcode and edit the build setting).
 > If still using CocoaPods, in `macos/Podfile` change the platform.
 >
-> **For macOS apps using Sync,** open `macos/Runner.xcodeproj` in Xcode and for the Runner target 
-> under Signing & Capabilities in the App Sandbox sections, enable incoming and outgoing network 
-> access.
+> **For macOS apps using Sync,** make sure [entitlements](https://docs.flutter.dev/platform-integration/macos/building#setting-up-entitlements) 
+> to enable incoming (server) and outgoing connections (client) are added in the
+> `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements` files:
+>
+> ```
+> 	<key>com.apple.security.network.server</key>
+>	<true/>
+>	<key>com.apple.security.network.client</key>
+>	<true/>
+> ```
 
 ### Dart Native projects
 
